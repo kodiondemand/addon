@@ -454,8 +454,7 @@ def videolibrary(itemlist, item, typography=''):
                  url=item.url,
                  action=action,
                  extra=extra,
-                 contentTitle=item.fulltitle,
-                 parentTitle=item.title))
+                 contentTitle=item.fulltitle))
 
 
 def nextPage(itemlist, item, data, patron, function_level=1):
