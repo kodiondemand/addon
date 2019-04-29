@@ -9,6 +9,14 @@
     "categories": ["tvshow"],
     "settings": [
         {
+            "id": "channel_host",
+            "type": "text",
+            "label": "Host del canale",
+            "default": "https://www.serietvu.club",
+            "enabled": true,
+            "visible": true
+        },
+        {
             "id": "include_in_global_search",
             "type": "bool",
             "label": "Includi ricerca globale",

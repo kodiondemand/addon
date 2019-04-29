@@ -4,14 +4,13 @@
 # ----------------------------------------------------------
 import re
 
-from core import httptools, scrapertoolsV2, servertools, tmdb, scrapertools
-from core.item import Item
-from lib import unshortenit
-from platformcode import logger, config
+import channelselector
 from channels import autoplay, support, filtertools
-from channelselector import thumb
+from core import httptools, tmdb, scrapertools
+from core.item import Item
+from platformcode import logger, config
 
-host = "https://www.serietvu.club/"
+host = config.get_setting("channel_host", 'serietvu')
 headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'IT'}
@@ -24,14 +23,24 @@ list_quality = ['default']
 def mainlist(item):
     support.log(item.channel + 'mainlist')
     itemlist = []
-    # support.menu(itemlist, "Cerca Film... color kod", 'search', '', 'movie')
-    support.menu(itemlist, 'Novità color azure', 'latestep', "%s/ultimi-episodi" % host,'tvshow')
-    support.menu(itemlist, 'Nuove serie color azure', 'lista_serie', "%s/category/serie-tv" % host,'tvshow')
-    support.menu(itemlist, 'Categorie color azure', 'categorie', host,'tvshow')
+    support.menu(itemlist, 'Serie TV bold', 'lista_serie', "%s/category/serie-tv" % host,'tvshow')
+    support.menu(itemlist, 'Novità submenu', 'latestep', "%s/ultimi-episodi" % host,'tvshow')
+    # support.menu(itemlist, 'Nuove serie color azure', 'lista_serie', "%s/category/serie-tv" % host,'tvshow')
+    support.menu(itemlist, 'Categorie', 'categorie', host,'tvshow')
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
+
 
     # autoplay.init(item.channel, list_servers, list_quality)
     # autoplay.show_option(item.channel, itemlist)
+
+    itemlist.append(
+        Item(channel='setting',
+             action="channel_config",
+             title=support.typo("Configurazione Canale color lime"),
+             config=item.channel,
+             folder=False,
+             thumbnail=channelselector.get_thumb('setting_0.png'))
+    )
 
     return itemlist
 
@@ -82,7 +91,7 @@ def lista_serie(item):
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     # Pagine
-    support.nextPage(itemlist,item,data,'<a href="([^"]+)"[^>]+>Pagina')
+    support.nextPage(itemlist,item,data,'<li><a href="([^"]+)">Pagina successiva')
 
     return itemlist
 
