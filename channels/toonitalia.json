@@ -1,0 +1,65 @@
+{
+  "id": "toonitalia", 
+  "name": "ToonItalia",
+  "language": ["ita"],  
+  "active": true, 
+  "adult": false, 
+  "thumbnail": "toonitalia.png", 
+  "banner": "toonitalia.png", 
+  "categories": ["tvshow", "movie", "vosi"], 
+  "settings": [
+		{
+		  "id": "include_in_global_search",
+		  "type": "bool",
+		  "label": "Includi in Ricerca Globale",
+		  "default": true,
+		  "enabled": true,
+		  "visible": true
+		},
+		{
+      "id": "include_in_newest_peliculas",
+      "type": "bool",
+      "label": "Includi in Novità - Film",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "include_in_newest_italiano",
+      "type": "bool",
+      "label": "Includi in Novità - Italiano",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+		{
+      "id": "comprueba_enlaces",
+      "type": "bool",
+      "label": "Verifica se i link esistono",
+      "default": false,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "comprueba_enlaces_num",
+      "type": "list",
+      "label": "Numero di link da verificare",
+      "default": 1,
+      "enabled": true,
+      "visible": "eq(-1,true)",
+      "lvalues": [ "5", "10", "15", "20" ]
+    },
+    {
+      "id": "filter_languages",
+      "type": "list",
+      "label": "Mostra link in lingua...",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [
+        "No filtrar",
+        "Italiano"
+      ]
+    }
+	  ]
+}
