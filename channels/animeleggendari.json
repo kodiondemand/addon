@@ -1,11 +1,11 @@
 {
     "id": "animeleggendari",
-    "name": "AnimeLeggendari",
+    "name": "AnimePerTutti",
     "active": true,
     "adult": false,
     "language": ["ita"],
-    "thumbnail": "https://animeleggendari.com/wp-content/uploads/2018/01/123header.jpg",
-    "bannermenu": "https://animeleggendari.com/wp-content/uploads/2018/01/123header.jpg",
+    "thumbnail": "animepertutti.png",
+    "bannermenu": "animepertutti.png",
     "categories": ["anime"],
     "settings": [
         {
@@ -20,9 +20,9 @@
             "id": "include_in_newest_anime",
             "type": "bool",
             "label": "Includi in Novità - Anime",
-            "default": false,
-            "enabled": false,
-            "visible": false
+            "default": true,
+            "enabled": true,
+            "visible": true
         },
         {
             "id": "include_in_newest_italiano",

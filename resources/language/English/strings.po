@@ -10020,7 +10020,7 @@ msgid "Do you want to update Quasar to avoid errors?"
 msgstr ""
 
 msgctxt "#70585"
-msgid "RENUMBERING"
+msgid "[B]Renumbering[/B] (beta)"
 msgstr ""
 
 msgctxt "#70586"

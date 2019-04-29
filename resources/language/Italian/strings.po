@@ -5004,8 +5004,8 @@ msgid "Do you want to update Quasar to avoid errors?"
 msgstr "Vuoi aggiornare Quasar per evitare errori?"
 
 msgctxt "#70585"
-msgid "RENUMBERING"
-msgstr "RINUMERAZIONE"
+msgid "[B]Renumbering[/B] (beta)"
+msgstr "[B]Rinumerazione[/B] (beta)"
 
 msgctxt "#70586"
 msgid "Set up series number..."
