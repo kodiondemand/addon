@@ -1,0 +1,84 @@
+{
+  "id": "altadefinizione01_link",
+  "name": "Altadefinizione01 L",
+  "active": true,
+  "adult": false,
+  "language": ["ita"],
+  "fanart": "",
+  "thumbnail": "",
+  "banner": "http://altadefinizione01.link/templates/Dark/img/logonyy.png",
+  "categories": [
+    "movie"
+  ],
+  "settings": [
+    {
+      "id": "modo_grafico",
+      "type": "bool",
+      "label": "Buscar información extra",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "include_in_newest_film",
+      "type": "bool",
+      "label": "Includi in Novità",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "include_in_global_search",
+      "type": "bool",
+      "label": "Includi ricerca globale",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "comprueba_enlaces",
+      "type": "bool",
+      "label": "Verifica se i link esistono",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "comprueba_enlaces_num",
+      "type": "list",
+      "label": "Numero de link da verificare",
+      "default": 1,
+      "enabled": true,
+      "visible": "eq(-1,true)",
+      "lvalues": [ "5", "10", "15", "20" ]
+    },
+    {
+      "id": "filter_languages",
+      "type": "list",
+      "label": "Mostra link in lingua...",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [
+        "Non filtrare",
+        "IT"
+      ]
+    },
+    {
+      "id": "perfil",
+      "type": "list",
+      "label": "profilo dei colori",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [
+        "Sin color",
+        "Perfil 5",
+        "Perfil 4",
+        "Perfil 3",
+        "Perfil 2",
+        "Perfil 1"
+      ]
+    }
+	  ]
+}
