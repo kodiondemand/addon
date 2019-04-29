@@ -10,7 +10,7 @@ from core import servertools
 from core.item import Item
 from platformcode import logger, config
 
-host = "https://altadefinizione.center"   ### <- cambio Host da .fm a .center
+host = "https://alta-definizione.info/"   ### <- Nuovo host verificato 29/04/2019 ore 17:36
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
