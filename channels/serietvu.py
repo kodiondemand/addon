@@ -205,6 +205,7 @@ def latestep(item):
                  thumbnail=scrapedimg,
                  show=scrapedtitle,
                  contentTitle=scrapedtitle,
+                 contentSerieName=title,
                  infoLabels=infoLabels,
                  folder=True))
 
