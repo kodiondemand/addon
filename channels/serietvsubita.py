@@ -88,7 +88,7 @@ def lista_serie(item):
         itemlist.append(
             Item(channel=item.channel,
                  extra=item.extra,
-                 action="episodios",
+                 action="episodes",
                  title=title,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
@@ -117,8 +117,8 @@ def lista_serie(item):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-def episodios(item):
-    support.log(item.channel + " episodios")
+def episodes(item):
+    support.log(item.channel + " episodes")
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
@@ -155,14 +155,14 @@ def episodios(item):
     if next_page != "":
         itemlist.append(
             Item(channel=item.channel,
-                 action='episodios',
+                 action='episodes',
                  contentType=item.contentType,
                  title=support.typo(config.get_localized_string(30992), 'color kod bold'),
                  url=next_page,
                  args=item.args,
                  thumbnail=support.thumb()))
 
-    support.videolibrary(itemlist,item,'bold color kod')
+    # support.videolibrary(itemlist,item,'bold color kod')
 
     return itemlist
 
@@ -324,7 +324,7 @@ def list_az(item):
         itemlist.append(
             Item(channel=item.channel,
                  extra=item.extra,
-                 action="episodios",
+                 action="episodes",
                  title=title,
                  url=scrapedurl,
                  fulltitle=title,
