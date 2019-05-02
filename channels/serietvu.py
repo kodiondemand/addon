@@ -86,6 +86,7 @@ def lista_serie(item):
                  thumbnail=scrapedimg,
                  show=scrapedtitle,
                  infoLabels=infoLabels,
+                 contentType='tvshow',
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -127,7 +128,16 @@ def episodios(item):
                      extra=scrapedextra,
                      folder=True))
 
-    support.videolibrary(itemlist,item,'bold color kod')
+    if config.get_videolibrary_support() and len(itemlist) != 0:
+        itemlist.append(
+            Item(channel=item.channel,
+                 title=support.typo(config.get_localized_string(30161) + ' bold color kod'),
+                 thumbnail=support.thumb(),
+                 url=item.url,
+                 action="add_serie_to_library",
+                 extra="episodios",
+                 contentSerieName=item.fulltitle,
+                 show=item.show))
 
     return itemlist
 
