@@ -24,7 +24,7 @@ def findhost():
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'wstream']
+list_servers = ['verystream', 'openload', 'streamango', 'wstream']
 list_quality = ['HD', 'default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'cineblog01')

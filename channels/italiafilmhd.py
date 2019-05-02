@@ -16,7 +16,7 @@ from platformcode import logger, config
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'youtube']
+list_servers = ['verystream', 'openload', 'youtube']
 list_quality = ['default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'italiafilmhd')

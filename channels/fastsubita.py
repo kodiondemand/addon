@@ -15,7 +15,7 @@ host = "http://fastsubita.com"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'speedvideo', 'wstream', 'flashx', 'vidoza', 'vidtome']
+list_servers = ['verystream', 'openload', 'speedvideo', 'wstream', 'flashx', 'vidoza', 'vidtome']
 list_quality = ['default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'fastsubita')

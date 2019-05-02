@@ -14,7 +14,7 @@ host = "https://altadefinizione.center"   ### <- cambio Host da .fm a .center
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', "vidoza", "thevideo", "okru", 'youtube']
+list_servers = ['verystream', 'openload', 'streamango', "vidoza", "thevideo", "okru", 'youtube']
 list_quality = ['1080p']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'altadefinizioneclick')

@@ -13,7 +13,7 @@ from platformcode import logger, config
 from channelselector import thumb
 
 host = "https://eurostreaming.cafe"
-list_servers = ['openload', 'speedvideo', 'wstream', 'streamango' 'flashx', 'nowvideo']
+list_servers = ['verystream', 'openload', 'speedvideo', 'wstream', 'streamango' 'flashx', 'nowvideo']
 list_quality = ['default']
 
 

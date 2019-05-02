@@ -17,7 +17,7 @@ from platformcode import logger
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'vidlox', 'youtube']
+list_servers = ['verystream', 'openload', 'streamango', 'vidlox', 'youtube']
 list_quality = ['default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'tantifilm')

@@ -4836,11 +4836,11 @@ msgid "Move down all"
 msgstr ""
 
 msgctxt "#70539"
-msgid "* Create different folders to store your favorite links within Icarus. [CR]"
+msgid "* Create different folders to store your favorite links within Kodi on Demand. [CR]"
 msgstr ""
 
 msgctxt "#70540"
-msgid "* To add links to folders, access the context menu from any point in Icarus.[CR]"
+msgid "* To add links to folders, access the context menu from any point in Kodi on Demand.[CR]"
 msgstr ""
 
 msgctxt "#70541"
@@ -9836,11 +9836,11 @@ msgid "Move down all"
 msgstr ""
 
 msgctxt "#70539"
-msgid "* Create different folders to store your favorite links within Icarus. [CR]"
+msgid "* Create different folders to store your favorite links within Kodi on Demand. [CR]"
 msgstr ""
 
 msgctxt "#70540"
-msgid "* To add links to folders, access the context menu from any point in Icarus.[CR]"
+msgid "* To add links to folders, access the context menu from any point in Kodi on Demand.[CR]"
 msgstr ""
 
 msgctxt "#70541"
@@ -10440,3 +10440,19 @@ msgstr ""
 msgctxt "#70688"
 msgid "Episode 0 is a special episode, enter the number of this episode"
 msgstr ""
+
+msgctxt "#70689"
+msgid "Enable Download"
+msgstr ""
+
+msgctxt "#70690"
+msgid "Disclaimer"
+msgstr "Disclaimer"
+
+msgctxt "#70691"
+msgid "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
+msgstr "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
+
+msgctxt "#70692"
+msgid "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
+msgstr "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"

@@ -23,7 +23,7 @@ IDIOMAS = {'Latino': 'LAT', 'Vo':'VO', 'Vose': 'VOSE'}
 IDIOMA = "no filtrar"
 list_language = IDIOMAS.values()
 list_quality = []
-list_servers = ['openload', 'streamango', 'netutv', 'okru', 'mp4upload']
+list_servers = ['verystream', 'openload', 'streamango', 'netutv', 'okru', 'mp4upload']
 
 def get_source(url, referer=None):
     logger.info()

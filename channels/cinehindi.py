@@ -16,7 +16,7 @@ from platformcode import config, logger
 IDIOMAS = {'Hindi': 'Hindi'}
 list_language = IDIOMAS.values()
 list_quality = []
-list_servers = ['openload', 'netutv']
+list_servers = ['verystream', 'openload', 'netutv']
 
 host = "http://www.cinehindi.com/"
 

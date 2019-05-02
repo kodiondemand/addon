@@ -19,7 +19,7 @@ from channelselector import get_thumb
 IDIOMAS = {'Latino':'Lat', 'Español':'Cast', 'Subtitulado':'VOSE'}
 list_language = IDIOMAS.values()
 list_quality = ['HD 1080p', 'HD 720p', 'DVDRIP', 'CAM']
-list_servers = ['openload', 'vidoza', 'clipwatching', 'fastplay', 'flashx', 'gamovideo', 'powvideo', 'streamango',
+list_servers = ['verystream', 'openload', 'vidoza', 'clipwatching', 'fastplay', 'flashx', 'gamovideo', 'powvideo', 'streamango',
                 'streamcherry', 'rapidvideo']
 
 host = 'https://playview.io/'

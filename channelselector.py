@@ -7,6 +7,9 @@ from core import channeltools
 from core.item import Item
 from platformcode.unify import thumb_dict
 from platformcode import config, logger, unify
+import xbmcaddon
+addon = xbmcaddon.Addon('plugin.video.kod')
+downloadenabled = addon.getSetting('downloadenabled')
 
 
 def getmainlist(view="thumb_"):
@@ -44,11 +47,11 @@ def getmainlist(view="thumb_"):
                              category=config.get_localized_string(30119), viewmode="thumbnails",
                              context=[{"title": config.get_localized_string(70287), "channel": "videolibrary",
                                        "action": "channel_config"}]))
-
-    itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist",
-                         thumbnail=get_thumb("downloads.png", view), viewmode="list",
-                         context=[{"title": config.get_localized_string(70288), "channel": "setting", "config": "downloads",
-                                   "action": "channel_config"}]))
+    if downloadenabled != "false":
+        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist",
+                            thumbnail=get_thumb("downloads.png", view), viewmode="list",
+                            context=[{"title": config.get_localized_string(70288), "channel": "setting", "config": "downloads",
+                                    "action": "channel_config"}]))
 
     thumb_setting = "setting_%s.png" % 0  # config.get_setting("plugin_updates_available")
 

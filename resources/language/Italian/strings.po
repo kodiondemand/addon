@@ -1850,8 +1850,8 @@ msgid "KOD - FAQ - %s"
 msgstr "KOD - FAQ - %s"
 
 msgctxt "#60462"
-msgid "You may not have written the library path correctly in 'Settings>Preferences'.\nIl The specified path must be exactly the same as the 'source' entered in 'Archive' of the Kodi library.\nAVANZATO: This path is also found in 'sources.xml'.\nThere can be problems using some Kodi forks and paths with 'special://'. SPMC, for example, has problems with this, and there doesn't seem to be a solution, as it is an external problem to Alfa that has existed for a long time.\nYou can try solving these problems in 'Settings>Library Settings' by changing the 'Search in' setting from 'The folder of each series' to 'All library'."
-msgstr "Potresti non aver scritto correttamente il percorso della libreria in 'Impostazioni>Preferenze'.\nIl percorso specificato deve essere esattamente uguale al 'sorgente' inserito in 'Archivio' della libreria di Kodi.\nAVANZATO: Questo percorso si trova anche in 'sources.xml'.\nPotresti riscontrare dei problemi utilizzando alcuni fork di Kodi e percorsi con 'special://'. SPMC, per esempio, ha problemi con questo, e non sembra esserci una soluzione, poichè è un problema esterno ad Alfa che esiste da molto tempo.\nPuoi provare a risolvere questi problemi in 'Impostazioni>Impostazioni libreria', modificando l'impostazione 'Esegui ricerca contenuto in' da 'La cartella di ogni serie' in 'Tutta la libreria'."
+msgid "You may not have written the library path correctly in 'Settings>Preferences'.\nIl The specified path must be exactly the same as the 'source' entered in 'Archive' of the Kodi library.\nAVANZATO: This path is also found in 'sources.xml'.\nThere can be problems using some Kodi forks and paths with 'special://'. SPMC, for example, has problems with this, and there doesn't seem to be a solution, as it is an external problem to Kodi on Demand that has existed for a long time.\nYou can try solving these problems in 'Settings>Library Settings' by changing the 'Search in' setting from 'The folder of each series' to 'All library'."
+msgstr "Potresti non aver scritto correttamente il percorso della libreria in 'Impostazioni>Preferenze'.\nIl percorso specificato deve essere esattamente uguale al 'sorgente' inserito in 'Archivio' della libreria di Kodi.\nAVANZATO: Questo percorso si trova anche in 'sources.xml'.\nPotresti riscontrare dei problemi utilizzando alcuni fork di Kodi e percorsi con 'special://'. SPMC, per esempio, ha problemi con questo, e non sembra esserci una soluzione, poichè è un problema esterno Kodi on Demand che esiste da molto tempo.\nPuoi provare a risolvere questi problemi in 'Impostazioni>Impostazioni libreria', modificando l'impostazione 'Esegui ricerca contenuto in' da 'La cartella di ogni serie' in 'Tutta la libreria'."
 
 msgctxt "#60463"
 msgid "The channel site may not work. In case the site works you can report the problem on github."
@@ -1871,7 +1871,7 @@ msgstr "Sì, l'opzione per mostrare i risultati uniti o divisi per canali si tro
 
 msgctxt "#60467"
 msgid "To report a problem on'https://t.me/kodiondemand' you need to:|the version you're using of Alpha.|The version you're using of kodi, mediaserver, etc.|the version and name of the operating system you're using.|The name of the skin (in case you're using Kodi) and whether using the default skin has solved the problem.|Description of the problem and any test cases.To activate the log in detailed mode, go to:|Configuration.|Preferences.|In the General tab - Check the option: Generate detailed log. The detailed log file can be found in the following path: \n\n%s"
-msgstr "Per segnalare un problema su 'https://t.me/kodiondemand' è necessario:|la versione che si sta usando di Alpha.|La versione che si sta usando di kodi, mediaserver, ecc.|la versione e il nome del sistema operativo che si sta usando.|Il nome della skin (nel caso in cui si stia usando Kodi) e se l'utilizzo della skin predefinita ha risolto il problema.|La descrizione del problema e tutti i casi di test.Per attivare il log in modalità dettagliata, andare su:|Configurazione.|Preferenze.|Nella scheda Generale - Selezionare l'opzione: Genera log dettagliato Il file di log dettagliato si trova nel seguente percorso: \n\n%s"
+msgstr "Per segnalare un problema su 'https://t.me/kodiondemand' è necessario:|la versione che si sta usando di Kodi on Demand.|La versione che si sta usando di kodi, mediaserver, ecc.|la versione e il nome del sistema operativo che si sta usando.|Il nome della skin (nel caso in cui si stia usando Kodi) e se l'utilizzo della skin predefinita ha risolto il problema.|La descrizione del problema e tutti i casi di test.Per attivare il log in modalità dettagliata, andare su:|Configurazione.|Preferenze.|Nella scheda Generale - Selezionare l'opzione: Genera log dettagliato Il file di log dettagliato si trova nel seguente percorso: \n\n%s"
 
 msgctxt "#60468"
 msgid "You can find our Telegram group at @kodiondemand"
@@ -4820,12 +4820,12 @@ msgid "Move down all"
 msgstr "Sposta tutto in basso"
 
 msgctxt "#70539"
-msgid "* Create different folders to store your favorite links within Icarus. [CR]"
-msgstr "* Crea diverse cartelle per memorizzare i tuoi collegamenti preferiti all'interno di Icarus."
+msgid "* Create different folders to store your favorite links within Kodi on Demand. [CR]"
+msgstr "* Crea diverse cartelle per memorizzare i tuoi collegamenti preferiti all'interno di Kodi on Demand."
 
 msgctxt "#70540"
-msgid "* To add links to folders, access the context menu from any point in Icarus.[CR]"
-msgstr "* Per aggiungere collegamenti alle cartelle accedi al menu contestuale da qualsiasi punto di Icarus."
+msgid "* To add links to folders, access the context menu from any point in Kodi on Demand.[CR]"
+msgstr "* Per aggiungere collegamenti alle cartelle accedi al menu contestuale da qualsiasi punto di Kodi on Demand."
 
 msgctxt "#70541"
 msgid "* The links can be channels, sections within the channels, searches, and even movies and series although for the latter it is preferable to use the video library."
@@ -5429,3 +5429,19 @@ msgstr "Inserisci il numero dell'episodio di partenza"
 msgctxt "#70688"
 msgid "Episode 0 is a special episode, enter the number of this episode"
 msgstr "L'episodio 0 è un episodio speciale, inserisci il numero di questo episodio"
+
+msgctxt "#70689"
+msgid "Enable Download"
+msgstr "Abilita Download"
+
+msgctxt "#70690"
+msgid "Disclaimer"
+msgstr "Disclaimer"
+
+msgctxt "#70691"
+msgid "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
+msgstr "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
+
+msgctxt "#70692"
+msgid "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
+msgstr "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
