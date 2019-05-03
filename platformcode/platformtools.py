@@ -278,11 +278,11 @@ def render_items(itemlist, parent_item):
     else:
         if 'similar' in parent_item.list_type:
             if parent_item.contentTitle != '':
-                breadcrumb = 'Similares (%s)' % parent_item.contentTitle
+                breadcrumb = config.get_localized_string(70693) + parent_item.contentTitle
             else:
-                breadcrumb = 'Similares (%s)' % parent_item.contentSerieName
+                breadcrumb = config.get_localized_string(70693) + parent_item.contentSerieName
         else:
-            breadcrumb = 'Busqueda'
+            breadcrumb = config.get_localized_string(70693)
 
     xbmcplugin.setPluginCategory(handle=int(sys.argv[1]), category=breadcrumb)
 
