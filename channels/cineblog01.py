@@ -16,6 +16,7 @@ from platformcode import logger, config
 host = ""
 headers = ""
 
+
 def findhost():
     global host, headers
     permUrl = httptools.downloadpage('https://www.cb01.uno/', follow_redirects=False).headers
@@ -30,8 +31,10 @@ list_quality = ['HD', 'default']
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'cineblog01')
 __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'cineblog01')
 
-#esclusione degli articoli 'di servizio'
-blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ', 'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬', 'Openload: la situazione. Benvenuto Verystream']
+# esclusione degli articoli 'di servizio'
+blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
+             'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬',
+             'Openload: la situazione. Benvenuto Verystream']
 
 
 def mainlist(item):
@@ -152,7 +155,7 @@ def peliculas(item):
         listGroups = ['thumb', 'url', 'title', 'quality', 'year', 'genre', 'duration', 'plot']
         action = 'findvideos'
     else:
-        patron = r'div class="card-image">.*?<img src="([^ ]+)" alt.*?<a href="([^ >]+)">([^<[(]+)<\/a>.*?<strong><span style="[^"]+">([^<>0-9(]+)\(([0-9]{4}).*?<\/(p|div)>([^<>]+)'
+        patron = r'div class="card-image">.*?<img src="([^ ]+)" alt.*?<a href="([^ >]+)">([^<[(]+)<\/a>.*?<strong><span style="[^"]+">([^<>0-9(]+)\(([0-9]{4}).*?</(?:p|div)>(.*?)</div'
         listGroups = ['thumb', 'url', 'title', 'genre', 'year', 'plot']
         action = 'episodios'
 
@@ -164,9 +167,43 @@ def peliculas(item):
 
 def episodios(item):
     item.contentType = 'episode'
-    return support.scrape(item, patron_block=[r'<article class="sequex-post-content">(.*?)<\/article>',
-                                              r'<div class="sp-head[a-z ]*?" title="Espandi">[^<>]*?</div>(.*?)<div class="spdiv">\[riduci\]</div>'],
-                          patron='<p>([0-9]+(?:×|&#215;)[0-9]+)(.*?)(?:<\/p>|<br)', listGroups=['title', 'url'])
+    itemlist = []
+
+    data = httptools.downloadpage(item.url).data
+    matches = scrapertoolsV2.find_multiple_matches(data,
+                                                   r'(<div class="sp-head[a-z ]*?" title="Espandi">[^<>]*?</div>.*?)<div class="spdiv">\[riduci\]</div>')
+
+    for match in matches:
+        support.log(match)
+        blocks = scrapertoolsV2.find_multiple_matches(match, '(?:<p>)(.*?)(?:</p>|<br)')
+        season = scrapertoolsV2.find_single_match(match, r'title="Espandi">.*?STAGIONE\s+\d+([^<>]+)').strip()
+
+        for block in blocks:
+            episode = scrapertoolsV2.find_single_match(block, r'([0-9]+(?:&#215;|×)[0-9]+)').strip()
+            seasons_n = scrapertoolsV2.find_single_match(block, r'<strong>STAGIONE\s+\d+([^<>]+)').strip()
+
+            if seasons_n:
+                season = seasons_n
+
+            if not episode: continue
+
+            season = re.sub(r'&#8211;|–', "-", season)
+            itemlist.append(
+                Item(channel=item.channel,
+                     action="findvideos",
+                     contentType=item.contentType,
+                     title="[B]" + episode + "[/B] " + season,
+                     fulltitle=episode + " " + season,
+                     show=episode + " " + season,
+                     url=block,
+                     extra=item.extra,
+                     thumbnail=item.thumbnail,
+                     infoLabels=item.infoLabels
+                     ))
+
+    support.videolibrary(itemlist, item)
+
+    return itemlist
 
 
 def findvideos(item):
@@ -177,7 +214,7 @@ def findvideos(item):
 
     def load_links(itemlist, re_txt, color, desc_txt, quality=""):
         streaming = scrapertoolsV2.find_single_match(data, re_txt).replace('"', '')
-        support.log('STREAMING=',streaming)
+        support.log('STREAMING=', streaming)
         patron = '<td><a.*?href=(.*?) (?:target|rel)[^>]+>([^<]+)<'
         matches = re.compile(patron, re.DOTALL).findall(streaming)
         for scrapedurl, scrapedtitle in matches:
@@ -253,7 +290,7 @@ def findvid_serie(item):
     def load_vid_series(html, item, itemlist, blktxt):
         logger.info('HTML' + html)
         patron = '<a href="([^"]+)"[^=]+="_blank"[^>]+>(.*?)</a>'
-        # Estrae i contenuti 
+        # Estrae i contenuti
         matches = re.compile(patron, re.DOTALL).finditer(html)
         for match in matches:
             scrapedurl = match.group(1)
@@ -309,6 +346,7 @@ def findvid_serie(item):
     autoplay.start(itemlist, item)
 
     return itemlist
+
 
 def play(item):
     support.log()
