@@ -7,7 +7,6 @@
 import re
 import urlparse
 
-from channelselector import thumb
 from channels import autoplay, filtertools, support
 from core import scrapertools, scrapertoolsV2, httptools, tmdb, servertools
 from core.item import Item
@@ -19,9 +18,6 @@ headers = [['Referer', host]]
 
 list_servers = ['wstream', 'openload', 'streamango']
 list_quality = ['HD', 'default']
-
-
-
 
 def mainlist(item):
 
@@ -175,18 +171,19 @@ def list(item):
     for i, (scrapedurl, scrapedtitle) in enumerate(matches):
         if (p - 1) * minpage > i: continue
         if i >= p * minpage: break
-        scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
-        scrapedplot = ""
-        itemlist.append(
-            Item(channel=channel,
-                 action = 'episodios' if not 'film' in item.args else 'findvideos',
-                 contentType=item.contentType,
-                 title=scrapedtitle,
-                 fulltitle=scrapedtitle,
-                 url=scrapedurl,
-                 show=scrapedtitle,
-                 args=item.args,
-                 plot=scrapedplot))
+        if 'Film Animazione disponibili' not in scrapedtitle:
+            scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
+            scrapedplot = ""
+            itemlist.append(
+                Item(channel=channel,
+                     action = 'episodios' if not 'film' in item.args else 'findvideos',
+                     contentType=item.contentType,
+                     title=scrapedtitle,
+                     fulltitle=scrapedtitle,
+                     url=scrapedurl,
+                     show=scrapedtitle,
+                     args=item.args,
+                     plot=scrapedplot))
 
     if len(matches) >= p * minpage:
         scrapedurl = item.url + '{}' + str(p + 1)
@@ -195,6 +192,51 @@ def list(item):
                  args=item.args,
                  contentType=item.contentType,
                  action="list",
+                 title="[COLOR blue][B]Successivo >[/B][/COLOR]",
+                 url=scrapedurl))
+
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    return itemlist
+
+#----------------------------------------------------------------------------------------------------------------------------------------------
+
+def peliculas(item):
+    logger.info("[toonitalia] peliculas")
+    itemlist = []
+    minpage = 14
+
+    p = 1
+    if '{}' in item.url:
+        item.url, p = item.url.split('{}')
+        p = int(p)
+
+    data = httptools.downloadpage(item.url, headers=headers).data
+
+    patron = r'<h2 class="entry-title"><a href="([^"]+)" rel="bookmark">([^<]+)</a></h2>.*?<p>([^<]+)</p>'
+    matches = re.compile(patron, re.DOTALL).findall(data)
+
+    print data
+
+    for i, (scrapedurl, scrapedtitle, scrapedplot) in enumerate(matches):
+        if (p - 1) * minpage > i: continue
+        if i >= p * minpage: break
+        scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
+        itemlist.append(
+            Item(channel=channel,
+                 action="episodios",
+                 contentType="episode",
+                 title=scrapedtitle,
+                 fulltitle=scrapedtitle,
+                 url=scrapedurl,
+                 show=scrapedtitle,
+                 plot=scrapedplot))
+
+    if len(matches) >= p * minpage:
+        scrapedurl = item.url + '{}' + str(p + 1)
+        itemlist.append(
+            Item(channel=channel,
+                 extra=item.extra,
+                 action="peliculas",
                  title="[COLOR blue][B]Successivo >[/B][/COLOR]",
                  url=scrapedurl))
 
@@ -217,35 +259,24 @@ def episodios(item):
             scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle).replace("×", "x")
             scrapedtitle = scrapedtitle.replace("_", " ")
             scrapedtitle = scrapedtitle.replace(".mp4", "")
-            itemlist.append(
-                Item(channel=channel,
-                     action="findvideos",
-                     contentType=item.contentType,
-                     title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
-                     thumbnail=item.thumbnail,
-                     fulltitle=scrapedtitle,
-                     url=scrapedurl,
-                     show=item.show,
-                     plot=item.plot))
+            puntata = scrapertools.find_single_match(scrapedtitle, '[0-9]+x[0-9]+')
+            for i in itemlist:
+                if i.args == puntata: #è già stata aggiunta
+                    i.url +=  " " + scrapedurl
+                    break
 
-    patron = r'<a href="([^"]+)"\s*target="_blank"[^>]+>[^>]+>[^>]+>[^>]+>\s*[^>]+>([^<]+)[^>]+>'
-    matches = re.compile(patron, re.DOTALL).findall(item.url)
-
-    for scrapedurl, scrapedtitle in matches:
-        if 'Wikipedia' not in scrapedurl:
-            scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle).replace("×", "x")
-            scrapedtitle = scrapedtitle.replace("_", " ")
-            scrapedtitle = scrapedtitle.replace(".mp4", "")
-            itemlist.append(
-                Item(channel=channel,
-                     action="findvideos",
-                     contentType=item.contentType,
-                     title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
-                     fulltitle=scrapedtitle,
-                     url=scrapedurl,
-                     show=item.show,
-                     plot=item.plot,
-                     thumbnail=item.thumbnail))
+            else:
+                itemlist.append(
+                    Item(channel=channel,
+                         action="findvideos",
+                         contentType=item.contentType,
+                         title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
+                         thumbnail=item.thumbnail,
+                         fulltitle=scrapedtitle,
+                         url=scrapedurl,
+                         args = puntata,
+                         show=item.show,
+                         plot=item.plot))
 
     support.videolibrary(itemlist, item, 'color kod')
 
