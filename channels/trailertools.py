@@ -15,6 +15,10 @@ from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools
 
+import xbmc, xbmcaddon
+addon = xbmcaddon.Addon('metadata.themoviedb.org')
+def_lang = addon.getSetting('language')
+
 result = None
 window_select = []
 # Para habilitar o no la opción de búsqueda manual
@@ -128,7 +132,7 @@ def tmdb_trailers(item, tipo="movie"):
     itemlist = []
     tmdb_search = None
     if item.infoLabels['tmdb_id']:
-        tmdb_search = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo, idioma_busqueda='es')
+        tmdb_search = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo, idioma_busqueda=def_lang)
     elif item.infoLabels['year']:
         tmdb_search = Tmdb(texto_buscado=item.contentTitle, tipo=tipo, year=item.infoLabels['year'])
 

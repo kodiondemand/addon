@@ -14,6 +14,10 @@ from platformcode import config, logger
 from platformcode import platformtools
 from core import tmdb
 
+import xbmc, xbmcaddon
+addon = xbmcaddon.Addon('metadata.themoviedb.org')
+def_lang = addon.getSetting('language')
+
 link_list = []
 max_links = 30
 
@@ -92,7 +96,7 @@ def sub_menu(item):
     thumbnail = get_thumb("search_star.png")
 
     itemlist.append(Item(channel='tvmoviedb', title=config.get_localized_string(70036), action="search_",
-                         search={'url': 'search/person', 'language': 'es', 'page': 1}, star=True,
+                         search={'url': 'search/person', 'language': def_lang, 'page': 1}, star=True,
                          thumbnail=thumbnail))
 
     itemlist.append(Item(channel=item.channel, action="search",
@@ -180,8 +184,8 @@ def setting_channel_new(item):
         config.get_localized_string(70571), 
         config.get_localized_string(70572), 
         config.get_localized_string(70573), 
-        config.get_localized_string(70574), 
-        config.get_localized_string(70575),
+        # config.get_localized_string(70574), 
+        # config.get_localized_string(70575),
         config.get_localized_string(70576)
     ]
     presel_values = ['skip', 'actual', 'all', 'none', 'cast', 'lat', 'ita']
@@ -623,7 +627,7 @@ def do_search(item, categories=None):
                                      from_action="search", from_channel=element["item"].channel, tecleado=tecleado))
             # todos los resultados juntos, en la misma lista
             else:
-                title = " [ Resultados del canal %s ] " % channel
+                title = config.get_localized_string(70697) % channel
                 itemlist.append(Item(title=title, channel="search", action="",
                                      folder=False, text_bold=True, from_channel=channel))
                 for i in element["itemlist"]:
@@ -709,8 +713,8 @@ def discover_list(item):
             title = unify.normalize(elem['name']).capitalize()
             tvshow = True
 
-        new_item = Item(channel='search', title=title, infoLabels=elem, action='search_tmdb', extra=title,
-                        category='Resultados', context ='')
+        new_item = Item(channel='search', title=title, infoLabels=elem, action='do_search', extra=title,
+                        category=config.get_localized_string(70695), context ='')
 
         if tvshow:
             new_item.contentSerieName = title

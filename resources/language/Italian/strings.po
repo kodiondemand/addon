@@ -5445,3 +5445,19 @@ msgstr "Utilizzando la funzione di download dichiari di essere in possesso di un
 msgctxt "#70692"
 msgid "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
 msgstr "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
+
+msgctxt "#70693"
+msgid "Search"
+msgstr "Ricerca"
+
+msgctxt "#70694"
+msgid "Similar to "
+msgstr "Simile a "
+
+msgctxt "#70695"
+msgid "Results"
+msgstr "Risultati"
+
+msgctxt "#70697"
+msgid " [Results of the %s channel] "
+msgstr " [Risultati del canale %s] "

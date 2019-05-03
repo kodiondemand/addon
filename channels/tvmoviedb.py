@@ -547,7 +547,7 @@ def detalles(item):
                                    title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
 
     if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-        tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda='es')
+        tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda=def_lang)
         if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle \
                 and tmdb_lang.result["title"] != item.infoLabels['originaltitle']:
             tmdb_lang = tmdb_lang.result["title"]
@@ -1499,7 +1499,7 @@ def detalles_fa(item):
                                    title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
 
     if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-        tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda='es')
+        tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda=def_lang)
         if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle:
             tmdb_lang = tmdb_lang.result["title"]
             itemlist.append(item.clone(action="busqueda", title=config.get_localized_string(70066) % tmdb_lang,

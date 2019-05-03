@@ -283,7 +283,7 @@ def discover_list(item):
             tvshow = True
 
         new_item = Item(channel='searchall', title=title, infoLabels=elem, action='search_tmdb', extra=title,
-                        category='Resultados', context='')
+                        category=config.get_localized_string(70695), context='')
 
         if tvshow:
             new_item.contentSerieName = title
