@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per Serie Tv Sub ITA
+# Ringraziamo Icarus crew
 # ----------------------------------------------------------
 import inspect
 import re

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per SerieTVU
+# Ringraziamo Icarus crew
 # ----------------------------------------------------------
 import re
 
@@ -48,7 +49,7 @@ def mainlist(item):
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
-    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('Game of Thrones –','')
+    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('Game of Thrones –','').replace('Flash 2014','Flash')
     year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
