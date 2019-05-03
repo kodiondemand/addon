@@ -8,6 +8,10 @@ from platformcode import config, logger
 from platformcode import launcher
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon, channelselector
 
+import xbmc, xbmcaddon
+addon = xbmcaddon.Addon('metadata.themoviedb.org')
+def_lang = addon.getSetting('language')
+
 media_path = os.path.join(config.get_runtime_path(), "resources/skins/Default/media/side_menu/")
 menu_settings_path = os.path.join(config.get_data_path(), "settings_channels", 'menu_settings_data.json')
 
@@ -309,7 +313,7 @@ class Main(xbmcgui.WindowXMLDialog):
             new_item = Item(channel='search', action="search")
         elif control == config.get_localized_string(70036):
             new_item = Item(channel='tvmoviedb', title="Buscar actor/actriz", action="search_",
-                            search={'url': 'search/person', 'language': 'es', 'page': 1}, star=True)
+                            search={'url': 'search/person', 'language': def_lang, 'page': 1}, star=True)
         elif control == config.get_localized_string(70010):
             new_item = Item(channel='search', action="setting_channel")
         elif control == '':

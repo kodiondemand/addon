@@ -24,12 +24,16 @@
     </category>
 
     <!-- Path downloads -->
+    <category label="30153">
+        <setting id="downloadenabled" type="bool" label="70689" default="false"/>
+        <setting id="downloadpath" type="folder" label="30017" default=""/>
+        <setting id="downloadlistpath" type="folder" label="30018" default=""/>
+    </category>
+
     <category label="30501">
         <setting id="downloadpath" type="folder" label="30017" default=""/>
         <setting id="downloadlistpath" type="folder" label="30018" default=""/>
         <setting id="videolibrarypath" type="folder" label="30067" default=""/>
-
-        <setting type="sep"/>
         <setting label="30131" type="lsep"/>
         <setting id="folder_tvshows" type="text" label="70118" default="SERIES"/>
         <setting id="folder_movies" type="text" label="70119" default="CINE"/>

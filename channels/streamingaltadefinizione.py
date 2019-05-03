@@ -3,7 +3,7 @@ from core.item import Item
 
 host = 'https://www.streamingaltadefinizione.world/'
 
-list_servers = ['openload', 'wstream']
+list_servers = ['verystream', 'openload', 'wstream']
 list_quality = ['1080p', 'HD', 'DVDRIP', 'SD', 'CAM']
 
 def mainlist(item):

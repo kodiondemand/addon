@@ -22,7 +22,7 @@ def findhost():
     data = httptools.downloadpage(cb01Url).data
     global host, headers
 
-    host = scrapertoolsV2.find_single_match(data, r'<a class="?mega-menu-link"? href=(https://vedohd[^/"]+)')+'/'
+    host = scrapertoolsV2.find_single_match(data, r'class="?mega-menu-link"? href="?(https://vedohd[^/"]+)"?')+'/'
 
     if 'https' not in host:  # in caso cb01 cambi, si spera di riuscire ad accedere da questo URL
         host = "https://vedohd.pw/"
@@ -31,7 +31,7 @@ def findhost():
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'wstream']
+list_servers = ['verystream', 'openload', 'streamango', 'wstream']
 list_quality = ['HD', 'SD']
 
 #esclusione degli articoli 'di servizio'

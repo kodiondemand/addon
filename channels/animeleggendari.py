@@ -17,7 +17,7 @@ host = "https://animepertutti.com"
 # Richiesto per Autoplay
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango']
+list_servers = ['verystream', 'openload', 'streamango']
 list_quality = ['default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animeleggendari')

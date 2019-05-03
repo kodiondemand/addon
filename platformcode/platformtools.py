@@ -278,11 +278,11 @@ def render_items(itemlist, parent_item):
     else:
         if 'similar' in parent_item.list_type:
             if parent_item.contentTitle != '':
-                breadcrumb = 'Similares (%s)' % parent_item.contentTitle
+                breadcrumb = config.get_localized_string(70693) + parent_item.contentTitle
             else:
-                breadcrumb = 'Similares (%s)' % parent_item.contentSerieName
+                breadcrumb = config.get_localized_string(70693) + parent_item.contentSerieName
         else:
-            breadcrumb = 'Busqueda'
+            breadcrumb = config.get_localized_string(70693)
 
     xbmcplugin.setPluginCategory(handle=int(sys.argv[1]), category=breadcrumb)
 
@@ -894,8 +894,12 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
             opciones.append(config.get_localized_string(30164))
         else:
             # "Descargar"
-            opcion = config.get_localized_string(30153)
-            opciones.append(opcion)
+            import xbmcaddon
+            addon = xbmcaddon.Addon('plugin.video.kod')
+            downloadenabled = addon.getSetting('downloadenabled')
+            if downloadenabled != "false":
+                opcion = config.get_localized_string(30153)
+                opciones.append(opcion)
 
             if item.isFavourite:
                 # "Quitar de favoritos"
@@ -960,6 +964,15 @@ def set_opcion(item, seleccion, opciones, video_urls):
     # "Descargar"
     elif opciones[seleccion] == config.get_localized_string(30153):
         from channels import downloads
+        import xbmcaddon
+        import xbmcgui
+        __addon__ = xbmcaddon.Addon()
+        __addonname__ = __addon__.getAddonInfo('name')
+        line1 = config.get_localized_string(70690)
+        line2 = config.get_localized_string(70691)
+        line3 = config.get_localized_string(70692)
+        xbmcgui.Dialog().ok(__addonname__, line1, line2, line3)
+
         if item.contentType == "list" or item.contentType == "tvshow":
             item.contentType = "video"
         item.play_menu = True

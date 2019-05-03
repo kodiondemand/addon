@@ -135,25 +135,24 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
         matches = scrapertoolsV2.find_multiple_matches(block, patron)
         log('MATCHES =', matches)
 
+        known_keys = ['url', 'title', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating']
         for match in matches:
             if len(listGroups) > len(match):  # to fix a bug
                 match = list(match)
-                match.extend([''] * (len(listGroups)-len(match)))
+                match.extend([''] * (len(listGroups) - len(match)))
 
-            scrapedurl = url_host+match[listGroups.index('url')] if 'url' in listGroups else ''
-            scrapedtitle = match[listGroups.index('title')] if 'title' in listGroups else ''
-            scrapedthumb = match[listGroups.index('thumb')] if 'thumb' in listGroups else ''
-            scrapedquality = match[listGroups.index('quality')] if 'quality' in listGroups else ''
-            scrapedyear = match[listGroups.index('year')] if 'year' in listGroups else ''
-            scrapedplot = match[listGroups.index('plot')] if 'plot' in listGroups else ''
-            scrapedduration = match[listGroups.index('duration')] if 'duration' in listGroups else ''
-            scrapedgenre = match[listGroups.index('genre')] if 'genre' in listGroups else ''
-            scrapedrating = match[listGroups.index('rating')] if 'rating' in listGroups else ''
+            scraped = {}
+            for kk in known_keys:
+                val = match[listGroups.index(kk)] if kk in listGroups else ''
+                if kk == "url":
+                    val = url_host + val
+                scraped[kk] = val
 
-            title = scrapertoolsV2.decodeHtmlentities(scrapedtitle)
-            plot = scrapertoolsV2.decodeHtmlentities(scrapedplot)
-            if scrapedquality:
-                longtitle = '[B]' + title + '[/B] [COLOR blue][' + scrapedquality + '][/COLOR]'
+            title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).strip()
+            plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
+
+            if scraped["quality"]:
+                longtitle = '[B]' + title + '[/B] [COLOR blue][' + scraped["quality"] + '][/COLOR]'
             else:
                 longtitle = '[B]' + title + '[/B]'
 
@@ -161,37 +160,48 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 infolabels = item.infoLabels
             else:
                 infolabels = {}
-                if scrapedyear:
-                    infolabels['year'] = scrapedyear
-                if scrapedplot:
+                if scraped["year"]:
+                    infolabels['year'] = scraped["year"]
+                if scraped["plot"]:
                     infolabels['plot'] = plot
-                if scrapedduration:
-                    matches = scrapertoolsV2.find_multiple_matches(scrapedduration, r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
+                if scraped["duration"]:
+                    matches = scrapertoolsV2.find_multiple_matches(scraped["duration"],r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
                     for h, m in matches:
-                        scrapedduration = int(h) * 60 + int(m)
-                    infolabels['duration'] = int(scrapedduration) * 60
-                if scrapedgenre:
-                    genres = scrapertoolsV2.find_multiple_matches(scrapedgenre, '[A-Za-z]+')
-                    infolabels['genre'] = ", ".join(genres)
-                if scrapedrating:
-                    infolabels['rating'] = scrapertoolsV2.decodeHtmlentities(scrapedrating)
+                        scraped["duration"] = int(h) * 60 + int(m)
+                    if not matches:
+                        scraped["duration"] = scrapertoolsV2.find_single_match(scraped["duration"], r'(\d+)')
+                    infolabels['duration'] = int(scraped["duration"]) * 60
+                if scraped["genere"]:
+                    genres = scrapertoolsV2.find_multiple_matches(scraped["genere"], '[A-Za-z]+')
+                    infolabels['genere'] = ", ".join(genres)
+                if scraped["rating"]:
+                    infolabels['rating'] = scrapertoolsV2.decodeHtmlentities(scraped["rating"])
 
-            if not scrapedtitle in blacklist:
-                itemlist.append(
-                    Item(channel=item.channel,
-                         action=action,
-                         contentType=item.contentType,
-                         title=longtitle,
-                         fulltitle=title,
-                         show=title,
-                         quality=scrapedquality,
-                         url=scrapedurl,
-                         infoLabels=infolabels,
-                         thumbnail=scrapedthumb
-                         )
+            if scraped["title"] not in blacklist:
+                it = Item(
+                    channel=item.channel,
+                    action=action,
+                    contentType=item.contentType,
+                    title=longtitle,
+                    fulltitle=title,
+                    show=title,
+                    quality=scraped["quality"],
+                    url=scraped["url"],
+                    infoLabels=infolabels,
+                    thumbnail=scraped["thumb"]
                 )
 
-        tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+                for lg in list(set(listGroups).difference(known_keys)):
+                    it.__setattr__(lg, match[listGroups.index(lg)])
+
+                itemlist.append(it)
+
+        if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
+                or (item.contentType == "movie" and action != "play"):
+            tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+        else:
+            for it in itemlist:
+                it.infoLabels = item.infoLabels
 
         if patronNext:
             nextPage(itemlist, item, data, patronNext, 2)

@@ -21,7 +21,7 @@ host = 'https://www4.doramasmp4.com/'
 IDIOMAS = {'sub': 'VOSE', 'VO': 'VO'}
 list_language = IDIOMAS.values()
 list_quality = []
-list_servers = ['openload', 'streamango', 'netutv', 'okru', 'directo', 'mp4upload']
+list_servers = ['verystream', 'openload', 'streamango', 'netutv', 'okru', 'directo', 'mp4upload']
 
 def get_source(url, referer=None):
     logger.info()

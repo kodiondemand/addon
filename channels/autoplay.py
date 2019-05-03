@@ -163,7 +163,7 @@ def start(itemlist, item):
         if len(quality_list) == 0:
             quality_list =['default']
 
-        # Se guardan los textos de cada servidor y calidad en listas p.e. favorite_servers = ['openload',
+        # Se guardan los textos de cada servidor y calidad en listas p.e. favorite_servers = ['verystream', 'openload',
         # 'streamcloud']
         for num in range(1, 4):
             favorite_servers.append(channel_node['servers'][settings_node['server_%s' % num]].lower())

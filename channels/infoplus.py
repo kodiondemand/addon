@@ -16,6 +16,10 @@ from core.scrapertools import decodeHtmlentities as dhe
 from platformcode import config, logger
 from platformcode import platformtools
 
+import xbmcaddon
+addon = xbmcaddon.Addon('metadata.themoviedb.org')
+def_lang = addon.getSetting('language')
+
 global mainWindow
 mainWindow = list()
 ActoresWindow = None
@@ -1509,10 +1513,10 @@ class ActorInfo(xbmcgui.WindowDialog):
         self.dialog = kwargs.get('dialog')
         if self.item.contentType == "movie":
             tipo = "movie"
-            search = {'url': 'person/%s' % self.id, 'language': 'es', 'append_to_response': 'movie_credits,images'}
+            search = {'url': 'person/%s' % self.id, 'language': def_lang, 'append_to_response': 'movie_credits,images'}
         else:
             tipo = "tv"
-            search = {'url': 'person/%s' % self.id, 'language': 'es', 'append_to_response': 'tv_credits,images'}
+            search = {'url': 'person/%s' % self.id, 'language': def_lang, 'append_to_response': 'tv_credits,images'}
 
         actor_tmdb = tmdb.Tmdb(discover=search)
         if not actor_tmdb.result.get("biography") and actor_tmdb.result.get("imdb_id"):
@@ -2249,7 +2253,7 @@ def get_recomendations(item, infoLabels, recomendaciones):
     tipo = item.contentType
     if tipo != "movie":
         tipo = "tv"
-    search = {'url': '%s/%s/recommendations' % (tipo, infoLabels['tmdb_id']), 'language': 'es', 'page': 1}
+    search = {'url': '%s/%s/recommendations' % (tipo, infoLabels['tmdb_id']), 'language': def_lang, 'page': 1}
     reco_tmdb = tmdb.Tmdb(discover=search, tipo=tipo, idioma_busqueda="es")
 
     for i in range(0, len(reco_tmdb.results)):
@@ -2307,8 +2311,8 @@ def fanartv(item, infoLabels, images={}):
     headers = [['Content-Type', 'application/json']]
     id_search = infoLabels.get('tvdb_id')
     if item.contentType != "movie" and not id_search:
-        search = {'url': 'tv/%s/external_ids' % infoLabels['tmdb_id'], 'language': 'es'}
-        ob_tmdb = tmdb.Tmdb(discover=search, idioma_busqueda='es')
+        search = {'url': 'tv/%s/external_ids' % infoLabels['tmdb_id'], 'language': def_lang}
+        ob_tmdb = tmdb.Tmdb(discover=search, idioma_busqueda=def_lang)
         id_search = ob_tmdb.result.get("tvdb_id")
     elif item.contentType == "movie":
         id_search = infoLabels.get('tmdb_id')

@@ -21,7 +21,7 @@ host = 'https://filmsenzalimiti.space'
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'vidoza', 'okru']
+list_servers = ['verystream', 'openload', 'streamango', 'vidoza', 'okru']
 list_quality = ['1080p', '720p', '480p', '360']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'filmsenzalimiti')

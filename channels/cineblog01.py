@@ -7,7 +7,7 @@ import re
 import urlparse
 
 from channels import autoplay, filtertools, support
-from core import scrapertoolsV2, httptools, servertools
+from core import scrapertoolsV2, httptools, servertools, tmdb
 from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
@@ -15,6 +15,7 @@ from platformcode import logger, config
 #impostati dinamicamente da getUrl()
 host = ""
 headers = ""
+
 
 def findhost():
     global host, headers
@@ -24,14 +25,16 @@ def findhost():
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'wstream']
+list_servers = ['verystream', 'openload', 'streamango', 'wstream']
 list_quality = ['HD', 'default']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'cineblog01')
 __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'cineblog01')
 
-#esclusione degli articoli 'di servizio'
-blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ', 'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬']
+# esclusione degli articoli 'di servizio'
+blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
+             'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬',
+             'Openload: la situazione. Benvenuto Verystream']
 
 
 def mainlist(item):
@@ -41,6 +44,8 @@ def mainlist(item):
 
     # Main options
     itemlist = []
+    support.menu(itemlist, 'Ultimi 100 Film Aggiornati bold', 'last', host + '/lista-film-ultimi-100-film-aggiornati/')
+
     support.menu(itemlist, 'Film bold', 'peliculas', host)
     support.menu(itemlist, 'HD submenu', 'menu', host, args="Film HD Streaming")
     support.menu(itemlist, 'Per genere submenu', 'menu', host, args="Film per Genere")
@@ -106,6 +111,43 @@ def newest(categoria):
                    patron_block=r'Ultimi 100 film aggiunti:.*?<\/td>')
 
 
+def last(item):
+    support.log()
+    
+    itemlist = []
+    infoLabels = {}
+    quality = ''
+
+    matches = support.match(item, r'<ahref=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
+
+    for url, title, info in matches:
+        title = title.rstrip()
+        infoLabels['year'] = scrapertoolsV2.find_single_match(info, r'\(([0-9]+)\)')
+        quality = scrapertoolsV2.find_single_match(info, r'\[([A-Z]+)\]')
+
+        if quality:            
+            longtitle = title + support.typo(quality,'_ [] color kod')
+        else:
+            longtitle = title
+        
+        itemlist.append(
+                    Item(channel=item.channel,
+                         action='findvideos',
+                         contentType=item.contentType,
+                         title=longtitle,
+                         fulltitle=title,
+                         show=title,
+                         quality=quality,
+                         url=url,
+                         infoLabels=infoLabels
+                         )
+                )
+
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
+    return itemlist
+
+
 def peliculas(item):
     support.log()
     if item.contentType == 'movie' or '/serietv/' not in item.url:
@@ -113,7 +155,7 @@ def peliculas(item):
         listGroups = ['thumb', 'url', 'title', 'quality', 'year', 'genre', 'duration', 'plot']
         action = 'findvideos'
     else:
-        patron = r'div class="card-image">.*?<img src="([^ ]+)" alt.*?<a href="([^ >]+)">([^<[(]+)<\/a>.*?<strong><span style="[^"]+">([^<>0-9(]+)\(([0-9]{4}).*?<\/(p|div)>([^<>]+)'
+        patron = r'div class="card-image">.*?<img src="([^ ]+)" alt.*?<a href="([^ >]+)">([^<[(]+)<\/a>.*?<strong><span style="[^"]+">([^<>0-9(]+)\(([0-9]{4}).*?</(?:p|div)>(.*?)</div'
         listGroups = ['thumb', 'url', 'title', 'genre', 'year', 'plot']
         action = 'episodios'
 
@@ -125,9 +167,43 @@ def peliculas(item):
 
 def episodios(item):
     item.contentType = 'episode'
-    return support.scrape(item, patron_block=[r'<article class="sequex-post-content">(.*?)<\/article>',
-                                              r'<div class="sp-head[a-z ]*?" title="Espandi">[^<>]*?</div>(.*?)<div class="spdiv">\[riduci\]</div>'],
-                          patron='(?:<p>)?([0-9]+&#215;[0-9]+)(.*?)(?:</p>|<br)', listGroups=['title', 'url'])
+    itemlist = []
+
+    data = httptools.downloadpage(item.url).data
+    matches = scrapertoolsV2.find_multiple_matches(data,
+                                                   r'(<div class="sp-head[a-z ]*?" title="Espandi">[^<>]*?</div>.*?)<div class="spdiv">\[riduci\]</div>')
+
+    for match in matches:
+        support.log(match)
+        blocks = scrapertoolsV2.find_multiple_matches(match, '(?:<p>)(.*?)(?:</p>|<br)')
+        season = scrapertoolsV2.find_single_match(match, r'title="Espandi">.*?STAGIONE\s+\d+([^<>]+)').strip()
+
+        for block in blocks:
+            episode = scrapertoolsV2.find_single_match(block, r'([0-9]+(?:&#215;|×)[0-9]+)').strip()
+            seasons_n = scrapertoolsV2.find_single_match(block, r'<strong>STAGIONE\s+\d+([^<>]+)').strip()
+
+            if seasons_n:
+                season = seasons_n
+
+            if not episode: continue
+
+            season = re.sub(r'&#8211;|–', "-", season)
+            itemlist.append(
+                Item(channel=item.channel,
+                     action="findvideos",
+                     contentType=item.contentType,
+                     title="[B]" + episode + "[/B] " + season,
+                     fulltitle=episode + " " + season,
+                     show=episode + " " + season,
+                     url=block,
+                     extra=item.extra,
+                     thumbnail=item.thumbnail,
+                     infoLabels=item.infoLabels
+                     ))
+
+    support.videolibrary(itemlist, item)
+
+    return itemlist
 
 
 def findvideos(item):
@@ -138,7 +214,7 @@ def findvideos(item):
 
     def load_links(itemlist, re_txt, color, desc_txt, quality=""):
         streaming = scrapertoolsV2.find_single_match(data, re_txt).replace('"', '')
-        support.log('STREAMING=',streaming)
+        support.log('STREAMING=', streaming)
         patron = '<td><a.*?href=(.*?) (?:target|rel)[^>]+>([^<]+)<'
         matches = re.compile(patron, re.DOTALL).findall(streaming)
         for scrapedurl, scrapedtitle in matches:
@@ -184,11 +260,10 @@ def findvideos(item):
     load_links(itemlist, '<strong>Streaming 3D[^<]+</strong>(.*?)<tableclass=cbtable height=30>', "pink", "Streaming 3D")
 
     # Estrae i contenuti - Download
-    load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")
+    # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")
 
     # Estrae i contenuti - Download HD
-    load_links(itemlist, '<strong>Download HD[^<]+</strong>(.*?)<tableclass=cbtable width=100% height=20>', "azure",
-               "Download HD")
+    # load_links(itemlist, '<strong>Download HD[^<]+</strong>(.*?)<tableclass=cbtable width=100% height=20>', "azure", "Download HD")
 
     if len(itemlist) == 0:
         itemlist = servertools.find_video_items(item=item)
@@ -213,8 +288,9 @@ def findvideos(item):
 
 def findvid_serie(item):
     def load_vid_series(html, item, itemlist, blktxt):
+        logger.info('HTML' + html)
         patron = '<a href="([^"]+)"[^=]+="_blank"[^>]+>(.*?)</a>'
-        # Estrae i contenuti 
+        # Estrae i contenuti
         matches = re.compile(patron, re.DOTALL).finditer(html)
         for match in matches:
             scrapedurl = match.group(1)
@@ -270,6 +346,7 @@ def findvid_serie(item):
     autoplay.start(itemlist, item)
 
     return itemlist
+
 
 def play(item):
     support.log()

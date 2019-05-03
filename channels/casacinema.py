@@ -16,7 +16,7 @@ host = 'https://www.casacinema.site'
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'wstream', 'speedvideo']
+list_servers = ['verystream', 'openload', 'wstream', 'speedvideo']
 list_quality = ['HD', 'SD']
 
 __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'casacinema')

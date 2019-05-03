@@ -18,7 +18,7 @@ host = "https://ilgeniodellostreaming.pw"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['openload', 'streamango', 'youtube']
+list_servers = ['verystream', 'openload', 'streamango', 'youtube']
 list_quality = ['default']
 
 
