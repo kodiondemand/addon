@@ -1,23 +1,26 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per SerieTVU
-# Ringraziamo Icarus crew
+# Thanks to Icarus crew & Alfa addon
 # ----------------------------------------------------------
 import re
 
 import channelselector
 from channels import autoplay, support, filtertools
-from core import httptools, tmdb, scrapertools
+from core import httptools, tmdb, scrapertools, servertools
 from core.item import Item
 from platformcode import logger, config
-
-host = config.get_setting("channel_host", 'serietvu')
+__channel__ = 'serietvu'
+host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['speedvideo']
 list_quality = ['default']
+
+__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
+__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
 
 
 
@@ -30,9 +33,8 @@ def mainlist(item):
     support.menu(itemlist, 'Categorie', 'categorie', host,'tvshow')
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
 
-
-    # autoplay.init(item.channel, list_servers, list_quality)
-    # autoplay.show_option(item.channel, itemlist)
+    autoplay.init(item.channel, list_servers, list_quality)
+    autoplay.show_option(item.channel, itemlist)
 
     itemlist.append(
         Item(channel='setting',
@@ -87,7 +89,7 @@ def lista_serie(item):
                  thumbnail=scrapedimg,
                  show=scrapedtitle,
                  infoLabels=infoLabels,
-                 contentType='tvshow',
+                 contentType='episode',
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -129,16 +131,7 @@ def episodios(item):
                      extra=scrapedextra,
                      folder=True))
 
-    if config.get_videolibrary_support() and len(itemlist) != 0:
-        itemlist.append(
-            Item(channel=item.channel,
-                 title=support.typo(config.get_localized_string(30161) + ' bold color kod'),
-                 thumbnail=support.thumb(),
-                 url=item.url,
-                 action="add_serie_to_library",
-                 extra="episodios",
-                 contentSerieName=item.fulltitle,
-                 show=item.show))
+    support.videolibrary(itemlist,item,'bold color kod')
 
     return itemlist
 
@@ -150,6 +143,10 @@ def findvideos(item):
 
     itemlist = support.server(item, data=item.url)
     # itemlist = filtertools.get_links(itemlist, item, list_language)
+
+    # Controlla se i link sono validi
+    if __comprueba_enlaces__:
+        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
 
     autoplay.start(itemlist, item)
 
@@ -175,6 +172,10 @@ def findepisodevideo(item):
 
     itemlist = support.server(item, data=matches[0][0])
     # itemlist = filtertools.get_links(itemlist, item, list_language)
+
+    # Controlla se i link sono validi
+    if __comprueba_enlaces__:
+        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
 
     autoplay.start(itemlist, item)
 
@@ -229,7 +230,7 @@ def latestep(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def newest(categoria):
-    logger.info('serietvu' + " newest" + categoria)
+    logger.info(__channel__ + " newest" + categoria)
     itemlist = []
     item = Item()
     try:

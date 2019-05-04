@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per Serie Tv Sub ITA
-# Ringraziamo Icarus crew
+# Thanks to Icarus crew & Alfa addon
 # ----------------------------------------------------------
 import inspect
 import re
@@ -9,11 +9,11 @@ import time
 
 import channelselector
 from channels import autoplay, support, filtertools
-from core import httptools, tmdb, scrapertools
+from core import httptools, tmdb, scrapertools, servertools
 from core.item import Item
 from platformcode import logger, config
-
-host = config.get_setting("channel_host", 'serietvsubita')
+__channel__ = "serietvsubita"
+host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'IT'}
@@ -21,6 +21,8 @@ list_language = IDIOMAS.values()
 list_servers = ['gounlimited','verystream','streamango','openload']
 list_quality = ['default']
 
+__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
+__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
 
 
 def mainlist(item):
@@ -212,6 +214,11 @@ def findvideos(item):
     itemlist = support.server(item, data=data)
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 
+
+    # Controlla se i link sono validi
+    if __comprueba_enlaces__:
+        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+
     autoplay.start(itemlist, item)
 
     return itemlist
@@ -221,7 +228,7 @@ def findvideos(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def peliculas_tv(item):
-    logger.info("icarus serietvsubita peliculas_tv")
+    logger.info(item.channel+" peliculas_tv")
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
@@ -282,7 +289,7 @@ def peliculas_tv(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def newest(categoria):
-    logger.info('serietvsubita' + " newest" + categoria)
+    logger.info(__channel__ + " newest" + categoria)
     itemlist = []
     item = Item()
     item.url = host;

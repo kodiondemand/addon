@@ -39,6 +39,32 @@
             "default": true,
             "enabled": true,
             "visible": true
+        },
+        {
+            "id": "comprueba_enlaces",
+            "type": "bool",
+            "label": "Verifica se i link esistono",
+            "default": false,
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "comprueba_enlaces_num",
+            "type": "list",
+            "label": "Numero de link da verificare",
+            "default": 1,
+            "enabled": true,
+            "visible": "eq(-1,true)",
+            "lvalues": [ "1", "3", "5", "10" ]
+        },
+        {
+            "id": "filter_languages",
+            "type": "list",
+            "label": "Mostra link in lingua...",
+            "default": 0,
+            "enabled": true,
+            "visible": true,
+            "lvalues": ["Non filtrare","IT"]
         }
     ]
 }
