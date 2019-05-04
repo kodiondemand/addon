@@ -197,7 +197,7 @@ def peliculas_serie(item):
         scrapedtitle = scrapedtitle.replace("		", "")
         itemlist.append(
             Item(channel=item.channel,
-                 action="episodes",
+                 action="episodios",
                  contentType='episode',
                  title=scrapedtitle,
                  fulltitle=scrapedtitle,
@@ -210,8 +210,8 @@ def peliculas_serie(item):
 
 #-----------------------------------------------------------------------------------------------------------------------
 
-def episodes(item):
-    logger.info("[filmigratis.py] episodes")
+def episodios(item):
+    logger.info("[filmigratis.py] episodios")
     itemlist = []
 
     data = httptools.downloadpage(item.url, headers=headers).data
@@ -222,7 +222,10 @@ def episodes(item):
     matches = re.compile(patron, re.DOTALL).findall(block)
 
     for scrapedurl, scrapedtitle in matches:
+        print item.title
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
+        scrapedtitle = scrapedtitle.replace ("S0", "")
+        scrapedtitle = scrapedtitle.replace(" - EP ", "x")
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
@@ -231,7 +234,7 @@ def episodes(item):
                  fulltitle=scrapedtitle,
                  url=scrapedurl,
                  thumbnail=item.thumb,
-                 show=scrapedtitle))
+                 show=item.title))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     support.videolibrary(itemlist, item, 'color kod')
