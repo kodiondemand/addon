@@ -50,7 +50,7 @@ def mainlist(item):
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
-    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('Game of Thrones –','')
+    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('×','x').replace('Game of Thrones –','')
     year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
@@ -89,13 +89,15 @@ def lista_serie(item):
         itemlist.append(
             Item(channel=item.channel,
                  extra=item.extra,
-                 action="episodes",
+                 action="episodios",
                  title=title,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  fulltitle=title,
                  show=title,
                  plot=scrapedplot,
+                 contentType='episode',
+                 originalUrl=scrapedurl,
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -118,52 +120,65 @@ def lista_serie(item):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-def episodes(item):
-    support.log(item.channel + " episodes")
-    itemlist = []
+def episodios(item, itemlist=[]):
+    support.log(item.channel + " episodios")
+    # itemlist = []
 
     data = httptools.downloadpage(item.url).data
 
     patron = '<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>.*?'
     patron += '<p><a href="([^"]+)">'
-    matches = re.compile(patron, re.DOTALL).findall(data)
 
+    matches = re.compile(patron, re.DOTALL).findall(data)
+    # logger.debug(itemlist)
     for scrapedurl, scrapedtitle, scrapedthumbnail in matches:
         scrapedplot = ""
         scrapedtitle = cleantitle(scrapedtitle)
         title = scrapedtitle.split(" S0")[0].strip()
         title = title.split(" S1")[0].strip()
         title = title.split(" S2")[0].strip()
+        episodes = scrapertools.find_multiple_matches(scrapedtitle,'((\d*)x(\d*))')
+        # logger.debug(scrapedtitle)
+        # logger.debug(episodes)
 
-        itemlist.append(
-            Item(channel=item.channel,
-                 extra=item.extra,
-                 action="findvideos",
-                 fulltitle=scrapedtitle,
-                 show=scrapedtitle,
-                 title=scrapedtitle,
-                 url=scrapedurl,
-                 thumbnail=scrapedthumbnail,
-                 plot=scrapedplot,
-                 contentSerieName=title,
-                 folder=True))
+        for fullepisode, season, episode in episodes:
+            infoLabels = {}
+            infoLabels['season'] = season
+            infoLabels['episode'] = episode
 
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+            itemlist.append(
+                Item(channel=item.channel,
+                     extra=item.extra,
+                     action="findvideos",
+                     fulltitle=scrapedtitle,
+                     show=scrapedtitle,
+                     title=fullepisode,
+                     url=scrapedurl,
+                     thumbnail=scrapedthumbnail,
+                     plot=scrapedplot,
+                     contentSerieName=title,
+                     infoLabels=infoLabels,
+                     folder=True))
+
+    # tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     # Paginazionazione
     patron = '<strong class=\'on\'>\d+</strong>\s*<a href="([^<]+)">\d+</a>'
     next_page = scrapertools.find_single_match(data, patron)
     if next_page != "":
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='episodes',
-                 contentType=item.contentType,
-                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                 url=next_page,
-                 args=item.args,
-                 thumbnail=support.thumb()))
-
-    # support.videolibrary(itemlist,item,'bold color kod')
+        item.url = next_page
+        itemlist = episodios(item,itemlist)
+        # itemlist.append(
+        #     Item(channel=item.channel,
+        #          action='episodios',
+        #          contentType=item.contentType,
+        #          title=support.typo(config.get_localized_string(30992), 'color kod bold'),
+        #          url=next_page,
+        #          args=item.args,
+        #          thumbnail=support.thumb()))
+    else:
+        item.url = item.originalUrl
+        support.videolibrary(itemlist,item,'bold color kod')
 
     return itemlist
 
@@ -174,6 +189,16 @@ def findvideos(item):
     support.log(item.channel + " findvideos")
 
     data = httptools.downloadpage(item.url).data
+
+    # recupero il blocco contenente i link
+    blocco = scrapertools.find_single_match(data,'<div class="entry">[\s\S.]*?<div class="post')
+    # logger.debug(item);
+
+    episodio = item.title.replace(str(item.contentSeason)+"x",'')
+    patron = r'\.\.:: Episodio %s([\s\S]*?)(<div class="post|..:: Episodio)' % episodio
+    matches = re.compile(patron, re.DOTALL).findall(data)
+    if len(matches):
+        data = matches[0][0]
 
     patron = 'href="(https?://www\.keeplinks\.(?:co|eu)/p(?:[0-9]*)/([^"]+))"'
     matches = re.compile(patron, re.DOTALL).findall(data)
@@ -200,7 +225,7 @@ def peliculas_tv(item):
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
-    logger.debug(data)
+    # logger.debug(data)
     patron = '<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>'
 
     matches = re.compile(patron, re.DOTALL).findall(data)
@@ -325,12 +350,14 @@ def list_az(item):
         itemlist.append(
             Item(channel=item.channel,
                  extra=item.extra,
-                 action="episodes",
+                 action="episodios",
                  title=title,
                  url=scrapedurl,
                  fulltitle=title,
                  show=title,
                  plot=scrapedplot,
+                 contentType='episode',
+                 originalUrl=scrapedurl,
                  folder=True))
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
