@@ -22,6 +22,9 @@ from core import channeltools
 from core import trakt_tools, scrapertoolsV2
 from core.item import Item
 from platformcode import logger
+import xbmcaddon
+addon = xbmcaddon.Addon('plugin.video.kod')
+downloadenabled = addon.getSetting('downloadenabled')
 
 
 class XBMCPlayer(xbmc.Player):
@@ -591,7 +594,7 @@ def set_context_commands(item, parent_item):
                                          (sys.argv[0], item.clone(action="add_pelicula_to_library",
                                                                   from_action=item.action).tourl())))
 
-        if item.channel != "downloads":
+        if item.channel != "downloads" and downloadenabled != "false":
             # Descargar pelicula
             if item.contentType == "movie" and item.contentTitle:
                 context_commands.append((config.get_localized_string(60354), "XBMC.RunPlugin(%s?%s)" %

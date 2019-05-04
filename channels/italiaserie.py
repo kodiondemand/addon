@@ -163,7 +163,7 @@ def findvideos(item):
     support.log()
 
     itemlist = support.server(item, data=item.url)
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     autoplay.start(itemlist, item)
 

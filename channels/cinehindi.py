@@ -144,7 +144,7 @@ def findvideos(item):
             itemlist.append(itemlist1[i])
     tmdb.set_infoLabels(itemlist, True)
     # Requerido para FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Requerido para AutoPlay
 

@@ -131,7 +131,7 @@ def findvideos(item):
     if __comprueba_enlaces__:
         itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
     # Requerido para FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
     # Requerido para AutoPlay
     autoplay.start(itemlist, item)
 

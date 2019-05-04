@@ -1,0 +1,44 @@
+{
+    "id": "serietvsubita",
+    "name": "Serie TV Sub ITA",
+    "active": false,
+    "adult": false,
+    "language": ["ita"],
+    "thumbnail": "http://serietvsubita.xyz/wp-content/uploads/2012/07/logo.jpg",
+    "banner": "http://serietvsubita.xyz/wp-content/uploads/2012/07/logo.jpg",
+    "categories": ["tvshow"],
+    "settings": [
+        {
+            "id": "channel_host",
+            "type": "text",
+            "label": "Host del canale",
+            "default": "http://serietvsubita.xyz/",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "include_in_global_search",
+            "type": "bool",
+            "label": "Includi ricerca globale",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        },    
+        {
+            "id": "include_in_newest_series",
+            "type": "bool",
+            "label": "Includi in Novità - Serie TV",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "include_in_newest_italiano",
+            "type": "bool",
+            "label": "Includi in Novità - Italiano",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        }
+    ]
+}

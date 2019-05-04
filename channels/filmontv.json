@@ -1,0 +1,12 @@
+{
+    "id": "filmontv",
+    "name": "Film in tv",
+    "language": ["ita"],
+    "active": false,
+    "adult": false,
+    "thumbnail": null,
+    "banner": null,
+    "categories": [],
+    "settings": [],
+    "channel": false
+}

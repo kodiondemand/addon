@@ -101,7 +101,7 @@ def findvideos(item):
     if __comprueba_enlaces__:
         itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     autoplay.start(itemlist, item)
     support.videolibrary(itemlist, item ,'color kod bold')

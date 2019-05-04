@@ -1,0 +1,44 @@
+{
+    "id": "serietvu",
+    "name": "SerieTVU",
+    "active": true,
+    "adult": false,
+    "language": ["ita"],
+    "thumbnail": "https://www.serietvu.club/wp-content/themes/gurarjbar/images/logo.png",
+    "banner": "https://www.serietvu.club/wp-content/themes/gurarjbar/images/logo.png",
+    "categories": ["tvshow"],
+    "settings": [
+        {
+            "id": "channel_host",
+            "type": "text",
+            "label": "Host del canale",
+            "default": "https://www.serietvu.club",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "include_in_global_search",
+            "type": "bool",
+            "label": "Includi ricerca globale",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        },    
+        {
+            "id": "include_in_newest_series",
+            "type": "bool",
+            "label": "Includi in Novità - Serie TV",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "include_in_newest_italiano",
+            "type": "bool",
+            "label": "Includi in Novità - Italiano",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        }
+    ]
+}

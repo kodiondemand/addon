@@ -162,7 +162,7 @@ def categorie(item):
     matches = re.compile(patron, re.DOTALL).findall(blocco)
 
     for value in matches:
-        url = "%s/genere/%s" % (host, value)
+        url = host + '/filter?genere=' + value
         itemlist.append(
             Item(channel=item.channel,
                  action="serietv",

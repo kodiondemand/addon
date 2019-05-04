@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https://gounlimited.to/embed-(.*?).html",
+        "pattern": "https://gounlimited.to/(?:embed-|)([a-z0-9]+)(?:.html|)",
         "url": "https://gounlimited.to/embed-\\1.html"
       }
     ]

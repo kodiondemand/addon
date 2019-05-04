@@ -1,21 +1,18 @@
 {
-	"id": "eurostreaming",
-	"name": "Eurostreaming",
-    "active": true,
-	"adult": false,
-	"language": ["ita"],
-    "thumbnail": "",
-    "bannermenu": "",
-	"categories": ["tvshow","anime"],
+  "id": "altadefinizione01_link",
+  "name": "Altadefinizione01 L",
+  "active": true,
+  "adult": false,
+  "language": ["ita"],
+  "fanart": "",
+  "thumbnail": "",
+  "banner": "http://altadefinizione01.link/templates/Dark/img/logonyy.png",
+  "fix" : "reimpostato url e modificato file per KOD",
+  "change_date": "2019-30-04",
+  "categories": [
+    "movie"
+  ],
   "settings": [
-      {
-      "id": "include_in_global_search",
-      "type": "bool",
-      "label": "Includi ricerca globale",
-      "default": true,
-      "enabled": true,
-      "visible": true
-    },
     {
       "id": "modo_grafico",
       "type": "bool",
@@ -25,21 +22,29 @@
       "visible": true
     },
     {
-    "id": "include_in_newest_series",
-    "type": "bool",
-    "label": "Includi in novità - Serie TV",
-    "default": true,
-	 "enabled": true,
-    "visible": true
+      "id": "include_in_newest_film",
+      "type": "bool",
+      "label": "Includi in Novità",
+      "default": true,
+      "enabled": true,
+      "visible": true
     },
     {
-    "id": "include_in_newest_italiano",
-    "type": "bool",
-    "label": "Includi in Novità - Italiano",
-    "default": true,
-    "enabled": true,
-    "visible": true
-    },    
+      "id": "include_in_newest_italiano",
+      "type": "bool",
+      "label": "Includi in Novità - Italiano",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },   
+    {
+      "id": "include_in_global_search",
+      "type": "bool",
+      "label": "Includi ricerca globale",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
     {
       "id": "comprueba_enlaces",
       "type": "bool",
@@ -66,8 +71,7 @@
       "visible": true,
       "lvalues": [
         "Non filtrare",
-        "ITA",
-        "SUB ITA"
+        "IT"
       ]
     },
     {

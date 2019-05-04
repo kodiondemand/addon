@@ -5439,11 +5439,11 @@ msgid "Disclaimer"
 msgstr "Disclaimer"
 
 msgctxt "#70691"
-msgid "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
+msgid "Using the download function you declare that you have a physical copy and use this function as a backup of the same."
 msgstr "Utilizzando la funzione di download dichiari di essere in possesso di una copia fisica e di utilizzare questa funzione come backup dello stesso."
 
 msgctxt "#70692"
-msgid "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
+msgid "The KOD team assumes no responsibility for the use that is made of this proposed function"
 msgstr "Il team di KOD non si assume alcuna responsabilità dell'uso che viene fatto di questa funzione proposta"
 
 msgctxt "#70693"

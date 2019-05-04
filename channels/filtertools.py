@@ -120,7 +120,7 @@ def context(item, list_language=None, list_quality=None, exist=False):
         _context = []
 
     if access():
-        dict_data = {"title": "FILTRO: Configurar", "action": "config_item", "channel": "filtertools"}
+        dict_data = {"title": config.get_localized_string(60426), "action": "config_item", "channel": "filtertools"}
         if list_language:
             dict_data["list_language"] = list_language
         if list_quality:
@@ -139,10 +139,10 @@ def context(item, list_language=None, list_quality=None, exist=False):
 
         if item.action == "play":
             if not exist:
-                _context.append({"title": "FILTRO: Añadir '%s'" % item.language, "action": "save_from_context",
+                _context.append({"title": config.get_localized_string(60427) % item.language, "action": "save_from_context",
                                  "channel": "filtertools", "from_channel": item.channel})
             else:
-                _context.append({"title": "FILTRO: Borrar '%s'" % item.language, "action": "delete_from_context",
+                _context.append({"title": config.get_localized_string(60428) % item.language, "action": "delete_from_context",
                                  "channel": "filtertools", "from_channel": item.channel})
 
     return _context
@@ -150,7 +150,7 @@ def context(item, list_language=None, list_quality=None, exist=False):
 
 def show_option(itemlist, channel, list_language, list_quality):
     if access():
-        itemlist.append(Item(channel=__channel__, title="[COLOR %s]Configurar filtro para series...[/COLOR]" %
+        itemlist.append(Item(channel=__channel__, title=config.get_localized_string(60429) %
                                                         COLOR.get("parent_item", "auto"), action="load",
                              list_language=list_language,
                              list_quality=list_quality, from_channel=channel))
@@ -377,17 +377,16 @@ def mainlist(channel, list_language, list_quality):
 
         idx += 1
         name = dict_series.get(tvshow, {}).get(TAG_NAME, tvshow)
-        activo = " (desactivado)"
+        activo = config.get_localized_string(60433)
         if dict_series[tvshow][TAG_ACTIVE]:
             activo = ""
-        title = "Configurar [COLOR %s][%s][/COLOR]%s" % (tag_color, name, activo)
+        title = config.get_localized_string(60434) % (tag_color, name, activo)
 
         itemlist.append(Item(channel=__channel__, action="config_item", title=title, show=name,
                              list_language=list_language, list_quality=list_quality, from_channel=channel))
 
     if len(itemlist) == 0:
-        itemlist.append(Item(channel=channel, action="mainlist", title="No existen filtros, busca una serie y "
-                                                                       "pulsa en menú contextual 'FILTRO: Configurar'"))
+        itemlist.append(Item(channel=channel, action="mainlist", title=config.get_localized_string(60435)))
 
     return itemlist
 

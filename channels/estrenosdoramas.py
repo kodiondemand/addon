@@ -268,7 +268,7 @@ def findvideos(item):
     itemlist = servertools.get_servers_itemlist(itemlist)
 
     # Requerido para FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Requerido para AutoPlay
     autoplay.start(itemlist, item)

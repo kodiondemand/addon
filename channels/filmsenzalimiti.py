@@ -183,7 +183,7 @@ def findvideos(item):
         itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
 
     # Necessario per  FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Necessario per  AutoPlay
     autoplay.start(itemlist, item)
