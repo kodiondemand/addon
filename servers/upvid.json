@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "upvid\.(?:co|live)/(?:embed-)?([a-z0-9]+).html",
+        "pattern": "upvid.(?:co|live)/(?:embed-)?([a-z0-9]+).html",
         "url": "https://upvid.live/\\1.html"
       }
     ]
