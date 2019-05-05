@@ -233,7 +233,6 @@ def episodios(item):
     matches = re.compile(patron, re.DOTALL).findall(block)
 
     for scrapedurl, scrapedtitle in matches:
-        print item.title
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         scrapedtitle = scrapedtitle.replace ("S0", "")
         scrapedtitle = scrapedtitle.replace(" - EP ", "x")
