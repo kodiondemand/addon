@@ -33,9 +33,9 @@ def mainlist(item):
     # Main options
     itemlist = []
     support.menu(itemlist, 'Al Cinema bold', 'carousel', host, contentType='movie')
-    support.menu(itemlist, 'Film alta definizione bold', 'peliculas', host, contentType='movie')
-    support.menu(itemlist, 'Categorie Film bold', 'categorias_film', host , contentType='movie')
-    support.menu(itemlist, 'Categorie Serie bold', 'categorias_serie', host, contentType='episode')
+    support.menu(itemlist, 'Film alta definizione bold', 'peliculas', host, contentType='movie', args='film')
+    support.menu(itemlist, 'Categorie Film bold', 'categorias_film', host , contentType='movie', args='film')
+    support.menu(itemlist, 'Categorie Serie bold', 'categorias_serie', host, contentType='episode', args='serie')
     support.menu(itemlist, '[COLOR blue]Cerca Film...[/COLOR] bold', 'search', host, contentType='movie', args='film')
     support.menu(itemlist, '[COLOR blue]Cerca Serie...[/COLOR] bold', 'search', host, contentType='episode', args='serie')
 
@@ -66,6 +66,7 @@ def carousel(item):
                  fulltitle = scrapedtitle,
                  url = scrapedurl,
                  thumbnail = scrapedthumb,
+                 args=item.args,
                  show = scrapedtitle,))
     return itemlist
 
@@ -91,6 +92,7 @@ def peliculas(item):
                  fulltitle = scrapedtitle,
                  url = scrapedurl,
                  thumbnail = scrapedthumb,
+                 args=item.args,
                  show = scrapedtitle))
 
         patron = r'class="nextpostslink".*?href="(.*?)"'
@@ -101,6 +103,7 @@ def peliculas(item):
                 Item(channel=item.channel,
                      action="peliculas",
                      title="[B]" + config.get_localized_string(30992) + "[/B]",
+                     args=item.args,
                      url=next_page))
 
     return itemlist
@@ -123,6 +126,7 @@ def categorias_film(item):
                  action="peliculas_categorias",
                  title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
                  url=scrapedurl,
+                 args=item.args,
                  thumbnail=""))
 
     return itemlist
@@ -145,6 +149,7 @@ def categorias_serie(item):
                  action="peliculas_serie",
                  title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
                  url=scrapedurl,
+                 args=item.args,
                  thumbnail=""))
 
     return itemlist
@@ -157,10 +162,12 @@ def peliculas_categorias(item):
 
     data = httptools.downloadpage(item.url, headers=headers).data
 
-    patron = r'<div class="cnt">.*?src="(.*?)".*?<small>.*?([A-Z|0-9].*?)		<.*?<a href="(.*?)"'
+    patron = r'<div class="cnt">.*?src="(.*?)".*?title="([A-Z|0-9].*?)".*?<a href="(.*?)"'
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     for scrapedthumb, scrapedtitle, scrapedurl in matches:
+        if scrapedtitle == "":
+            scrapedtitle = scrapertools.find_single_match(data, r'<small>.*?([A-Z|0-9].*?)		<')
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         scrapedtitle = scrapedtitle.replace ("Ãˆ","È")
         scrapedtitle = scrapedtitle.replace("â€“", "-")
@@ -173,6 +180,7 @@ def peliculas_categorias(item):
                  fulltitle=scrapedtitle,
                  url=scrapedurl,
                  thumbnail=scrapedthumb,
+                 args=item.args,
                  show=scrapedtitle))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -186,10 +194,12 @@ def peliculas_serie(item):
 
     data = httptools.downloadpage(item.url, headers=headers).data
 
-    patron = r'<div class="cnt">.*?src="(.*?)".*?<small>.*?([A-Z|0-9].*?)		<.*?<a href="(.*?)"'
+    patron = r'div class="cnt">.*?src="(.*?)".*?title="([A-Z|0-9].*?)".*?<a href="(.*?)"'
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     for scrapedthumb, scrapedtitle, scrapedurl in matches:
+        if scrapedtitle == "":
+            scrapedtitle = scrapertools.find_single_match(data, r'<small>.*?([A-Z|0-9].*?)		<')
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         scrapedtitle = scrapedtitle.replace ("Ãˆ","È")
         scrapedtitle = scrapedtitle.replace("â€“", "-")
@@ -203,6 +213,7 @@ def peliculas_serie(item):
                  fulltitle=scrapedtitle,
                  url=scrapedurl,
                  thumbnail=scrapedthumb,
+                 args=item.args,
                  show=scrapedtitle))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -234,6 +245,7 @@ def episodios(item):
                  fulltitle=scrapedtitle,
                  url=scrapedurl,
                  thumbnail=item.thumb,
+                 args=item.args,
                  show=item.title))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -283,4 +295,10 @@ def findvideos(item):
         videoitem.thumbnail = item.thumbnail
         videoitem.channel = item.channel
         videoitem.contentType = item.content
+
+    if item.args == "film":
+        support.videolibrary(itemlist, item, 'color kod')
+
+    autoplay.start(itemlist, item)
+
     return itemlist
