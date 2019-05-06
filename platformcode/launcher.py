@@ -7,7 +7,7 @@ import os
 import sys
 import urllib2
 import time
-
+import updater
 from core import channeltools
 from core import scrapertools
 from core import servertools
@@ -32,7 +32,6 @@ def start():
 
 def run(item=None):
     logger.info()
-
     if not item:
         # Extract item from sys.argv
         if sys.argv[2]:
@@ -60,7 +59,7 @@ def run(item=None):
                     from channels import side_menu
                     item= Item()
                     item = side_menu.check_user_home(item)
-                    item.start = True;
+                    item.start = True
             else:
                 item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
@@ -75,6 +74,9 @@ def run(item=None):
         if item.action == "":
             logger.info("Item sin accion")
             return
+        
+        if item.action == "update":
+            updater.update()
 
         # Action for main menu in channelselector
         elif item.action == "getmainlist":
@@ -117,10 +119,9 @@ def run(item=None):
 
         # Action in certain channel specified in "action" and "channel" parameters
         else:
-
             # Entry point for a channel is the "mainlist" action, so here we check parental control
             if item.action == "mainlist":
-
+                #updater.checkforupdates() beta version checking for update, still disabled
 
                 # Parental control
                 # If it is an adult channel, and user has configured pin, asks for it
@@ -128,7 +129,6 @@ def run(item=None):
                     tecleado = platformtools.dialog_input("", config.get_localized_string(60334), True)
                     if tecleado is None or tecleado != config.get_setting("adult_password"):
                         return
-
             # # Actualiza el canal individual
             # if (item.action == "mainlist" and item.channel != "channelselector" and
             #             config.get_setting("check_for_channel_updates") == True):

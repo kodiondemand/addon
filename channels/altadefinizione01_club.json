@@ -71,22 +71,6 @@
         "Non filtrare",
         "IT"
       ]
-    },
-    {
-      "id": "perfil",
-      "type": "list",
-      "label": "profilo dei colori",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "Sin color",
-        "Perfil 5",
-        "Perfil 4",
-        "Perfil 3",
-        "Perfil 2",
-        "Perfil 1"
-      ]
     }
 	  ]
 }

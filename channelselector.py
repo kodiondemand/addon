@@ -337,10 +337,13 @@ def thumb(itemlist=[]):
                      'channels_grotesque':['grottesco'],
                      'channels_war':['guerra'],
                      'horror':['horror'],
+                     'lucky': ['fortunato'], # se potete inserire la icona anche per questa voce
                      'channels_musical':['musical'],
                      'channels_mistery':['mistero', 'giallo'],
                      'channels_noir':['noir'],
+                     'popular' : ['popolari','popolare', 'più visti'],
                      'channels_thriller':['thriller'],
+                     'top_rated' : ['fortunato'], #da tocgliere aggiunte la voce lucky o quello che volete
                      'channels_western':['western'],
                      'channels_vos':['sub','sub-ita'],
                      'channels_romance':['romantico','sentimentale'],
