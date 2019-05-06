@@ -170,16 +170,16 @@ def search_peliculas_tv(item):
     itemlist = []
 
     # Carica la pagina 
-    data = httptools.downloadpage(item.url, headers=headers).data
+    data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
 
     # Estrae i contenuti 
-    patron = '<a href="([^"]+)" title="([^"]+)" rel="[^"]+">\s*<img[^s]+src="(.*?)"'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    patron = r'<a href="([^"]+)" title="Permalink to\s([^"]+) \([^<]+\).*?" rel="[^"]+">\s*<img[^s]+src="(.*?)"'
+
+    matches = re.compile(patron, re.MULTILINE).findall(data)
 
     for scrapedurl, scrapedtitle, scrapedthumbnail in matches:
         scrapedplot = ""
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
-        scrapedtitle = scrapedtitle.replace("streaming", "").replace("Permalink to ", "")
 
         itemlist.append(
             Item(channel=item.channel,
@@ -191,6 +191,8 @@ def search_peliculas_tv(item):
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
                  folder=True))
+
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     return itemlist
 
@@ -294,6 +296,7 @@ def peliculas_tv(item):
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
+
 
 def latest(item):
     logger.info("kod.tantifilm peliculas")
