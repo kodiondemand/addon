@@ -261,7 +261,8 @@ def episodios(item):
         if item.extra != "library":
             if config.get_videolibrary_support() and len(itemlist) > 0 and item.extra != 'findvideos':
                 itemlist.append(Item(channel=item.channel, title="%s" % config.get_localized_string(30161),
-                                     text_color="green", extra="episodios",
+                                     #text_color="green",
+                                     extra="episodios",
                                      action="add_serie_to_library", url=item.url,
                                      thumbnail= get_thumb('videolibrary', auto = True),
                                      contentTitle=item.contentSerieName, lang = item.lang,
