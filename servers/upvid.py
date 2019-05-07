@@ -29,7 +29,7 @@ def get_video_url(page_url, premium = False, user = "", password = "", video_pas
         if 'ﾟωﾟﾉ' in data:
             break
         else:
-            page_url = scrapertools.find_single_match(data, '"iframe" src="([^"]+)')
+            page_url = scrapertools.find_single_match(data, '\'<iframe src="([^"]+)')
             if not page_url:
                 page_url = scrapertools.find_single_match(data, '<input type="hidden" id="link" value="([^"]+)')
     data = re.sub(r'"|\n|\r|\t|&nbsp;|<br>|\s{2,}', "", data)

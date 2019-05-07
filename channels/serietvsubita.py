@@ -194,7 +194,7 @@ def findvideos(item):
 
     # recupero il blocco contenente i link
     blocco = scrapertools.find_single_match(data,'<div class="entry">[\s\S.]*?<div class="post')
-    # logger.debug(item);
+    # logger.debug(item)
 
     episodio = item.title.replace(str(item.contentSeason)+"x",'')
     patron = r'\.\.:: Episodio %s([\s\S]*?)(<div class="post|..:: Episodio)' % episodio
@@ -292,8 +292,8 @@ def newest(categoria):
     logger.info(__channel__ + " newest" + categoria)
     itemlist = []
     item = Item()
-    item.url = host;
-    item.extra = 'serie';
+    item.url = host
+    item.extra = 'serie'
     try:
         if categoria == "series":
             itemlist = peliculas_tv(item)
