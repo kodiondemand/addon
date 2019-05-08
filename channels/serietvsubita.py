@@ -21,8 +21,8 @@ list_language = IDIOMAS.values()
 list_servers = ['gounlimited','verystream','streamango','openload']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
+# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
+# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
 
 
 def mainlist(item):

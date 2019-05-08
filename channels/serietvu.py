@@ -19,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['speedvideo']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
+# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
+# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
 
 
 
@@ -131,6 +131,8 @@ def episodios(item):
                      extra=scrapedextra,
                      folder=True))
 
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
     support.videolibrary(itemlist,item,'bold color kod')
 
     return itemlist
@@ -145,10 +147,10 @@ def findvideos(item):
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Controlla se i link sono validi
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    autoplay.start(itemlist, item)
+    # if __comprueba_enlaces__:
+    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 
@@ -174,10 +176,10 @@ def findepisodevideo(item):
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Controlla se i link sono validi
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    autoplay.start(itemlist, item)
+    # if __comprueba_enlaces__:
+    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 
