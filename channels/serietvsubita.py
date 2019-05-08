@@ -75,12 +75,18 @@ def lista_serie(item):
         item.url, p = item.url.split('{}')
         p = int(p)
 
-    # Descarga la pagina
-    data = httptools.downloadpage(item.url).data
+    if '||' in item.url:
+        series = item.url.split('\n\n')
+        matches = []
+        for i, serie in enumerate(series):
+            matches.append(serie.split('||'))
+    else:
+        # Descarga la pagina
+        data = httptools.downloadpage(item.url).data
 
-    # Extrae las entradas
-    patron = '<li class="cat-item cat-item-\d+"><a href="([^"]+)" >([^<]+)</a>'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+        # Extrae las entradas
+        patron = '<li class="cat-item cat-item-\d+"><a href="([^"]+)" >([^<]+)</a>'
+        matches = re.compile(patron, re.DOTALL).findall(data)
 
     for i, (scrapedurl, scrapedtitle) in enumerate(matches):
         scrapedplot = ""
@@ -128,18 +134,60 @@ def episodios(item, itemlist=[]):
 
     data = httptools.downloadpage(item.url).data
 
+
     patron = '<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>.*?'
     patron += '<p><a href="([^"]+)">'
 
     matches = re.compile(patron, re.DOTALL).findall(data)
-    # logger.debug(itemlist)
+    logger.debug(itemlist)
     for scrapedurl, scrapedtitle, scrapedthumbnail in matches:
         scrapedplot = ""
         scrapedtitle = cleantitle(scrapedtitle)
-        title = scrapedtitle.split(" S0")[0].strip()
-        title = title.split(" S1")[0].strip()
-        title = title.split(" S2")[0].strip()
-        episodes = scrapertools.find_multiple_matches(scrapedtitle,'((\d*)x(\d*))')
+        if "(Completa)" in scrapedtitle:
+            data = httptools.downloadpage(scrapedurl).data
+            scrapedtitle = scrapedtitle.replace(" – Miniserie"," – Stagione 1")
+            title = scrapedtitle.split(" – Stagione")[0].strip()
+
+            # recupero la stagione
+            season = scrapertools.find_single_match(scrapedtitle,'Stagione ([0-9]*)')
+            blocco = scrapertools.find_single_match(data, '<div class="entry">[\s\S.]*?<div class="post')
+            # blocco = scrapertools.decodeHtmlentities(blocco)
+            blocco = blocco.replace('<strong>Episodio ','<strong>Episodio ').replace(' </strong>',' </strong>')
+            blocco = blocco.replace('<strong>Episodio ','<strong>S'+season.zfill(2)+'E')
+            # logger.debug(blocco)
+            # controllo se gli episodi son nel formato S0XE0X
+            matches = scrapertools.find_multiple_matches(blocco,r'(S(\d*)E(\d*))\s')
+            episodes = []
+            if len(matches) > 0:
+                for fullepisode_s, season, episode in matches:
+
+                    season = season.lstrip("0")
+                    # episode = episode.lstrip("0")
+
+                    episodes.append([
+                        "".join([season, "x", episode]),
+                        season,
+                        episode
+                    ])
+            # else:
+            #     # blocco = blocco.replace('>Episodio 0','>Episodio-0')
+            #     matches = scrapertools.find_multiple_matches(blocco, r'Episodio[^\d](\d*)')
+            #     logger.debug(blocco)
+            #     logger.debug(matches)
+            #     episodes = []
+            #     if len(matches) > 0:
+            #         for string, episode in matches:
+            #             episodes.append([
+            #                 "".join([season, "x", episode]),
+            #                 season,
+            #                 episode
+            #             ])
+
+        else:
+            title = scrapedtitle.split(" S0")[0].strip()
+            title = title.split(" S1")[0].strip()
+            title = title.split(" S2")[0].strip()
+            episodes = scrapertools.find_multiple_matches(scrapedtitle,r'((\d*)x(\d*))')
         # logger.debug(scrapedtitle)
         # logger.debug(episodes)
 
@@ -162,7 +210,7 @@ def episodios(item, itemlist=[]):
                      infoLabels=infoLabels,
                      folder=True))
 
-    # tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     # Paginazionazione
     patron = '<strong class=\'on\'>\d+</strong>\s*<a href="([^<]+)">\d+</a>'
@@ -170,14 +218,6 @@ def episodios(item, itemlist=[]):
     if next_page != "":
         item.url = next_page
         itemlist = episodios(item,itemlist)
-        # itemlist.append(
-        #     Item(channel=item.channel,
-        #          action='episodios',
-        #          contentType=item.contentType,
-        #          title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-        #          url=next_page,
-        #          args=item.args,
-        #          thumbnail=support.thumb()))
     else:
         item.url = item.originalUrl
         support.videolibrary(itemlist,item,'bold color kod')
@@ -194,11 +234,19 @@ def findvideos(item):
 
     # recupero il blocco contenente i link
     blocco = scrapertools.find_single_match(data,'<div class="entry">[\s\S.]*?<div class="post')
-    # logger.debug(item)
+    blocco = blocco.replace('..:: Episodio ','Episodio ')
+
+    matches = scrapertools.find_multiple_matches(blocco, '(S(\d*)E(\d*))\s')
+    if len(matches) > 0:
+        for fullseasonepisode, season, episode in matches:
+            blocco = blocco.replace(fullseasonepisode+' ','Episodio '+episode+' ')
+
+    blocco = blocco.replace('Episodio ', '..:: Episodio ')
+    logger.debug(blocco)
 
     episodio = item.title.replace(str(item.contentSeason)+"x",'')
     patron = r'\.\.:: Episodio %s([\s\S]*?)(<div class="post|..:: Episodio)' % episodio
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    matches = re.compile(patron, re.DOTALL).findall(blocco)
     if len(matches):
         data = matches[0][0]
 
@@ -216,10 +264,10 @@ def findvideos(item):
 
 
     # Controlla se i link sono validi
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    autoplay.start(itemlist, item)
+    # if __comprueba_enlaces__:
+    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 
@@ -265,19 +313,20 @@ def peliculas_tv(item):
 
     # Paginazione
     patron = '<strong class=\'on\'>\d+</strong>\s*<a href="([^<]+)">\d+</a>'
-    next_page = scrapertools.find_single_match(data, patron)
-    if next_page != "":
-        if item.extra == "search_tv":
-            next_page = next_page.replace('&#038;', '&')
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='peliculas_tv',
-                 contentType=item.contentType,
-                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                 url=next_page,
-                 args=item.args,
-                 extra=item.extra,
-                 thumbnail=support.thumb()))
+    support.nextPage(itemlist,item,data,patron)
+    # next_page = scrapertools.find_single_match(data, patron)
+    # if next_page != "":
+    #     if item.extra == "search_tv":
+    #         next_page = next_page.replace('&#038;', '&')
+    #     itemlist.append(
+    #         Item(channel=item.channel,
+    #              action='peliculas_tv',
+    #              contentType=item.contentType,
+    #              title=support.typo(config.get_localized_string(30992), 'color kod bold'),
+    #              url=next_page,
+    #              args=item.args,
+    #              extra=item.extra,
+    #              thumbnail=support.thumb()))
 
 
     return itemlist
@@ -314,32 +363,6 @@ def newest(categoria):
 def search(item, texto):
     logger.info(item.channel + " search")
     itemlist = []
-    item.extra = "search_tv"
-
-    item.url = host + "/?s=" + texto + "&op.x=0&op.y=0"
-
-    try:
-        return peliculas_tv(item)
-
-    except:
-        import sys
-        for line in sys.exc_info():
-            logger.error("%s" % line)
-        return []
-
-
-# ================================================================================================================
-
-# ----------------------------------------------------------------------------------------------------------------
-def list_az(item):
-    support.log(item.channel+" list_az")
-    itemlist = []
-    PERPAGE = 50
-
-    p = 1
-    if '{}' in item.url:
-        item.url, p = item.url.split('{}')
-        p = int(p)
 
     # Scarico la pagina
     data = httptools.downloadpage(item.url).data
@@ -349,37 +372,72 @@ def list_az(item):
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     for i, (scrapedurl, scrapedtitle) in enumerate(matches):
-        scrapedplot = ""
-        scrapedthumbnail = ""
-        if (p - 1) * PERPAGE > i: continue
-        if i >= p * PERPAGE: break
-        title = cleantitle(scrapedtitle)
-        itemlist.append(
-            Item(channel=item.channel,
-                 extra=item.extra,
-                 action="episodios",
-                 title=title,
-                 url=scrapedurl,
-                 fulltitle=title,
-                 show=title,
-                 plot=scrapedplot,
-                 contentType='episode',
-                 originalUrl=scrapedurl,
-                 folder=True))
+        if texto.upper() in scrapedtitle.upper():
+            scrapedthumbnail = ""
+            scrapedplot = ""
+            title = cleantitle(scrapedtitle)
+            itemlist.append(
+                Item(channel=item.channel,
+                     extra=item.extra,
+                     action="episodios",
+                     title=title,
+                     url=scrapedurl,
+                     thumbnail=scrapedthumbnail,
+                     fulltitle=title,
+                     show=title,
+                     plot=scrapedplot,
+                     contentType='episode',
+                     originalUrl=scrapedurl,
+                     folder=True))
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    # Paginazione
-    if len(matches) >= p * PERPAGE:
-        scrapedurl = item.url + '{}' + str(p + 1)
+    return itemlist
+
+    # item.extra = "search_tv"
+    #
+    # item.url = host + "/?s=" + texto + "&op.x=0&op.y=0"
+    #
+    # try:
+    #     return peliculas_tv(item)
+    #
+    # except:
+    #     import sys
+    #     for line in sys.exc_info():
+    #         logger.error("%s" % line)
+    #     return []
+
+
+# ================================================================================================================
+
+# ----------------------------------------------------------------------------------------------------------------
+
+
+def list_az(item):
+    support.log(item.channel+" list_az")
+    itemlist = []
+
+    alphabet = dict()
+
+    # Scarico la pagina
+    data = httptools.downloadpage(item.url).data
+
+    # Articoli
+    patron = '<li class="cat-item cat-item-\d+"><a href="([^"]+)" >([^<]+)</a>'
+    matches = re.compile(patron, re.DOTALL).findall(data)
+
+    for i, (scrapedurl, scrapedtitle) in enumerate(matches):
+        letter = scrapedtitle[0].upper()
+        if letter not in alphabet:
+            alphabet[letter] = []
+        alphabet[letter].append(scrapedurl+'||'+scrapedtitle)
+
+    for letter in sorted(alphabet):
         itemlist.append(
             Item(channel=item.channel,
-                 action='list_az',
-                 contentType=item.contentType,
-                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                 url=scrapedurl,
-                 args=item.args,
-                 extra=item.extra,
-                 thumbnail=support.thumb()))
+                 action="lista_serie",
+                 url='\n\n'.join(alphabet[letter]),
+                 title=letter,
+                 fulltitle=letter))
 
     return itemlist
 
