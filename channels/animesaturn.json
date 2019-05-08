@@ -1,7 +1,7 @@
 {
     "id": "animesaturn",
     "name": "AnimeSaturn",
-    "active": true,
+    "active": false,
     "adult": false,
     "language": ["ita"],
     "thumbnail": "animesaturn.png",
@@ -12,7 +12,7 @@
             "id": "channel_host",
             "type": "text",
             "label": "Host del canale",
-            "default": "https://www.animesaturn.com/",
+            "default": "https://www.animesaturn.com",
             "enabled": true,
             "visible": true
         },
@@ -25,9 +25,9 @@
             "visible": true
         },    
         {
-            "id": "include_in_newest_series",
+            "id": "include_in_newest_anime",
             "type": "bool",
-            "label": "Includi in Novità - Serie TV",
+            "label": "Includi in Novità - Anime",
             "default": true,
             "enabled": true,
             "visible": true

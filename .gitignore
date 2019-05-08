@@ -2,6 +2,5 @@
 *.pyc
 .DS_Store
 .idea/
-.dev
 .directory
 __pycache__/
