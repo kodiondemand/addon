@@ -53,9 +53,6 @@ def show_channels(item):
     itemlist.append(Item(channel=item.channel, title='Aggiungi un canale', action='add_channel', thumbnail=get_thumb('add.png')))
 
     for key, channel in json['channels'].items():
-        print "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        print channel
-
         if 'thumbnail' in channel:
             thumbnail = channel['thumbnail']
         else:
@@ -91,7 +88,18 @@ def show_menu(item):
 
     if "menu" in json_data:
         for option in json_data['menu']:
-            itemlist.append(Item(channel=item.channel, title=option['title'], action='show_menu', url=option['link']))
+            
+            if 'thumbnail' in option and option['thumbnail']:
+                thumbnail = option['thumbnail']
+            else:
+                thumbnail = item.thumbnail
+
+            if 'fanart' in option and option['fanart']:
+                fanart = option['fanart']
+            else:
+                fanart = item.fanart
+            
+            itemlist.append(Item(channel=item.channel, thumbnail=thumbnail, fanart=fanart, title=option['title'], action='show_menu', url=option['link']))
         autoplay.show_option(item.channel, itemlist)
         return itemlist
 
