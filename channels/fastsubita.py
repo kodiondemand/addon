@@ -131,7 +131,6 @@ def pelicuals_tv(item):
                  plot=scrapedplot,
                  show=scraped_1,
                  extra=item.extra,
-                 # contentTitle=scrapedtitle+" "+episode[0]+" (Sub-ITA)",
                  contentSerieName=scraped_1+" ("+episode[0]+" Sub-Ita)",
                  folder=True))
 
@@ -148,24 +147,36 @@ def serietv():
     itemlist = []
     data = httptools.downloadpage("%s/elenco-serie-tv/" % host, headers=headers).data
 
-    block = scrapertools.find_single_match(data, r'<div class="entry-content">(.*?)</div>')
-
+    # block = scrapertools.find_single_match(data, r'<div class="entry-content">(.*?)</div>')
+    block = scrapertools.find_single_match(data, r"<select name='cat' id='cat' class='postform'>(.*?)</select>")
     # Estrae i contenuti
     # patron = r'<a style.*?href="([^"]+)">([^<]+)<\/a>'
-    patron = r'<a.*?href="([^"]+)">([^<]+)<\/a>'
-    matches = re.compile(patron, re.DOTALL).findall(block)
+    # patron = r'<a.*?href="([^"]+)">([^<]+)<\/a>'
+    # matches = re.compile(patron, re.DOTALL).findall(block)
+    matches = re.compile(r'<option class="level-([0-9]?)" value="([^"]+)">([^<]+)</option>', re.DOTALL).findall(block)
     index = 0
-    for scrapedurl, scrapedtitle  in matches:
-        scrapedtitle = cleantitle(scrapedtitle)
-        if "http:" not in scrapedurl:
-            scrapedurl = "http:" + scrapedurl
-
-        if ('S' in scrapedtitle.strip().upper()[0] and len(scrapedtitle.strip()) == 3) or '02' == scrapedtitle:
-            # itemlist[index -1][0]+='{|}'+scrapedurl
+    # for scrapedurl, scrapedtitle  in matches:
+    #     scrapedtitle = cleantitle(scrapedtitle)
+    #     if "http:" not in scrapedurl:
+    #         scrapedurl = "http:" + scrapedurl
+    #
+    #     if ('S' in scrapedtitle.strip().upper()[0] and len(scrapedtitle.strip()) == 3) or '02' == scrapedtitle:
+    #         # itemlist[index -1][0]+='{|}'+scrapedurl
+    #         continue
+    #
+    #     itemlist.append([scrapedurl,scrapedtitle])
+    #     index += 1
+    for level, cat, title in matches:
+        title = cleantitle(title)
+        url = '%s?cat=%s' % (host, cat)
+        if int(level) > 0:
+            itemlist[index - 1][0] += '{|}' + url
             continue
 
-        itemlist.append([scrapedurl,scrapedtitle])
+        itemlist.append([url, title])
+
         index += 1
+
     logger.debug(itemlist)
     return itemlist
 
