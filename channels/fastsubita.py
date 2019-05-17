@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Ringraziamo Icarus crew
+# Thanks Icarus crew & Alfa addon
 # Canale per fastsubita
 # ------------------------------------------------------------
 
 import re, urlparse
 
-from channels import autoplay, filtertools
+import channelselector
+from channels import autoplay, filtertools, support
 from core import scrapertools, servertools, httptools, tmdb
 from core.item import Item
 from platformcode import config, logger
 
-host = "http://fastsubita.com"
-
+__channel__ = 'fastsubita'
+host = config.get_setting("channel_host", __channel__)
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'speedvideo', 'wstream', 'flashx', 'vidoza', 'vidtome']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'fastsubita')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'fastsubita')
+# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'fastsubita')
+# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'fastsubita')
 
 headers = [
     ['Host', 'fastsubita.com'],
@@ -34,45 +35,52 @@ headers = [
     ['Cache-Control', 'max-age=0']
 ]
 
-PERPAGE = 14
+PERPAGE = 15
 
 
 def mainlist(item):
-    logger.info("[fastsubita.py] mainlist")
+    logger.info(item.channel+" mainlist")
+    itemlist = []
 
+    support.menu(itemlist, 'Serie TV bold', 'lista_serie', host,'tvshow')
+    support.menu(itemlist, 'Novità submenu', 'pelicuals_tv', host,'tvshow')
+    support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', host,'tvshow',args=['serie'])
+
+    support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
     autoplay.init(item.channel, list_servers, list_quality)
-    itemlist = [Item(channel=item.channel,
-                     title="[COLOR azure]Aggiornamenti[/COLOR]",
-                     action="serietv",
-                     extra='serie',
-                     url=host,
-                     thumbnail="http://orig03.deviantart.net/6889/f/2014/079/7/b/movies_and_popcorn_folder_icon_by_matheusgrilo-d7ay4tw.png"),
-                Item(channel=item.channel,
-                     title="[COLOR azure]Tutte le Serie TV[/COLOR]",
-                     action="all_quick",
-                     extra='serie',
-                     url="%s/elenco-serie-tv/" % host,
-                     thumbnail="http://orig03.deviantart.net/6889/f/2014/079/7/b/movies_and_popcorn_folder_icon_by_matheusgrilo-d7ay4tw.png"),
-                Item(channel=item.channel,
-                     title="[COLOR yellow]Cerca...[/COLOR]",
-                     action="search",
-                     extra='serie',
-                     thumbnail="http://dc467.4shared.com/img/fEbJqOum/s7/13feaf0c8c0/Search")]
-
     autoplay.show_option(item.channel, itemlist)
+
+    itemlist.append(
+        Item(channel='setting',
+             action="channel_config",
+             title=support.typo("Configurazione Canale color lime"),
+             config=item.channel,
+             folder=False,
+             thumbnail=channelselector.get_thumb('setting_0.png'))
+    )
 
     return itemlist
 
+# ----------------------------------------------------------------------------------------------------------------
+def cleantitle(scrapedtitle):
+    scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
+    scrapedtitle = scrapedtitle.replace('’', '\'').replace('&#215;','x').replace('×','x')
+
+    return scrapedtitle.strip()
+
+
+# ================================================================================================================
+
 
 def newest(categoria):
-    logger.info("[fastsubita.py]==> newest" + categoria)
+    logger.info(__channel__+" newest" + categoria)
     itemlist = []
     item = Item()
     try:
         if categoria == "series":
             item.url = host
-            item.action = "serietv"
-            itemlist = serietv(item)
+            # item.action = "serietv"
+            itemlist = pelicuals_tv(item)
 
             if itemlist[-1].action == "serietv":
                 itemlist.pop()
@@ -87,13 +95,12 @@ def newest(categoria):
     return itemlist
 
 
-def serietv(item):
-    logger.info("[fastsubita.py] peliculas")
+def pelicuals_tv(item):
+    logger.info(item.channel+" pelicuals_tv")
     itemlist = []
 
     # Carica la pagina 
     data = httptools.downloadpage(item.url, headers=headers).data
-    logger.info("[fastsubita.py] peliculas")
 
     # Estrae i contenuti 
     patron = r'<h3 class="entry-title title-font"><a href="([^"]+)" rel="bookmark">(.*?)<'
@@ -103,8 +110,10 @@ def serietv(item):
         scrapedplot = ""
         scrapedthumbnail = ""
         scraped_1 = scrapedtitle.split("&#215;")[0][:-2]
-        scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
+        scrapedtitle = cleantitle(scrapedtitle)
+        episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')[0]
         scrapedtitle = scrapedtitle.replace(scraped_1, "")
+
 
         if "http:" in scrapedurl:
             scrapedurl = scrapedurl
@@ -115,37 +124,53 @@ def serietv(item):
             Item(channel=item.channel,
                  action="findvideos",
                  contentTpye="tvshow",
-                 title="[COLOR azure]" + scraped_1 + "[/COLOR]" + " " + scrapedtitle,
-                 fulltitle=scraped_1,
+                 title=scraped_1 + " " + scrapedtitle,
+                 fulltitle=scraped_1 + " " + scrapedtitle,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
                  show=scraped_1,
                  extra=item.extra,
+                 # contentTitle=scrapedtitle+" "+episode[0]+" (Sub-ITA)",
+                 contentSerieName=scraped_1+" ("+episode[0]+" Sub-Ita)",
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    # Paginazione 
-    patronvideos = r'<a class="next page-numbers" href="(.*?)">Successivi'
-    matches = re.compile(patronvideos, re.DOTALL).findall(data)
-
-    if len(matches) > 0:
-        scrapedurl = urlparse.urljoin(item.url, matches[0])
-        itemlist.append(
-            Item(channel=item.channel,
-                 action="serietv",
-                 title="[COLOR lightgreen]" + config.get_localized_string(30992) + "[/COLOR]",
-                 url=scrapedurl,
-                 thumbnail="http://2.bp.blogspot.com/-fE9tzwmjaeQ/UcM2apxDtjI/AAAAAAAAeeg/WKSGM2TADLM/s1600/pager+old.png",
-                 extra=item.extra,
-                 folder=True))
+    # Paginazione
+    support.nextPage(itemlist,item,data,'<a class="next page-numbers" href="(.*?)">Successivi')
 
     return itemlist
 
+def serietv():
+    logger.info(__channel__+" serietv")
 
-def all_quick(item):
-    logger.info("[fastsubita.py] peliculas")
+    itemlist = []
+    data = httptools.downloadpage("%s/elenco-serie-tv/" % host, headers=headers).data
+
+    block = scrapertools.find_single_match(data, r'<div class="entry-content">(.*?)</div>')
+
+    # Estrae i contenuti
+    # patron = r'<a style.*?href="([^"]+)">([^<]+)<\/a>'
+    patron = r'<a.*?href="([^"]+)">([^<]+)<\/a>'
+    matches = re.compile(patron, re.DOTALL).findall(block)
+    index = 0
+    for scrapedurl, scrapedtitle  in matches:
+        scrapedtitle = cleantitle(scrapedtitle)
+        if "http:" not in scrapedurl:
+            scrapedurl = "http:" + scrapedurl
+
+        if ('S' in scrapedtitle.strip().upper()[0] and len(scrapedtitle.strip()) == 3) or '02' == scrapedtitle:
+            # itemlist[index -1][0]+='{|}'+scrapedurl
+            continue
+
+        itemlist.append([scrapedurl,scrapedtitle])
+        index += 1
+    logger.debug(itemlist)
+    return itemlist
+
+def lista_serie(item):
+    logger.info(item.channel+" lista_serie")
     itemlist = []
 
     p = 1
@@ -153,57 +178,65 @@ def all_quick(item):
         item.url, p = item.url.split('{}')
         p = int(p)
 
+    # logger.debug(p)
     # Carica la pagina 
-    data = httptools.downloadpage(item.url, headers=headers).data
+    # data = httptools.downloadpage(item.url, headers=headers).data
+    #
+    # block = scrapertools.find_single_match(data,r'<div class="entry-content">(.*?)</div>')
+    #
+    # # Estrae i contenuti
+    # # patron = r'<a style.*?href="([^"]+)">([^<]+)<\/a>'
+    # patron = r'<a.*?href="([^"]+)">([^<]+)<\/a>'
+    # matches = re.compile(patron, re.DOTALL).findall(block)
+    if '||' in item.url:
+        series = item.url.split('\n\n')
+        matches = []
+        for i, serie in enumerate(series):
+            matches.append(serie.split('||'))
+        series = matches
+    else:
+        series = serietv()
 
-    # Estrae i contenuti 
-    patron = r'<a style.*?href="([^"]+)">([^<]+)<\/a>'
-    matches = re.compile(patron, re.DOTALL).findall(data)
-
-    for i, (scrapedurl, scrapedtitle) in enumerate(matches):
+    for i, (scrapedurl, scrapedtitle) in enumerate(series):
         if (p - 1) * PERPAGE > i: continue
         if i >= p * PERPAGE: break
+
         scrapedplot = ""
         scrapedthumbnail = ""
-        scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
-        if 'S' in scrapedtitle.lower(): continue
-
-        if "http:" in scrapedurl:
-            scrapedurl = scrapedurl
-        else:
-            scrapedurl = "http:" + scrapedurl
 
         itemlist.append(
             Item(channel=item.channel,
-                 action="serietv",
-                 contentType="tvshow",
+                 action="episodios",
                  title=scrapedtitle,
                  fulltitle=scrapedtitle,
-                 text_color="azure",
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
                  show=scrapedtitle,
                  extra=item.extra,
+                 contentType='episode',
+                 originalUrl=scrapedurl,
                  folder=True))
+        # ii += 1
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    if len(matches) >= p * PERPAGE:
+    if len(series) >= p * PERPAGE:
         scrapedurl = item.url + '{}' + str(p + 1)
         itemlist.append(
             Item(channel=item.channel,
-                 extra=item.extra,
-                 action="all_quick",
-                 title="[COLOR lightgreen]" + config.get_localized_string(30992) + "[/COLOR]",
+                 action='lista_serie',
+                 contentType=item.contentType,
+                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
                  url=scrapedurl,
-                 thumbnail="http://2.bp.blogspot.com/-fE9tzwmjaeQ/UcM2apxDtjI/AAAAAAAAeeg/WKSGM2TADLM/s1600/pager+old.png",
-                 folder=True))
+                 args=item.args,
+                 extra=item.extra,
+                 thumbnail=support.thumb()))
 
     return itemlist
 
 def findvideos(item):
-    logger.info("[fastsubita.py] findvideos")
+    logger.info(item.channel+" findvideos")
     itemlist = []
 
     data = httptools.downloadpage(item.url, headers=headers).data
@@ -217,30 +250,33 @@ def findvideos(item):
                  scrapedurl, follow_redirects=False)
             data += resp.headers.get("location", "") + '\n'
 
-    itemlist = servertools.find_video_items(data=data)
 
-    for videoitem in itemlist:
-        videoitem.title = item.title + videoitem.title
-        videoitem.fulltitle = item.fulltitle
-        videoitem.thumbnail = item.thumbnail
-        videoitem.show = item.show
-        videoitem.plot = item.plot
-        videoitem.channel = item.channel
-        videoitem.contentType = item.contentType
-        videoitem.language = IDIOMAS['Italiano']
+    itemlist = support.server(item,data)
 
-    # Requerido para Filtrar enlaces
-
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    # Requerido para FilterTools
-
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-
-    autoplay.start(itemlist, item)
+    # itemlist = servertools.find_video_items(data=data)
+    #
+    # for videoitem in itemlist:
+    #     videoitem.title = item.title + videoitem.title
+    #     videoitem.fulltitle = item.fulltitle
+    #     videoitem.thumbnail = item.thumbnail
+    #     videoitem.show = item.show
+    #     videoitem.plot = item.plot
+    #     videoitem.channel = item.channel
+    #     videoitem.contentType = item.contentType
+    #     videoitem.language = IDIOMAS['Italiano']
+    #
+    # # Requerido para Filtrar enlaces
+    #
+    # if __comprueba_enlaces__:
+    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    #
+    # # Requerido para FilterTools
+    #
+    # # itemlist = filtertools.get_links(itemlist, item, list_language)
+    #
+    # # Requerido para AutoPlay
+    #
+    # autoplay.start(itemlist, item)
 
 
 
@@ -248,10 +284,30 @@ def findvideos(item):
 
 
 def search(item, texto):
-    logger.info("[fastsubita.py] " + item.url + " search " + texto)
-    item.url = "%s/?s=%s" % (host, texto)
+    logger.info(item.channel + " " + item.url + " search " + texto)
+    # item.url = "%s/?s=%s" % (host, texto)
+    # item.url = "%s/elenco-serie-tv/" % host
+    itemlist = []
     try:
-        return serietv(item)
+        series = serietv()
+        for i, (scrapedurl, scrapedtitle) in enumerate(series):
+            if texto.upper() in scrapedtitle.upper():
+                scrapedthumbnail = ""
+                scrapedplot = ""
+                itemlist.append(
+                    Item(channel=item.channel,
+                         extra=item.extra,
+                         action="episodios",
+                         title=scrapedtitle,
+                         url=scrapedurl,
+                         thumbnail=scrapedthumbnail,
+                         fulltitle=scrapedtitle,
+                         show=scrapedtitle,
+                         plot=scrapedplot,
+                         contentType='episode',
+                         originalUrl=scrapedurl,
+                         folder=True))
+        return itemlist
     # Continua la ricerca in caso di errore 
     except:
         import sys
@@ -259,4 +315,94 @@ def search(item, texto):
             logger.error("%s" % line)
         return []
 
-    
+# ----------------------------------------------------------------------------------------------------------------
+
+def list_az(item):
+    support.log(item.channel + " list_az")
+    itemlist = []
+
+    alphabet = dict()
+
+
+    for i, (scrapedurl, scrapedtitle) in enumerate(serietv()):
+        letter = scrapedtitle[0].upper()
+        if letter not in alphabet:
+            alphabet[letter] = []
+        alphabet[letter].append(scrapedurl + '||' + scrapedtitle)
+
+    for letter in sorted(alphabet):
+        itemlist.append(
+            Item(channel=item.channel,
+                 action="lista_serie",
+                 url='\n\n'.join(alphabet[letter]),
+                 title=letter,
+                 fulltitle=letter))
+
+    return itemlist
+
+# ================================================================================================================
+
+# ----------------------------------------------------------------------------------------------------------------
+def episodios(item,itemlist = [], seasons = []):
+    support.log(item.channel + " episodios")
+    urls = item.url.split('{|}')
+    # logger.debug(urls)
+    # Carica la pagina
+    data = httptools.downloadpage(urls[0], headers=headers).data
+    urls.pop(0)
+    # Estrae i contenuti
+    patron = r'<h3 class="entry-title title-font"><a href="([^"]+)" rel="bookmark">(.*?)<'
+    matches = re.compile(patron, re.DOTALL).findall(data)
+
+    # logger.debug(matches)
+    for scrapedurl, scrapedtitle in matches:
+        scrapedplot = ""
+        scrapedthumbnail = ""
+        scrapedtitle = cleantitle(scrapedtitle)
+        episode = scrapertools.find_multiple_matches(scrapedtitle,r'((\d*)x(\d*))')[0]
+
+        season = episode[1].lstrip('0')
+        if season in seasons and '/page/' not in item.url: break
+        # logger.debug(scrapedtitle)
+        # logger.debug(episode)
+        # return False
+        infoLabels = {}
+        infoLabels['season'] = season
+        infoLabels['episode'] = episode[2]
+        title = infoLabels['season']+'x'+infoLabels['episode']
+
+        if "http:" not in scrapedurl:
+            scrapedurl = "http:" + scrapedurl
+
+        itemlist.append(
+            Item(channel=item.channel,
+                 action="findvideos",
+                 contentTpye="tvshow",
+                 title=title,
+                 fulltitle=scrapedtitle,
+                 url=scrapedurl,
+                 thumbnail=scrapedthumbnail,
+                 plot=scrapedplot,
+                 show=item.show,
+                 extra=item.extra,
+                 infoLabels=infoLabels,
+                 folder=True))
+
+
+    next_page = scrapertools.find_single_match(data,r'<a class="next page-numbers" href="(.*?)">Successivi')
+    if next_page != "":
+        urls.insert(0,next_page)
+
+    # logger.debug(urls)
+
+    if(len(urls) > 0):
+        item.url = '{|}'.join(urls)
+        itemlist = episodios(item, itemlist, seasons)
+    else:
+        tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+        item.url = item.originalUrl
+        support.videolibrary(itemlist, item, 'bold color kod')
+
+    return itemlist
+
+# ================================================================================================================

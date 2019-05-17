@@ -30,7 +30,7 @@ def mainlist(item):
     itemlist = []
     support.menu(itemlist, 'Serie TV bold', 'lista_serie', host,'tvshow')
     support.menu(itemlist, 'Novità submenu', 'peliculas_tv', host,'tvshow')
-    support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', host,'tvshow')
+    support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', host,'tvshow',args=['serie'])
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
 
 
@@ -293,9 +293,13 @@ def peliculas_tv(item):
         scrapedthumbnail = ""
         scrapedplot = ""
         scrapedtitle = cleantitle(scrapedtitle)
+        episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')[0]
         title = scrapedtitle.split(" S0")[0].strip()
         title = title.split(" S1")[0].strip()
         title = title.split(" S2")[0].strip()
+
+
+
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
@@ -304,7 +308,7 @@ def peliculas_tv(item):
                  title=scrapedtitle,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
-                 contentSerieName=title,
+                 contentSerieName=title+" ("+episode[0]+" Sub-Ita)",
                  plot=scrapedplot,
                  folder=True))
 
