@@ -145,10 +145,10 @@ def serietv():
     logger.info(__channel__+" serietv")
 
     itemlist = []
-    data = httptools.downloadpage("%s/elenco-serie-tv/" % host, headers=headers).data
-
+    data = httptools.downloadpage("%s/" % host, headers=headers).data
     # block = scrapertools.find_single_match(data, r'<div class="entry-content">(.*?)</div>')
-    block = scrapertools.find_single_match(data, r"<select name='cat' id='cat' class='postform'>(.*?)</select>")
+    block = scrapertools.find_single_match(data, r"<select\s*?name='cat'\s*?id='cat'\s*?class='postform'\s*?>(.*?)</select>")
+    # block = data
     # Estrae i contenuti
     # patron = r'<a style.*?href="([^"]+)">([^<]+)<\/a>'
     # patron = r'<a.*?href="([^"]+)">([^<]+)<\/a>'
