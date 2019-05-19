@@ -721,6 +721,14 @@ msgctxt "#60055"
 msgid "Error of provider configuration in BD."
 msgstr "Errore di configurazione del provider in BD."
 
+msgctxt "#60056"
+msgid "Videolibrary %s not configured"
+msgstr "Videoteca %s non configurata"
+
+msgctxt "#60057"
+msgid "Videolibrary %s configured"
+msgstr "Videoteca %s configurata"
+
 msgctxt "#60058"
 msgid "You need to restart Kodi for the changes to take effect."
 msgstr "E' necessario riavviare Kodi affinchè le modifiche abbiano effetto."
@@ -728,6 +736,10 @@ msgstr "E' necessario riavviare Kodi affinchè le modifiche abbiano effetto."
 msgctxt "#60059"
 msgid "Congratulations, Kodi's video library has been configured correctly."
 msgstr "Complimenti, la videoteca di Kodi è stata configurata correttamente."
+
+msgctxt "#60060"
+msgid "KOD Auto-configuration"
+msgstr "KOD Auto-configurazione"
 
 msgctxt "#60062"
 msgid "Adding movies to your video library..."
@@ -786,8 +798,8 @@ msgid "No coincidence"
 msgstr "Nessuna coincidenza"
 
 msgctxt "#60076"
-msgid "New quality/server available in \nConfiguration"
-msgstr "Nuova qualità/server disponibile in \nConfigurazione"
+msgid "New quality/server available in configuration"
+msgstr "Nuova qualità/server disponibile in configurazione"
 
 msgctxt "#60077"
 msgid "AutoPlay initialization error"
@@ -1886,7 +1898,7 @@ msgid "Uploading new data"
 msgstr "Caricamento nuovi dati"
 
 msgctxt "#60470"
-msgid "Buscando en Tmdb......."
+msgid "Searching in Tmdb......."
 msgstr "Ricerca in Tmdb......."
 
 msgctxt "#60471"
@@ -2334,7 +2346,7 @@ msgid " - Settings created"
 msgstr "- Impostazioni create"
 
 msgctxt "#60589"
-msgid "-  - No correction necessary"
+msgid " - No correction necessary"
 msgstr " - Nessuna correzione necessaria"
 
 msgctxt "#60590"
@@ -2754,7 +2766,7 @@ msgid "Search for actor"
 msgstr "Cerca attore"
 
 msgctxt "#70012"
-msgid "Beginnin"
+msgid "Beginning"
 msgstr "Inizio"
 
 msgctxt "#70013"
@@ -2794,12 +2806,12 @@ msgid "Search in TMDB"
 msgstr "Cerca in TMDB"
 
 msgctxt "#70022"
-msgid "        - Movies"
-msgstr "        - Film"
+msgid " - Movies"
+msgstr " - Film"
 
 msgctxt "#70023"
-msgid "        - TV Shows"
-msgstr "        - Serie TV"
+msgid " - TV Shows"
+msgstr " - Serie TV"
 
 msgctxt "#70024"
 msgid "Search in Filmaffinity"
@@ -2902,23 +2914,23 @@ msgid " My Account"
 msgstr " Il Mio Account"
 
 msgctxt "#70049"
-msgid "     Most Popular"
+msgid "Most Popular"
 msgstr "Più Popolari"
 
 msgctxt "#70050"
-msgid "     Recommended Now"
+msgid "Recommended Now"
 msgstr "Da Vedere"
 
 msgctxt "#70051"
-msgid "     Most Anticipated "
+msgid "Most Anticipated "
 msgstr "Più Attesi"
 
 msgctxt "#70052"
-msgid "     Custom recommendations"
+msgid "Custom recommendations"
 msgstr "Raccomandazioni personalizzate"
 
 msgctxt "#70053"
-msgid "     Most Viewed"
+msgid "Most Viewed"
 msgstr "Più Visti"
 
 msgctxt "#70054"
@@ -2982,11 +2994,11 @@ msgid "In my Collection"
 msgstr "Nella mia Collezione"
 
 msgctxt "#70069"
-msgid "Search %s in kod: %s"
-msgstr "Cerca %s in kod: %s"
+msgid "Search %s in KOD: %s"
+msgstr "Cerca %s in KOD: %s"
 
 msgctxt "#70070"
-msgid "    Search original title: %s"
+msgid "Search original title: %s"
 msgstr "Cerca il titolo originale: %s"
 
 msgctxt "#70071"
@@ -2994,8 +3006,8 @@ msgid "Cast"
 msgstr "Vedi Cast"
 
 msgctxt "#70072"
-msgid "     Most Viewed"
-msgstr " Più Viste"
+msgid "Most Viewed"
+msgstr "Più Viste"
 
 msgctxt "#70073"
 msgid "Most Anticipated"
@@ -3014,7 +3026,7 @@ msgid "Top rated"
 msgstr "Più Votate"
 
 msgctxt "#70077"
-msgid "     Most Viewed"
+msgid "Most Viewed"
 msgstr "Più Viste"
 
 msgctxt "#70078"
@@ -3495,7 +3507,7 @@ msgstr "Vuoi annullare il processo?"
 
 msgctxt "#70200"
 msgid "Finishing and deleting data"
-msgstr Fine e cancellazione dati"
+msgstr "Fine e cancellazione dati"
 
 msgctxt "#70201"
 msgid "Mass Testing Tools"
@@ -3841,7 +3853,6 @@ msgctxt "#70291"
 msgid "Error, during conversion"
 msgstr "Errore, in conversione"
 
-# Servers ---- 
 msgctxt "#70292"
 msgid "[%s] File no longer exist on this server."
 msgstr "[%s] Il file non è più presente nel server."
@@ -3893,7 +3904,6 @@ msgstr "[%s] Questo server non funziona con la tua versione di Plex, prova ad ag
 msgctxt "#70304"
 msgid "[%s] This server requires updating python to version 2.7.9 or higher."
 msgstr "[%s] Questo server richiede la versione 2.7.9 (O Maggiore) di Python."
-# ============
 
 msgctxt "#70305"
 msgid "Search in channels"
@@ -4060,7 +4070,7 @@ msgid "[Trakt] Remove %s from your collection"
 msgstr "[Trakt] Rimuovi %s dalla tua collezione"
 
 msgctxt "#70346"
-msgid "[Trakt] Add %s to your collection
+msgid "[Trakt] Add %s to your collection"
 msgstr "[Trakt] Aggiungi %s alla tua collezione"
 
 msgctxt "#70347"
@@ -5017,7 +5027,7 @@ msgstr "Configura la rinumerazione della serie..."
 
 msgctxt "#70587"
 msgid "Set up"
-msgstr ""
+msgstr "Configurazione"
 
 msgctxt "#70588"
 msgid "No series found, look for a series and click on contextual menu"
@@ -5100,8 +5110,8 @@ msgid "List informations"
 msgstr "Informazioni lista"
 
 msgctxt "#70608"
-msgid "Liste dei link"
-msgstr "Listas de enlaces"
+msgid "Link lists"
+msgstr "Liste dei link"
 
 msgctxt "#70609"
 msgid "File_id of tinyupload link"
@@ -5388,7 +5398,7 @@ msgstr "Aggiungi un canale"
 
 msgctxt "#70677"
 msgid "Episode"
-msgstr "%sx%s - Episodio %s"
+msgstr "Episodio"
 
 msgctxt "#70678"
 msgid "From local file"
@@ -5431,8 +5441,8 @@ msgid "Enter the number of the starting episode"
 msgstr "Inserisci il numero dell'episodio di partenza"
 
 msgctxt "#70688"
-msgid "Episode 0 is a special episode, enter the number of this episode"
-msgstr "L'episodio 0 è un episodio speciale, inserisci il numero di questo episodio"
+msgid "Episode 0 is a special episode, enter the number of this episode (0 to skip it)"
+msgstr "L'episodio 0 è un episodio speciale, inserisci il numero di questo episodio (0 per saltare)"
 
 msgctxt "#70689"
 msgid "Enable Download"
@@ -5489,3 +5499,7 @@ msgstr "Riavvia Kodi per applicare le modifiche"
 msgctxt "#70703"
 msgid "Create directories with lowercase letters"
 msgstr "Crea cartelle con le lettere minuscole"
+
+msgctxt "#70704"
+msgid "TMDB ID (0 to cancel)"
+msgstr "TMDB ID (0 per annullare)"

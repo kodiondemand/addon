@@ -4,8 +4,8 @@
     "active": true,
 	"adult": false,
 	"language": ["ita"],
-    "thumbnail": "",
-    "bannermenu": "",
+    "thumbnail": "https://eurostreaming.cafe/wp-content/uploads/2017/08/logocafe.png",
+    "bannermenu": "https://eurostreaming.cafe/wp-content/uploads/2017/08/logocafe.png",
 	"categories": ["tvshow","anime"],
   "settings": [
       {
@@ -66,8 +66,8 @@
       "visible": true,
       "lvalues": [
         "Non filtrare",
-        "ITA",
-        "SUB ITA"
+        "Italiano",
+        "vosi"
       ]
     },
     {

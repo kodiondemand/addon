@@ -136,7 +136,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
         matches = scrapertoolsV2.find_multiple_matches(block, patron)
         log('MATCHES =', matches)
 
-        known_keys = ['url', 'title', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating']
+        known_keys = ['url', 'title', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating'] #by greko aggiunto episode
         for match in matches:
             if len(listGroups) > len(match):  # to fix a bug
                 match = list(match)
@@ -152,8 +152,10 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
             title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).strip()
             plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
 
-            if scraped["quality"]:
-                longtitle = '[B]' + title + '[/B] [COLOR blue][' + scraped["quality"] + '][/COLOR]'
+            if scraped["quality"] and scraped["episode"]: # by greko aggiunto episode
+                longtitle = '[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B][COLOR blue][' + scraped["quality"] + '][/COLOR]' # by greko aggiunto episode
+            elif scraped["episode"]: # by greko aggiunto episode
+                longtitle = '[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B]' # by greko aggiunto episode
             else:
                 longtitle = '[B]' + title + '[/B]'
 
@@ -438,7 +440,7 @@ def match(item, patron='', patron_block='', headers='', url=''):
 
 
 def videolibrary(itemlist, item, typography=''):
-    if item.contentType == 'movie':
+    if item.contentType != 'episode':
         action = 'add_pelicula_to_library'
         extra = 'findvideos'
         contentType = 'movie'
@@ -448,28 +450,26 @@ def videolibrary(itemlist, item, typography=''):
         contentType = 'tvshow'
 
     title = typo(config.get_localized_string(30161) + ' ' + typography)
-    if inspect.stack()[1][3] == 'findvideos' and contentType == 'movie' or  inspect.stack()[1][3] != 'findvideos' and contentType != 'movie':
+    if inspect.stack()[1][3] == 'findvideos' and contentType == 'movie' or inspect.stack()[1][3] != 'findvideos' and contentType != 'movie':
         if config.get_videolibrary_support() and len(itemlist) > 0:
             itemlist.append(
                 Item(channel=item.channel,
-                    title=title,
-                    contentType=contentType,
-                    contentSerieName=item.fulltitle if contentType == 'tvshow' else '',
-                    url=item.url,
-                    action=action,
-                    extra=extra,
-                    contentTitle=item.fulltitle))
-    return itemlist
+                     title=title,
+                     contentType=contentType,
+                     contentSerieName=item.fulltitle if contentType == 'tvshow' else '',
+                     url=item.url,
+                     action=action,
+                     extra=extra,
+                     contentTitle=item.fulltitle))
+
 
 def nextPage(itemlist, item, data, patron, function_level=1):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
     
     next_page = scrapertoolsV2.find_single_match(data, patron)
-
-    if next_page != "":
-        if 'http' not in next_page:
-            next_page = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + next_page
+    if 'http' not in next_page:
+        next_page = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + next_page
     log('NEXT= ', next_page)
 
     if next_page != "":
@@ -484,17 +484,19 @@ def nextPage(itemlist, item, data, patron, function_level=1):
 
     return itemlist
 
-
 def server(item, data='', headers='', AutoPlay=True, CheckLinks=True):
-
+    
     __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', item.channel)
     log(__comprueba_enlaces__ )
     __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', item.channel)
     log(__comprueba_enlaces_num__ )
-    
+
     if not data:
         data = httptools.downloadpage(item.url, headers=headers).data
-
+    ## fix by greko
+    data = str(item.url)
+    ## FINE fix by greko
+        
     itemlist = servertools.find_video_items(data=data)
 
     for videoitem in itemlist:

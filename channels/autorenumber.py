@@ -44,11 +44,25 @@ def config_item(item):
     tvdb.find_and_set_infoLabels(item)
     data = ''
     data = add_season(data)
-    if not item.infoLabels['tvdb_id']:
-        heading = 'TVDB ID'
-        item.infoLabels['tvdb_id'] = platformtools.dialog_numeric(0, heading)
+    title = item.show
+    count = 0
+    
+    while not item.infoLabels['tvdb_id']:
+        try:
+            item.show = platformtools.dialog_input(default=item.show, heading=config.get_localized_string(30112))
+            tvdb.find_and_set_infoLabels(item)
+            count = count + 1
+        except:
+            heading = config.get_localized_string(70704)
+            item.infoLabels['tvdb_id'] = platformtools.dialog_numeric(0, heading)
     data.append(item.infoLabels['tvdb_id'])
-    write_data(item.from_channel, item.show, data)
+    if item.infoLabels['tvdb_id'] != 0:
+        write_data(item.from_channel, title, data)
+    else:
+        message = config.get_localized_string(60444)
+        heading = item.show.strip()
+        platformtools.dialog_notification(heading, message)
+
 
 
 def add_season(data=None):
@@ -59,6 +73,7 @@ def add_season(data=None):
     if season != "":
         heading = config.get_localized_string(70687)
         episode = platformtools.dialog_numeric(0, heading)
+
         if episode == "0":
             heading = config.get_localized_string(70688)
             special = platformtools.dialog_numeric(0, heading)
@@ -92,6 +107,8 @@ def write_data(channel, show, data):
     heading = show.strip()
     platformtools.dialog_notification(heading, message)
 
+
+
 def renumber(itemlist, item='', typography=''):    
     log()
 
@@ -118,7 +135,7 @@ def renumber(itemlist, item='', typography=''):
                             if E == 0: 
                                 epList.append([0, SP])
                                 E = 1
-                            if episodes['airedEpisodeNumber'] >= E:
+                            if episodes['airedEpisodeNumber'] >= E or episodes['airedSeason'] > S:
                                 epList.append([episodes['airedSeason'], episodes['airedEpisodeNumber']])
                     page = page + 1
                 else:

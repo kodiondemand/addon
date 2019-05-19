@@ -727,13 +727,13 @@ def check_video_link(url, server, timeout=3):
     :return: str(2) '??':No se ha podido comprobar. 'Ok':Parece que el link funciona. 'NO':Parece que no funciona.
     """
 
-    # NK = "[COLOR 0xFFF9B613][B]" + u"\u25cf" + "[/B][/COLOR]"
-    # OK = "[COLOR 0xFF00C289][B]" + u"\u25cf" + "[/B][/COLOR]"
-    # KO = "[COLOR 0xFFC20000][B]" + u"\u25cf" + "[/B][/COLOR]"
+    NK = "[COLOR 0xFFF9B613][B]" + u"\u25cf".encode('utf-8') + "[/B][/COLOR]"
+    OK = "[COLOR 0xFF00C289][B]" + u"\u25cf".encode('utf-8') + "[/B][/COLOR]"
+    KO = "[COLOR 0xFFC20000][B]" + u"\u25cf".encode('utf-8') + "[/B][/COLOR]"
 
-    NK = "[COLOR 0xFFF9B613][B]O[/B][/COLOR]"
-    OK = "[COLOR 0xFF00C289][B]O[/B][/COLOR]"
-    KO = "[COLOR 0xFFC20000][B]O[/B][/COLOR]"
+    # NK = "[COLOR 0xFFF9B613][B]O[/B][/COLOR]"
+    # OK = "[COLOR 0xFF00C289][B]O[/B][/COLOR]"
+    # KO = "[COLOR 0xFFC20000][B]O[/B][/COLOR]"
 
     try:
         server_module = __import__('servers.%s' % server, None, None, ["servers.%s" % server])

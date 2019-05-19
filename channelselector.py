@@ -96,6 +96,7 @@ def getchanneltypes(view="thumb_"):
     #                      viewmode="thumbnails")) 
 
 
+
     itemlist.append(Item(title=config.get_localized_string(70685), channel="community", action="mainlist", view=view,
                          category=title, channel_type="all", thumbnail=get_thumb("channels_community.png", view),
                          viewmode="thumbnails"))

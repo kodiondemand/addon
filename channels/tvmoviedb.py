@@ -14,6 +14,8 @@ from core import trakt_tools
 from platformcode import config, logger
 from platformcode import platformtools
 import xbmc, xbmcaddon
+from channelselector import get_thumb
+from channels.support import typo, thumb
 
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
@@ -46,38 +48,39 @@ if langi == 'auto':
 adult_mal = config.get_setting('adult_mal', "tvmoviedb")
 mal_ck = "MzE1MDQ2cGQ5N2llYTY4Z2xwbGVzZjFzbTY="
 images_predef = "https://raw.githubusercontent.com/master-1970/resources/master/images/genres/"
-default_fan = filetools.join(config.get_runtime_path(), "fanart1.jpg")
+default_fan = filetools.join(config.get_runtime_path(), "fanart.jpg")
+logger.info('FANART= '+default_fan)
 
 
 def mainlist(item):
     logger.info()
-    item.text_color = color1
     itemlist = []
-
-    itemlist.append(item.clone(title=config.get_localized_string(70021), action="", text_color=color2))
+    # TMDB
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70021), 'bold'), action=""))
     itemlist.append(item.clone(title=config.get_localized_string(70022), action="tmdb", extra="movie",
-                               thumbnail="%s0/Movies.png" % images_predef))
+                               thumbnail=get_thumb('search_movie.png')))
     itemlist.append(item.clone(title=config.get_localized_string(70023), action="tmdb", extra="tv",
-                               thumbnail=images_predef + "0/TV%20Series.png"))
-    itemlist.append(item.clone(title=config.get_localized_string(70024), action="", text_color=color2))
+                               thumbnail=get_thumb('search_tvshow.png')))
+    # Filmaffinity
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70024), 'bold'), action=""))
     itemlist.append(item.clone(title=config.get_localized_string(70022), action="filmaf", extra="movie",
-                               thumbnail="%s0/Movies.png" % images_predef))
+                               thumbnail=get_thumb('search_movie.png')))
     itemlist.append(item.clone(title=config.get_localized_string(70023), action="filmaf", extra="tv",
-                               thumbnail=images_predef + "0/TV%20Series.png"))
-    itemlist.append(item.clone(title=config.get_localized_string(70025), action="", text_color=color2))
+                               thumbnail=get_thumb('search_tvshow.png')))
+    # IMDB
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70025), 'bold'), action=""))
     itemlist.append(item.clone(title=config.get_localized_string(70022), action="imdb", extra="movie",
                                url='&title_type=feature,tv_movie',
-                               thumbnail="%s0/Movies.png" % images_predef))
+                               thumbnail=get_thumb('search_movie.png')))
     itemlist.append(item.clone(title=config.get_localized_string(70023), action="imdb", extra="tv",
                                url='&title_type=tv_series,tv_special,mini_series',
-                               thumbnail=images_predef + "0/TV%20Series.png"))
+                               thumbnail=get_thumb('search_tvshow.png')))
     itemlist.append(
-        item.clone(title=config.get_localized_string(70415), action="trakt", text_color=color2, thumbnail="http://i.imgur.com/5sQjjuk.png"))
+        item.clone(title=typo(config.get_localized_string(70415), 'bold'), action="trakt", thumbnail="http://i.imgur.com/5sQjjuk.png"))
     itemlist.append(
-        item.clone(title=config.get_localized_string(70026), action="mal", text_color=color2, thumbnail="http://i.imgur.com/RhsYWmd.png"))
-    itemlist.append(item.clone(title="", action=""))
+        item.clone(title=typo(config.get_localized_string(70026), 'bold'), action="mal", thumbnail="http://i.imgur.com/RhsYWmd.png",))
     itemlist.append(
-        item.clone(title=config.get_localized_string(70027), action="configuracion", text_color=color6, folder=False))
+        item.clone(title=typo(config.get_localized_string(70027), 'color kod'), action="configuracion", folder=False))
     return itemlist
 
 
@@ -154,9 +157,8 @@ def tmdb(item):
     else:
         itemlist.append(item.clone(title=config.get_localized_string(70031), action="listado_tmdb",
                                    search={'url': item.extra + "/on_the_air", 'language': langt, 'page': 1}))
-    itemlist.append(item.clone(title=config.get_localized_string(70032), action="indices_tmdb",
-                               thumbnail="%s0/Genres.png" % images_predef))
-    itemlist.append(item.clone(title=config.get_localized_string(70042), action="indices_tmdb", thumbnail="%s0/Year.png" % images_predef))
+    itemlist.append(item.clone(title=config.get_localized_string(70032), action="indices_tmdb"))
+    itemlist.append(item.clone(title=config.get_localized_string(70042), action="indices_tmdb"))
 
     if item.extra == "movie":
         itemlist.append(item.clone(title=config.get_localized_string(70033), action="listado_tmdb",
@@ -175,8 +177,8 @@ def tmdb(item):
             itemlist.append(item.clone(title=config.get_localized_string(70037), action="search_",
                                        search={'url': "search/person", 'language': langt, 'page': 1}, crew=True))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro", text_color=color4))
-    itemlist.append(item.clone(title=config.get_localized_string(70039), action="filtro", text_color=color4))
+    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro", ))
+    itemlist.append(item.clone(title=config.get_localized_string(70039), action="filtro", ))
 
     return itemlist
 
@@ -191,9 +193,8 @@ def imdb(item):
     if item.extra == "movie":
         itemlist.append(item.clone(title=config.get_localized_string(70030), action="listado_imdb",
                                    url="http://www.imdb.com/showtimes/location?ref_=inth_ov_sh_sm"))
-    itemlist.append(item.clone(title=config.get_localized_string(70032), action="indices_imdb",
-                               thumbnail="%s0/Genres.png" % images_predef))
-    itemlist.append(item.clone(title=config.get_localized_string(70042), action="indices_imdb", thumbnail="%s0/Year.png" % images_predef))
+    itemlist.append(item.clone(title=config.get_localized_string(70032), action="indices_imdb"))
+    itemlist.append(item.clone(title=config.get_localized_string(70042), action="indices_imdb"))
 
     if item.extra == "movie":
         itemlist.append(item.clone(title=config.get_localized_string(70033), action="listado_imdb",
@@ -204,13 +205,13 @@ def imdb(item):
 
     if config.get_platform() != "plex":
         title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
-        itemlist.append(item.clone(title="Buscar %s" % title, action="search_",
+        itemlist.append(item.clone(title=config.get_localized_string(70035) % title, action="search_",
                                    url="http://www.imdb.com/search/title?title=" + item.url))
 
         itemlist.append(item.clone(title=config.get_localized_string(70036), action="search_",
                                    url="http://www.imdb.com/search/name?name="))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro_imdb", text_color=color4))
+    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro_imdb", ))
 
     return itemlist
 
@@ -243,30 +244,29 @@ def filmaf(item):
         itemlist.append(item.clone(title=config.get_localized_string(70044), action="indices_fa", extra="sagas",
                                    url="http://www.filmaffinity.com/%s/movie-groups-all.php" % langf))
     itemlist.append(item.clone(title=config.get_localized_string(70045), action="indices_fa",
-                               url='http://m.filmaffinity.com/%s/topics.php' % langf, text_color=color3))
+                               url='http://m.filmaffinity.com/%s/topics.php' % langf, ))
     if config.get_platform() != "plex":
-        itemlist.append(item.clone(title=config.get_localized_string(70046), action="search_", text_color=color4,
+        itemlist.append(item.clone(title=config.get_localized_string(70046), action="search_", 
                                    url="http://m.filmaffinity.com/%s/search.php?stype=title&stext=" % langf))
 
-        itemlist.append(item.clone(title=config.get_localized_string(70036), action="search_", text_color=color4,
+        itemlist.append(item.clone(title=config.get_localized_string(70036), action="search_", 
                                    url="http://m.filmaffinity.com/%s/search.php?stype=cast&stext=" % langf))
-        itemlist.append(item.clone(title=config.get_localized_string(70047), action="search_", text_color=color4,
+        itemlist.append(item.clone(title=config.get_localized_string(70047), action="search_", 
                                    url="http://m.filmaffinity.com/%s/search.php?stype=director&stext=" % langf))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro_fa", text_color=color4, extra="top"))
-    itemlist.append(item.clone(title=config.get_localized_string(70048), action="cuenta_fa", text_color=color3))
+    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro_fa", extra="top"))
+    itemlist.append(item.clone(title=config.get_localized_string(70048), action="cuenta_fa", ))
 
     return itemlist
 
 
 def trakt(item):
     itemlist = []
-    item.text_color = color1
     token_auth = config.get_setting("token_trakt", "trakt")
     page = "?page=1&limit=20&extended=full"
     if not item.extra:
         item.extra = "movie"
-        itemlist.append(item.clone(title="[COLOR yellow][B]%s[/B][/COLOR]" % config.get_localized_string(70416), action=""))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(70416), 'bold'), action=""))
         itemlist.append(item.clone(title=config.get_localized_string(70049), action="acciones_trakt", url="movies/popular%s" % page))
         itemlist.append(
             item.clone(title=config.get_localized_string(70050), action="acciones_trakt", url="movies/trending%s" % page))
@@ -276,7 +276,7 @@ def trakt(item):
         if token_auth:
             itemlist.append(item.clone(title=config.get_localized_string(70052), action="acciones_trakt",
                                        url="recommendations/movies?limit=100&extended=full", pagina=0))
-        itemlist.append(item.clone(title="[COLOR yellow][B]%s[/B][/COLOR]" % config.get_localized_string(70417), action="",))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(70417), 'bold'), action="",))
         item.extra = "show"
         itemlist.append(item.clone(title=config.get_localized_string(70049), action="acciones_trakt", url="shows/popular%s" % page))
         itemlist.append(item.clone(title=config.get_localized_string(70050), action="acciones_trakt", url="shows/trending%s" % page))
@@ -286,7 +286,7 @@ def trakt(item):
         if token_auth:
             itemlist.append(item.clone(title=config.get_localized_string(70052), action="acciones_trakt",
                                        url="recommendations/shows?limit=100&extended=full", pagina=0))
-        itemlist.append(item.clone(title="[COLOR red][B]%s[/B][/COLOR]" % config.get_localized_string(70048), extra="cuenta"))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(70048), 'color kod bold'), extra="cuenta"))
     else:
         item.extra = "movie"
         # Se comprueba si existe un token guardado y sino se ejecuta el proceso de autentificación
@@ -294,7 +294,7 @@ def trakt(item):
             #folder = (config.get_platform() == "plex")
             itemlist.append(item.clone(title=config.get_localized_string(70054), action="auth_trakt", folder=folder))
         else:
-            itemlist.append(item.clone(title=config.get_localized_string(70055), action="", text_color=color2))
+            itemlist.append(item.clone(title=config.get_localized_string(70055), action="", ))
             itemlist.append(
                 item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watchlist/movies%s" % page,
                            order="added", how="desc"))
@@ -302,7 +302,7 @@ def trakt(item):
                 item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watchlist/shows%s" % page,
                            extra="show",
                            order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(70056), action="", text_color=color2))
+            itemlist.append(item.clone(title=config.get_localized_string(70056), action="", ))
             itemlist.append(
                 item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watched/movies%s" % page,
                            order="added", how="desc"))
@@ -310,7 +310,7 @@ def trakt(item):
                 item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watched/shows%s" % page,
                            extra="show",
                            order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(70068), action="", text_color=color2))
+            itemlist.append(item.clone(title=config.get_localized_string(70068), action="", ))
             itemlist.append(
                 item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/collection/movies%s" % page,
                            order="added", how="desc"))
@@ -319,14 +319,13 @@ def trakt(item):
                            extra="show",
                            order="added", how="desc"))
             itemlist.append(
-                item.clone(title=config.get_localized_string(70057), action="acciones_trakt", url="users/me/lists", text_color=color2))
+                item.clone(title=config.get_localized_string(70057), action="acciones_trakt", url="users/me/lists", ))
 
     return itemlist
 
 
 def mal(item):
     itemlist = []
-    item.text_color = color1
     login, message, user = login_mal()
     if login:
         item.login = True
@@ -350,9 +349,9 @@ def mal(item):
     if config.get_platform() != "plex":
         itemlist.append(item.clone(title=config.get_localized_string(70064), url="https://myanimelist.net/anime.php?q=",
                                    action="search_"))
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filtro_mal", text_color=color4))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70038), 'bold submenu'), action="filtro_mal"))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70057), action="cuenta_mal", text_color=color3))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70057), 'bold submenu'), action="cuenta_mal"))
 
     return itemlist
 
@@ -361,7 +360,6 @@ def mal(item):
 def listado_tmdb(item):
     # Listados principales de la categoría Tmdb (Más populares, más vistas, etc...)
     itemlist = []
-    item.text_color = color1
     item.fanart = default_fan
     if not item.pagina:
         item.pagina = 1
@@ -398,12 +396,9 @@ def listado_tmdb(item):
                     new_item.fanart = new_item.infoLabels['fanart']
 
                 if new_item.infoLabels['year']:
-                    new_item.title = "%s  (%s) [COLOR %s]%s[/COLOR]" \
-                                     % (new_item.contentTitle, new_item.infoLabels['year'], color6,
-                                        str(new_item.infoLabels['rating']).replace("0.0", ""))
+                    new_item.title = typo(new_item.contentTitle, 'bold') + ' (%s)' % new_item.infoLabels['year'] + typo(str(new_item.infoLabels['rating']).replace("0.0", ""), '_ color kod')
                 else:
-                    new_item.title = "%s  [COLOR %s]%s[/COLOR]" \
-                                     % (new_item.contentTitle, color6, new_item.infoLabels['rating'].replace("0.0", ""))
+                    new_item.title = typo(new_item.contentTitle, 'bold') + ' (%s)' % new_item.infoLabels['year'] + typo(str(new_item.infoLabels['rating']).replace("0.0", ""), '_ color kod')
                 itemlist.append(new_item)
         except:
             pass
@@ -465,9 +460,8 @@ def listado_tmdb(item):
                     if known_for:
                         from random import randint
                         random = randint(0, len(known_for) - 1)
-                        new_item.title = "%s  [COLOR %s](%s)[/COLOR] (%s)" \
-                                         % (new_item.contentTitle, color6,
-                                            known_for[random].get("title", known_for[random].get("name")), type)
+                        new_item.title = typo(new_item.contentTitle, 'bold') + typo(known_for[random].get("title", known_for[random].get("name")), '_ () color kod')
+                       
                         if known_for[random]["backdrop_path"]:
                             new_item.fanart = 'http://image.tmdb.org/t/p/original' + known_for[random]["backdrop_path"]
                     else:
@@ -537,7 +531,7 @@ def detalles(item):
             item.infoLabels['votes'] = votos
 
     if item.infoLabels['tagline']:
-        itemlist.append(item.clone(title="--- %s ---" % item.infoLabels['tagline'], text_color="0xFFFF8C00", action=""))
+        itemlist.append(item.clone(title="--- %s ---" % item.infoLabels['tagline'], action=""))
 
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
     # Búsqueda por títulos idioma elegido y/o versión original y español
@@ -556,22 +550,22 @@ def detalles(item):
 
             # En caso de serie, opción de info por temporadas
     if item.contentType == "tvshow" and item.infoLabels['tmdb_id']:
-        itemlist.append(item.clone(action="info_seasons", text_color=color4,
+        itemlist.append(item.clone(action="info_seasons", 
                                    title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
     # Opción de ver el reparto y navegar por sus películas/series
     if item.infoLabels['tmdb_id']:
-        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071), text_color=color4,
+        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071), 
                                    infoLabels={'tmdb_id': item.infoLabels['tmdb_id'],
                                                'mediatype': item.contentType}))
 
     if config.is_xbmc():
         item.contextual = True
     itemlist.append(item.clone(channel="trailertools", action="buscartrailer", title=config.get_localized_string(60359),
-                               text_color=color5))
+                               ))
 
     try:
         images['tmdb'] = ob_tmdb.result["images"]
-        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), text_color=color5, images=images,
+        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), images=images,
                                    extra="menu"))
     except:
         pass
@@ -597,7 +591,7 @@ def detalles(item):
                 url_album = "https://nl.hideproxy.me" + url_album
                 itemlist.append(
                     item.clone(action="musica_movie", title=config.get_localized_string(70317), url=url_album,
-                               text_color=color5))
+                               ))
     except:
         pass
 
@@ -618,7 +612,7 @@ def detalles(item):
                 new_item.fanart = 'http://image.tmdb.org/t/p/original' + saga["backdrop_path"]
             new_item.search = {'url': 'collection/%s' % saga['id'], 'language': langt}
             itemlist.append(new_item.clone(title=config.get_localized_string(70327) % saga["name"], action="listado_tmdb",
-                                           text_color=color5))
+                                           ))
     except:
         pass
 
@@ -629,11 +623,11 @@ def detalles(item):
         itemlist.append(item.clone(title=config.get_localized_string(70328) % title, action="listado_tmdb",
                                    search={'url': '%s/%s/similar' % (item.extra, item.infoLabels['tmdb_id']),
                                            'language': langt, 'page': 1}, infoLabels={'mediatype': item.contentType},
-                                   text_color=color2))
+                                   ))
         itemlist.append(
             item.clone(title=config.get_localized_string(70315), action="listado_tmdb", infoLabels={'mediatype': item.contentType},
                        search={'url': '%s/%s/recommendations' % (item.extra, item.infoLabels['tmdb_id']),
-                               'language': langt, 'page': 1}, text_color=color2))
+                               'language': langt, 'page': 1}, ))
 
     return itemlist
 
@@ -641,7 +635,6 @@ def detalles(item):
 def reparto(item):
     # Actores y equipo de rodaje de una película/serie
     itemlist = []
-    item.text_color = color1
     item.extra=item.contentType.replace('tvshow','tv')
     item.search = {'url': '%s/%s/credits' % (item.extra, item.infoLabels['tmdb_id'])}
     ob_tmdb = Tmdb(discover=item.search, tipo=item.extra, idioma_busqueda=langt)
@@ -649,7 +642,7 @@ def reparto(item):
     try:
         cast = ob_tmdb.result["cast"]
         if cast:
-            itemlist.append(item.clone(title=config.get_localized_string(70314), action="", text_color=color2))
+            itemlist.append(item.clone(title=config.get_localized_string(70314), action="", ))
             for actor in cast:
                 new_item = item.clone(action="listado_tmdb", fanart=default_fan)
                 new_item.title = "    " + actor["name"] + " as " + actor["character"]
@@ -668,7 +661,7 @@ def reparto(item):
     try:
         crew = ob_tmdb.result["crew"]
         if crew:
-            itemlist.append(item.clone(title=config.get_localized_string(70319), action="", text_color=color2))
+            itemlist.append(item.clone(title=config.get_localized_string(70319), action="", ))
             for c in crew:
                 new_item = item.clone(action="listado_tmdb", fanart=default_fan)
                 new_item.title = "    " + c["job"] + ": " + c["name"]
@@ -690,7 +683,6 @@ def reparto(item):
 def info_seasons(item):
     # Info de temporadas y episodios
     itemlist = []
-    item.text_color = color4
     ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo="tv", idioma_busqueda=langt)
 
     for temp in range(item.infoLabels["number_of_seasons"], 0, -1):
@@ -714,7 +706,7 @@ def info_seasons(item):
             for epi in range(1, len(temporada["episodes"])):
                 episodio = ob_tmdb.get_episodio(temp, epi)
                 if episodio:
-                    new_item = item.clone(action="", text_color=color1, mediatype="episode")
+                    new_item = item.clone(action="", mediatype="episode")
                     new_item.infoLabels['season'] = temp
                     new_item.infoLabels['episode'] = epi
                     new_item.infoLabels['title'] = episodio['episodio_titulo']
@@ -895,7 +887,7 @@ def musica_movie(item):
         title = "%s (%s) [%s]" % (titulo, artist, duration)
         url = scrapertools.find_single_match(data, "AudioPlayer.embed\('%s'.*?soundFile: '([^']+)'" % id_p)
         itemlist.append(Item(channel=item.channel, action="play", server="directo", url=url, title=title,
-                             thumbnail=item.thumbnail, fanart=item.fanart, text_color=color5))
+                             thumbnail=item.thumbnail, fanart=item.fanart, ))
     return itemlist
 
 
@@ -903,7 +895,6 @@ def musica_movie(item):
 def listado_imdb(item):
     # Método principal para secciones de imdb
     itemlist = []
-    item.text_color = color1
 
     headers = [['Accept-Language', langi]]
     if "www.imdb.com" in item.url:
@@ -987,7 +978,7 @@ def listado_imdb(item):
                     except:
                         rating = None
                 if rating:
-                    new_item.title += "  [COLOR %s]%s[/COLOR]" % (color6, str(rating))
+                    new_item.title += typo(str(rating), '_ color kod')
                     new_item.infoLabels['rating'] = float(rating)
             new_item.infoLabels['imdb_id'] = imdb_id
             itemlist.append(new_item)
@@ -998,7 +989,7 @@ def listado_imdb(item):
             next_page = 'http://www.imdb.com' + next_page
         else:
             next_page = 'http://www.imdb.com/search/title' + next_page
-        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, text_color=''))
+        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, ))
 
     return itemlist
 
@@ -1153,6 +1144,7 @@ def indices_imdb(item):
                 thumbnail = "%s2/%s.jpg" % (images_predef, titulo)
                 itemlist.append(item.clone(title=title, action='listado_imdb', thumbnail=thumbnail,
                                            url='http://www.imdb.com/search/title?genres=%s%s' % (valor, item.url)))
+                itemlist = thumb(itemlist)
             itemlist.sort(key=lambda item: item.title)
     else:
         year = datetime.now().year + 3
@@ -1167,7 +1159,6 @@ def indices_imdb(item):
 def listado_fa(item):
     # Método para listados principales de filmaffinity
     itemlist = []
-    item.text_color = color1
 
     # Listados con paginación por post
     if item.extra == "top":
@@ -1197,7 +1188,7 @@ def listado_fa(item):
                  '<div class="text-center")'
         bloques = scrapertools.find_multiple_matches(data, patron)
         for fecha, bloque in bloques:
-            itemlist.append(item.clone(title=fecha, action='', text_color="0xFFFF8C00"))
+            itemlist.append(item.clone(title=fecha, action='', ))
             patron = '<a class="list-group-item" href="([^"]+)">.*?(?:data-src="([^"]+)"|' \
                      'src="((?!/images/empty.gif)[^"]+)").*?<div class="mc-title.*?>([^<]+)<small>\((\d+)\)</small>' \
                      '.*?(?:<div class="avgrat-box in-block ">([^<]+)</div>' \
@@ -1279,14 +1270,13 @@ def listado_fa(item):
         itemlist.append(Item(channel=item.channel, action=item.action, title=config.get_localized_string(70065), url=next_page,
                              extra=item.extra))
     elif item.page_fa:
-        itemlist.append(item.clone(title=config.get_localized_string(70065), text_color=""))
+        itemlist.append(item.clone(title=config.get_localized_string(70065), ))
     return itemlist
 
 
 def indices_fa(item):
     # Índices por genero, año, temas y sagas/colecciones
     itemlist = []
-    item.text_color = color1
     if item.url:
         data = httptools.downloadpage(item.url).data
         data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
@@ -1347,7 +1337,7 @@ def indices_fa(item):
             if config.is_xbmc():
                 action = "move"
                 folder = False
-            itemlist.append(item.clone(title=letra, text_color=color2, action=action, extra=extra, folder=folder))
+            itemlist.append(item.clone(title=letra, action=action, extra=extra, folder=folder))
             for url, titulo, numero in matches:
                 new_item = item.clone(action="temas_fa")
                 topic_id = scrapertools.find_single_match(url, "topic=(\d+)")
@@ -1386,7 +1376,7 @@ def temas_fa(item):
     matches = scrapertools.find_multiple_matches(data, patron)
     for url, thumb, title, year in matches:
         title = title.strip()
-        new_item = item.clone(action="detalles_fa", contentType="movie", extra="movie", text_color=color2)
+        new_item = item.clone(action="detalles_fa", contentType="movie", extra="movie", )
         new_item.url = "http://m.filmaffinity.com/%s/movie.php?id=%s" % (langf, url)
         new_item.thumbnail = thumb.replace("msmall", "large")
         if not new_item.thumbnail.startswith("http"):
@@ -1490,7 +1480,7 @@ def detalles_fa(item):
         item.thumbnail = item.infoLabels['thumbnail']
 
     if item.infoLabels['tagline']:
-        itemlist.append(item.clone(title="--- %s ---" % item.infoLabels['tagline'], text_color="0xFFFF8C00", action=""))
+        itemlist.append(item.clone(title="--- %s ---" % item.infoLabels['tagline'], action=""))
 
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
     itemlist.append(item.clone(action="busqueda", title=config.get_localized_string(70069) % (title, item.contentTitle)))
@@ -1506,10 +1496,10 @@ def detalles_fa(item):
                                        contentTitle=tmdb_lang))
 
     if item.contentType == "tvshow" and ob_tmdb.result:
-        itemlist.append(item.clone(action="info_seasons", text_color=color4,
+        itemlist.append(item.clone(action="info_seasons", 
                                    title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
     if ob_tmdb.result:
-        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071), text_color=color4,
+        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071), 
                                    infoLabels={'tmdb_id': item.infoLabels['tmdb_id'],
                                                'mediatype': item.contentType}))
 
@@ -1519,8 +1509,8 @@ def detalles_fa(item):
                                                  '<a href="(?:http://m.filmaffinity.com|)/%s/movieTrailer\.php\?id=(\d+)"' % langf)
     if trailer_url:
         trailer_url = "http://www.filmaffinity.com/%s/evideos.php?movie_id=%s" % (langf, trailer_url)
-    itemlist.append(item.clone(channel="trailertools", action="buscartrailer", title="Buscar Tráiler",
-                               text_color=color5, filmaffinity=trailer_url))
+    itemlist.append(item.clone(channel="trailertools", action="buscartrailer", title=config.get_localized_string(30162),
+                                filmaffinity=trailer_url))
 
     url_img = scrapertools.find_single_match(data,
                                              'href="(?:http://m.filmaffinity.com|)(/%s/movieposters[^"]+)">' % langf)
@@ -1530,7 +1520,7 @@ def detalles_fa(item):
     if url_img:
         images['filmaffinity'] = {}
     if images:
-        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), text_color=color5, images=images,
+        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), images=images,
                                    url=url_img, extra="menu"))
     try:
         if item.contentType == "movie" and item.infoLabels["year"] < 2014:
@@ -1553,7 +1543,7 @@ def detalles_fa(item):
                 url_album = "https://nl.hideproxy.me" + url_album
                 itemlist.append(
                     item.clone(action="musica_movie", title=config.get_localized_string(70317), url=url_album,
-                               text_color=color5))
+                               ))
     except:
         pass
 
@@ -1588,7 +1578,7 @@ def detalles_fa(item):
     if ob_tmdb.result:
         itemlist.append(item.clone(title="", action="", infoLabels={}))
         if ob_tmdb.result.get("belongs_to_collection"):
-            new_item = item.clone(infoLabels={'mediatype': item.contentType}, action="listado_tmdb", text_color=color5)
+            new_item = item.clone(infoLabels={'mediatype': item.contentType}, action="listado_tmdb", )
             saga = ob_tmdb.result["belongs_to_collection"]
             new_item.infoLabels["tmdb_id"] = saga["id"]
             if saga["poster_path"]:
@@ -1602,11 +1592,11 @@ def detalles_fa(item):
         itemlist.append(item.clone(title=config.get_localized_string(70328) % title.capitalize(), action="listado_tmdb",
                                    search={'url': '%s/%s/similar' % (item.extra, item.infoLabels['tmdb_id']),
                                            'language': langt, 'page': 1}, infoLabels={'mediatype': item.contentType},
-                                   text_color=color2))
+                                   ))
         itemlist.append(
             item.clone(title=config.get_localized_string(70315), action="listado_tmdb", infoLabels={'mediatype': item.contentType},
                        search={'url': '%s/%s/recommendations' % (item.extra, item.infoLabels['tmdb_id']),
-                               'language': langt, 'page': 1}, text_color=color2))
+                               'language': langt, 'page': 1}, ))
 
     return itemlist
 
@@ -1752,12 +1742,12 @@ def cuenta_fa(item):
     itemlist = []
     login, message = login_fa()
     if not login:
-        itemlist.append(item.clone(action="", title=message, text_color=color4))
+        itemlist.append(item.clone(action="", title=message, ))
     else:
         userid = config.get_setting("userid", "tvmoviedb")
-        itemlist.append(item.clone(action="acciones_fa", title=config.get_localized_string(70332), text_color=color5, accion="votos",
+        itemlist.append(item.clone(action="acciones_fa", title=config.get_localized_string(70332), accion="votos",
                                    url="http://m.filmaffinity.com/%s/user_ratings.php?id-user=%s" % (langf, userid)))
-        itemlist.append(item.clone(action="acciones_fa", title=config.get_localized_string(70057), text_color=color5, accion="listas",
+        itemlist.append(item.clone(action="acciones_fa", title=config.get_localized_string(70057), accion="listas",
                                    url="http://m.filmaffinity.com/%s/mylists.php" % langf))
 
     return itemlist
@@ -1780,7 +1770,7 @@ def acciones_fa(item):
             matches = scrapertools.find_multiple_matches(bloque, patron)
             mivoto = scrapertools.find_single_match(bloque, 'bg-my-rating[^>]+>(?:\s*<strong>|)([^<]+)<')
             for url, thumb, title, year, rating, votos in matches:
-                new_item = item.clone(action="detalles_fa", text_color=color1)
+                new_item = item.clone(action="detalles_fa", )
                 if not url.startswith("http://m.filmaffinity"):
                     new_item.url = "http://m.filmaffinity.com" + url
                 else:
@@ -1812,7 +1802,7 @@ def acciones_fa(item):
                  '.*?(?:<div class="ls-imgs">(.*?)</a>|</a>)'
         matches = scrapertools.find_multiple_matches(data, patron)
         for url, title, content, imgs in matches:
-            new_item = item.clone(accion="lista", text_color=color1)
+            new_item = item.clone(accion="lista", )
             if not url.startswith("http://m.filmaffinity.com"):
                 new_item.url = "http://m.filmaffinity.com%s&orderby=%s" % (url, orderby)
             else:
@@ -1841,7 +1831,7 @@ def acciones_fa(item):
                 new_item.title = "[COLOR %s]%s[/COLOR] %s" % (color4, u"\u04FE".encode('utf-8'), title)
                 new_item.accion = "addMovieToList"
             itemlist.append(new_item)
-        new_item = item.clone(action="newlist", title=config.get_localized_string(70333), text_color=color6)
+        new_item = item.clone(action="newlist", title=config.get_localized_string(70333), )
         new_item.infoLabels["duration"] = ""
         itemlist.append(new_item)
     else:
@@ -1934,12 +1924,12 @@ def imagenes(item):
     if item.extra == "menu":
         item.folder = not config.is_xbmc()
         if "tmdb" in item.images:
-            itemlist.append(item.clone(title="Tmdb", text_color=color2, extra=""))
-            itemlist.append(item.clone(title="Fanart.Tv", text_color=color2, extra=""))
+            itemlist.append(item.clone(title="Tmdb", extra=""))
+            itemlist.append(item.clone(title="Fanart.Tv", extra=""))
         if "imdb" in item.images:
-            itemlist.append(item.clone(title="Imdb", text_color=color2, extra=""))
+            itemlist.append(item.clone(title="Imdb", extra=""))
         if "filmaffinity" in item.images:
-            itemlist.append(item.clone(title="Filmaffinity", text_color=color2, extra=""))
+            itemlist.append(item.clone(title="Filmaffinity", extra=""))
         if "myanimelist" in item.images:
             data = httptools.downloadpage(item.url + "/pics", cookies=False).data
             images = scrapertools.find_multiple_matches(data,
@@ -1947,7 +1937,7 @@ def imagenes(item):
             if images:
                 for thumb, title in images:
                     item.images["myanimelist"].append([thumb, title])
-                itemlist.append(item.clone(title="MyAnimeList", text_color=color2, extra=""))
+                itemlist.append(item.clone(title="MyAnimeList", extra=""))
 
         return itemlist
 
@@ -1995,7 +1985,7 @@ def imagenes(item):
                             fanart = 'http://image.tmdb.org/t/p/original' + imagen["file_path"]
                             title = "   %s %s [%sx%s]" % (tipo.capitalize(), i + 1, imagen["width"], imagen["height"])
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
-                                                 title=title, text_color=color1, infoLabels=item.infoLabels))
+                                                 title=title, infoLabels=item.infoLabels))
                 else:
                     imagesWindow = infoplus.images(tmdb=value).doModal()
 
@@ -2007,7 +1997,7 @@ def imagenes(item):
                             fanart = imagen["url"]
                             title = "   %s %s [%s]" % (tipo.capitalize(), i + 1, imagen["lang"])
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
-                                                 title=title, text_color=color1, infoLabels=item.infoLabels))
+                                                 title=title, infoLabels=item.infoLabels))
                 else:
                     imagesWindow = infoplus.images(fanartv=value).doModal()
 
@@ -2016,7 +2006,7 @@ def imagenes(item):
                     for thumb, title in value:
                         thumb = thumb.replace("-s200", "-large")
                         itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=thumb,
-                                             title=title, text_color=color1, infoLabels=item.infoLabels))
+                                             title=title, infoLabels=item.infoLabels))
                 else:
                     imagesWindow = infoplus.images(fa=value).doModal()
 
@@ -2028,7 +2018,7 @@ def imagenes(item):
                         title = imagen["altText"]
                         itemlist.append(
                             Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart, title=title,
-                                 text_color=color1, infoLabels=item.infoLabels))
+                                  infoLabels=item.infoLabels))
                 else:
                     imagesWindow = infoplus.images(imdb=value).doModal()
 
@@ -2037,7 +2027,7 @@ def imagenes(item):
                     for imagen, title in value:
                         itemlist.append(
                             Item(channel=item.channel, action="", thumbnail=imagen, fanart=imagen, title=title,
-                                 text_color=color1, infoLabels=item.infoLabels))
+                                  infoLabels=item.infoLabels))
                 else:
                     imagesWindow = infoplus.images(mal=value).doModal()
 
@@ -2123,8 +2113,6 @@ def menu_trakt(item):
 def acciones_trakt(item):
     token_auth = config.get_setting("token_trakt", "trakt")
     itemlist = []
-    item.text_color = color1
-
     item.contentType = item.extra.replace("show", "tvshow")
 
     client_id = "c40ba210716aee87f6a9ddcafafc56246909e5377b623b72c15909024448e89d"
@@ -2167,7 +2155,7 @@ def acciones_trakt(item):
                 except:
                     pass
                 new_item = item.clone(action="detalles")
-                new_item.title = entry["title"] + "  (%s)" % entry["year"]
+                new_item.title = entry["title"] + ' ' + entry["year"]
                 new_item.infoLabels["tmdb_id"] = entry["ids"]["tmdb"]
                 try:
                     ratings.append(entry["rating"])
@@ -2175,17 +2163,16 @@ def acciones_trakt(item):
                     ratings.append(0.0)
                 itemlist.append(new_item)
                 if i == item.pagina + 20:
-                    itemlist.append(item.clone(title=config.get_localized_string(70065), text_color="", pagina=item.pagina + 20))
+                    itemlist.append(item.clone(title=config.get_localized_string(70065), pagina=item.pagina + 20))
                     break
 
             from core import tmdb
             tmdb.set_infoLabels_itemlist(itemlist[:-1], True)
             for i, new_item in enumerate(itemlist[:-1]):
                 if new_item.infoLabels["title"]:
-                    new_item.title = new_item.infoLabels["title"] + "  (%s)" % new_item.infoLabels["year"]
+                    new_item.title = typo(new_item.infoLabels["title"] + "  (%s)" % new_item.infoLabels["year"], 'bold')
                 if ratings[i]:
-                    new_item.title += "  [COLOR %s]Trakt:%.2f[/COLOR]/[COLOR %s]Tmdb:%.2f[/COLOR]" \
-                                      % (color6, ratings[i], color4, new_item.infoLabels["rating"])
+                    new_item.title += typo("Trakt: %.2f | Tmdb: %.2f"  % (ratings[i], new_item.infoLabels["rating"]), '_ color kod')
         except:
             pass
 
@@ -2197,7 +2184,7 @@ def acciones_trakt(item):
                        'votes': config.get_localized_string(70474), 'asc': config.get_localized_string(70475), 'desc': config.get_localized_string(70476)}
             orden = valores[item.order] + " " + valores[item.how]
             # itemlist.append(item.clone(title=config.get_localized_string(70349) % orden, action="order_list",
-            #                            text_color=color4))
+            #                            ))
         ratings = []
         try:
             # if item.order:
@@ -2230,18 +2217,16 @@ def acciones_trakt(item):
                 tmdb.set_infoLabels_itemlist(itemlist[1:], True)
                 for i, new_item in enumerate(itemlist[1:]):
                     if new_item.infoLabels["title"]:
-                        new_item.title = new_item.infoLabels["title"] + "  (%s)" % new_item.infoLabels["year"]
+                        new_item.title = typo(new_item.infoLabels["title"] + ' ' + new_item.infoLabels["year"], 'bold')
                     if ratings[i]:
-                        new_item.title += "  [COLOR %s]Trakt:%.2f[/COLOR]/[COLOR %s]Tmdb:%.2f[/COLOR]" \
-                                          % (color6, ratings[i], color4, new_item.infoLabels["rating"])
+                        new_item.title += typo("Trakt: %.2f | Tmdb: %.2f"  % (ratings[i], new_item.infoLabels["rating"]), '_ color kod')
             else:
                 tmdb.set_infoLabels_itemlist(itemlist, True)
                 for i, new_item in enumerate(itemlist):
                     if new_item.infoLabels["title"]:
-                        new_item.title = new_item.infoLabels["title"] + "  (%s)" % new_item.infoLabels["year"]
+                        new_item.title = typo(new_item.infoLabels["title"] + "  (%s)" % new_item.infoLabels["year"], 'bold')
                     if ratings[i]:
-                        new_item.title += "  [COLOR %s]Trakt:%.2f[/COLOR]/[COLOR %s]Tmdb:%.2f[/COLOR]" \
-                                          % (color6, ratings[i], color4, new_item.infoLabels["rating"])
+                        new_item.title += typo("Trakt: %.2f | Tmdb: %.2f"  % (ratings[i], new_item.infoLabels["rating"]), '_ color kod')
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -2250,12 +2235,12 @@ def acciones_trakt(item):
             page = scrapertools.find_single_match(item.url, 'page=(\d+)')
             page_new = int(page) + 1
             url = item.url.replace("page=" + page, "page=" + str(page_new))
-            itemlist.append(item.clone(title=config.get_localized_string(70065), text_color="", url=url))
+            itemlist.append(item.clone(title=config.get_localized_string(70065), url=url))
     else:
         data = jsontools.load(data)
         for entry in data:
             new_item = item.clone()
-            new_item.title = entry["name"] + "  [COLOR %s](%s)[/COLOR]" % (color6, entry["item_count"])
+            new_item.title = entry["name"] + ' ' + entry["item_count"]
             new_item.infoLabels["plot"] = entry.get("description")
             new_item.url = "users/me/lists/%s/items/?page=1&limit=20&extended=full" % entry["ids"]["trakt"]
             new_item.order = entry.get("sort_by")
@@ -2301,7 +2286,6 @@ def order_trakt(item, values):
 def top_mal(item):
     # Para los menús principales de tops pelícuas/series/ovas
     itemlist = []
-    item.text_color = color1
     data = httptools.downloadpage(item.url, cookies=False).data
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     data = re.sub(r"\s{2}", " ", data)
@@ -2333,14 +2317,14 @@ def top_mal(item):
             new_item.title += " [%s]" % year
         if rating != "N/A":
             new_item.infoLabels["rating"] = float(rating)
-            new_item.title += "  [COLOR %s]%s[/COLOR]" % (color6, rating)
+            new_item.title += typo(rating, '_ color kod')
         new_item.contentTitle = title.strip()
         itemlist.append(new_item)
 
     next_page = scrapertools.find_single_match(data, 'limit=(\d+)" class="link-blue-box next">')
     if next_page:
         next_page = item.url.rsplit("=", 1)[0] + "=%s" % next_page
-        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, text_color=""))
+        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, ))
 
     return itemlist
 
@@ -2458,26 +2442,26 @@ def detalles_mal(item):
                                    title=config.get_localized_string(70352) % eng_title))
 
     if item_tmdb.extra == "tv" and ob_tmdb.result:
-        itemlist.append(item.clone(action="info_seasons", text_color=color4,
+        itemlist.append(item.clone(action="info_seasons", 
                                    title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
 
-    itemlist.append(item.clone(action="videos_mal", title=config.get_localized_string(70353), text_color=color5,
+    itemlist.append(item.clone(action="videos_mal", title=config.get_localized_string(70353), 
                                url=item.url + "/video"))
 
     # Opción para ver la info de personajes y dobladores/equipo de rodaje
     if not "No characters or voice actors" in data and not "No staff for this anime" in data:
-        itemlist.append(item.clone(action="staff_mal", title=config.get_localized_string(70354), text_color=color2,
+        itemlist.append(item.clone(action="staff_mal", title=config.get_localized_string(70354), 
                                    url=item.url + "/characters"))
     if config.is_xbmc():
         item.contextual = True
     itemlist.append(item.clone(channel="trailertools", action="buscartrailer", title=config.get_localized_string(30162),
-                               text_color=color5))
+                               ))
 
     images = {}
     if ob_tmdb.result and ob_tmdb.result.get("images"):
         images['tmdb'] = ob_tmdb.result["images"]
     images['myanimelist'] = []
-    itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), text_color=color5, images=images,
+    itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), images=images,
                                extra="menu"))
 
     try:
@@ -2486,7 +2470,7 @@ def detalles_mal(item):
         data_music = httptools.downloadpage("http://www.freeanimemusic.org/song_search.php", post).data
         if not "NO MATCHES IN YOUR SEARCH" in data_music:
             itemlist.append(
-                item.clone(action="musica_anime", title=config.get_localized_string(70317), text_color=color5,
+                item.clone(action="musica_anime", title=config.get_localized_string(70317), 
                            post=post))
     except:
         pass
@@ -2553,7 +2537,7 @@ def detalles_mal(item):
     if ob_tmdb.result:
         itemlist.append(item.clone(title="", action="", infoLabels={}))
         if ob_tmdb.result.get("belongs_to_collection"):
-            new_item = item.clone(infoLabels={'mediatype': item.contentType}, action="listado_tmdb", text_color=color5)
+            new_item = item.clone(infoLabels={'mediatype': item.contentType}, action="listado_tmdb", )
             saga = ob_tmdb.result["belongs_to_collection"]
             new_item.infoLabels["tmdb_id"] = saga["id"]
             if saga["poster_path"]:
@@ -2567,7 +2551,7 @@ def detalles_mal(item):
         itemlist.append(
             item.clone(title=config.get_localized_string(70358), action="listado_tmdb", infoLabels={'mediatype': item.contentType},
                        search={'url': '%s/%s/recommendations' % (item.extra, item.infoLabels['tmdb_id']),
-                               'language': langt, 'page': 1}, text_color=color2))
+                               'language': langt, 'page': 1}, ))
 
     # Recomendaciones myanimelist y búsqueda de info en anidb (fansubs en español)
     itemlist.append(item.clone(title=config.get_localized_string(70359), action="reco_mal"))
@@ -2596,7 +2580,7 @@ def videos_mal(item):
             if "icon-pay" in info and "icon-banned-youtube" in thumb:
                 continue
             url = "https://myanimelist.net%s" % url
-            new_item = item.clone(url=url, thumbnail=thumb, action="play", text_color=color1)
+            new_item = item.clone(url=url, thumbnail=thumb, action="play", )
             new_item.title = epi + " - " + title.strip()
             if "icon-pay" in info:
                 new_item.title += "  [COLOR %s](Crunchyroll Premium)[/COLOR]" % color6
@@ -2606,18 +2590,18 @@ def videos_mal(item):
 
         next_page = scrapertools.find_single_match(data, '<a href="([^"]+)" class="link-blue-box">More')
         if next_page:
-            itemlist.append(item.clone(title=config.get_localized_string(70361), url=next_page, text_color=""))
+            itemlist.append(item.clone(title=config.get_localized_string(70361), url=next_page, ))
     if itemlist:
-        itemlist.insert(0, item.clone(title=config.get_localized_string(70362), action="", text_color=color3))
+        itemlist.insert(0, item.clone(title=config.get_localized_string(70362), action="", ))
 
     patron = '<a class="iframe.*?href="(https://www.youtube.*?)\?.*?data-src="([^"]+)".*?<span class="title">([^<]+)<'
     matches = scrapertools.find_multiple_matches(data, patron)
     if matches:
-        itemlist.append(item.clone(title=config.get_localized_string(70363), action="", text_color=color3))
+        itemlist.append(item.clone(title=config.get_localized_string(70363), action="", ))
         for url, thumb, title in matches:
             url = url.replace("embed/", "watch?v=")
             itemlist.append(
-                item.clone(title=title, url=url, server="youtube", action="play", thumbnail=thumb, text_color=color1))
+                item.clone(title=title, url=url, server="youtube", action="play", thumbnail=thumb, ))
 
     return itemlist
 
@@ -2663,7 +2647,7 @@ def indices_mal(item):
             title = title.replace("Winter", config.get_localized_string(70364)).replace("Spring", config.get_localized_string(70365)) \
                 .replace("Summer", config.get_localized_string(70366)).replace("Fall", config.get_localized_string(70367))
             itemlist.append(Item(channel=item.channel, action="season_mal", title=title, url=url,
-                                 thumbnail=thumbnail, text_color=color1, info=True, fanart=thumbnail))
+                                 thumbnail=thumbnail, info=True, fanart=thumbnail))
     else:
         data = httptools.downloadpage("https://myanimelist.net/anime.php", cookies=False).data
         data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
@@ -2677,7 +2661,7 @@ def indices_mal(item):
                 continue
             url = "https://myanimelist.net%s" % url
             itemlist.append(Item(channel=item.channel, action="season_mal", title=title, url=url,
-                                 thumbnail=thumbnail, fanart=thumbnail, text_color=color1))
+                                 thumbnail=thumbnail, fanart=thumbnail, ))
 
     return itemlist
 
@@ -2703,7 +2687,7 @@ def season_mal(item):
                      'title="Score">\s*(N/A|\d\.\d+)'
             matches = scrapertools.find_multiple_matches(bloque, patron)
             if matches:
-                itemlist.append(Item(channel=item.channel, action="", title=head_title, text_color=color3))
+                itemlist.append(Item(channel=item.channel, action="", title=head_title, ))
             for url, scrapedtitle, epis, generos, thumb, plot, tipo, year, score in matches:
                 if ("Hentai" in generos or "Yaoi" in generos or "Yuri" in generos) and adult_mal:
                     continue
@@ -2731,7 +2715,7 @@ def season_mal(item):
                 thumb = thumb.replace("r/167x242/", "") + "l.jpg"
                 itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, title=title,
                                      thumbnail=thumb, infoLabels=infoLabels, extra=extra, tipo=tipo,
-                                     contentTitle=scrapedtitle, contentType=contentType, text_color=color1,
+                                     contentTitle=scrapedtitle, contentType=contentType, 
                                      fanart=default_fan))
     else:
         patron = '<a href="([^"]+)" class="link-title">(.*?)</a>.*?<span>(\? ep|\d+ ep).*?' \
@@ -2766,11 +2750,11 @@ def season_mal(item):
             thumb = thumb.replace("r/167x242/", "") + "l.jpg"
             itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, title=title,
                                  thumbnail=thumb, infoLabels=infoLabels, extra=extra, tipo=tipo,
-                                 contentTitle=scrapedtitle, contentType=contentType, text_color=color1,
+                                 contentTitle=scrapedtitle, contentType=contentType, 
                                  fanart=default_fan))
         next_page = scrapertools.find_single_match(data, '<a class="link current" href.*?href="([^"]+)"')
         if next_page:
-            itemlist.append(Item(channel=item.channel, action="season_mal", url=next_page, text_color="",
+            itemlist.append(Item(channel=item.channel, action="season_mal", url=next_page, 
                                  title=config.get_localized_string(70065), thumbnail=item.thumbnail))
 
     return itemlist
@@ -2786,13 +2770,13 @@ def staff_mal(item):
              '(.*?)</table>'
     matches = scrapertools.find_multiple_matches(data, patron)
     if matches:
-        itemlist.append(item.clone(title=config.get_localized_string(70370), action="", text_color=color3))
+        itemlist.append(item.clone(title=config.get_localized_string(70370), action="", ))
         for url, thumb, nombre, rol, voces in matches:
             url = "https://myanimelist.net%s" % url
             rol = rol.replace("Main", "Principal").replace("Supporting", "Secundario")
             nombre = "   %s   [%s]" % (nombre, rol)
             thumb = thumb.replace("r/46x64/", "")
-            itemlist.append(Item(channel=item.channel, action="detail_staff", url=url, text_color=color2,
+            itemlist.append(Item(channel=item.channel, action="detail_staff", url=url, 
                                  thumbnail=thumb, fanart=default_fan, title=nombre, extra="character"))
             patron_voces = '<a href="(/people[^"]+)">([^<]+)<.*?<small>([^<]+)</small>.*?data-src="([^"]+)"'
             voces_match = scrapertools.find_multiple_matches(voces, patron_voces)
@@ -2800,18 +2784,18 @@ def staff_mal(item):
                 vurl = "https://myanimelist.net%s" % vurl
                 vnombre = "        %s   [%s]" % (vnombre, vidioma)
                 vthumb = vthumb.replace("r/46x64/", "")
-                itemlist.append(Item(channel=item.channel, action="detail_staff", url=vurl, text_color=color1,
+                itemlist.append(Item(channel=item.channel, action="detail_staff", url=vurl, 
                                      thumbnail=vthumb, fanart=default_fan, title=vnombre))
     bloque = scrapertools.find_single_match(data, '<a name="staff">(.*?)</table>')
     patron = '<a href="(/people[^"]+)".*?data-src="([^"]+)".*?href=.*?>([^<]+)<.*?<small>([^<]+)</small>'
     matches = scrapertools.find_multiple_matches(bloque, patron)
     if matches:
-        itemlist.append(item.clone(title="Staff", action="", text_color=color3))
+        itemlist.append(item.clone(title="Staff", action="", ))
         for url, thumb, nombre, rol in matches:
             url = "https://myanimelist.net%s" % url
             nombre = "   %s   [%s]" % (nombre, rol)
             thumb = thumb.replace("r/46x64/", "")
-            itemlist.append(Item(channel=item.channel, action="detail_staff", url=url, text_color=color1,
+            itemlist.append(Item(channel=item.channel, action="detail_staff", url=url, 
                                  thumbnail=thumb, fanart=default_fan, title=nombre))
 
     return itemlist
@@ -2835,17 +2819,17 @@ def detail_staff(item):
                 title = "Imagen %s" % (i + 1)
                 infoLabels = {'plot': bio}
                 itemlist.append(
-                    Item(channel=item.channel, action="", title=title, infoLabels=infoLabels, text_color=color1,
+                    Item(channel=item.channel, action="", title=title, infoLabels=infoLabels, 
                          thumbnail=thumb))
 
         matches = scrapertools.find_multiple_matches(data,
                                                      '<a href="(/anime[^"]+)"><img src="([^"]+)".*?href.*?>(.*?)</a>')
         if matches:
-            itemlist.append(Item(channel=item.channel, title="Animes donde aparece:", action="", text_color=color3))
+            itemlist.append(Item(channel=item.channel, title="Animes donde aparece:", action="", ))
             for url, thumb, title in matches:
                 url = "https://myanimelist.net%s" % url
                 thumb = thumb.replace("r/23x32/", "")
-                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, text_color=color1,
+                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, 
                                      thumbnail=thumb, fanart=default_fan, title=title, contentTitle=title))
     else:
         patron_bio = '<div class="js-sns-icon-container icon-block ">.*?<div class="spaceit_pad">(.*?)</td>'
@@ -2853,7 +2837,7 @@ def detail_staff(item):
         bio = scrapertools.htmlclean(bio.replace("</div>", "\n"))
         infoLabels = {'plot': bio}
         if not "No voice acting roles" in data:
-            itemlist.append(Item(channel=item.channel, title="Da voz a/en:", action="", text_color=color3,
+            itemlist.append(Item(channel=item.channel, title="Da voz a/en:", action="", 
                                  thumbnail=item.thumbnail, infoLabels=infoLabels))
             bloque = scrapertools.find_single_match(data, 'Voice Acting Roles</div>(.*?)</table>')
             patron = '<a href="(/anime[^"]+)"><img data-src="([^"]+)".*?href.*?>(.*?)</a>.*?href="(/character[^"]+)".*?' \
@@ -2864,14 +2848,14 @@ def detail_staff(item):
                 url_p = "https://myanimelist.net%s" % url_p
                 thumb = thumb.replace("r/46x64/", "")
                 thumb_p = thumb_p.replace("r/46x64/", "")
-                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, text_color=color2,
+                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, 
                                      thumbnail=thumb, fanart=default_fan, title=title, contentTitle=title))
-                itemlist.append(Item(channel=item.channel, action="detail_staff", url=url_p, text_color=color1,
+                itemlist.append(Item(channel=item.channel, action="detail_staff", url=url_p, 
                                      thumbnail=thumb_p, fanart=default_fan, title="   %s" % personaje,
                                      extra="character"))
 
         if not "No staff positions" in data:
-            itemlist.append(Item(channel=item.channel, title="Staff en animes:", action="", text_color=color3,
+            itemlist.append(Item(channel=item.channel, title="Staff en animes:", action="", 
                                  thumbnail=item.thumbnail, infoLabels=infoLabels))
             bloque = scrapertools.find_single_match(data, 'Anime Staff Positions</div>(.*?)</table>')
             patron = '<a href="(/anime[^"]+)"><img data-src="([^"]+)".*?href.*?>(.*?)</a>.*?<small>(.*?)</div>'
@@ -2881,7 +2865,7 @@ def detail_staff(item):
                 thumb = thumb.replace("r/46x64/", "")
                 rol = scrapertools.htmlclean(rol)
                 titulo = "%s   [COLOR %s][%s][/COLOR]" % (title, color6, rol)
-                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, text_color=color2,
+                itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, 
                                      thumbnail=thumb, fanart=default_fan, title=titulo, contentTitle=title))
 
     return itemlist
@@ -2940,7 +2924,7 @@ def busqueda_mal(item):
             infolabels["rating"] = float(rating)
             title += "  [COLOR %s]%s[/COLOR]" % (color6, rating)
         itemlist.append(Item(channel=item.channel, title=title, action="detalles_mal", url=url, show=show,
-                             thumbnail=thumb, infoLabels=infolabels, contentTitle=contentitle, text_color=color1,
+                             thumbnail=thumb, infoLabels=infolabels, contentTitle=contentitle, 
                              contentType=contentType, tipo=tipo.lower(), extra=extra))
 
     if not "&show=" in item.url:
@@ -2951,11 +2935,11 @@ def busqueda_mal(item):
 
     check_page = next_page.replace("https://myanimelist.net/anime.php", "")
     if check_page in data:
-        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, text_color=""))
+        itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, ))
     else:
         check_page = check_page.replace("[", "%5B").replace("]", "%5D")
         if check_page in data:
-            itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, text_color=""))
+            itemlist.append(item.clone(title=config.get_localized_string(70065), url=next_page, ))
 
     return itemlist
 
@@ -2986,7 +2970,7 @@ def info_anidb(item, itemlist, url):
         if re.search(r'(?:subtitle|audio) | language: spanish"', data):
             title += config.get_localized_string(70377) % color3
         itemlist.append(Item(channel=item.channel, title=title, infoLabels=infoLabels, action="",
-                             thumbnail=thumbnail, text_color=color4))
+                             thumbnail=thumbnail, ))
 
     if re.search(r'(?:subtitle|audio) | language: spanish"', data):
         epi_total = scrapertools.find_single_match(data, 'itemprop="numberOfEpisodes">([^<]+)</span>')
@@ -3004,7 +2988,7 @@ def info_anidb(item, itemlist, url):
                 .replace("stalled", config.get_localized_string(70380)).replace("dropped", config.get_localized_string(70381))
             title += " [COLOR %s](%s)[/COLOR] %s/%s  [%s]" % (color6, estado, epis, epi_total, source)
             itemlist.append(Item(channel=item.channel, title=title, infoLabels=infoLabels, action="",
-                                 thumbnail=thumbnail, text_color=color4))
+                                 thumbnail=thumbnail, ))
 
 
 def filtro_mal(item):
@@ -3114,7 +3098,7 @@ def musica_anime(item):
         animes[anime].append(
             Item(channel=item.channel, action="play", title=title, server="directo", url=id_anime, song=id_song,
                  number=number,
-                 thumbnail=item.thumbnail, fanart=item.fanart, text_color=color5))
+                 thumbnail=item.thumbnail, fanart=item.fanart, ))
 
     for k, v in sorted(animes.items()):
         v.sort(key=lambda x: (x.url, int(x.number)))
@@ -3168,18 +3152,18 @@ def cuenta_mal(item):
     itemlist = []
     login, message, user = login_mal(True)
     if not login:
-        itemlist.append(item.clone(action="configuracion", title=message, text_color=color4))
+        itemlist.append(item.clone(action="configuracion", title=message, ))
     else:
         itemlist.append(
-            item.clone(action="items_mal", title=config.get_localized_string(70382), text_color=color5, accion="lista_mal",
+            item.clone(action="items_mal", title=config.get_localized_string(70382), accion="lista_mal",
                        url="https://myanimelist.net/animelist/%s?status=1" % user, login=True))
-        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70383), text_color=color5, accion="lista_mal",
+        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70383), accion="lista_mal",
                                    url="https://myanimelist.net/animelist/%s?status=2" % user, login=True))
-        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70384), text_color=color5, accion="lista_mal",
+        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70384), accion="lista_mal",
                                    url="https://myanimelist.net/animelist/%s?status=3" % user, login=True))
-        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70385), text_color=color5, accion="lista_mal",
+        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70385), accion="lista_mal",
                                    url="https://myanimelist.net/animelist/%s?status=4" % user, login=True))
-        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70386), text_color=color5, accion="lista_mal",
+        itemlist.append(item.clone(action="items_mal", title=config.get_localized_string(70386), accion="lista_mal",
                                    url="https://myanimelist.net/animelist/%s?status=6" % user, login=True))
 
     return itemlist
@@ -3222,7 +3206,7 @@ def items_mal(item):
             tipo = "movie"
             extra = "movie"
         itemlist.append(Item(channel=item.channel, action="detalles_mal", url=url, title=title, thumbnail=thumbnail,
-                             text_color=color3,
+                             
                              contentTitle=contentTitle, contentType=tipo, extra=extra, login=True))
 
     if itemlist:
@@ -3261,7 +3245,7 @@ def menu_mal(item):
     for key, value in status.items():
         if not value in title_estado:
             itemlist.append(
-                item.clone(title=config.get_localized_string(70391) % value, action="addlist_mal", text_color=color5, value=key,
+                item.clone(title=config.get_localized_string(70391) % value, action="addlist_mal", value=key,
                            estado=value))
 
     for i in range(10, 0, -1):
