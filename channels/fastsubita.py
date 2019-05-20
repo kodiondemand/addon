@@ -354,7 +354,7 @@ def list_az(item):
 # ================================================================================================================
 
 # ----------------------------------------------------------------------------------------------------------------
-def episodios(item,itemlist = [], seasons = []):
+def episodios(item,itemlist = []):
     support.log(item.channel + " episodios")
     urls = item.url.split('{|}')
     # logger.debug(urls)
@@ -373,10 +373,11 @@ def episodios(item,itemlist = [], seasons = []):
         episode = scrapertools.find_multiple_matches(scrapedtitle,r'((\d*)x(\d*))')[0]
 
         season = episode[1].lstrip('0')
-        if season in seasons and '/page/' not in item.url: break
+        # if season in seasons and '/page/' not in item.url: break
         # logger.debug(scrapedtitle)
         # logger.debug(episode)
         # return False
+
         infoLabels = {}
         infoLabels['season'] = season
         infoLabels['episode'] = episode[2]
@@ -408,8 +409,16 @@ def episodios(item,itemlist = [], seasons = []):
 
     if(len(urls) > 0):
         item.url = '{|}'.join(urls)
-        itemlist = episodios(item, itemlist, seasons)
+        itemlist = episodios(item, itemlist)
     else:
+        cleanItemlist = []
+        episodes = []
+        for episode in itemlist:
+            if episode.title in episodes: continue
+            cleanItemlist.append(episode)
+            episodes.append(episode.title)
+        itemlist = cleanItemlist
+
         tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         item.url = item.originalUrl
         support.videolibrary(itemlist, item, 'bold color kod')
