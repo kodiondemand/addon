@@ -53,6 +53,7 @@ def mainlist(item):
     support.menu(itemlist, 'Cerca film... submenu', 'search', host, args='film')
 
     support.menu(itemlist, 'Serie TV bold', 'peliculas', host + '/serietv/', contentType='episode')
+    support.menu(itemlist, 'Aggiornamenti serie tv', 'last', host + '/serietv/aggiornamento-quotidiano-serie-tv/', contentType='episode')
     support.menu(itemlist, 'Per Lettera submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Lettera")
     support.menu(itemlist, 'Per Genere submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Genere")
     support.menu(itemlist, 'Per anno submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Anno")
@@ -118,21 +119,31 @@ def last(item):
     infoLabels = {}
     quality = ''
 
-    matches = support.match(item, r'<ahref=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
+    if item.contentType == 'episode':
+        matches = support.match(item, r'<a href="([^">]+)".*?>([^(:(|[)]+)([^<]+)<\/a>', '<article class="sequex-post-content.*?</article>', headers)[0]
+    else:
+        matches = support.match(item, r'<ahref=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
 
     for url, title, info in matches:
+        add = True
         title = title.rstrip()
-        infoLabels['year'] = scrapertoolsV2.find_single_match(info, r'\(([0-9]+)\)')
-        quality = scrapertoolsV2.find_single_match(info, r'\[([A-Z]+)\]')
+        if item.contentType == 'episode':
+            for i in itemlist:
+                if i.url == url: # togliamo i doppi
+                    add = False
+        else:
+            infoLabels['year'] = scrapertoolsV2.find_single_match(info, r'\(([0-9]+)\)')
+            quality = scrapertoolsV2.find_single_match(info, r'\[([A-Z]+)\]')
 
-        if quality:            
+        if quality:
             longtitle = title + support.typo(quality,'_ [] color kod')
         else:
             longtitle = title
-        
-        itemlist.append(
+
+        if add:
+            itemlist.append(
                     Item(channel=item.channel,
-                         action='findvideos',
+                         action='findvideos' if item.contentType != 'episode' else 'episodios',
                          contentType=item.contentType,
                          title=longtitle,
                          fulltitle=title,

@@ -142,6 +142,9 @@ def run(item=None):
             # Checks if channel exists
             channel_file = os.path.join(config.get_runtime_path(),
                                         'channels', item.channel + ".py")
+            if not os.path.isfile(channel_file):
+                channel_file = os.path.join(config.get_runtime_path(),
+                                        'special_channels', item.channel + ".py")
             logger.info("channel_file=%s" % channel_file)
 
             channel = None
@@ -151,7 +154,7 @@ def run(item=None):
                     channel = __import__('channels.%s' % item.channel, None,
                                          None, ["channels.%s" % item.channel])
                 except ImportError:
-                    exec "import channels." + item.channel + " as channel"
+                    exec("import channels." + item.channel + " as channel")
 
             logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 
