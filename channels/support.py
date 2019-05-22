@@ -471,7 +471,7 @@ def nextPage(itemlist, item, data, patron, function_level=1):
     # If the call is direct, leave it blank
     
     next_page = scrapertoolsV2.find_single_match(data, patron)
-    if 'http' not in next_page:
+    if 'http' not in next_page and 'http' not in next_page:
         next_page = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + next_page
     log('NEXT= ', next_page)
 

@@ -29,38 +29,10 @@ list_quality = ['default']
 def mainlist(item):
     support.log(item.channel + 'mainlist')
     itemlist = []
-    support.menu(itemlist, 'Anime bold', 'lista_anime',  "%s/animelist?load_all=1" % host,'anime')
-    itemlist.append(
-        Item(channel=item.channel,
-             action="ultimiep",
-             url="%s/fetch_pages.php?request=episodios" % host,
-             title=support.typo("Novità submenu"),
-             extra="",
-             contentType='anime',
-             folder=True,
-             thumbnail=support.thumb())
-    )
-    # itemlist.append(
-    #     Item(channel=item.channel,
-    #          action="lista_anime",
-    #          url="%s/animeincorso" % host,
-    #          title=support.typo("In corso submenu"),
-    #          extra="anime",
-    #          contentType='anime',
-    #          folder=True,
-    #          thumbnail=channelselector.get_thumb('on_the_air.png'))
-    # )
-    itemlist.append(
-        Item(channel=item.channel,
-             action="list_az",
-             url="%s/animelist?load_all=1" % host,
-             title=support.typo("Archivio A-Z submenu"),
-             extra="anime",
-             contentType='anime',
-             folder=True,
-             thumbnail=channelselector.get_thumb('channels_tvshow_az.png'))
-    )
-    support.menu(itemlist, 'Cerca', 'search', host,'anime')
+    support.menu(itemlist, 'Anime bold', 'lista_anime',  "%s/animelist?load_all=1" % host)
+    support.menu(itemlist, 'Novità submenu', 'ultimiep',  "%s/fetch_pages.php?request=episodes" % host,'tvshow')
+    support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', '%s/animelist?load_all=1' % host,args=['tvshow','alfabetico'])
+    support.menu(itemlist, 'Cerca', 'search', host)
 
 
     autoplay.init(item.channel, list_servers, list_quality)
@@ -131,9 +103,14 @@ def lista_anime(item):
             title += ' '+support.typo(' (ITA)')
 
         infoLabels = {}
-        # if 'Akira' in title:
-        #     movie = True
-        #     infoLabels['year']= 1988
+        if 'Akira' in title:
+            movie = True
+            infoLabels['year']= 1988
+
+        if 'Dragon Ball Super Movie' in title:
+            movie = True
+            infoLabels['year'] = 2019
+
 
         itemlist.append(
             Item(channel=item.channel,
@@ -213,7 +190,7 @@ def episodios(item):
                 fanart=item.thumbnail,
                 thumbnail=item.thumbnail))
 
-    if((len(itemlist) == 1 and 'Movie' in itemlist[0].title) or movie):
+    if(((len(itemlist) == 1 and 'Movie' in itemlist[0].title) or movie) and item.contentType!='movie'):
         item.url = itemlist[0].url
         item.contentType = 'movie'
         return findvideos(item)
@@ -235,6 +212,7 @@ def findvideos(item):
 
     if(item.contentType == 'movie'):
         episodes = episodios(item)
+
         if(len(episodes)>0):
             item.url = episodes[0].url
 
@@ -261,6 +239,8 @@ def findvideos(item):
     itemlist = support.server(item, data=data)
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 
+    if item.contentType == 'movie':
+        support.videolibrary(itemlist, item, 'color kod')
 
     # Controlla se i link sono validi
     # if __comprueba_enlaces__:
@@ -279,15 +259,13 @@ def ultimiep(item):
     logger.info(item.channel + "ultimiep")
     itemlist = []
 
-    post = "page=%s" % item.extra if item.extra else None
+    post = "page=%s" % item.args['page'] if item.args and item.args['page'] else None
+
     logger.debug(post)
-    logger.debug(item.url)
     data = httptools.downloadpage(
         item.url, post=post, headers={
             'X-Requested-With': 'XMLHttpRequest'
         }).data
-
-    logger.debug(data)
 
     patron = r"""<a href='[^']+'><div class="locandina"><img alt="[^"]+" src="([^"]+)" title="[^"]+" class="grandezza"></div></a>\s*"""
     patron += r"""<a href='([^']+)'><div class="testo">(.+?)</div></a>\s*"""
@@ -313,16 +291,15 @@ def ultimiep(item):
     # Pagine
     patronvideos = r'data-page="(\d+)" title="Next">Pagina Successiva'
     next_page = scrapertools.find_single_match(data, patronvideos)
-
     if next_page:
         itemlist.append(
             Item(
                 channel=item.channel,
                 action="ultimiep",
                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                url=host + "/fetch_pages?request=episodios",
+                url=item.url,
                 thumbnail= support.thumb(),
-                extra=next_page,
+                args={'page':next_page},
                 folder=True))
 
     return itemlist
