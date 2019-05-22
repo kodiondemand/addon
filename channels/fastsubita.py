@@ -45,8 +45,8 @@ def mainlist(item):
     support.menu(itemlist, 'Serie TV bold', 'lista_serie', host,'tvshow')
     support.menu(itemlist, 'Novità submenu', 'pelicuals_tv', host,'tvshow')
     support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', host,'tvshow',args=['serie'])
-
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
+
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
 
@@ -114,24 +114,31 @@ def pelicuals_tv(item):
         episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')[0]
         scrapedtitle = scrapedtitle.replace(scraped_1, "")
 
+        infoLabels = {}
+        infoLabels['season'] = episode[1]
+        infoLabels['episode'] = episode[2]
 
         if "http:" in scrapedurl:
             scrapedurl = scrapedurl
         else:
             scrapedurl = "http:" + scrapedurl
 
+        title = scraped_1+" - "+infoLabels['season']+"x"+infoLabels['episode']+" Sub-ITA"
+
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
                  contentTpye="tvshow",
-                 title=scraped_1 + " " + scrapedtitle,
-                 fulltitle=scraped_1 + " " + scrapedtitle,
+                 title=title,
+                 fulltitle=title,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
                  show=scraped_1,
                  extra=item.extra,
-                 contentSerieName=scraped_1+" ("+episode[0]+" Sub-Ita)",
+                 contentSerieName=scraped_1,
+                 contentLanguage='Sub-ITA',
+                 infoLabels=infoLabels,
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -381,7 +388,7 @@ def episodios(item,itemlist = []):
         infoLabels = {}
         infoLabels['season'] = season
         infoLabels['episode'] = episode[2]
-        title = infoLabels['season']+'x'+infoLabels['episode']
+        title = infoLabels['season']+'x'+infoLabels['episode']+" Sub-ITA"
 
         if "http:" not in scrapedurl:
             scrapedurl = "http:" + scrapedurl

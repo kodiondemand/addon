@@ -4,8 +4,8 @@
     "active": true,
     "adult": false,
     "language": ["ita"],
-    "thumbnail": "http://serietvsubita.xyz/wp-content/uploads/2012/07/logo.jpg",
-    "banner": "http://serietvsubita.xyz/wp-content/uploads/2012/07/logo.jpg",
+    "thumbnail": "serietvsubita.png",
+    "banner": "serietvsubita.png",
     "categories": ["tvshow"],
     "settings": [
         {

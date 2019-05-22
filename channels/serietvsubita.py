@@ -52,7 +52,7 @@ def mainlist(item):
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
-    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('×','x').replace('Game of Thrones –','')
+    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('×','x').replace('Game of Thrones –','').replace('In The Dark 2019','In The Dark (2019)').strip()
     year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
@@ -195,7 +195,7 @@ def episodios(item, itemlist=[]):
             infoLabels = {}
             infoLabels['season'] = season
             infoLabels['episode'] = episode
-
+            fullepisode+=' Sub-ITA'
             itemlist.append(
                 Item(channel=item.channel,
                      extra=item.extra,
@@ -293,23 +293,27 @@ def peliculas_tv(item):
         scrapedthumbnail = ""
         scrapedplot = ""
         scrapedtitle = cleantitle(scrapedtitle)
+        infoLabels = {}
         episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')[0]
         title = scrapedtitle.split(" S0")[0].strip()
         title = title.split(" S1")[0].strip()
         title = title.split(" S2")[0].strip()
 
-
+        infoLabels['season'] = episode[1]
+        infoLabels['episode'] = episode[2]
 
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
                  fulltitle=scrapedtitle,
                  show=scrapedtitle,
-                 title=scrapedtitle,
+                 title=title+" - "+episode[0]+" Sub-ITA",
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
-                 contentSerieName=title+" ("+episode[0]+" Sub-Ita)",
+                 contentSerieName=title,
+                 contentLanguage='Sub-ITA',
                  plot=scrapedplot,
+                 infoLabels=infoLabels,
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)

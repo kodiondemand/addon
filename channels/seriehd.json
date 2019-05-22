@@ -4,8 +4,8 @@
     "active": true,
     "adult": false,
     "language": ["ita"],
-    "thumbnail": "https://raw.githubusercontent.com/Zanzibar82/images/master/posters/seriehd.png",
-    "banner": "https://raw.githubusercontent.com/Zanzibar82/images/master/posters/seriehd.png",
+    "thumbnail": "seriehd.png",
+    "banner": "seriehd.png",
     "categories": ["tvshow"],
     "settings": [
         {

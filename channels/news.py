@@ -409,6 +409,10 @@ def get_title(item):
             if not item.contentSeason:
                 item.contentSeason = '1'
             title = "%s - %sx%s" % (title, item.contentSeason, str(item.contentEpisodeNumber).zfill(2))
+            #4l3x87 - fix to add Sub-ITA in newest
+            if item.contentLanguage:
+                title+=" "+item.contentLanguage
+
 
     elif item.contentTitle:  # Si es una pelicula con el canal adaptado
         title = item.contentTitle

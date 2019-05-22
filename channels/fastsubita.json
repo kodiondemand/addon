@@ -4,8 +4,8 @@
     "language": ["ita"],
     "active": true,
     "adult": false,
-    "thumbnail": "http://fastsubita.com/wp-content/uploads/2017/10/Untitled-222255xxx.jpg",
-    "banner": "http://fastsubita.com/wp-content/uploads/2017/10/Untitled-222255xxx.jpg",
+    "thumbnail": "fastsubita.png",
+    "banner": "fastsubita.png",
     "categories": ["tvshow", "vosi"],
     "settings": [
         {

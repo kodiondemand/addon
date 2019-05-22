@@ -372,6 +372,10 @@ def get_season_and_episode(title):
     for patron in patrons:
         try:
             matches = re.compile(patron, re.I).search(title)
+            # 4l3x87 - fix for series example 9-1-1
+            if len(matches) > 2:
+                return filename
+
             if matches:
                 if len(matches.group(1)) == 1:
                     filename = matches.group(1) + "x" + matches.group(2).zfill(2)

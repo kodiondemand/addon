@@ -4,8 +4,8 @@
     "active": true,
     "adult": false,
     "language": ["ita"],
-    "thumbnail": "https://www.serietvu.club/wp-content/themes/gurarjbar/images/logo.png",
-    "banner": "https://www.serietvu.club/wp-content/themes/gurarjbar/images/logo.png",
+    "thumbnail": "serietvu.png",
+    "banner": "serietvu.png",
     "categories": ["tvshow"],
     "settings": [
         {
