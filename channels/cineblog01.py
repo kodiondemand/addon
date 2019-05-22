@@ -106,6 +106,7 @@ def newest(categoria):
     findhost()
     itemlist = []
     item = Item()
+    item.contentType = 'movie'
     item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
     return support.scrape(item, r'<a href=([^>]+)>([^<([]+)(?:\[([A-Z]+)\])?\s\(([0-9]{4})\)<\/a>',
                    ['url', 'title', 'quality', 'year'],
