@@ -267,7 +267,7 @@ def latestep(item):
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    logger.debug("".join(map(str,itemlist)))
+    # logger.debug("".join(map(str,itemlist)))
 
     return itemlist
 
