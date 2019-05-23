@@ -5,8 +5,8 @@
 
 import re
 
-from channels import autoplay, filtertools, support
-from core import servertools
+from specials import autoplay, filtertools
+from core import servertools, support
 from core.item import Item
 from platformcode import logger, config
 

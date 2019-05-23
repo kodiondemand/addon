@@ -7,11 +7,10 @@ import base64
 import re
 import urlparse
 
-from channels import autoplay
-from channels import filtertools, support
-from core import scrapertools, servertools, httptools
+from specials import autoplay
+from specials import filtertools
+from core import scrapertools, servertools, httptools, tmdb, support
 from core.item import Item
-from core import tmdb
 from platformcode import logger, config
 
 IDIOMAS = {'Italiano': 'IT'}

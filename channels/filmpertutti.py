@@ -5,8 +5,8 @@
 import re
 import urlparse
 
-from channels import autoplay, support
-from core import scrapertoolsV2, servertools, httptools, tmdb
+from specials import autoplay
+from core import scrapertoolsV2, servertools, httptools, tmdb, support
 from core.item import Item
 from lib import unshortenit
 from platformcode import config, logger

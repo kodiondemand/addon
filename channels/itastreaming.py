@@ -7,12 +7,9 @@ import base64
 import re
 import urlparse
 
-from core import scrapertools, httptools
-from core import servertools
+from core import scrapertools, httptools, servertools, tmdb, support
 from core.item import Item
-from core import tmdb
 from platformcode import logger, config
-from channels import support
 
 
 

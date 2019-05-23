@@ -23,7 +23,7 @@
           <height>34</height>
           <width>725</width>
           <font>font12_title</font>
-          <textcolor>0xFFFFA500</textcolor>
+          <textcolor>0xFFFFFFFF</textcolor>
           <align>center</align>
           <aligny>center</aligny>
           <label>$ADDON[plugin.video.kod 70000]</label>

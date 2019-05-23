@@ -180,7 +180,7 @@ def render_items(itemlist, parent_item):
                     item.thumbnail = get_thumb("videolibrary_tvshow.png")
 
 
-        if unify_enabled and parent_item.channel != 'alfavorites':
+        if unify_enabled and parent_item.channel != 'kodfavorites':
             # Formatear titulo con unify
             item = unify.title_format(item)
         else:
@@ -268,11 +268,11 @@ def render_items(itemlist, parent_item):
         # ...forzamos segun el viewcontent
         xbmcplugin.setContent(int(sys.argv[1]), parent_item.viewcontent)
 
-    elif parent_item.channel not in ["channelselector", "", "alfavorites"]:
+    elif parent_item.channel not in ["channelselector", "", "kodfavorites"]:
         # ... o segun el canal
         xbmcplugin.setContent(int(sys.argv[1]), "movies")
 
-    elif parent_item.channel == "alfavorites" and parent_item.action == 'mostrar_perfil':
+    elif parent_item.channel == "kodfavorites" and parent_item.action == 'mostrar_perfil':
             xbmcplugin.setContent(int(sys.argv[1]), "movies")
 
     # Fijamos el "breadcrumb"
@@ -470,7 +470,7 @@ def set_context_commands(item, parent_item):
 
             # Si no se está dentro de Alfavoritos y hay los contextos de alfavoritos, descartarlos.
             # (pasa al ir a un enlace de alfavoritos, si este se clona en el canal)
-            if parent_item.channel != 'alfavorites' and 'i_perfil' in command and 'i_enlace' in command:
+            if parent_item.channel != 'kodfavorites' and 'i_perfil' in command and 'i_enlace' in command:
                 continue
 
             if "goto" in command:
@@ -481,7 +481,7 @@ def set_context_commands(item, parent_item):
                     (command["title"], "XBMC.RunPlugin(%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
 
     # No añadir más opciones predefinidas si se está dentro de Alfavoritos
-    if parent_item.channel == 'alfavorites':
+    if parent_item.channel == 'kodfavorites':
         return context_commands
 
     # Opciones segun criterios, solo si el item no es un tag (etiqueta), ni es "Añadir a la videoteca", etc...
@@ -548,7 +548,7 @@ def set_context_commands(item, parent_item):
         # Añadir a Alfavoritos (Mis enlaces)
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
             context_commands.append(('[COLOR blue]%s[/COLOR]' % config.get_localized_string(70557), "XBMC.RunPlugin(%s?%s)" %
-                                     (sys.argv[0], item.clone(channel="alfavorites", action="addFavourite",
+                                     (sys.argv[0], item.clone(channel="kodfavorites", action="addFavourite",
                                                               from_channel=item.channel,
                                                               from_action=item.action).tourl())))
 
@@ -596,7 +596,7 @@ def set_context_commands(item, parent_item):
 
         if item.channel != "downloads" and downloadenabled != "false":
             # Descargar pelicula
-            if item.contentType == "movie" and item.contentTitle:
+            if item.contentType == "movie":
                 context_commands.append((config.get_localized_string(60354), "XBMC.RunPlugin(%s?%s)" %
                                          (sys.argv[0], item.clone(channel="downloads", action="save_download",
                                                                   from_channel=item.channel, from_action=item.action)
@@ -966,7 +966,7 @@ def set_opcion(item, seleccion, opciones, video_urls):
 
     # "Descargar"
     elif opciones[seleccion] == config.get_localized_string(30153):
-        from channels import downloads
+        from specials import downloads
         import xbmcaddon
         import xbmcgui
         __addon__ = xbmcaddon.Addon()
@@ -984,13 +984,13 @@ def set_opcion(item, seleccion, opciones, video_urls):
 
     # "Quitar de favoritos"
     elif opciones[seleccion] == config.get_localized_string(30154):
-        from channels import favorites
+        from specials import favorites
         favorites.delFavourite(item)
         salir = True
 
     # "Añadir a favoritos":
     elif opciones[seleccion] == config.get_localized_string(30155):
-        from channels import favorites
+        from specials import favorites
         item.from_channel = "favorites"
         favorites.addFavourite(item)
         salir = True

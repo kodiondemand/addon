@@ -128,9 +128,9 @@
       "label": "@70238",
       "lvalues": [
         "@70244",
-        "Reordenar"
+        "@70245"
       ],
-      "default": 1,
+      "default": 0,
       "enabled": true,
       "visible": true
     },
@@ -139,13 +139,13 @@
       "type": "list",
       "label": "@70246",
       "lvalues": [
-        "Esp, Lat, Sub, Eng, Vose",
-        "Esp, Sub, Lat, Eng, Vose",
-        "Eng, Sub, Vose, Esp, Lat",
-        "Vose, Eng, Sub, Esp, Lat"
+        "Ita, Sub, Eng, Vos, Vosi",
+        "Eng, Ita, Sub, Vos, Vosi",
+        "Sub, Ita, Eng, Vos, Vosi",
+        "Eng, Sub, Ita, Vos, Vosi"
       ],
       "default": 0,
-      "enabled": "eq(-1,'Reordenar')",
+      "enabled": "eq(-1,'@70245')",
       "visible": true
     },
     {

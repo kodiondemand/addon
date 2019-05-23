@@ -69,7 +69,7 @@ def_lang = addon.getSetting('language')
 # --------------------------------------------------------------------------------------------------------------
 
 otmdb_global = None
-fname = filetools.join(config.get_data_path(), "alfa_db.sqlite")
+fname = filetools.join(config.get_data_path(), "kod_db.sqlite")
 
 
 def create_bd():

@@ -6,8 +6,7 @@
 
 import re, urlparse
 
-import channelselector
-from channels import autoplay, filtertools, support
+from specials import autoplay, filtertools
 from core import scrapertools, servertools, httptools, tmdb
 from core.item import Item
 from platformcode import config, logger

@@ -15,7 +15,7 @@ from platformcode import config, logger
 from platformcode import platformtools
 import xbmc, xbmcaddon
 from channelselector import get_thumb
-from channels.support import typo, thumb
+from core.support import typo, thumb
 
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
@@ -139,7 +139,7 @@ def busqueda(item):
     new_item.extra = item.contentTitle.replace("+", " ")
     new_item.category = item.extra
 
-    from channels import search
+    from specials import search
     return search.do_search(new_item, cat)
 
 
@@ -1975,7 +1975,7 @@ def imagenes(item):
             return itemlist
 
     if item.images:
-        from channels import infoplus
+        from specials import infoplus
         for key, value in item.images.iteritems():
             if key == "tmdb" and "Tmdb" in item.title:
                 if item.folder:

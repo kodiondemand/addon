@@ -8,9 +8,9 @@ import re
 import time
 import urlparse
 
-import channelselector
-from channels import autoplay, support, filtertools, autorenumber
-from core import httptools, tmdb, scrapertools, servertools
+import channelselector, filtertools
+from core import httptools, tmdb, scrapertools, servertools, support
+from specials import autoplay
 from core.item import Item
 from platformcode import logger, config
 __channel__ = "animesaturn"

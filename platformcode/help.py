@@ -93,19 +93,19 @@ def faq(item):
     if item.extra == "onoff_canales":
         respuesta = platformtools.dialog_yesno(config.get_localized_string(60457), config.get_localized_string(60458))
         if respuesta == 1:
-            from channels import setting
+            from specials import setting
             setting.conf_tools(Item(extra='channels_onoff'))
 
     elif item.extra == "trakt_sync":
         respuesta = platformtools.dialog_yesno(config.get_localized_string(60457), config.get_localized_string(60459))
         if respuesta == 1:
-            from channels import videolibrary
+            from specials import videolibrary
             videolibrary.channel_config(Item(channel='videolibrary'))
 
     elif item.extra == "tiempo_enlaces":
         respuesta = platformtools.dialog_yesno(config.get_localized_string(60457), config.get_localized_string(60460))
         if respuesta == 1:
-            from channels import videolibrary
+            from specials import videolibrary
             videolibrary.channel_config(Item(channel='videolibrary'))
 
     elif item.extra == "prob_busquedacont":
@@ -128,7 +128,7 @@ def faq(item):
                                                 config.get_localized_string(60465))
         if respuesta == 1:
             itemlist = []
-            from channels import setting
+            from specials import setting
             new_item = Item(channel="setting", action="submenu_tools", folder=True)
             itemlist.extend(setting.submenu_tools(new_item))
             return itemlist
@@ -142,7 +142,7 @@ def faq(item):
     elif item.extra == "buscador_juntos":
         respuesta = platformtools.dialog_yesno(config.get_localized_string(60457), config.get_localized_string(60466))
         if respuesta == 1:
-            from channels import search
+            from specials import search
             search.settings("")
 
     elif item.extra == "report_error":

@@ -7,8 +7,8 @@ import re
 import urlparse
 
 from channelselector import get_thumb
-from channels import filtertools, support, autoplay
-from core import scrapertools, servertools, httptools, tmdb
+from specials import filtertools, autoplay
+from core import scrapertools, servertools, httptools, tmdb, support
 from platformcode import logger, config
 from core.item import Item
 

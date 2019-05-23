@@ -30,7 +30,7 @@ def fechahora_actual():
 # Helpers para listas
 # -------------------
 
-PREFIJO_LISTA = 'alfavorites-'
+PREFIJO_LISTA = 'kodfavorites-'
 
 # Devuelve el nombre de la lista activa (Ej: alfavorites-default.json)
 def get_lista_activa():

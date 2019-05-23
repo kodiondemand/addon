@@ -8,8 +8,8 @@ import re, urlparse
 from platformcode import config, logger
 from core import scrapertools, servertools, httptools
 from core.item import Item
-from channels import autoplay
-from channels import filtertools
+from specials import autoplay
+from specials import filtertools
 from core import tmdb
 
 __channel__ = "ilgeniodellostreaming"

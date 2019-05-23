@@ -7,8 +7,7 @@
 import re
 import urllib
 
-from channels import support
-from core import httptools, scrapertools, tmdb
+from core import httptools, scrapertools, tmdb, support
 from core.item import Item
 from platformcode import logger
 
@@ -85,5 +84,5 @@ def tvoggi(item):
 
 
 def do_search(item):
-    from channels import search
+    from specials import search
     return search.do_search(item)

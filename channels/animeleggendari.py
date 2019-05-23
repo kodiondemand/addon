@@ -5,9 +5,9 @@
 
 import re
 
-from channels import filtertools, autoplay, support, autorenumber
-from channels.support import log, menu
-from core import servertools, httptools, scrapertoolsV2, scrapertools, tmdb
+from specials import filtertools, autoplay, autorenumber
+from core.support import log, menu
+from core import servertools, httptools, scrapertoolsV2, scrapertools, tmdb, support
 from platformcode import logger, config
 from core.item import Item
 from lib.js2py.host import jsfunctions

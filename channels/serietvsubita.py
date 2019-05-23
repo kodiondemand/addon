@@ -8,8 +8,8 @@ import re
 import time
 
 import channelselector
-from channels import autoplay, support, filtertools
-from core import httptools, tmdb, scrapertools, servertools
+from specials import autoplay, filtertools
+from core import httptools, tmdb, scrapertools, servertools, support
 from core.item import Item
 from platformcode import logger, config
 __channel__ = "serietvsubita"

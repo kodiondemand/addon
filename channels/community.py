@@ -15,8 +15,8 @@ from channelselector import get_thumb
 from core import tmdb
 from core.item import Item
 from platformcode import logger, config, platformtools
-from channels import autoplay
-from channels import filtertools
+from specials import autoplay
+from specials import filtertools
 
 list_data = {}
 

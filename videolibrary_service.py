@@ -23,7 +23,7 @@ except:
 from core import channeltools, filetools, videolibrarytools
 from platformcode import logger
 from platformcode import platformtools
-from channels import videolibrary
+from specials import videolibrary
 from lib import generictools
 
 

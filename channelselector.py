@@ -27,11 +27,11 @@ def getmainlist(view="thumb_"):
                          thumbnail=get_thumb("channels.png", view), view=view,
                          category=config.get_localized_string(30119), viewmode="thumbnails"))
 
-    itemlist.append(Item(title=config.get_localized_string(70527), channel="alfavorites", action="mainlist",
+    itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
                          thumbnail=get_thumb("mylink.png", view), view=view,
                          category=config.get_localized_string(70527), viewmode="thumbnails"))
 
-    itemlist.append(Item(title=config.get_localized_string(30103), channel="search", action="mainlist",
+    itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
                          thumbnail=get_thumb("search.png", view),
                          category=config.get_localized_string(30119), viewmode="list",
                          context=[{"title": config.get_localized_string(70286), "channel": "search", "action": "opciones",

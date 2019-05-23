@@ -4,9 +4,9 @@
 # ------------------------------------------------------------
 import urlparse
 
-from channels import autoplay, filtertools, support
-from channels.support import menu, log
-from core import scrapertoolsV2, servertools, httptools, tmdb
+from specials import autoplay, filtertools
+from core.support import menu, log
+from core import scrapertoolsV2, servertools, httptools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
 from channelselector import thumb

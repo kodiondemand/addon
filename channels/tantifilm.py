@@ -6,9 +6,9 @@
 import re
 import urlparse
 
-from channels import support, autorenumber
-from channels.support import menu, log, aplay
-from core import scrapertoolsV2, httptools, tmdb
+from specials import  autorenumber
+from core.support import menu, log, aplay
+from core import scrapertoolsV2, httptools, tmdb, support
 from core.item import Item
 from platformcode import config, logger
 

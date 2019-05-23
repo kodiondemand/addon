@@ -174,12 +174,12 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
             channelpath = inspect.currentframe().f_back.f_back.f_code.co_filename
         self.channel = os.path.basename(channelpath).replace(".py", "")
         self.ch_type = os.path.basename(os.path.dirname(channelpath))
-
+        logger.info('PATH= ' + channelpath)
         # Si no tenemos list_controls, hay que sacarlos del json del canal
         if not self.list_controls:
 
             # Si la ruta del canal esta en la carpeta "channels", obtenemos los controles y valores mediante chaneltools
-            if os.path.join(config.get_runtime_path(), "channels") in channelpath:
+            if os.path.join(config.get_runtime_path(), "channels") or os.path.join(config.get_runtime_path(), "specials")  in channelpath:
 
                 # La llamada se hace desde un canal
                 self.list_controls, default_values = channeltools.get_channel_controls_settings(self.channel)
@@ -544,7 +544,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                 default = ""
 
             c["default"] = c.get("default", default)
-            c["color"] = c.get("color", "0xFF0066CC")
+            c["color"] = c.get("color", "0xFFFFFFFF")
             c["visible"] = c.get("visible", True)
             c["enabled"] = c.get("enabled", True)
 

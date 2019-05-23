@@ -1229,7 +1229,7 @@ def busqueda_global(item, infoLabels, org_title=False):
         new_item.extra = infoLabels.get("originaltitle", "")
     new_item.category = item.contentType
 
-    from channels import search
+    from specials import search
     return search.do_search(new_item, cat)
 
 
@@ -2188,7 +2188,7 @@ class images(xbmcgui.WindowDialog):
 class Trailer(xbmcgui.WindowXMLDialog):
     def Start(self, item, trailers):
         self.item = item
-        from channels import trailertools
+        from specials import trailertools
         self.video_url, self.windows = trailertools.buscartrailer(self.item.clone(), trailers=trailers)
 
         self.doModal()

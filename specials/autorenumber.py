@@ -14,7 +14,7 @@ from platformcode import config
 from core import jsontools, tvdb
 from core.item import Item
 from platformcode import platformtools
-from channels.support import typo, log
+from core.support import typo, log
 
 TAG_TVSHOW_RENUMERATE = "TVSHOW_AUTORENUMBER"
 TAG_SEASON_EPISODE = "season_episode"
@@ -86,7 +86,7 @@ def write_data(channel, show, data):
     log()
     dict_series = jsontools.get_node_from_file(channel, TAG_TVSHOW_RENUMERATE)
     tvshow = show.strip()
-    list_season_episode = dict_series.get(tvshow, {}).get(TAG_SEASON_EPISODE, [])
+    # list_season_episode = dict_series.get(tvshow, {}).get(TAG_SEASON_EPISODE, [])
 
     if data:       
         dict_renumerate = {TAG_SEASON_EPISODE: data}
@@ -94,7 +94,7 @@ def write_data(channel, show, data):
     else:
         dict_series.pop(tvshow, None)
 
-    result, json_data = jsontools.update_node(dict_series, channel, TAG_TVSHOW_RENUMERATE)
+    result = jsontools.update_node(dict_series, channel, TAG_TVSHOW_RENUMERATE)[0]
 
     if result:
         if data:
@@ -103,7 +103,7 @@ def write_data(channel, show, data):
             message = config.get_localized_string(60444)
     else:
         message = config.get_localized_string(70593)
-
+ 
     heading = show.strip()
     platformtools.dialog_notification(heading, message)
 

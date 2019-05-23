@@ -4,10 +4,10 @@
 # ----------------------------------------------------------
 import re, urlparse
 
-from core import httptools, scrapertoolsV2, servertools, tmdb, tvdb
+from core import httptools, scrapertoolsV2, servertools, tmdb, tvdb, support
 from core.item import Item
 from platformcode import logger, config
-from channels import autoplay, filtertools, support, autorenumber
+from specials import autoplay, filtertools, autorenumber
 from channelselector import thumb
 
 

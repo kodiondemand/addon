@@ -133,6 +133,8 @@ def get_channel_json(channel_name):
     channel_json = None
     try:
         channel_path = filetools.join(config.get_runtime_path(), "channels", channel_name + ".json")
+        if not os.path.isfile(channel_path):
+            channel_path = filetools.join(config.get_runtime_path(), "specials", channel_name + ".json")
         if filetools.isfile(channel_path):
             # logger.info("channel_data=" + channel_path)
             channel_json = jsontools.load(filetools.read(channel_path))
@@ -149,7 +151,7 @@ def get_channel_json(channel_name):
 def get_channel_controls_settings(channel_name):
     # logger.info("channel_name=" + channel_name)
     dict_settings = {}
-
+    # import web_pdb; web_pdb.set_trace()
     list_controls = get_channel_json(channel_name).get('settings', list())
 
     for c in list_controls:

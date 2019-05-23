@@ -6,13 +6,9 @@
 # -*- last change: 04/05/2019
 
 
-from channels import autoplay, support, filtertools
+from specials import autoplay, filtertools
 from channelselector import get_thumb
-from core import httptools
-from core import channeltools
-from core import scrapertools
-from core import servertools
-from core import tmdb
+from core import httptools, channeltools, scrapertools, servertools, tmdb, support
 from core.item import Item
 from platformcode import config, logger
 

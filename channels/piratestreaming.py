@@ -6,8 +6,8 @@
 import re
 import urlparse
 
-from channels import autoplay
-from channels import filtertools
+from specials import autoplay
+from specials import filtertools
 from core import httptools, scrapertools, servertools
 from core.item import Item
 from core import tmdb

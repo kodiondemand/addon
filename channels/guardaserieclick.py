@@ -6,11 +6,10 @@
 
 import re
 
-from core import httptools,  scrapertools, servertools
+from core import httptools,  scrapertools, servertools, support
 from core.item import Item
 from core import tmdb
 from platformcode import logger, config
-from channels import support
 
 
 host = "http://www.guardaserie.watch"

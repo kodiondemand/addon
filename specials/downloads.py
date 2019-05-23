@@ -9,12 +9,7 @@ import time
 import unicodedata
 
 
-from core import filetools
-from core import jsontools
-from core import scraper
-from core import scrapertools
-from core import servertools
-from core import videolibrarytools
+from core import filetools, jsontools, scraper, scrapertools, servertools, videolibrarytools, support
 from core.downloader import Downloader
 from core.item import Item
 from platformcode import config, logger
@@ -90,7 +85,7 @@ def mainlist(item):
 
     estados = [i.downloadStatus for i in itemlist]
 
-    # Si hay alguno completado
+       # Si hay alguno completado
     if 2 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="clean_ready", title=config.get_localized_string(70218),
                                 contentType=item.contentType, contentChannel=item.contentChannel,
@@ -104,22 +99,20 @@ def mainlist(item):
 
     # Si hay alguno pendiente
     if 1 in estados or 0 in estados:
-        itemlist.insert(0, Item(channel=item.channel, action="download_all", title=config.get_localized_string(70220),
+        itemlist.insert(0, Item(channel=item.channel, action="download_all", title=support.typo(config.get_localized_string(70220),'bold'),
                                 contentType=item.contentType, contentChannel=item.contentChannel,
-                                contentSerieName=item.contentSerieName, text_color="green"))
+                                contentSerieName=item.contentSerieName))
 
     if len(itemlist):
-        itemlist.insert(0, Item(channel=item.channel, action="clean_all", title=config.get_localized_string(70221),
+        itemlist.insert(0, Item(channel=item.channel, action="clean_all", title=support.typo(config.get_localized_string(70221),'bold'),
                                 contentType=item.contentType, contentChannel=item.contentChannel,
-                                contentSerieName=item.contentSerieName, text_color="red"))
+                                contentSerieName=item.contentSerieName))
 
     if not item.contentType == "tvshow" and config.get_setting("browser", "downloads") == True:
-        itemlist.insert(0, Item(channel=item.channel, action="browser", title=config.get_localized_string(70222),
-                                url=DOWNLOAD_PATH, text_color="yellow"))
+        itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.get_localized_string(70222),'bold'),url=DOWNLOAD_PATH))
 
     if not item.contentType == "tvshow":
-        itemlist.insert(0, Item(channel=item.channel, action="settings", title=config.get_localized_string(70223),
-                                text_color="blue"))
+        itemlist.insert(0, Item(channel=item.channel, action="settings", title= support.typo(config.get_localized_string(70223),'bold color kod')))
 
     return itemlist
 
@@ -274,8 +267,7 @@ def move_to_libray(item):
     library_path = filetools.join(config.get_videolibrary_path(), *filetools.split(item.downloadFilename))
     final_path = download_path
 
-    if config.get_setting("library_add", "downloads") == True and config.get_setting("library_move",
-                                                                                     "downloads") == True:
+    if config.get_setting("library_add", "downloads") == True and config.get_setting("library_move", "downloads") == True:
         if not filetools.isdir(filetools.dirname(library_path)):
             filetools.mkdir(filetools.dirname(library_path))
 

@@ -624,7 +624,7 @@ def channel_search(queue, channel_parameters, category, title_year, tecleado):
 
         title_search = urllib.unquote_plus(tecleado)
 
-        exec "from channels import " + channel_parameters["channel"] + " as module"
+        exec "from specials import " + channel_parameters["channel"] + " as module"
         mainlist = module.mainlist(Item(channel=channel_parameters["channel"]))
 
         for item in mainlist:

@@ -56,7 +56,7 @@ def run(item=None):
                     category = dictCategory[config.get_setting("category")]
                     item = Item(channel="news", action="novedades", extra=category, mode = 'silent')
                 else:
-                    from channels import side_menu
+                    from specials import side_menu
                     item= Item()
                     item = side_menu.check_user_home(item)
                     item.start = True
@@ -140,21 +140,22 @@ def run(item=None):
             #     updater.update_channel(item.channel)
 
             # Checks if channel exists
-            channel_file = os.path.join(config.get_runtime_path(),
-                                        'channels', item.channel + ".py")
-            if not os.path.isfile(channel_file):
-                channel_file = os.path.join(config.get_runtime_path(),
-                                        'special_channels', item.channel + ".py")
-            logger.info("channel_file=%s" % channel_file)
+            if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
+                CHANNELS = 'channels'
+            else:
+                CHANNELS ='specials'
+            channel_file = os.path.join(config.get_runtime_path(), CHANNELS, item.channel + ".py")            
+                
+            logger.info("channel_file= " + channel_file)
 
             channel = None
 
             if os.path.exists(channel_file):
                 try:
-                    channel = __import__('channels.%s' % item.channel, None,
-                                         None, ["channels.%s" % item.channel])
+                    channel = __import__(CHANNELS + item.channel, None, None, [CHANNELS + item.channel])
                 except ImportError:
-                    exec("import channels." + item.channel + " as channel")
+                    importer = "import " + CHANNELS + "." + item.channel + " as channel"
+                    exec(importer)
 
             logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 
@@ -226,7 +227,7 @@ def run(item=None):
 
             # Special action for downloading all episodes from a serie
             elif item.action == "download_all_episodes":
-                from channels import downloads
+                from specials import downloads
                 item.action = item.extra
                 del item.extra
                 downloads.save_download(item)
@@ -247,7 +248,7 @@ def run(item=None):
                 tecleado = platformtools.dialog_input(last_search)
                 if tecleado is not None:
                     if last_search_active and not tecleado.startswith("http"):
-                        from channels import search
+                        from specials import search
                         search.save_search(tecleado)
 
                     itemlist = channel.search(item, tecleado)
@@ -256,8 +257,9 @@ def run(item=None):
 
                 platformtools.render_items(itemlist, item)
 
-            # For all other actions
+            # For all other actions            
             else:
+                # import web_pdb; web_pdb.set_trace()
                 logger.info("Executing channel '%s' method" % item.action)
                 itemlist = getattr(channel, item.action)(item)
                 if config.get_setting('trakt_sync'):
@@ -294,8 +296,7 @@ def run(item=None):
         import traceback
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\",
-                                                                                            "\\\\") + '([^.]+)\.py"'
+        patron = 'File "' + os.path.join(config.get_runtime_path(), CHANNELS, "").replace("\\", "\\\\") + '([^.]+)\.py"'
         canal = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         platformtools.dialog_ok(
@@ -305,8 +306,7 @@ def run(item=None):
         import traceback
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\",
-                                                                                            "\\\\") + '([^.]+)\.py"'
+        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + '([^.]+)\.py"'
         canal = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         try:
@@ -433,7 +433,7 @@ def play_from_library(item):
 
     else:
         # Ventana emergente
-        from channels import videolibrary
+        from specials import videolibrary
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(70004))
         p_dialog.update(0, '')
 
@@ -491,6 +491,6 @@ def play_from_library(item):
                     item = videolibrary.play(itemlist[seleccion])[0]
                     platformtools.play_video(item)
 
-                from channels import autoplay
+                from specials import autoplay
                 if (platformtools.is_playing() and item.action) or item.server == 'torrent' or autoplay.is_active(item.contentChannel):
                     break

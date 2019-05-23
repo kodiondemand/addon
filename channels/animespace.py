@@ -13,9 +13,9 @@ from channelselector import get_thumb
 from core import tmdb
 from core.item import Item
 from platformcode import logger, config
-from channels import autoplay
-from channels import filtertools
-from channels import renumbertools
+from specials import autoplay
+from specials import filtertools
+from specials import renumbertools
 
 host = "https://animespace.tv/"
 

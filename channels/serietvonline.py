@@ -4,11 +4,11 @@
 # ----------------------------------------------------------
 import re
 
-from core import httptools, scrapertoolsV2, servertools, tmdb
+from core import httptools, scrapertoolsV2, servertools, tmdb, support
 from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
-from channels import autoplay, support
+from specials import autoplay
 from channelselector import thumb
 
 host = "https://serietvonline.live"

@@ -7,10 +7,9 @@
 
 import re, urllib, urlparse
 
-from core import servertools, httptools, scrapertools, tmdb
+from core import servertools, httptools, scrapertools, tmdb, support
 from platformcode import logger, config
 from core.item import Item
-from channels import support
 
 
 

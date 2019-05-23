@@ -7,8 +7,8 @@
 import re
 import urllib
 
-from channels import autoplay
-from channels import filtertools
+from specials import autoplay
+from specials import filtertools
 from core import scrapertools, servertools, httptools, scrapertoolsV2
 from core.item import Item
 from core import tmdb

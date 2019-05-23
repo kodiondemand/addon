@@ -7,7 +7,7 @@ import re
 from core import httptools, scrapertools, servertools, tmdb
 from platformcode import logger, config
 from core.item import Item
-from channels import autoplay
+from specials import autoplay
 from channelselector import thumb
 
 

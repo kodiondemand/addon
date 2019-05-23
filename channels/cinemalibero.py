@@ -6,9 +6,8 @@ import base64
 import re
 import urlparse
 
-from channels import autoplay, support
-from channels import filtertools
-from core import scrapertools, servertools, httptools
+from specials import autoplay, filtertools
+from core import scrapertools, servertools, httptools, support
 from platformcode import logger, config
 from core.item import Item
 from lib import unshortenit

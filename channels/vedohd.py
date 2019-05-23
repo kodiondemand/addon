@@ -6,8 +6,8 @@
 import re
 import urlparse
 
-from channels import autoplay, support
-from core import scrapertoolsV2, httptools, servertools
+from specials import autoplay
+from core import scrapertoolsV2, httptools, servertools, support
 from core.item import Item
 from platformcode import logger
 from channelselector import thumb
