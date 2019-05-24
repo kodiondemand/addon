@@ -3,15 +3,11 @@
 # Ringraziamo Icarus crew
 # Canale per itastreaming
 # ----------------------------------------------------------
-import base64
 import re
-import urlparse
 
-from core import scrapertools, httptools, servertools, tmdb, support
+from core import scrapertools, httptools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
-
-
 
 host = "https://itastreaming.film"
 

@@ -3,16 +3,16 @@
 # Canale per AnimeSaturn
 # Thanks to me
 # ----------------------------------------------------------
-import inspect
 import re
-import time
+
 import urlparse
 
-import channelselector, filtertools
-from core import httptools, tmdb, scrapertools, servertools, support, scrapertoolsV2, jsontools
-from specials import autoplay, autorenumber
+import channelselector
+from core import httptools, tmdb, support, scrapertools, jsontools
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay, autorenumber
+
 __channel__ = "animesaturn"
 host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]
@@ -49,9 +49,9 @@ def mainlist(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
-    scrapedtitle = scrapertoolsV2.decodeHtmlentities(scrapedtitle.strip())
+    scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
     scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('×','x')
-    year = scrapertoolsV2.find_single_match(scrapedtitle, '\((\d{4})\)')
+    year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
 
@@ -153,10 +153,10 @@ def episodios(item):
 
     data = httptools.downloadpage(item.url).data
 
-    anime_id = scrapertoolsV2.find_single_match(data, r'\?anime_id=(\d+)')
+    anime_id = scrapertools.find_single_match(data, r'\?anime_id=(\d+)')
 
     #movie or series
-    movie = scrapertoolsV2.find_single_match(data, r'\Episodi:</b>\s(\d*)\sMovie')
+    movie = scrapertools.find_single_match(data, r'\Episodi:</b>\s(\d*)\sMovie')
 
 
     data = httptools.downloadpage(
@@ -217,7 +217,7 @@ def findvideos(item):
     itemlist = []
     data = httptools.downloadpage(item.url).data
     patron = r'<a href="([^"]+)"><div class="downloadestreaming">'
-    url = scrapertoolsV2.find_single_match(data, patron)
+    url = scrapertools.find_single_match(data, patron)
 
     data = httptools.downloadpage(url).data
 
@@ -268,7 +268,7 @@ def ultimiep(item):
 
     # Pagine
     patronvideos = r'data-page="(\d+)" title="Next">Pagina Successiva'
-    next_page = scrapertoolsV2.find_single_match(data, patronvideos)
+    next_page = scrapertools.find_single_match(data, patronvideos)
     if next_page:
         itemlist.append(
             Item(
@@ -322,7 +322,7 @@ def search_anime(item, texto):
     itemlist = []
 
     # data = httptools.downloadpage(host + "/animelist?load_all=1").data
-    # data = scrapertoolsV2.decodeHtmlentities(data)
+    # data = scrapertools.decodeHtmlentities(data)
     #
     # texto = texto.lower().split('+')
     #

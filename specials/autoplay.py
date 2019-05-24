@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os
+from time import sleep
 
 from core import channeltools
 from core import jsontools
 from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools
-from platformcode import launcher
-from time import sleep
 from platformcode.config import get_setting
 
 __channel__ = "autoplay"

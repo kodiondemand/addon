@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import time
 import urllib
+
 from core import httptools
 from core import scrapertools
 from platformcode import logger
 
-import time
 
 def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)

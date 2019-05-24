@@ -5,10 +5,10 @@
 
 import re
 
-from specials import autoplay, filtertools
 from core import servertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
 host = "https://altadefinizione.center"   ### <- cambio Host da .fm a .center
 

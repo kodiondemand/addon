@@ -2,15 +2,14 @@
 # ------------------------------------------------------------
 # Canale per animeworld
 # ----------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
-from core import httptools, scrapertoolsV2, servertools, tmdb, tvdb, support
+from channelselector import thumb
+from core import httptools, scrapertoolsV2, servertools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
-from specials import autoplay, filtertools, autorenumber
-from channelselector import thumb
-
-
+from specials import autoplay, autorenumber
 
 host = "https://www.animeworld.it"
 

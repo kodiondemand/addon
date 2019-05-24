@@ -4,18 +4,19 @@ import re
 import urllib
 from base64 import b64decode as bdec
 
+import xbmcaddon
+
+from channelselector import get_thumb
 from core import filetools
 from core import httptools
 from core import jsontools
 from core import scrapertools
-from core.item import Item
-from core.tmdb import Tmdb
 from core import trakt_tools
+from core.item import Item
+from core.support import typo, thumb
+from core.tmdb import Tmdb
 from platformcode import config, logger
 from platformcode import platformtools
-import xbmc, xbmcaddon
-from channelselector import get_thumb
-from core.support import typo, thumb
 
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')

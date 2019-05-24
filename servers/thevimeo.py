@@ -2,9 +2,8 @@
 # -*- Server Thevimeo -*-
 
 import re
+
 from core import httptools
-from core import scrapertools
-from platformcode import logger
 
 
 def get_source(url):

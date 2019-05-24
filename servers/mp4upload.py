@@ -7,6 +7,7 @@ from core import scrapertools
 from lib import jsunpack
 from platformcode import logger
 
+
 def test_video_exists(page_url):
     data = httptools.downloadpage(page_url).data
     if data == "File was deleted" or data == '':

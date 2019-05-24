@@ -5,14 +5,15 @@
 
 import os
 import sys
-import urllib2
-import time
+
 import updater
+import urllib2
+
 from core import channeltools
 from core import scrapertools
 from core import servertools
-from core import videolibrarytools
 from core import trakt_tools
+from core import videolibrarytools
 from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools

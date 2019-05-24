@@ -2,13 +2,11 @@
 # ------------------------------------------------------------
 # Canale per altadefinizione01
 # ------------------------------------------------------------
-import re
-import urlparse
 
-from specials import filtertools, autoplay
 from core import servertools, httptools, tmdb, scrapertoolsV2, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
 #URL che reindirizza sempre al dominio corrente
 host = "https://altadefinizione01.team"

@@ -3,12 +3,11 @@
 # Server management
 # --------------------------------------------------------------------------------
 
-import datetime
 import os
 import re
-import time
-import urlparse
+
 import filetools
+import urlparse
 
 from core import httptools
 from core import jsontools

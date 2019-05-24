@@ -4,13 +4,14 @@
 # ------------------------------------------------------------
 
 import re
+
 import urlparse
 
-from specials import  autorenumber
-from core.support import menu, log, aplay
 from core import scrapertoolsV2, httptools, tmdb, support
 from core.item import Item
-from platformcode import config, logger
+from core.support import menu, log, aplay
+from platformcode import logger
+from specials import autorenumber
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()

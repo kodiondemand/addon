@@ -3,13 +3,12 @@
 # Ringraziamo Icarus crew
 # Canale per animetubeita
 # ----------------------------------------------------------
-import re, urllib
+import re
+import urllib
 
 from core import httptools, scrapertools, tmdb
-from platformcode import logger, config
 from core.item import Item
-
-
+from platformcode import logger, config
 
 host = "http://www.animetubeita.com"
 hostlista = host + "/lista-anime/"

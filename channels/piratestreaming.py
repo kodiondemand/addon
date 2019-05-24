@@ -4,15 +4,15 @@
 # Canale per piratestreaming
 # ----------------------------------------------------------
 import re
+
 import urlparse
 
-from specials import autoplay
-from specials import filtertools
 from core import httptools, scrapertools, servertools
-from core.item import Item
 from core import tmdb
+from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
+from specials import autoplay
 
 __channel__ = "piratestreaming"
 

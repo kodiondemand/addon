@@ -1,7 +1,6 @@
 # Conector Cloudvideo By Alfa development Group
 # --------------------------------------------------------
 
-import re
 from core import httptools
 from core import scrapertools
 from lib import jsunpack

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import random
 import re
-import urllib, random, base64
+import urllib
 
 from core import httptools
 from core import jsontools

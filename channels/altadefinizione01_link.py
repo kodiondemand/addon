@@ -6,11 +6,11 @@
 # -*- last change: 04/05/2019
 
 
-from specials import autoplay, filtertools
 from channelselector import get_thumb
-from core import httptools, channeltools, scrapertools, servertools, tmdb, support
+from core import httptools, scrapertools, servertools, tmdb, support
 from core.item import Item
 from platformcode import config, logger
+from specials import autoplay, filtertools
 
 __channel__ = "altadefinizione01_link"
 

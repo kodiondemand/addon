@@ -5,12 +5,11 @@
 # ------------------------------------------------------------
 
 import re
-import urlparse
 
-from specials import autoplay, filtertool
-from core import scrapertools, scrapertoolsV2, httptools, tmdb, servertoolss, support
+from core import scrapertools, httptools, tmdb, support
 from core.item import Item
-from platformcode import logger, config
+from platformcode import logger
+from specials import autoplay
 
 channel = "toonitalia"
 host = "https://toonitalia.org"

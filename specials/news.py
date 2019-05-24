@@ -11,12 +11,11 @@ from threading import Thread
 
 from channelselector import get_thumb, auto_filter
 from core import channeltools
+from core import jsontools
 from core import scrapertools
 from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools
-from core import jsontools
-
 
 THUMBNAILS = {'0': 'posters', '1': 'banners', '2': 'squares'}
 

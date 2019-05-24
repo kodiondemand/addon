@@ -3,14 +3,14 @@
 # Ringraziamo Icarus crew
 # Canale per http://animeinstreaming.net/
 # ------------------------------------------------------------
-import re, urllib, urlparse
+import re
+import urllib
+import urlparse
 
 from core import httptools, scrapertools, servertools, tmdb
 from core.item import Item
 from platformcode import config, logger
 from servers.decrypters import adfly
-
-
 
 host = "https://ww1.animeforce.org"
 

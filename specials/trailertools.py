@@ -5,17 +5,17 @@
 
 import re
 import urllib
+
 import urlparse
+import xbmcaddon
 
 from core import httptools
-from core import jsontools
 from core import scrapertools
 from core import servertools
 from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools
 
-import xbmc, xbmcaddon
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
 

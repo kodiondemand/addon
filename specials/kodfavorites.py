@@ -15,13 +15,13 @@
 # - Modificar platformtools.py para controlar el menú contextual y añadir "Guardar enlace" en set_context_commands
 # ------------------------------------------------------------
 
-import os, re
+import os
+import re
 from datetime import datetime
 
+from core import filetools, jsontools
 from core.item import Item
 from platformcode import config, logger, platformtools
-
-from core import filetools, jsontools
 
 
 def fechahora_actual():

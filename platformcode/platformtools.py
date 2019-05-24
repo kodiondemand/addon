@@ -14,15 +14,17 @@ import urllib
 
 import config
 import xbmc
+import xbmcaddon
 import xbmcgui
 import xbmcplugin
+
 from channelselector import get_thumb
-from platformcode import unify
 from core import channeltools
 from core import trakt_tools, scrapertoolsV2
 from core.item import Item
 from platformcode import logger
-import xbmcaddon
+from platformcode import unify
+
 addon = xbmcaddon.Addon('plugin.video.kod')
 downloadenabled = addon.getSetting('downloadenabled')
 
@@ -1128,7 +1130,6 @@ def play_torrent(item, xlistitem, mediaurl):
     logger.info()
     import time
     from core import filetools
-    from core import httptools
     from core import videolibrarytools
     
     # Opciones disponibles para Reproducir torrents

@@ -6,10 +6,10 @@
 import re
 import time
 import urllib
+
 import urlparse
 
 from platformcode import logger
-from decimal import Decimal
 
 
 class Cloudflare:

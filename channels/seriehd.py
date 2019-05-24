@@ -4,12 +4,12 @@
 # ------------------------------------------------------------
 import urlparse
 
-from specials import autoplay, filtertools
-from core.support import menu, log
-from core import scrapertoolsV2, servertools, httptools, tmdb, support
-from core.item import Item
-from platformcode import logger, config
 from channelselector import thumb
+from core import scrapertoolsV2, servertools, httptools, support
+from core.item import Item
+from core.support import menu, log
+from platformcode import logger, config
+from specials import autoplay
 
 host = "https://seriehd.casa"
 

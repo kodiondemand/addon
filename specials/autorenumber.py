@@ -3,18 +3,15 @@
 # autorenumber - Rinomina Automaticamente gli Episodi
 # --------------------------------------------------------------------------------
 
-import os
-
 try:
     import xbmcgui
 except:
     xbmcgui = None
 
-from platformcode import config
 from core import jsontools, tvdb
-from core.item import Item
-from platformcode import platformtools
 from core.support import typo, log
+from platformcode import config
+from platformcode import platformtools
 
 TAG_TVSHOW_RENUMERATE = "TVSHOW_AUTORENUMBER"
 TAG_SEASON_EPISODE = "season_episode"
@@ -131,6 +128,7 @@ def renumber(itemlist, item='', typography=''):
                 data = tvdb.otvdb_global.get_list_episodes(ID,page)
                 if data:
                     for episodes in data['data']:
+                        log(episodes.infoLabels)
                         if episodes['airedSeason'] >= S:
                             if E == 0: 
                                 epList.append([0, SP])

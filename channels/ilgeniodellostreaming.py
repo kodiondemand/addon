@@ -3,14 +3,14 @@
 # Ringraziamo Icarus crew
 # Canale per ilgeniodellostreaming
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
-from platformcode import config, logger
 from core import scrapertools, servertools, httptools
-from core.item import Item
-from specials import autoplay
-from specials import filtertools
 from core import tmdb
+from core.item import Item
+from platformcode import config, logger
+from specials import autoplay
 
 __channel__ = "ilgeniodellostreaming"
 

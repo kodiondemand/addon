@@ -5,13 +5,13 @@
 # Canale per AnimeSubIta
 # ------------------------------------------------------------
 
-import re, urllib, urlparse
+import re
+import urllib
+import urlparse
 
-from core import servertools, httptools, scrapertools, tmdb, support
-from platformcode import logger, config
+from core import httptools, scrapertools, tmdb, support
 from core.item import Item
-
-
+from platformcode import logger, config
 
 host = "http://www.animesubita.org"
 

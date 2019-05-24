@@ -3,14 +3,14 @@
 # Kodi on Demand - Kodi Addon
 # Canale per casacinema
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
-from core import scrapertools, scrapertoolsV2, httptools, servertools, tmdb, support
-from specials import autoplay, filtertools
+from channelselector import thumb, get_thumb
+from core import scrapertools, scrapertoolsV2, httptools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
-from channelselector import thumb, get_thumb
-
+from specials import autoplay
 
 host = 'https://www.casacinema.site'
 
@@ -335,37 +335,6 @@ def findvideos(item):
             data = data
         else:
             continue
-
-    itemlist = servertools.find_video_items(data=data)
-    for videoitem in itemlist:
-        server = re.sub(r'[-\[\]\s]+', '', videoitem.title).capitalize()
-        videoitem.title = "".join(["[%s] " % support.color(server, 'orange'), item.title])
-        videoitem.fulltitle = item.fulltitle
-        videoitem.thumbnail = item.thumbnail
-        videoitem.show = item.show
-        videoitem.plot = item.plot
-        videoitem.channel = item.channel
-        videoitem.contentType = item.contentType
-        videoitem.language = IDIOMAS['Italiano']
-
-    # Requerido para Filtrar enlaces
-
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    # Requerido para FilterTools
-
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-
-    autoplay.start(itemlist, item)
-
-    if item.contentType != 'episode':
-        if config.get_videolibrary_support() and len(itemlist) > 0 and item.extra != 'findvideos':
-            itemlist.append(
-                Item(channel=item.channel, title='[COLOR yellow][B]Aggiungi alla videoteca[/B][/COLOR]', url=item.url,
-                     action="add_pelicula_to_library", extra="findvideos", contentTitle=item.contentTitle))
-
-    return itemlist
+    
+    return support.server(item, data=data)
 

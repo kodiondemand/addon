@@ -6,6 +6,7 @@
 import inspect
 
 import xbmc
+
 from platformcode import config
 
 loggeractive = (config.get_setting("debug") == True)

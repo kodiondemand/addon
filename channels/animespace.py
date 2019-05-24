@@ -4,17 +4,15 @@
 # -*- By the Alfa Develop Group -*-
 
 import re
-import urllib
 
+from channelselector import get_thumb
 from core import httptools
 from core import scrapertools
 from core import servertools
-from channelselector import get_thumb
 from core import tmdb
 from core.item import Item
 from platformcode import logger, config
 from specials import autoplay
-from specials import filtertools
 from specials import renumbertools
 
 host = "https://animespace.tv/"

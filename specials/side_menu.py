@@ -2,13 +2,16 @@
 # ------------------------------------------------------------
 
 import os
-from core.item import Item
+
+import xbmc
+import xbmcaddon
+import xbmcgui
+
 from core import jsontools
+from core.item import Item
 from platformcode import config, logger
 from platformcode import launcher
-import xbmc, xbmcgui, xbmcplugin, xbmcaddon, channelselector
 
-import xbmc, xbmcaddon
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
 

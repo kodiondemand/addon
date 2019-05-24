@@ -4,12 +4,13 @@
 # Canale per fastsubita
 # ------------------------------------------------------------
 
-import re, urlparse
+import re
 
-from specials import autoplay, filtertools
-from core import scrapertools, servertools, httptools, tmdb
+import channelselector
+from core import scrapertools, httptools, tmdb, support
 from core.item import Item
 from platformcode import config, logger
+from specials import autoplay
 
 __channel__ = 'fastsubita'
 host = config.get_setting("channel_host", __channel__)

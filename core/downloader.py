@@ -24,9 +24,10 @@ import sys
 import threading
 import time
 import urllib
+from threading import Thread, Lock
+
 import urllib2
 import urlparse
-from threading import Thread, Lock
 
 from core import filetools
 from platformcode import logger, config

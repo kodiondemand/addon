@@ -2,9 +2,9 @@
 
 import os
 
+from channelselector import get_thumb
 from core.item import Item
 from platformcode import config, logger, platformtools
-from channelselector import get_thumb
 
 if config.is_xbmc():
 

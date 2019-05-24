@@ -3,15 +3,14 @@
 # Ringraziamo Icarus crew
 # Canale per italiafilmhd
 # ----------------------------------------------------------
-import base64
 import re
+
 import urlparse
 
-from specials import autoplay
-from specials import filtertools
 from core import scrapertools, servertools, httptools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()

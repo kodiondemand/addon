@@ -6,7 +6,7 @@
 from core import httptools
 from core import scrapertools
 from platformcode import config, logger
-from core import jsontools
+
 
 def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)

@@ -2,15 +2,12 @@
 # ------------------------------------------------------------
 # Canale per Filmi Gratis
 # ------------------------------------------------------------
-import base64
 import re
-import urlparse
 
-from channelselector import get_thumb
-from specials import filtertools, autoplay
 from core import scrapertools, servertools, httptools, tmdb, support
-from platformcode import logger, config
 from core.item import Item
+from platformcode import logger, config
+from specials import autoplay
 
 channel = 'filmigratis'
 
