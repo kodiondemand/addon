@@ -3,15 +3,15 @@
 # Canale per Serie Tv Sub ITA
 # Thanks to Icarus crew & Alfa addon
 # ----------------------------------------------------------
-import inspect
 import re
 import time
 
 import channelselector
-from specials import autoplay, filtertools
-from core import httptools, tmdb, scrapertools, servertools, support
+from core import httptools, tmdb, scrapertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
+
 __channel__ = "serietvsubita"
 host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]

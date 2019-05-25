@@ -4,12 +4,11 @@
 # ----------------------------------------------------------
 import re
 
-from core import httptools, scrapertools, servertools, tmdb
-from platformcode import logger, config
-from core.item import Item
-from specials import autoplay
 from channelselector import thumb
-
+from core import httptools, scrapertools, servertools, tmdb
+from core.item import Item
+from platformcode import logger, config
+from specials import autoplay
 
 host = "https://altadefinizione.doctor"
 

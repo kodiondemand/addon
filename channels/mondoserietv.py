@@ -5,15 +5,13 @@
 # 
 # ----------------------------------------------------------
 import re
-import urllib
 
-from specials import autoplay
-from specials import filtertools
 from core import scrapertools, servertools, httptools, scrapertoolsV2
-from core.item import Item
 from core import tmdb
+from core.item import Item
 from lib.unshortenit import unshorten
 from platformcode import logger, config
+from specials import autoplay
 
 host = "https://mondoserietv.com"
 IDIOMAS = {'Italiano': 'IT'}

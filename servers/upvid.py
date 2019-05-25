@@ -3,7 +3,9 @@
 # Conector UpVID By Alfa development Group
 # --------------------------------------------------------
 
-import re, base64
+import base64
+import re
+
 from core import httptools
 from core import scrapertools
 from lib.aadecode import decode as aadecode

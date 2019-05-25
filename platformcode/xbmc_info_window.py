@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xbmcgui
+
 from core.tmdb import Tmdb
 from platformcode import config, logger
 

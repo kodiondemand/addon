@@ -11,10 +11,11 @@ import socket
 import threading
 import time
 import urllib
-import urllib2
 
+import urllib2
 import xbmc
 import xbmcgui
+
 from core import downloadtools
 from platformcode import config, logger
 

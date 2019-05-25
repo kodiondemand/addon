@@ -4,13 +4,13 @@
 # Canale per guardarefilm
 # ----------------------------------------------------------
 import re
+
 import urlparse
 
 from core import httptools
 from core import scrapertools
 from core import servertools
 from core.item import Item
-from core import tmdb
 from platformcode import logger, config
 
 host = "https://www.guardarefilm.video"

@@ -5,14 +5,12 @@
 # ------------------------------------------------------------
 
 import re
+
 import urlparse
 
 from core import httptools, scrapertools
 from core.item import Item
 from platformcode import logger, config
-
-
-
 
 host = "http://cinestore.cinetecadibologna.it"
 

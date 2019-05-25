@@ -6,10 +6,11 @@
 import re
 
 import channelselector
-from specials import autoplay, filtertools
-from core import httptools, tmdb, scrapertools, servertools, support
+from core import httptools, tmdb, scrapertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
+
 __channel__ = 'serietvu'
 host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]

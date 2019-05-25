@@ -5,6 +5,7 @@ from threading import Timer
 import xbmc
 import xbmcaddon
 import xbmcgui
+
 from channelselector import get_thumb
 from platformcode import config
 

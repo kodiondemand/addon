@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import Queue
 import datetime
 import glob
 import os
@@ -11,10 +10,11 @@ import urllib
 from threading import Thread
 from unicodedata import normalize
 
+import Queue
 import xbmc
+from lib.fuzzywuzzy import fuzz
 
 from core import channeltools, httptools, tmdb, servertools
-from lib.fuzzywuzzy import fuzz
 from platformcode import platformtools
 
 try:

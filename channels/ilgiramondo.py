@@ -3,13 +3,12 @@
 # Ringraziamo Icarus crew
 # Canale ilgiramondo
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
 from core import httptools, scrapertools
-from platformcode import logger, config
 from core.item import Item
-
-
+from platformcode import logger
 
 host = "http://www.ilgiramondo.net"
 

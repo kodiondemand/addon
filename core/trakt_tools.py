@@ -4,14 +4,15 @@
 # -*- By the Alfa Develop Group -*
 
 import os
+from threading import Thread
 
 import xbmc
+
 from core import httptools
 from core import jsontools
 from core.item import Item
 from platformcode import config
 from platformcode import logger
-from threading import Thread
 
 client_id = "c40ba210716aee87f6a9ddcafafc56246909e5377b623b72c15909024448e89d"
 client_secret = "999164f25832341f0214453bb11c915adb18e9490d6b5e9a707963a5a1bee43e"

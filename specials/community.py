@@ -3,20 +3,16 @@
 # -*- Created for Alfa-addon -*-
 # -*- By the Alfa Develop Group -*-
 
-import re
-import urllib
 import os
 
-from core import httptools
-from core import scrapertools
-from core import servertools
-from core import jsontools
 from channelselector import get_thumb
+from core import httptools
+from core import jsontools
+from core import servertools
 from core import tmdb
 from core.item import Item
 from platformcode import logger, config, platformtools
 from specials import autoplay
-from specials import filtertools
 
 list_data = {}
 
@@ -199,7 +195,6 @@ def findvideos(item):
 
 def add_channel(item):
     logger.info()
-    import xbmc
     import xbmcgui
     channel_to_add = {}
     json_file = ''
@@ -245,8 +240,6 @@ def add_channel(item):
 
 def remove_channel(item):
     logger.info()
-    import xbmc
-    import xbmcgui
     path = os.path.join(config.get_data_path(), 'community_channels.json')
 
     community_json = open(path, "r")

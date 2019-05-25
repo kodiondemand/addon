@@ -2,17 +2,15 @@
 # ------------------------------------------------------------
 # Canale per CinemaLibero - First Version
 # ------------------------------------------------------------
-import base64
 import re
-import urlparse
 
-from specials import autoplay, filtertools
 from core import scrapertools, servertools, httptools, support
-from platformcode import logger, config
+from core import tmdb
 from core.item import Item
 from lib import unshortenit
 from platformcode import config
-from core import tmdb
+from platformcode import logger
+from specials import autoplay
 
 # Necessario per Autoplay
 IDIOMAS = {'Italiano': 'IT'}

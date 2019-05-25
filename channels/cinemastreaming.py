@@ -4,9 +4,9 @@
 # ------------------------------------------------------------
 import re
 
-from specials import filtertools, autoplay
-from core import scrapertools, servertools, httptools, scrapertoolsV2, support
+from core import scrapertools, httptools, scrapertoolsV2, support
 from core.item import Item
+from specials import autoplay
 
 host = 'https://cinemastreaming.icu'
 

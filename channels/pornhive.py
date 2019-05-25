@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------
-import urlparse,urllib2,urllib,re
-import os, sys
 import base64
+import re
 
+from core import httptools
 from core import scrapertools
 from core import servertools
 from core.item import Item
-from platformcode import config, logger
-from core import httptools
+from platformcode import logger
 
 host = 'http://www.pornhive.tv/en'
 

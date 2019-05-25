@@ -3,13 +3,12 @@
 # Ringraziamo Icarus crew
 # Canale per documentaristreamingda
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
-from platformcode import logger, config
-from core import httptools,  scrapertools, servertools
+from core import httptools, scrapertools, servertools
 from core.item import Item
-
-
+from platformcode import logger, config
 
 host = "https://documentari-streaming-da.com"
 

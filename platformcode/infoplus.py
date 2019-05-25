@@ -7,7 +7,9 @@ import re
 from threading import Thread
 
 import xbmc
+import xbmcaddon
 import xbmcgui
+
 from core import httptools
 from core import scrapertools
 from core import tmdb
@@ -16,7 +18,6 @@ from core.scrapertools import decodeHtmlentities as dhe
 from platformcode import config, logger
 from platformcode import platformtools
 
-import xbmcaddon
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
 

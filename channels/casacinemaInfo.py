@@ -2,13 +2,11 @@
 # ------------------------------------------------------------
 # Canale per casacinema
 # ------------------------------------------------------------
-import re, urlparse, base64
 
 from core import scrapertoolsV2, httptools, servertools, tmdb, support
-from specials import autoplay
 from core.item import Item
 from platformcode import logger, config
-
+from specials import autoplay
 
 host = 'https://casacinema.info'
 

@@ -17,11 +17,10 @@
 
 import re
 
-from specials import autoplay, filtertools
-from core import scrapertoolsV2, httptools, servertools, tmdb, support
+from core import scrapertoolsV2, httptools, tmdb, support
 from core.item import Item
 from platformcode import logger, config
-
+from specials import autoplay
 
 host = "https://eurostreaming.cafe/"
 headers = ['Referer', host]

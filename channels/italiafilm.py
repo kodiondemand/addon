@@ -4,15 +4,14 @@
 # Canale per italiafilm
 # ----------------------------------------------------------
 import re
-import time
+
 import urlparse
 
 from core import httptools
 from core import scrapertools
 from core import servertools
-from core.item import Item
 from core import tmdb
-from lib.unshortenit import unshorten_only
+from core.item import Item
 from platformcode import logger, config
 
 host = "https://www.italia-film.pro"

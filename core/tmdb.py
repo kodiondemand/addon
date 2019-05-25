@@ -5,6 +5,8 @@ import re
 import sqlite3
 import time
 
+import xbmcaddon
+
 from core import filetools
 from core import httptools
 from core import jsontools
@@ -13,7 +15,6 @@ from core.item import InfoLabels
 from platformcode import config
 from platformcode import logger
 
-import xbmc, xbmcaddon
 addon = xbmcaddon.Addon('metadata.themoviedb.org')
 def_lang = addon.getSetting('language')
 
@@ -541,9 +542,6 @@ def completar_codigos(item):
 
 
 def discovery(item):
-    from core.item import Item
-    from platformcode import unify
-
     if item.search_type == 'discover':
         listado = Tmdb(discover={'url':'discover/%s' % item.type, 'with_genres':item.list_type, 'language':def_lang,
                                  'page':item.page})

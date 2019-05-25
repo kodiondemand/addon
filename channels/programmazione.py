@@ -8,10 +8,8 @@
 import re
 
 from core import httptools, scrapertools
-from platformcode import logger, config
 from core.item import Item
-
-
+from platformcode import logger
 
 site = "https://www.youtube.com"
 

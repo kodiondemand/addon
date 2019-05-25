@@ -2,12 +2,11 @@
 
 import re
 
-from core import httptools
-from core.item import Item
-from platformcode import logger
 from urlparse import urljoin
-from core import servertools
 
+from core import httptools
+from core import servertools
+from platformcode import logger
 
 HOST="http://yespornplease.com"
 

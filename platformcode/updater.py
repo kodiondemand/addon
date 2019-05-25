@@ -3,22 +3,17 @@
 # Updater (kodi)
 # --------------------------------------------------------------------------------
 
-import os, sys
-import time
-import threading
-import traceback
-import urllib
 import json
+import os
+import sys
+import threading
+import time
+import urllib
+
 import xbmc
-import shutil
 
-from platformcode import config, logger, platformtools
-
-from core import httptools
-from core import jsontools
-from core import downloadtools
 from core import ziptools
-from core import filetools
+from platformcode import config, logger
 
 REMOTE_FILE = "https://github.com/kodiondemand/addon/archive/master.zip"
 DESTINATION_FOLDER = xbmc.translatePath("special://home/addons") + "/plugin.video.kod"

@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from core import httptools
+from core import jsontools
 from core import scrapertools
 from platformcode import logger
-from core import jsontools
 
 
 def test_video_exists(page_url):

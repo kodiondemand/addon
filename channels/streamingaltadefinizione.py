@@ -4,8 +4,8 @@
 # ------------------------------------------------------------
 
 from core import support
-from specials import autoplay
 from core.item import Item
+from specials import autoplay
 
 host = 'https://www.streamingaltadefinizione.space'
 

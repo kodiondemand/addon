@@ -3,13 +3,12 @@
 # Ringraziamo Icarus crew
 # Canale per dreamsub
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
 from core import scrapertools, httptools, servertools, tmdb
 from core.item import Item
 from platformcode import logger, config
-
-
 
 host = "https://www.dreamsub.co"
 

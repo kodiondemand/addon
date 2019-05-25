@@ -4,12 +4,12 @@
 # ----------------------------------------------------------
 import re
 
+from channelselector import thumb
 from core import httptools, scrapertoolsV2, servertools, tmdb, support
 from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
 from specials import autoplay
-from channelselector import thumb
 
 host = "https://serietvonline.live"
 headers = [['Referer', host]]

@@ -5,12 +5,12 @@
 
 import re
 
-from specials import filtertools, autoplay, autorenumber
-from core.support import log, menu
-from core import servertools, httptools, scrapertoolsV2, scrapertools, tmdb, support
-from platformcode import logger, config
+from core import servertools, httptools, scrapertoolsV2, tmdb, support
 from core.item import Item
+from core.support import log, menu
 from lib.js2py.host import jsfunctions
+from platformcode import logger, config
+from specials import autoplay, autorenumber
 
 host = "https://animepertutti.com"
 

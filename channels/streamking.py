@@ -7,10 +7,9 @@
 import re
 import urllib
 
-from core import scrapertools, servertools, httptools
-from platformcode import logger, config
+from core import scrapertools, httptools
 from core.item import Item
-from platformcode import config
+from platformcode import logger
 
 host = "http://streamking.cc"
 

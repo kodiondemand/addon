@@ -3,16 +3,16 @@
 # Canale per AnimeSaturn
 # Thanks to me
 # ----------------------------------------------------------
-import inspect
 import re
-import time
+
 import urlparse
 
-import channelselector, filtertools
-from core import httptools, tmdb, scrapertools, servertools, support
-from specials import autoplay
+import channelselector
+from core import httptools, tmdb, scrapertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
+
 __channel__ = "animesaturn"
 host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]

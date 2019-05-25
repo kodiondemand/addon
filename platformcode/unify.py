@@ -6,14 +6,11 @@
 # datos obtenidos de las paginas
 # ----------------------------------------------------------
 
-import os
-import sys
-import urllib
-import unicodedata
 import re
+import unicodedata
 
 import config
-from core.item import Item
+
 from core import scrapertools
 from platformcode import logger
 

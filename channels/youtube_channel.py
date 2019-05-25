@@ -3,7 +3,6 @@
 import urllib
 
 from core import jsontools
-from core import scrapertools
 from core.item import Item
 from platformcode import logger
 

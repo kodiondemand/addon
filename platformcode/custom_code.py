@@ -3,16 +3,16 @@
 # Updater (kodi)
 # --------------------------------------------------------------------------------
 
-import os
 import json
+import os
 import traceback
+
 import xbmc
 import xbmcaddon
 
-from platformcode import config, logger, platformtools
-
-from core import jsontools
 from core import filetools
+from core import jsontools
+from platformcode import config, logger, platformtools
 
 json_data_file_name = 'custom_code.json'
 

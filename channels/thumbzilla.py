@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import re
+
 import urlparse
 
+from channelselector import get_thumb
 from core import channeltools
 from core import httptools
 from core import scrapertools
-from core import servertools
 from core.item import Item
 from platformcode import config, logger
-from channelselector import get_thumb
 
 __channel__ = "thumbzilla"
 

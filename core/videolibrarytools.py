@@ -11,9 +11,9 @@ from core import filetools
 from core import scraper
 from core import scrapertools
 from core.item import Item
+from lib import generictools
 from platformcode import config, logger
 from platformcode import platformtools
-from lib import generictools
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -807,8 +807,6 @@ def caching_torrents(url, referer=None, post=None, torrents_path=None, timeout=1
         logger.info()
     if referer and post:
         logger.info('REFERER: ' + referer)
-    import urllib
-    import re
     from core import httptools
     torrent_file = ''
     headers = {'Content-Type': 'application/x-www-form-urlencoded', 'Referer': referer} #Necesario para el Post del .Torrent

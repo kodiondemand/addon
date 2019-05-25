@@ -2,17 +2,16 @@
 # ------------------------------------------------------------
 # Canale per Filmsenzalimiti CC
 # ------------------------------------------------------------
-import base64
 import re
+
 import urlparse
 
-from specials import autoplay
-from specials import filtertools
 from core import scrapertools, servertools, httptools
-from platformcode import logger, config
+from core import tmdb
 from core.item import Item
 from platformcode import config
-from core import tmdb
+from platformcode import logger
+from specials import autoplay
 
 # Necessario per Autoplay
 __channel__ = 'filmsenzalimiticc'

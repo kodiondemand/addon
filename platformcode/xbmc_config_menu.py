@@ -7,6 +7,7 @@ import inspect
 import os
 
 import xbmcgui
+
 from core import channeltools
 from core import servertools
 from platformcode import config, logger

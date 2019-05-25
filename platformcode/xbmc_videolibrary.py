@@ -6,9 +6,10 @@
 import os
 import threading
 import time
-import urllib2
 
+import urllib2
 import xbmc
+
 from core import filetools
 from core import jsontools
 from platformcode import config, logger

@@ -5,8 +5,8 @@
 import re
 
 import autoplay
-import filtertools
 import support
+
 from core import httptools, scrapertools
 from core import tmdb
 from core.item import Item

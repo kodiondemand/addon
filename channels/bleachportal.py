@@ -8,10 +8,8 @@
 import re
 
 from core import scrapertools, httptools
-from platformcode import logger
 from core.item import Item
-
-
+from platformcode import logger
 
 host = "http://www.bleachportal.it"
 

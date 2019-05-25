@@ -6,6 +6,7 @@
 import os
 
 import jsontools
+
 from platformcode import config, logger
 
 DEFAULT_UPDATE_URL = "/channels/"

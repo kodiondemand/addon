@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------
-import urlparse,urllib2,urllib,re
-import os, sys
-from platformcode import config, logger
+import re
+import urlparse
+
+from core import httptools
 from core import scrapertools
 from core.item import Item
-from core import servertools
-from core import httptools
-from core import tmdb
-from core import jsontools
+from platformcode import logger
 
 host = 'https://www.tnaflix.com'
 

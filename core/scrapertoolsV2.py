@@ -5,6 +5,7 @@
 
 import re
 import time
+
 import urlparse
 
 from core.entities import html5

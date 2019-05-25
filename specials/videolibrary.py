@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import os, traceback
+import os
+import traceback
 
 from channelselector import get_thumb
 from core import filetools
 from core import scrapertools
 from core import videolibrarytools
 from core.item import Item
+from lib import generictools
 from platformcode import config, logger
 from platformcode import platformtools
-from lib import generictools
 
 
 def mainlist(item):
