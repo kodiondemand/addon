@@ -17,8 +17,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', "vidoza", "thevideo", "okru", 'youtube']
 list_quality = ['1080p']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'altadefinizioneclick')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'altadefinizioneclick')
+checklinks = config.get_setting('checklinks', 'altadefinizioneclick')
+checklinks_number = config.get_setting('checklinks_number', 'altadefinizioneclick')
 
 headers = [['Referer', host]]
 
@@ -98,8 +98,8 @@ def findvideos(item):
 
     itemlist = support.hdpass_get_servers(item)
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 

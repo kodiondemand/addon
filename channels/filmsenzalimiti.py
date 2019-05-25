@@ -19,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', 'vidoza', 'okru']
 list_quality = ['1080p', '720p', '480p', '360']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'filmsenzalimiti')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'filmsenzalimiti')
+checklinks = config.get_setting('checklinks', 'filmsenzalimiti')
+checklinks_number = config.get_setting('checklinks_number', 'filmsenzalimiti')
 
 headers = [['Referer', host]]
 
@@ -174,8 +174,8 @@ def findvideos(item):
                      action="add_pelicula_to_library", extra="findservers", contentTitle=item.contentTitle))
 
     #Necessario per filtrare i Link
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Necessario per  FilterTools
     # itemlist = filtertools.get_links(itemlist, item, list_language)

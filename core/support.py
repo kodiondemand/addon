@@ -61,15 +61,7 @@ def hdpass_get_servers(item):
                                          url=url_decode(media_url)))
                     log("video -> ", res_video)
 
-        __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', item.channel)
-        __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', item.channel)
-        
-        if __comprueba_enlaces__:
-            itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-        if xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks'):
-            itemlist = servertools.check_list_links(itemlist, xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks_number'))
-
-    return itemlist
+    return controls(itemlist, item, AutoPlay=True, CheckLinks=True)
 
 
 def url_decode(url_enc):
@@ -141,7 +133,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 blocks = scrapertoolsV2.find_multiple_matches(block, regex)
                 block = ""
                 for b in blocks:
-                    block += "\n" + str(b) # by greko
+                    block += "\n" + b
                 log('BLOCK ', n, '=', block)
     else:
         block = data
@@ -149,7 +141,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
         matches = scrapertoolsV2.find_multiple_matches(block, patron)
         log('MATCHES =', matches)
 
-        known_keys = ['url', 'title', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'lang'] #by greko aggiunto episode + lang
+        known_keys = ['url', 'title', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating'] #by greko aggiunto episode
         for match in matches:
             if len(listGroups) > len(match):  # to fix a bug
                 match = list(match)
@@ -165,19 +157,12 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
             title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).strip()
             plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
 
-            # modificato by Greko inizio
-            longtitle = '[B]' + title + '[/B] '         
-            if scraped["quality"]: 
-                longtitle += '[COLOR blue][' + scraped["quality"] + '][/COLOR]'#'[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B][COLOR blue][' + scraped["quality"] + '][/COLOR]' # by greko aggiunto episode
-            if scraped["episode"]: 
-                longtitle += '[B]' + scraped["episode"] + '[/B]'#'[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B]' 
-            if scraped["lang"]: 
-                if 'sub' in scraped["lang"].lower():
-                    lang = 'Sub-ITA'
-                else:
-                    lang = 'ITA'                  
-                longtitle += '[COLOR blue][ ' + lang + ' ][/COLOR]'
-            # modificato by Greko fine
+            if scraped["quality"] and scraped["episode"]: # by greko aggiunto episode
+                longtitle = '[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B][COLOR blue][' + scraped["quality"] + '][/COLOR]' # by greko aggiunto episode
+            elif scraped["episode"]: # by greko aggiunto episode
+                longtitle = '[B]' + title + '[/B] - [B]' + scraped["episode"] + '[/B]' # by greko aggiunto episode
+            else:
+                longtitle = '[B]' + title + '[/B]'
 
             if item.infoLabels["title"] or item.fulltitle:  # if title is set, probably this is a list of episodes or video sources
                 infolabels = item.infoLabels
@@ -508,11 +493,6 @@ def nextPage(itemlist, item, data, patron, function_level=1):
     return itemlist
 
 def server(item, data='', headers='', AutoPlay=True, CheckLinks=True):
-    
-    __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', item.channel)
-    log(__comprueba_enlaces__ )
-    __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', item.channel)
-    log(__comprueba_enlaces_num__ )
 
     if not data:
         data = httptools.downloadpage(item.url, headers=headers).data
@@ -527,14 +507,29 @@ def server(item, data='', headers='', AutoPlay=True, CheckLinks=True):
         videoitem.channel = item.channel
         videoitem.contentType = item.contentType
 
-    if __comprueba_enlaces__ and CheckLinks:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-    if xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks'):
-        itemlist = servertools.check_list_links(itemlist, xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks_number'))
+    return controls(itemlist, item, AutoPlay, CheckLinks)
+
+def controls(itemlist, item, AutoPlay=True, CheckLinks=True):
+    from core import jsontools
+    from platformcode.config import get_setting
+    CL = get_setting('checklinks') or get_setting('checklinks', item.channel)
+    autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
+    channel_node = autoplay_node.get(item.channel, {})
+    settings_node = channel_node.get('settings', {})
+    AP = get_setting('autoplay') or settings_node['active']
+    if CL and not AP:
+        if get_setting('checklinks', item.channel):
+            checklinks = get_setting('checklinks', item.channel)
+        else:
+            checklinks = get_setting('checklinks')            
+        if get_setting('checklinks_number', item.channel):
+            checklinks_number = get_setting('checklinks_number', item.channel)
+        else:
+            checklinks_number = get_setting('checklinks_number')
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     if AutoPlay == True:
         autoplay.start(itemlist, item)
-
     return itemlist
 
 

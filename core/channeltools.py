@@ -42,8 +42,7 @@ def get_channel_parameters(channel_name):
                 channel_parameters["language"] = channel_parameters.get("language", ["all"])
                 channel_parameters["adult"] = channel_parameters.get("adult", False)
                 channel_parameters["active"] = channel_parameters.get("active", False)
-                channel_parameters["include_in_global_search"] = channel_parameters.get("include_in_global_search",
-                                                                                        False)
+                channel_parameters["include_in_global_search"] = channel_parameters.get("include_in_global_search", False)
                 channel_parameters["categories"] = channel_parameters.get("categories", list())
 
                 channel_parameters["thumbnail"] = channel_parameters.get("thumbnail", "")
@@ -87,8 +86,7 @@ def get_channel_parameters(channel_name):
                                 channel_parameters["include_in_global_search"] = True
                             elif s['id'] == "filter_languages":
                                 channel_parameters["filter_languages"] = s.get('lvalues',[])
-                            elif not s['id'].startswith("include_in_") and \
-                                    (s.get('enabled', False) or s.get('visible', False)):
+                            elif s['id'].startswith("include_in_"):
                                 channel_parameters["has_settings"] = True
 
                     del channel_parameters['settings']

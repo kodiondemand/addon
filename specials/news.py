@@ -44,7 +44,9 @@ def mainlist(item):
 
     itemlist = []
     list_canales, any_active = get_channels_list()
-    channel_language = config.get_setting("channel_language", default="all")
+    channel_language = config.get_setting("channel_language", default="auto")
+    if channel_language == 'auto':
+        channel_language = auto_filter()
 
     #if list_canales['peliculas']:
     thumbnail = get_thumb("channels_movie.png")
@@ -88,20 +90,6 @@ def mainlist(item):
     set_category_context(new_item)
     itemlist.append(new_item)
 
-    if channel_language == "all" or channel_language == "esp":
-        # if list_canales['Castellano']:
-        thumbnail = get_thumb("channels_spanish.png")
-        new_item = Item(channel=item.channel, action="novedades", extra="castellano", title=config.get_localized_string(70014),
-                        thumbnail=thumbnail)
-        set_category_context(new_item)
-        itemlist.append(new_item)
-
-        # if list_canales['Latino']:
-        thumbnail = get_thumb("channels_latino.png")
-        new_item = Item(channel=item.channel, action="novedades", extra="latino", title=config.get_localized_string(59976),
-                        thumbnail=thumbnail)
-        set_category_context(new_item)
-        itemlist.append(new_item)
     if channel_language == "all":
         # if list_canales['Italiano']:
         thumbnail = get_thumb("channels_italian.png")
@@ -408,6 +396,10 @@ def get_title(item):
             if not item.contentSeason:
                 item.contentSeason = '1'
             title = "%s - %sx%s" % (title, item.contentSeason, str(item.contentEpisodeNumber).zfill(2))
+            #4l3x87 - fix to add Sub-ITA in newest
+            if item.contentLanguage:
+                title+=" "+item.contentLanguage
+
 
     elif item.contentTitle:  # Si es una pelicula con el canal adaptado
         title = item.contentTitle
@@ -586,7 +578,10 @@ def settings(item):
 
 def setting_channel(item):
     channels_path = os.path.join(config.get_runtime_path(), "channels", '*.json')
-    channel_language = config.get_setting("channel_language", default="all")
+    channel_language = config.get_setting("channel_language", default="auto")
+    if channel_language == 'auto':
+        channel_language = auto_filter()
+    
 
     list_controls = []
     for infile in sorted(glob.glob(channels_path)):

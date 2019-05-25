@@ -324,8 +324,9 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
 
                 __leer_datos(otmdb_global)
 
-            if lock and lock.locked():
-                lock.release()
+            # 4l3x87 - fix for overlap infoLabels if there is episode or season
+            # if lock and lock.locked():
+            #     lock.release()
 
             if item.infoLabels['episode']:
                 try:
@@ -354,6 +355,10 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                         item.infoLabels['rating'] = episodio['episodio_vote_average']
                         item.infoLabels['votes'] = episodio['episodio_vote_count']
 
+                    # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                    if lock and lock.locked():
+                        lock.release()
+
                     return len(item.infoLabels)
 
             else:
@@ -374,7 +379,16 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     if temporada['poster_path']:
                         item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada['poster_path']
                         item.thumbnail = item.infoLabels['poster_path']
+
+                    # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                    if lock and lock.locked():
+                        lock.release()
+
                     return len(item.infoLabels)
+
+            # 4l3x87 - fix for overlap infoLabels if there is episode or season
+            if lock and lock.locked():
+                lock.release()
 
         # Buscar...
         else:

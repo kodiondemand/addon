@@ -8,10 +8,10 @@ import re
 import urlparse
 
 import channelselector
-from core import httptools, tmdb, scrapertools, support
+from core import httptools, tmdb, support, scrapertools, jsontools
 from core.item import Item
 from platformcode import logger, config
-from specials import autoplay
+from specials import autoplay, autorenumber
 
 __channel__ = "animesaturn"
 host = config.get_setting("channel_host", __channel__)
@@ -22,45 +22,14 @@ list_language = IDIOMAS.values()
 list_servers = ['openload','fembed']
 list_quality = ['default']
 
-# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
-# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
-
 
 def mainlist(item):
     support.log(item.channel + 'mainlist')
     itemlist = []
-    support.menu(itemlist, 'Anime bold', 'lista_anime',  "%s/animelist?load_all=1" % host,'anime')
-    itemlist.append(
-        Item(channel=item.channel,
-             action="ultimiep",
-             url="%s/fetch_pages.php?request=episodios" % host,
-             title=support.typo("Novità submenu"),
-             extra="",
-             contentType='anime',
-             folder=True,
-             thumbnail=support.thumb())
-    )
-    # itemlist.append(
-    #     Item(channel=item.channel,
-    #          action="lista_anime",
-    #          url="%s/animeincorso" % host,
-    #          title=support.typo("In corso submenu"),
-    #          extra="anime",
-    #          contentType='anime',
-    #          folder=True,
-    #          thumbnail=channelselector.get_thumb('on_the_air.png'))
-    # )
-    itemlist.append(
-        Item(channel=item.channel,
-             action="list_az",
-             url="%s/animelist?load_all=1" % host,
-             title=support.typo("Archivio A-Z submenu"),
-             extra="anime",
-             contentType='anime',
-             folder=True,
-             thumbnail=channelselector.get_thumb('channels_tvshow_az.png'))
-    )
-    support.menu(itemlist, 'Cerca', 'search', host,'anime')
+    support.menu(itemlist, 'Anime bold', 'lista_anime',  "%s/animelist?load_all=1" % host)
+    support.menu(itemlist, 'Novità submenu', 'ultimiep',  "%s/fetch_pages.php?request=episodes" % host,'tvshow')
+    support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', '%s/animelist?load_all=1' % host,args=['tvshow','alfabetico'])
+    support.menu(itemlist, 'Cerca', 'search', host)
 
 
     autoplay.init(item.channel, list_servers, list_quality)
@@ -131,9 +100,14 @@ def lista_anime(item):
             title += ' '+support.typo(' (ITA)')
 
         infoLabels = {}
-        # if 'Akira' in title:
-        #     movie = True
-        #     infoLabels['year']= 1988
+        if 'Akira' in title:
+            movie = True
+            infoLabels['year']= 1988
+
+        if 'Dragon Ball Super Movie' in title:
+            movie = True
+            infoLabels['year'] = 2019
+
 
         itemlist.append(
             Item(channel=item.channel,
@@ -213,7 +187,7 @@ def episodios(item):
                 fanart=item.thumbnail,
                 thumbnail=item.thumbnail))
 
-    if((len(itemlist) == 1 and 'Movie' in itemlist[0].title) or movie):
+    if(((len(itemlist) == 1 and 'Movie' in itemlist[0].title) or movie) and item.contentType!='movie'):
         item.url = itemlist[0].url
         item.contentType = 'movie'
         return findvideos(item)
@@ -235,6 +209,7 @@ def findvideos(item):
 
     if(item.contentType == 'movie'):
         episodes = episodios(item)
+
         if(len(episodes)>0):
             item.url = episodes[0].url
 
@@ -245,26 +220,14 @@ def findvideos(item):
     url = scrapertools.find_single_match(data, patron)
 
     data = httptools.downloadpage(url).data
-    # patron = r"""<source\s*src=(?:"|')([^"']+?)(?:"|')\s*type=(?:"|')video/mp4(?:"|')>"""
-    # matches = re.compile(patron, re.DOTALL).findall(data)
-    # for video in matches:
-    #     itemlist.append(
-    #         Item(
-    #             channel=item.channel,
-    #             action="play",
-    #             fulltitle=item.fulltitle,
-    #             title="".join([item.title, ' ', support.typo(video.title, 'color kod []')]),
-    #             url=video,
-    #             contentType=item.contentType,
-    #             folder=False))
 
     itemlist = support.server(item, data=data)
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
-
+    if item.contentType == 'movie':
+        support.videolibrary(itemlist, item, 'color kod')
     # Controlla se i link sono validi
-    # if __comprueba_enlaces__:
-    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
     #
     # autoplay.start(itemlist, item)
 
@@ -279,15 +242,12 @@ def ultimiep(item):
     logger.info(item.channel + "ultimiep")
     itemlist = []
 
-    post = "page=%s" % item.extra if item.extra else None
-    logger.debug(post)
-    logger.debug(item.url)
+    post = "page=%s" % item.args['page'] if item.args and item.args['page'] else None
+
     data = httptools.downloadpage(
         item.url, post=post, headers={
             'X-Requested-With': 'XMLHttpRequest'
         }).data
-
-    logger.debug(data)
 
     patron = r"""<a href='[^']+'><div class="locandina"><img alt="[^"]+" src="([^"]+)" title="[^"]+" class="grandezza"></div></a>\s*"""
     patron += r"""<a href='([^']+)'><div class="testo">(.+?)</div></a>\s*"""
@@ -298,6 +258,7 @@ def ultimiep(item):
         scrapedtitle1 = cleantitle(scrapedtitle1)
         scrapedtitle2 = cleantitle(scrapedtitle2)
         scrapedtitle = scrapedtitle1 + ' - ' + scrapedtitle2 + ''
+
         itemlist.append(
             Item(channel=item.channel,
                  contentType="tvshow",
@@ -313,16 +274,15 @@ def ultimiep(item):
     # Pagine
     patronvideos = r'data-page="(\d+)" title="Next">Pagina Successiva'
     next_page = scrapertools.find_single_match(data, patronvideos)
-
     if next_page:
         itemlist.append(
             Item(
                 channel=item.channel,
                 action="ultimiep",
                 title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                url=host + "/fetch_pages?request=episodios",
+                url=item.url,
                 thumbnail= support.thumb(),
-                extra=next_page,
+                args={'page':next_page},
                 folder=True))
 
     return itemlist
@@ -362,42 +322,73 @@ def newest(categoria):
 # ================================================================================================================
 
 # ----------------------------------------------------------------------------------------------------------------
-def search_anime(item):
-    logger.info(item.channel + " search_anime")
+def search_anime(item, texto):
+    logger.info(item.channel + " search_anime: "+texto)
     itemlist = []
 
-    data = httptools.downloadpage(host + "/animelist?load_all=1").data
-    data = scrapertools.decodeHtmlentities(data)
+    # data = httptools.downloadpage(host + "/animelist?load_all=1").data
+    # data = scrapertools.decodeHtmlentities(data)
+    #
+    # texto = texto.lower().split('+')
+    #
+    # patron = r'<a href="([^"]+)"[^>]*?>[^>]*?>(.+?)<'
+    # matches = re.compile(patron, re.DOTALL).findall(data)
+    #
+    # for scrapedurl, scrapedtitle in [(scrapedurl, scrapedtitle)
+    #                                  for scrapedurl, scrapedtitle in matches
+    #                                  if all(t in scrapedtitle.lower()
+    #                                         for t in texto)]:
+    #
+    #     title = cleantitle(scrapedtitle).replace('(ita)','(ITA)')
+    #     showtitle = title
+    #     if '(ITA)' in title:
+    #         title = title.replace('(ITA)','').strip()
+    #         showtitle = title
+    #         title += ' '+support.typo(' [ITA] color kod')
+    #
+    #     itemlist.append(
+    #         Item(
+    #             channel=item.channel,
+    #             contentType="episode",
+    #             action="episodios",
+    #             title=title,
+    #             url=scrapedurl,
+    #             fulltitle=title,
+    #             show=showtitle,
+    #             thumbnail=""))
+    #
+    # tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    texto = item.url.lower().split('+')
+    data = httptools.downloadpage(host + "/index.php?search=1&key=%s" % texto).data
+    jsondata = jsontools.load(data)
 
-    patron = r'<a href="([^"]+)"[^>]*?>[^>]*?>(.+?)<'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    for title in jsondata:
+        data = str(httptools.downloadpage("%s/templates/header?check=1" % host, post="typeahead=%s" % title).data)
 
-    for scrapedurl, scrapedtitle in [(scrapedurl, scrapedtitle)
-                                     for scrapedurl, scrapedtitle in matches
-                                     if all(t in scrapedtitle.lower()
-                                            for t in texto)]:
-
-        title = cleantitle(scrapedtitle).replace('(ita)','(ITA)')
-        showtitle = title
-        if '(ITA)' in title:
-            title = title.replace('(ITA)','').strip()
+        if 'Anime non esistente' in data:
+            continue
+        else:
+            title = title.replace('(ita)','(ITA)')
             showtitle = title
-            title += ' '+support.typo(' [ITA] color kod')
+            if '(ITA)' in title:
+                title = title.replace('(ITA)', '').strip()
+                showtitle = title
+                title += ' ' + support.typo(' (ITA)')
 
-        itemlist.append(
-            Item(
-                channel=item.channel,
-                contentType="episode",
-                action="episodios",
-                title=title,
-                url=scrapedurl,
-                fulltitle=title,
-                show=showtitle,
-                thumbnail=""))
+            url = "%s/anime/%s" % (host, data)
+            logger.debug(title)
+            logger.debug(url)
 
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+            itemlist.append(
+                Item(
+                    channel=item.channel,
+                    contentType="episode",
+                    action="episodios",
+                    title=title,
+                    url=url,
+                    fulltitle=title,
+                    show=showtitle,
+                    thumbnail=""))
 
     return itemlist
 
@@ -408,10 +399,9 @@ def search_anime(item):
 def search(item, texto):
     logger.info(item.channel + " search")
     itemlist = []
-    item.url = texto
 
     try:
-        return search_anime(item)
+        return search_anime(item, texto)
 
     except:
         import sys

@@ -27,8 +27,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', 'wstream']
 list_quality = ['HD', 'default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'cineblog01')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'cineblog01')
+checklinks = config.get_setting('checklinks', 'cineblog01')
+checklinks_number = config.get_setting('checklinks_number', 'cineblog01')
 
 # esclusione degli articoli 'di servizio'
 blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
@@ -105,6 +105,7 @@ def newest(categoria):
     findhost()
     itemlist = []
     item = Item()
+    item.contentType = 'movie'
     item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
     return support.scrape(item, r'<a href=([^>]+)>([^<([]+)(?:\[([A-Z]+)\])?\s\(([0-9]{4})\)<\/a>',
                    ['url', 'title', 'quality', 'year'],
@@ -280,8 +281,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 

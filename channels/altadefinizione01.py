@@ -16,8 +16,8 @@ list_language = IDIOMAS.values()
 list_servers = ['openload', 'streamango', 'rapidvideo', 'streamcherry', 'megadrive']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'altadefinizione01')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'altadefinizione01')
+checklinks = config.get_setting('checklinks', 'altadefinizione01')
+checklinks_number = config.get_setting('checklinks_number', 'altadefinizione01')
 
 headers = [['Referer', host]]
 blacklist_categorie = ['Altadefinizione01', 'Altadefinizione.to']
@@ -147,8 +147,8 @@ def findvideos(item):
     itemlist = support.server(item, headers=headers)
 
     # Requerido para Filtrar enlaces
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
     # itemlist = filtertools.get_links(itemlist, item, list_language)

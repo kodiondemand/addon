@@ -19,8 +19,8 @@ host = "https://www.altadefinizione01.vision/" #aggiornato al 30-04-209
 
 # ======== Funzionalità =============================
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
+checklinks = config.get_setting('checklinks', __channel__)
+checklinks_number = config.get_setting('checklinks_number', __channel__)
 
 headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'],
            ['Referer', host]]
@@ -216,8 +216,8 @@ def findvideos(item):
             logger.error("data doesn't contain expected URL")
 
     # Controlla se i link sono validi
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
     itemlist = filtertools.get_links(itemlist, item, list_language)

@@ -4,25 +4,27 @@
   "active": true,
   "adult": false,
   "language": ["ita"],
-  "fanart": "https://altadefinizione01.estate/templates/Dark/img/logo2.png",
-  "thumbnail": "https://altadefinizione01.estate/templates/Dark/img/logo2.png",
-  "banner": "https://altadefinizione01.estate/templates/Dark/img/logo2.png",
+  "fanart": "",
+  "thumbnail": "",
+  "banner": "http://altadefinizione01.link/templates/Dark/img/logonyy.png",
+  "fix" : "reimpostato url e modificato file per KOD",
+  "change_date": "2019-30-04",
   "categories": [
     "movie"
   ],
-	"settings": [
-		{
-		  "id": "include_in_global_search",
-		  "type": "bool",
-		  "label": "Includi in Ricerca Globale",
-		  "default": true,
-		  "enabled": true,
-		  "visible": true
-		},
-		{
-      "id": "include_in_newest_peliculas",
+  "settings": [
+    {
+      "id": "modo_grafico",
       "type": "bool",
-      "label": "Includi in Novità - Film",
+      "label": "Cerca informazioni extra",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "include_in_newest_film",
+      "type": "bool",
+      "label": "Includi in Novità",
       "default": true,
       "enabled": true,
       "visible": true
@@ -34,6 +36,31 @@
       "default": true,
       "enabled": true,
       "visible": true
+    },   
+    {
+      "id": "include_in_global_search",
+      "type": "bool",
+      "label": "Includi ricerca globale",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "checklinks",
+      "type": "bool",
+      "label": "Verifica se i link esistono",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "checklinks_number",
+      "type": "list",
+      "label": "Numero de link da verificare",
+      "default": 1,
+      "enabled": true,
+      "visible": "eq(-1,true)",
+      "lvalues": [ "5", "10", "15", "20" ]
     },
     {
       "id": "filter_languages",
@@ -43,8 +70,24 @@
       "enabled": true,
       "visible": true,
       "lvalues": [
-        "No filtrar",
-        "Italiano"
+        "Non filtrare",
+        "IT"
+      ]
+    },
+    {
+      "id": "perfil",
+      "type": "list",
+      "label": "profilo dei colori",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [
+        "Sin color",
+        "Perfil 5",
+        "Perfil 4",
+        "Perfil 3",
+        "Perfil 2",
+        "Perfil 1"
       ]
     }
 	  ]

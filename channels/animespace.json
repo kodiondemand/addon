@@ -32,7 +32,7 @@
       ]
     },
     {
-      "id": "comprueba_enlaces_num",
+      "id": "checklinks_number",
       "type": "list",
       "label": "Número de enlaces a verificar",
       "default": 1,

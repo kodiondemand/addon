@@ -19,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['akstream']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'mondoserietv')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'mondoserietv')
+checklinks = config.get_setting('checklinks', 'mondoserietv')
+checklinks_number = config.get_setting('checklinks_number', 'mondoserietv')
 
 headers = {'Referer': host}
 
@@ -308,8 +308,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 

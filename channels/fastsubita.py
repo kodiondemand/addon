@@ -6,7 +6,8 @@
 
 import re
 
-from core import scrapertools, httptools, tmdb
+import channelselector
+from core import scrapertools, httptools, tmdb, support
 from core.item import Item
 from platformcode import config, logger
 from specials import autoplay
@@ -18,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'speedvideo', 'wstream', 'flashx', 'vidoza', 'vidtome']
 list_quality = ['default']
 
-# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'fastsubita')
-# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'fastsubita')
+# checklinks = config.get_setting('checklinks', 'fastsubita')
+# checklinks_number = config.get_setting('checklinks_number', 'fastsubita')
 
 headers = [
     ['Host', 'fastsubita.com'],
@@ -44,8 +45,8 @@ def mainlist(item):
     support.menu(itemlist, 'Serie TV bold', 'lista_serie', host,'tvshow')
     support.menu(itemlist, 'Novità submenu', 'pelicuals_tv', host,'tvshow')
     support.menu(itemlist, 'Archivio A-Z submenu', 'list_az', host,'tvshow',args=['serie'])
-
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
+
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
 
@@ -113,24 +114,31 @@ def pelicuals_tv(item):
         episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')[0]
         scrapedtitle = scrapedtitle.replace(scraped_1, "")
 
+        infoLabels = {}
+        infoLabels['season'] = episode[1]
+        infoLabels['episode'] = episode[2]
 
         if "http:" in scrapedurl:
             scrapedurl = scrapedurl
         else:
             scrapedurl = "http:" + scrapedurl
 
+        title = scraped_1+" - "+infoLabels['season']+"x"+infoLabels['episode']+" Sub-ITA"
+
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
                  contentTpye="tvshow",
-                 title=scraped_1 + " " + scrapedtitle,
-                 fulltitle=scraped_1 + " " + scrapedtitle,
+                 title=title,
+                 fulltitle=title,
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
                  show=scraped_1,
                  extra=item.extra,
-                 contentSerieName=scraped_1+" ("+episode[0]+" Sub-Ita)",
+                 contentSerieName=scraped_1,
+                 contentLanguage='Sub-ITA',
+                 infoLabels=infoLabels,
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -277,8 +285,8 @@ def findvideos(item):
     #
     # # Requerido para Filtrar enlaces
     #
-    # if __comprueba_enlaces__:
-    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
     #
     # # Requerido para FilterTools
     #
@@ -380,7 +388,7 @@ def episodios(item,itemlist = []):
         infoLabels = {}
         infoLabels['season'] = season
         infoLabels['episode'] = episode[2]
-        title = infoLabels['season']+'x'+infoLabels['episode']
+        title = infoLabels['season']+'x'+infoLabels['episode']+" Sub-ITA"
 
         if "http:" not in scrapedurl:
             scrapedurl = "http:" + scrapedurl
