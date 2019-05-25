@@ -225,6 +225,11 @@ def findvideos(item):
 
     if item.contentType == 'movie':
         support.videolibrary(itemlist, item, 'color kod')
+    # Controlla se i link sono validi
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 

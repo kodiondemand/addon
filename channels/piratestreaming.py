@@ -24,8 +24,8 @@ list_servers = ['speedvideo', 'openload', 'youtube']
 list_quality = ['default']
 
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'piratestreaming')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'piratestreaming')
+checklinks = config.get_setting('checklinks', 'piratestreaming')
+checklinks_number = config.get_setting('checklinks_number', 'piratestreaming')
 
 headers = [['Referer', host]]
 
@@ -243,8 +243,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 

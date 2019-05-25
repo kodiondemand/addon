@@ -18,8 +18,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', 'thevideome']
 list_quality = ['1080p', '720p', '480p', '360']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'seriehd')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'seriehd')
+checklinks = config.get_setting('checklinks', 'seriehd')
+checklinks_number = config.get_setting('checklinks_number', 'seriehd')
 
 headers = [['Referer', host]]
 
@@ -137,8 +137,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 

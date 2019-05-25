@@ -30,8 +30,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'wstream', 'speedvideo', 'flashx', 'nowvideo', 'streamango', 'deltabit', 'openload']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'eurostreaming')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'eurostreaming')
+checklinks = config.get_setting('checklinks', 'eurostreaming')
+checklinks_number = config.get_setting('checklinks_number', 'eurostreaming')
 
 def mainlist(item):
     support.log()    

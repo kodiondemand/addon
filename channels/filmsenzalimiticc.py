@@ -22,8 +22,8 @@ list_servers = ['verystream', 'openload', 'vidlox', 'youtube']
 list_quality = ['default']
 
 # Necessario per Verifica Link
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'filmsenzalimiticc')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'filmsenzalimiticc')
+checklinks = config.get_setting('checklinks', 'filmsenzalimiticc')
+checklinks_number = config.get_setting('checklinks_number', 'filmsenzalimiticc')
 
 host = 'https://filmsenzalimiti.pw'
 
@@ -239,8 +239,8 @@ def findvideos(item): # Questa def. deve sempre essere nominata findvideos
                      action='add_pelicula_to_library', extra='findservers', contentTitle=item.contentTitle))
 
     # Necessario per filtrare i Link
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Necessario per  FilterTools
     # itemlist = filtertools.get_links(itemlist, item, list_language)

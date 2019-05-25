@@ -20,8 +20,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animeleggendari')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'animeleggendari')
+checklinks = config.get_setting('checklinks', 'animeleggendari')
+checklinks_number = config.get_setting('checklinks_number', 'animeleggendari')
 
 def mainlist(item):
     log()
@@ -176,8 +176,8 @@ def findvideos(item):
 
     itemlist = support.server(item,data)
         
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # itemlist = filtertools.get_links(itemlist, item, list_language)
     autoplay.start(itemlist, item)

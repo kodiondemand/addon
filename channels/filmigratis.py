@@ -18,8 +18,8 @@ list_language = IDIOMAS.values()
 list_servers = ['openload', 'streamango', 'vidoza', 'okru']
 list_quality = ['1080p', '720p', '480p', '360']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'filmigratis')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'filmigratis')
+checklinks = config.get_setting('checklinks', 'filmigratis')
+checklinks_number = config.get_setting('checklinks_number', 'filmigratis')
 
 headers = [['Referer', host]]
 

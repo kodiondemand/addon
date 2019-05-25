@@ -15,8 +15,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'wstream', 'speedvideo']
 list_quality = ['1080p', '720', '480p', '360p']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'casacinema')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'casacinema')
+checklinks = config.get_setting('checklinks', 'casacinema')
+checklinks_number = config.get_setting('checklinks_number', 'casacinema')
 
 
 def mainlist(item):
@@ -142,8 +142,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para AutoPlay
 

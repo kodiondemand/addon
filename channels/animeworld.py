@@ -20,8 +20,8 @@ list_language = IDIOMAS.values()
 list_servers = ['diretto']
 list_quality = []
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animeworld')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'animeworld')
+checklinks = config.get_setting('checklinks', 'animeworld')
+checklinks_number = config.get_setting('checklinks_number', 'animeworld')
 
 
 def mainlist(item):
@@ -398,8 +398,8 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 

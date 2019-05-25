@@ -41,7 +41,7 @@
             "visible": true
         },		
         {
-            "id": "comprueba_enlaces",
+            "id": "checklinks",
             "type": "bool",
             "label": "Verifica se i link esistono",
             "default": false,
@@ -49,7 +49,7 @@
             "visible": true
         },
         {
-            "id": "comprueba_enlaces_num",
+            "id": "checklinks_number",
             "type": "list",
             "label": "Numero de link da verificare",
             "default": 1,

@@ -61,15 +61,7 @@ def hdpass_get_servers(item):
                                          url=url_decode(media_url)))
                     log("video -> ", res_video)
 
-        __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', item.channel)
-        __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', item.channel)
-        
-        if __comprueba_enlaces__:
-            itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-        if xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks'):
-            itemlist = servertools.check_list_links(itemlist, xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks_number'))
-
-    return itemlist
+    return controls(itemlist, item, AutoPlay=True, CheckLinks=True)
 
 
 def url_decode(url_enc):
@@ -501,11 +493,6 @@ def nextPage(itemlist, item, data, patron, function_level=1):
     return itemlist
 
 def server(item, data='', headers='', AutoPlay=True, CheckLinks=True):
-    
-    __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', item.channel)
-    log(__comprueba_enlaces__ )
-    __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', item.channel)
-    log(__comprueba_enlaces_num__ )
 
     if not data:
         data = httptools.downloadpage(item.url, headers=headers).data
@@ -520,14 +507,29 @@ def server(item, data='', headers='', AutoPlay=True, CheckLinks=True):
         videoitem.channel = item.channel
         videoitem.contentType = item.contentType
 
-    if __comprueba_enlaces__ and CheckLinks:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-    if xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks'):
-        itemlist = servertools.check_list_links(itemlist, xbmcaddon.Addon('plugin.video.kod').getSetting('checklinks_number'))
+    return controls(itemlist, item, AutoPlay, CheckLinks)
+
+def controls(itemlist, item, AutoPlay=True, CheckLinks=True):
+    from core import jsontools
+    from platformcode.config import get_setting
+    CL = get_setting('checklinks') or get_setting('checklinks', item.channel)
+    autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
+    channel_node = autoplay_node.get(item.channel, {})
+    settings_node = channel_node.get('settings', {})
+    AP = get_setting('autoplay') or settings_node['active']
+    if CL and not AP:
+        if get_setting('checklinks', item.channel):
+            checklinks = get_setting('checklinks', item.channel)
+        else:
+            checklinks = get_setting('checklinks')            
+        if get_setting('checklinks_number', item.channel):
+            checklinks_number = get_setting('checklinks_number', item.channel)
+        else:
+            checklinks_number = get_setting('checklinks_number')
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     if AutoPlay == True:
         autoplay.start(itemlist, item)
-
     return itemlist
 
 

@@ -21,8 +21,8 @@ list_language = IDIOMAS.values()
 list_servers = ['gounlimited','verystream','streamango','openload']
 list_quality = ['default']
 
-# __comprueba_enlaces__ = config.get_setting('comprueba_enlaces', __channel__)
-# __comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', __channel__)
+# checklinks = config.get_setting('checklinks', __channel__)
+# checklinks_number = config.get_setting('checklinks_number', __channel__)
 
 
 def mainlist(item):
@@ -264,8 +264,8 @@ def findvideos(item):
 
 
     # Controlla se i link sono validi
-    # if __comprueba_enlaces__:
-    #     itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
     #
     # autoplay.start(itemlist, item)
 

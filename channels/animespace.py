@@ -17,8 +17,8 @@ from specials import renumbertools
 
 host = "https://animespace.tv/"
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animespace')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'animespace')
+checklinks = config.get_setting('checklinks', 'animespace')
+checklinks_number = config.get_setting('checklinks_number', 'animespace')
 
 IDIOMAS = {'VOSE': 'VOSE'}
 list_language = IDIOMAS.values()
@@ -240,8 +240,8 @@ def findvideos(item):
 
     itemlist = servertools.get_servers_itemlist(itemlist, lambda x: x.title % x.server.capitalize())
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 
