@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <window>
-    <allowoverlays>false</allowoverlays>  
+    <allowoverlays>false</allowoverlays>
+    <animation type="WindowOpen" reversible="false">
+      <effect type="zoom" start="80" end="100" center="640,225" delay="160" tween="back" time="240" />
+      <effect type="fade" delay="160" end="100" time="240" />
+    </animation>
+    <animation type="WindowClose" reversible="false">
+      <effect type="zoom" start="100" end="80" center="640,225" easing="in" tween="back" time="240" />
+      <effect type="fade" start="100" end="0" time="240" />
+    </animation>
     <controls>
       <control type="group" id="10001">
         <posx>240</posx>
@@ -10,16 +18,11 @@
         <control type="image">
           <width>800</width>
           <height>500</height>
-          <texture>Windows/DialogBack.png</texture>
-        </control>
-        <control type="image">
-          <height>40</height>
-          <width>800</width>
-          <texture>Windows/dialogheader.png</texture>
+          <texture>Shortcut/dialog-bg-solid.png</texture>
         </control>
         <control type="label" id="10002">
-          <posy>10</posy>
-          <posx>10</posx>
+          <posy>15</posy>
+          <posx>50</posx>
           <height>34</height>
           <width>725</width>
           <font>font12_title</font>
@@ -29,18 +32,18 @@
           <label>$ADDON[plugin.video.kod 70000]</label>
         </control>
         <control type="button" id="10003">
-          <posx>735</posx>
-          <posy>15</posy>
-          <width>50</width>
-          <height>30</height>
+          <posx>745</posx>
+          <posy>25</posy>
+          <width>20</width>
+          <height>20</height>
           <texturefocus>Controls/DialogCloseButton-focus.png</texturefocus>
           <texturenofocus>Controls/DialogCloseButton.png</texturenofocus>    
         </control>
         <control type="button" id="10004">
-          <posx>155</posx>
-          <posy>445</posy>
-          <width>120</width>
-          <height>30</height>
+          <posx>40</posx>
+          <posy>410</posy>
+          <width>200</width>
+          <height>50</height>
           <textwidth>110</textwidth>
           <texturefocus>Controls/KeyboardKey.png</texturefocus>
           <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>  
@@ -49,10 +52,10 @@
           <label>$ADDON[plugin.video.kod 70001]</label>
         </control>
         <control type="button" id="10005">
-          <posx>325</posx>
-          <posy>445</posy>
-          <width>120</width>
-          <height>30</height>
+          <posx>300</posx>
+          <posy>410</posy>
+          <width>200</width>
+          <height>50</height>
           <textwidth>110</textwidth>
           <texturefocus>Controls/KeyboardKey.png</texturefocus>
           <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>   
@@ -61,10 +64,10 @@
           <label>$ADDON[plugin.video.kod 70002]</label>
         </control>
         <control type="button" id="10006">
-          <posx>495</posx>
-          <posy>445</posy>
-          <width>120</width>
-          <height>30</height>
+          <posx>560</posx>
+          <posy>410</posy>
+          <width>200</width>
+          <height>50</height>
           <textwidth>110</textwidth>
           <texturefocus>Controls/KeyboardKey.png</texturefocus>
           <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>    
@@ -73,20 +76,15 @@
           <label>$ADDON[plugin.video.kod 70003]</label>
         </control>
           <control type="group" id="10007">
-          <posy>45</posy>
+          <posy>80</posy>
           <posx>20</posx>
           <width>745</width>
           <height>387</height>
-          <control type="image">  
-            <width>745</width>
-            <height>387</height>
-            <texture>Windows/BackControls.png</texture>
-          </control>
           <control type="label" id="100010">
-            <posy>0</posy>
+            <posy>30</posy>
             <posx>0</posx>
             <width>745</width>
-            <height>387</height>
+            <height>300</height>
             <font>font16</font>
             <textcolor>0xFFFFFFFF</textcolor>
             <align>center</align>
@@ -95,17 +93,18 @@
           </control>
         </control>
         <control type="image" id="10008">
-          <posy>45</posy>
-          <posx>770</posx>
+          <posy>80</posy>
+          <posx>780</posx>
           <width>10</width>
-          <height>387</height>
+          <height>300</height>
+          <textcolor>0xFFFFFFFF</textcolor>
           <texture>Controls/ScrollBack.png</texture>
         </control>
         <control type="image" id="10009">
-          <posy>45</posy>
-          <posx>770</posx>
+          <posy>80</posy>
+          <posx>780</posx>
           <width>10</width>
-          <height>387</height>
+          <height>300</height>
           <texture>Controls/ScrollBar.png</texture>
         </control>
       </control>

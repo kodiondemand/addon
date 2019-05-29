@@ -20,8 +20,8 @@
 			<top>-250</top>
 			<width>1280</width>
 			<height>720</height>
-			<texturefocus colordiffuse="88232323">Shortcut/white.png</texturefocus>
-			<texturenofocus colordiffuse="88232323">Shortcut/white.png</texturenofocus>
+			<texturefocus colordiffuse="88FFFFFF">Shortcut/white.png</texturefocus>
+			<texturenofocus colordiffuse="88FFFFFF">Shortcut/white.png</texturenofocus>
 			<onclick>Action(close)</onclick>
 		</control>
 		<control type="image">
@@ -29,7 +29,7 @@
 			<top>0</top>
 			<width>880</width>
 			<height>220</height>
-			<texture border="2" colordiffuse="FF232323">Shortcut/white.png</texture>
+			<texture border="2" colordiffuse="FFEEEEEE">Shortcut/white.png</texture>
 		</control>
 		<control type="group">
 			<control type="group">
@@ -144,8 +144,8 @@
 					<top>220</top>
 					<width>880</width>
 					<height>10</height>
-					<texturesliderbackground colordiffuse="FF232323">Shortcut/white.png</texturesliderbackground>
-					<texturesliderbar colordiffuse="FF1f1f1f">Shortcut/white.png</texturesliderbar>
+					<texturesliderbackground colordiffuse="FFEEEEEE">Shortcut/white.png</texturesliderbackground>
+					<texturesliderbar colordiffuse="FFCCCCCCS">Shortcut/white.png</texturesliderbar>
 					<texturesliderbarfocus colordiffuse="FF0082C2">Shortcut/white.png</texturesliderbarfocus>
 					<textureslidernib>-</textureslidernib>
 					<textureslidernibfocus>-</textureslidernibfocus>

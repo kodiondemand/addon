@@ -7,7 +7,7 @@ import xbmcaddon
 import xbmcgui
 
 from channelselector import get_thumb
-from platformcode import config
+from platformcode import config, logger
 
 
 class KeyListener(xbmcgui.WindowXMLDialog):
@@ -168,6 +168,9 @@ class Main(xbmcgui.WindowXMLDialog):
 
 
 def open_shortcut_menu():
-    main = Main('ShortCutMenu.xml', config.get_runtime_path())
+    XML =  'ShortCutMenu.xml'
+    if config.get_setting('icon_set') == 'dark':
+        XML = 'Dark' + XML
+    main = Main(XML, config.get_runtime_path())
     main.doModal()
     del main

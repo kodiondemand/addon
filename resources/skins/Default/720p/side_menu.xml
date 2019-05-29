@@ -7,8 +7,8 @@
     <zorder>1</zorder>
     <controls>
         <control type="image">
-            <animation type="WindowOpen" reversible="false">
-                <effect type="slide" start="-200" end="0" time="80"/>
+            <animation type="WindowOpen" reversible="true">
+                <effect type="slide" start="-200" end="0" time="250"/>
             </animation>
             <left>0</left>
             <top>0</top>
