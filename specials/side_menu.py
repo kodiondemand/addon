@@ -85,7 +85,7 @@ def get_start_page():
         config.get_localized_string(59976): 'latino',
         config.get_localized_string(70171): 'torrent',
     }
-    category = dictCategory[config.get_setting("category")]
+    category = dictCategory[config.get_localized_string(config.get_setting("category"))]
 
     custom_start= config.get_setting("custom_start")
     #if category != 'definido':

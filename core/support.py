@@ -95,7 +95,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
            patronNext="", action="findvideos", addVideolibrary = True, type_content_dict={}, type_action_dict={}):
     # patron: the patron to use for scraping page, all capturing group must match with listGroups
     # listGroups: a list containing the scraping info obtained by your patron, in order
-    # accepted values are: url, title, thumb, quality, year, plot, duration, genre, rating
+    # accepted values are: url, title, thumb, quality, year, plot, duration, genre, rating, episode, lang
 
     # header: values to pass to request header
     # blacklist: titles that you want to exclude(service articles for example)
@@ -112,7 +112,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
     #   patron = 'blablabla'
     #   headers = [['Referer', host]]
     #   blacklist = 'Request a TV serie!'
-    #   return support.scrape(item, itemlist, patron, ['thumb', 'quality', 'url', 'title', 'year', 'plot'],
+    #   return support.scrape(item, itemlist, patron, ['thumb', 'quality', 'url', 'title', 'year', 'plot', 'episode', 'lang'],
     #                           headers=headers, blacklist=blacklist)
     # 'type' is a check for typologies of content e.g. Film or TV Series
     # 'episode' is a key to grab episode numbers if it is separated from the title
@@ -136,7 +136,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 blocks = scrapertoolsV2.find_multiple_matches(block, regex)
                 block = ""
                 for b in blocks:
-                    block += "\n" + b
+                    block += "\n" + str(b)
                 log('BLOCK ', n, '=', block)
     else:
         block = data
@@ -144,7 +144,8 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
         matches = scrapertoolsV2.find_multiple_matches(block, patron)
         log('MATCHES =', matches)
 
-        known_keys = ['url', 'title', 'title2', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type'] #by greko aggiunto episode
+        known_keys = ['url', 'title', 'title2', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang'] #by greko aggiunto episode
+        
         for match in matches:
             if len(listGroups) > len(match):  # to fix a bug
                 match = list(match)
@@ -157,7 +158,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     val = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + val
                 scraped[kk] = val
 
-            title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).strip()
+            title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).replace('"', "'").strip() # fix by greko da " a '
             plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
 
             longtitle = typo(title, 'bold')
@@ -168,6 +169,12 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
             if scraped['title2']:
                 title2 = scrapertoolsV2.decodeHtmlentities(scraped["title2"]).strip()
                 longtitle = longtitle + typo(title2, 'bold _ -- _')
+            if scraped["lang"]: 
+                if 'sub' in scraped["lang"].lower():
+                    lang = 'Sub-ITA'
+                else:
+                    lang = 'ITA'                  
+                longtitle += typo(lang, '_ [] color kod')
 
             if item.infoLabels["title"] or item.fulltitle:  # if title is set, probably this is a list of episodes or video sources
                 infolabels = item.infoLabels
@@ -445,7 +452,7 @@ def match(item, patron='', patron_block='', headers='', url=''):
     matches = []
     url = url if url else item.url
     data = httptools.downloadpage(url, headers=headers).data.replace("'", '"')
-    data = re.sub('\n|\t', '', data)
+    data = re.sub(r'\n|\t|\s\s', '', data)
     log('DATA= ', data)
 
     if patron_block:
@@ -589,3 +596,16 @@ def log(stringa1="", stringa2="", stringa3="", stringa4="", stringa5=""):
     filename = frame[0].f_code.co_filename
     filename = os.path.basename(filename)    
     logger.info("[" + filename + "] - [" + inspect.stack()[1][3] + "] " + str(stringa1) + str(stringa2) + str(stringa3) + str(stringa4) + str(stringa5))
+
+
+def channel_config(item, itemlist):
+    from  channelselector import get_thumb
+    itemlist.append(
+        Item(channel='setting',
+             action="channel_config",
+             title=typo("Configurazione Canale color kod bold"),
+             config=item.channel,
+             folder=False,
+             thumbnail=get_thumb('setting_0.png'))
+    )
+

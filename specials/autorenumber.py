@@ -106,9 +106,8 @@ def write_data(channel, show, data):
 
 
 
-def renumber(itemlist, item='', typography=''):    
+def renumber(itemlist, item='', typography=''):
     log()
-
     if item:
         try:
             dict_series = jsontools.get_node_from_file(item.channel, TAG_TVSHOW_RENUMERATE)
@@ -128,7 +127,6 @@ def renumber(itemlist, item='', typography=''):
                 data = tvdb.otvdb_global.get_list_episodes(ID,page)
                 if data:
                     for episodes in data['data']:
-                        log(episodes.infoLabels)
                         if episodes['airedSeason'] >= S:
                             if E == 0: 
                                 epList.append([0, SP])

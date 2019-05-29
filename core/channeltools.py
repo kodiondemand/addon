@@ -134,6 +134,8 @@ def get_channel_json(channel_name):
         channel_path = filetools.join(config.get_runtime_path(), "channels", channel_name + ".json")
         if not os.path.isfile(channel_path):
             channel_path = filetools.join(config.get_runtime_path(), "specials", channel_name + ".json")
+            if not os.path.isfile(channel_path):
+                channel_path = filetools.join(config.get_runtime_path(), "servers", channel_name + ".json")
         if filetools.isfile(channel_path):
             # logger.info("channel_data=" + channel_path)
             channel_json = jsontools.load(filetools.read(channel_path))
