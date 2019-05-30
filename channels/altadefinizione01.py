@@ -9,7 +9,7 @@ from platformcode import logger, config
 from specials import autoplay
 
 #URL che reindirizza sempre al dominio corrente
-host = "https://altadefinizione01.team"
+host = "https://altadefinizione01.to"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
@@ -135,9 +135,10 @@ def peliculas(item):
 
 def peliculas_list(item):
     support.log()
+    item.fulltitle = ''
     block = r'<tbody>(.*)<\/tbody>'
-    patron = r'<td class="mlnh-thumb"><a href="([^"]+)" title="([^"]+)".*?> <img.*?src="([^"]+)".*?<td class="mlnh-3">([0-9]+)<\/td><td class="mlnh-4">(.*?)<\/td>'
-    return support.scrape(item,patron, ['url','title','year','quality'],patron_block=block)
+    patron = r'<a href="([^"]+)" title="([^"]+)".*?> <img.*?src="([^"]+)".*?<td class="mlnh-3">([0-9]{4}).*?mlnh-4">([A-Z]+)'
+    return support.scrape(item,patron, ['url', 'title', 'thumb', 'year', 'quality'], patron_block=block)
 
 
 
@@ -145,17 +146,5 @@ def findvideos(item):
     support.log()
     
     itemlist = support.server(item, headers=headers)
-
-    # Requerido para Filtrar enlaces
-    if checklinks:
-        itemlist = servertools.check_list_links(itemlist, checklinks_number)
-
-    # Requerido para FilterTools
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-    autoplay.start(itemlist, item)
-
-    support.videolibrary(itemlist, item, 'color kod')
 
     return itemlist

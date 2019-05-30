@@ -98,7 +98,7 @@ load_cookies()
 
 
 def downloadpage(url, post=None, headers=None, timeout=None, follow_redirects=True, cookies=True, replace_headers=False,
-                 add_referer=False, only_headers=False, bypass_cloudflare=True, count_retries=0, count_retries_tot=5, random_headers=False, ignore_response_code=False, alfa_s=False, proxy=True, proxy_web=False, proxy_addr_forced=None,forced_proxy=None, proxy_retries=1):
+                 add_referer=False, only_headers=False, bypass_cloudflare=True, count_retries=0, count_retries_tot=1, random_headers=False, ignore_response_code=False, alfa_s=False, proxy=True, proxy_web=False, proxy_addr_forced=None,forced_proxy=None, proxy_retries=1):
     """
     Abre una url y retorna los datos obtenidos
 
@@ -367,8 +367,10 @@ def downloadpage(url, post=None, headers=None, timeout=None, follow_redirects=Tr
                     if not alfa_s:
                         logger.info("Could not decompress with zlib")
                     response["data"] = data_alt
+        
 
         # Anti Cloudflare
+        
         if bypass_cloudflare and count_retries < count_retries_tot:
             from core.cloudflare import Cloudflare
             cf = Cloudflare(response)
@@ -398,6 +400,14 @@ def downloadpage(url, post=None, headers=None, timeout=None, follow_redirects=Tr
                 else:
                     if not alfa_s:
                         logger.info("Unable to authorize")
+                        logger.info("try to use CloudScrape")
+                        try:
+                            from lib import cloudscraper
+                            scraper = cloudscraper.CloudScraper()
+                            data = scraper.get(url).content
+                            response["data"] = data
+                        except:
+                            logger.info("Unable to Scrape")
     
         # Si hay errores usando un Proxy, se refrescan el Proxy y se reintenta el número de veces indicado en proxy_retries
         try:

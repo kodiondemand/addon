@@ -3,15 +3,17 @@
 # Canale per seriehd
 # ------------------------------------------------------------
 import urlparse
+import re
 
 from channelselector import thumb
+from lib import cloudscraper
 from core import scrapertoolsV2, servertools, httptools, support
 from core.item import Item
 from core.support import menu, log
 from platformcode import logger, config
 from specials import autoplay
 
-host = "https://seriehd.casa"
+host = "https://seriehd.info"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
@@ -28,7 +30,7 @@ def mainlist(item):
     log()
     itemlist = []
 
-    menu(itemlist, 'Serie TV', 'peliculas', host + '/serie-tv-streaming/', 'tvshow')
+    menu(itemlist, 'Serie TV', 'peliculas', host + '/serie-tv-streaming', 'tvshow')
     menu(itemlist, 'Per Genere submenu', 'genre', host, 'tvshow', 'TV')
     menu(itemlist, 'Per Nazione submenu', 'nation', host + '/serie-tv-streaming/', 'tvshow', 'TV')
     menu(itemlist, 'Cerca...', 'search', contentType='episode', args='TV')
@@ -105,11 +107,10 @@ def episodios(item):
     data = httptools.downloadpage(item.url).data
     patron = r'<iframe width=".+?" height=".+?" src="([^"]+)" allowfullscreen frameborder="0">'
     url = scrapertoolsV2.find_single_match(data, patron).replace("?seriehd", "")
-    seasons = support.match(item, r'<li[^>]+><a href="([^"]+)">(\d+)<', r'<h3>STAGIONE</h3><ul>(.*?)</ul>', headers, url)[0]
-    
+    seasons = support.match(item, r'<a href="([^"]+)">(\d+)<', r'<h3>STAGIONE</h3><ul>(.*?)</ul>', headers, url)[0]
     for season_url, season in seasons:
         season_url = urlparse.urljoin(url, season_url)
-        episodes = support.match(item, r'<li[^>]+><a href="([^"]+)">(\d+)<', '<h3>EPISODIO</h3><ul>(.*?)</ul>', headers, season_url)[0]
+        episodes = support.match(item, r'<a href="([^"]+)">(\d+)<', '<h3>EPISODIO</h3><ul>(.*?)</ul>', headers, season_url)[0]
         for episode_url, episode in episodes:
             episode_url = urlparse.urljoin(url, episode_url)
             title = season + "x" + episode.zfill(2)
@@ -135,16 +136,8 @@ def findvideos(item):
     itemlist = []
     itemlist = support.hdpass_get_servers(item)
 
-    # Requerido para Filtrar enlaces
-
     if checklinks:
         itemlist = servertools.check_list_links(itemlist, checklinks_number)
-
-    # Requerido para FilterTools
-
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
 
     autoplay.start(itemlist, item)
 

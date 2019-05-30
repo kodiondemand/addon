@@ -6,8 +6,16 @@
     "language": ["ita"],
     "thumbnail": "https:\/\/raw.githubusercontent.com\/Zanzibar82\/images\/master\/posters\/altadefinizioneclick.png",
     "bannermenu": "https:\/\/raw.githubusercontent.com\/Zanzibar82\/images\/master\/posters\/altadefinizioneciclk.png",
-    "categories": ["tvshow","movie","vosi"],
+    "categories": ["movie","vosi"],
     "settings": [
+        {
+            "id": "channel_host",
+            "type": "text",
+            "label": "Host del canale",
+            "default": "https://altadefinizione.cloud",
+            "enabled": true,
+            "visible": true
+        },
         {
             "id": "include_in_global_search",
             "type": "bool",

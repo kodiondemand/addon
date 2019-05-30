@@ -121,7 +121,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
     itemlist = []
 
     if not data:
-        data = httptools.downloadpage(item.url, headers=headers).data.replace("'", '"')
+        data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data.replace("'", '"')
         data = re.sub('\n|\t', ' ', data)
         # replace all ' with " and eliminate newline, so we don't need to worry about
         log('DATA =', data)
@@ -451,7 +451,7 @@ def typo(string, typography=''):
 def match(item, patron='', patron_block='', headers='', url=''):
     matches = []
     url = url if url else item.url
-    data = httptools.downloadpage(url, headers=headers).data.replace("'", '"')
+    data = httptools.downloadpage(url, headers=headers, ignore_response_code=True).data.replace("'", '"')
     data = re.sub(r'\n|\t|\s\s', '', data)
     log('DATA= ', data)
 
@@ -537,7 +537,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
 def server(item, data='', itemlist='', headers='', AutoPlay=True, CheckLinks=True):
 
     if not data:
-        data = httptools.downloadpage(item.url, headers=headers).data
+        data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
 
     if not itemlist:
         itemlist = servertools.find_video_items(data=str(data))
