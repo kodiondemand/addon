@@ -8,7 +8,7 @@ import urlparse
 import xbmcaddon
 
 from channelselector import thumb
-from core import httptools, scrapertoolsV2, servertools, tmdb
+from core import httptools, scrapertoolsV2, servertools, tmdb, channeltools
 from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
@@ -225,7 +225,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     it.__setattr__(lg, match[listGroups.index(lg)])
 
                 itemlist.append(it)
-
+        checkHost(item, itemlist)
         if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
                 or (item.contentType == "movie" and action != "play"):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -241,6 +241,21 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
             videolibrary(itemlist, item)
 
     return itemlist
+
+
+def checkHost(item, itemlist):
+    # nel caso non ci siano risultati puo essere che l'utente abbia cambiato manualmente l'host, pertanto lo riporta
+    # al valore di default (fixa anche il problema del cambio di host da parte nostra)
+    if len(itemlist) == 0:
+        # trovo il valore di default
+        defHost = None
+        for s in channeltools.get_channel_json(item.channel)['settings']:
+            if s['id'] == 'channel_host':
+                defHost = s['default']
+                break
+        # lo confronto con quello attuale
+        if config.get_setting('channel_host', item.channel) != defHost:
+            config.set_setting('channel_host', defHost, item.channel)
 
 
 def dooplay_get_links(item, host):
