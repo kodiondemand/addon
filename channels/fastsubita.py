@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
+# Canale per fastsubita - 4l3x87
 # Thanks Icarus crew & Alfa addon
-# Canale per fastsubita
 # ------------------------------------------------------------
 
 from core import scrapertools, httptools, tmdb, support
@@ -17,7 +17,7 @@ list_servers = ['verystream', 'openload', 'speedvideo', 'wstream', 'flashx', 'vi
 list_quality = ['default']
 
 headers = [
-    ['Host', 'fastsubita.com'],
+    ['Host', host.split("//")[-1].split("/")[0]],
     ['User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0'],
     ['Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'],
     ['Accept-Language', 'en-US,en;q=0.5'],
@@ -104,7 +104,9 @@ def pelicuals_tv(item):
         else:
             scrapedurl = "http:" + scrapedurl
 
-        title = scraped_1 + " - " + infoLabels['season'] + "x" + infoLabels['episode'] + " Sub-ITA"
+
+        serie = cleantitle(scraped_1)
+        title = serie + " - " + infoLabels['season'] + "x" + infoLabels['episode'] + " "+support.typo('Sub-ITA', '_ [] color kod')
 
         itemlist.append(
             Item(channel=item.channel,
@@ -115,9 +117,9 @@ def pelicuals_tv(item):
                  url=scrapedurl,
                  thumbnail=scrapedthumbnail,
                  plot=scrapedplot,
-                 show=scraped_1,
+                 show=serie,
                  extra=item.extra,
-                 contentSerieName=scraped_1,
+                 contentSerieName=serie,
                  contentLanguage='Sub-ITA',
                  infoLabels=infoLabels,
                  folder=True))
@@ -301,7 +303,7 @@ def episodios(item, itemlist=[]):
         infoLabels = {}
         infoLabels['season'] = season
         infoLabels['episode'] = episode[2]
-        title = infoLabels['season'] + 'x' + infoLabels['episode'] + " Sub-ITA"
+        title = infoLabels['season'] + 'x' + infoLabels['episode'] + " "+support.typo('Sub-ITA', '_ [] color kod')
 
         if "http:" not in scrapedurl:
             scrapedurl = "http:" + scrapedurl
