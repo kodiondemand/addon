@@ -452,7 +452,7 @@ def match(item, patron='', patron_block='', headers='', url=''):
     matches = []
     url = url if url else item.url
     data = httptools.downloadpage(url, headers=headers, ignore_response_code=True).data.replace("'", '"')
-    data = re.sub(r'\n|\t|\s\s', '', data)
+    data = re.sub(r'\n|\t|\s\s', ' ', data)
     log('DATA= ', data)
 
     if patron_block:
@@ -500,11 +500,11 @@ def videolibrary(itemlist, item, typography='', function_level=1):
 
     return itemlist
 
-def nextPage(itemlist, item, data, patron, function_level=1):
+def nextPage(itemlist, item, data='', patron='', function_level=1, next_page=''):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
-    
-    next_page = scrapertoolsV2.find_single_match(data, patron)
+    if next_page == '':
+        next_page = scrapertoolsV2.find_single_match(data, patron)
 
     if next_page != "":
         if 'http' not in next_page:
