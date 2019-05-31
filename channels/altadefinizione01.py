@@ -2,24 +2,22 @@
 # ------------------------------------------------------------
 # Canale per altadefinizione01
 # ------------------------------------------------------------
-import re
-import urlparse
 
-from channels import filtertools, autoplay, support
-from core import servertools, httptools, tmdb, scrapertoolsV2
+from core import servertools, httptools, tmdb, scrapertoolsV2, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
 #URL che reindirizza sempre al dominio corrente
-host = "https://altadefinizione01.team"
+host = "https://altadefinizione01.to"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['openload', 'streamango', 'rapidvideo', 'streamcherry', 'megadrive']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'altadefinizione01')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'altadefinizione01')
+checklinks = config.get_setting('checklinks', 'altadefinizione01')
+checklinks_number = config.get_setting('checklinks_number', 'altadefinizione01')
 
 headers = [['Referer', host]]
 blacklist_categorie = ['Altadefinizione01', 'Altadefinizione.to']
@@ -45,12 +43,12 @@ def mainlist(item):
 
 def categories(item):
     support.log(item)
-    itemlist = support.scrape(item,'<li><a href="([^"]+)">(.*?)</a></li>',['url','title'],headers,'Altadefinizione01',patron_block='<ul class="kategori_list">(.*?)</ul>',action='peliculas',url_host=host)
+    itemlist = support.scrape(item,'<li><a href="([^"]+)">(.*?)</a></li>',['url','title'],headers,'Altadefinizione01',patron_block='<ul class="kategori_list">(.*?)</ul>',action='peliculas')
     return support.thumb(itemlist)
 
 def AZlist(item):
     support.log()
-    return support.scrape(item,r'<a title="([^"]+)" href="([^"]+)"',['title','url'],headers,patron_block=r'<div class="movies-letter">(.*?)<\/div>',action='peliculas_list',url_host=host)
+    return support.scrape(item,r'<a title="([^"]+)" href="([^"]+)"',['title','url'],headers,patron_block=r'<div class="movies-letter">(.*?)<\/div>',action='peliculas_list')
 
 
 def newest(categoria):
@@ -137,9 +135,10 @@ def peliculas(item):
 
 def peliculas_list(item):
     support.log()
+    item.fulltitle = ''
     block = r'<tbody>(.*)<\/tbody>'
-    patron = r'<td class="mlnh-thumb"><a href="([^"]+)" title="([^"]+)".*?> <img.*?src="([^"]+)".*?<td class="mlnh-3">([0-9]+)<\/td><td class="mlnh-4">(.*?)<\/td>'
-    return support.scrape(item,patron, ['url','title','year','quality'],patron_block=block)
+    patron = r'<a href="([^"]+)" title="([^"]+)".*?> <img.*?src="([^"]+)".*?<td class="mlnh-3">([0-9]{4}).*?mlnh-4">([A-Z]+)'
+    return support.scrape(item,patron, ['url', 'title', 'thumb', 'year', 'quality'], patron_block=block)
 
 
 
@@ -147,17 +146,5 @@ def findvideos(item):
     support.log()
     
     itemlist = support.server(item, headers=headers)
-
-    # Requerido para Filtrar enlaces
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
-
-    # Requerido para FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-    autoplay.start(itemlist, item)
-
-    support.videolibrary(itemlist, item, 'color kod')
 
     return itemlist

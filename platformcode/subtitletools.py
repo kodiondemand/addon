@@ -8,6 +8,7 @@ from unicodedata import normalize
 
 import xbmc
 import xbmcgui
+
 from platformcode import config, logger
 
 allchars = string.maketrans('', '')

@@ -8,6 +8,7 @@
 # ------------------------------------------------------------
 
 import re
+
 import urllib2
 
 from core import jsontools
@@ -19,7 +20,7 @@ from platformcode import platformtools
 HOST = "https://api.thetvdb.com"
 HOST_IMAGE = "http://thetvdb.com/banners/"
 
-import xbmc, xbmcaddon
+import xbmcaddon
 addon = xbmcaddon.Addon('metadata.tvdb.com')
 
 TOKEN = config.get_setting("tvdb_token", default="")

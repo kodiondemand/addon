@@ -3,13 +3,12 @@
 # Ringraziamo Icarus crew
 # Canale per dreamsub
 # ------------------------------------------------------------
-import re, urlparse
+import re
+import urlparse
 
 from core import scrapertools, httptools, servertools, tmdb
 from core.item import Item
 from platformcode import logger, config
-
-
 
 host = "https://www.dreamsub.co"
 
@@ -162,7 +161,7 @@ def categorie(item):
     matches = re.compile(patron, re.DOTALL).findall(blocco)
 
     for value in matches:
-        url = "%s/genere/%s" % (host, value)
+        url = host + '/filter?genere=' + value
         itemlist.append(
             Item(channel=item.channel,
                  action="serietv",

@@ -3,8 +3,6 @@
 # Conector para streamcherry
 # --------------------------------------------------------
 
-import re
-
 from core import httptools
 from core import scrapertools
 from platformcode import logger

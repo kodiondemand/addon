@@ -5,14 +5,15 @@
 
 import os
 import sys
+
+import updater
 import urllib2
-import time
 
 from core import channeltools
 from core import scrapertools
 from core import servertools
-from core import videolibrarytools
 from core import trakt_tools
+from core import videolibrarytools
 from core.item import Item
 from platformcode import config, logger
 from platformcode import platformtools
@@ -32,7 +33,6 @@ def start():
 
 def run(item=None):
     logger.info()
-
     if not item:
         # Extract item from sys.argv
         if sys.argv[2]:
@@ -57,15 +57,15 @@ def run(item=None):
                     category = dictCategory[config.get_setting("category")]
                     item = Item(channel="news", action="novedades", extra=category, mode = 'silent')
                 else:
-                    from channels import side_menu
+                    from specials import side_menu
                     item= Item()
                     item = side_menu.check_user_home(item)
-                    item.start = True;
+                    item.start = True
             else:
                 item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
             from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.ask_set_content(1)
+            xbmc_videolibrary.ask_set_content(1, config.get_setting('videolibrary_kodi_force'))
             config.set_setting('show_once', True)
 
     logger.info(item.tostring())
@@ -75,6 +75,9 @@ def run(item=None):
         if item.action == "":
             logger.info("Item sin accion")
             return
+        
+        if item.action == "update":
+            updater.update()
 
         # Action for main menu in channelselector
         elif item.action == "getmainlist":
@@ -110,6 +113,10 @@ def run(item=None):
             else:
                 return keymaptools.set_key()
 
+        elif item.action == "delete_key":
+            from platformcode import keymaptools
+            return keymaptools.delete_key()
+
         elif item.action == "script":
             from core import tmdb
             if tmdb.drop_bd():
@@ -117,10 +124,9 @@ def run(item=None):
 
         # Action in certain channel specified in "action" and "channel" parameters
         else:
-
             # Entry point for a channel is the "mainlist" action, so here we check parental control
             if item.action == "mainlist":
-
+                #updater.checkforupdates() beta version checking for update, still disabled
 
                 # Parental control
                 # If it is an adult channel, and user has configured pin, asks for it
@@ -128,7 +134,6 @@ def run(item=None):
                     tecleado = platformtools.dialog_input("", config.get_localized_string(60334), True)
                     if tecleado is None or tecleado != config.get_setting("adult_password"):
                         return
-
             # # Actualiza el canal individual
             # if (item.action == "mainlist" and item.channel != "channelselector" and
             #             config.get_setting("check_for_channel_updates") == True):
@@ -136,18 +141,22 @@ def run(item=None):
             #     updater.update_channel(item.channel)
 
             # Checks if channel exists
-            channel_file = os.path.join(config.get_runtime_path(),
-                                        'channels', item.channel + ".py")
-            logger.info("channel_file=%s" % channel_file)
+            if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
+                CHANNELS = 'channels'
+            else:
+                CHANNELS ='specials'
+            channel_file = os.path.join(config.get_runtime_path(), CHANNELS, item.channel + ".py")            
+                
+            logger.info("channel_file= " + channel_file)
 
             channel = None
 
             if os.path.exists(channel_file):
                 try:
-                    channel = __import__('channels.%s' % item.channel, None,
-                                         None, ["channels.%s" % item.channel])
+                    channel = __import__(CHANNELS + item.channel, None, None, [CHANNELS + item.channel])
                 except ImportError:
-                    exec "import channels." + item.channel + " as channel"
+                    importer = "import " + CHANNELS + "." + item.channel + " as channel"
+                    exec(importer)
 
             logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 
@@ -219,7 +228,7 @@ def run(item=None):
 
             # Special action for downloading all episodes from a serie
             elif item.action == "download_all_episodes":
-                from channels import downloads
+                from specials import downloads
                 item.action = item.extra
                 del item.extra
                 downloads.save_download(item)
@@ -240,7 +249,7 @@ def run(item=None):
                 tecleado = platformtools.dialog_input(last_search)
                 if tecleado is not None:
                     if last_search_active and not tecleado.startswith("http"):
-                        from channels import search
+                        from specials import search
                         search.save_search(tecleado)
 
                     itemlist = channel.search(item, tecleado)
@@ -249,8 +258,9 @@ def run(item=None):
 
                 platformtools.render_items(itemlist, item)
 
-            # For all other actions
+            # For all other actions            
             else:
+                # import web_pdb; web_pdb.set_trace()
                 logger.info("Executing channel '%s' method" % item.action)
                 itemlist = getattr(channel, item.action)(item)
                 if config.get_setting('trakt_sync'):
@@ -287,8 +297,7 @@ def run(item=None):
         import traceback
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\",
-                                                                                            "\\\\") + '([^.]+)\.py"'
+        patron = 'File "' + os.path.join(config.get_runtime_path(), CHANNELS, "").replace("\\", "\\\\") + '([^.]+)\.py"'
         canal = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         platformtools.dialog_ok(
@@ -298,8 +307,7 @@ def run(item=None):
         import traceback
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\",
-                                                                                            "\\\\") + '([^.]+)\.py"'
+        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + '([^.]+)\.py"'
         canal = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         try:
@@ -408,10 +416,10 @@ def play_from_library(item):
     # Intentamos reproducir una imagen (esto no hace nada y ademas no da error)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True,
                               xbmcgui.ListItem(
-                                  path=os.path.join(config.get_runtime_path(), "resources", "subtitle.mp4")))
+                                  path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
 
     # Por si acaso la imagen hiciera (en futuras versiones) le damos a stop para detener la reproduccion
-    sleep(0.5)              ### Si no se pone esto se bloquea Kodi
+    # sleep(0.5)              ### Si no se pone esto se bloquea Kodi
     xbmc.Player().stop()
 
     # modificamos el action (actualmente la videoteca necesita "findvideos" ya que es donde se buscan las fuentes
@@ -426,7 +434,7 @@ def play_from_library(item):
 
     else:
         # Ventana emergente
-        from channels import videolibrary
+        from specials import videolibrary
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(70004))
         p_dialog.update(0, '')
 
@@ -484,6 +492,6 @@ def play_from_library(item):
                     item = videolibrary.play(itemlist[seleccion])[0]
                     platformtools.play_video(item)
 
-                from channels import autoplay
+                from specials import autoplay
                 if (platformtools.is_playing() and item.action) or item.server == 'torrent' or autoplay.is_active(item.contentChannel):
                     break

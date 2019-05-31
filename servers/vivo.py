@@ -1,8 +1,8 @@
 # Conector Vivo By Alfa development Group
 # --------------------------------------------------------
 
-import re
 import base64
+
 from core import httptools
 from core import scrapertools
 from platformcode import logger

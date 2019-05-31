@@ -23,7 +23,7 @@ except:
 from core import channeltools, filetools, videolibrarytools
 from platformcode import logger
 from platformcode import platformtools
-from channels import videolibrary
+from specials import videolibrary
 from lib import generictools
 
 
@@ -333,22 +333,23 @@ if __name__ == "__main__":
 
 
     # Verificar quick-fixes al abrirse Kodi, y dejarlo corriendo como Thread
-    if not os.path.isfile(config.get_runtime_path() + '/.dev'):
+    if not os.path.isdir(config.get_runtime_path() + '/.git'):
         logger.info("DEV MODE OFF")
         from platformcode import updater
         updater.check_addon_init()
-
-        # Copia Custom code a las carpetas de Alfa desde la zona de Userdata
-        from platformcode import custom_code
-        custom_code.init()
-
-        # Identifica la dirección Proxy y la lista de alternativas
-        from core import proxytools
-        proxytools.get_proxy_list()
-        if not config.get_setting("update", "videolibrary") == 2:
-            check_for_update(overwrite=False)
     else:
         logger.info("DEV MODE ON")
+
+    # Copia Custom code a las carpetas de Alfa desde la zona de Userdata
+    from platformcode import custom_code
+    custom_code.init()
+
+    # Identifica la dirección Proxy y la lista de alternativas
+    from core import proxytools
+    proxytools.get_proxy_list()
+    if not config.get_setting("update", "videolibrary") == 2:
+        check_for_update(overwrite=False)
+    
 
     # Se ejecuta ciclicamente
     if config.get_platform(True)['num_version'] >= 14:

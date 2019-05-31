@@ -2,18 +2,15 @@
 # ------------------------------------------------------------
 # Canale per CinemaLibero - First Version
 # ------------------------------------------------------------
-import base64
 import re
-import urlparse
 
-from channels import autoplay, support
-from channels import filtertools
-from core import scrapertools, servertools, httptools
-from platformcode import logger, config
+from core import scrapertools, servertools, httptools, support
+from core import tmdb
 from core.item import Item
 from lib import unshortenit
 from platformcode import config
-from core import tmdb
+from platformcode import logger
+from specials import autoplay
 
 # Necessario per Autoplay
 IDIOMAS = {'Italiano': 'IT'}
@@ -22,8 +19,8 @@ list_servers = ['akstream', 'wstream', 'openload', 'streamango']
 list_quality = ['default']
 
 # Necessario per Verifica Link
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'cinemalibero')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'cinemalibero')
+checklinks = config.get_setting('checklinks', 'cinemalibero')
+checklinks_number = config.get_setting('checklinks_number', 'cinemalibero')
 
 host = 'https://www.cinemalibero.icu'
 
@@ -222,11 +219,11 @@ def findvideos(item): # Questa def. deve sempre essere nominata findvideos
                      action='add_pelicula_to_library', extra='findservers', contentTitle=item.contentTitle))
 
     # Necessario per filtrare i Link
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Necessario per  FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Necessario per  AutoPlay
     autoplay.start(itemlist, item)

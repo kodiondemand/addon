@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------
-import urlparse,urllib2,urllib,re
-import os, sys
-from core import scrapertools
-from core import servertools
-from core.item import Item
-from platformcode import config, logger
+import re
+import urlparse
+
 from core import httptools
+from core import scrapertools
+from core.item import Item
+from platformcode import logger
 
 # https://playpornfree.org/    https://mangoporn.net/   https://watchfreexxx.net/   https://losporn.org/  https://xxxstreams.me/  https://speedporn.net/
 

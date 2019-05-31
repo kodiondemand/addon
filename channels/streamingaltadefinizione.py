@@ -1,7 +1,13 @@
-from channels import support, autoplay
-from core.item import Item
+# -*- coding: utf-8 -*-
+# ------------------------------------------------------------
+# Canale per Streaming Altadefinizione
+# ------------------------------------------------------------
 
-host = 'https://www.streamingaltadefinizione.world/'
+from core import support
+from core.item import Item
+from specials import autoplay
+
+host = 'https://www.streamingaltadefinizione.space'
 
 list_servers = ['verystream', 'openload', 'wstream']
 list_quality = ['1080p', 'HD', 'DVDRIP', 'SD', 'CAM']

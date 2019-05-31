@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-import urlparse
-import urllib2
-import urllib
 import re
-import os
-import sys
-from core import scrapertools
-from core import servertools
-from core.item import Item
-from platformcode import config, logger
+
+import urlparse
+
 from core import httptools
+from core import scrapertools
+from core.item import Item
+from platformcode import logger
 
 host = 'https://pandamovies.pw'
 

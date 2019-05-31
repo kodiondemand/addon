@@ -4,13 +4,12 @@
 # Canale istitutoluce
 # ------------------------------------------------------------
 
-import re, urlparse
+import re
+import urlparse
 
 from core import httptools, scrapertools, servertools
 from core.item import Item
 from platformcode import logger, config
-
-
 
 host = "https://patrimonio.archivioluce.com"
 host2 = "https://www.archivioluce.com"

@@ -4,10 +4,11 @@
 # --------------------------------------------------------
 
 import re
+
 from core import httptools
-from platformcode import logger
 from core import scrapertools
 from lib import jsunpack
+from platformcode import logger
 
 
 def test_video_exists(page_url):

@@ -7,6 +7,7 @@ import inspect
 import os
 
 import xbmcgui
+
 from core import channeltools
 from core import servertools
 from platformcode import config, logger
@@ -174,12 +175,12 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
             channelpath = inspect.currentframe().f_back.f_back.f_code.co_filename
         self.channel = os.path.basename(channelpath).replace(".py", "")
         self.ch_type = os.path.basename(os.path.dirname(channelpath))
-
+        logger.info('PATH= ' + channelpath)
         # Si no tenemos list_controls, hay que sacarlos del json del canal
         if not self.list_controls:
 
             # Si la ruta del canal esta en la carpeta "channels", obtenemos los controles y valores mediante chaneltools
-            if os.path.join(config.get_runtime_path(), "channels") in channelpath:
+            if os.path.join(config.get_runtime_path(), "channels") or os.path.join(config.get_runtime_path(), "specials")  in channelpath:
 
                 # La llamada se hace desde un canal
                 self.list_controls, default_values = channeltools.get_channel_controls_settings(self.channel)
@@ -353,7 +354,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
         return ok
 
     def add_control_label(self, c):
-        control = xbmcgui.ControlLabel(0, -100, self.controls_width, 30, "", alignment=4, font=self.font,
+        control = xbmcgui.ControlLabel(0, -100, self.controls_width, 40, "", alignment=4, font=self.font,
                                        textColor=c["color"])
 
         self.addControl(control)
@@ -365,20 +366,20 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
         c["control"] = control
 
     def add_control_list(self, c):
-        control = xbmcgui.ControlButton(0, -100, self.controls_width, self.height_control,
+        control = xbmcgui.ControlButton(0, -100, self.controls_width + 20, self.height_control,
                                         c["label"], os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
                                         os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'),
-                                        0, textColor=c["color"],
+                                        10, textColor=c["color"],
                                         font=self.font)
 
-        label = xbmcgui.ControlLabel(0, -100, self.controls_width - 30, self.height_control,
-                                     "", font=self.font, textColor=c["color"], alignment=4 | 1)
+        label = xbmcgui.ControlLabel(0, -100, self.controls_width - 80, self.height_control,
+                                     "", font=self.font, textColor=c["color"], alignment= 1 | 4)
 
-        upBtn = xbmcgui.ControlButton(0, -100, 20, 15, "",
+        upBtn = xbmcgui.ControlButton(0, -100, 15, 7, "",
                                       focusTexture=os.path.join(self.mediapath, 'Controls', 'spinUp-Focus.png'),
                                       noFocusTexture=os.path.join(self.mediapath, 'Controls', 'spinUp-noFocus.png'))
 
-        downBtn = xbmcgui.ControlButton(0, -100 + 15, 20, 15, "",
+        downBtn = xbmcgui.ControlButton(0, -100 + 15, 15, 7, "",
                                         focusTexture=os.path.join(self.mediapath, 'Controls', 'spinDown-Focus.png'),
                                         noFocusTexture=os.path.join(self.mediapath, 'Controls', 'spinDown-noFocus.png'))
 
@@ -430,14 +431,14 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
     def add_control_bool(self, c):
         # Versiones antiguas no admite algunas texturas
         if xbmcgui.__version__ in ["1.2", "2.0"]:
-            control = xbmcgui.ControlRadioButton(0 - 10, -100, self.controls_width + 10, self.height_control,
+            control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20, self.height_control,
                                                  label=c["label"], font=self.font, textColor=c["color"],
                                                  focusTexture=os.path.join(self.mediapath, 'Controls',
                                                                            'MenuItemFO.png'),
                                                  noFocusTexture=os.path.join(self.mediapath, 'Controls',
                                                                              'MenuItemNF.png'))
         else:
-            control = xbmcgui.ControlRadioButton(0 - 10, -100, self.controls_width + 10,
+            control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20,
                                                  self.height_control, label=c["label"], font=self.font,
                                                  textColor=c["color"],
                                                  focusTexture=os.path.join(self.mediapath, 'Controls',
@@ -490,11 +491,11 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                                    self.getControl(10005).getPosition()[1])
 
         # Obtenemos las dimensiones del area de controles
-        self.controls_width = self.getControl(10007).getWidth() - 20
-        self.controls_height = self.getControl(10007).getHeight()
+        self.controls_width = self.getControl(10007).getWidth() - 30
+        self.controls_height = self.getControl(10007).getHeight() -100
         self.controls_pos_x = self.getControl(10007).getPosition()[0] + self.getControl(10001).getPosition()[0] + 10
         self.controls_pos_y = self.getControl(10007).getPosition()[1] + self.getControl(10001).getPosition()[1]
-        self.height_control = 35
+        self.height_control = 40
         self.font = "font12"
 
         # En versiones antiguas: creamos 5 controles, de lo conrtario al hacer click al segundo control,
@@ -544,7 +545,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                 default = ""
 
             c["default"] = c.get("default", default)
-            c["color"] = c.get("color", "0xFF0066CC")
+            c["color"] = c.get("color", "0xFFFFFFFF")
             c["visible"] = c.get("visible", True)
             c["enabled"] = c.get("enabled", True)
 
@@ -618,7 +619,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
 
                     if c["type"] != "list":
                         if c["type"] == "bool":
-                            c["control"].setPosition(self.controls_pos_x - 10, c["y"])
+                            c["control"].setPosition(self.controls_pos_x, c["y"])
                         else:
                             c["control"].setPosition(self.controls_pos_x, c["y"])
 
@@ -628,8 +629,8 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                             c["label"].setPosition(self.controls_pos_x + self.controls_width - 30, c["y"])
                         else:
                             c["label"].setPosition(self.controls_pos_x, c["y"])
-                        c["upBtn"].setPosition(self.controls_pos_x + c["control"].getWidth() - 25, c["y"] + 3)
-                        c["downBtn"].setPosition(self.controls_pos_x + c["control"].getWidth() - 25, c["y"] + 18)
+                        c["upBtn"].setPosition(self.controls_pos_x + c["control"].getWidth() - 40, c["y"] + 15)
+                        c["downBtn"].setPosition(self.controls_pos_x + c["control"].getWidth() - 25, c["y"] + 15)
 
                     self.set_visible(c, True)
 
@@ -961,7 +962,7 @@ class ControlEdit(xbmcgui.ControlButton):
         self.label = ""
         self.text = ""
         self.textControl = xbmcgui.ControlLabel(self.getX(), self.getY(), self.getWidth(), self.getHeight(), self.text,
-                                                font=kwargs["font"], textColor=kwargs["textColor"], alignment=4 | 1)
+                                                font=kwargs["font"], textColor=kwargs["textColor"], alignment= 4 | 1)
         self.window.addControl(self.textControl)
 
     def setLabel(self, val):

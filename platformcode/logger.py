@@ -6,6 +6,7 @@
 import inspect
 
 import xbmc
+
 from platformcode import config
 
 loggeractive = (config.get_setting("debug") == True)
@@ -43,9 +44,9 @@ def get_caller(message=None):
     function = inspect.currentframe().f_back.f_back.f_code.co_name
 
     if module == "__main__":
-        module = "alfa"
+        module = "kod"
     else:
-        module = "alfa." + module
+        module = "kod." + module
     if message:
         if module not in message:
             if function == "<module>":

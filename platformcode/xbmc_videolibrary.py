@@ -6,9 +6,10 @@
 import os
 import threading
 import time
-import urllib2
 
+import urllib2
 import xbmc
+
 from core import filetools
 from core import jsontools
 from platformcode import config, logger
@@ -51,7 +52,7 @@ def mark_auto_as_watched(item):
                 logger.debug("marcado")
                 item.playcount = 1
                 sync_with_trakt = True
-                from channels import videolibrary
+                from specials import videolibrary
                 videolibrary.mark_content_as_watched2(item)
                 break
 
@@ -326,7 +327,7 @@ def mark_season_as_watched_on_kodi(item, value=1):
 
 
 def mark_content_as_watched_on_alfa(path):
-    from channels import videolibrary
+    from specials import videolibrary
     from core import videolibrarytools
     from core import scrapertools
     from core import filetools
@@ -534,12 +535,17 @@ def set_content(content_type, silent=False):
     continuar = True
     msg_text = ""
     videolibrarypath = config.get_setting("videolibrarypath")
+    forced = config.get_setting('videolibrary_kodi_force')
 
     if content_type == 'movie':
         scraper = [config.get_localized_string(70093), config.get_localized_string(70096)]
-        seleccion = platformtools.dialog_select(config.get_localized_string(70094), scraper)
+        if forced:
+            seleccion = 0 # tmdb
+        else:
+            seleccion = platformtools.dialog_select(config.get_localized_string(70094), scraper)
 
-        # Instalar The Movie Database
+
+    # Instalar The Movie Database
         if seleccion == -1 or seleccion == 0:
             if not xbmc.getCondVisibility('System.HasAddon(metadata.themoviedb.org)'):
                 if not silent:
@@ -559,6 +565,7 @@ def set_content(content_type, silent=False):
                 continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.themoviedb.org)'))
                 if not continuar:
                     msg_text = config.get_localized_string(60047)
+
             if continuar:
                 xbmc.executebuiltin('xbmc.addon.opensettings(metadata.themoviedb.org)', True)
 
@@ -588,7 +595,10 @@ def set_content(content_type, silent=False):
 
     else:  # SERIES
         scraper = [config.get_localized_string(70098), config.get_localized_string(70093)]
-        seleccion = platformtools.dialog_select(config.get_localized_string(70107), scraper)
+        if forced:
+            seleccion = 0 # tvdb
+        else:
+            seleccion = platformtools.dialog_select(config.get_localized_string(70107), scraper)
 
         # Instalar The TVDB
         if seleccion == -1 or seleccion == 0:

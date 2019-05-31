@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import re
-import sys
+
 import urlparse
 
-from platformcode import logger
 from core import scrapertools, httptools
 from core.item import Item
+from platformcode import logger
 
 HOST = "http://es.xhamster.com/"
 

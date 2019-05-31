@@ -4,23 +4,21 @@
 # -*- By the Alfa Develop Group -*-
 
 import re
-import urllib
 
+from channelselector import get_thumb
 from core import httptools
 from core import scrapertools
 from core import servertools
-from channelselector import get_thumb
 from core import tmdb
 from core.item import Item
 from platformcode import logger, config
-from channels import autoplay
-from channels import filtertools
-from channels import renumbertools
+from specials import autoplay
+from specials import renumbertools
 
 host = "https://animespace.tv/"
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animespace')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'animespace')
+checklinks = config.get_setting('checklinks', 'animespace')
+checklinks_number = config.get_setting('checklinks_number', 'animespace')
 
 IDIOMAS = {'VOSE': 'VOSE'}
 list_language = IDIOMAS.values()
@@ -242,12 +240,12 @@ def findvideos(item):
 
     itemlist = servertools.get_servers_itemlist(itemlist, lambda x: x.title % x.server.capitalize())
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Requerido para AutoPlay
 

@@ -6,6 +6,10 @@
       {
         "pattern": "vidto.me/(?:embed-|)([A-z0-9]+)",
         "url": "http://vidto.me/embed-\\1.html"
+      },
+      {
+        "pattern": "vidtome.stream/(?:embed-|)([A-z0-9]+)",
+        "url": "http://vidtome.stream/\\1.html"
       }
     ]
   },

@@ -2,18 +2,18 @@
 # ------------------------------------------------------------
 # Canale per animeworld
 # ----------------------------------------------------------
-import re, urlparse
+import re
+import time
+import urllib
+import urlparse
 
-from core import httptools, scrapertoolsV2, servertools, tmdb, tvdb
+from core import httptools, scrapertoolsV2, servertools, tmdb, support, jsontools
+from core.support import log
 from core.item import Item
 from platformcode import logger, config
-from channels import autoplay, filtertools, support, autorenumber
-from channelselector import thumb
+from specials import autoplay, autorenumber
 
-
-
-host = "https://www.animeworld.it"
-
+host = config.get_setting("channel_host", 'animeworld')
 headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'Italiano'}
@@ -21,25 +21,43 @@ list_language = IDIOMAS.values()
 list_servers = ['diretto']
 list_quality = []
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'animeworld')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'animeworld')
+checklinks = config.get_setting('checklinks', 'animeworld')
+checklinks_number = config.get_setting('checklinks_number', 'animeworld')
 
 
 def mainlist(item):
-    logger.info("[animeworld.py] mainlist")
+    log()
     
     itemlist =[]
     
-    support.menu(itemlist, 'Anime ITA submenu bold', 'build_menu', host+'/filter?language[]=1')
-    support.menu(itemlist, 'Anime SUB submenu bold', 'build_menu', host+'/filter?language[]=0')
-    support.menu(itemlist, 'Anime A-Z sub', 'alfabetico', host+'/az-list')
-    support.menu(itemlist, 'Anime - Ultimi Aggiunti', 'alfabetico', host+'/newest')
-    support.menu(itemlist, 'Anime - Ultimi Episodi', 'alfabetico', host+'/newest')
+    support.menu(itemlist, 'Anime bold', 'lista_anime', host+'/az-list')
+    support.menu(itemlist, 'ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=1'])
+    support.menu(itemlist, 'Sub-ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=0'])
+    support.menu(itemlist, 'Archivio A-Z submenu', 'alfabetico', host+'/az-list', args=["tvshow","a-z"])
+    support.menu(itemlist, 'In corso submenu', 'video', host+'/', args=["in sala"])
+    support.menu(itemlist, 'Generi submenu', 'generi', host+'/')
+    support.menu(itemlist, 'Ultimi Aggiunti bold', 'video', host+'/newest', args=["anime"])
+    support.menu(itemlist, 'Ultimi Episodi bold', 'video', host+'/updated', args=["novita'"])
     support.menu(itemlist, 'Cerca...', 'search')
+    support.aplay(item, itemlist, list_servers, list_quality)
+    support.channel_config(item, itemlist)
+    return itemlist
 
-    
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
+# Crea menu dei generi =================================================
+
+def generi(item):
+    log()
+    itemlist = []
+    patron_block = r'</i>\sGeneri</a>\s*<ul class="sub">(.*?)</ul>'
+    patron = r'<a href="([^"]+)"\stitle="([^"]+)">'
+    matches = support.match(item,patron, patron_block, headers)[0]
+
+    for scrapedurl, scrapedtitle in matches:
+        itemlist.append(Item(
+            channel=item.channel,
+            action="video",
+            title=scrapedtitle,
+            url="%s%s" % (host,scrapedurl)))
 
     return itemlist
 
@@ -47,64 +65,32 @@ def mainlist(item):
 # Crea Menu Filtro ======================================================
 
 def build_menu(item):
+    log()
     itemlist = []
-    itemlist.append(Item(
-                    channel=item.channel,
-                    action="video",
-                    title="[B]Tutti[/B]",
-                    url=item.url))
-
-    data = httptools.downloadpage(item.url).data
-    data = re.sub(r'\n|\t','',data)
-    data = re.sub(r'>\s*<','><',data)
- 
-    block = scrapertoolsV2.find_single_match(data, r'<form class="filters.*?>(.*?)<\/form>')
-    
-    matches = re.compile(r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> (.*?) <span.*?>(.*?)<\/ul>', re.DOTALL).findall(block)
-
+    support.menu(itemlist, 'Tutti bold submenu', 'video', item.url+item.args[1])
+    matches, data = support.match(item,r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> (.*?) <span.*?>(.*?)<\/ul>',r'<form class="filters.*?>(.*?)<\/form>')
+    log('ANIME DATA =' ,data)
     for title, html in matches:
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='build_sub_menu',
-                 contentType="tvshow",
-                 title='[B] > ' + title + '[/B]',
-                 fulltitle=title,
-                 show=title,
-                 url=item.url,
-                 html=html,
-                 thumbnail=item.thumbnail,
-                 fanart=item.fanart))
-
-    # Elimina FLingua dal Menu
-    itemlist.pop(6)
-    itemlist.pop(6)
-
-    itemlist = thumb(itemlist)
-
+        if title not in 'Lingua Ordine':
+            support.menu(itemlist, title + ' submenu bold', 'build_sub_menu', html, args=item.args)
+            log('ARGS= ', item.args[0])
+            log('ARGS= ', html)
     return itemlist
 
 # Crea SottoMenu Filtro ======================================================
 
 def build_sub_menu(item):
+    log()
     itemlist = []
-    matches = re.compile(r'<input.*?name="(.*?)" value="(.*?)".*?><label.*?>(.*?)<\/label>', re.DOTALL).findall(item.html)
+    matches = re.compile(r'<input.*?name="([^"]+)" value="([^"]+)"\s*>[^>]+>([^<]+)<\/label>', re.DOTALL).findall(item.url)
     for name, value, title in matches:
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='video',
-                 contentType="tvshow",
-                 title='[B]' + title + ' >[/B]',
-                 fulltitle=title,
-                 show=title,
-                 url=item.url + '&' + name + '=' + value,
-                 plot=""))
-    itemlist = thumb(itemlist)
+        support.menu(itemlist, support.typo(title, 'bold'), 'video', host + '/filter?' + '&' + name + '=' + value + '&' + item.args[1])     
     return itemlist
 
 # Novità ======================================================
 
 def newest(categoria):
-    logger.info("[animeworld.py] newest")
+    log()
     itemlist = []
     item = Item()
     try:
@@ -128,7 +114,7 @@ def newest(categoria):
 # Cerca ===========================================================
 
 def search(item, texto):
-    logger.info(texto)
+    log(texto)
     item.url = host + '/search?keyword=' + texto
     try:
         return video(item)
@@ -140,77 +126,47 @@ def search(item, texto):
         return []
 
 
-
-
 # Lista A-Z ====================================================
 
 def alfabetico(item):
-    logger.info("[animeworld.py] alfabetico")
-    itemlist = []
-
-    data = httptools.downloadpage(item.url).data
-    data = re.sub(r'\n|\t','',data)
-    data = re.sub(r'>\s*<','><',data)
-
-    block = scrapertoolsV2.find_single_match(data, r'<span>.*?A alla Z.<\/span>.*?<ul>(.*?)<\/ul>')
-
-    matches = re.compile('<a href="([^"]+)" title="([^"]+)">', re.DOTALL).findall(block)
-    scrapertoolsV2.printMatches(matches)
-
-    for url, title in matches:
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='lista_anime',
-                 contentType="tvshow",
-                 title=title,
-                 fulltitle=title,
-                 show=title,
-                 url=url,
-                 plot=""))
-
-    return itemlist
+    return support.scrape(item, '<a href="([^"]+)" title="([^"]+)">', ['url', 'title'], patron_block=r'<span>.*?A alla Z.<\/span>.*?<ul>(.*?)<\/ul>', action='lista_anime')
+    
 
 def lista_anime(item):
-    logger.info("[animeworld.py] lista_anime")
-
+    log()
     itemlist = []
-
-    # Carica la pagina
-    data = httptools.downloadpage(item.url).data
-    data = re.sub(r'\n|\t','',data)
-    data = re.sub(r'>\s*<','><',data)
-
-    # Estrae i contenuti
-    patron = r'<div class="item"><a href="([^"]+)".*?src="([^"]+)".*?data-jtitle="([^"]+)".*?>([^<]+)<\/a><p>(.*?)<\/p>'
-    matches = re.compile(patron, re.DOTALL).findall(data)
-
+    matches ,data = support.match(item, r'<div class="item"><a href="([^"]+)".*?src="([^"]+)".*?data-jtitle="([^"]+)".*?>([^<]+)<\/a><p>(.*?)<\/p>')
     for scrapedurl, scrapedthumb, scrapedoriginal, scrapedtitle, scrapedplot in matches:
         
         if scrapedoriginal == scrapedtitle:
             scrapedoriginal=''
         else:
-            scrapedoriginal = ' - [ ' + scrapedoriginal + ' ]'
+            scrapedoriginal = support.typo(scrapedoriginal,' -- []')
 
         year = ''
         lang = ''
+        infoLabels = {}
         if '(' in scrapedtitle:
             year = scrapertoolsV2.find_single_match(scrapedtitle, r'(\([0-9]+\))')
             lang = scrapertoolsV2.find_single_match(scrapedtitle, r'(\([a-zA-Z]+\))')
-        
-        title = scrapedtitle.replace(year,'').replace(lang,'')
-        original = scrapedoriginal.replace(year,'').replace(lang,'')
-        title = '[B]' + title + '[/B]' + year + lang + original
+
+        infoLabels['year'] = year
+        title = scrapedtitle.replace(year,'').replace(lang,'').strip()
+        original = scrapedoriginal.replace(year,'').replace(lang,'').strip()
+        if lang: lang = support.typo(lang,'_ color kod')
+        title = '[B]' + title + '[/B]' + lang + original
+
         itemlist.append(
                 Item(channel=item.channel,
                      extra=item.extra,
-                     contentType="tvshow",
+                     contentType="episode",
                      action="episodios",
-                     text_color="azure",
                      title=title,
                      url=scrapedurl,
                      thumbnail=scrapedthumb,
                      fulltitle=title,
                      show=title,
+                     infoLabels=infoLabels,
                      plot=scrapedplot,
                      folder=True))
 
@@ -218,31 +174,16 @@ def lista_anime(item):
     autorenumber.renumber(itemlist)
 
     # Next page
-    next_page = scrapertoolsV2.find_single_match(data, '<a class="page-link" href="([^"]+)" rel="next"')
-
-    if next_page != '':
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='lista_anime',
-                 title='[B]' + config.get_localized_string(30992) + ' >[/B]',
-                 url=next_page,
-                 contentType=item.contentType,
-                 thumbnail=thumb()))
-
+    support.nextPage(itemlist, item, data, r'<a class="page-link" href="([^"]+)" rel="next"')
 
     return itemlist
 
 
 def video(item):
-    logger.info("[animeworld.py] video")
+    log()
     itemlist = []
 
-    data = httptools.downloadpage(item.url).data
-    data = re.sub(r'\n|\t','',data)
-    data = re.sub(r'>\s*<','><',data)
-
-    patron = r'<a href="([^"]+)" class="poster.*?><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    matches, data = support.match(item, r'<a href="([^"]+)" class="poster.*?> <img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>')
 
     for scrapedurl, scrapedthumb ,scrapedinfo, scrapedoriginal, scrapedtitle in matches:
         # Cerca Info come anno o lingua nel Titolo
@@ -253,14 +194,14 @@ def video(item):
             lang = scrapertoolsV2.find_single_match(scrapedtitle, r'( \([a-zA-Z]+\))')
         
         # Rimuove Anno e Lingua nel Titolo
-        title = scrapedtitle.replace(year,'').replace(lang,'')
-        original = scrapedoriginal.replace(year,'').replace(lang,'')
+        title = scrapedtitle.replace(year,'').replace(lang,'').strip()
+        original = scrapedoriginal.replace(year,'').replace(lang,'').strip()
         
         # Compara Il Titolo con quello originale
         if original == title:
             original=''
         else:
-            original = ' - [ ' + scrapedoriginal + ' ]'
+            original = support.typo(scrapedoriginal,'-- []')
 
         # cerca info supplementari
         ep = ''
@@ -297,7 +238,7 @@ def video(item):
 
         # Controlla se sono Episodi o Film
         if movie == '':
-            contentType = 'tvshow'
+            contentType = 'episode'
             action = 'episodios'
         else:
             contentType = 'movie'
@@ -318,33 +259,27 @@ def video(item):
     autorenumber.renumber(itemlist)
 
     # Next page
-    next_page = scrapertoolsV2.find_single_match(data, '<a class="page-link" href=".*?page=([^"]+)" rel="next"')
-
-    if next_page != '':
-        itemlist.append(
-            Item(channel=item.channel,
-                 action='video',
-                 title='[B]' + config.get_localized_string(30992) + ' >[/B]',
-                 url=re.sub('&page=([^"]+)', '', item.url) + '&page=' + next_page,
-                 contentType=item.contentType,
-                 thumbnail=thumb()))
-
+    support.nextPage(itemlist, item, data, r'<a\sclass="page-link"\shref="([^"]+)"\srel="next"\saria-label="Successiva')
     return itemlist
 
 
 def episodios(item):
-    logger.info("[animeworld.py] episodios")
+    log()
     itemlist = [] 
 
     data = httptools.downloadpage(item.url).data.replace('\n', '')
     data = re.sub(r'>\s*<', '><', data)
-    block = scrapertoolsV2.find_single_match(data, r'<div class="widget servers".*?>(.*?)<div id="download"')
-    block = scrapertoolsV2.find_single_match(block,r'<div class="server.*?>(.*?)<div class="server.*?>')
+    block1 = scrapertoolsV2.find_single_match(data, r'<div class="widget servers".*?>(.*?)<div id="download"')
+    block = scrapertoolsV2.find_single_match(block1,r'<div class="server.*?>(.*?)<div class="server.*?>')
    
     patron = r'<li><a.*?href="([^"]+)".*?>(.*?)<\/a>'
     matches = re.compile(patron, re.DOTALL).findall(block)
-    
+
+    extra = {}
+    extra['data'] = block1.replace('<strong>Attenzione!</strong> Non ci sono episodi in questa sezione, torna indietro!.','')
+
     for scrapedurl, scrapedtitle in matches:
+        extra['episode'] = scrapedtitle
         scrapedtitle = '[B] Episodio ' + scrapedtitle + '[/B]'
         itemlist.append(
             Item(
@@ -357,59 +292,76 @@ def episodios(item):
                 show=scrapedtitle,
                 plot=item.plot,
                 fanart=item.thumbnail,
+                extra=extra,
                 thumbnail=item.thumbnail))
     
     autorenumber.renumber(itemlist, item,'bold')
-    
-    
-    # Aggiungi a Libreria
-    if config.get_videolibrary_support() and len(itemlist) != 0:
-        itemlist.append(
-            Item(
-                channel=item.channel,
-                title="[COLOR lightblue]%s[/COLOR]" % config.get_localized_string(30161),
-                url=item.url,
-                action="add_serie_to_library",
-                extra="episodios",
-                show=item.show))
+    support.videolibrary(itemlist, item)
 
     return itemlist
 
 
 def findvideos(item):
-    logger.info("[animeworld.py] findvideos")
+    log()
 
     itemlist = []
-   
-    anime_id = scrapertoolsV2.find_single_match(item.url, r'.*\..*?\/(.*)')
-    data = httptools.downloadpage(host + "/ajax/episode/serverPlayer?id=" + anime_id).data
-    patron = '<source src="([^"]+)"'
+    episode = '1'
 
-    matches = re.compile(patron, re.DOTALL).findall(data)
-    for video in matches:
-        itemlist.append(
-            Item(
-                channel=item.channel,
-                action="play",
-                title=item.title + " [[COLOR orange]Diretto[/COLOR]]",
-                url=video,
-                server='directo',
-                contentType=item.contentType,
-                folder=False))
+    if item.extra and item.extra['episode']:
+        data = item.extra['data']
+        episode = item.extra['episode']
+    else:
+        data = httptools.downloadpage(item.url,headers=headers).data
 
-    # Requerido para Filtrar enlaces
+    block = scrapertoolsV2.find_single_match(data,r'data-target="\.widget\.servers.*?>(.*?)</div>')
+    servers = scrapertoolsV2.find_multiple_matches(block,r'class="tab.*?data-name="([0-9]+)">([^<]+)</span')
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    videolist = []
+    videoData = ''
 
-    # Requerido para FilterTools
+    for serverid, servername in servers:
+        #recupero l'id del video per questo server
+        block = scrapertoolsV2.find_single_match(data,r'<div class="server.*?data-id="'+serverid+'">(.*?)</ul>')
+        id = scrapertoolsV2.find_single_match(block,r'<a\sdata-id="([^"]+)"\sdata-base="'+episode+'"')
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+        dataJson = httptools.downloadpage('%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, id, serverid, int(time.time())), headers=[['x-requested-with', 'XMLHttpRequest']]).data
+        json = jsontools.load(dataJson)
 
-    # Requerido para AutoPlay
+        videoData +='\n'+json['grabber']
 
-    autoplay.start(itemlist, item)
+        if serverid == '33':
+            post = urllib.urlencode({'r': '', 'd': 'www.animeworld.biz'})
+            dataJson = httptools.downloadpage(json['grabber'].replace('/v/','/api/source/'),headers=[['x-requested-with', 'XMLHttpRequest']],post=post).data
+            json = jsontools.load(dataJson)
+            log(json['data'])
+            if json['data']:
+                for file in json['data']:
+                    itemlist.append(
+                        Item(
+                            channel=item.channel,
+                            action="play",
+                            title='diretto',
+                            url=file['file'],
+                            quality=file['label'],
+                            server='directo',
+                            show=item.show,
+                            contentType=item.contentType,
+                            folder=False))
 
-    return itemlist
+        if serverid == '28':
+            itemlist.append(
+                Item(
+                    channel=item.channel,
+                    action="play",
+                    title='diretto',
+                    quality='',
+                    url=json['grabber'],
+                    server='directo',
+                    show=item.show,
+                    contentType=item.contentType,
+                    folder=False))
 
+
+    itemlist += servertools.find_video_items(item,videoData)
+    return support.server(item,itemlist=itemlist)
 

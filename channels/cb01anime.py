@@ -10,8 +10,6 @@ from core import httptools, scrapertools, servertools, tmdb
 from core.item import Item
 from platformcode import logger, config
 
-
-
 host = "https://www.cineblog01.pink"
 
 #esclusione degli articoli 'di servizio'

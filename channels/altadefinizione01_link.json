@@ -4,9 +4,9 @@
   "active": true,
   "adult": false,
   "language": ["ita"],
-  "fanart": "",
-  "thumbnail": "",
-  "banner": "http://altadefinizione01.link/templates/Dark/img/logonyy.png",
+  "fanart": "https://altadefinizione01.estate/templates/Dark/img/nlogo.png",
+  "thumbnail": "https://altadefinizione01.estate/templates/Dark/img/nlogo.png",
+  "banner": "https://altadefinizione01.estate/templates/Dark/img/nlogo.png",
   "fix" : "reimpostato url e modificato file per KOD",
   "change_date": "2019-30-04",
   "categories": [
@@ -14,9 +14,17 @@
   ],
   "settings": [
     {
+    "id": "channel_host",
+    "type": "text",
+    "label": "Host del canale",
+    "default": "https://altadefinizione01.estate/",
+    "enabled": true,
+    "visible": true
+    },  
+    {
       "id": "modo_grafico",
       "type": "bool",
-      "label": "Buscar información extra",
+      "label": "Cerca informazioni extra",
       "default": true,
       "enabled": true,
       "visible": true
@@ -46,7 +54,7 @@
       "visible": true
     },
     {
-      "id": "comprueba_enlaces",
+      "id": "checklinks",
       "type": "bool",
       "label": "Verifica se i link esistono",
       "default": true,
@@ -54,7 +62,7 @@
       "visible": true
     },
     {
-      "id": "comprueba_enlaces_num",
+      "id": "checklinks_number",
       "type": "list",
       "label": "Numero de link da verificare",
       "default": 1,

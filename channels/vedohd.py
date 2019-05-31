@@ -3,14 +3,10 @@
 # Canale per vedohd
 # ------------------------------------------------------------
 
-import re
-import urlparse
-
-from channels import autoplay, support
-from core import scrapertoolsV2, httptools, servertools
+from core import scrapertoolsV2, httptools, support
 from core.item import Item
 from platformcode import logger
-from channelselector import thumb
+from specials import autoplay
 
 headers = ""
 host = ""
@@ -103,13 +99,13 @@ def findvideos(item):
 def generos(item):
     findhost()
     patron = '<a href="([^"#]+)">([a-zA-Z]+)'
-    return support.scrape(item, patron, ['url', 'title'], patron_block='<a href="#">Genere</a><ul class="sub-menu">.*?</ul>', action='peliculas', url_host=host)
+    return support.scrape(item, patron, ['url', 'title'], patron_block='<a href="#">Genere</a><ul class="sub-menu">.*?</ul>', action='peliculas')
 
 
 def year(item):
     findhost()
     patron = r'<a href="([^"#]+)">(\d+)'
-    return support.scrape(item, patron, ['url', 'title'], patron_block='<a href="#">Anno</a><ul class="sub-menu">.*?</ul>', action='peliculas', url_host=host)
+    return support.scrape(item, patron, ['url', 'title'], patron_block='<a href="#">Anno</a><ul class="sub-menu">.*?</ul>', action='peliculas')
 
 
 def play(item):

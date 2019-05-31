@@ -3,24 +3,22 @@
 # Ringraziamo Icarus crew
 # Canale per italiafilmhd
 # ----------------------------------------------------------
-import base64
 import re
+
 import urlparse
 
-from channels import autoplay
-from channels import filtertools, support
-from core import scrapertools, servertools, httptools
+from core import scrapertools, servertools, httptools, tmdb, support
 from core.item import Item
-from core import tmdb
 from platformcode import logger, config
+from specials import autoplay
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'youtube']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'italiafilmhd')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'italiafilmhd')
+checklinks = config.get_setting('checklinks', 'italiafilmhd')
+checklinks_number = config.get_setting('checklinks_number', 'italiafilmhd')
 
 host = "https://italiafilm.network"
 
@@ -298,12 +296,12 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Requerido para AutoPlay
 

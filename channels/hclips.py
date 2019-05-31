@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 #------------------------------------------------------------
-import urlparse,urllib2,urllib,re
-import os, sys
-from platformcode import config, logger
+import re
+import urllib
+import urlparse
+
+from core import httptools
 from core import scrapertools
 from core.item import Item
-from core import servertools
-from core import httptools
+from platformcode import logger
 
 host = 'http://www.hclips.com'
 

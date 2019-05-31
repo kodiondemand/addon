@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<window>
+	<depth>0.52</depth>
+	<coordinates>
+		<left>200</left>
+		<top>250</top>
+	</coordinates>
+	<defaultcontrol always="true">32500</defaultcontrol>
+	<animation type="WindowOpen" reversible="false">
+		<effect type="zoom" start="80" end="100" center="440,110" delay="160" tween="back" time="240" />
+		<effect type="fade" delay="160" end="100" time="240" />
+	</animation>
+	<animation type="WindowClose" reversible="false">
+		<effect type="zoom" start="100" end="80" center="440,110" easing="in" tween="back" time="240" />
+		<effect type="fade" start="100" end="0" time="240" />
+	</animation>
+	<controls>
+	<control type="button">
+			<left>-200</left>
+			<top>-250</top>
+			<width>1280</width>
+			<height>720</height>
+			<texturefocus colordiffuse="88FFFFFF">Shortcut/white.png</texturefocus>
+			<texturenofocus colordiffuse="88FFFFFF">Shortcut/white.png</texturenofocus>
+			<onclick>Action(close)</onclick>
+		</control>
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>880</width>
+			<height>220</height>
+			<texture border="2" colordiffuse="FFEEEEEE">Shortcut/white.png</texture>
+		</control>
+		<control type="group">
+			<control type="group">
+				<control type="image">
+					<left>-21</left>
+					<top>0</top>
+					<width>1011</width>
+					<height>220</height>
+					<texture>Shortcut/dialogbutton-nofo.png</texture>
+				</control>
+				<control type="list" id="32500">
+					<left>-130</left>
+					<top>0</top>
+					<width>880</width>
+					<height>220</height>
+					<onup>32501</onup>
+					<ondown>61</ondown>
+					<orientation>horizontal</orientation>
+					<scrolltime>200</scrolltime>
+					<pagecontrol>61</pagecontrol>
+					<animation effect="slide" start="0,0" end="10,0" time="0" condition="true">Conditional</animation>
+					<animation effect="slide" end="120,0" time="0" condition="!Control.IsVisible(5)">Conditional</animation>
+					<itemlayout height="220" width="220">
+						<!-- <top>2</top> -->
+						<control type="image">
+							<top>0</top>
+							<left>0</left>
+							<width>220</width>
+							<height>220</height>
+							<texture>Shortcut/button-nofo.png</texture>
+						</control>
+						<control type="image">
+							<left>30</left>
+							<top>149</top>
+							<width>306</width>
+							<height>75</height>
+							<texture colordiffuse="60FFFFFF">Shortcut/black.png</texture>
+						</control>
+						<control type="image">
+							<left>35</left>
+							<top>35</top>
+							<width>150</width>
+							<height>150</height>
+							<texture>$INFO[ListItem.Property(thumb)]</texture>
+							<aspectratio>keep</aspectratio>
+							<align>center</align>
+						</control>
+						<control type="image">
+							<left>329</left>
+							<top>24</top>
+							<width>50</width>
+							<height>50</height>
+							<aspectratio>keep</aspectratio>
+							<texture>$INFO[ListItem.Overlay]</texture>
+						</control>
+					</itemlayout>
+					<focusedlayout height="220" width="220">
+						<control type="group">
+							<depth>0.10</depth>
+							<control type="image">
+								<width>220</width>
+								<height>220</height>
+								<texture>Shortcut/button-nofo.png</texture>
+								<animation effect="fade" start="0" end="100" time="0">Unfocus</animation>
+								<animation effect="fade" start="100" end="0" time="0">Focus</animation>
+							</control>
+							<control type="image">
+								<width>220</width>
+								<height>220</height>
+								<texture colordiffuse="FF0082C2">Shortcut/button-fo.png</texture>
+								<animation effect="fade" start="100" end="0" time="0">Unfocus</animation>
+							</control>
+							<control type="image">
+								<left>5</left>
+								<top>24</top>
+								<width>50</width>
+								<height>50</height>
+								<aspectratio>keep</aspectratio>
+								<texture>$INFO[ListItem.Overlay]</texture>
+							</control>
+							<control type="image">
+								<left>23</left>
+								<top>149</top>
+								<width>298</width>
+								<height>75</height>
+								<texture colordiffuse="60FFFFFF">Shortcut/black.png</texture>
+							</control>
+							<control type="image">
+								<left>35</left>
+								<top>35</top>
+								<width>150</width>
+								<height>150</height>
+								<texture>$INFO[ListItem.Property(thumb)]</texture>
+								<aspectratio>keep</aspectratio>
+								<align>center</align>
+							</control>
+							<control type="textbox">
+								<left>0</left>
+								<top>146</top>
+								<width>220</width>
+								<height>74</height>
+								<font>font12</font>
+								<label>$INFO[ListItem.Label]</label>
+								<align>center</align>
+								<aligny>center</aligny>
+							</control>
+						</control>
+					</focusedlayout>
+				</control>
+				<control type="scrollbar" id="61">
+					<left>-120</left>
+					<top>220</top>
+					<width>880</width>
+					<height>10</height>
+					<texturesliderbackground colordiffuse="FFEEEEEE">Shortcut/white.png</texturesliderbackground>
+					<texturesliderbar colordiffuse="FFCCCCCCS">Shortcut/white.png</texturesliderbar>
+					<texturesliderbarfocus colordiffuse="FF0082C2">Shortcut/white.png</texturesliderbarfocus>
+					<textureslidernib>-</textureslidernib>
+					<textureslidernibfocus>-</textureslidernibfocus>
+					<showonepage>false</showonepage>
+					<orientation>horizontal</orientation>
+					<onleft>32500</onleft>
+					<onright>32500</onright>
+					<ondown>32500</ondown>
+					<onup>32500</onup>
+					<animation effect="slide" end="120,0" time="0" condition="!Control.IsVisible(5)">Conditional</animation>
+				</control>
+			</control>
+		</control>
+	</controls>
+</window>

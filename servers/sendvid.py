@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from core import httptools
 from core import scrapertools
 from platformcode import logger
 

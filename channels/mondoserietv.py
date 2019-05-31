@@ -5,15 +5,13 @@
 # 
 # ----------------------------------------------------------
 import re
-import urllib
 
-from channels import autoplay
-from channels import filtertools
 from core import scrapertools, servertools, httptools, scrapertoolsV2
-from core.item import Item
 from core import tmdb
+from core.item import Item
 from lib.unshortenit import unshorten
 from platformcode import logger, config
+from specials import autoplay
 
 host = "https://mondoserietv.com"
 IDIOMAS = {'Italiano': 'IT'}
@@ -21,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['akstream']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'mondoserietv')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'mondoserietv')
+checklinks = config.get_setting('checklinks', 'mondoserietv')
+checklinks_number = config.get_setting('checklinks_number', 'mondoserietv')
 
 headers = {'Referer': host}
 
@@ -310,12 +308,12 @@ def findvideos(item):
 
     # Requerido para Filtrar enlaces
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Requerido para FilterTools
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Requerido para AutoPlay
 

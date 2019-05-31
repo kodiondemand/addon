@@ -3,9 +3,8 @@
 import os
 import re
 
-from core import scrapertools
-from core import servertools
 from core import httptools
+from core import servertools
 from core.item import Item
 from platformcode import config, logger
 

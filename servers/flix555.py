@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import re, base64, urllib, time
+import time
+import urllib
 
 from core import httptools, scrapertools
 from lib import jsunpack

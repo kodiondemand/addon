@@ -5,20 +5,20 @@
 
 import re
 
-from channels import autoplay, filtertools, support
-from core import servertools
+from core import servertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
-host = "https://altadefinizione.center"   ### <- cambio Host da .fm a .center
+host = config.get_setting("channel_host", 'altadefinizioneclick')
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', "vidoza", "thevideo", "okru", 'youtube']
 list_quality = ['1080p']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'altadefinizioneclick')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'altadefinizioneclick')
+checklinks = config.get_setting('checklinks', 'altadefinizioneclick')
+checklinks_number = config.get_setting('checklinks_number', 'altadefinizioneclick')
 
 headers = [['Referer', host]]
 
@@ -31,9 +31,8 @@ def mainlist(item):
     support.menu(itemlist, 'Per Anno submenu', 'menu', host, args='Anno')
     support.menu(itemlist, 'Sub-IIA', 'peliculas', host + "/sub-ita/")
     support.menu(itemlist, 'Cerca...', 'search', host, 'movie')    
-
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
+    support.aplay(item, itemlist,list_servers, list_quality)
+    support.channel_config(item, itemlist)
 
     return itemlist
 
@@ -79,17 +78,19 @@ def newest(categoria):
 
 def menu(item):
     support.log()
-    itemlist = support.scrape(item, '<li><a href="(.*?)">(.*?)</a></li>', ['url', 'title'], headers,  patron_block='<ul class="listSubCat" id="'+ str(item.args) + '">(.*?)</ul>', action='peliculas')
+    itemlist = support.scrape(item, '<li><a href="([^"]+)">([^<]+)</a></li>', ['url', 'title'], headers,  patron_block='<ul class="listSubCat" id="'+ str(item.args) + '">(.*?)</ul>', action='peliculas')
     return support.thumb(itemlist)
 
 def peliculas(item):
     support.log()
     if item.extra == 'search':
-        itemlist = support.scrape(item, r'<a href="([^"]+)">\s*<div[^=]+=[^=]+=[^=]+=[^=]+=[^=]+="(.*?)"[^>]+>[^<]+<[^>]+>\s*<h[^=]+="titleFilm">(.*?)<', ['url', 'thumb', 'title'], headers, patronNext='<a class="next page-numbers" href="([^"]+)">')
+        patron = r'<a href="([^"]+)">\s*<div class="wrapperImage">(?:<span class="hd">([^<]+)<\/span>)?<img[^s]+src="([^"]+)"[^>]+>[^>]+>[^>]+>([^<]+)<[^<]+>(?:.*?IMDB:\s([^<]+)<\/div>)?'
+        elements = ['url', 'quality', 'thumb', 'title', 'rating']
+        
     else:
-        itemlist = support.scrape(item, r'<img width[^s]+src="([^"]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="([^"]+)">([^<]+)<\/a>[^>]+>[^>]+>[^>]+>(?:[^>]+>|)[^I]+IMDB\:\s*([^<]+)<', ['thumb', 'url', 'title', 'rating'], headers, patronNext='<a class="next page-numbers" href="([^"]+)">')
-    for item in itemlist:
-        item.title = re.sub(r'.\(.*?\)', '', item.title)
+        patron = r'<img width[^s]+src="([^"]+)[^>]+><\/a>.*?<a href="([^"]+)">([^(?:\]|<)]+)(?:\[([^\]]+)\])?<\/a>[^>]+>[^>]+>[^>]+>(?:\sIMDB\:\s([^<]+)<)?(?:.*?<span class="hd">([^<]+)<\/span>)?\s*<a'
+        elements =['thumb', 'url', 'title','lang', 'rating', 'quality']
+    itemlist = support.scrape(item, patron, elements, headers, patronNext='<a class="next page-numbers" href="([^"]+)">')
     return itemlist
 
 
@@ -98,10 +99,10 @@ def findvideos(item):
 
     itemlist = support.hdpass_get_servers(item)
 
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     autoplay.start(itemlist, item)
     support.videolibrary(itemlist, item ,'color kod bold')

@@ -2,96 +2,48 @@
 <window>
 	<depth>0.52</depth>
 	<coordinates>
-		<left>147</left>
-		<top>180</top>
+		<left>200</left>
+		<top>250</top>
 	</coordinates>
 	<defaultcontrol always="true">32500</defaultcontrol>
 	<animation type="WindowOpen" reversible="false">
-		<effect type="zoom" start="80" end="100" center="960,540" delay="160" tween="back" time="240" />
+		<effect type="zoom" start="80" end="100" center="440,110" delay="160" tween="back" time="240" />
 		<effect type="fade" delay="160" end="100" time="240" />
 	</animation>
 	<animation type="WindowClose" reversible="false">
-		<effect type="zoom" start="100" end="80" center="960,540" easing="in" tween="back" time="240" />
+		<effect type="zoom" start="100" end="80" center="440,110" easing="in" tween="back" time="240" />
 		<effect type="fade" start="100" end="0" time="240" />
 	</animation>
 	<controls>
+	<control type="button">
+			<left>-200</left>
+			<top>-250</top>
+			<width>1280</width>
+			<height>720</height>
+			<texturefocus colordiffuse="88232323">Shortcut/white.png</texturefocus>
+			<texturenofocus colordiffuse="88232323">Shortcut/white.png</texturenofocus>
+			<onclick>Action(close)</onclick>
+		</control>
 		<control type="image">
 			<left>0</left>
 			<top>0</top>
-			<width>969</width>
-			<height>283</height>
-			<texture border="2">Shortcut/dialog-bg-solid.png</texture>
-		</control>
-		<control type="image">
-			<left>0</left>
-			<top>0</top>
-			<width>969</width>
-			<height>70</height>
-			<texture colordiffuse="FF12B2E7" border="2">Shortcut/white70.png</texture>
-		</control>
-		<control type="label" id="30000">
-			<textoffsetx>70</textoffsetx>
-			<left>-30</left>
-			<top>0</top>
-			<width>969</width>
-			<height>70</height>
-			<font>font20_title</font>
-			<label>Alfa - $ADDON[plugin.video.kod 30998]</label>
-			<align>left</align>
-			<aligny>center</aligny>
-			<shadowcolor>black</shadowcolor>
-		</control>
-		<control type="button">
-			<left>-1920</left>
-			<top>-1080</top>
-			<width>5760</width>
-			<height>3240</height>
-			<texturefocus>-</texturefocus>
-			<texturenofocus>-</texturenofocus>
-			<onclick>Action(close)</onclick>
-		</control>
-		<control type="button">
-			<description>button overlay to avoid closing in dialog area</description>
-			<left>0</left>
-			<top>0</top>
-			<width>969</width>
-			<height>283</height>
-			<texturefocus>-</texturefocus>
-			<texturenofocus>-</texturenofocus>
-			<onclick>noop</onclick>
-		</control>
-		<control type="radiobutton" id="32501">
-			<left>969</left>
-			<top>11</top>
-			<width>48</width>
-			<height>48</height>
-			<radiowidth>48</radiowidth>
-			<radioheight>48</radioheight>
-			<texturefocus>-</texturefocus>
-			<texturenofocus>-</texturenofocus>
-			<label></label>
-			<animation effect="slide" end="-70,0" time="0" condition="true">Conditional</animation>
-			<textureradioofffocus colordiffuse="EEFFFFFF">Shortcut/close.png</textureradioofffocus>
-			<textureradiooffnofocus colordiffuse="EEFFFFFF">Shortcut/logo.png</textureradiooffnofocus>
-			<textureradioonfocus colordiffuse="EEFFFFFF">Shortcut/close.png</textureradioonfocus>
-			<textureradioonnofocus colordiffuse="EEFFFFFF">Shortcut/logo.png</textureradioonnofocus>
-			<onclick>Action(close)</onclick>
-			<onup>32500</onup>
-			<ondown>32500</ondown>
+			<width>880</width>
+			<height>220</height>
+			<texture border="2" colordiffuse="FF232323">Shortcut/white.png</texture>
 		</control>
 		<control type="group">
 			<control type="group">
 				<control type="image">
 					<left>-21</left>
-					<top>50</top>
+					<top>0</top>
 					<width>1011</width>
-					<height>253</height>
-					<texture border="40">Shortcut/dialogbutton-nofo.png</texture>
+					<height>220</height>
+					<texture>Shortcut/dialogbutton-nofo.png</texture>
 				</control>
 				<control type="list" id="32500">
-					<left>-139</left>
-					<top>55</top>
-					<width>980</width>
+					<left>-130</left>
+					<top>0</top>
+					<width>880</width>
 					<height>220</height>
 					<onup>32501</onup>
 					<ondown>61</ondown>
@@ -100,14 +52,14 @@
 					<pagecontrol>61</pagecontrol>
 					<animation effect="slide" start="0,0" end="10,0" time="0" condition="true">Conditional</animation>
 					<animation effect="slide" end="120,0" time="0" condition="!Control.IsVisible(5)">Conditional</animation>
-					<itemlayout height="225" width="323">
-						<top>2</top>
+					<itemlayout height="220" width="220">
+						<!-- <top>2</top> -->
 						<control type="image">
-							<top>5</top>
-							<left>10</left>
-							<width>347</width>
-							<height>260</height>
-							<texture border="40">Shortcut/button-nofo.png</texture>
+							<top>0</top>
+							<left>0</left>
+							<width>220</width>
+							<height>220</height>
+							<texture>Shortcut/button-nofo.png</texture>
 						</control>
 						<control type="image">
 							<left>30</left>
@@ -117,10 +69,10 @@
 							<texture colordiffuse="60FFFFFF">Shortcut/black.png</texture>
 						</control>
 						<control type="image">
-							<left>95</left>
-							<top>23</top>
-							<width>160</width>
-							<height>130</height>
+							<left>35</left>
+							<top>35</top>
+							<width>150</width>
+							<height>150</height>
 							<texture>$INFO[ListItem.Property(thumb)]</texture>
 							<aspectratio>keep</aspectratio>
 							<align>center</align>
@@ -133,39 +85,21 @@
 							<aspectratio>keep</aspectratio>
 							<texture>$INFO[ListItem.Overlay]</texture>
 						</control>
-						<control type="textbox">
-							<left>25</left>
-							<top>146</top>
-							<width>300</width>
-							<height>74</height>
-							<label>[COLOR grey]$INFO[ListItem.Label][/COLOR]</label>
-							<shadowcolor>text_shadow</shadowcolor>
-							<font>font12</font>
-							<align>center</align>
-							<aligny>center</aligny>
-						</control>
 					</itemlayout>
-					<focusedlayout height="225" width="323">
+					<focusedlayout height="220" width="220">
 						<control type="group">
 							<depth>0.10</depth>
-							<animation type="Focus" reversible="false">
-								<effect type="zoom" center="auto" start="100" end="108" time="250" tween="sine" />
-							</animation>
-							<animation type="UnFocus" reversible="false">
-								<effect type="zoom" center="auto" start="108" end="100" time="150" tween="sine" />
-							</animation>
-							<top>2</top>
 							<control type="image">
-								<width>340</width>
-								<height>245</height>
-								<texture border="40">Shortcut/button-nofo.png</texture>
+								<width>220</width>
+								<height>220</height>
+								<texture>Shortcut/button-nofo.png</texture>
 								<animation effect="fade" start="0" end="100" time="0">Unfocus</animation>
 								<animation effect="fade" start="100" end="0" time="0">Focus</animation>
 							</control>
 							<control type="image">
-								<width>340</width>
-								<height>237</height>
-								<texture border="40" colordiffuse="FF12B2E7">Shortcut/button-fo.png</texture>
+								<width>220</width>
+								<height>220</height>
+								<texture colordiffuse="FF0082C2">Shortcut/button-fo.png</texture>
 								<animation effect="fade" start="100" end="0" time="0">Unfocus</animation>
 							</control>
 							<control type="image">
@@ -184,18 +118,18 @@
 								<texture colordiffuse="60FFFFFF">Shortcut/black.png</texture>
 							</control>
 							<control type="image">
-								<left>95</left>
-								<top>23</top>
-								<width>160</width>
-								<height>130</height>
+								<left>35</left>
+								<top>35</top>
+								<width>150</width>
+								<height>150</height>
 								<texture>$INFO[ListItem.Property(thumb)]</texture>
 								<aspectratio>keep</aspectratio>
 								<align>center</align>
 							</control>
 							<control type="textbox">
-								<left>25</left>
+								<left>0</left>
 								<top>146</top>
-								<width>300</width>
+								<width>220</width>
 								<height>74</height>
 								<font>font12</font>
 								<label>$INFO[ListItem.Label]</label>
@@ -206,13 +140,13 @@
 					</focusedlayout>
 				</control>
 				<control type="scrollbar" id="61">
-					<left>-122</left>
-					<top>280</top>
-					<width>972</width>
-					<height>15</height>
-					<texturesliderbackground colordiffuse="FFE6E6E6">Shortcut/white.png</texturesliderbackground>
-					<texturesliderbar colordiffuse="FF12D2E7">Shortcut/white.png</texturesliderbar>
-					<texturesliderbarfocus colordiffuse="FF12B2E7">Shortcut/white.png</texturesliderbarfocus>
+					<left>-120</left>
+					<top>220</top>
+					<width>880</width>
+					<height>10</height>
+					<texturesliderbackground colordiffuse="FF232323">Shortcut/white.png</texturesliderbackground>
+					<texturesliderbar colordiffuse="FF1f1f1f">Shortcut/white.png</texturesliderbar>
+					<texturesliderbarfocus colordiffuse="FF0082C2">Shortcut/white.png</texturesliderbarfocus>
 					<textureslidernib>-</textureslidernib>
 					<textureslidernibfocus>-</textureslidernibfocus>
 					<showonepage>false</showonepage>

@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per SerieTVU
-# Ringraziamo Icarus crew
+# Thanks to Icarus crew & Alfa addon
 # ----------------------------------------------------------
 import re
 
 import channelselector
-from channels import autoplay, support, filtertools
-from core import httptools, tmdb, scrapertools
+from core import httptools, tmdb, scrapertools, support
 from core.item import Item
 from platformcode import logger, config
+from specials import autoplay
 
-host = config.get_setting("channel_host", 'serietvu')
+__channel__ = 'serietvu'
+host = config.get_setting("channel_host", __channel__)
 headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 list_servers = ['speedvideo']
 list_quality = ['default']
+
+# checklinks = config.get_setting('checklinks', __channel__)
+# checklinks_number = config.get_setting('checklinks_number', __channel__)
 
 
 
@@ -30,9 +34,8 @@ def mainlist(item):
     support.menu(itemlist, 'Categorie', 'categorie', host,'tvshow')
     support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
 
-
-    # autoplay.init(item.channel, list_servers, list_quality)
-    # autoplay.show_option(item.channel, itemlist)
+    autoplay.init(item.channel, list_servers, list_quality)
+    autoplay.show_option(item.channel, itemlist)
 
     itemlist.append(
         Item(channel='setting',
@@ -49,7 +52,7 @@ def mainlist(item):
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
-    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('Game of Thrones –','').replace('Flash 2014','Flash')
+    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('– Il Trono di Spade','').replace('Flash 2014','Flash')
     year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
@@ -87,7 +90,7 @@ def lista_serie(item):
                  thumbnail=scrapedimg,
                  show=scrapedtitle,
                  infoLabels=infoLabels,
-                 contentType='tvshow',
+                 contentType='episode',
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -118,10 +121,14 @@ def episodios(item):
         matches = re.compile(patron, re.DOTALL).findall(blocco)
         for scrapedextra, scrapedurl, scrapedimg, scrapedtitle in matches:
             number = scrapertools.decodeHtmlentities(scrapedtitle.replace("Episodio", "")).strip()
+
+            title = value + "x" + number.zfill(2)
+
+
             itemlist.append(
                 Item(channel=item.channel,
                      action="findvideos",
-                     title=value + "x" + number.zfill(2),
+                     title=title,
                      fulltitle=scrapedtitle,
                      contentType="episode",
                      url=scrapedurl,
@@ -129,16 +136,9 @@ def episodios(item):
                      extra=scrapedextra,
                      folder=True))
 
-    if config.get_videolibrary_support() and len(itemlist) != 0:
-        itemlist.append(
-            Item(channel=item.channel,
-                 title=support.typo(config.get_localized_string(30161) + ' bold color kod'),
-                 thumbnail=support.thumb(),
-                 url=item.url,
-                 action="add_serie_to_library",
-                 extra="episodios",
-                 contentSerieName=item.fulltitle,
-                 show=item.show))
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
+    support.videolibrary(itemlist,item,'bold color kod')
 
     return itemlist
 
@@ -149,9 +149,14 @@ def findvideos(item):
     support.log(item.channel + " findvideos")
 
     itemlist = support.server(item, data=item.url)
-    itemlist = filtertools.get_links(itemlist, item, list_language)
 
-    autoplay.start(itemlist, item)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
+
+    # Controlla se i link sono validi
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 
@@ -174,9 +179,13 @@ def findepisodevideo(item):
     matches = re.compile(patron, re.DOTALL).findall(blocco)
 
     itemlist = support.server(item, data=matches[0][0])
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
-    autoplay.start(itemlist, item)
+    # Controlla se i link sono validi
+    # if checklinks:
+    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
+    #
+    # autoplay.start(itemlist, item)
 
     return itemlist
 
@@ -188,6 +197,45 @@ def findepisodevideo(item):
 def latestep(item):
     support.log(item.channel + " latestep")
     itemlist = []
+    titles = []
+
+    #recupero gli episodi in home nella sezione Ultimi episodi aggiunti
+    data = httptools.downloadpage(host, headers=headers).data
+
+    block = scrapertools.find_single_match(data,r"Ultimi episodi aggiunti.*?<h2>")
+    regex = r'<a href="([^"]*)"\sdata-src="([^"]*)"\sclass="owl-lazy.*?".*?class="title">(.*?)<small>\((\d*?)x(\d*?)\s(Sub-Ita|Ita)'
+    matches = re.compile(regex, re.DOTALL).findall(block)
+
+    for scrapedurl, scrapedimg, scrapedtitle, scrapedseason, scrapedepisode, scrapedlanguage in matches:
+        infoLabels = {}
+        year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
+        if year:
+            infoLabels['year'] = year
+        infoLabels['episode'] = scrapedepisode
+        infoLabels['season'] = scrapedseason
+        episode = scrapedseason+"x"+scrapedepisode
+
+        scrapedtitle = cleantitle(scrapedtitle)
+        title = scrapedtitle+" - "+episode
+        contentlanguage = ""
+        if scrapedlanguage.strip().lower() != 'ita':
+            title +=" Sub-ITA"
+            contentlanguage = 'Sub-ITA'
+
+        titles.append(title)
+        itemlist.append(
+            Item(channel=item.channel,
+                 action="findepisodevideo",
+                 title=title,
+                 fulltitle=title,
+                 url=scrapedurl,
+                 extra=[[scrapedseason,scrapedepisode]],
+                 thumbnail=scrapedimg,
+                 contentSerieName=scrapedtitle,
+                 contentLanguage=contentlanguage,
+                 contentType='episode',
+                 infoLabels=infoLabels,
+                 folder=True))
 
     data = httptools.downloadpage(item.url, headers=headers).data
 
@@ -205,22 +253,37 @@ def latestep(item):
         infoLabels['tvshowtitle'] = scrapedtitle
 
         episodio = re.compile(r'(\d+)x(\d+)', re.DOTALL).findall(scrapedinfo)
-        title = "%s %s" % (scrapedtitle, scrapedinfo)
+        infoLabels['episode'] = episodio[0][1]
+        infoLabels['season'] = episodio[0][0]
+
+        episode = infoLabels['season'] + "x" + infoLabels['episode']
+        title = "%s - %s" % (scrapedtitle, episode)
+        title = title.strip()
+        contentlanguage = ""
+        if 'sub-ita' in scrapedinfo.lower():
+            title+=" Sub-ITA"
+            contentlanguage = 'Sub-ITA'
+
+        if title in titles: continue
         itemlist.append(
             Item(channel=item.channel,
                  action="findepisodevideo",
                  title=title,
-                 fulltitle=scrapedtitle,
+                 fulltitle=title,
                  url=scrapedurl,
                  extra=episodio,
                  thumbnail=scrapedimg,
-                 show=scrapedtitle,
-                 contentTitle=scrapedtitle,
-                 contentSerieName=title,
+                 contentSerieName=scrapedtitle,
+                 contentLanguage=contentlanguage,
                  infoLabels=infoLabels,
+                 contentType='episode',
                  folder=True))
 
+
+
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
+    # logger.debug("".join(map(str,itemlist)))
 
     return itemlist
 
@@ -229,7 +292,7 @@ def latestep(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def newest(categoria):
-    logger.info('serietvu' + " newest" + categoria)
+    logger.info(__channel__ + " newest" + categoria)
     itemlist = []
     item = Item()
     try:
@@ -286,7 +349,7 @@ def categorie(item):
             Item(channel=item.channel,
                  action="lista_serie",
                  title=scrapedtitle,
-                 contentType="tv",
+                 contentType="tvshow",
                  url="%s%s" % (host, scrapedurl),
                  thumbnail=item.thumbnail,
                  folder=True))

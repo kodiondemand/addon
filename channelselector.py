@@ -27,11 +27,11 @@ def getmainlist(view="thumb_"):
                          thumbnail=get_thumb("channels.png", view), view=view,
                          category=config.get_localized_string(30119), viewmode="thumbnails"))
 
-    itemlist.append(Item(title=config.get_localized_string(70527), channel="alfavorites", action="mainlist",
+    itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
                          thumbnail=get_thumb("mylink.png", view), view=view,
                          category=config.get_localized_string(70527), viewmode="thumbnails"))
 
-    itemlist.append(Item(title=config.get_localized_string(30103), channel="search", action="mainlist",
+    itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
                          thumbnail=get_thumb("search.png", view),
                          category=config.get_localized_string(30119), viewmode="list",
                          context=[{"title": config.get_localized_string(70286), "channel": "search", "action": "opciones",
@@ -69,7 +69,7 @@ def getchanneltypes(view="thumb_"):
     logger.info()
 
     # Lista de categorias
-    channel_types = ["movie", "tvshow", "anime", "documentary", "vos", "direct", "torrent"]
+    channel_types = ["movie", "tvshow", "anime", "documentary", "vos", "direct"] # , "torrent"
 
     if config.get_setting("adult_mode") != 0:
         channel_types.append("adult")
@@ -90,6 +90,12 @@ def getchanneltypes(view="thumb_"):
         itemlist.append(Item(title=title, channel="channelselector", action="filterchannels", category=title,
                              channel_type=channel_type, viewmode="thumbnails",
                              thumbnail=get_thumb("channels_%s.png" % channel_type, view)))
+
+    # itemlist.append(Item(title='Oggi in TV', channel="filmontv", action="mainlist", view=view,
+    #                      category=title, channel_type="all", thumbnail=get_thumb("on_the_air.png", view),
+    #                      viewmode="thumbnails")) 
+
+
 
     itemlist.append(Item(title=config.get_localized_string(70685), channel="community", action="mainlist", view=view,
                          category=title, channel_type="all", thumbnail=get_thumb("channels_community.png", view),
@@ -332,10 +338,13 @@ def thumb(itemlist=[]):
                      'channels_grotesque':['grottesco'],
                      'channels_war':['guerra'],
                      'horror':['horror'],
+                     'lucky': ['fortunato'], # se potete inserire la icona anche per questa voce
                      'channels_musical':['musical'],
                      'channels_mistery':['mistero', 'giallo'],
                      'channels_noir':['noir'],
+                     'popular' : ['popolari','popolare', 'più visti'],
                      'channels_thriller':['thriller'],
+                     'top_rated' : ['fortunato'], #da tocgliere aggiunte la voce lucky o quello che volete
                      'channels_western':['western'],
                      'channels_vos':['sub','sub-ita'],
                      'channels_romance':['romantico','sentimentale'],
@@ -374,7 +383,11 @@ def thumb(itemlist=[]):
                     item.thumbnail = get_thumb(thumb + '.png')
                 else:
                     thumb = item.thumbnails
-            # REmove args from title
+
+                if item.thumbnail != '':
+                    break
+
+            # Remove args from title
             if item.args: item.title = item.title.replace(' || ' + str(item.args), '')
         return itemlist
     else:

@@ -4,9 +4,18 @@
     "active": true, 
     "adult": false, 
     "language": ["ita"],
-    "thumbnail": "https://cdn.animeworld.it/static/images/general/logoaw.png", 
-    "categories": ["anime"], 
+    "thumbnail": "animeworld.png",
+    "banner": "animeworld.png",
+    "categories": ["anime"],
     "settings": [
+        {
+            "id": "channel_host",
+            "type": "text",
+            "label": "Host del canale",
+            "default": "https://www.animeworld.it",
+            "enabled": true,
+            "visible": true
+        },
         {
             "id": "include_in_global_search", 
             "type": "bool", 
@@ -32,7 +41,7 @@
             "visible": true
         },
         {
-            "id": "comprueba_enlaces",
+            "id": "checklinks",
             "type": "bool",
             "label": "Verifica se i link esistono",
             "default": false,
@@ -40,7 +49,7 @@
             "visible": true
         },
         {
-            "id": "comprueba_enlaces_num",
+            "id": "checklinks_number",
             "type": "list",
             "label": "Numero de link da verificare",
             "default": 1,

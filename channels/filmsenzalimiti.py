@@ -2,18 +2,13 @@
 # ------------------------------------------------------------
 # Canale per Filmsenzalimiti
 # ------------------------------------------------------------
-import base64
 import re
-import urlparse
 
-from channelselector import get_thumb
-from channels import autoplay
-from channels import filtertools, support
-from core import scrapertools, servertools, httptools
-from platformcode import logger, config
+from core import scrapertools, servertools, httptools, support
 from core.item import Item
 from platformcode import config
-from core import tmdb
+from platformcode import logger
+from specials import autoplay
 
 __channel__ = 'filmsenzalimiti'
 
@@ -24,8 +19,8 @@ list_language = IDIOMAS.values()
 list_servers = ['verystream', 'openload', 'streamango', 'vidoza', 'okru']
 list_quality = ['1080p', '720p', '480p', '360']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'filmsenzalimiti')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'filmsenzalimiti')
+checklinks = config.get_setting('checklinks', 'filmsenzalimiti')
+checklinks_number = config.get_setting('checklinks_number', 'filmsenzalimiti')
 
 headers = [['Referer', host]]
 
@@ -179,11 +174,11 @@ def findvideos(item):
                      action="add_pelicula_to_library", extra="findservers", contentTitle=item.contentTitle))
 
     #Necessario per filtrare i Link
-    if __comprueba_enlaces__:
-        itemlist = servertools.check_list_links(itemlist, __comprueba_enlaces_num__)
+    if checklinks:
+        itemlist = servertools.check_list_links(itemlist, checklinks_number)
 
     # Necessario per  FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
+    # itemlist = filtertools.get_links(itemlist, item, list_language)
 
     # Necessario per  AutoPlay
     autoplay.start(itemlist, item)

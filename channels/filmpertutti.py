@@ -3,14 +3,12 @@
 # Canale per filmpertutti.co
 # ------------------------------------------------------------
 import re
-import urlparse
 
-from channels import autoplay, support
-from core import scrapertoolsV2, servertools, httptools, tmdb
-from core.item import Item
-from lib import unshortenit
-from platformcode import config, logger
 from channelselector import thumb
+from core import scrapertoolsV2, servertools, httptools, tmdb, support
+from core.item import Item
+from platformcode import config, logger
+from specials import autoplay
 
 host = "https://www.filmpertutti.club"
 headers = [['Referer', host]]
