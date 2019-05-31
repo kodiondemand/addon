@@ -6,7 +6,7 @@
 
 import re
 
-from core import scrapertools, httptools, tmdb, support
+from core import scrapertools, httptools, tmdb, support, servertools
 from core.item import Item
 from platformcode import logger
 from specials import autoplay
@@ -84,6 +84,7 @@ def insert(item):
                  folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
     return itemlist
 
 #----------------------------------------------------------------------------------------------------------------------------------------------
@@ -253,30 +254,58 @@ def episodios(item):
     patron = r'<br /> <a href="([^"]+)"\s*target="_blank"\s*rel[^>]+>([^<]+)</a>'
     matches = re.compile(patron, re.DOTALL).findall(data)
 
-    for scrapedurl, scrapedtitle in matches:
-        if 'Wikipedia' not in scrapedurl:
-            scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle).replace("×", "x")
-            scrapedtitle = scrapedtitle.replace("_", " ")
-            scrapedtitle = scrapedtitle.replace(".mp4", "")
-            # puntata = scrapertools.find_single_match(scrapedtitle, '[0-9]+x[0-9]+')
-            puntata = scrapedtitle
-            for i in itemlist:
-                if i.args == puntata: #è già stata aggiunta
-                    i.url +=  " " + scrapedurl
-                    break
+    if "https://vcrypt.net" in data:
+        patron = r'(?:<p>|<br />)([^<]+)<a href="([^"]+)'
+        matches = re.compile(patron, re.DOTALL).findall(data)
 
-            else:
-                itemlist.append(
-                    Item(channel=channel,
-                         action="findvideos",
-                         contentType=item.contentType,
-                         title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
-                         thumbnail=item.thumbnail,
-                         fulltitle=scrapedtitle,
-                         url=scrapedurl,
-                         args = puntata,
-                         show=item.show,
-                         plot=item.plot))
+        for scrapedtitle, scrapedurl in matches:
+            if 'Wikipedia' not in scrapedurl:
+                scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle).replace("×", "x")
+                scrapedtitle = scrapedtitle.replace("_", " ")
+                scrapedtitle = scrapedtitle.replace(".mp4", "")
+                puntata = scrapedtitle
+                for i in itemlist:
+                    if i.args == puntata:  # è già stata aggiunta
+                        i.url += " " + scrapedurl
+                        break
+
+                else:
+                    itemlist.append(
+                        Item(channel=channel,
+                             action="findvideos",
+                             contentType=item.contentType,
+                             title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
+                             thumbnail=item.thumbnail,
+                             fulltitle=scrapedtitle,
+                             url=scrapedurl,
+                             args=puntata,
+                             show=item.show,
+                             plot=item.plot))
+    else:
+        for scrapedurl, scrapedtitle in matches:
+            if 'Wikipedia' not in scrapedurl:
+                scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle).replace("×", "x")
+                scrapedtitle = scrapedtitle.replace("_", " ")
+                scrapedtitle = scrapedtitle.replace(".mp4", "")
+                # puntata = scrapertools.find_single_match(scrapedtitle, '[0-9]+x[0-9]+')
+                puntata = scrapedtitle
+                for i in itemlist:
+                    if i.args == puntata: #è già stata aggiunta
+                        i.url +=  " " + scrapedurl
+                        break
+
+                else:
+                    itemlist.append(
+                        Item(channel=channel,
+                            action="findvideos",
+                            contentType=item.contentType,
+                            title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
+                            thumbnail=item.thumbnail,
+                            fulltitle=scrapedtitle,
+                            url=scrapedurl,
+                            args = puntata,
+                            show=item.show,
+                            plot=item.plot))
 
     support.videolibrary(itemlist, item, 'color kod')
 

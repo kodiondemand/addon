@@ -467,7 +467,7 @@ def videoplayer(item):
                  contentType=item.contentType,
                  folder=False))
 
-    support.videolibrary(itemlist, item, 'color kod', function_level=2)
+        support.videolibrary(itemlist, item, 'color kod')
 
     autoplay.start(itemlist, item)
 
