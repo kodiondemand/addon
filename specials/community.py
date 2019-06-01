@@ -174,7 +174,6 @@ def episodesxseason(item):
         infoLabels['season'] = season_number
         infoLabels['episode'] = episode_number
 
-        # title = config.get_localized_string(70677) % (season_number, episode_number, episode_number)
         title = config.get_localized_string(70677) + ' %s' % (episode_number)
 
         itemlist.append(Item(channel=item.channel, title=title, url=episode, action='findvideos',
