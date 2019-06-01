@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per SerieTVU
-# Thanks to Icarus crew & Alfa addon
+# Thanks to Icarus crew & Alfa addon & 4l3x87
 # ----------------------------------------------------------
 import re
 
-import channelselector
-from core import httptools, tmdb, scrapertools, support
+from core import tmdb, scrapertools, support
 from core.item import Item
+from core.support import log
 from platformcode import logger, config
-from specials import autoplay
 
 __channel__ = 'serietvu'
 host = config.get_setting("channel_host", __channel__)
@@ -20,43 +19,27 @@ list_language = IDIOMAS.values()
 list_servers = ['speedvideo']
 list_quality = ['default']
 
-# checklinks = config.get_setting('checklinks', __channel__)
-# checklinks_number = config.get_setting('checklinks_number', __channel__)
-
-
 
 def mainlist(item):
-    support.log(item.channel + 'mainlist')
+    log()
     itemlist = []
-    support.menu(itemlist, 'Serie TV bold', 'lista_serie', "%s/category/serie-tv" % host,'tvshow')
-    support.menu(itemlist, 'Novità submenu', 'latestep', "%s/ultimi-episodi" % host,'tvshow')
-    # support.menu(itemlist, 'Nuove serie color azure', 'lista_serie', "%s/category/serie-tv" % host,'tvshow')
-    support.menu(itemlist, 'Categorie', 'categorie', host,'tvshow')
-    support.menu(itemlist, 'Cerca', 'search', host,'tvshow')
-
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
-
-    itemlist.append(
-        Item(channel='setting',
-             action="channel_config",
-             title=support.typo("Configurazione Canale color lime"),
-             config=item.channel,
-             folder=False,
-             thumbnail=channelselector.get_thumb('setting_0.png'))
-    )
-
+    support.menu(itemlist, 'Novità bold', 'latestep', "%s/ultimi-episodi" % host, 'tvshow')
+    support.menu(itemlist, 'Serie TV bold', 'lista_serie', "%s/category/serie-tv" % host, 'tvshow')
+    support.menu(itemlist, 'Categorie', 'categorie', host, 'tvshow')
+    support.menu(itemlist, 'Cerca', 'search', host, 'tvshow')
+    support.aplay(item, itemlist, list_servers, list_quality)
+    support.channel_config(item, itemlist)
     return itemlist
 
 
 # ----------------------------------------------------------------------------------------------------------------
 def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
-    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('– Il Trono di Spade','').replace('Flash 2014','Flash')
+    scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('– Il Trono di Spade', '').replace(
+        'Flash 2014', 'Flash').replace('"', "'")
     year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
-
 
     return scrapedtitle.strip()
 
@@ -65,14 +48,12 @@ def cleantitle(scrapedtitle):
 
 # ----------------------------------------------------------------------------------------------------------------
 def lista_serie(item):
-    support.log(item.channel + " lista_serie")
+    log()
     itemlist = []
-
-    data = httptools.downloadpage(item.url, headers=headers).data
 
     patron = r'<div class="item">\s*<a href="([^"]+)" data-original="([^"]+)" class="lazy inner">'
     patron += r'[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    matches, data = support.match(item, patron, headers=headers)
 
     for scrapedurl, scrapedimg, scrapedtitle in matches:
         infoLabels = {}
@@ -96,34 +77,43 @@ def lista_serie(item):
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     # Pagine
-    support.nextPage(itemlist,item,data,'<li><a href="([^"]+)">Pagina successiva')
+    support.nextPage(itemlist, item, data, '<li><a href="([^"]+)">Pagina successiva')
 
     return itemlist
+
 
 # ================================================================================================================
 
 
 # ----------------------------------------------------------------------------------------------------------------
 def episodios(item):
-    support.log(item.channel + " episodios")
+    log()
     itemlist = []
 
-    data = httptools.downloadpage(item.url, headers=headers).data
-
     patron = r'<option value="(\d+)"[\sselected]*>.*?</option>'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    matches, data = support.match(item, patron, headers=headers)
 
     for value in matches:
         patron = r'<div class="list [active]*" data-id="%s">(.*?)</div>\s*</div>' % value
         blocco = scrapertools.find_single_match(data, patron)
+        log(blocco)
+        patron = r'(<a data-id="\d+[^"]*" data-href="([^"]+)"(?:\sdata-original="([^"]+)")?\sclass="[^"]+">)[^>]+>[^>]+>([^<]+)<'
+        matches = scrapertools.find_multiple_matches(blocco, patron)
 
-        patron = r'(<a data-id="\d+[^"]*" data-href="([^"]+)" data-original="([^"]+)" class="[^"]+">)[^>]+>[^>]+>([^<]+)<'
-        matches = re.compile(patron, re.DOTALL).findall(blocco)
         for scrapedextra, scrapedurl, scrapedimg, scrapedtitle in matches:
-            number = scrapertools.decodeHtmlentities(scrapedtitle.replace("Episodio", "")).strip()
+            contentlanguage = ''
+            if 'sub-ita' in scrapedtitle.lower():
+                contentlanguage = 'Sub-ITA'
+                scrapedtitle = scrapedtitle.replace(contentlanguage, '')
+
+            number = cleantitle(scrapedtitle.replace("Episodio", "")).strip()
 
             title = value + "x" + number.zfill(2)
+            title += " "+support.typo(contentlanguage, '_ [] color kod') if contentlanguage else ''
 
+            infoLabels = {}
+            infoLabels['episode'] = number.zfill(2)
+            infoLabels['season'] = value
 
             itemlist.append(
                 Item(channel=item.channel,
@@ -134,60 +124,40 @@ def episodios(item):
                      url=scrapedurl,
                      thumbnail=scrapedimg,
                      extra=scrapedextra,
+                     infoLabels=infoLabels,
                      folder=True))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-    support.videolibrary(itemlist,item,'bold color kod')
+    support.videolibrary(itemlist, item, 'bold color kod')
 
     return itemlist
+
 
 # ================================================================================================================
 
 # ----------------------------------------------------------------------------------------------------------------
 def findvideos(item):
-    support.log(item.channel + " findvideos")
+    log()
+    return support.server(item, data=item.url)
 
-    itemlist = support.server(item, data=item.url)
 
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Controlla se i link sono validi
-    # if checklinks:
-    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
-    #
-    # autoplay.start(itemlist, item)
-
-    return itemlist
 
 # ================================================================================================================
 
 
 # ----------------------------------------------------------------------------------------------------------------
 def findepisodevideo(item):
-    support.log(item.channel + " findepisodevideo")
+    log()
 
-    # Download Pagina
-    data = httptools.downloadpage(item.url, headers=headers).data
-
-    # Prendo il blocco specifico per la stagione richiesta
-    patron = r'<div class="list [active]*" data-id="%s">(.*?)</div>\s*</div>' % item.extra[0][0]
-    blocco = scrapertools.find_single_match(data, patron)
-
-    # Estraggo l'episodio
-    patron = r'<a data-id="%s[^"]*" data-href="([^"]+)" data-original="([^"]+)" class="[^"]+">' % item.extra[0][1].lstrip("0")
-    matches = re.compile(patron, re.DOTALL).findall(blocco)
-
-    itemlist = support.server(item, data=matches[0][0])
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Controlla se i link sono validi
-    # if checklinks:
-    #     itemlist = servertools.check_list_links(itemlist, checklinks_number)
-    #
-    # autoplay.start(itemlist, item)
-
-    return itemlist
+    patron_block = r'<div class="list [active]*" data-id="%s">(.*?)</div>\s*</div>' % item.extra[0][0]
+    patron = r'<a data-id="%s[^"]*" data-href="([^"]+)"(?:\sdata-original="[^"]+")?\sclass="[^"]+">' % item.extra[0][1].lstrip("0")
+    matches = support.match(item, patron, patron_block, headers)[0]
+    data = ''
+    if len(matches) > 0:
+        data = matches[0]
+    item.contentType = 'movie'
+    return support.server(item, data=data)
 
 
 # ================================================================================================================
@@ -195,16 +165,13 @@ def findepisodevideo(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def latestep(item):
-    support.log(item.channel + " latestep")
+    log()
     itemlist = []
     titles = []
 
-    #recupero gli episodi in home nella sezione Ultimi episodi aggiunti
-    data = httptools.downloadpage(host, headers=headers).data
-
-    block = scrapertools.find_single_match(data,r"Ultimi episodi aggiunti.*?<h2>")
-    regex = r'<a href="([^"]*)"\sdata-src="([^"]*)"\sclass="owl-lazy.*?".*?class="title">(.*?)<small>\((\d*?)x(\d*?)\s(Sub-Ita|Ita)'
-    matches = re.compile(regex, re.DOTALL).findall(block)
+    patron_block = r"Ultimi episodi aggiunti.*?<h2>"
+    patron = r'<a href="([^"]*)"\sdata-src="([^"]*)"\sclass="owl-lazy.*?".*?class="title">(.*?)<small>\((\d*?)x(\d*?)\s(Sub-Ita|Ita)'
+    matches = support.match(item, patron, patron_block, headers, host)[0]
 
     for scrapedurl, scrapedimg, scrapedtitle, scrapedseason, scrapedepisode, scrapedlanguage in matches:
         infoLabels = {}
@@ -213,13 +180,13 @@ def latestep(item):
             infoLabels['year'] = year
         infoLabels['episode'] = scrapedepisode
         infoLabels['season'] = scrapedseason
-        episode = scrapedseason+"x"+scrapedepisode
+        episode = scrapedseason + "x" + scrapedepisode
 
         scrapedtitle = cleantitle(scrapedtitle)
-        title = scrapedtitle+" - "+episode
+        title = scrapedtitle + " - " + episode
         contentlanguage = ""
         if scrapedlanguage.strip().lower() != 'ita':
-            title +=" Sub-ITA"
+            title += " "+support.typo("Sub-ITA", '_ [] color kod')
             contentlanguage = 'Sub-ITA'
 
         titles.append(title)
@@ -229,7 +196,7 @@ def latestep(item):
                  title=title,
                  fulltitle=title,
                  url=scrapedurl,
-                 extra=[[scrapedseason,scrapedepisode]],
+                 extra=[[scrapedseason, scrapedepisode]],
                  thumbnail=scrapedimg,
                  contentSerieName=scrapedtitle,
                  contentLanguage=contentlanguage,
@@ -237,11 +204,9 @@ def latestep(item):
                  infoLabels=infoLabels,
                  folder=True))
 
-    data = httptools.downloadpage(item.url, headers=headers).data
-
     patron = r'<div class="item">\s*<a href="([^"]+)" data-original="([^"]+)" class="lazy inner">'
     patron += r'[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<small>([^<]+)<'
-    matches = re.compile(patron, re.DOTALL).findall(data)
+    matches = support.match(item, patron, headers=headers)[0]
 
     for scrapedurl, scrapedimg, scrapedtitle, scrapedinfo in matches:
         infoLabels = {}
@@ -261,7 +226,7 @@ def latestep(item):
         title = title.strip()
         contentlanguage = ""
         if 'sub-ita' in scrapedinfo.lower():
-            title+=" Sub-ITA"
+            title += " "+support.typo("Sub-ITA", '_ [] color kod')
             contentlanguage = 'Sub-ITA'
 
         if title in titles: continue
@@ -279,11 +244,7 @@ def latestep(item):
                  contentType='episode',
                  folder=True))
 
-
-
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
-    # logger.debug("".join(map(str,itemlist)))
 
     return itemlist
 
@@ -292,7 +253,7 @@ def latestep(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def newest(categoria):
-    logger.info(__channel__ + " newest" + categoria)
+    log(categoria)
     itemlist = []
     item = Item()
     try:
@@ -318,7 +279,7 @@ def newest(categoria):
 
 # ----------------------------------------------------------------------------------------------------------------
 def search(item, texto):
-    logger.info(item.channel + " search")
+    log(texto)
     item.url = host + "/?s=" + texto
     try:
         return lista_serie(item)
@@ -334,26 +295,9 @@ def search(item, texto):
 
 # ----------------------------------------------------------------------------------------------------------------
 def categorie(item):
-    logger.info(item.channel +" categorie")
-    itemlist = []
-
-    data = httptools.downloadpage(item.url, headers=headers).data
-    blocco = scrapertools.find_single_match(data, r'<h2>Sfoglia</h2>\s*<ul>(.*?)</ul>\s*</section>')
+    log()
+    patron_block= r'<h2>Sfoglia</h2>\s*<ul>(.*?)</ul>\s*</section>'
     patron = r'<li><a href="([^"]+)">([^<]+)</a></li>'
-    matches = re.compile(patron, re.DOTALL).findall(blocco)
-
-    for scrapedurl, scrapedtitle in matches:
-        if scrapedtitle == 'Home Page' or scrapedtitle == 'Calendario Aggiornamenti':
-            continue
-        itemlist.append(
-            Item(channel=item.channel,
-                 action="lista_serie",
-                 title=scrapedtitle,
-                 contentType="tvshow",
-                 url="%s%s" % (host, scrapedurl),
-                 thumbnail=item.thumbnail,
-                 folder=True))
-
-    return itemlist
+    return support.scrape(item, patron, ['url','title'], patron_block=patron_block, action='lista_serie', blacklist=["Home Page", "Calendario Aggiornamenti"])
 
 # ================================================================================================================

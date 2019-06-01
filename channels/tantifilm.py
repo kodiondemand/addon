@@ -130,7 +130,7 @@ def peliculas(item):
     action = 'findvideos' if item.extra == 'movie' else 'episodios'
     if item.args == 'movie':
         patron= r'<div class="mediaWrap mediaWrapAlt">[^<]+<a href="([^"]+)" title="Permalink to\s([^"]+) \(([^<]+)\).*?"[^>]+>[^<]+<img[^s]+src="([^"]+)"[^>]+>[^<]+<\/a>.*?<p>\s*([a-zA-Z-0-9]+)\s*<\/p>'  
-        itemlist = support.scrape(item, patron, ['url', 'title', 'year', 'thumb', 'quality'], headers, action=action, patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
+        itemlist = support.scrape(item, patron, ['url', 'title', 'year', 'thumb', 'quality'], headers, action=action, patron_block='<div id="main_col">(.*?)main_col', patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
     else:
         patron = r'<div class="media3">[^>]+><a href="([^"]+)"><img[^s]+src="([^"]+)"[^>]+><\/a><[^>]+><a[^<]+><p>([^<]+) \(([^\)]+)[^<]+<\/p>.*?<p>\s*([a-zA-Z-0-9]+)\s*<\/p>'
         itemlist = support.scrape(item, patron, ['url', 'thumb', 'title', 'year', 'quality'], headers, action=action, patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
@@ -210,7 +210,7 @@ def anime(item):
 
 def findvideos(item):
     log()    
-    itemlist = []
+    # itemlist = []
 
     if item.args == 'anime':
         data = item.url
@@ -233,6 +233,5 @@ def findvideos(item):
                 page = httptools.downloadpage(url, headers=headers).data
                 data += '\t' + scrapertoolsV2.find_single_match(page,'<meta name="og:url" content="([^=]+)">')
  
-    itemlist= support.server(item, data, headers, True, True)
-    support.videolibrary(itemlist, item, 'color kod bold')
-    return itemlist
+    return support.server(item, data, headers=headers)
+    # return itemlist

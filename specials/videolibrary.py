@@ -105,7 +105,7 @@ def list_movies(item, silent=False):
                 new_item.nfo = nfo_path
                 new_item.path = raiz
                 new_item.thumbnail = new_item.contentThumbnail
-                new_item.text_color = "blue"
+                # new_item.text_color = "blue"
                 strm_path = new_item.strm_path.replace("\\", "/").rstrip("/")
                 if '/' in new_item.path:
                     new_item.strm_path = strm_path
@@ -246,11 +246,11 @@ def list_tvshows(item):
                 if item_tvshow.active and int(item_tvshow.active) > 0:
                     texto_update = config.get_localized_string(60022)
                     value = 0
-                    item_tvshow.text_color = "green"
+                    # item_tvshow.text_color = "green"
                 else:
                     texto_update = config.get_localized_string(60023)
                     value = 1
-                    item_tvshow.text_color = "0xFFDF7401"
+                    # item_tvshow.text_color = "0xFFDF7401"
 
                 # Menu contextual: Eliminar serie/canal
                 num_canales = len(item_tvshow.library_urls)

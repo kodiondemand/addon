@@ -393,6 +393,10 @@ msgctxt "#50004"
 msgid "Path: "
 msgstr ""
 
+msgctxt "#50005"
+msgid "Delete This Channel?"
+msgstr ""
+
 msgctxt "#59970"
 msgid "Synchronization with Trakt started"
 msgstr ""

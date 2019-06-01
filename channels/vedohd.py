@@ -113,4 +113,4 @@ def play(item):
 
     data = support.swzz_get_url(item)
 
-    return support.server(item, data, headers)
+    return support.server(item, data, headers=headers)

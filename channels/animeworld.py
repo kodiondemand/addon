@@ -18,11 +18,9 @@ headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'Italiano'}
 list_language = IDIOMAS.values()
-list_servers = ['diretto']
-list_quality = []
+list_servers = ['animeworld', 'verystream', 'streamango', 'openload', 'directo']
+list_quality = ['default', '480p', '720p', '1080p']
 
-checklinks = config.get_setting('checklinks', 'animeworld')
-checklinks_number = config.get_setting('checklinks_number', 'animeworld')
 
 
 def mainlist(item):
@@ -30,7 +28,6 @@ def mainlist(item):
     
     itemlist =[]
     
-    support.menu(itemlist, 'Anime bold', 'lista_anime', host+'/az-list')
     support.menu(itemlist, 'ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=1'])
     support.menu(itemlist, 'Sub-ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=0'])
     support.menu(itemlist, 'Archivio A-Z submenu', 'alfabetico', host+'/az-list', args=["tvshow","a-z"])
@@ -47,19 +44,10 @@ def mainlist(item):
 
 def generi(item):
     log()
-    itemlist = []
     patron_block = r'</i>\sGeneri</a>\s*<ul class="sub">(.*?)</ul>'
     patron = r'<a href="([^"]+)"\stitle="([^"]+)">'
-    matches = support.match(item,patron, patron_block, headers)[0]
 
-    for scrapedurl, scrapedtitle in matches:
-        itemlist.append(Item(
-            channel=item.channel,
-            action="video",
-            title=scrapedtitle,
-            url="%s%s" % (host,scrapedurl)))
-
-    return itemlist
+    return support.scrape(item, patron, ['url','title'], patron_block=patron_block, action='video')
 
 
 # Crea Menu Filtro ======================================================
@@ -154,14 +142,14 @@ def lista_anime(item):
         title = scrapedtitle.replace(year,'').replace(lang,'').strip()
         original = scrapedoriginal.replace(year,'').replace(lang,'').strip()
         if lang: lang = support.typo(lang,'_ color kod')
-        title = '[B]' + title + '[/B]' + lang + original
+        longtitle = '[B]' + title + '[/B]' + lang + original
 
         itemlist.append(
                 Item(channel=item.channel,
                      extra=item.extra,
                      contentType="episode",
                      action="episodios",
-                     title=title,
+                     title=longtitle,
                      url=scrapedurl,
                      thumbnail=scrapedthumb,
                      fulltitle=title,
@@ -183,7 +171,7 @@ def video(item):
     log()
     itemlist = []
 
-    matches, data = support.match(item, r'<a href="([^"]+)" class="poster.*?> <img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>')
+    matches, data = support.match(item, r'<a href="([^"]+)" class[^>]+><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>', headers=headers)
 
     for scrapedurl, scrapedthumb ,scrapedinfo, scrapedoriginal, scrapedtitle in matches:
         # Cerca Info come anno o lingua nel Titolo
@@ -231,6 +219,9 @@ def video(item):
 
 
         # Concatena le informazioni
+
+        lang = support.typo('Sub-ITA', '_ [] color kod') if '(ita)' not in lang.lower() else ''
+
         info = ep + lang + year + ova + ona + movie + special
 
         # Crea il title da visualizzare
@@ -268,7 +259,6 @@ def episodios(item):
     itemlist = [] 
 
     data = httptools.downloadpage(item.url).data.replace('\n', '')
-    data = re.sub(r'>\s*<', '><', data)
     block1 = scrapertoolsV2.find_single_match(data, r'<div class="widget servers".*?>(.*?)<div id="download"')
     block = scrapertoolsV2.find_single_match(block1,r'<div class="server.*?>(.*?)<div class="server.*?>')
    
@@ -305,7 +295,7 @@ def findvideos(item):
     log()
 
     itemlist = []
-    episode = '1'
+    episode = ''
 
     if item.extra and item.extra['episode']:
         data = item.extra['data']
@@ -328,25 +318,6 @@ def findvideos(item):
         json = jsontools.load(dataJson)
 
         videoData +='\n'+json['grabber']
-
-        if serverid == '33':
-            post = urllib.urlencode({'r': '', 'd': 'www.animeworld.biz'})
-            dataJson = httptools.downloadpage(json['grabber'].replace('/v/','/api/source/'),headers=[['x-requested-with', 'XMLHttpRequest']],post=post).data
-            json = jsontools.load(dataJson)
-            log(json['data'])
-            if json['data']:
-                for file in json['data']:
-                    itemlist.append(
-                        Item(
-                            channel=item.channel,
-                            action="play",
-                            title='diretto',
-                            url=file['file'],
-                            quality=file['label'],
-                            server='directo',
-                            show=item.show,
-                            contentType=item.contentType,
-                            folder=False))
 
         if serverid == '28':
             itemlist.append(

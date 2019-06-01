@@ -8,7 +8,7 @@ import urlparse
 import xbmcaddon
 
 from channelselector import thumb
-from core import httptools, scrapertoolsV2, servertools, tmdb
+from core import httptools, scrapertoolsV2, servertools, tmdb, channeltools
 from core.item import Item
 from lib import unshortenit
 from platformcode import logger, config
@@ -167,7 +167,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 scraped['episode'] = re.sub(r'\s-\s|-|x|&#8211', 'x' , scraped['episode'])
                 longtitle = typo(scraped['episode'] + ' - ', 'bold') + longtitle
             if scraped['title2']:
-                title2 = scrapertoolsV2.decodeHtmlentities(scraped["title2"]).strip()
+                title2 = scrapertoolsV2.decodeHtmlentities(scraped["title2"]).replace('"', "'").strip()
                 longtitle = longtitle + typo(title2, 'bold _ -- _')
             if scraped["lang"]: 
                 if 'sub' in scraped["lang"].lower():
@@ -225,7 +225,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     it.__setattr__(lg, match[listGroups.index(lg)])
 
                 itemlist.append(it)
-
+        checkHost(item, itemlist)
         if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
                 or (item.contentType == "movie" and action != "play"):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -241,6 +241,21 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
             videolibrary(itemlist, item)
 
     return itemlist
+
+
+def checkHost(item, itemlist):
+    # nel caso non ci siano risultati puo essere che l'utente abbia cambiato manualmente l'host, pertanto lo riporta
+    # al valore di default (fixa anche il problema del cambio di host da parte nostra)
+    if len(itemlist) == 0:
+        # trovo il valore di default
+        defHost = None
+        for s in channeltools.get_channel_json(item.channel)['settings']:
+            if s['id'] == 'channel_host':
+                defHost = s['default']
+                break
+        # lo confronto con quello attuale
+        if config.get_setting('channel_host', item.channel) != defHost:
+            config.set_setting('channel_host', defHost, item.channel)
 
 
 def dooplay_get_links(item, host):
@@ -452,7 +467,8 @@ def match(item, patron='', patron_block='', headers='', url=''):
     matches = []
     url = url if url else item.url
     data = httptools.downloadpage(url, headers=headers, ignore_response_code=True).data.replace("'", '"')
-    data = re.sub(r'\n|\t|\s\s', '', data)
+    data = re.sub(r'\n|\t', ' ', data)
+    data = re.sub(r'>\s\s*<', '><', data)
     log('DATA= ', data)
 
     if patron_block:
@@ -500,11 +516,11 @@ def videolibrary(itemlist, item, typography='', function_level=1):
 
     return itemlist
 
-def nextPage(itemlist, item, data, patron, function_level=1):
+def nextPage(itemlist, item, data='', patron='', function_level=1, next_page=''):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
-    
-    next_page = scrapertoolsV2.find_single_match(data, patron)
+    if next_page == '':
+        next_page = scrapertoolsV2.find_single_match(data, patron)
 
     if next_page != "":
         if 'http' not in next_page:

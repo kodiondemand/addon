@@ -122,7 +122,7 @@ def last(item):
     if item.contentType == 'episode':
         matches = support.match(item, r'<a href="([^">]+)".*?>([^(:(|[)]+)([^<]+)<\/a>', '<article class="sequex-post-content.*?</article>', headers)[0]
     else:
-        matches = support.match(item, r'<ahref=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
+        matches = support.match(item, r'<a href=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
 
     for url, title, info in matches:
         add = True
@@ -267,7 +267,6 @@ def findvideos(item):
     # Estrae i contenuti - Streaming 3D
     load_links(itemlist, '<strong>Streaming 3D[^<]+</strong>(.*?)<tableclass=cbtable height=30>', "pink", "Streaming 3D")
 
-    support.videolibrary(itemlist, item)
     return support.server(item, itemlist=itemlist)
 
     # Estrae i contenuti - Download

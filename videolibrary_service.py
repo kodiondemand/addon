@@ -155,7 +155,7 @@ def check_for_update(overwrite=True):
 
                 if not serie.active:
                     # si la serie no esta activa descartar
-                    if overwrite_forced == False:
+                    if not overwrite:
                         #Sincronizamos los episodios vistos desde la videoteca de Kodi con la de Alfa, aunque la serie esté desactivada
                         try:
                             if config.is_xbmc():                #Si es Kodi, lo hacemos
