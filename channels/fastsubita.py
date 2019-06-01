@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per fastsubita - 4l3x87
-# Thanks Icarus crew & Alfa addon
+# Canale per fastsubita
+# Thanks Icarus crew & Alfa addon & 4l3x87
 # ------------------------------------------------------------
 
 from core import scrapertools, httptools, tmdb, support

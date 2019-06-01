@@ -467,7 +467,7 @@ def match(item, patron='', patron_block='', headers='', url=''):
     matches = []
     url = url if url else item.url
     data = httptools.downloadpage(url, headers=headers, ignore_response_code=True).data.replace("'", '"')
-    data = re.sub(r'\n|\t|\s\s', ' ', data)
+    data = re.sub(r'\n|\t|\s+', ' ', data)
     log('DATA= ', data)
 
     if patron_block:

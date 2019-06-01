@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per SerieTVU - 4l3x87
-# Thanks to Icarus crew & Alfa addon
+# Canale per SerieTVU
+# Thanks to Icarus crew & Alfa addon & 4l3x87
 # ----------------------------------------------------------
 import re
 

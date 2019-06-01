@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per Serietvsubita - 4l3x87
-# Thanks to Icarus crew & Alfa addon
+# Canale per Serietvsubita
+# Thanks to Icarus crew & Alfa addon & 4l3x87
 # ----------------------------------------------------------
 
 import re
@@ -53,7 +53,7 @@ def cleantitle(scrapedtitle):
 def findvideos(item):
     log()
     data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
-    data = re.sub(r'\n|\t|\s\s', ' ', data)
+    data = re.sub(r'\n|\t|\s+', ' ', data)
     # recupero il blocco contenente i link
     blocco = scrapertools.find_single_match(data, r'<div class="entry">([\s\S.]*?)<div class="post').replace('..:: Episodio ', 'Episodio ').strip()
     matches = scrapertools.find_multiple_matches(blocco, '(S(\d*)E(\d*))\s')

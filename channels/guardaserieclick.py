@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per Guardaserie.click - 4l3x87
-# Thanks to Icarus crew & Alfa addon
+# Canale per Guardaserie.click
+# Thanks to Icarus crew & Alfa addon & 4l3x87
 # ------------------------------------------------------------
 
 import re
