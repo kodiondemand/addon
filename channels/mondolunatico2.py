@@ -347,7 +347,7 @@ def player_list(item):
             scrapedtitle = scrapedtitle.replace(".", " ").replace(" - ", " ").replace("  -", "").replace("  ", "")
             itemlist.append(
                 Item(channel=channel,
-                    action="findvideos",
+                    action="halfplayer",
                     contentType=item.contentType,
                     title=scrapedtitle,
                     thumbnail=item.thumbnail,
