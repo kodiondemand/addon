@@ -224,7 +224,7 @@ def episodios(item):
         for scrapedurl, scrapedtitle in matches:
             itemlist.append(
                 Item(channel=channel,
-                     action="findvideos",
+                     action="videoplayer",
                      contentType=item.contentType,
                      title=scrapedtitle,
                      thumbnail=item.thumbnail,
@@ -332,7 +332,6 @@ def player_list(item):
     data = httptools.downloadpage(item.url, headers=headers).data
 
     if "panel_toggle toggleable" in data:
-
         # Prelevo il blocco lista puntate
         block = scrapertools.find_single_match(data, r'panel_toggle toggleable.*?(<div.*?)<!-- Javascript -->')
 
@@ -467,7 +466,7 @@ def videoplayer(item):
                  contentType=item.contentType,
                  folder=False))
 
-        support.videolibrary(itemlist, item, 'color kod')
+    support.videolibrary(itemlist, item, 'color kod', function_level=2)
 
     autoplay.start(itemlist, item)
 
