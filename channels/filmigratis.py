@@ -191,7 +191,7 @@ def peliculas_serie(item):
 
     data = httptools.downloadpage(item.url, headers=headers).data
 
-    patron = r'div class="cnt">.*?src="(.*?)".*?title="([A-Z|0-9].*?)".*?<a href="(.*?)"'
+    patron = r'div class="cnt">[^s]+src="([^"]+).*?small>\s+[^A-Z](.*?)<.*?<a href="([^"]+)'
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     for scrapedthumb, scrapedtitle, scrapedurl in matches:
