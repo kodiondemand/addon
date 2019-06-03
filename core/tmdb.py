@@ -470,11 +470,11 @@ def find_and_set_infoLabels(item):
 
     if item.contentType == "movie":
         tipo_busqueda = "movie"
-        tipo_contenido = config.get_localized_string(70283)
+        tipo_contenido = config.get_localized_string(60247)
         title = item.contentTitle
     else:
         tipo_busqueda = "tv"
-        tipo_contenido = config.get_localized_string(60245)
+        tipo_contenido = config.get_localized_string(60298)
         title = item.contentSerieName
 
     # Si el titulo incluye el (año) se lo quitamos
@@ -497,7 +497,7 @@ def find_and_set_infoLabels(item):
     if len(results) > 1:
         from platformcode import platformtools
         tmdb_result = platformtools.show_video_info(results, item=item,
-                                                    caption=config.get_localized_string(60247) %(title, tipo_contenido))
+                                                    caption= tipo_contenido % title)
     elif len(results) > 0:
         tmdb_result = results[0]
 

@@ -13,19 +13,13 @@ from platformcode import config, logger
 
 __channel__ = "altadefinizione01_link"
 
-#host = "https://altadefinizione01.link/" #riaggiornato al 29 aprile 2019
-#host = "http://altadefinizione01.art/" # aggiornato al 22 marzo 2019
-#host = "https://altadefinizione01.network/" #aggiornato al 22 marzo 2019
-#host = "http://altadefinizione01.date/" #aggiornato al 3 maggio 2019
-#host = "https://altadefinizione01.voto/" #aggiornato al 3 maggio 2019
-#host = "https://altadefinizione01.estate/" # aggiornato al 23 maggio 2019
-
 # ======== def per utility INIZIO ============================
 
 list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
 list_quality = ['default']
 
-host = config.get_setting("channel_host", __channel__)
+#host = config.get_setting("channel_host", __channel__)
+host = config.get_channel_url(__channel__)
 checklinks = config.get_setting('checklinks', __channel__)
 checklinks_number = config.get_setting('checklinks_number', __channel__)
 

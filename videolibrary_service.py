@@ -309,12 +309,22 @@ def monitor_update():
             logger.info("Inicio actualizacion programada para las %s h.: %s" % (update_start, datetime.datetime.now()))
             check_for_update(overwrite=False)
 
+def get_channel_json():
+    import urllib, os, xbmc, xbmcaddon
+    addon = xbmcaddon.Addon('plugin.video.kod')
+    ROOT_DIR = xbmc.translatePath(addon.getAddonInfo('Path'))
+    LOCAL_FILE = os.path.join(ROOT_DIR, "channels.json")
+
+    if os.path.exists(LOCAL_FILE):
+        os.remove(LOCAL_FILE)
+    urllib.urlretrieve("https://raw.githubusercontent.com/kodiondemand/addon/master/channels.json", LOCAL_FILE)
 
 if __name__ == "__main__":
     # Se ejecuta en cada inicio
     import xbmc
     import time
 
+    get_channel_json()
 
     # modo adulto:
     # sistema actual 0: Nunca, 1:Siempre, 2:Solo hasta que se reinicie Kodi

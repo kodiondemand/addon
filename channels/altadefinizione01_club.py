@@ -12,10 +12,7 @@ from platformcode import config, logger
 from specials import autoplay, filtertools
 
 __channel__ = "altadefinizione01_club"
-
-#host = "https://www.altadefinizione01.club/" # host da cambiare
-#host = "https://www.altadefinizione01.team/" #aggiornato al 22 marzo 2019
-host = "https://www.altadefinizione01.vision/" #aggiornato al 30-04-209
+host = config.get_channel_url(__channel__)
 
 # ======== Funzionalità =============================
 

@@ -9,7 +9,10 @@ from platformcode import logger, config
 from specials import autoplay
 
 #URL che reindirizza sempre al dominio corrente
-host = "https://altadefinizione01.to"
+#host = "https://altadefinizione01.to"
+
+__channel__ = "altadefinizione01"
+host = config.get_addon_version(__channel__)
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()

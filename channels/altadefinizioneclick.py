@@ -10,7 +10,9 @@ from core.item import Item
 from platformcode import logger, config
 from specials import autoplay
 
-host = config.get_setting("channel_host", 'altadefinizioneclick')
+#host = config.get_setting("channel_host", 'altadefinizioneclick')
+__channel__ = 'altadefinizioneclick'
+host = config.get_channel_url(__channel__)
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
@@ -29,7 +31,7 @@ def mainlist(item):
     support.menu(itemlist, 'Film', 'peliculas', host + "/nuove-uscite/")
     support.menu(itemlist, 'Per Genere submenu', 'menu', host, args='Film')
     support.menu(itemlist, 'Per Anno submenu', 'menu', host, args='Anno')
-    support.menu(itemlist, 'Sub-IIA', 'peliculas', host + "/sub-ita/")
+    support.menu(itemlist, 'Sub-ITA', 'peliculas', host + "/sub-ita/")
     support.menu(itemlist, 'Cerca...', 'search', host, 'movie')    
     support.aplay(item, itemlist,list_servers, list_quality)
     support.channel_config(item, itemlist)

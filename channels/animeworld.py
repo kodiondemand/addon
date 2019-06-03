@@ -28,8 +28,8 @@ def mainlist(item):
     
     itemlist =[]
     
-    support.menu(itemlist, 'ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=1'])
-    support.menu(itemlist, 'Sub-ITA submenu', 'build_menu', host + '/filter?', args=["anime", 'language[]=0'])
+    support.menu(itemlist, 'ITA submenu bold', 'build_menu', host + '/filter?', args=["anime", 'language[]=1'])
+    support.menu(itemlist, 'Sub-ITA submenu bold', 'build_menu', host + '/filter?', args=["anime", 'language[]=0'])
     support.menu(itemlist, 'Archivio A-Z submenu', 'alfabetico', host+'/az-list', args=["tvshow","a-z"])
     support.menu(itemlist, 'In corso submenu', 'video', host+'/', args=["in sala"])
     support.menu(itemlist, 'Generi submenu', 'generi', host+'/')

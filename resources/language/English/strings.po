@@ -1070,7 +1070,7 @@ msgid "Full information"
 msgstr ""
 
 msgctxt "#60247"
-msgid "[%s]: Select the correct %s"
+msgid "[%s]: Select the correct movie"
 msgstr ""
 
 msgctxt "#60248"
