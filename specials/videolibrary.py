@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import os
-import traceback
+import os, traceback
 
 from channelselector import get_thumb
 from core import filetools
 from core import scrapertools
 from core import videolibrarytools
 from core.item import Item
-from lib import generictools
 from platformcode import config, logger
 from platformcode import platformtools
+from lib import generictools
 
 
 def mainlist(item):
@@ -105,7 +104,7 @@ def list_movies(item, silent=False):
                 new_item.nfo = nfo_path
                 new_item.path = raiz
                 new_item.thumbnail = new_item.contentThumbnail
-                # new_item.text_color = "blue"
+                new_item.text_color = "blue"
                 strm_path = new_item.strm_path.replace("\\", "/").rstrip("/")
                 if '/' in new_item.path:
                     new_item.strm_path = strm_path
@@ -246,11 +245,12 @@ def list_tvshows(item):
                 if item_tvshow.active and int(item_tvshow.active) > 0:
                     texto_update = config.get_localized_string(60022)
                     value = 0
-                    # item_tvshow.text_color = "green"
+                    item_tvshow.text_color = "orange"
+                    item_tvshow.title = "[B]" + item_tvshow.contentTitle + "[/B]"
                 else:
                     texto_update = config.get_localized_string(60023)
                     value = 1
-                    # item_tvshow.text_color = "0xFFDF7401"
+                    item_tvshow.text_color = "0xFFDF7401"
 
                 # Menu contextual: Eliminar serie/canal
                 num_canales = len(item_tvshow.library_urls)
@@ -527,6 +527,8 @@ def findvideos(item):
             item_json.contentChannel = 'videolibrary'
             if hasattr(channel, 'findvideos'):
                 from core import servertools
+                if item_json.videolibray_emergency_urls:
+                    del item_json.videolibray_emergency_urls
                 list_servers = getattr(channel, 'findvideos')(item_json)
                 list_servers = servertools.filter_servers(list_servers)
             else:
@@ -715,8 +717,8 @@ def mark_content_as_watched2(item):
     if filetools.exists(item.nfo):
         head_nfo, it = videolibrarytools.read_nfo(item.nfo) 
         #logger.debug(it) 
-
-        if item.contentType == 'movie':
+        name_file = ""
+        if item.contentType == 'movie' or item.contentType == 'tvshow':
             name_file = os.path.splitext(os.path.basename(item.nfo))[0]
             
             if name_file != 'tvshow' :
