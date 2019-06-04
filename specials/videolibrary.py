@@ -724,7 +724,7 @@ def mark_content_as_watched2(item):
             if name_file != 'tvshow' :
                 it.library_playcounts.update({name_file: item.playcount}) 
 
-        if item.contentType == 'episode' or item.contentType == 'list' or name_file == 'tvshow':
+        if item.contentType == 'episode' or item.contentType == 'tvshow' or item.contentType == 'list' or name_file == 'tvshow':
        # elif item.contentType == 'episode':
             name_file = os.path.splitext(os.path.basename(item.strm_path))[0]
             num_season = name_file [0]
