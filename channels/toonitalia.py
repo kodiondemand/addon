@@ -255,7 +255,7 @@ def episodios(item):
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     if "https://vcrypt.net" in data:
-        patron = r'(?:<p>|<br />)([^<]+)<a href="([^"]+)'
+        patron = r'(?:<p>|<br /> )([^<]+) &#8211; <a href="([^"]+)'
         matches = re.compile(patron, re.DOTALL).findall(data)
 
         for scrapedtitle, scrapedurl in matches:
