@@ -51,12 +51,12 @@ def mainlist(item):
     support.menu(itemlist, 'Per anno submenu', 'menu', host, args="Film per Anno")
     support.menu(itemlist, 'Cerca film... submenu', 'search', host, args='film')
 
-    support.menu(itemlist, 'Serie TV bold', 'peliculas', host + '/serietv/', contentType='episode')
-    support.menu(itemlist, 'Aggiornamenti serie tv', 'last', host + '/serietv/aggiornamento-quotidiano-serie-tv/', contentType='episode')
-    support.menu(itemlist, 'Per Lettera submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Lettera")
-    support.menu(itemlist, 'Per Genere submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Genere")
-    support.menu(itemlist, 'Per anno submenu', 'menu', host + '/serietv/', contentType='episode', args="Serie-Tv per Anno")
-    support.menu(itemlist, 'Cerca serie... submenu', 'search', host + '/serietv/', contentType='episode', args='serie')
+    support.menu(itemlist, 'Serie TV bold', 'peliculas', host + '/serietv/', contentType='tvshow')
+    support.menu(itemlist, 'Aggiornamenti serie tv', 'last', host + '/serietv/aggiornamento-quotidiano-serie-tv/', contentType='tvshow')
+    support.menu(itemlist, 'Per Lettera submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Lettera")
+    support.menu(itemlist, 'Per Genere submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Genere")
+    support.menu(itemlist, 'Per anno submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Anno")
+    support.menu(itemlist, 'Cerca serie... submenu', 'search', host + '/serietv/', contentType='tvshow', args='serie')
     
     autoplay.show_option(item.channel, itemlist)
 
@@ -119,7 +119,7 @@ def last(item):
     infoLabels = {}
     quality = ''
 
-    if item.contentType == 'episode':
+    if item.contentType == 'tvshow':
         matches = support.match(item, r'<a href="([^">]+)".*?>([^(:(|[)]+)([^<]+)<\/a>', '<article class="sequex-post-content.*?</article>', headers)[0]
     else:
         matches = support.match(item, r'<a href=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
@@ -127,7 +127,7 @@ def last(item):
     for url, title, info in matches:
         add = True
         title = title.rstrip()
-        if item.contentType == 'episode':
+        if item.contentType == 'tvshow':
             for i in itemlist:
                 if i.url == url: # togliamo i doppi
                     add = False
@@ -143,7 +143,7 @@ def last(item):
         if add:
             itemlist.append(
                     Item(channel=item.channel,
-                         action='findvideos' if item.contentType != 'episode' else 'episodios',
+                         action='findvideos' if item.contentType == 'movie' else 'episodios',
                          contentType=item.contentType,
                          title=longtitle,
                          fulltitle=title,
@@ -177,7 +177,6 @@ def peliculas(item):
 
 
 def episodios(item):
-    item.contentType = 'episode'
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
@@ -202,7 +201,7 @@ def episodios(item):
             itemlist.append(
                 Item(channel=item.channel,
                      action="findvideos",
-                     contentType=item.contentType,
+                     contentType='episode',
                      title="[B]" + episode + "[/B] " + season,
                      fulltitle=episode + " " + season,
                      show=episode + " " + season,

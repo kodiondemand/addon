@@ -229,7 +229,7 @@ def video(item):
 
         # Controlla se sono Episodi o Film
         if movie == '':
-            contentType = 'episode'
+            contentType = 'tvshow'
             action = 'episodios'
         else:
             contentType = 'movie'
@@ -256,66 +256,45 @@ def video(item):
 
 def episodios(item):
     log()
-    itemlist = [] 
-
-    data = httptools.downloadpage(item.url).data.replace('\n', '')
-    block1 = scrapertoolsV2.find_single_match(data, r'<div class="widget servers".*?>(.*?)<div id="download"')
-    block = scrapertoolsV2.find_single_match(block1,r'<div class="server.*?>(.*?)<div class="server.*?>')
-   
-    patron = r'<li><a.*?href="([^"]+)".*?>(.*?)<\/a>'
-    matches = re.compile(patron, re.DOTALL).findall(block)
-
-    extra = {}
-    extra['data'] = block1.replace('<strong>Attenzione!</strong> Non ci sono episodi in questa sezione, torna indietro!.','')
+    itemlist = []
+    
+    patron_block = r'<div class="widget servers".*?>(.*?)<div id="download"'
+    patron = r'<li><a [^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+" href="([^"]+)"[^>]+>([^<]+)<'
+    matches = support.match(item, patron, patron_block)[0]
 
     for scrapedurl, scrapedtitle in matches:
-        extra['episode'] = scrapedtitle
-        scrapedtitle = '[B] Episodio ' + scrapedtitle + '[/B]'
         itemlist.append(
             Item(
                 channel=item.channel,
                 action="findvideos",
                 contentType="episode",
-                title=scrapedtitle,
+                title='[B] Episodio ' + scrapedtitle + '[/B]',
                 url=urlparse.urljoin(host, scrapedurl),
                 fulltitle=scrapedtitle,
                 show=scrapedtitle,
                 plot=item.plot,
                 fanart=item.thumbnail,
-                extra=extra,
                 thumbnail=item.thumbnail))
     
     autorenumber.renumber(itemlist, item,'bold')
     support.videolibrary(itemlist, item)
-
     return itemlist
 
 
 def findvideos(item):
     log()
-
     itemlist = []
-    episode = ''
-
-    if item.extra and item.extra['episode']:
-        data = item.extra['data']
-        episode = item.extra['episode']
-    else:
-        data = httptools.downloadpage(item.url,headers=headers).data
-
-    block = scrapertoolsV2.find_single_match(data,r'data-target="\.widget\.servers.*?>(.*?)</div>')
-    servers = scrapertoolsV2.find_multiple_matches(block,r'class="tab.*?data-name="([0-9]+)">([^<]+)</span')
-
-    videolist = []
+   
+    data = httptools.downloadpage(item.url, headers=headers).data
+    matches, data = support.match(item, r'class="tab.*?data-name="([0-9]+)">([^<]+)</span', headers=headers)
     videoData = ''
-
-    for serverid, servername in servers:
-        #recupero l'id del video per questo server
-        block = scrapertoolsV2.find_single_match(data,r'<div class="server.*?data-id="'+serverid+'">(.*?)</ul>')
-        id = scrapertoolsV2.find_single_match(block,r'<a\sdata-id="([^"]+)"\sdata-base="'+episode+'"')
-
+    
+    for serverid, servername in matches:
+        block = scrapertoolsV2.find_multiple_matches(data,'data-id="'+serverid+'">(.*?)<div class="server')
+        id = scrapertoolsV2.find_single_match(str(block),r'<a data-id="([^"]+)" data-base="'+item.fulltitle+'"')
         dataJson = httptools.downloadpage('%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, id, serverid, int(time.time())), headers=[['x-requested-with', 'XMLHttpRequest']]).data
         json = jsontools.load(dataJson)
+        log('JSON= ',json)
 
         videoData +='\n'+json['grabber']
 
@@ -332,7 +311,5 @@ def findvideos(item):
                     contentType=item.contentType,
                     folder=False))
 
-
-    itemlist += servertools.find_video_items(item,videoData)
-    return support.server(item,itemlist=itemlist)
+    return support.server(item, videoData, itemlist)
 

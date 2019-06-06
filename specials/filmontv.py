@@ -6,10 +6,10 @@
 
 import re
 import urllib
-
+from channelselector import get_thumb
 from core import httptools, scrapertools, tmdb, support
 from core.item import Item
-from platformcode import logger
+from platformcode import logger, config
 
 host = "https://www.comingsoon.it"
 
@@ -18,28 +18,33 @@ TIMEOUT_TOTAL = 60
 
 def mainlist(item):
     logger.info(" mainlist")
-    itemlist = [Item(channel=item.channel,
-                     title=support.typo("IN ONDA ADESSO bold"),
+    itemlist = [Item(channel="search", action='discover_list', title=config.get_localized_string(70309),
+               search_type='list', list_type='movie/now_playing',
+                         thumbnail=get_thumb("now_playing.png")),
+               Item(channel="search", action='discover_list', title=config.get_localized_string(70312),
+                         search_type='list', list_type='tv/on_the_air', thumbnail=get_thumb("on_the_air.png")),
+               Item(channel=item.channel,
+                     title="[Oggi in TV] [B]Adesso in onda[/B]",
                      action="tvoggi",
                      url="%s/filmtv/" % host,
                      thumbnail=item.thumbnail),
                 Item(channel=item.channel,
-                     title="Mattina",
+                     title="[Oggi in TV] Mattina",
                      action="tvoggi",
                      url="%s/filmtv/oggi/mattina/" % host,
                      thumbnail=item.thumbnail),
                 Item(channel=item.channel,
-                     title="Pomeriggio",
+                     title="[Oggi in TV] Pomeriggio",
                      action="tvoggi",
                      url="%s/filmtv/oggi/pomeriggio/" % host,
                      thumbnail=item.thumbnail),
                 Item(channel=item.channel,
-                     title="Sera",
+                     title="[Oggi in TV] Sera",
                      action="tvoggi",
                      url="%s/filmtv/oggi/sera/" % host,
                      thumbnail=item.thumbnail),
                 Item(channel=item.channel,
-                     title="Notte",
+                     title="[Oggi in TV] Notte",
                      action="tvoggi",
                      url="%s/filmtv/oggi/notte/" % host,
                      thumbnail=item.thumbnail)]

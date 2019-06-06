@@ -37,11 +37,11 @@ def mainlist(item):
     support.log()    
     itemlist = []
     
-    support.menu(itemlist, 'Serie TV', 'serietv', host, 'episode') # mettere sempre episode per serietv, anime!!
-    support.menu(itemlist, 'Serie TV Archivio submenu', 'serietv', host + "category/serie-tv-archive/", 'episode')
-    support.menu(itemlist, 'Ultimi Aggiornamenti submenu', 'serietv', host + 'aggiornamento-episodi/', 'episode', args='True')
-    support.menu(itemlist, 'Anime / Cartoni', 'serietv', host + 'category/anime-cartoni-animati/', 'episode')
-    support.menu(itemlist, 'Cerca...', 'search', host, 'episode')
+    support.menu(itemlist, 'Serie TV', 'serietv', host, 'tvshow') # mettere sempre episode per serietv, anime!!
+    support.menu(itemlist, 'Serie TV Archivio submenu', 'serietv', host + "category/serie-tv-archive/", 'tvshow')
+    support.menu(itemlist, 'Ultimi Aggiornamenti submenu', 'serietv', host + 'aggiornamento-episodi/', 'tvshow', args='True')
+    support.menu(itemlist, 'Anime / Cartoni', 'serietv', host + 'category/anime-cartoni-animati/', 'tvshow')
+    support.menu(itemlist, 'Cerca...', 'search', host, 'tvshow')
 
     # richiesto per autoplay
     autoplay.init(item.channel, list_servers, list_quality)
@@ -105,7 +105,7 @@ def episodios(item):
             itemlist.append(
                 Item(channel=item.channel,
                      action="findvideos",
-                     contentType=item.contentType,
+                     contentType='episode',
                      title="[B]" + season_n + "x" + episode_n + " " + titolo + "[/B] " + season_lang,
                      fulltitle=item.title, # Titolo nel video
                      show=titolo + ":" + season_n + "x" + episode_n, # sottotitoletto nel video

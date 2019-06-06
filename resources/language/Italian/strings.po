@@ -378,8 +378,8 @@ msgid "Sagas"
 msgstr "Saghe"
 
 msgctxt "#50001"
-msgid "Today on TV"
-msgstr "Oggi in TV"
+msgid "On Air"
+msgstr "Adesso in onda"
 
 msgctxt "#50002"
 msgid "Latest News"
@@ -3935,7 +3935,7 @@ msgstr "Film più valutati"
 
 msgctxt "#70309"
 msgid "Movies Now in Theatres "
-msgstr "Film ora in sala"
+msgstr "[Film] Ora in sala"
 
 msgctxt "#70310"
 msgid "Series by Genre"
@@ -3947,7 +3947,7 @@ msgstr "Serie più popolari"
 
 msgctxt "#70312"
 msgid "Series in progress"
-msgstr "Serie in uscita"
+msgstr "[Serie TV] In corso"
 
 msgctxt "#70313"
 msgid "Top rated Series"

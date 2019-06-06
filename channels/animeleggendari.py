@@ -34,7 +34,6 @@ def mainlist(item):
     menu(itemlist, 'Anime in Corso', 'peliculas', host + '/category/anime-in-corso/')
     menu(itemlist, 'Genere', 'genres', host)
     menu(itemlist, 'Cerca...', 'search')
-    menu(itemlist, 'novita', 'newest')
                      
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
@@ -137,7 +136,7 @@ def episodios(item):
     itemlist.append(
         Item(channel=item.channel,
              action='findvideos',
-             contentType=item.contentType,
+             contentType='episode',
              title=support.typo('Episodio 1 bold'),
              fulltitle=item.title,
              url=item.url,
@@ -149,7 +148,7 @@ def episodios(item):
             itemlist.append(
                 Item(channel=item.channel,
                      action='findvideos',
-                     contentType=item.contentType,
+                     contentType='episode',
                      title=support.typo('Episodio ' + number,'bold'),
                      fulltitle=item.title,
                      url=url,

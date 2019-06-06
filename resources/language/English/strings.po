@@ -378,7 +378,7 @@ msgid "Sagas"
 msgstr ""
 
 msgctxt "#50001"
-msgid "Today on TV"
+msgid "On Air"
 msgstr ""
 
 msgctxt "#50002"

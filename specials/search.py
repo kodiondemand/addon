@@ -29,43 +29,30 @@ def mainlist(item):
 
     itemlist = []
     context = [{"title": config.get_localized_string(60412), "action": "setting_channel", "channel": item.channel}]
-    itemlist.append(Item(channel=item.channel, action="sub_menu", title=config.get_localized_string(70305), context=context,
+    itemlist.append(Item(channel=item.channel, action="sub_menu", title="[B]" + config.get_localized_string(70305)+ "[/B]", context=context,
                          thumbnail=get_thumb("search.png")))
-
+    itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
+                         thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails")) 
     itemlist.append(Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70306), type='movie',
                          thumbnail=get_thumb("genres.png")))
-
     itemlist.append (Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70307),
                           context=context, search_type='list', list_type='movie/popular',
                           thumbnail=get_thumb("popular.png")))
-
     itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70308),
                          context=context, search_type='list', list_type='movie/top_rated',
                          thumbnail=get_thumb("top_rated.png")))
-
-    itemlist.append(
-        Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70309), context=context,
-             search_type='list', list_type='movie/now_playing',
-                         thumbnail=get_thumb("now_playing.png")))
-
+    #itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70309), context=context,
+    #         search_type='list', list_type='movie/now_playing',
+    #                     thumbnail=get_thumb("now_playing.png")))
     itemlist.append(Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70310), type='tv',
                          thumbnail=get_thumb("genres.png")))
-
     itemlist.append(
         Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70311), context=context,
              search_type='list',list_type='tv/popular', thumbnail=get_thumb("popular.png")))
-
-    itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70312), context=context,
-                         search_type='list', list_type='tv/on_the_air', thumbnail=get_thumb("on_the_air.png")))
-
-
+    #itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70312), context=context,
+    #                     search_type='list', list_type='tv/on_the_air', thumbnail=get_thumb("on_the_air.png")))
     itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70313), context=context,
                          search_type='list', list_type='tv/top_rated', thumbnail=get_thumb("top_rated.png")))
-    
-    itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
-                         thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails")) 
-
-
 
 
     return itemlist

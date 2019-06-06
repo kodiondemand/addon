@@ -604,27 +604,29 @@ def set_context_commands(item, parent_item):
                                                                   from_channel=item.channel, from_action=item.action)
                                           .tourl())))
 
-            elif item.contentSerieName:
-                # Descargar serie
-                if item.contentType == "tvshow" or 'episode' and item.action in ["episodios"]:
-                    context_commands.append((config.get_localized_string(60355), "XBMC.RunPlugin(%s?%s)" %
-                                             (sys.argv[0], item.clone(channel="downloads", action="save_download",
-                                                                      from_channel=item.channel,
-                                                                      from_action=item.action).tourl())))
+            # elif item.contentSerieName:
+            # Descargar serie
+            elif item.contentType == "tvshow" and item.action in ["episodios"]:
+                item.contentType == "tvshow"
+                context_commands.append((config.get_localized_string(60355), "XBMC.RunPlugin(%s?%s)" %
+                                            (sys.argv[0], item.clone(channel="downloads", action="save_download",
+                                                                    from_channel=item.channel,
+                                                                    from_action=item.action).tourl())))
 
-                # Descargar episodio
-                elif item.contentType == "tvshow" or 'episode' and item.action in ["findvideos"]:
-                    context_commands.append((config.get_localized_string(60356), "XBMC.RunPlugin(%s?%s)" %
-                                             (sys.argv[0], item.clone(channel="downloads", action="save_download",
-                                                                      from_channel=item.channel,
-                                                                      from_action=item.action).tourl())))
+            # Descargar episodio
+            elif item.contentType == 'episode' and item.action in ["findvideos"]:
+                item.contentType == "episode"
+                context_commands.append((config.get_localized_string(60356), "XBMC.RunPlugin(%s?%s)" %
+                                            (sys.argv[0], item.clone(channel="downloads", action="save_download",
+                                                                    from_channel=item.channel,
+                                                                    from_action=item.action).tourl())))
 
-                # Descargar temporada
-                elif item.contentType == "season":
-                    context_commands.append((config.get_localized_string(60357), "XBMC.RunPlugin(%s?%s)" %
-                                             (sys.argv[0], item.clone(channel="downloads", action="save_download",
-                                                                      from_channel=item.channel,
-                                                                      from_action=item.action).tourl())))
+            # Descargar temporada
+            elif item.contentType == "season":
+                context_commands.append((config.get_localized_string(60357), "XBMC.RunPlugin(%s?%s)" %
+                                            (sys.argv[0], item.clone(channel="downloads", action="save_download",
+                                                                    from_channel=item.channel,
+                                                                    from_action=item.action).tourl())))
 
         # Abrir configuración
         if parent_item.channel not in ["setting", "news", "search"]:

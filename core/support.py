@@ -206,6 +206,8 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     if scraped['type'] in variants:
                         action = name
 
+            if inspect.stack()[1][3] == 'episodios':  item.contentType = 'episode' 
+            
             if scraped["title"] not in blacklist:
                 it = Item(
                     channel=item.channel,
@@ -550,14 +552,15 @@ def pagination(itemlist, item, page, perpage, function_level=1):
                  thumbnail=thumb()))
     return itemlist
 
-def server(item, data='', itemlist='', headers='', AutoPlay=True, CheckLinks=True):
-
+def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True):
+    
     if not data:
         data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
 
-    if not itemlist:
-        itemlist = servertools.find_video_items(data=str(data))
-
+    
+    itemList = servertools.find_video_items(data=str(data))
+    itemlist += itemList
+    
     for videoitem in itemlist:
         videoitem.title = "".join([item.title, ' ', typo(videoitem.title, 'color kod []'), typo(videoitem.quality, 'color kod []') if videoitem.quality else ""])
         videoitem.fulltitle = item.fulltitle
@@ -573,6 +576,12 @@ def controls(itemlist, item, AutoPlay=True, CheckLinks=True):
     from platformcode.config import get_setting
 
     CL = get_setting('checklinks') or get_setting('checklinks', item.channel)
+    autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
+    channel_node = autoplay_node.get(item.channel, {})
+    if not channel_node:  # non ha mai aperto il menu del canale quindi in autoplay_data.json non c'e la key
+        channelFile = __import__('channels.' + item.channel, fromlist=["channels.%s" % item.channel])
+        autoplay.init(item.channel, channelFile.list_servers, channelFile.list_quality)
+        
     autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
     channel_node = autoplay_node.get(item.channel, {})
     settings_node = channel_node.get('settings', {})

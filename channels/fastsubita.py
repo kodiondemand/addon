@@ -311,7 +311,7 @@ def episodios(item, itemlist=[]):
         itemlist.append(
             Item(channel=item.channel,
                  action="findvideos",
-                 contentTpye="tvshow",
+                 contentTpye="episode",
                  title=title,
                  fulltitle=scrapedtitle,
                  url=scrapedurl,

@@ -120,7 +120,7 @@ def nuoveserie(item):
         itemlist.append(
             Item(channel=item.channel,
                  action="episodios",
-                 contentType="episode",
+                 contentType="tvshow",
                  title=scrapedtitle,
                  fulltitle=scrapedtitle,
                  url=scrapedurl,
@@ -165,7 +165,7 @@ def serietvaggiornate(item):
         itemlist.append(
             Item(channel=item.channel,
                  action="findepvideos",
-                 contentType="episode",
+                 contentType="tvshow",
                  title=title,
                  show=scrapedtitle,
                  fulltitle=scrapedtitle,

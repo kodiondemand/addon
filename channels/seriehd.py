@@ -33,7 +33,7 @@ def mainlist(item):
     menu(itemlist, 'Serie TV', 'peliculas', host + '/serie-tv-streaming', 'tvshow')
     menu(itemlist, 'Per Genere submenu', 'genre', host, 'tvshow', 'TV')
     menu(itemlist, 'Per Nazione submenu', 'nation', host + '/serie-tv-streaming/', 'tvshow', 'TV')
-    menu(itemlist, 'Cerca...', 'search', contentType='episode', args='TV')
+    menu(itemlist, 'Cerca...', 'search', contentType='tvshow', args='TV')
 
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
@@ -96,7 +96,7 @@ def nation(item):
 
 
 def peliculas(item):
-    item.contentType = 'episode'
+    item.contentType = 'tvshow'
     return support.scrape(item,r'<h2>(.*?)</h2>\s*<img src="([^"]+)" alt="[^"]*" />\s*<A HREF="([^"]+)">.*?<span class="year">([0-9]{4}).*?<span class="calidad">([A-Z]+)',['title', 'thumb', 'url', 'year', 'quality'], headers, patronNext=r"<span class='current'>\d+</span><a rel='nofollow' class='page larger' href='([^']+)'>\d+</a>", action='episodios')
 
 

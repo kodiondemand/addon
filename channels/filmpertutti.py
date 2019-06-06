@@ -22,11 +22,11 @@ def mainlist(item):
     itemlist =[]
 
     support.menu(itemlist, '[B]Film[/B]', 'peliculas', host + '/category/film/', 'movie')
-    support.menu(itemlist, '[B] > Film per Genere[/B]', 'genre', host, 'episode')
+    support.menu(itemlist, '[B] > Film per Genere[/B]', 'genre', host, 'tvshow')
     support.menu(itemlist, '[COLOR blue]Cerca Film...[/COLOR]', 'search', '')
-    support.menu(itemlist, '[B]Serie TV[/B]', 'peliculas', host + '/category/serie-tv/', 'episode')
-    support.menu(itemlist, '[B] > Serie TV in ordine alfabetico[/B]', 'az', host + '/category/serie-tv/', 'episode')
-    support.menu(itemlist, '[COLOR blue]Cerca Serie TV...[/COLOR]', 'search', '', 'episode')
+    support.menu(itemlist, '[B]Serie TV[/B]', 'peliculas', host + '/category/serie-tv/', 'tvshow')
+    support.menu(itemlist, '[B] > Serie TV in ordine alfabetico[/B]', 'az', host + '/category/serie-tv/', 'tvshow')
+    support.menu(itemlist, '[COLOR blue]Cerca Serie TV...[/COLOR]', 'search', '', 'tvshow')
 
 
     autoplay.init(item.channel, list_servers, list_quality)
@@ -129,7 +129,7 @@ def peliculas(item):
         
         longtitle = title + ' [COLOR blue][' + quality + '][/COLOR]'
 
-        if item.contentType == 'episode':
+        if item.contentType == 'tvshow':
             action = 'episodios'
         else:
             action ='findvideos'
@@ -181,7 +181,7 @@ def episodios(item):
             itemlist.append(
                     Item(channel=item.channel,
                          action='findvideos',
-                         contentType=item.contentType,
+                         contentType='episode',
                          title=title,
                          fulltitle=title,
                          show=title,
@@ -206,7 +206,7 @@ def episodios(item):
                          fulltitle=title,
                          show=title,
                          url=url,
-                         contentType=item.contentType,
+                         contentType='episodie',
                          action='findvideos'
                     ))
 

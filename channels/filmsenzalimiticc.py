@@ -53,7 +53,7 @@ def mainlist(item):
                      action='video',
                      title='Serie TV',
                      url=host+'/serie-tv/',
-                     contentType='episode',
+                     contentType='tvshow',
                      thumbnail=''),
                 Item(channel=item.channel,
                      action='sottomenu_serie',
@@ -119,19 +119,19 @@ def sottomenu_serie(item):
                      action='video',
                      title='Serie TV HD',
                      url=host+'/watch-genre/serie-altadefinizione/',
-                     contentType='episode',
+                     contentType='tvshow',
                      thumbnail=''),
                 Item(channel=item.channel,
                      action='video',
                      title='Miniserie',
                      url=host+'/watch-genre/miniserie/',
-                     contentType='episode',
+                     contentType='tvshow',
                      thumbnail=''),
                 Item(channel=item.channel,
                      action='video',
                      title='Programmi TV',
                      url=host+'/watch-genre/programmi-tv/',
-                     contentType='episode',
+                     contentType='tvshow',
                      thumbnail='')   
                 ]
                 
@@ -166,7 +166,7 @@ def video(item):
         if item.contentType == 'movie':
             azione = 'findvideos'
             tipologia = 'movie'
-        if item.contentType == 'episode':
+        if item.contentType == 'tvshow':
             azione='episodios'
             tipologia = 'tv'
         

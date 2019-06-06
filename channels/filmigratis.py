@@ -32,9 +32,9 @@ def mainlist(item):
     support.menu(itemlist, 'Al Cinema bold', 'carousel', host, contentType='movie')
     support.menu(itemlist, 'Film alta definizione bold', 'peliculas', host, contentType='movie', args='film')
     support.menu(itemlist, 'Categorie Film bold', 'categorias_film', host , contentType='movie', args='film')
-    support.menu(itemlist, 'Categorie Serie bold', 'categorias_serie', host, contentType='episode', args='serie')
+    support.menu(itemlist, 'Categorie Serie bold', 'categorias_serie', host, contentType='tvshow', args='serie')
     support.menu(itemlist, '[COLOR blue]Cerca Film...[/COLOR] bold', 'search', host, contentType='movie', args='film')
-    support.menu(itemlist, '[COLOR blue]Cerca Serie...[/COLOR] bold', 'search', host, contentType='episode', args='serie')
+    support.menu(itemlist, '[COLOR blue]Cerca Serie...[/COLOR] bold', 'search', host, contentType='tvshow', args='serie')
 
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
@@ -142,7 +142,7 @@ def categorias_serie(item):
     for scrapedurl, scrapedtitle in matches:
         itemlist.append(
             Item(channel=channel,
-                 contentType='episode',
+                 contentType='tvshow',
                  action="peliculas_serie",
                  title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
                  url=scrapedurl,
@@ -205,7 +205,7 @@ def peliculas_serie(item):
         itemlist.append(
             Item(channel=item.channel,
                  action="episodios",
-                 contentType='episode',
+                 contentType='tvshow',
                  title=scrapedtitle,
                  fulltitle=scrapedtitle,
                  url=scrapedurl,

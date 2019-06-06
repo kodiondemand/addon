@@ -27,10 +27,10 @@ def mainlist(item):
     menu(itemlist, 'Film', 'peliculas', host + '/film/')
     menu(itemlist, 'Film Per Categoria', 'category', host, args='genres')
     menu(itemlist, 'Film Per Anno', 'category', host, args='year')
-    menu(itemlist, 'Serie TV', 'peliculas', host + '/serie/', 'episode')
-    menu(itemlist, 'Nuovi Episodi Serie TV submenu', 'newep', host + '/aggiornamenti-serie/', 'episode')
-    menu(itemlist, 'Anime', 'peliculas', host + '/anime/', 'episode')
-    menu(itemlist, 'TV Show', 'peliculas', host + '/tv-show/', 'episode')
+    menu(itemlist, 'Serie TV', 'peliculas', host + '/serie/', 'tvshow')
+    menu(itemlist, 'Nuovi Episodi Serie TV submenu', 'newep', host + '/aggiornamenti-serie/', 'tvshow')
+    menu(itemlist, 'Anime', 'peliculas', host + '/anime/', 'tvshow')
+    menu(itemlist, 'TV Show', 'peliculas', host + '/tv-show/', 'tvshow')
     menu(itemlist, 'Cerca...', 'search', contentType='search')
     aplay(item, itemlist, list_servers, list_quality)
     return itemlist
@@ -46,10 +46,10 @@ def newest(categoria):
             item.contentType = 'movie'
             item.url = host + '/film/'
         elif categoria == "series":
-            item.contentType = 'episode'
+            item.contentType = 'tvshow'
             item.url = host + '/serie/'
         elif categoria == "anime":
-            item.contentType = 'episode'
+            item.contentType = 'tvshow'
             item.url = host + '/anime/'
 
         item.action = "peliculas"
@@ -88,19 +88,19 @@ def search(item, texto):
 
 def peliculas_src(item):
     patron = r'<div class="thumbnail animation-2"><a href="([^"]+)"><img src="([^"]+)" alt="[^"]+" \/>[^>]+>([^<]+)<\/span>.*?<a href.*?>([^<]+)<\/a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*([0-9.]+)<\/span>)?.*?(?:<span class="year">([0-9]+)<\/span>)?[^>]+>[^>]+><p>(.*?)<\/p>'
-    return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'episode':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
+    return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'tvshow':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
     
 
 def peliculas(item):
     if item.contentType == 'movie':
         patron = r'<div class="poster">\s*<a href="([^"]+)"><img src="([^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+>\s*([0-9.]+)<\/div><span class="quality">([^<]+)<\/span>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<\/a>[^>]+>[^>]+>([^<]+)<\/span>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<div'
         return support.scrape(item, patron, ['url', 'thumb', 'rating', 'quality', 'title', 'year', 'plot'], headers, patronNext='<span class="current">[^<]+<[^>]+><a href="([^"]+)"')
-    elif item.contentType == 'episode':
+    elif item.contentType == 'tvshow':
         patron = r'<div class="poster">\s*<a href="([^"]+)"><img src="([^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> ([0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<[^>]+>[^>]+>[^>]+>([^<]+)<.*?<div class="texto">([^<]+)'
         return support.scrape(item, patron, ['url', 'thumb', 'rating', 'title', 'year', 'plot'], headers, action='episodios', patronNext='<span class="current">[^<]+<[^>]+><a href="([^"]+)"')
     else:
         patron = r'<div class="thumbnail animation-2"><a href="([^"]+)"><img src="([^"]+)" alt="[^"]+" \/>[^>]+>([^<]+)<\/span>.*?<a href.*?>([^<]+)<\/a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*([0-9.]+)<\/span>)?.*?(?:<span class="year">([0-9]+)<\/span>)?[^>]+>[^>]+><p>(.*?)<\/p>'
-        return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'episode':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
+        return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'tvshow':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
 
 def newep(item):
     log()

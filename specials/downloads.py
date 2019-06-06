@@ -503,7 +503,7 @@ def download_from_server(item):
     unsupported_servers = ["torrent"]
 
     progreso = platformtools.dialog_progress(config.get_localized_string(30101), config.get_localized_string(70178) % item.server)
-    channel = __import__('channels.%s' % item.contentChannel, None, None, ["channels.%s" % item.contentChannel])
+    channel = __import__('channels.%s' % item.contentChannel, None, None, ['channels.%s' % item.contentChannel])
     if hasattr(channel, "play") and not item.play_menu:
 
         progreso.update(50, config.get_localized_string(70178) % item.server, config.get_localized_string(60003) % item.contentChannel)
@@ -570,7 +570,7 @@ def download_from_best_server(item):
     result = {"downloadStatus": STATUS_CODES.error}
 
     progreso = platformtools.dialog_progress(config.get_localized_string(30101), config.get_localized_string(70179))
-    channel = __import__('channels.%s' % item.contentChannel, None, None, ["channels.%s" % item.contentChannel])
+    channel = __import__('channels.%s' % item.contentChannel, None, None, ['channels.%s' % item.contentChannel])
 
     progreso.update(50, config.get_localized_string(70184), config.get_localized_string(70180) % item.contentChannel)
 
@@ -648,7 +648,6 @@ def select_server(item):
 def start_download(item):
     logger.info(
         "contentAction: %s | contentChannel: %s | url: %s" % (item.contentAction, item.contentChannel, item.url))
-
     # Ya tenemnos server, solo falta descargar
     if item.contentAction == "play":
         ret = download_from_server(item)
@@ -671,13 +670,13 @@ def start_download(item):
 def get_episodes(item):
     logger.info("contentAction: %s | contentChannel: %s | contentType: %s" % (
         item.contentAction, item.contentChannel, item.contentType))
-
-    # El item que pretendemos descargar YA es un episodio
+        
+            # El item que pretendemos descargar YA es un episodio
     if item.contentType == "episode":
         episodes = [item.clone()]
 
     # El item es uma serie o temporada
-    elif item.contentType in ["tvshow", "season"]:
+    if item.contentType in ["tvshow", "season"]:
         # importamos el canal
         channel = __import__('channels.%s' % item.contentChannel, None, None, ["channels.%s" % item.contentChannel])
         # Obtenemos el listado de episodios
@@ -721,7 +720,6 @@ def get_episodes(item):
 
             episode.downloadFilename = filetools.validate_path(os.path.join(item.downloadFilename, "%dx%0.2d - %s" % (
                 episode.contentSeason, episode.contentEpisodeNumber, episode.contentTitle.strip())))
-
             itemlist.append(episode)
         # Cualquier otro resultado no nos vale, lo ignoramos
         else:
@@ -827,6 +825,7 @@ def save_download_tvshow(item):
 
     progreso = platformtools.dialog_progress(config.get_localized_string(30101), config.get_localized_string(70188))
 
+    item.show = item.fulltitle
     scraper.find_and_set_infoLabels(item)
 
     item.downloadFilename = filetools.validate_path("%s [%s]" % (item.contentSerieName, item.contentChannel))
@@ -849,6 +848,7 @@ def save_download_tvshow(item):
                                 config.get_localized_string(30109))
     else:
         for i in episodes:
+            i.contentChannel = item.contentChannel
             res = start_download(i)
             if res == STATUS_CODES.canceled:
                 break
