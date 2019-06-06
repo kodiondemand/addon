@@ -4,14 +4,14 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "speedvideo.net/(?:embed-|)([A-Z0-9a-z]+)",
-        "url": "https:\/\/speedvideo.net\/embed-\\1.html"
-      }  
+        "pattern": "turbovid.me/([A-z0-9]+)",
+        "url": "http://turbovid.me/\\1"
+      }
     ]
   },
   "free": true,
-  "id": "speedvideo",
-  "name": "speedvideo",
+  "id": "turbovid",
+  "name": "turbovid",
   "settings": [
     {
       "default": false,
@@ -37,5 +37,6 @@
       "type": "list",
       "visible": false
     }
-  ]
+  ],
+  "thumbnail": "http://turbovid.me/img/logo.png"  
 }

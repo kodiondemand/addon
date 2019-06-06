@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 # -*- Channel Altadefinizione01L Film - Serie -*-
-# -*- Creato per Alfa-addon -*-
-# -*- e adattato for KOD -*-
 # -*- By Greko -*-
-# -*- last change: 26/05/2019
 
 import channelselector
 from specials import autoplay
@@ -18,10 +15,7 @@ __channel__ = "altadefinizione01_link"
 list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
 list_quality = ['default']
 
-#host = config.get_setting("channel_host", __channel__)
-host = config.get_channel_url(__channel__)
-checklinks = config.get_setting('checklinks', __channel__)
-checklinks_number = config.get_setting('checklinks_number', __channel__)
+host = config.get_setting("channel_host", __channel__)
 
 headers = [['Referer', host]]
 # =========== home menu ===================
@@ -156,7 +150,5 @@ def findvideos(item):
 
     # Requerido para AutoPlay
     autoplay.start(itemlist, item)
-
-    support.videolibrary(itemlist, item, 'color kod')
     
     return itemlist

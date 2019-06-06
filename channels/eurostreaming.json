@@ -6,20 +6,20 @@
 	"language": ["ita"],
     "thumbnail": "https://eurostreaming.cafe/wp-content/uploads/2017/08/logocafe.png",
     "bannermenu": "https://eurostreaming.cafe/wp-content/uploads/2017/08/logocafe.png",
-	"categories": ["tvshow","anime"],
+	"categories": ["tvshow","anime","vosi"],
   "settings": [
+    {
+    "id": "channel_host",
+    "type": "text",
+    "label": "Host del canale",
+    "default": "https://eurostreaming.cafe/",
+    "enabled": true,
+    "visible": true
+    },   
       {
       "id": "include_in_global_search",
       "type": "bool",
       "label": "Includi ricerca globale",
-      "default": true,
-      "enabled": true,
-      "visible": true
-    },
-    {
-      "id": "modo_grafico",
-      "type": "bool",
-      "label": "Cerca informazioni extra",
       "default": true,
       "enabled": true,
       "visible": true
@@ -39,23 +39,6 @@
     "default": true,
     "enabled": true,
     "visible": true
-    },    
-    {
-      "id": "checklinks",
-      "type": "bool",
-      "label": "Verifica se i link esistono",
-      "default": true,
-      "enabled": true,
-      "visible": true
-    },
-    {
-      "id": "checklinks_number",
-      "type": "list",
-      "label": "Numero de link da verificare",
-      "default": 1,
-      "enabled": true,
-      "visible": "eq(-1,true)",
-      "lvalues": [ "5", "10", "15", "20" ]
     },
     {
       "id": "filter_languages",
@@ -66,24 +49,8 @@
       "visible": true,
       "lvalues": [
         "Non filtrare",
-        "Italiano",
+        "ITA",
         "vosi"
-      ]
-    },
-    {
-      "id": "perfil",
-      "type": "list",
-      "label": "profilo dei colori",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "Sin color",
-        "Perfil 5",
-        "Perfil 4",
-        "Perfil 3",
-        "Perfil 2",
-        "Perfil 1"
       ]
     }
 	  ]

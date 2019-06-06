@@ -53,6 +53,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                     from lib import unshortenit
                     data, status = unshortenit.unshorten(url)
                     logger.info("Data - Status zcrypt linkup : [%s] [%s] " %(data, status))
+                    if '/speedx/' in data: # aggiunto per server speedvideo
+                       data = data.replace('http://linkup.pro/speedx', 'http://speedvideo.net')
                     # fix by greko fine
                 else:
                     data = ""

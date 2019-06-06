@@ -10,7 +10,8 @@
   "fix" : "reimpostato url e modificato file per KOD",
   "change_date": "2019-30-04",
   "categories": [
-    "movie"
+    "movie",
+    "vosi"
   ],
   "settings": [
     {
@@ -30,7 +31,7 @@
       "visible": true
     },
     {
-      "id": "include_in_newest_film",
+      "id": "include_in_newest_peliculas",
       "type": "bool",
       "label": "Includi in Novità",
       "default": true,
@@ -79,7 +80,8 @@
       "visible": true,
       "lvalues": [
         "Non filtrare",
-        "IT"
+        "ITA",
+        "vosi"
       ]
     },
     {

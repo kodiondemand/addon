@@ -1,0 +1,75 @@
+{
+  "id": "nowvideo",
+  "name": "nowvideo",
+  "active": true,
+  "thumbnail": "http://nowvideo.club/images/logo.png", 
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "nowvideo.club/(?:play|videos/)([A-z0-9]+)",
+        "url": "http:\/\/nowvideo.club\/play\/\\1"
+      },
+      {
+        "pattern": "nowvideo.club/(?:videos|play/)([A-z0-9]+)",
+        "url": "http:\/\/nowvideo.club\/videos/\\1"
+      }      
+    ]
+  },
+  "free": true,
+  "premium": [
+    "nowvideo",
+    "realdebrid"
+  ],
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@60654",
+      "type": "bool",
+      "visible": true
+    },
+    {
+      "default": 0,
+      "enabled": true,
+      "id": "favorites_servers_list",
+      "label": "@60655",
+      "lvalues": [
+        "No",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "type": "list",
+      "visible": false
+    },
+    {
+      "default": false,
+      "enabled": true,
+      "id": "premium",
+      "label": "@70272",
+      "type": "bool",
+      "visible": true
+    },
+    {
+      "default": "",
+      "enabled": "eq(-1,true)",
+      "id": "user",
+      "label": "@30014",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "default": "",
+      "enabled": "eq(-2,true)+!eq(-1,'')",
+      "hidden": true,
+      "id": "password",
+      "label": "@30015",
+      "type": "text",
+      "visible": true
+    }
+  ]
+}

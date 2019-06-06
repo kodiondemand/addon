@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+# -----------------------------------------------------------
 # support functions that are needed by many channels, to no repeat the same code
 import base64
 import inspect
@@ -112,8 +114,12 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
     #   patron = 'blablabla'
     #   headers = [['Referer', host]]
     #   blacklist = 'Request a TV serie!'
-    #   return support.scrape(item, itemlist, patron, ['thumb', 'quality', 'url', 'title', 'year', 'plot', 'episode', 'lang'],
+    #   return support.scrape(item, itemlist, patron, ['thumb', 'quality', 'url', 'title', 'title2', 'year', 'plot', 'episode', 'lang'],
     #                           headers=headers, blacklist=blacklist)
+    # listGroups
+    #    thumb = immagine, quality = qualità, url = link singolo o gruppo, title = titolo film o serie, title2 = titolo aggiuntivo
+    #    year = anno del film o della serie, plot = descrizione film o serie, episode = numero stagione - numero episodio in caso di serie,
+    #    lang = lingua del video
     # 'type' is a check for typologies of content e.g. Film or TV Series
     # 'episode' is a key to grab episode numbers if it is separated from the title
     # IMPORTANT 'type' is a special key, to work need type_content_dict={} and type_action_dict={}
@@ -145,6 +151,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
         log('MATCHES =', matches)
 
         known_keys = ['url', 'title', 'title2', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang'] #by greko aggiunto episode
+        lang = '' # aggiunto per gestire i siti con pagine di serietv dove si hanno i video in ita e in subita
         
         for match in matches:
             if len(listGroups) > len(match):  # to fix a bug
@@ -158,7 +165,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     val = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + val
                 scraped[kk] = val
 
-            title = scrapertoolsV2.decodeHtmlentities(scraped["title"]).replace('"', "'").strip() # fix by greko da " a '
+            title = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["title"])).replace('’', '\'').replace('"', "'").strip() # fix by greko da " a '
             plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
 
             longtitle = typo(title, 'bold')
@@ -167,13 +174,17 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 scraped['episode'] = re.sub(r'\s-\s|-|x|&#8211', 'x' , scraped['episode'])
                 longtitle = typo(scraped['episode'] + ' - ', 'bold') + longtitle
             if scraped['title2']:
-                title2 = scrapertoolsV2.decodeHtmlentities(scraped["title2"]).replace('"', "'").strip()
+                title2 = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["title2"])).replace('"', "'").strip()
                 longtitle = longtitle + typo(title2, 'bold _ -- _')
-            if scraped["lang"]: 
-                if 'sub' in scraped["lang"].lower():
+
+            ##    Aggiunto/modificato per gestire i siti che hanno i video
+            ##    in ita e subita delle serie tv nella stessa pagina                             
+            if scraped['lang']:              
+                if 'sub' in scraped['lang'].lower():
                     lang = 'Sub-ITA'
                 else:
-                    lang = 'ITA'                  
+                    lang = 'ITA'                      
+            if lang != '':
                 longtitle += typo(lang, '_ [] color kod')
 
             if item.infoLabels["title"] or item.fulltitle:  # if title is set, probably this is a list of episodes or video sources
@@ -216,6 +227,7 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     title=longtitle,
                     fulltitle=title,
                     show=title,
+                    language = lang if lang != '' else '',
                     quality=scraped["quality"],
                     url=scraped["url"],
                     infoLabels=infolabels,

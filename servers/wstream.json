@@ -9,7 +9,11 @@
             {
                 "pattern": "wstream.video/(?:embed-|videos/|video/)?([a-z0-9A-Z]+)",
                 "url": "http:\/\/wstream.video\/\\1"
-            }
+            },
+            {
+                "pattern": "wstream.video/(?:embed-|videos/|video/)?([a-z0-9A-Z]+)",
+                "url": "http:\/\/wstream.video\/video\/\\1"
+            }            
         ],
         "ignore_urls": [        ]
     },

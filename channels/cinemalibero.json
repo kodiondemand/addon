@@ -8,6 +8,14 @@
 	"banner": "https://www.cinemalibero.center/wp-content/themes/Cinemalibero%202.0/images/logo02.png",
 	"categories": ["tvshow", "movie","anime"],
     "settings": [
+    {
+    "id": "channel_host",
+    "type": "text",
+    "label": "Host del canale",
+    "default": "https://www.cinemalibero.fun/",
+    "enabled": true,
+    "visible": true
+    },
         {
             "id": "include_in_global_search",
             "type": "bool",
