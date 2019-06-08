@@ -253,6 +253,10 @@ msgctxt "#30164"
 msgid "Delete this file"
 msgstr "Cancella questo file"
 
+msgctxt "#30165"
+msgid "Modify server: %s"
+msgstr "Modifica server: %s"
+
 msgctxt "#30200"
 msgid "Square"
 msgstr "Square"

@@ -207,7 +207,7 @@ def menu(item):
         servidor = "Auto"
     # Opciones disponibles para el menu
     op = [config.get_localized_string(70225), config.get_localized_string(70226), config.get_localized_string(70227),
-          "Modificar servidor: %s" % (servidor.capitalize())]
+          config.get_localized_string(30165) % (servidor.capitalize())]
 
     opciones = []
 
@@ -237,7 +237,7 @@ def menu(item):
     # -1 es cancelar
     if seleccion == -1: return
 
-    logger.info("opcion=%s" % (opciones[seleccion]))
+    logger.info("option=%s" % (opciones[seleccion]))
     # Opcion Eliminar
     if opciones[seleccion] == op[1]:
         filetools.remove(item.path)
@@ -407,10 +407,10 @@ def sort_method(item):
     @rtype: int
     """
     lang_orders = {}
-    lang_orders[0] = ["ES", "LAT", "SUB", "ENG", "VOSE"]
-    lang_orders[1] = ["ES", "SUB", "LAT", "ENG", "VOSE"]
-    lang_orders[2] = ["ENG", "SUB", "VOSE", "ESP", "LAT"]
-    lang_orders[3] = ["VOSE", "ENG", "SUB", "ESP", "LAT"]
+    lang_orders[0] = ["IT", "SUB", "VOSI", "ENG"]
+    lang_orders[1] = ["IT", "ENG", "VOSI", "SUB"]
+    lang_orders[2] = ["ENG", "SUB", "IT", "VOSI"]
+    lang_orders[3] = ["ENG", "SUB", "VOSI", "IT"]
 
     quality_orders = {}
     quality_orders[0] = ["BLURAY", "FULLHD", "HD", "480P", "360P", "240P"]
@@ -419,20 +419,19 @@ def sort_method(item):
     quality_orders[3] = ["480P", "360P", "240P", "BLURAY", "FULLHD", "HD"]
 
     order_list_idiomas = lang_orders[int(config.get_setting("language", "downloads"))]
-    match_list_idimas = {"ES": ["CAST", "ESP", "Castellano", "Español", "Audio Español"],
-                         "LAT": ["LAT", "Latino"],
-                         "SUB": ["Subtitulo Español", "Subtitulado", "SUB"],
+    match_list_idimas = {"IT": ["ITA", "IT", "Italiano", "italiano", "ITALIANO"],
+                         "SUB": ["Sottotitolato", "SUB", "sub-ita", "SUB-ITA", "Sub-ITA", "Sub-Ita"],
                          "ENG": ["EN", "ENG", "Inglés", "Ingles", "English"],
-                         "VOSE": ["VOSE"]}
+                         "VOSI": ["VOSI"]}
 
     order_list_calidad = ["BLURAY", "FULLHD", "HD", "480P", "360P", "240P"]
     order_list_calidad = quality_orders[int(config.get_setting("quality", "downloads"))]
     match_list_calidad = {"BLURAY": ["BR", "BLURAY"],
-                          "FULLHD": ["FULLHD", "FULL HD", "1080", "HD1080", "HD 1080"],
-                          "HD": ["HD", "HD REAL", "HD 720", "720", "HDTV"],
-                          "480P": ["SD", "480P"],
-                          "360P": ["360P"],
-                          "240P": ["240P"]}
+                          "FULLHD": ["FULLHD", "FULL HD", "1080", "HD1080", "HD 1080", "1080p"],
+                          "HD": ["HD", "HD REAL", "HD 720", "720", "HDTV", "720p"],
+                          "480P": ["SD", "480P", '480'],
+                          "360P": ["360P", "360"],
+                          "240P": ["240P", "240"]}
 
     value = (get_match_list(item.title, match_list_idimas, order_list_idiomas, ignorecase=True, only_ascii=True).index, \
              get_match_list(item.title, match_list_calidad, order_list_calidad, ignorecase=True, only_ascii=True).index)
@@ -444,7 +443,7 @@ def sort_method(item):
 
 
 def download_from_url(url, item):
-    logger.info("Intentando descargar: %s" % (url))
+    logger.info("Attempting to download: %s" % (url))
     if url.lower().endswith(".m3u8") or url.lower().startswith("rtmp"):
         save_server_statistics(item.server, 0, False)
         return {"downloadStatus": STATUS_CODES.error}
@@ -470,17 +469,17 @@ def download_from_url(url, item):
     # Descarga detenida. Obtenemos el estado:
     # Se ha producido un error en la descarga   
     if d.state == d.states.error:
-        logger.info("Error al intentar descargar %s" % (url))
+        logger.info("Error trying to download %s" % (url))
         status = STATUS_CODES.error
 
     # La descarga se ha detenifdo
     elif d.state == d.states.stopped:
-        logger.info("Descarga detenida")
+        logger.info("Stop download")
         status = STATUS_CODES.canceled
 
     # La descarga ha finalizado
     elif d.state == d.states.completed:
-        logger.info("Descargado correctamente")
+        logger.info("Downloaded correctly")
         status = STATUS_CODES.completed
 
         if item.downloadSize and item.downloadSize != d.size[0]:
@@ -510,7 +509,7 @@ def download_from_server(item):
         try:
             itemlist = getattr(channel, "play")(item.clone(channel=item.contentChannel, action=item.contentAction))
         except:
-            logger.error("Error en el canal %s" % item.contentChannel)
+            logger.error("Error in the channel %s" % item.contentChannel)
         else:
             if len(itemlist) and isinstance(itemlist[0], Item):
                 download_item = item.clone(**itemlist[0].__dict__)
@@ -521,14 +520,14 @@ def download_from_server(item):
                 item.video_urls = itemlist
                 if not item.server: item.server = "directo"
             else:
-                logger.info("No hay nada que reproducir")
+                logger.info("There is nothing to reproduce")
                 return {"downloadStatus": STATUS_CODES.error}
     progreso.close()
     logger.info("contentAction: %s | contentChannel: %s | server: %s | url: %s" % (
         item.contentAction, item.contentChannel, item.server, item.url))
 
     if not item.server or not item.url or not item.contentAction == "play" or item.server in unsupported_servers:
-        logger.error("El Item no contiene los parametros necesarios.")
+        logger.error("The Item does not contain the necessary parameters.")
         return {"downloadStatus": STATUS_CODES.error}
 
     if not item.video_urls:
@@ -539,11 +538,11 @@ def download_from_server(item):
 
         # Si no esta disponible, salimos
     if not puedes:
-        logger.info("El vídeo **NO** está disponible")
+        logger.info("The video is NOT available")
         return {"downloadStatus": STATUS_CODES.error}
 
     else:
-        logger.info("El vídeo **SI** está disponible")
+        logger.info("YES Video is available")
 
         result = {}
 
@@ -585,8 +584,7 @@ def download_from_best_server(item):
     progreso.update(100, config.get_localized_string(70183), config.get_localized_string(70181) % len(play_items),
                     config.get_localized_string(70182))
 
-    if config.get_setting("server_reorder", "downloads") == 1:
-        play_items.sort(key=sort_method)
+    play_items.sort(key=sort_method)
 
     if progreso.iscanceled():
         return {"downloadStatus": STATUS_CODES.canceled}
@@ -723,7 +721,7 @@ def get_episodes(item):
             itemlist.append(episode)
         # Cualquier otro resultado no nos vale, lo ignoramos
         else:
-            logger.info("Omitiendo item no válido: %s" % episode.tostring())
+            logger.info("Omitting invalid item: %s" % episode.tostring())
 
     return itemlist
 

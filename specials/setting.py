@@ -20,7 +20,12 @@ def mainlist(item):
     itemlist = list()
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60535), action="settings", folder=False,
                          thumbnail=get_thumb("setting_0.png")))
-
+    if AUTOSTART is False:
+        autostart_mode = config.get_localized_string(70707)
+    else:
+        autostart_mode = config.get_localized_string(70708)
+    itemlist.append(Item(channel=CHANNELNAME, title=autostart_mode + " " + config.get_localized_string(70706), action="autostart", folder=False, thumbnail=get_thumb("setting_0.png")))
+    
     #itemlist.append(Item(channel=CHANNELNAME, title="", action="", folder=False, thumbnail=get_thumb("setting_0.png")))
 
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60536) + ":", text_bold=True, action="", folder=False,
@@ -43,13 +48,6 @@ def mainlist(item):
     if config.is_xbmc():
         itemlist.append(Item(channel=CHANNELNAME, title="     " + config.get_localized_string(70253), action="setting_torrent",
                              folder=True, thumbnail=get_thumb("channels_torrent.png")))
-
-    if AUTOSTART is False:
-        autostart_mode = config.get_localized_string(70707)
-    else:
-        autostart_mode = config.get_localized_string(70708)
-    itemlist.append(Item(channel=CHANNELNAME, title=autostart_mode + " " + config.get_localized_string(70706), action="autostart", folder=False, thumbnail=get_thumb("setting_0.png")))
-
     #itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False, thumbnail=get_thumb("setting_0.png")))
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60544), action="submenu_tools", folder=True,
                          thumbnail=get_thumb("setting_0.png")))

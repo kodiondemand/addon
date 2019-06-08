@@ -253,6 +253,11 @@ msgctxt "#30164"
 msgid "Delete this file"
 msgstr ""
 
+
+msgctxt "#3016"
+msgid "Modify server: %s"
+msgstr ""
+
 msgctxt "#30200"
 msgid "Square"
 msgstr ""
@@ -3739,7 +3744,7 @@ msgstr ""
 
 msgctxt "#70256"
 msgid "What client do you want to use to play torrent?"
-msgstr "Quale client vuoi usare per riprodurre il torrent?
+msgstr "Quale client vuoi usare per riprodurre il torrent?"
 
 msgctxt "#70257"
 msgid "Settings -- Torrent"
@@ -5534,8 +5539,8 @@ msgstr ""
 
 msgctxt "#70710"
 msgid "Your new settings has just been saved"
-msgstr "Le nuove impostazioni sono state salvate"
+msgstr ""
 
 msgctxt "#70711"
 msgid "Ops! There's been a problem during saving your setting"
-msgstr "Ops! C'è stato un problema durante il salvataggio delle impostazioni"
+msgstr ""
