@@ -123,6 +123,28 @@
       "visible": true
     },
     {
+      "id": "quality",
+      "type": "list",
+      "label": "@70240",
+      "lvalues": [
+        "@70241",
+        "HD 1080",
+        "HD 720",
+        "SD"
+      ],
+      "default": 0,
+      "enabled": true,
+      "visible": true
+    },
+    {
+      "id": "server_speed",
+      "type": "bool",
+      "label": "@70242",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },
+    {
       "id": "server_reorder",
       "type": "list",
       "label": "@70238",
@@ -146,29 +168,7 @@
       ],
       "default": 0,
       "enabled": "eq(-1,'@70245')",
-      "visible": true
-    },
-    {
-      "id": "quality",
-      "type": "list",
-      "label": "@70240",
-      "lvalues": [
-        "@70241",
-        "HD 1080",
-        "HD 720",
-        "SD"
-      ],
-      "default": 0,
-      "enabled": "eq(-2,'Reordenar')",
-      "visible": true
-    },
-    {
-      "id": "server_speed",
-      "type": "bool",
-      "label": "@70242",
-      "default": true,
-      "enabled": "eq(-3,'Reordenar')",
-      "visible": true
-    }
+      "visible": "eq(-1,'@70245')"
+    }    
   ]
 }

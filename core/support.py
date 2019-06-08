@@ -217,8 +217,8 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                     if scraped['type'] in variants:
                         action = name
 
-            if inspect.stack()[1][3] == 'episodios':  item.contentType = 'episode' 
-            
+            if inspect.stack()[1][3] == 'episodios':  item.contentType = 'episode'
+
             if scraped["title"] not in blacklist:
                 it = Item(
                     channel=item.channel,
@@ -240,7 +240,8 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
 
                 itemlist.append(it)
         checkHost(item, itemlist)
-        if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
+        if (item.contentType == "tvshow" and (action != "findvideos" and action != "play")) \
+                or (item.contentType == "episode" and action != "play") \
                 or (item.contentType == "movie" and action != "play"):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         else:

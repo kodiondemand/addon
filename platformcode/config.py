@@ -85,9 +85,7 @@ def get_videolibrary_support():
     return True
 
 def get_channel_url(name):
-    if __settings__.getSetting("use_custom_url") == "true":
-        return get_setting("channel_host", name)
-    else:
+    def json():
         try:
             try:
                 import json
@@ -103,6 +101,15 @@ def get_channel_url(name):
                     return get_setting("channel_host", name)
         except:
             return get_setting("channel_host", name)
+
+    if __settings__.getSetting("use_custom_url") == "true":
+        host = get_setting("channel_host", name)
+        if host:
+            return host
+        else:
+            return json()
+    else:
+        return json()
 
 def get_system_platform():
     """ fonction: pour recuperer la platform que xbmc tourne """

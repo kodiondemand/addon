@@ -10,7 +10,7 @@
         <setting id="channel_language" type="labelenum" values="auto|all|ita" label="30019" default="auto"/>
         <setting id="trakt_sync" type="bool" label="70109" default="false"/>
         <setting id="forceview" type="bool" label="30043" default="false"/>
-        <setting id="use_custom_url" type="bool" label="70705" default="false" enable="false"/>
+        <setting id="use_custom_url" type="bool" label="70705" default="false"/>
         <setting id="faster_item_serialization" type="bool" label="30300" default="false"/>
         <setting id="debug" type="bool" label="30003" default="false"/>
         <setting label="70169" type="lsep"/>

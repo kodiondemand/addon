@@ -4,7 +4,7 @@
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.libtorrent" optional="true"/>
     <import addon="metadata.themoviedb.org"/>
-    <import addon="metadata.tvdb.org"/>
+    <import addon="metadata.tvdb.com"/>
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>

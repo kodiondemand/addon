@@ -286,7 +286,6 @@ def findvideos(item):
     log()
     itemlist = []
    
-    data = httptools.downloadpage(item.url, headers=headers).data
     matches, data = support.match(item, r'class="tab.*?data-name="([0-9]+)">([^<]+)</span', headers=headers)
     videoData = ''
     
