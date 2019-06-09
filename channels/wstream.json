@@ -1,0 +1,42 @@
+{
+    "id": "wstream",
+    "name": "wstream",
+    "active": true,
+    "free": true,
+    "thumbnail": "http:\/\/media.tvalacarta.info\/servers\/server_wstream.png",
+    "find_videos": {
+        "patterns": [
+            {
+                "pattern": "wstream.video/(?:embed-|videos/|video/)?([a-z0-9A-Z]+)",
+                "url": "http:\/\/wstream.video\/\\1"
+            }            
+        ],
+        "ignore_urls": [        ]
+    },
+    "settings": [
+        {
+            "default": false,
+            "enabled": true,
+            "id": "black_list",
+            "label": "$ADDON[plugin.video.kod 60654]",
+            "type": "bool",
+            "visible": true
+        },
+        {
+            "default": "100",
+            "enabled": true,
+            "id": "favorites_servers_list",
+            "label": "$ADDON[plugin.video.kod 60655]",
+            "lvalues": [
+                "No",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5"
+            ],
+            "type": "list",
+            "visible": false
+        }
+    ]
+}
