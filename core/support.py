@@ -531,13 +531,14 @@ def videolibrary(itemlist, item, typography='', function_level=1):
 
     return itemlist
 
-def nextPage(itemlist, item, data='', patron='', function_level=1, next_page=''):
+def nextPage(itemlist, item, data='', patron='', function_level=1, next_page='', resub=[]):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
     if next_page == '':
         next_page = scrapertoolsV2.find_single_match(data, patron)
 
     if next_page != "":
+        if resub: next_page = re.sub(resub[0], resub[1], next_page)
         if 'http' not in next_page:
             next_page = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + next_page
         log('NEXT= ', next_page)
