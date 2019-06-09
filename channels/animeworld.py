@@ -172,7 +172,7 @@ def video(item):
     log()
     itemlist = []
 
-    matches, data = support.match(item, r'<a href="([^"]+)" class[^>]+><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>', headers=headers)
+    matches, data = support.match(item, r'<a href="([^"]+)" class[^>]+><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>', '<div class="widget-body">(.*?)<div id="sidebar"', headers=headers)
 
     for scrapedurl, scrapedthumb ,scrapedinfo, scrapedoriginal, scrapedtitle in matches:
         # Cerca Info come anno o lingua nel Titolo
@@ -251,7 +251,7 @@ def video(item):
     autorenumber.renumber(itemlist)
 
     # Next page
-    support.nextPage(itemlist, item, data, r'<a\sclass="page-link"\shref="([^"]+)"\srel="next"\saria-label="Successiva')
+    support.nextPage(itemlist, item, data, r'href="([^"]+)" rel="next"', resub=['&amp;','&'])
     return itemlist
 
 
