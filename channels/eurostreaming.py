@@ -96,7 +96,7 @@ def episodios(item):
     #=========
     patron = r'(?:<\/span>\w+ STAGIONE\s\d+ (?:\()?(ITA|SUB ITA)(?:\))?<\/div>'\
              '<div class="su-spoiler-content su-clearfix" style="display:none">|'\
-             '(?:\s|\Wn)?(?:<strong>)?(\d&#.*?)(?:|–)?<a\s(.*?)<\/a><br\s\/>)'
+             '(?:\s|\Wn)?(?:<strong>)?(\d+&#.*?)(?:|–)?<a\s(.*?)<\/a><br\s\/>)'
 ##    '(?:<\/span>\w+ STAGIONE\s\d+ (?:\()?(ITA|SUB ITA)(?:\))?'\
 ##             '<\/div><div class="su-spoiler-content su-clearfix" style="display:none">|'\
 ##             '(?:\s|\Wn)?(?:<strong>)?(\d[&#].*?)(?:–|\W)?<a\s(.*?)<\/a><br\s\/>)'
