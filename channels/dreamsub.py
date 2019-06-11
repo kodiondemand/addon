@@ -14,8 +14,8 @@ from platformcode import logger, config
 __channel__ = "dreamsub"
 host = config.get_channel_url(__channel__)
 
-list_servers = ['animeworld', 'verystream', 'streamango', 'openload', 'directo']
-list_quality = ['default', '480p', '720p', '1080p']
+list_servers = ['verystream', 'streamango', 'openload']
+list_quality = ['default']
 
 
 def mainlist(item):
@@ -25,7 +25,7 @@ def mainlist(item):
     menu(itemlist, 'Anime / Cartoni', 'peliculas', host + '/anime', 'tvshow')
     menu(itemlist, 'Categorie', 'categorie', host + '/filter?genere=', 'tvshow')
     menu(itemlist, 'Ultimi Episodi', 'last', host, 'episode')
-    menu(itemlist, 'Cerca', 'search')
+    menu(itemlist, 'Cerca...', 'search')
     support.aplay(item, itemlist, list_servers, list_quality)
     support.channel_config(item, itemlist)
 
