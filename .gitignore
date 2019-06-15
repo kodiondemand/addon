@@ -3,4 +3,5 @@
 .DS_Store
 .idea/
 .directory
+custom_code.json
 __pycache__/

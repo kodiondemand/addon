@@ -4078,7 +4078,7 @@ msgid "[Trakt] Remove %s from your watchlist"
 msgstr "[Trakt] Rimuovi %s dalla tua watchlist"
 
 msgctxt "#70344"
-msgid "Add to %s your watchlist""
+msgid "Add to %s your watchlist"
 msgstr "[Trakt] Aggiungi %s alla tua watchlist"
 
 msgctxt "#70345"
@@ -4702,8 +4702,8 @@ msgid "Genre: "
 msgstr "Genere: "
 
 msgctxt "#70500"
-msgid "Notification([COLOR red][B]Update Kodi to its latest version[/B][/COLOR], [COLOR skyblue]for best info[/COLOR],8000, "http://i.imgur.com/mHgwcn3.png")"
-msgstr "Notifica([COLOR red][B]Aggiorna Kodi alla sua ultima versione[/B][/COLOR], [COLOR skyblue]per migliori info[/COLOR],8000, "http://i.imgur.com/mHgwcn3.png")"
+msgid "Notification([COLOR red][B]Update Kodi to its latest version[/B][/COLOR], [COLOR skyblue]for best info[/COLOR],8000, 'http://i.imgur.com/mHgwcn3.png')"
+msgstr "Notification([COLOR red][B]Aggiorna Kodi alla sua ultima versione[/B][/COLOR], [COLOR skyblue]per migliori info[/COLOR],8000, 'http://i.imgur.com/mHgwcn3.png')"
 
 msgctxt "#70501"
 msgid "Search did not match (%s)"
@@ -5018,8 +5018,8 @@ msgid "Timeout (maximum waiting time)"
 msgstr "Timeout (tempo massimo da aspettare)"
 
 msgctxt "#70581"
-msgid "Interval between automatic updates (hours)"
-msgstr "Intervallo tra gli aggiornamenti automatici (ore)"
+msgid "Check for updates when kodi starts"
+msgstr "Controlla gli aggiornamenti all'apertura di kodi"
 
 msgctxt "#70582"
 msgid "Do you want to see messages about the updates?"

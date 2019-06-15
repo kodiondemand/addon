@@ -138,8 +138,8 @@
         
         <setting type="sep"/>
         <setting label="70579" type="lsep"/>
-        <setting id="addon_update_timer" type="labelenum" values="0|6|12|24" label="70581" default="12"/>
-        <setting id="addon_update_message" type="bool" label="70582" default="false"/>
+        <setting id="addon_update_enabled" type="bool" label="70581" default="true"/>
+        <setting id="addon_update_message" type="bool" label="70582" default="true"/>
 
         <setting label="Lista activa" type="text" id="lista_activa" default="alfavorites-default.json" visible="false"/>
         
