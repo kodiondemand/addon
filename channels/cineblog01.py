@@ -166,6 +166,7 @@ def last(item):
     return itemlist
 
 
+@support.scrape
 def peliculas(item):
     support.log()
     if item.contentType == 'movie' or '/serietv/' not in item.url:
@@ -177,10 +178,15 @@ def peliculas(item):
         listGroups = ['thumb', 'url', 'title', 'genre', 'year', 'plot']
         action = 'episodios'
 
-    return support.scrape(item, patron_block=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
-                                              '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)'],
-                          patron=patron, listGroups=listGroups,
-                          patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">', blacklist=blacklist, action=action)
+    patron_block=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
+                                              '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)']
+    patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">'
+
+    def itemHook(item):
+        # esempio molto alla cazzo
+        item.title = 'ciao' + item.title
+        return item
+    return locals()
 
 
 def episodios(item):
