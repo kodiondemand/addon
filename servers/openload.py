@@ -3,7 +3,10 @@
 from core import httptools
 from core import jsontools
 from core import scrapertools
+from core.servertools import get_server_host
 from platformcode import config, logger
+
+host = "https://" + get_server_host('openload')[0]
 
 
 def test_video_exists(page_url):
@@ -20,6 +23,7 @@ def test_video_exists(page_url):
             return False, config.get_localized_string(70449) % "Openload"
 
     return True, ""
+
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.info()
@@ -104,14 +108,13 @@ def decode(code, parseInt, _0x59ce16, _1x4bfb36):
 
         _0x145894 += 1
 
-
-    url = "https://openload.co/stream/%s?mime=true" % _0x1bf6e5
+    url = host + "/stream/%s?mime=true" % _0x1bf6e5
     return url
 
 
 def login():
     logger.info()
-    data = httptools.downloadpage('https://openload.co').data
+    data = httptools.downloadpage(host).data
     _csrf = scrapertools.find_single_match(data, '<input type="hidden" name="_csrf" value="([^"]+)">')
 
     post = {
@@ -120,7 +123,7 @@ def login():
                 'LoginForm[rememberMe]' : 1,
                 '_csrf'                 : _csrf
             }
-    data = httptools.downloadpage('https://openload.co/login', post = post).data
+    data = httptools.downloadpage(host + '/login', post = post).data
 
     if 'Login key has already been sent.' in data:
         while True :
@@ -134,7 +137,7 @@ def login():
                 break
             else:
                 post['LoginForm[loginkey]'] = code
-                data = httptools.downloadpage('https://openload.co/login', post = post).data
+                data = httptools.downloadpage(host + '/login', post = post).data
 
                 if 'Welcome back,' in data: break
 
@@ -145,14 +148,14 @@ def get_api_keys():
     api_key = config.get_setting('api_key', __file__)
     if not api_key or not api_login:
         login()
-        data = httptools.downloadpage('https://openload.co/account').data
+        data = httptools.downloadpage(host + '/account').data
         post = {
                     'FTPKey[password]'      : config.get_setting('password', __file__),
                     '_csrf'                 : scrapertools.find_single_match(data, '<input type="hidden" name="_csrf" value="([^"]+)">')
                 }
 
 
-        data = httptools.downloadpage('https://openload.co/account', post = post).data
+        data = httptools.downloadpage(host + '/account', post = post).data
         api_login = scrapertools.find_single_match(data, '<tr><td>ID:</td><td>([^<]+)</td></tr>')
         api_key = scrapertools.find_single_match(data, 'Your FTP Password/API Key is: ([^<]+) </div>')
         config.set_setting('api_login', api_login, __file__)
@@ -168,12 +171,12 @@ def get_link_api(page_url):
 
     file_id = scrapertools.find_single_match(page_url, '(?:embed|f)/([0-9a-zA-Z-_]+)')
 
-    data = httptools.downloadpage("https://api.openload.co/1/file/dlticket?file=%s&login=%s&key=%s" % (file_id, api_login, api_key)).data
+    data = httptools.downloadpage(host + "/api/1/file/dlticket?file=%s&login=%s&key=%s" % (file_id, api_login, api_key)).data
     data = jsontools.load_json(data)
     # logger.info(data)
     if data["status"] == 200:
         ticket = data["result"]["ticket"]
-        data = httptools.downloadpage("https://api.openload.co/1/file/dl?file=%s&ticket=%s" % (file_id, ticket)).data
+        data = httptools.downloadpage(host + "/api/1/file/dl?file=%s&ticket=%s" % (file_id, ticket)).data
         data = jsontools.load(data)
 
         return data['result']['url'].replace("https", "http")

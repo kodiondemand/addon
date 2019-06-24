@@ -52,6 +52,8 @@ def check_addon_init():
             pos = n
             break
     else:
+        # evitiamo che dia errore perchè il file è già in uso
+        localCommitFile.close()
         updateFromZip()
         return True
 
@@ -207,12 +209,11 @@ def updateFromZip():
     logger.info("kodiondemand.core.updater descomprime fichero...")
     destpathname = xbmc.translatePath("special://home/addons/")
     logger.info("kodiondemand.core.updater destpathname=%s" % destpathname)
+    unzipper = ziptools()
+    unzipper.extract(localfilename, destpathname)
 
     # puliamo tutto
     shutil.rmtree(addonDir)
-
-    unzipper = ziptools()
-    unzipper.extract(localfilename, destpathname)
 
     filetools.rename(destpathname + "addon-" + branch, addonDir)
 
