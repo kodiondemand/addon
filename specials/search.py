@@ -32,7 +32,7 @@ def mainlist(item):
     itemlist.append(Item(channel=item.channel, action="sub_menu", title="[B]" + config.get_localized_string(70305)+ "[/B]", context=context,
                          thumbnail=get_thumb("search.png")))
     itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
-                         thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails"))  
+                         thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails")) 
     itemlist.append(Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70306), type='movie',
                          thumbnail=get_thumb("genres.png")))
     itemlist.append (Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70307),

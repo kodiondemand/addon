@@ -63,7 +63,7 @@ def insert(item):
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
 
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  action="episodios",
                  contentType="episode",
                  title=scrapedtitle,
@@ -77,7 +77,7 @@ def insert(item):
     if len(matches) >= p * minpage:
         scrapedurl = item.url + '{}' + str(p + 1)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  args=item.args,
                  action="insert",
                  title="[COLOR blue][B]Successivo >[/B][/COLOR]",
@@ -109,7 +109,7 @@ def updates(item):
         scrapedplot = ""
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  action="episodios",
                  contentType="episode",
                  title=scrapedtitle,
@@ -141,7 +141,7 @@ def most_view(item):
         scrapedplot = ""
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  action="episodios",
                  contentType="episode",
                  title=scrapedtitle,
@@ -177,7 +177,7 @@ def list(item):
             scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
             scrapedplot = ""
             itemlist.append(
-                Item(channel=__channel__,
+                Item(channel=channel,
                      action = 'episodios' if not 'film' in item.args else 'findvideos',
                      contentType=item.contentType,
                      title=scrapedtitle,
@@ -190,7 +190,7 @@ def list(item):
     if len(matches) >= p * minpage:
         scrapedurl = item.url + '{}' + str(p + 1)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  args=item.args,
                  contentType=item.contentType,
                  action="list",
@@ -224,7 +224,7 @@ def peliculas(item):
         if i >= p * minpage: break
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  action="episodios",
                  contentType="episode",
                  title=scrapedtitle,
@@ -236,7 +236,7 @@ def peliculas(item):
     if len(matches) >= p * minpage:
         scrapedurl = item.url + '{}' + str(p + 1)
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  extra=item.extra,
                  action="peliculas",
                  title="[COLOR blue][B]Successivo >[/B][/COLOR]",
@@ -257,7 +257,7 @@ def episodios(item):
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     if "https://vcrypt.net" in data:
-        patron = r'(?:<p>|<br /> )([^<]+) &#8211; <a href="([^"]+)'
+        patron = r'(?:<p>|<br />)([^<]+)<a href="([^"]+)'
         matches = re.compile(patron, re.DOTALL).findall(data)
 
         for scrapedtitle, scrapedurl in matches:
@@ -273,7 +273,7 @@ def episodios(item):
 
                 else:
                     itemlist.append(
-                        Item(channel=__channel__,
+                        Item(channel=channel,
                              action="findvideos",
                              contentType=item.contentType,
                              title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
@@ -298,7 +298,7 @@ def episodios(item):
 
                 else:
                     itemlist.append(
-                        Item(channel=__channel__,
+                        Item(channel=channel,
                             action="findvideos",
                             contentType=item.contentType,
                             title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
@@ -337,7 +337,7 @@ def findvideos(item):
         itemlist = servertools.find_video_items(data=data)
 
         for videoitem in itemlist:
-            videoitem.channel = __channel__
+            videoitem.channel = channel
             server = re.sub(r'[-\[\]\s]+', '', videoitem.title)
             videoitem.title = "".join(['[COLOR blue] ' + "[[B]" + server + "[/B]][/COLOR] " + item.title])
             videoitem.thumbnail = item.thumbnail
@@ -349,7 +349,7 @@ def findvideos(item):
         itemlist = servertools.find_video_items(data=item.url)
 
         for videoitem in itemlist:
-            videoitem.channel = __channel__
+            videoitem.channel = channel
             server = re.sub(r'[-\[\]\s]+', '', videoitem.title)
             videoitem.title = "".join(['[COLOR blue] ' + "[[B]" + server + "[/B]] " + item.title + '[/COLOR]'])
             videoitem.thumbnail = item.thumbnail

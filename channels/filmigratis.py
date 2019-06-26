@@ -117,7 +117,7 @@ def categorias_film(item):
 
     for scrapedurl, scrapedtitle in matches:
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  action="peliculas_categorias",
                  title="[COLOR azure]" + scrapedtitle + "[/COLOR]",
                  url=scrapedurl,
@@ -139,7 +139,7 @@ def categorias_serie(item):
 
     for scrapedurl, scrapedtitle in matches:
         itemlist.append(
-            Item(channel=__channel__,
+            Item(channel=channel,
                  contentType='tvshow',
                  action="peliculas_serie",
                  title="[COLOR azure]" + scrapedtitle + "[/COLOR]",

@@ -172,7 +172,7 @@ def video(item):
     log()
     itemlist = []
 
-    matches, data = support.match(item, r'<a href="([^"]+)" class[^>]+><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>', '<div class="widget-body">(.*?)<div id="sidebar"', headers=headers)
+    matches, data = support.match(item, r'<a href="([^"]+)" class[^>]+><img src="([^"]+)"(.*?)data-jtitle="([^"]+)" .*?>(.*?)<\/a>', headers=headers)
 
     for scrapedurl, scrapedthumb ,scrapedinfo, scrapedoriginal, scrapedtitle in matches:
         # Cerca Info come anno o lingua nel Titolo
@@ -245,21 +245,21 @@ def video(item):
                      fulltitle=title,
                      show=title,
                      thumbnail=scrapedthumb,
-                     context = autoplay.context,
-                     number= '1'))
+                     context = autoplay.context))
     
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     autorenumber.renumber(itemlist)
 
     # Next page
-    support.nextPage(itemlist, item, data, r'href="([^"]+)" rel="next"', resub=['&amp;','&'])
+    support.nextPage(itemlist, item, data, r'<a\sclass="page-link"\shref="([^"]+)"\srel="next"\saria-label="Successiva')
     return itemlist
 
 
 def episodios(item):
     log()
     itemlist = []
-    patron_block = r'server  active(.*?)server  hidden '
+    
+    patron_block = r'<div class="widget servers".*?>(.*?)<div id="download"'
     patron = r'<li><a [^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+" href="([^"]+)"[^>]+>([^<]+)<'
     matches = support.match(item, patron, patron_block)[0]
 
@@ -275,10 +275,9 @@ def episodios(item):
                 show=scrapedtitle,
                 plot=item.plot,
                 fanart=item.thumbnail,
-                thumbnail=item.thumbnail,
-                number=scrapedtitle))
+                thumbnail=item.thumbnail))
     
-    autorenumber.renumber(itemlist, item, 'bold')
+    autorenumber.renumber(itemlist, item,'bold')
     support.videolibrary(itemlist, item)
     return itemlist
 
@@ -286,31 +285,31 @@ def episodios(item):
 def findvideos(item):
     log()
     itemlist = []
-    
+   
     matches, data = support.match(item, r'class="tab.*?data-name="([0-9]+)">([^<]+)</span', headers=headers)
     videoData = ''
     
     for serverid, servername in matches:
         block = scrapertoolsV2.find_multiple_matches(data,'data-id="'+serverid+'">(.*?)<div class="server')
-        log('ITEM= ',item)
-        id = scrapertoolsV2.find_single_match(str(block),r'<a data-id="([^"]+)" data-base="'+item.number+'"')
-        if id:
-            dataJson = httptools.downloadpage('%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, id, serverid, int(time.time())), headers=[['x-requested-with', 'XMLHttpRequest']]).data
-            json = jsontools.load(dataJson)
-            videoData +='\n'+json['grabber']
+        id = scrapertoolsV2.find_single_match(str(block),r'<a data-id="([^"]+)" data-base="'+item.fulltitle+'"')
+        dataJson = httptools.downloadpage('%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, id, serverid, int(time.time())), headers=[['x-requested-with', 'XMLHttpRequest']]).data
+        json = jsontools.load(dataJson)
+        log('JSON= ',json)
 
-            if serverid == '28':
-                itemlist.append(
-                    Item(
-                        channel=item.channel,
-                        action="play",
-                        title='diretto',
-                        quality='',
-                        url=json['grabber'],
-                        server='directo',
-                        show=item.show,
-                        contentType=item.contentType,
-                        folder=False))
+        videoData +='\n'+json['grabber']
+
+        if serverid == '28':
+            itemlist.append(
+                Item(
+                    channel=item.channel,
+                    action="play",
+                    title='diretto',
+                    quality='',
+                    url=json['grabber'],
+                    server='directo',
+                    show=item.show,
+                    contentType=item.contentType,
+                    folder=False))
 
     return support.server(item, videoData, itemlist)
 
