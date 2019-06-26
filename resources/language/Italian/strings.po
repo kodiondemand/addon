@@ -93,6 +93,14 @@ msgctxt "#30021"
 msgid "Number of links to check"
 msgstr "Numero di link da verificare"
 
+msgctxt "#30022"
+msgid "YES"
+msgstr "SÌ"
+
+msgctxt "#30023"
+msgid "NO"
+msgstr "NO"
+
 msgctxt "#30043"
 msgid "Force view mode:"
 msgstr "Forza modalità di visualizzazione:"
@@ -5034,8 +5042,8 @@ msgid "Do you want to update Quasar to avoid errors?"
 msgstr "Vuoi aggiornare Quasar per evitare errori?"
 
 msgctxt "#70585"
-msgid "[B]Renumbering[/B] (beta)"
-msgstr "[B]Rinumerazione[/B] (beta)"
+msgid "Renumbering"
+msgstr "Rinumerazione"
 
 msgctxt "#70586"
 msgid "Set up series number..."
@@ -5453,12 +5461,12 @@ msgid "Enter the number of the starting season"
 msgstr "Inserisci il numero della stagione di partenza"
 
 msgctxt "#70687"
-msgid "Enter the number of the starting episode"
-msgstr "Inserisci il numero dell'episodio di partenza"
+msgid "Special Episodes"
+msgstr "Episodi Speciali"
 
 msgctxt "#70688"
-msgid "Episode 0 is a special episode, enter the number of this episode (0 to skip it)"
-msgstr "L'episodio 0 è un episodio speciale, inserisci il numero di questo episodio (0 per saltare)"
+msgid "Are there special episodes in the series \n(Episode 0 Excluded)?"
+msgstr "Sono presenti episodi speciali nella serie \n(Episodio 0 Escluso)?"
 
 msgctxt "#70689"
 msgid "Enable Download"
@@ -5543,3 +5551,15 @@ msgstr "Le nuove impostazioni sono state salvate"
 msgctxt "#70710"
 msgid "Ops! There's been a problem during saving your setting"
 msgstr "Ops! C'è stato un problema durante il salvataggio delle impostazioni"
+
+msgctxt "#70712"
+msgid "Enable Automatic Renumbering"
+msgstr "Abilita Rinumerazione Automatica"
+
+msgctxt "#70713"
+msgid "There is not enough information on TVDB for renumbering"
+msgstr "Non ci sono Abbastanza informazioni su TVDB per la Rinumerazione"
+
+msgctxt "#70714"
+msgid "Modify "
+msgstr "Modifica "

@@ -93,6 +93,14 @@ msgctxt "#30021"
 msgid "Number of links to check"
 msgstr ""
 
+msgctxt "#30022"
+msgid "YES"
+msgstr ""
+
+msgctxt "#30023"
+msgid "NO"
+msgstr ""
+
 msgctxt "#30043"
 msgid "Force view mode:"
 msgstr ""
@@ -5035,7 +5043,7 @@ msgid "Do you want to update Quasar to avoid errors?"
 msgstr ""
 
 msgctxt "#70585"
-msgid "[B]Renumbering[/B] (beta)"
+msgid "Renumbering"
 msgstr ""
 
 msgctxt "#70586"
@@ -5454,11 +5462,11 @@ msgid "Enter the number of the starting season"
 msgstr ""
 
 msgctxt "#70687"
-msgid "Enter the number of the starting episode"
+msgid "Special Episodes"
 msgstr ""
 
 msgctxt "#70688"
-msgid "Episode 0 is a special episode, enter the number of this episode (0 to skip it)"
+msgid "Are there special episodes in the series \n(Episode 0 Excluded)?"
 msgstr ""
 
 msgctxt "#70689"
@@ -5544,3 +5552,15 @@ msgstr ""
 msgctxt "#70711"
 msgid "Ops! There's been a problem during saving your setting"
 msgstr ""
+
+msgctxt "#70712"
+msgid "Enable Automatic Renumbering"
+msgstr ""
+
+msgctxt "#70713"
+msgid "There is not enough information on TVDB for renumbering"
+msgstr ""
+
+msgctxt "#70714"
+msgid "Modify "
+msgstr " "

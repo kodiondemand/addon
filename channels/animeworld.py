@@ -278,7 +278,7 @@ def episodios(item):
                 thumbnail=item.thumbnail,
                 number=scrapedtitle))
     
-    autorenumber.renumber(itemlist, item,'bold')
+    autorenumber.renumber(itemlist, item, 'bold')
     support.videolibrary(itemlist, item)
     return itemlist
 

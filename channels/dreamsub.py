@@ -69,7 +69,8 @@ def newest(categoria):
 
 def peliculas(item):
     itemlist = scrape(item, r'Lingua[^<]+<br>\s*<a href="(?:Lista episodi )?([^"]+)" title="(?:Lista episodi )?(.*?)(?: \(([0-9]+)\))?(?: Streaming)?">', ['url', 'title', 'year'], action='episodios', patron_block='<input type="submit" value="Vai!" class="blueButton">(.*?)<div class="footer">', patronNext='<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">')
-    return renumber(itemlist)
+    renumber(itemlist) 
+    return itemlist
     
 
 def last(item):
@@ -94,7 +95,8 @@ def categorie(item):
 
 def episodios(item):
     itemlist = scrape(item, r'<li><a href="([^"]+)"[^<]+<b>(.*?)<\/b>[^>]+>([^<]+)<\/i>', ['url','title','title2'], patron_block='<div class="seasonEp">(.*?)<div class="footer">')
-    return renumber(itemlist, item, 'bold')
+    renumber(itemlist, item, 'bold')
+    return itemlist
 
 def findvideos(item):
     log()
