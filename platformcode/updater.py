@@ -136,6 +136,7 @@ def check_addon_init():
 def calcCurrHash():
     from lib import githash
     treeHash = githash.tree_hash(addonDir).hexdigest()
+    logger.info('tree hash: ' + treeHash)
     commits = loadCommits()
     page = 1
     while commits and page <= maxPage:
@@ -156,7 +157,10 @@ def calcCurrHash():
     else:
         logger.info('Non sono riuscito a trovare il commit attuale, scarico lo zip')
         updateFromZip()
-        calcCurrHash()
+        # se ha scaricato lo zip si trova di sicuro all'ultimo commit
+        localCommitFile = open(addonDir + trackingFile, 'w')
+        localCommitFile.write(commits[0]['sha'])
+        localCommitFile.close()
 
 
 # https://gist.github.com/noporpoise/16e731849eb1231e86d78f9dfeca3abc  Grazie!
