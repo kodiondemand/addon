@@ -1,0 +1,9 @@
+{
+	"update": {
+        "name": "Kodi on Demand",
+        "version":"101",
+		"tag": "1.0.1",
+		"date": "03/05/2019",
+		"changes": "Added Updater"
+	}
+}
