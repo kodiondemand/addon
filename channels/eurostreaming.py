@@ -4,17 +4,11 @@
 # by Greko
 # ------------------------------------------------------------
 """
-    Riscritto per poter usufruire del modulo support.
+    Riscritto per poter usufruire del decoratore support.scrape
     Problemi noti:
-    Le regex non prendono tutto...
-    server versystream : 'http://vcrypt.net/very/' # VeryS non decodifica il link :http://vcrypt.net/fastshield/
-    alcuni server tra cui nowvideo.club non sono implementati nella cartella servers
     Alcune sezioni di anime-cartoni non vanno, alcune hanno solo la lista degli episodi, ma non hanno link
     altre cambiano la struttura
     La sezione novità non fa apparire il titolo degli episodi
-
-    In episodios è stata aggiunta la possibilità di configurare la videoteca
-
 """
 
 import channelselector
@@ -56,6 +50,7 @@ def mainlist(item):
     
     return itemlist
 
+@support.scrape
 def serietv(item):
     #import web_pdb; web_pdb.set_trace()
     # lista serie tv
@@ -70,17 +65,18 @@ def serietv(item):
         patron = r'<div class="post-thumb">.*?\s<img src="([^"]+)".*?><a href="([^"]+)".*?>(.*?(?:\((\d{4})\)|(\d{4}))?)<\/a><\/h2>'
         listGroups = ['thumb', 'url', 'title', 'year', 'year']
         patronNext='a class="next page-numbers" href="?([^>"]+)">Avanti &raquo;</a>'
+    action='episodios'
+    return locals()
+##    itemlist = support.scrape(item, patron_block='', patron=patron, listGroups=listGroups,
+##                          patronNext=patronNext, action='episodios')
+##    return itemlist
 
-    itemlist = support.scrape(item, patron_block='', patron=patron, listGroups=listGroups,
-                          patronNext=patronNext, action='episodios')
-    return itemlist
-
-
+@support.scrape
 def episodios(item):
 ##    import web_pdb; web_pdb.set_trace()
-    support.log("episodios")
+    support.log("episodios: %s" % item)
     itemlist = []
-
+    item.contentType = 'episode'
     # Carica la pagina
     data = httptools.downloadpage(item.url).data
     #======== 
@@ -97,37 +93,16 @@ def episodios(item):
     patron = r'(?:<\/span>\w+ STAGIONE\s\d+ (?:\()?(ITA|SUB ITA)(?:\))?<\/div>'\
              '<div class="su-spoiler-content su-clearfix" style="display:none">|'\
              '(?:\s|\Wn)?(?:<strong>)?(\d+&#.*?)(?:|–)?<a\s(.*?)<\/a><br\s\/>)'
-##    '(?:<\/span>\w+ STAGIONE\s\d+ (?:\()?(ITA|SUB ITA)(?:\))?'\
-##             '<\/div><div class="su-spoiler-content su-clearfix" style="display:none">|'\
-##             '(?:\s|\Wn)?(?:<strong>)?(\d[&#].*?)(?:–|\W)?<a\s(.*?)<\/a><br\s\/>)'
-##    '(?:<\/span>\w+ STAGIONE\s\d+ (?:\()?(ITA|SUB ITA)(?:\))?<\/div>'\
-##             '<div class="su-spoiler-content su-clearfix" style="display:none">|'\
-##             '\s(?:<strong>)?(\d[&#].*?)–<a\s(.*?)<\/a><br\s\/>)'
-    listGroups = ['lang', 'title', 'url'] 
-    itemlist = support.scrape(item, data=data, patron=patron,
-                              listGroups=listGroups, action='findvideos')
 
-    # Permette la configurazione della videoteca senza andare nel menu apposito
-    # così si possono Attivare/Disattivare le impostazioni direttamente dalla
-    # pagina delle puntate
-    itemlist.append(
-        Item(channel='setting',
-             action="channel_config",
-             title=support.typo("Configurazione Videoteca color lime"),
-             plot = 'Filtra per lingua utilizzando la configurazione della videoteca.\
-                     Escludi i video in sub attivando "Escludi streams... " e aggiungendo sub in Parole',
-             config='videolibrary', #item.channel,
-             folder=False,
-             thumbnail=channelselector.get_thumb('setting_0.png')
-             ))
+    listGroups = ['lang', 'title', 'url']
+    action = 'findvideos'
 
-    itemlist = filtertools.get_links(itemlist, item, list_language)      
-    return itemlist
+    return locals()
 
 # ===========  def findvideos  =============
 
 def findvideos(item):
-    support.log()
+    support.log('findvideos', item)
     itemlist =[]
 
     # Requerido para FilterTools

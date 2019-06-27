@@ -50,8 +50,10 @@ def mainlist(item):
 
 # ======== def in ordine di action dal menu ===========================
 
+@support.scrape
 def peliculas(item):
-    support.log
+    #import web_pdb; web_pdb.set_trace()
+    support.log('peliculas',item)
     itemlist = []
 
     patron = r'class="innerImage">.*?href="([^"]+)".*?src="([^"]+)"'\
@@ -61,38 +63,31 @@ def peliculas(item):
     listGroups = ['url', 'thumb', 'title', 'year', 'quality', 'lang']
 
     patronNext =  '<span>\d</span> <a href="([^"]+)">'
-    
-    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
-                          headers= headers, patronNext=patronNext,
-                          action='findvideos')    
-    
-    return itemlist
+
+    return locals()   
 
 # =========== def pagina categorie ======================================
-
+@support.scrape
 def genres(item):
     support.log
     itemlist = []
     #data = httptools.downloadpage(item.url, headers=headers).data
     action = 'peliculas'
     if item.args == 'genres':
-        bloque = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
+        patron_block = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
     elif item.args == 'years':
-        bloque = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
+        patron_block = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
     elif item.args == 'quality':
-        bloque = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
+        patron_block = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
     elif item.args == 'lucky': # sono i titoli random nella pagina, cambiano 1 volta al dì
-        bloque = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
+        patron_block = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
         action = 'findvideos'
      
     patron = r'<li><a href="([^"]+)">(.*?)<'
 
     listGroups = ['url','title']
-    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
-                          headers= headers, patron_block = bloque,
-                          action=action)    
 
-    return itemlist
+    return locals()    
 
 # =========== def per cercare film/serietv =============
 #host+/index.php?do=search&story=avatar&subaction=search
