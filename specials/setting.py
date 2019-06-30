@@ -85,7 +85,8 @@ def menu_channels(item):
 
 
 def channel_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels", item.config))
+    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels",
+                                                                          item.config))
 
 
 def autostart(item):  # item necessario launcher.py linea 265
@@ -144,7 +145,7 @@ def menu_servers(item):
         if server_parameters["has_settings"]:
             itemlist.append(
                 Item(channel=CHANNELNAME, title = ".    " + config.get_localized_string(60553) % server_parameters["name"],
-                     action="server_debrid_config", config=server, folder=False, thumbnail=""))
+                     action="server_config", config=server, folder=False, thumbnail=""))
 
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60554),
                          action="", folder=False, text_bold = True, thumbnail=get_thumb("setting_0.png")))
@@ -166,10 +167,8 @@ def menu_servers(item):
 
 
 def server_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", item.config))
-
-def server_debrid_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", "debriders", item.config))
+    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers",
+                                                                          item.config))
 
 
 def servers_blacklist(item):
