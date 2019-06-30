@@ -93,6 +93,14 @@ msgctxt "#30021"
 msgid "Number of links to check"
 msgstr ""
 
+msgctxt "#30022"
+msgid "YES"
+msgstr ""
+
+msgctxt "#30023"
+msgid "NO"
+msgstr ""
+
 msgctxt "#30043"
 msgid "Force view mode:"
 msgstr ""
@@ -4079,7 +4087,7 @@ msgid "[Trakt] Remove %s from your watchlist"
 msgstr ""
 
 msgctxt "#70344"
-msgid "Add to %s your watchlist""
+msgid "Add to %s your watchlist"
 msgstr ""
 
 msgctxt "#70345"
@@ -4703,7 +4711,7 @@ msgid "Genre: "
 msgstr ""
 
 msgctxt "#70500"
-msgid "Notification([COLOR red][B]Update Kodi to its latest version[/B][/COLOR], [COLOR skyblue]for best info[/COLOR],8000, "http://i.imgur.com/mHgwcn3.png")"
+msgid "Notification([COLOR red][B]Update Kodi to its latest version[/B][/COLOR], [COLOR skyblue]for best info[/COLOR],8000, 'http://i.imgur.com/mHgwcn3.png')"
 msgstr ""
 
 msgctxt "#70501"
@@ -5019,7 +5027,7 @@ msgid "Timeout (maximum waiting time)"
 msgstr ""
 
 msgctxt "#70581"
-msgid "Interval between automatic updates (hours)"
+msgid "Check for updates when kodi starts"
 msgstr ""
 
 msgctxt "#70582"
@@ -5035,7 +5043,7 @@ msgid "Do you want to update Quasar to avoid errors?"
 msgstr ""
 
 msgctxt "#70585"
-msgid "[B]Renumbering[/B] (beta)"
+msgid "Renumbering"
 msgstr ""
 
 msgctxt "#70586"
@@ -5454,11 +5462,11 @@ msgid "Enter the number of the starting season"
 msgstr ""
 
 msgctxt "#70687"
-msgid "Enter the number of the starting episode"
+msgid "Special Episodes"
 msgstr ""
 
 msgctxt "#70688"
-msgid "Episode 0 is a special episode, enter the number of this episode (0 to skip it)"
+msgid "Are there special episodes in the series \n(Episode 0 Excluded)?"
 msgstr ""
 
 msgctxt "#70689"
@@ -5543,4 +5551,24 @@ msgstr ""
 
 msgctxt "#70711"
 msgid "Ops! There's been a problem during saving your setting"
+msgstr ""
+
+msgctxt "#70712"
+msgid "Enable Automatic Renumbering"
+msgstr ""
+
+msgctxt "#70713"
+msgid "There is not enough information on TVDB for renumbering"
+msgstr ""
+
+msgctxt "#70714"
+msgid "Modify "
+msgstr " "
+
+msgctxt "#70715"
+msgid "Customize Homepage"
+msgstr ""
+
+msgctxt "#70716"
+msgid "Choose menus you wanna in homepage"
 msgstr ""

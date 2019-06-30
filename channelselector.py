@@ -17,31 +17,40 @@ def getmainlist(view="thumb_"):
     itemlist = list()
 
     # Añade los canales que forman el menú principal
-    itemlist.append(Item(title=config.get_localized_string(30130), channel="news", action="mainlist",
-                         thumbnail=get_thumb("news.png", view),
-                         category=config.get_localized_string(30119), viewmode="thumbnails",
-                         context=[{"title": config.get_localized_string(70285), "channel": "news", "action": "menu_opciones",
-                                   "goto": True}]))
+    if addon.getSetting('enable_news_menu') == "true":
+        itemlist.append(Item(title=config.get_localized_string(30130), channel="news", action="mainlist",
+                            thumbnail=get_thumb("news.png", view),
+                            category=config.get_localized_string(30119), viewmode="thumbnails",
+                            context=[{"title": config.get_localized_string(70285), "channel": "news", "action": "menu_opciones",
+                                    "goto": True}]))
 
-    itemlist.append(Item(title=config.get_localized_string(30118), channel="channelselector", action="getchanneltypes",
-                         thumbnail=get_thumb("channels.png", view), view=view,
-                         category=config.get_localized_string(30119), viewmode="thumbnails"))
+    if addon.getSetting('enable_channels_menu') == "true":
+        itemlist.append(Item(title=config.get_localized_string(30118), channel="channelselector", action="getchanneltypes",
+                            thumbnail=get_thumb("channels.png", view), view=view,
+                            category=config.get_localized_string(30119), viewmode="thumbnails"))
 
-    itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
-                         thumbnail=get_thumb("mylink.png", view), view=view,
-                         category=config.get_localized_string(70527), viewmode="thumbnails"))
+    if addon.getSetting('enable_search_menu') == "true":
+        itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
+                            thumbnail=get_thumb("search.png", view),
+                            category=config.get_localized_string(30119), viewmode="list",
+                            context=[{"title": config.get_localized_string(70286), "channel": "search", "action": "opciones",
+                                    "goto": True}]))
 
-    itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
-                         thumbnail=get_thumb("search.png", view),
-                         category=config.get_localized_string(30119), viewmode="list",
-                         context=[{"title": config.get_localized_string(70286), "channel": "search", "action": "opciones",
-                                   "goto": True}]))
+    if addon.getSetting('enable_onair_menu') == "true":
+        itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
+                            thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails"))  
 
-    itemlist.append(Item(title=config.get_localized_string(30102), channel="favorites", action="mainlist",
-                         thumbnail=get_thumb("favorites.png", view),
-                         category=config.get_localized_string(30102), viewmode="thumbnails"))
+    if addon.getSetting('enable_link_menu') == "true":
+        itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
+                            thumbnail=get_thumb("mylink.png", view), view=view,
+                            category=config.get_localized_string(70527), viewmode="thumbnails"))
 
-    if config.get_videolibrary_support():
+    if addon.getSetting('enable_fav_menu') == "true":
+        itemlist.append(Item(title=config.get_localized_string(30102), channel="favorites", action="mainlist",
+                            thumbnail=get_thumb("favorites.png", view),
+                            category=config.get_localized_string(30102), viewmode="thumbnails"))
+
+    if config.get_videolibrary_support() and addon.getSetting('enable_library_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30131), channel="videolibrary", action="mainlist",
                              thumbnail=get_thumb("videolibrary.png", view),
                              category=config.get_localized_string(30119), viewmode="thumbnails",

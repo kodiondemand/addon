@@ -24,15 +24,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
 
     data = httptools.downloadpage(page_url, headers=headers).data.replace('https', 'http')
-    # logger.info("[wstream.py] data=" + data)
+    logger.info("[wstream.py] data=" + data)
     vid = scrapertools.find_multiple_matches(data, 'download_video.*?>.*?<.*?<td>([^\,,\s]+)')
-
     headers.append(['Referer', page_url])
     post_data = scrapertools.find_single_match(data,"</div>\s*<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
     if post_data != "":
         from lib import jsunpack
         data = jsunpack.unpack(post_data)
-
+    logger.info("[wstream.py] data=" + data)
     block = scrapertools.find_single_match(data, 'sources:\s*\[[^\]]+\]')
     if block: data = block
 
@@ -41,7 +40,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     i = 0
 
     for media_url in media_urls:
-        video_urls.append([vid[i] + " mp4 [wstream] ", media_url + '|' + _headers])
+        video_urls.append([vid[i] if vid else 'video' + " mp4 [wstream] ", media_url + '|' + _headers])
         i = i + 1
 
     for video_url in video_urls:
@@ -54,7 +53,7 @@ def find_videos(data):
     encontrados = set()
     devuelve = []
 
-    patronvideos = r"wstream.video/(?:embed-)?([a-z0-9A-Z]+)"
+    patronvideos = r"wstream.video/(?:embed-|videos/|video/)?([a-z0-9A-Z]+)"
     logger.info("[wstream.py] find_videos #" + patronvideos + "#")
     matches = re.compile(patronvideos, re.DOTALL).findall(data)
 

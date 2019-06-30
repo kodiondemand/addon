@@ -506,6 +506,11 @@ def get_server_json(server_name):
     return server_json
 
 
+def get_server_host(server_name):
+    from core import scrapertoolsV2
+    return [scrapertoolsV2.get_domain_from_url(pattern['url']) for pattern in get_server_json(server_name)['find_videos']['patterns']]
+
+
 def get_server_controls_settings(server_name):
     dict_settings = {}
 
