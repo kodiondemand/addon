@@ -138,6 +138,7 @@ def calcCurrHash():
     treeHash = githash.tree_hash(addonDir).hexdigest()
     logger.info('tree hash: ' + treeHash)
     commits = loadCommits()
+    lastCommitSha = commits[0]['sha']
     page = 1
     while commits and page <= maxPage:
         found = False
@@ -159,7 +160,7 @@ def calcCurrHash():
         updateFromZip()
         # se ha scaricato lo zip si trova di sicuro all'ultimo commit
         localCommitFile = open(addonDir + trackingFile, 'w')
-        localCommitFile.write(commits[0]['sha'])
+        localCommitFile.write(lastCommitSha)
         localCommitFile.close()
 
 

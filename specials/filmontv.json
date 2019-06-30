@@ -7,6 +7,87 @@
     "thumbnail": null,
     "banner": null,
     "categories": [],
-    "settings": [],
+    "settings": [
+        {
+            "id": "film1",
+            "type": "text",
+            "label": "Inserisci nome Film #1",
+            "default": "[Oggi in TV] Film #1",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "film2",
+            "type": "text",
+            "label": "Inserisci nome Film #2",
+            "default": "[Oggi in TV] Film #2",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "film3",
+            "type": "text",
+            "label": "Inserisci nome Film #3",
+            "default": "[Oggi in TV] Film #3",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "film4",
+            "type": "text",
+            "label": "Inserisci nome Film #4",
+            "default": "[Oggi in TV] Film #4",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "film5",
+            "type": "text",
+            "label": "Inserisci nome Film #5",
+            "default": "[Oggi in TV] Film #5",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "now1",
+            "type": "text",
+            "label": "Inserisci nome adesso in onda #1",
+            "default": "[Adesso in onda] Tutte le trasmissioni #1",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "now2",
+            "type": "text",
+            "label": "Inserisci nome adesso in onda #2",
+            "default": "[Adesso in onda] Tutte le trasmissioni #2",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "now3",
+            "type": "text",
+            "label": "Inserisci nome adesso in onda #3",
+            "default": "[Adesso in onda] Tutte le trasmissioni #3",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "now4",
+            "type": "text",
+            "label": "Inserisci nome adesso in onda #4",
+            "default": "[Adesso in onda] Tutte le trasmissioni #4",
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "now5",
+            "type": "text",
+            "label": "Inserisci nome adesso in onda #5",
+            "default": "[Adesso in onda] Tutte le trasmissioni #5",
+            "enabled": true,
+            "visible": true
+        }
+    ],
     "channel": false
 }

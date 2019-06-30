@@ -5564,3 +5564,11 @@ msgstr ""
 msgctxt "#70714"
 msgid "Modify "
 msgstr " "
+
+msgctxt "#70715"
+msgid "Customize Homepage"
+msgstr ""
+
+msgctxt "#70716"
+msgid "Choose menus you wanna in homepage"
+msgstr ""

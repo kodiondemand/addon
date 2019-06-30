@@ -391,7 +391,7 @@ msgstr "Saghe"
 
 msgctxt "#50001"
 msgid "On Air"
-msgstr "Adesso in onda"
+msgstr "Adesso in Onda"
 
 msgctxt "#50002"
 msgid "Latest News"
@@ -5563,3 +5563,11 @@ msgstr "Non ci sono Abbastanza informazioni su TVDB per la Rinumerazione"
 msgctxt "#70714"
 msgid "Modify "
 msgstr "Modifica "
+
+msgctxt "#70715"
+msgid "Customize Homepage"
+msgstr "Personalizza Homepage"
+
+msgctxt "#70716"
+msgid "Choose menus you wanna in homepage"
+msgstr "Seleziona gli elementi che vuoi visualizzare nella homepage"
