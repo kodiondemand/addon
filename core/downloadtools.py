@@ -953,7 +953,7 @@ def downloadfileGzipped(url, pathfichero):
 
     # print data
     progreso.close()
-    logger.info("End download of the file)
+    logger.info("End download of the file")
     return nombrefichero
 
 

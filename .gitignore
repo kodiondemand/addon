@@ -3,4 +3,6 @@
 .DS_Store
 .idea/
 .directory
+custom_code.json
+last_commit.txt
 __pycache__/

@@ -12,7 +12,7 @@
     "id": "channel_host",
     "type": "text",
     "label": "Host del canale",
-    "default": "https://eurostreaming.cafe/",
+    "default": "https://eurostreaming.cafe",
     "enabled": true,
     "visible": true
     },   

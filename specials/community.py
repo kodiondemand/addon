@@ -20,8 +20,8 @@ from specials import filtertools
 
 list_data = {}
 
-list_language = ['LAT', 'CAST', 'VO', 'VOSE']
-list_servers = ['directo']
+list_language = ['ITA', 'SUB-ITA']
+list_servers = ['directo', 'akvideo', 'verystream', 'openload']
 list_quality = ['SD', '720', '1080', '4k']
 
 def mainlist(item):
@@ -45,7 +45,6 @@ def show_channels(item):
                  "action": "remove_channel",
                  "channel": "community"}]
 
-
     path = os.path.join(config.get_data_path(), 'community_channels.json')
     file = open(path, "r")
     json = jsontools.load(file.read())
@@ -53,18 +52,20 @@ def show_channels(item):
     itemlist.append(Item(channel=item.channel, title=config.get_localized_string(70676), action='add_channel', thumbnail=get_thumb('add.png')))
 
     for key, channel in json['channels'].items():
-        if 'thumbnail' in channel:
-            thumbnail = channel['thumbnail']
-        else:
-            thumbnail = ''
+        file_path = channel ['path']
+        file_url = httptools.downloadpage(file_path, follow_redirects=True).data
+        json_url = jsontools.load(file_url)
+        thumbnail = json_url['thumbnail'] if 'thumbnail' in json_url else ''
+        fanart = json_url['fanart'] if 'fanart' in json_url else ''
 
-        if 'fanart' in channel:
-            fanart = channel['fanart']
-        else:
-            fanart = ''
-
-        itemlist.append(Item(channel=item.channel, title=channel['channel_name'], url=channel['path'],
-                             thumbnail=thumbnail, fanart=fanart, action='show_menu', channel_id = key, context=context))
+        itemlist.append(Item(channel=item.channel,
+                             title=channel['channel_name'],
+                             url=file_path,
+                             thumbnail=thumbnail,
+                             fanart=fanart,
+                             action='show_menu',
+                             channel_id = key,
+                             context=context))
     return itemlist
 
 def load_json(item):
@@ -127,6 +128,8 @@ def list_all(item):
         new_item = Item(channel=item.channel, title=title, quality=quality,
                         language=language, plot=plot, thumbnail=poster)
 
+        new_item.infoLabels['year'] = media['year'] if 'year' in media else ''
+        new_item.infoLabels['tmdb_id'] = media['tmdb_id'] if 'tmdb_id' in media else ''
 
         if 'movies_list' in json_data:
             new_item.url = media
@@ -134,10 +137,16 @@ def list_all(item):
             new_item.action = 'findvideos'
             if 'year' in media:
                 new_item.infoLabels['year'] = media['year']
+            if 'tmdb_id' in media:
+                new_item.infoLabels['tmdb_id'] = media['tmdb_id']
         else:
             new_item.url = media['seasons_list']
             new_item.contentSerieName = media['title']
             new_item.action = 'seasons'
+            if 'year' in media:
+                new_item.infoLabels['year'] = media['year']
+            if 'tmdb_id' in media:
+                new_item.infoLabels['tmdb_id'] = media['tmdb_id']
 
         itemlist.append(new_item)
 
