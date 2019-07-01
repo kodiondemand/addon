@@ -179,6 +179,14 @@ def scrape(func):
                         val = scrapertoolsV2.find_single_match(item.url, 'https?://[a-z0-9.-]+') + val
                     scraped[kk] = val
 
+                # inizio
+                # add by greko
+                # fix per le serie dove non ho potuto riportare il titolo della serie
+                # o il titolo della puntata
+                # es: https://www.guardaserie.media/izombie-bj/ stagione 2 episodio 13
+                if scraped["title"] == '':
+                    scraped["title"] = item.fulltitle
+                # fine 
                 title = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["title"]).replace('"',
                                                                                     "'")).strip()  # fix by greko da " a '
                 plot = scrapertoolsV2.htmlclean(scrapertoolsV2.decodeHtmlentities(scraped["plot"]))
@@ -234,7 +242,8 @@ def scrape(func):
                         if scraped['type'] in variants:
                             action = name
 
-                if scraped["title"] not in blacklist:
+                # se non arriva scraped["title"] 
+                if scraped["title"] not in blacklist:# or scraped["episode"]:
                     it = Item(
                         channel=item.channel,
                         action=action,
@@ -256,8 +265,11 @@ def scrape(func):
                         it = args['itemHook'](it)
                     itemlist.append(it)
             checkHost(item, itemlist)
-            if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
-                    or (item.contentType == "movie" and action != "play"):
+##            if (item.contentType == "episode" and (action != "findvideos" and action != "play")) \
+##                    or (item.contentType == "movie" and action != "play"):
+            if (item.contentType == "tvshow" and (action != "findvideos" and action != "play")) \
+                or (item.contentType == "episode" and action != "play") \
+                or (item.contentType == "movie" and action != "play"):            
                 tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
             else:
                 for it in itemlist:

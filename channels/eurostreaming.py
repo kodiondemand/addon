@@ -8,12 +8,11 @@
     Problemi noti:
     Alcune sezioni di anime-cartoni non vanno, alcune hanno solo la lista degli episodi, ma non hanno link
     altre cambiano la struttura
-    La sezione novità non fa apparire il titolo degli episodi
 """
 
-import channelselector
-from specials import autoplay, filtertools
-from core import scrapertoolsV2, httptools, servertools, tmdb, support
+#import channelselector
+#from specials import autoplay#, filtertools
+from core import scrapertoolsV2, httptools, support#, servertools, tmdb
 from core.item import Item
 from platformcode import logger, config
 
@@ -24,8 +23,8 @@ headers = ['Referer', host]
 list_servers = ['verystream', 'wstream', 'speedvideo', 'flashx', 'nowvideo', 'streamango', 'deltabit', 'openload']
 list_quality = ['default']
 
-__comprueba_enlaces__ = config.get_setting('comprueba_enlaces', 'eurostreaming')
-__comprueba_enlaces_num__ = config.get_setting('comprueba_enlaces_num', 'eurostreaming')
+checklinks = config.get_setting('checklinks', 'cineblog01')
+checklinks_number = config.get_setting('checklinks_number', 'cineblog01')
 
 IDIOMAS = {'Italiano': 'ITA', 'Sub-ITA':'vosi'}
 list_language = IDIOMAS.values()
@@ -42,34 +41,39 @@ def mainlist(item):
     support.menu(itemlist, 'Cerca...', 'search', host, contentType = 'tvshow')
 
 ##    itemlist = filtertools.show_option(itemlist, item.channel, list_language, list_quality)
-    # richiesto per autoplay
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
-
+    # autoplay
+    support.aplay(item, itemlist, list_servers, list_quality)
+    # configurazione canale
     support.channel_config(item, itemlist)
-    
+        
     return itemlist
 
 @support.scrape
 def serietv(item):
-    #import web_pdb; web_pdb.set_trace()
-    # lista serie tv
+##    import web_pdb; web_pdb.set_trace()
     support.log()
     itemlist = []
     if item.args:
-        # il titolo degli episodi viene inglobato in episode ma non sono visibili in newest!!!
-        patron = r'<span class="serieTitle" style="font-size:20px">(.*?).[^–]<a href="([^"]+)"\s+target="_blank">(.*?)<\/a>'
-        listGroups = ['title', 'url', 'title2']
+        #patron = r'<span class="serieTitle" style="font-size:20px">(.*?).[^–]<a href="([^"]+)"\s+target="_blank">(.*?)<\/a>'
+##        # DA SISTEMARE - problema: mette tutti gli episodi in sub-ita
+##        patron = r'<span class="serieTitle" style="font-size:20px">(.*?).[^–]<a href="([^"]+)"'\
+##                 '\s+target="_blank">(\d+x\d+) (.*?)(?:|\((.+?)\))</a>'
+        patron = r'<span class="serieTitle" style="font-size:20px">(.*?).[^–]<a href="([^"]+)"'\
+                 '\s+target="_blank">(\d+x\d+) (.*?)</a>'
+        listGroups = ['title', 'url', 'episode', 'title2']
         patronNext = ''
+
+        # permette di vedere episodio e titolo + titolo2 in novità
+        def itemHook(item):
+            item.show = item.episode + item.title
+            return item
     else:
         patron = r'<div class="post-thumb">.*?\s<img src="([^"]+)".*?><a href="([^"]+)".*?>(.*?(?:\((\d{4})\)|(\d{4}))?)<\/a><\/h2>'
         listGroups = ['thumb', 'url', 'title', 'year', 'year']
         patronNext='a class="next page-numbers" href="?([^>"]+)">Avanti &raquo;</a>'
     action='episodios'
+    
     return locals()
-##    itemlist = support.scrape(item, patron_block='', patron=patron, listGroups=listGroups,
-##                          patronNext=patronNext, action='episodios')
-##    return itemlist
 
 @support.scrape
 def episodios(item):
@@ -103,15 +107,7 @@ def episodios(item):
 
 def findvideos(item):
     support.log('findvideos', item)
-    itemlist =[]
-
-    # Requerido para FilterTools
-##    itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    itemlist = support.server(item, item.url)
-##    support.videolibrary(itemlist, item)
-    
-    return itemlist
+    return support.server(item, item.url)
 
 # ===========  def ricerca  =============
 def search(item, texto):
@@ -149,6 +145,3 @@ def newest(categoria):
         return []
 
     return itemlist
-
-def paginator(item):
-    pass
