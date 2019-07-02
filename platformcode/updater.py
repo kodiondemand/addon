@@ -66,10 +66,6 @@ def check_addon_init():
             logger.info('aggiornando a' + commitJson['sha'])
             alreadyApplied = True
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 9c2ab8d8fcb5af7ccd62f8ae48af88fac3811dda
             for file in commitJson['files']:
                 if file["filename"] == trackingFile:  # il file di tracking non si modifica
                     continue
@@ -142,10 +138,7 @@ def calcCurrHash():
     treeHash = githash.tree_hash(addonDir).hexdigest()
     logger.info('tree hash: ' + treeHash)
     commits = loadCommits()
-<<<<<<< HEAD
-=======
     lastCommitSha = commits[0]['sha']
->>>>>>> 9c2ab8d8fcb5af7ccd62f8ae48af88fac3811dda
     page = 1
     while commits and page <= maxPage:
         found = False
@@ -156,24 +149,6 @@ def calcCurrHash():
                 localCommitFile.close()
                 found = True
                 break
-<<<<<<< HEAD
-        else:
-            page += 1
-            commits = loadCommits(page)
-
-        if found:
-            break
-    else:
-        logger.info('Non sono riuscito a trovare il commit attuale, scarico lo zip')
-        updateFromZip()
-        # se ha scaricato lo zip si trova di sicuro all'ultimo commit
-        localCommitFile = open(addonDir + trackingFile, 'w')
-        localCommitFile.write(commits[0]['sha'])
-        localCommitFile.close()
-=======
-        else:
->>>>>>> 444beb4e936e4b6aff0949c09531a2ab171d6259
-=======
         else:
             page += 1
             commits = loadCommits(page)
@@ -187,7 +162,6 @@ def calcCurrHash():
         localCommitFile = open(addonDir + trackingFile, 'w')
         localCommitFile.write(lastCommitSha)
         localCommitFile.close()
->>>>>>> 9c2ab8d8fcb5af7ccd62f8ae48af88fac3811dda
 
 
 # https://gist.github.com/noporpoise/16e731849eb1231e86d78f9dfeca3abc  Grazie!
