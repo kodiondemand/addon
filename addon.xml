@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<<<<<<< HEAD
-<addon id="plugin.video.kod" name="Kodi on Demand BETA" version="0.4" provider-name="KOD Team">
-=======
 <addon id="plugin.video.kod" name="Kodi on Demand" version="0.4" provider-name="KOD Team">
->>>>>>> a4583c034ea8e9bc187173e328f7e3d9cf6dd659
   <requires>
     <import addon="xbmc.python" version="2.1.0"/>
     <import addon="script.module.libtorrent" optional="true"/>

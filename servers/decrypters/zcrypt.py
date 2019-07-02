@@ -19,8 +19,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     patronvideos = [
         r'(https?://(gestyy|rapidteria|sprysphere)\.com/[a-zA-Z0-9]+)',
-        r'(https?://(?:www\.)?(vcrypt|linkup)\.[^/]+/[^/]+/[a-zA-Z0-9_]+)',
-        r'(https?://(?:www\.)?(bit)\.ly/[a-zA-Z0-9]+)',        
+        r'(https?://(?:www\.)?(vcrypt|linkup)\.[^/]+/[^/]+/[a-zA-Z0-9_]+)'
     ]
 
     for patron in patronvideos:
