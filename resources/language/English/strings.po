@@ -5572,3 +5572,15 @@ msgstr ""
 msgctxt "#70716"
 msgid "Choose menus you wanna in homepage"
 msgstr ""
+
+msgctxt "#70717"
+msgid "Are all the special episodes present?"
+msgstr ""
+
+msgctxt "#70718"
+msgid "Ep. No (Empty for OK) "
+msgstr ""
+
+msgctxt "#70719"
+msgid "I can't automatically find the special episode number, please enter it manually"
+msgstr ""

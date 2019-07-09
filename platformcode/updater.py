@@ -25,9 +25,17 @@ trackingFile = "last_commit.txt"
 
 def loadCommits(page=1):
     apiLink = 'https://api.github.com/repos/' + user + '/' + repo + '/commits?sha=' + branch + "&page=" + str(page)
-    commitsLink = httptools.downloadpage(apiLink).data
     logger.info(apiLink)
-    return json.loads(commitsLink)
+    # riprova ogni secondo finchè non riesce (ad esempio per mancanza di connessione)
+    while True:
+        try:
+            commitsLink = httptools.downloadpage(apiLink).data
+            ret = json.loads(commitsLink)
+            break
+        except:
+            xbmc.sleep(1000)
+
+    return ret
 
 
 def check_addon_init():
@@ -214,11 +222,14 @@ def updateFromZip():
     destpathname = xbmc.translatePath("special://home/addons/")
     logger.info("destpathname=%s" % destpathname)
 
-    # fix per android -> badZip file
-    hash = fixZipGetHash(localfilename)
-
-    unzipper = ziptools()
-    unzipper.extract(localfilename, destpathname)
+    try:
+        hash = fixZipGetHash(localfilename)
+        unzipper = ziptools()
+        unzipper.extract(localfilename, destpathname)
+    except Exception as e:
+        logger.info('Non sono riuscito ad estrarre il file zip')
+        logger.info(e)
+        return False
 
     # puliamo tutto
     shutil.rmtree(addonDir)
@@ -238,7 +249,7 @@ def updateFromZip():
 def fixZipGetHash(zipFile):
     f = open(zipFile, 'r+b')
     data = f.read()
-    pos = data.find('\x50\x4b\x05\x06')  # End of central directory signature
+    pos = data.find(b'\x50\x4b\x05\x06')  # End of central directory signature
     hash = ''
     if pos > 0:
         f.seek(pos + 20)  # +20: see secion V.I in 'ZIP format' link above.
@@ -246,10 +257,12 @@ def fixZipGetHash(zipFile):
         f.seek(pos + 20)
         f.truncate()
         f.write(
-            '\x00\x00')  # Zip file comment length: 0 byte length; tell zip applications to stop reading.
+            b'\x00\x00')  # Zip file comment length: 0 byte length; tell zip applications to stop reading.
         f.seek(0)
 
-    return hash
+    f.close()
+
+    return str(hash)
 
 
 class ziptools:

@@ -115,7 +115,7 @@ def tree_hash(path):
     contents = os.listdir(path)
     tsize = 0
   
-    to_skip = ('.', '..', '.git', '.DS_Store', '.idea', '.directory')
+    to_skip = ('.', '..', '.git', '.DS_Store', '.idea', '.directory', 'custom_code.json', 'last_commit.txt')
     to_skip_ext = ('pyo', 'pyc')
     pass1 = []
     for entry in contents:
