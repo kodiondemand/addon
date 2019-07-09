@@ -128,15 +128,6 @@ def newest(categoria):
 
     return itemlist
 
+
 def findvideos(item):
-    support.log()
-    
-    itemlist = support.server(item, headers=headers)
-
-    # Requerido para FilterTools
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-    autoplay.start(itemlist, item)
-    
-    return itemlist
+    return support.server(item, headers=headers)
