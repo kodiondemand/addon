@@ -5,11 +5,10 @@
 # -*- last change: 04/05/2019
 
 
-from channelselector import get_thumb
-from core import httptools, channeltools, scrapertools, servertools, tmdb, support
+from core import channeltools, servertools, support
 from core.item import Item
 from platformcode import config, logger
-from specials import autoplay, filtertools
+from specials import autoplay
 
 __channel__ = "altadefinizione01_club"
 host = config.get_channel_url(__channel__)
@@ -28,8 +27,8 @@ thumbnail_host = parameters['thumbnail']
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['verystream','openload','rapidvideo','streamango'] # per l'autoplay
-list_quality = ['default'] #'rapidvideo', 'streamango', 'openload', 'streamcherry'] # per l'autoplay
+list_servers = ['verystream','openload','supervideo','rapidvideo','streamango'] # per l'autoplay
+list_quality = ['default']
 
 
 # =========== home menu ===================
@@ -43,8 +42,6 @@ def mainlist(item):
     logger.info("%s mainlist log: %s" % (__channel__, item)) 
     itemlist = []
 
-    autoplay.init(item.channel, list_servers, list_quality)
-
     # Menu Principale
     support.menu(itemlist, 'Film Ultimi Arrivi bold', 'peliculas', host, args='pellicola')
     support.menu(itemlist, 'Genere', 'categorie', host, args='genres')
@@ -52,9 +49,12 @@ def mainlist(item):
     support.menu(itemlist, 'Per lettera', 'categorie', host + '/catalog/a/', args=['Film per Lettera','orderalf'])
     support.menu(itemlist, 'Al Cinema bold', 'peliculas', host + '/cinema/', args='pellicola')
     support.menu(itemlist, 'Sub-ITA bold', 'peliculas', host + '/sub-ita/', args='pellicola')
-    support.menu(itemlist, 'Cerca film submenu', 'search', host)
+    support.menu(itemlist, 'Cerca film submenu', 'search', host, args = 'search')
 
+    autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
+
+    support.channel_config(item, itemlist)
     
     return itemlist
 
@@ -64,43 +64,19 @@ def mainlist(item):
 def peliculas(item):
     logger.info("%s mainlist peliculas log: %s" % (__channel__, item))
     itemlist = []
-    # scarico la pagina
-    data = httptools.downloadpage(item.url, headers=headers).data
-    # da qui fare le opportuni modifiche
-    if item.args != 'orderalf':
-        if item.args == 'pellicola' or item.args == 'years':
-            bloque = scrapertools.find_single_match(data, '<div class="cover boxcaption">(.*?)<div id="right_bar">')
-        elif item.args == "search":
-            bloque = scrapertools.find_single_match(data, '<div class="cover boxcaption">(.*?)</a>')
-        else:
-            bloque = scrapertools.find_single_match(data, '<div class="cover boxcaption">(.*?)<div class="page_nav">')
-        patron = '<h2>.<a href="(.*?)".*?src="(.*?)".*?class="trdublaj">(.*?)<div class="ml-item-hiden".*?class="h4">(.*?)<.*?label">(.*?)</span'
-        matches = scrapertools.find_multiple_matches(data, patron)
-        for scrapedurl, scrapedimg, scrapedqualang, scrapedtitle, scrapedyear in matches:
 
-            if 'sub ita' in scrapedqualang.lower():
-                scrapedlang = 'Sub-Ita'
-            else:
-                scrapedlang = 'ITA'
-            itemlist.append(Item(
-                channel=item.channel,
-                action="findvideos",
-                contentTitle=scrapedtitle,
-                fulltitle=scrapedtitle,
-                url=scrapedurl,
-                infoLabels={'year': scrapedyear},
-                contenType="movie",
-                thumbnail=host+scrapedimg,
-                title= "%s [%s]" % (scrapedtitle, scrapedlang),
-                language=scrapedlang
-                ))
+    patron_block = r'<div id="dle-content">(.*?)<div class="page_nav">'
+    if item.args == "search":
+        patron_block = r'</table> </form>(.*?)<div class="search_bg">'
+    patron = r'<h2>.<a href="(.*?)".*?src="(.*?)".*?(?:|<div class="sub_ita">(.*?)</div>)[ ]</div>.*?<p class="h4">(.*?)</p>'
 
-    # poichè  il sito ha l'anno del film con TMDB la ricerca titolo-anno è esatta quindi inutile fare lo scrap delle locandine 
-    # e della trama dal sito che a volte toppano
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    listGroups = ['url', 'thumb', 'lang', 'title', 'year']
 
-    # Paginazione
-    support.nextPage(itemlist,item,data,'<span>[^<]+</span>[^<]+<a href="(.*?)">')
+    patronNext =  '<span>[^<]+</span>[^<]+<a href="(.*?)">'
+    
+    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
+                          headers= headers, patronNext=patronNext,patron_block=patron_block,
+                          action='findvideos')    
     
     return itemlist
 
@@ -109,39 +85,25 @@ def peliculas(item):
 def categorie(item):
     logger.info("%s mainlist categorie log: %s" % (__channel__, item))
     itemlist = []
-    # scarico la pagina
-    data = httptools.downloadpage(item.url, headers=headers).data
 
     # da qui fare le opportuni modifiche
+    patron = r'<li><a href="(.*?)">(.*?)</a>'
+    action = 'peliculas'
     if item.args == 'genres':
-        bloque = scrapertools.find_single_match(data, '<ul class="kategori_list">(.*?)</ul>')
-        patron = '<li><a href="/(.*?)">(.*?)</a>'
+        bloque = r'<ul class="kategori_list">(.*?)</ul>'
     elif item.args[1] == 'years':
-        bloque = scrapertools.find_single_match(data, '<ul class="anno_list">(.*?)</ul>')
-        patron = '<li><a href="/(.*?)">(.*?)</a>'
+        bloque = r'<ul class="anno_list">(.*?)</ul>'
     elif item.args[1] == 'orderalf':
-        bloque = scrapertools.find_single_match(data, '<div class="movies-letter">(.*)<div class="clearfix">')
-        patron = '<a title=.*?href="(.*?)"><span>(.*?)</span>'
+        bloque = r'<div class="movies-letter">(.*)<div class="clearfix">'
+        patron = r'<a title=.*?href="(.*?)"><span>(.*?)</span>'
+        action = 'orderalf'
 
-    matches = scrapertools.find_multiple_matches(bloque, patron)
-
-    for scrapurl, scraptitle in sorted(matches):
-
-        if "01" in scraptitle:
-          continue
-        else:
-          scrapurl = host+scrapurl
-
-        if item.args[1] != 'orderalf': action = "peliculas"
-        else: action = 'orderalf'
-        itemlist.append(Item(
-            channel=item.channel,
-            action= action,
-            title = scraptitle,
-            url= scrapurl,
-            thumbnail = get_thumb(scraptitle, auto = True),
-            extra = item.extra,
-        ))
+    listGroups = ['url', 'title']
+    patronNext = ''
+       
+    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
+                          headers= headers, patronNext=patronNext, patron_block = bloque,
+                          action=action)
 
     return itemlist
 
@@ -150,36 +112,14 @@ def categorie(item):
 def orderalf(item):
     logger.info("%s mainlist orderalf log: %s" % (__channel__, item))
     itemlist = []
-    # scarico la pagina
-    data = httptools.downloadpage(item.url, headers=headers).data
-    # da qui fare le opportuni modifiche
-    patron = '<td class="mlnh-thumb"><a href="(.*?)".title="(.*?)".*?src="(.*?)".*?mlnh-3">(.*?)<.*?"mlnh-5">.<(.*?)<td' #scrapertools.find_single_match(data, '<td class="mlnh-thumb"><a href="(.*?)".title="(.*?)".*?src="(.*?)".*?mlnh-3">(.*?)<.*?"mlnh-5">.<(.*?)<td')
-    matches = scrapertools.find_multiple_matches(data, patron)
-    for scrapedurl, scrapedtitle, scrapedimg, scrapedyear, scrapedqualang in matches:
 
-            if 'sub ita' in scrapedqualang.lower():
-                scrapedlang = 'Sub-ita'
-            else:
-                scrapedlang = 'ITA'
-            itemlist.append(Item(
-                channel=item.channel,
-                action="findvideos_film",
-                contentTitle=scrapedtitle,
-                fulltitle=scrapedtitle,
-                url=scrapedurl,
-                infoLabels={'year': scrapedyear},
-                contenType="movie",
-                thumbnail=host+scrapedimg,
-                title = "%s [%s]" % (scrapedtitle, scrapedlang),
-                language=scrapedlang,
-                context="buscar_trailer"
-            ))
-
-    # se il sito permette l'estrazione dell'anno del film aggiungere la riga seguente
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
-    # Paginazione
-    support.nextPage(itemlist,item,data,'<span>[^<]+</span>[^<]+<a href="(.*?)">')
+    listGroups = ['url', 'title', 'thumb', 'year', 'lang']
+    patron = r'<td class="mlnh-thumb"><a href="(.*?)".title="(.*?)".*?src="(.*?)".*?mlnh-3">(.*?)<.*?"mlnh-5">.<(.*?)<td' #scrapertools.find_single_match(data, '<td class="mlnh-thumb"><a href="(.*?)".title="(.*?)".*?src="(.*?)".*?mlnh-3">(.*?)<.*?"mlnh-5">.<(.*?)<td')
+    patronNext = r'<span>[^<]+</span>[^<]+<a href="(.*?)">'
+    
+    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
+                          headers= headers, patronNext=patronNext,
+                          action='findvideos')
 
     return itemlist
 
@@ -188,45 +128,7 @@ def orderalf(item):
 def findvideos(item):
     logger.info("%s mainlist findvideos_film log: %s" % (__channel__, item))
     itemlist = []
-
-    # scarico la pagina
-    data = httptools.downloadpage(item.url, headers=headers).data
-    # da qui fare le opportuni modifiche
-    patron = '<a href="#" data-link="(.*?)">'
-    matches = scrapertools.find_multiple_matches(data, patron)
-
-    for scrapedurl in matches:
-        logger.info("altadefinizione01_club scrapedurl log: %s" % scrapedurl)
-        try:
-            itemlist = servertools.find_video_items(data=data)
-
-            for videoitem in itemlist:
-                logger.info("Videoitemlist2: %s" % videoitem)
-                videoitem.title = "%s [%s]" % (item.contentTitle, videoitem.title)
-                videoitem.show = item.show
-                videoitem.contentTitle = item.contentTitle
-                videoitem.contentType = item.contentType
-                videoitem.channel = item.channel
-                videoitem.year = item.infoLabels['year']
-                videoitem.infoLabels['plot'] = item.infoLabels['plot']
-        except AttributeError:
-            logger.error("data doesn't contain expected URL")
-
-    # Controlla se i link sono validi
-    if checklinks:
-        itemlist = servertools.check_list_links(itemlist, checklinks_number)
-
-    # Requerido para FilterTools
-    itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-    autoplay.start(itemlist, item)
-
-    # Aggiunge alla videoteca
-    if  item.extra != 'findvideos' and item.extra != "library" and config.get_videolibrary_support() and len(itemlist) != 0 :
-       support.videolibrary(itemlist, item)
-    
-    return itemlist
+    return support.server(item, headers=headers)
 
 # =========== def per cercare film/serietv =============
 #http://altadefinizione01.link/index.php?do=search&story=avatar&subaction=search
@@ -248,16 +150,15 @@ def search(item, text):
 # =========== def per le novità nel menu principale =============
 
 def newest(categoria):
-    logger.info("%s mainlist newest log: %s %s %s" % (__channel__, categoria))
+    logger.info("%s mainlist newest log: %s" % (__channel__, categoria))
     itemlist = []
     item = Item()
     try:
-        if categoria == "film":
-            item.url = host
-            item.action = "peliculas"
-            itemlist = peliculas(item)
-            if itemlist[-1].action == "peliculas":
-                itemlist.pop()
+        item.url = host
+        item.action = "peliculas"
+        itemlist = peliculas(item)
+        if itemlist[-1].action == "peliculas":
+            itemlist.pop()
 
     # Continua la ricerca in caso di errore
     except:
