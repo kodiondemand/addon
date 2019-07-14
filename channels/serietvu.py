@@ -150,9 +150,9 @@ def findvideos(item):
 def findepisodevideo(item):
     log()
 
-    patron_block = r'<div class="list [active]*" data-id="%s">(.*?)</div>\s*</div>' % item.extra[0][0]
+    patronBlock = r'<div class="list [active]*" data-id="%s">(.*?)</div>\s*</div>' % item.extra[0][0]
     patron = r'<a data-id="%s[^"]*" data-href="([^"]+)"(?:\sdata-original="[^"]+")?\sclass="[^"]+">' % item.extra[0][1].lstrip("0")
-    matches = support.match(item, patron, patron_block, headers)[0]
+    matches = support.match(item, patron, patronBlock, headers)[0]
     data = ''
     if len(matches) > 0:
         data = matches[0]
@@ -169,9 +169,9 @@ def latestep(item):
     itemlist = []
     titles = []
 
-    patron_block = r"Ultimi episodi aggiunti.*?<h2>"
+    patronBlock = r"Ultimi episodi aggiunti.*?<h2>"
     patron = r'<a href="([^"]*)"\sdata-src="([^"]*)"\sclass="owl-lazy.*?".*?class="title">(.*?)<small>\((\d*?)x(\d*?)\s(Sub-Ita|Ita)'
-    matches = support.match(item, patron, patron_block, headers, host)[0]
+    matches = support.match(item, patron, patronBlock, headers, host)[0]
 
     for scrapedurl, scrapedimg, scrapedtitle, scrapedseason, scrapedepisode, scrapedlanguage in matches:
         infoLabels = {}
@@ -296,8 +296,8 @@ def search(item, texto):
 # ----------------------------------------------------------------------------------------------------------------
 def categorie(item):
     log()
-    patron_block= r'<h2>Sfoglia</h2>\s*<ul>(.*?)</ul>\s*</section>'
+    patronBlock= r'<h2>Sfoglia</h2>\s*<ul>(.*?)</ul>\s*</section>'
     patron = r'<li><a href="([^"]+)">([^<]+)</a></li>'
-    return support.scrape(item, patron, ['url','title'], patron_block=patron_block, action='lista_serie', blacklist=["Home Page", "Calendario Aggiornamenti"])
+    return support.scrape(item, patron, ['url','title'], patronBlock=patronBlock, action='lista_serie', blacklist=["Home Page", "Calendario Aggiornamenti"])
 
 # ================================================================================================================

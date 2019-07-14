@@ -46,12 +46,12 @@ def mainlist(item):
 
 def categories(item):
     support.log(item)
-    itemlist = support.scrape(item,'<li><a href="([^"]+)">(.*?)</a></li>',['url','title'],headers,'Altadefinizione01',patron_block='<ul class="kategori_list">(.*?)</ul>',action='peliculas')
+    itemlist = support.scrape(item,'<li><a href="([^"]+)">(.*?)</a></li>',['url','title'],headers,'Altadefinizione01',patronBlock='<ul class="kategori_list">(.*?)</ul>',action='peliculas')
     return support.thumb(itemlist)
 
 def AZlist(item):
     support.log()
-    return support.scrape(item,r'<a title="([^"]+)" href="([^"]+)"',['title','url'],headers,patron_block=r'<div class="movies-letter">(.*?)<\/div>',action='peliculas_list')
+    return support.scrape(item,r'<a title="([^"]+)" href="([^"]+)"',['title','url'],headers,patronBlock=r'<div class="movies-letter">(.*?)<\/div>',action='peliculas_list')
 
 
 def newest(categoria):
@@ -141,7 +141,7 @@ def peliculas_list(item):
     item.fulltitle = ''
     block = r'<tbody>(.*)<\/tbody>'
     patron = r'<a href="([^"]+)" title="([^"]+)".*?> <img.*?src="([^"]+)".*?<td class="mlnh-3">([0-9]{4}).*?mlnh-4">([A-Z]+)'
-    return support.scrape(item,patron, ['url', 'title', 'thumb', 'year', 'quality'], patron_block=block)
+    return support.scrape(item,patron, ['url', 'title', 'thumb', 'year', 'quality'], patronBlock=block)
 
 
 

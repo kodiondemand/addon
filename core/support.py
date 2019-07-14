@@ -102,7 +102,7 @@ def scrape(func):
     # headers: values to pass to request header
     # blacklist: titles that you want to exclude(service articles for example)
     # data: if you want to pass data manually, maybe because you need some custom replacement
-    # patron_block: patron to get parts of the page (to scrape with patron attribute),
+    # patronBlock: patron to get parts of the page (to scrape with patron attribute),
     #               if you need a "block inside another block" you can create a list, please note that all matches
     #               will be packed as string
     # patronNext: patron for scraping next page link
@@ -118,7 +118,7 @@ def scrape(func):
     #                           headers=headers, blacklist=blacklist)
     # 'type' is a check for typologies of content e.g. Film or TV Series
     # 'episode' is a key to grab episode numbers if it is separated from the title
-    # IMPORTANT 'type' is a special key, to work need type_content_dict={} and type_action_dict={}
+    # IMPORTANT 'type' is a special key, to work need typeContentDict={} and typeActionDict={}
 
     def wrapper(*args):
         itemlist = []
@@ -136,9 +136,9 @@ def scrape(func):
         listGroups = args['listGroups'] if 'listGroups' in args else []        
         patron = args['patron'] if 'patron' in args else ''
         patronNext = args['patronNext'] if 'patronNext' in args else ''
-        patron_block = args['patron_block'] if 'patron_block' in args else ''
-        type_action_dict = args['type_action_dict'] if 'type_action_dict' in args else {}
-        type_content_dict = args['type_content_dict'] if 'type_content_dict' in args else {}
+        patronBlock = args['patronBlock'] if 'patronBlock' in args else ''
+        typeActionDict = args['typeActionDict'] if 'typeActionDict' in args else {}
+        typeContentDict = args['typeContentDict'] if 'typeContentDict' in args else {}
 
         if not data:
             data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data.replace("'", '"')
@@ -148,11 +148,11 @@ def scrape(func):
 
             block = data
 
-            if patron_block:
-                if type(patron_block) == str:
-                    patron_block = [patron_block]
+            if patronBlock:
+                if type(patronBlock) == str:
+                    patronBlock = [patronBlock]
 
-                for n, regex in enumerate(patron_block):
+                for n, regex in enumerate(patronBlock):
                     blocks = scrapertoolsV2.find_multiple_matches(block, regex)
                     block = ""
                     for b in blocks:
@@ -226,12 +226,12 @@ def scrape(func):
                     if scraped["rating"]:
                         infolabels['rating'] = scrapertoolsV2.decodeHtmlentities(scraped["rating"])
 
-                if type_content_dict:
-                    for name, variants in type_content_dict.items():
+                if typeContentDict:
+                    for name, variants in typeContentDict.items():
                         if scraped['type'] in variants:
                             item.contentType = name
-                if type_action_dict:
-                    for name, variants in type_action_dict.items():
+                if typeActionDict:
+                    for name, variants in typeActionDict.items():
                         if scraped['type'] in variants:
                             action = name
 
@@ -509,7 +509,7 @@ def typo(string, typography=''):
     return string
 
 
-def match(item, patron='', patron_block='', headers='', url=''):
+def match(item, patron='', patronBlock='', headers='', url=''):
     matches = []
     url = url if url else item.url
     data = httptools.downloadpage(url, headers=headers, ignore_response_code=True).data.replace("'", '"')
@@ -517,8 +517,8 @@ def match(item, patron='', patron_block='', headers='', url=''):
     data = re.sub(r'>\s\s*<', '><', data)
     log('DATA= ', data)
 
-    if patron_block:
-        block = scrapertoolsV2.find_single_match(data, patron_block)
+    if patronBlock:
+        block = scrapertoolsV2.find_single_match(data, patronBlock)
         log('BLOCK= ',block)
     else:
         block = data

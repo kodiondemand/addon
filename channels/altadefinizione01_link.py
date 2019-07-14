@@ -74,13 +74,13 @@ def genres(item):
     #data = httptools.downloadpage(item.url, headers=headers).data
     action = 'peliculas'
     if item.args == 'genres':
-        patron_block = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
     elif item.args == 'years':
-        patron_block = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
     elif item.args == 'quality':
-        patron_block = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
     elif item.args == 'lucky': # sono i titoli random nella pagina, cambiano 1 volta al dì
-        patron_block = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
+        patronBlock = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
         action = 'findvideos'
      
     patron = r'<li><a href="([^"]+)">(.*?)<'

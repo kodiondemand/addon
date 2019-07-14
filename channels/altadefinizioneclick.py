@@ -80,7 +80,7 @@ def newest(categoria):
 
 def menu(item):
     support.log()
-    itemlist = support.scrape(item, '<li><a href="([^"]+)">([^<]+)</a></li>', ['url', 'title'], headers,  patron_block='<ul class="listSubCat" id="'+ str(item.args) + '">(.*?)</ul>', action='peliculas')
+    itemlist = support.scrape(item, '<li><a href="([^"]+)">([^<]+)</a></li>', ['url', 'title'], headers,  patronBlock='<ul class="listSubCat" id="'+ str(item.args) + '">(.*?)</ul>', action='peliculas')
     return support.thumb(itemlist)
 
 def peliculas(item):

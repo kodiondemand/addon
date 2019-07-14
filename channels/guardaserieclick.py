@@ -58,17 +58,17 @@ def serietv(item):
     listGroups = ['url', 'thumb', 'title']
     patron = r'<a href="([^"]+)".*?> <img\s.*?src="([^"]+)" \/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<\/p>'    
     if 'news' in item.args: 
-        patron_block = r'<div class="container container-title-serie-new container-scheda" meta-slug="new">(.*?)</div></div><div'
+        patronBlock = r'<div class="container container-title-serie-new container-scheda" meta-slug="new">(.*?)</div></div><div'
     elif 'inedite' in item.args:
-        patron_block = r'<div class="container container-title-serie-ined container-scheda" meta-slug="ined">(.*?)</div></div><div'        
+        patronBlock = r'<div class="container container-title-serie-ined container-scheda" meta-slug="ined">(.*?)</div></div><div'
     elif 'da non perdere' in item.args:
-        patron_block = r'<div class="container container-title-serie-danonperd container-scheda" meta-slug="danonperd">(.*?)</div></div><div'
+        patronBlock = r'<div class="container container-title-serie-danonperd container-scheda" meta-slug="danonperd">(.*?)</div></div><div'
     elif 'classiche' in item.args:
-        patron_block = r'<div class="container container-title-serie-classiche container-scheda" meta-slug="classiche">(.*?)</div></div><div'    
+        patronBlock = r'<div class="container container-title-serie-classiche container-scheda" meta-slug="classiche">(.*?)</div></div><div'
     elif 'update' in item.args:
         listGroups = ['url', 'thumb', 'episode', 'lang', 'title']
         patron = r'rel="nofollow" href="([^"]+)"[^>]+> <img.*?src="([^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(\d+.\d+) \((.+?)\).<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<[^>]+>'
-        patron_block = r'meta-slug="lastep">(.*?)</div></div><div'   
+        patronBlock = r'meta-slug="lastep">(.*?)</div></div><div'
         # permette di vedere episodio + titolo + titolo2 in novità
         def itemHook(item):
             item.show = item.episode + item.title
@@ -81,7 +81,7 @@ def tvserie(item):
     action = 'episodios'
     listGroups = ['url', 'thumb', 'title']
     patron = r'<a\shref="([^"]+)".*?>\s<img\s.*?src="([^"]+)" />[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)</p></div>'
-    patron_block = r'<div\sclass="col-xs-\d+ col-sm-\d+-\d+">(.*?)<div\sclass="container-fluid whitebg" style="">'
+    patronBlock = r'<div\sclass="col-xs-\d+ col-sm-\d+-\d+">(.*?)<div\sclass="container-fluid whitebg" style="">'
     patronNext = r'<link\s.*?rel="next"\shref="([^"]+)"' 
 
     return locals()
@@ -110,7 +110,7 @@ def categorie(item):
     action = 'tvserie'
     listGroups = ['url', 'title']
     patron = r'<li>\s<a\shref="([^"]+)"[^>]+>([^<]+)</a></li>'
-    patron_block = r'<ul\sclass="dropdown-menu category">(.*?)</ul>'
+    patronBlock = r'<ul\sclass="dropdown-menu category">(.*?)</ul>'
 
     return locals()
 

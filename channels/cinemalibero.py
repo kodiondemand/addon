@@ -64,7 +64,7 @@ def search(item, texto):
 
 
 def genres(item):
-    return support.scrape(item, patron_block=r'<div id="bordobar" class="dropdown-menu(.*?)</li>', patron=r'<a class="dropdown-item" href="([^"]+)" title="([A-z]+)"', listGroups=['url', 'title'], action='video')
+    return support.scrape(item, patronBlock=r'<div id="bordobar" class="dropdown-menu(.*?)</li>', patron=r'<a class="dropdown-item" href="([^"]+)" title="([A-z]+)"', listGroups=['url', 'title'], action='video')
 
 
 def video(item):

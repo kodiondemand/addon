@@ -109,7 +109,7 @@ def newest(categoria):
     item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
     return support.scrape(item, r'<a href=([^>]+)>([^<([]+)(?:\[([A-Z]+)\])?\s\(([0-9]{4})\)<\/a>',
                    ['url', 'title', 'quality', 'year'],
-                   patron_block=r'Ultimi 100 film aggiunti:.*?<\/td>')
+                   patronBlock=r'Ultimi 100 film aggiunti:.*?<\/td>')
 
 
 def last(item):
@@ -178,7 +178,7 @@ def peliculas(item):
         listGroups = ['thumb', 'url', 'title', 'genre', 'year', 'plot']
         action = 'episodios'
 
-    patron_block=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
+    patronBlock=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
                                               '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)']
     patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">'
 
