@@ -92,7 +92,6 @@ def url_decode(url_enc):
 def color(text, color):
     return "[COLOR " + color + "]" + text + "[/COLOR]"
 
-
 def scrape(func):
     # args is a dict containing the foolowing keys:
     # patron: the patron to use for scraping page, all capturing group must match with listGroups
@@ -427,12 +426,8 @@ def swzz_get_url(item):
     return data
 
 
-def menu(itemlist, title='', action='', url='', contentType='movie', args=[]):
+def menuItem(itemlist, filename, title='', action='', url='', contentType='movie', args=[]):
     # Function to simplify menu creation
-
-    frame = inspect.stack()[1]
-    filename = frame[0].f_code.co_filename
-    filename = os.path.basename(filename).replace('.py','')
 
     # Call typo function
     title = typo(title)
@@ -455,6 +450,50 @@ def menu(itemlist, title='', action='', url='', contentType='movie', args=[]):
     thumb(itemlist)
 
     return itemlist
+
+
+def menu(func):
+    def wrapper(*args):
+        args = func(*args)
+
+        item = args['item']
+        host = func.__globals__['host']
+        list_servers = func.__globals__['list_servers']
+        list_quality = func.__globals__['list_quality']
+        filename = func.__module__.split('.')[1]
+
+        listUrls = ['film', 'filmSub', 'tvshow', 'tvshowSub']
+        dictUrl = {}
+        for name in listUrls:
+            dictUrl[name] = args[name] if name in args else None
+        autoplay.init(item.channel, list_servers, list_quality)
+
+        # Main options
+        itemlist = []
+        if dictUrl['film'] is not None:
+            menuItem(itemlist, filename, 'Film bold', 'peliculas', host + dictUrl['film'])
+
+        for sub in dictUrl['filmSub'].keys():
+            menuItem(itemlist, filename, sub + ' submenu', dictUrl['filmSub'][sub]['func'],
+                     host + dictUrl['filmSub'][sub]['url'],
+                     args=dictUrl['filmSub'][sub]['args'] if 'args' in dictUrl['filmSub'][sub] else '')
+
+        menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='film')
+
+        if dictUrl['tvshow'] is not None:
+            menuItem(itemlist, filename, 'Serie TV bold', 'peliculas', host + host + dictUrl['tvshow'], contentType='tvshow')
+        for sub in dictUrl['tvshowSub'].keys():
+            menuItem(itemlist, filename, sub + ' submenu', dictUrl['tvshowSub'][sub]['func'],
+                     host + dictUrl['tvshowSub'][sub]['url'], contentType='tvshow',
+                     args=dictUrl['tvshowSub'][sub]['args'] if 'args' in dictUrl['tvshowSub'][sub] else '')
+
+        menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='serie')
+
+        autoplay.show_option(item.channel, itemlist)
+
+        return itemlist
+
+    return wrapper
 
 
 def typo(string, typography=''):

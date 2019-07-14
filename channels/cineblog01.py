@@ -36,31 +36,51 @@ blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217
              'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?']
 
 
+@support.menu
 def mainlist(item):
     findhost()
+    film = ''
+    filmSub = {
+        'HD': {
+            'url': '',
+            'func': 'menu',
+            'args': 'Film HD Streaming'
+        },
+        'Generi': {
+            'url': '',
+            'func': 'menu',
+            'args': 'Film per Genere'
+        },
+        'Anni': {
+            'url': '',
+            'func': 'menu',
+            'args': 'Film per Anno'
+        }
+    }
+    tvshow = '/serietv/'
+    tvshowSub = {
+        'Aggiornamenti serie tv': {
+            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
+            'func': 'last'
+        },
+        'Per Lettera': {
+            'url': '/serietv/',
+            'func': 'menu',
+            'args': 'Serie-Tv per Lettera'
+        },
+        'Per Genere': {
+            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
+            'func': 'menu',
+            'args': 'Serie-Tv per Genere'
+        },
+        'Per anno': {
+            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
+            'func': 'menu',
+            'args': 'Serie-Tv per Anno'
+        }
+    }
 
-    autoplay.init(item.channel, list_servers, list_quality)
-
-    # Main options
-    itemlist = []
-    support.menu(itemlist, 'Ultimi 100 Film Aggiornati bold', 'last', host + '/lista-film-ultimi-100-film-aggiornati/')
-
-    support.menu(itemlist, 'Film bold', 'peliculas', host)
-    support.menu(itemlist, 'HD submenu', 'menu', host, args="Film HD Streaming")
-    support.menu(itemlist, 'Per genere submenu', 'menu', host, args="Film per Genere")
-    support.menu(itemlist, 'Per anno submenu', 'menu', host, args="Film per Anno")
-    support.menu(itemlist, 'Cerca film... submenu', 'search', host, args='film')
-
-    support.menu(itemlist, 'Serie TV bold', 'peliculas', host + '/serietv/', contentType='tvshow')
-    support.menu(itemlist, 'Aggiornamenti serie tv', 'last', host + '/serietv/aggiornamento-quotidiano-serie-tv/', contentType='tvshow')
-    support.menu(itemlist, 'Per Lettera submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Lettera")
-    support.menu(itemlist, 'Per Genere submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Genere")
-    support.menu(itemlist, 'Per anno submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Anno")
-    support.menu(itemlist, 'Cerca serie... submenu', 'search', host + '/serietv/', contentType='tvshow', args='serie')
-    
-    autoplay.show_option(item.channel, itemlist)
-
-    return itemlist
+    return locals()
 
 
 def menu(item):
@@ -182,10 +202,6 @@ def peliculas(item):
                                               '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)']
     patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">'
 
-    def itemHook(item):
-        # esempio molto alla cazzo
-        item.title = 'ciao' + item.title
-        return item
     return locals()
 
 
