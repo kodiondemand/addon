@@ -82,10 +82,7 @@ def search(item, texto):
     item.url = "%s/index.php?do=search&story=%s&subaction=search" % (
         host, texto)
     try:
-        if item.extra == "movie":
-            return subIta(item)
-        if item.extra == "tvshow":
-            return peliculas_tv(item)
+        return peliculas(item)
     # Continua la ricerca in caso di errore 
     except:
         import sys

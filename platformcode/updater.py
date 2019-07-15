@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import hashlib
+import io
 import os
 import shutil
 import zipfile
 
 from core import httptools, filetools, downloadtools
-from platformcode import logger, platformtools, config
+from core.ziptools import ziptools
+from platformcode import logger, platformtools
 import json
 import xbmc
 import re
@@ -62,7 +64,7 @@ def check_addon_init():
     else:
         # evitiamo che dia errore perchè il file è già in uso
         localCommitFile.close()
-        updateFromZip()
+        calcCurrHash()
         return True
 
     if pos > 0:
@@ -207,7 +209,8 @@ def getSha(fileText):
 
 
 def updateFromZip():
-    platformtools.dialog_notification('Kodi on Demand', 'Aggiornamento in corso...')
+    dp = platformtools.dialog_progress_bg('Kodi on Demand', 'Aggiornamento in corso...')
+    dp.update(0)
 
     remotefilename = 'https://github.com/' + user + "/" + repo + "/archive/" + branch + ".zip"
     localfilename = xbmc.translatePath("special://home/addons/") + "plugin.video.kod.update.zip"
@@ -215,7 +218,7 @@ def updateFromZip():
     logger.info("localfilename=%s" % localfilename)
 
     import urllib
-    urllib.urlretrieve(remotefilename, localfilename)
+    urllib.urlretrieve(remotefilename, localfilename, lambda nb, bs, fs, url=remotefilename: _pbhook(nb, bs, fs, url, dp))
 
     # Lo descomprime
     logger.info("decompressione...")
@@ -231,23 +234,23 @@ def updateFromZip():
         logger.info(e)
         return False
 
+    dp.update(95)
+
     # puliamo tutto
     shutil.rmtree(addonDir)
 
     filetools.rename(destpathname + "addon-" + branch, addonDir)
 
-    # Borra el zip descargado
-    logger.info("kodiondemand.core.updater borra fichero...")
+    logger.info("Cancellando il file zip...")
     os.remove(localfilename)
-    # os.remove(temp_dir)
-    platformtools.dialog_notification('Kodi on Demand', 'Aggiornamento completato!')
 
+    dp.update(100)
     return hash
 
 
 # https://stackoverflow.com/questions/3083235/unzipping-file-results-in-badzipfile-file-is-not-a-zip-file
 def fixZipGetHash(zipFile):
-    f = open(zipFile, 'r+b')
+    f = io.FileIO(zipFile, 'r+b')
     data = f.read()
     pos = data.find(b'\x50\x4b\x05\x06')  # End of central directory signature
     hash = ''
@@ -265,86 +268,10 @@ def fixZipGetHash(zipFile):
     return str(hash)
 
 
-class ziptools:
-    def extract(self, file, dir, folder_to_extract="", overwrite_question=False, backup=False):
-        logger.info("file=%s" % file)
-        logger.info("dir=%s" % dir)
-
-        if not dir.endswith(':') and not os.path.exists(dir):
-            os.mkdir(dir)
-
-        zf = zipfile.ZipFile(file)
-        if not folder_to_extract:
-            self._createstructure(file, dir)
-        num_files = len(zf.namelist())
-
-        for nameo in zf.namelist():
-            name = nameo.replace(':', '_').replace('<', '_').replace('>', '_').replace('|', '_').replace('"', '_').replace('?', '_').replace('*', '_')
-            logger.info("name=%s" % nameo)
-            if not name.endswith('/'):
-                logger.info("no es un directorio")
-                try:
-                    (path, filename) = os.path.split(os.path.join(dir, name))
-                    logger.info("path=%s" % path)
-                    logger.info("name=%s" % name)
-                    if folder_to_extract:
-                        if path != os.path.join(dir, folder_to_extract):
-                            break
-                    else:
-                        os.makedirs(path)
-                except:
-                    pass
-                if folder_to_extract:
-                    outfilename = os.path.join(dir, filename)
-
-                else:
-                    outfilename = os.path.join(dir, name)
-                logger.info("outfilename=%s" % outfilename)
-                try:
-                    if os.path.exists(outfilename) and overwrite_question:
-                        from platformcode import platformtools
-                        dyesno = platformtools.dialog_yesno("El archivo ya existe",
-                                                            "El archivo %s a descomprimir ya existe" \
-                                                            ", ¿desea sobrescribirlo?" \
-                                                            % os.path.basename(outfilename))
-                        if not dyesno:
-                            break
-                        if backup:
-                            import time
-                            import shutil
-                            hora_folder = "Copia seguridad [%s]" % time.strftime("%d-%m_%H-%M", time.localtime())
-                            backup = os.path.join(config.get_data_path(), 'backups', hora_folder, folder_to_extract)
-                            if not os.path.exists(backup):
-                                os.makedirs(backup)
-                            shutil.copy2(outfilename, os.path.join(backup, os.path.basename(outfilename)))
-
-                    outfile = open(outfilename, 'wb')
-                    outfile.write(zf.read(nameo))
-                except:
-                    logger.error("Error en fichero " + nameo)
-
-    def _createstructure(self, file, dir):
-        self._makedirs(self._listdirs(file), dir)
-
-    def create_necessary_paths(filename):
-        try:
-            (path, name) = os.path.split(filename)
-            os.makedirs(path)
-        except:
-            pass
-
-    def _makedirs(self, directories, basedir):
-        for dir in directories:
-            curdir = os.path.join(basedir, dir)
-            if not os.path.exists(curdir):
-                os.mkdir(curdir)
-
-    def _listdirs(self, file):
-        zf = zipfile.ZipFile(file)
-        dirs = []
-        for name in zf.namelist():
-            if name.endswith('/'):
-                dirs.append(name)
-
-        dirs.sort()
-        return dirs
+def _pbhook(numblocks, blocksize, filesize, url, dp):
+    try:
+        percent = min((numblocks*blocksize*90)/filesize, 100)
+        dp.update(percent)
+    except:
+        percent = 90
+        dp.update(percent)

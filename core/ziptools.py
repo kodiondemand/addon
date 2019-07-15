@@ -3,6 +3,7 @@
 # Zip Tools
 # --------------------------------------------------------------------------------
 
+import io
 import os
 import zipfile
 
@@ -17,6 +18,7 @@ class ziptools:
         if not dir.endswith(':') and not os.path.exists(dir):
             os.mkdir(dir)
 
+        file = io.FileIO(file)
         zf = zipfile.ZipFile(file)
         if not folder_to_extract:
             self._createstructure(file, dir)
