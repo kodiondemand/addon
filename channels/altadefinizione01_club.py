@@ -43,7 +43,7 @@ def mainlist(item):
     itemlist = []
 
     # Menu Principale
-    support.menu(itemlist, 'Film Ultimi Arrivi bold', 'peliculas', host, args='pellicola')
+    support.menu(itemlist, 'Novità bold', 'peliculas', host, args='pellicola')
     support.menu(itemlist, 'Genere', 'categorie', host, args='genres')
     support.menu(itemlist, 'Per anno submenu', 'categorie', host, args=['Film per Anno','years'])
     support.menu(itemlist, 'Per lettera', 'categorie', host + '/catalog/a/', args=['Film per Lettera','orderalf'])
@@ -68,10 +68,14 @@ def peliculas(item):
     patron_block = r'<div id="dle-content">(.*?)<div class="page_nav">'
     if item.args == "search":
         patron_block = r'</table> </form>(.*?)<div class="search_bg">'
-    patron = r'<h2>.<a href="(.*?)".*?src="(.*?)".*?(?:|<div class="sub_ita">(.*?)</div>)[ ]</div>.*?<p class="h4">(.*?)</p>'
-
-    listGroups = ['url', 'thumb', 'lang', 'title', 'year']
-
+##    patron = r'<h2>.<a href="(.*?)".*?src="(.*?)".*?(?:|<div class="sub_ita">(.*?)</div>)[ ]</div>.*?<p class="h4">(.*?)</p>'
+    patron = r'<div class="cover boxcaption"> <h2>.<a href="([^"]+)">.*?<.*?src="([^"]+)"'\
+             '.+?[^>]+>[^>]+<div class="trdublaj"> ([A-Z]+)<[^>]+>(?:.[^>]+>(.*?)<[^>]+>).*?'\
+             '<p class="h4">(.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> '\
+             '[^>]+>[^>]+>(\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(\d+).+?>'
+##    listGroups = ['url', 'thumb', 'lang', 'title', 'year']
+    listGroups = ['url', 'thumb', 'quality', 'lang', 'title', 'year', 'duration']
+    
     patronNext =  '<span>[^<]+</span>[^<]+<a href="(.*?)">'
     
     itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
