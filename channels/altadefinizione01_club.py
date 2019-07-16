@@ -9,7 +9,6 @@ from specials import autoplay
 from core import servertools, support, jsontools
 from core.item import Item
 from platformcode import config, logger
-from collections import OrderedDict
 
 __channel__ = "altadefinizione01_club"
 
@@ -43,20 +42,17 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
 ##    import web_pdb; web_pdb.set_trace()
-##    support.log('peliculas',item)
-##    logger.info("%s peliculas log: %s" % (__channel__, item))
+    support.log('peliculas',item)
 
     action="findvideos"
     if item.args == "search":
         patronBlock = r'</script> <div class="boxgrid caption">(.*?)<div id="right_bar">'
     else:
         patronBlock = r'<div class="cover_kapsul ml-mask">(.*?)<div class="page_nav">'
-    patron = r'<div class="cover boxcaption"> <h2>.<a href="([^"]+)">.*?<.*?src="([^"]+)"'\
-         '.+?[^>]+>[^>]+<div class="trdublaj"> ([A-Z]+)<[^>]+>(?:.[^>]+>(.*?)<[^>]+>).*?'\
-         '<p class="h4">(.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> '\
-         '[^>]+>[^>]+>(\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(\d+).+?>'
-
-    listGroups = ['url', 'thumb', 'quality', 'lang', 'title', 'year', 'duration']
+    patron = r'<div class="cover boxcaption"> <h2>.<a href="(?P<url>[^"]+)">.*?<.*?src="(?P<thumb>[^"]+)"'\
+         '.+?[^>]+>[^>]+<div class="trdublaj"> (?P<quality>[A-Z]+)<[^>]+>(?:.[^>]+>(?P<lang>.*?)<[^>]+>).*?'\
+         '<p class="h4">(?P<title>.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> '\
+         '[^>]+>[^>]+>(?P<year>\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(?P<duration>\d+).+?>'
 
     patronNext =  '<span>\d</span> <a href="([^"]+)">'
 
@@ -66,36 +62,33 @@ def peliculas(item):
 
 @support.scrape
 def categorie(item):
-##    support.log('categorie',item)
-    logger.info("%s mainlist categorie log: %s" % (__channel__, item))
+    support.log('categorie',item)
+##    import web_pdb; web_pdb.set_trace()
 
     if item.args != 'orderalf': action = "peliculas"
     else: action = 'orderalf'
     blacklist = 'Altadefinizione01'
-    listGroups = ['url', 'title']
 
     if item.args == 'genres':
         patronBlock = r'<ul class="kategori_list">(.*?)</ul>'
-        patron = '<li><a href="(.*?)">(.*?)</a>'
+        patron = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
     elif item.args == 'years':
         patronBlock = r'<ul class="anno_list">(.*?)</ul>'
-        patron = '<li><a href="(.*?)">(.*?)</a>'
+        patron = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
     elif item.args == 'orderalf':
         patronBlock = r'<div class="movies-letter">(.*)<div class="clearfix">'
-        patron = '<a title=.*?href="(.*?)"><span>(.*?)</span>'
+        patron = '<a title=.*?href="(?P<url>[^"]+)"><span>(?P<title>.*?)</span>'
 
     return locals()
 # =========== def pagina lista alfabetica ===============================
 @support.scrape
 def orderalf(item):
-##    support.log('orderalf',item)
-    logger.info("%s mainlist orderalf log: %s" % (__channel__, item))
+    support.log('orderalf',item)
 
     action= 'findvideos'
-    listGroups = ['url', 'thumb', 'title', 'year', 'quality', 'lang']
-    patron = r'<td class="mlnh-thumb"><a href="([^"]+)".*?src="([^"]+)"'\
-             '.+?[^>]+>[^>]+ [^>]+[^>]+ [^>]+>([^<]+).*?[^>]+>(\d{4})<'\
-             '[^>]+>[^>]+>([A-Z]+)[^>]+> <td class="mlnh-5">(.*?)</td>'
+    patron = r'<td class="mlnh-thumb"><a href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
+             '.+?[^>]+>[^>]+ [^>]+[^>]+ [^>]+>(?P<title>[^<]+).*?[^>]+>(?P<year>\d{4})<'\
+             '[^>]+>[^>]+>(?P<quality>[A-Z]+)[^>]+> <td class="mlnh-5">(?P<lang>.*?)</td>'
     patronNext =  r'<span>[^<]+</span>[^<]+<a href="(.*?)">'
 
     return locals()
@@ -103,7 +96,6 @@ def orderalf(item):
 
 def findvideos(item):
     support.log('findvideos', item)
-##    logger.info("%s mainlist findvideos_film log: %s" % (__channel__, item))
     return support.server(item, headers=headers)
 
 # =========== def per cercare film/serietv =============
@@ -126,16 +118,17 @@ def search(item, text):
 # =========== def per le novità nel menu principale =============
 
 def newest(categoria):
-    logger.info("%s mainlist newest log: %s %s %s" % (__channel__, categoria))
+    support.log(categoria)
     itemlist = []
     item = Item()
     try:
-        item.url = host
-        item.action = "peliculas"
-        itemlist = peliculas(item)
-        if itemlist[-1].action == "peliculas":
-            itemlist.pop()
+        if categoria == "peliculas":
+            item.url = host
+            item.action = "peliculas"
+            itemlist = peliculas(item)
 
+            if itemlist[-1].action == "peliculas":
+                itemlist.pop()
     # Continua la ricerca in caso di errore
     except:
         import sys

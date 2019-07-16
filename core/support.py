@@ -134,7 +134,7 @@ def scrape(func):
         headers = args['headers'] if 'headers' in args else ''
         patron = args['patron'] if 'patron' in args else ''
         patronNext = args['patronNext'] if 'patronNext' in args else ''
-        patronBlock = args['patron_block'] if 'patron_block' in args else ''
+        patronBlock = args['patronBlock'] if 'patronBlock' in args else ''
         typeActionDict = args['type_action_dict'] if 'type_action_dict' in args else {}
         typeContentDict = args['type_content_dict'] if 'type_content_dict' in args else {}
 

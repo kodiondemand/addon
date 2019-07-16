@@ -43,11 +43,11 @@ def peliculas(item):
     support.log('peliculas',item)
     itemlist = []
 
-    patron = r'class="innerImage">.*?href="([^"]+)".*?src="([^"]+)"'\
-             '.*?class="ml-item-title">([^<]+)</.*?class="ml-item-label"> (\d{4}) <'\
-             '.*?class="ml-item-label">.*?class="ml-item-label ml-item-label-.+?"> '\
-             '(.+?) </div>.*?class="ml-item-label"> (.+?) </'
-    listGroups = ['url', 'thumb', 'title', 'year', 'quality', 'lang']
+    patron = r'class="innerImage">.*?href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
+             '.*?class="ml-item-title">(?P<title>[^<]+)</.*?class="ml-item-label"> '\
+             '(?P<year>\d{4}) <.*?class="ml-item-label"> (?P<duration>\d+) .*?'\
+             'class="ml-item-label ml-item-label-.+?"> (?P<quality>.+?) <.*?'\
+             'class="ml-item-label"> (?P<lang>.+?) </'
 
     patronNext =  '<span>\d</span> <a href="([^"]+)">'
 
@@ -57,8 +57,7 @@ def peliculas(item):
 @support.scrape
 def genres(item):
     support.log
-    itemlist = []
-    #data = httptools.downloadpage(item.url, headers=headers).data
+
     action = 'peliculas'
     if item.args == 'genres':
         patronBlock = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
@@ -69,10 +68,8 @@ def genres(item):
     elif item.args == 'lucky': # sono i titoli random nella pagina, cambiano 1 volta al dì
         patronBlock = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
         action = 'findvideos'
-     
-    patron = r'<li><a href="([^"]+)">(.*?)<'
 
-    listGroups = ['url','title']
+    patron = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
     return locals()    
 
