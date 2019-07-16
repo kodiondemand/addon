@@ -53,26 +53,74 @@ def mainlist(item):
 def serietv(item):
 ##    import web_pdb; web_pdb.set_trace()
     log('serietv ->\n')
+##<<<<<<< HEAD
+##
+##    action = 'episodios'
+##    listGroups = ['url', 'thumb', 'title']
+##    patron = r'<a href="([^"]+)".*?> <img\s.*?src="([^"]+)" \/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<\/p>'
+##    if 'news' in item.args:
+##        patronBlock = r'<div class="container container-title-serie-new container-scheda" meta-slug="new">(.*?)</div></div><div'
+##    elif 'inedite' in item.args:
+##        patronBlock = r'<div class="container container-title-serie-ined container-scheda" meta-slug="ined">(.*?)</div></div><div'
+##    elif 'da non perdere' in item.args:
+##        patronBlock = r'<div class="container container-title-serie-danonperd container-scheda" meta-slug="danonperd">(.*?)</div></div><div'
+##    elif 'classiche' in item.args:
+##        patronBlock = r'<div class="container container-title-serie-classiche container-scheda" meta-slug="classiche">(.*?)</div></div><div'
+##    elif 'update' in item.args:
+##        listGroups = ['url', 'thumb', 'episode', 'lang', 'title']
+##        patron = r'rel="nofollow" href="([^"]+)"[^>]+> <img.*?src="([^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(\d+.\d+) \((.+?)\).<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<[^>]+>'
+##        patronBlock = r'meta-slug="lastep">(.*?)</div></div><div'
+##        # permette di vedere episodio + titolo + titolo2 in novità
+##        def itemHook(item):
+##            item.show = item.episode + item.title
+##            return item
+##    return locals()
+##
+##@support.scrape
+##def tvserie(item):
+##
+##    action = 'episodios'
+##    listGroups = ['url', 'thumb', 'title']
+##    patron = r'<a\shref="([^"]+)".*?>\s<img\s.*?src="([^"]+)" />[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)</p></div>'
+##    patronBlock = r'<div\sclass="col-xs-\d+ col-sm-\d+-\d+">(.*?)<div\sclass="container-fluid whitebg" style="">'
+##    patronNext = r'<link\s.*?rel="next"\shref="([^"]+)"'
+##
+##    return locals()
+##
+##@support.scrape
+##def episodios(item):
+##    log('episodios ->\n')
+##    item.contentType = 'episode'
+##
+##    action = 'findvideos'
+##    listGroups = ['episode', 'lang', 'title2', 'plot', 'title', 'url']
+##    patron = r'class="number-episodes-on-img"> (\d+.\d+)(?:|[ ]\((.*?)\))<[^>]+>'\
+##             '[^>]+>[^>]+>[^>]+>[^>]+>(.*?)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>'\
+##             '(.*?)<[^>]+></div></div>.<span\s.+?meta-serie="(.*?)" meta-stag=(.*?)</span>'
+##
+##    return locals()
+##
+##=======
 
-    action = 'episodios'    
+    action = 'episodios'
     listGroups = ['url', 'thumb', 'title']
-    patron = r'<a href="([^"]+)".*?> <img\s.*?src="([^"]+)" \/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<\/p>'    
-    if 'news' in item.args: 
-        patronBlock = r'<div class="container container-title-serie-new container-scheda" meta-slug="new">(.*?)</div></div><div'
+    patron = r'<a href="([^"]+)".*?> <img\s.*?src="([^"]+)" \/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<\/p>'
+    if 'news' in item.args:
+        patron_block = r'<div class="container container-title-serie-new container-scheda" meta-slug="new">(.*?)</div></div><div'
     elif 'inedite' in item.args:
-        patronBlock = r'<div class="container container-title-serie-ined container-scheda" meta-slug="ined">(.*?)</div></div><div'
+        patron_block = r'<div class="container container-title-serie-ined container-scheda" meta-slug="ined">(.*?)</div></div><div'
     elif 'da non perdere' in item.args:
-        patronBlock = r'<div class="container container-title-serie-danonperd container-scheda" meta-slug="danonperd">(.*?)</div></div><div'
+        patron_block = r'<div class="container container-title-serie-danonperd container-scheda" meta-slug="danonperd">(.*?)</div></div><div'
     elif 'classiche' in item.args:
-        patronBlock = r'<div class="container container-title-serie-classiche container-scheda" meta-slug="classiche">(.*?)</div></div><div'
+        patron_block = r'<div class="container container-title-serie-classiche container-scheda" meta-slug="classiche">(.*?)</div></div><div'
     elif 'update' in item.args:
         listGroups = ['url', 'thumb', 'episode', 'lang', 'title']
         patron = r'rel="nofollow" href="([^"]+)"[^>]+> <img.*?src="([^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(\d+.\d+) \((.+?)\).<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)<[^>]+>'
-        patronBlock = r'meta-slug="lastep">(.*?)</div></div><div'
+        patron_block = r'meta-slug="lastep">(.*?)</div></div><div'
         # permette di vedere episodio + titolo + titolo2 in novità
         def itemHook(item):
             item.show = item.episode + item.title
-            return item    
+            return item
     return locals()
 
 @support.scrape
@@ -81,8 +129,8 @@ def tvserie(item):
     action = 'episodios'
     listGroups = ['url', 'thumb', 'title']
     patron = r'<a\shref="([^"]+)".*?>\s<img\s.*?src="([^"]+)" />[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)</p></div>'
-    patronBlock = r'<div\sclass="col-xs-\d+ col-sm-\d+-\d+">(.*?)<div\sclass="container-fluid whitebg" style="">'
-    patronNext = r'<link\s.*?rel="next"\shref="([^"]+)"' 
+    patron_block = r'<div\sclass="col-xs-\d+ col-sm-\d+-\d+">(.*?)<div\sclass="container-fluid whitebg" style="">'
+    patronNext = r'<link\s.*?rel="next"\shref="([^"]+)"'
 
     return locals()
 
@@ -90,15 +138,16 @@ def tvserie(item):
 def episodios(item):
     log('episodios ->\n')
     item.contentType = 'episode'
-    
+
     action = 'findvideos'
     listGroups = ['episode', 'lang', 'title2', 'plot', 'title', 'url']
     patron = r'class="number-episodes-on-img"> (\d+.\d+)(?:|[ ]\((.*?)\))<[^>]+>'\
              '[^>]+>[^>]+>[^>]+>[^>]+>(.*?)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>'\
              '(.*?)<[^>]+></div></div>.<span\s.+?meta-serie="(.*?)" meta-stag=(.*?)</span>'
-    
+
     return locals()
 
+##>>>>>>> a72130e0324ae485ae5f39d3d8f1df46c365fa5b
 def findvideos(item):
     log()
     return support.server(item, item.url)
@@ -110,7 +159,9 @@ def categorie(item):
     action = 'tvserie'
     listGroups = ['url', 'title']
     patron = r'<li>\s<a\shref="([^"]+)"[^>]+>([^<]+)</a></li>'
-    patronBlock = r'<ul\sclass="dropdown-menu category">(.*?)</ul>'
+
+    patron_block = r'<ul\sclass="dropdown-menu category">(.*?)</ul>'
+
 
     return locals()
 

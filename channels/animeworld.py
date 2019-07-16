@@ -259,7 +259,8 @@ def video(item):
 def episodios(item):
     log()
     itemlist = []
-    patronBlock = r'server  active(.*?)server  hidden '
+
+    patron_block = r'server  active(.*?)server  hidden '
     patron = r'<li><a [^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+" href="([^"]+)"[^>]+>([^<]+)<'
     matches = support.match(item, patron, patronBlock)[0]
 

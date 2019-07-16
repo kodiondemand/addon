@@ -135,9 +135,9 @@ def scrape(func):
         listGroups = args['listGroups'] if 'listGroups' in args else []        
         patron = args['patron'] if 'patron' in args else ''
         patronNext = args['patronNext'] if 'patronNext' in args else ''
-        patronBlock = args['patronBlock'] if 'patronBlock' in args else ''
-        typeActionDict = args['typeActionDict'] if 'typeActionDict' in args else {}
-        typeContentDict = args['typeContentDict'] if 'typeContentDict' in args else {}
+        patron_block = args['patron_block'] if 'patron_block' in args else ''
+        type_action_dict = args['type_action_dict'] if 'type_action_dict' in args else {}
+        type_content_dict = args['type_content_dict'] if 'type_content_dict' in args else {}
 
         if not data:
             data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data.replace("'", '"')
