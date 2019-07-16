@@ -43,7 +43,7 @@ def mainlist(item):
     itemlist = []
 
     # Menu Principale
-    support.menu(itemlist, 'Novità bold', 'peliculas', host, args='pellicola')
+    support.menu(itemlist, 'Film Novità bold', 'peliculas', host, args='pellicola')
     support.menu(itemlist, 'Genere', 'categorie', host, args='genres')
     support.menu(itemlist, 'Per anno submenu', 'categorie', host, args=['Film per Anno','years'])
     support.menu(itemlist, 'Per lettera', 'categorie', host + '/catalog/a/', args=['Film per Lettera','orderalf'])
