@@ -27,31 +27,11 @@ def mainlist(item):
 
     film = ''
     filmSub = {
-        'Al Cinema': {
-            'url': '/cinema/',
-            'func': 'peliculas',
-            'args': 'pellicola'
-        },
-        'Generi': {
-            'url': '',
-            'func': 'categorie',
-            'args': 'genres'
-        },
-        'Lettera': {
-            'url': '/catalog/a/',
-            'func': 'categorie',
-            'args': 'orderalf'
-        },
-        'Anni': {
-            'url': '',
-            'func': 'categorie',
-            'args': 'years'
-        },
-        'Sub-ITA': {
-            'url': '/sub-ita/',
-            'func': 'peliculas',
-            'args': 'pellicola'
-        }
+        'Al Cinema': ['/cinema/', 'peliculas', 'pellicola'],
+        'Generi': ['', 'categorie', 'genres'],
+        'Lettera': ['/catalog/a/', 'categorie', 'orderalf'],
+        'Anni': ['', 'categorie', 'years'],
+        'Sub-ITA': ['/sub-ita/', 'peliculas', 'pellicola']
     }
 
     return locals()

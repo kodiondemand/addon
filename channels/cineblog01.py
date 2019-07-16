@@ -41,43 +41,16 @@ def mainlist(item):
     findhost()
     film = ''
     filmSub = {
-        'HD': {
-            'url': '',
-            'func': 'menu',
-            'args': 'Film HD Streaming'
-        },
-        'Generi': {
-            'url': '',
-            'func': 'menu',
-            'args': 'Film per Genere'
-        },
-        'Anni': {
-            'url': '',
-            'func': 'menu',
-            'args': 'Film per Anno'
-        }
+        'HD': ['', 'menu', 'Film HD Streaming'],
+        'Generi': ['', 'menu', 'Film per Genere'],
+        'Anni': ['', 'menu', 'Film per Anno']
     }
     tvshow = '/serietv/'
     tvshowSub = {
-        'Aggiornamenti serie tv': {
-            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
-            'func': 'last'
-        },
-        'Per Lettera': {
-            'url': '/serietv/',
-            'func': 'menu',
-            'args': 'Serie-Tv per Lettera'
-        },
-        'Per Genere': {
-            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
-            'func': 'menu',
-            'args': 'Serie-Tv per Genere'
-        },
-        'Per anno': {
-            'url': '/serietv/aggiornamento-quotidiano-serie-tv/',
-            'func': 'menu',
-            'args': 'Serie-Tv per Anno'
-        }
+        'Aggiornamenti serie tv': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'last'],
+        'Per Lettera': ['/serietv/', 'menu', 'Serie-Tv per Lettera'],
+        'Per Genere': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Genere'],
+        'Per anno': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Anno']
     }
 
     return locals()

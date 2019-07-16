@@ -24,41 +24,13 @@ def mainlist(item):
 
     film = ''
     filmSub = {
-        'Al Cinema': {
-            'url': '/film-del-cinema',
-            'func': 'peliculas',
-            'args': ''
-        },
-        'Generi': {
-            'url': '',
-            'func': 'genres',
-            'args': 'genres'
-        },
-        'Anni': {
-            'url': '',
-            'func': 'genres',
-            'args': 'years'
-        },
-        'Mi sento fortunato': {
-            'url': '/piu-visti.html',
-            'func': 'genres',
-            'args': 'lucky'
-        },
-        'Popolari': {
-            'url': '/piu-visti.html',
-            'func': 'peliculas',
-            'args': ''
-        },
-        'Qualità': {
-            'url': '/piu-visti.html',
-            'func': 'genres',
-            'args': 'quality'
-        },
-        'Sub-ITA': {
-            'url': '/sub-ita/',
-            'func': 'peliculas',
-            'args': ''
-        }
+        'Al Cinema': ['/film-del-cinema', 'peliculas'],
+        'Generi': ['', 'genres', 'genres'],
+        'Anni': ['', 'genres', 'years'],
+        'Mi sento fortunato': ['/piu-visti.html', 'genres', 'lucky'],
+        'Popolari': ['/piu-visti.html', 'peliculas', ''],
+        'Qualità': ['/piu-visti.html', 'genres', 'quality'],
+        'Sub-ITA': ['/sub-ita/', 'peliculas']
     }
 
     return locals()

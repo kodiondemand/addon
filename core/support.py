@@ -476,9 +476,9 @@ def menu(func):
             menuItem(itemlist, filename, 'Film bold', 'peliculas', host + dictUrl['film'])
             ### modificato by greko ########
             for sub in dictUrl['filmSub'].keys():
-                menuItem(itemlist, filename, sub + ' submenu', dictUrl['filmSub'][sub]['func'],
-                         host + dictUrl['filmSub'][sub]['url'],
-                         args=dictUrl['filmSub'][sub]['args'] if 'args' in dictUrl['filmSub'][sub] else '')
+                menuItem(itemlist, filename, sub + ' submenu', dictUrl['filmSub'][sub][1],
+                         host + dictUrl['filmSub'][sub][0],
+                         args=dictUrl['filmSub'][sub][2] if len(dictUrl['filmSub'][sub])>2 else '')
 
             menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='film')
 
@@ -486,9 +486,9 @@ def menu(func):
             menuItem(itemlist, filename, 'Serie TV bold', 'peliculas', host + dictUrl['tvshow'], contentType='tvshow')
 
             for sub in dictUrl['tvshowSub'].keys():
-                menuItem(itemlist, filename, sub + ' submenu', dictUrl['tvshowSub'][sub]['func'],
-                         host + dictUrl['tvshowSub'][sub]['url'], contentType='tvshow',
-                         args=dictUrl['tvshowSub'][sub]['args'] if 'args' in dictUrl['tvshowSub'][sub] else '')
+                menuItem(itemlist, filename, sub + ' submenu', dictUrl['tvshowSub'][sub][1],
+                         host + dictUrl['tvshowSub'][sub][0], contentType='tvshow',
+                         args=dictUrl['tvshowSub'][sub][2] if len(dictUrl['tvshowSub'][sub])>2 else '')
 
             menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='serie')
             ### fine by greko ########
