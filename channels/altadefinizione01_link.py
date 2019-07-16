@@ -23,15 +23,15 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     film = ''
-    filmSub = {
-        'Al Cinema': ['/film-del-cinema', 'peliculas'],
-        'Generi': ['', 'genres', 'genres'],
-        'Anni': ['', 'genres', 'years'],
-        'Mi sento fortunato': ['/piu-visti.html', 'genres', 'lucky'],
-        'Popolari': ['/piu-visti.html', 'peliculas', ''],
-        'Qualità': ['/piu-visti.html', 'genres', 'quality'],
-        'Sub-ITA': ['/sub-ita/', 'peliculas']
-    }
+    filmSub = [
+        ('Al Cinema', ['/film-del-cinema', 'peliculas']),
+        ('Generi', ['', 'genres', 'genres']),
+        ('Anni', ['', 'genres', 'years']),
+        ('Mi sento fortunato', ['/piu-visti.html', 'genres', 'lucky']),
+        ('Popolari', ['/piu-visti.html', 'peliculas', '']),
+        ('Qualità', ['/piu-visti.html', 'genres', 'quality']),
+        ('Sub-ITA', ['/sub-ita/', 'peliculas'])
+    ]
 
     return locals()
 

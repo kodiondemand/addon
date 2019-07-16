@@ -9,6 +9,7 @@ from specials import autoplay
 from core import servertools, support, jsontools
 from core.item import Item
 from platformcode import config, logger
+from collections import OrderedDict
 
 __channel__ = "altadefinizione01_club"
 
@@ -26,13 +27,14 @@ headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/
 def mainlist(item):
 
     film = ''
-    filmSub = {
-        'Al Cinema': ['/cinema/', 'peliculas', 'pellicola'],
-        'Generi': ['', 'categorie', 'genres'],
-        'Lettera': ['/catalog/a/', 'categorie', 'orderalf'],
-        'Anni': ['', 'categorie', 'years'],
-        'Sub-ITA': ['/sub-ita/', 'peliculas', 'pellicola']
-    }
+
+    filmSub = [
+        ('Al Cinema', ['/cinema/', 'peliculas', 'pellicola']),
+        ('Generi', ['', 'categorie', 'genres']),
+        ('Lettera', ['/catalog/a/', 'categorie', 'orderalf']),
+        ('Anni', ['', 'categorie', 'years']),
+        ('Sub-ITA', ['/sub-ita/', 'peliculas', 'pellicola'])
+    ]
 
     return locals()
 

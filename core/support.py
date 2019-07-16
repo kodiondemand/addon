@@ -475,20 +475,20 @@ def menu(func):
         if dictUrl['film'] is not None:
             menuItem(itemlist, filename, 'Film bold', 'peliculas', host + dictUrl['film'])
             ### modificato by greko ########
-            for sub in dictUrl['filmSub'].keys():
-                menuItem(itemlist, filename, sub + ' submenu', dictUrl['filmSub'][sub][1],
-                         host + dictUrl['filmSub'][sub][0],
-                         args=dictUrl['filmSub'][sub][2] if len(dictUrl['filmSub'][sub])>2 else '')
+            for sub, var in dictUrl['filmSub']:
+                menuItem(itemlist, filename, sub + ' submenu', var[1],
+                         host + var[0],
+                         args=var[2] if len(var)>2 else '')
 
             menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='film')
 
         if dictUrl['tvshow'] is not None:
             menuItem(itemlist, filename, 'Serie TV bold', 'peliculas', host + dictUrl['tvshow'], contentType='tvshow')
 
-            for sub in dictUrl['tvshowSub'].keys():
-                menuItem(itemlist, filename, sub + ' submenu', dictUrl['tvshowSub'][sub][1],
-                         host + dictUrl['tvshowSub'][sub][0], contentType='tvshow',
-                         args=dictUrl['tvshowSub'][sub][2] if len(dictUrl['tvshowSub'][sub])>2 else '')
+            for sub, var in dictUrl['tvshowSub']:
+                menuItem(itemlist, filename, sub + ' submenu', var[1],
+                         host + var[0], contentType='tvshow',
+                         args=var[2] if len(var)>2 else '')
 
             menuItem(itemlist, filename, 'Cerca submenu bold', 'search', host, args='serie')
             ### fine by greko ########

@@ -40,18 +40,18 @@ blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217
 def mainlist(item):
     findhost()
     film = ''
-    filmSub = {
-        'HD': ['', 'menu', 'Film HD Streaming'],
-        'Generi': ['', 'menu', 'Film per Genere'],
-        'Anni': ['', 'menu', 'Film per Anno']
-    }
+    filmSub = [
+        ('HD', ['', 'menu', 'Film HD Streaming']),
+        ('Generi', ['', 'menu', 'Film per Genere']),
+        ('Anni', ['', 'menu', 'Film per Anno'])
+    ]
     tvshow = '/serietv/'
-    tvshowSub = {
-        'Aggiornamenti serie tv': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'last'],
-        'Per Lettera': ['/serietv/', 'menu', 'Serie-Tv per Lettera'],
-        'Per Genere': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Genere'],
-        'Per anno': ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Anno']
-    }
+    tvshowSub = [
+        ('Aggiornamenti serie tv', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'last']),
+        ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
+        ('Per Genere', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Genere']),
+        ('Per anno', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Anno'])
+    ]
 
     return locals()
 
