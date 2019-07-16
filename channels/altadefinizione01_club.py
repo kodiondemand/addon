@@ -68,16 +68,12 @@ def peliculas(item):
     patron_block = r'<div id="dle-content">(.*?)<div class="page_nav">'
     if item.args == "search":
         patron_block = r'</table> </form>(.*?)<div class="search_bg">'
-##    patron = r'<h2>.<a href="(.*?)".*?src="(.*?)".*?(?:|<div class="sub_ita">(.*?)</div>)[ ]</div>.*?<p class="h4">(.*?)</p>'
     patron = r'<div class="cover boxcaption"> <h2>.<a href="([^"]+)">.*?<.*?src="([^"]+)"'\
              '.+?[^>]+>[^>]+<div class="trdublaj"> ([A-Z]+)<[^>]+>(?:.[^>]+>(.*?)<[^>]+>).*?'\
              '<p class="h4">(.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> '\
              '[^>]+>[^>]+>(\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(\d+).+?>'
-##    listGroups = ['url', 'thumb', 'lang', 'title', 'year']
-    listGroups = ['url', 'thumb', 'quality', 'lang', 'title', 'year', 'duration']
-    
-    patronNext =  '<span>[^<]+</span>[^<]+<a href="(.*?)">'
-    
+    listGroups = ['url', 'thumb', 'quality', 'lang', 'title', 'year', 'duration']   
+    patronNext =  '<span>[^<]+</span>[^<]+<a href="(.*?)">'  
     itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
                           headers= headers, patronNext=patronNext,patron_block=patron_block,
                           action='findvideos')    
