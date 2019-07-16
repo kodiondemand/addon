@@ -132,12 +132,11 @@ def scrape(func):
         blacklist = args['blacklist'] if 'blacklist' in args else ''
         data = args['data'] if 'data' in args else ''
         headers = args['headers'] if 'headers' in args else ''
-        listGroups = args['listGroups'] if 'listGroups' in args else []        
         patron = args['patron'] if 'patron' in args else ''
         patronNext = args['patronNext'] if 'patronNext' in args else ''
-        patron_block = args['patron_block'] if 'patron_block' in args else ''
-        type_action_dict = args['type_action_dict'] if 'type_action_dict' in args else {}
-        type_content_dict = args['type_content_dict'] if 'type_content_dict' in args else {}
+        patronBlock = args['patron_block'] if 'patron_block' in args else ''
+        typeActionDict = args['type_action_dict'] if 'type_action_dict' in args else {}
+        typeContentDict = args['type_content_dict'] if 'type_content_dict' in args else {}
 
         if not data:
             data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data.replace("'", '"')
@@ -159,8 +158,8 @@ def scrape(func):
                     log('BLOCK ', n, '=', block)
         else:
             block = data
-        if patron and listGroups:
-            matches = scrapertoolsV2.find_multiple_matches(block, patron)
+        if patron:
+            matches = scrapertoolsV2.find_multiple_matches_groups(block, patron)
             log('MATCHES =', matches)
 
             known_keys = ['url', 'title', 'title2', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere',
@@ -168,6 +167,9 @@ def scrape(func):
             lang = '' # aggiunto per gestire i siti con pagine di serietv dove si hanno i video in ita e in subita
             
             for match in matches:
+                listGroups = match.keys()
+                match = match.values()
+
                 if len(listGroups) > len(match):  # to fix a bug
                     match = list(match)
                     match.extend([''] * (len(listGroups) - len(match)))
