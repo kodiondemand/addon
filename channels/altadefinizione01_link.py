@@ -19,32 +19,69 @@ host = config.get_setting("channel_host", __channel__)
 
 headers = [['Referer', host]]
 # =========== home menu ===================
-
+@support.menu
 def mainlist(item):
-    """
-    Creo il menu principale del canale
-    :param item:
-    :return: itemlist []
-    """
-    support.log()
-    itemlist = []
 
-    # Menu Principale
-    support.menu(itemlist, 'Novità bold', 'peliculas', host)
-    support.menu(itemlist, 'Film per Genere', 'genres', host, args='genres')
-    support.menu(itemlist, 'Film per Anno submenu', 'genres', host, args='years')
-    support.menu(itemlist, 'Film per Qualità submenu', 'genres', host, args='quality') 
-    support.menu(itemlist, 'Al Cinema bold', 'peliculas', host + '/film-del-cinema')
-    support.menu(itemlist, 'Popolari bold', 'peliculas', host + '/piu-visti.html')
-    support.menu(itemlist, 'Mi sento fortunato bold', 'genres', host, args='lucky')    
-    support.menu(itemlist, 'Sub-ITA bold', 'peliculas', host + '/film-sub-ita/')
-    support.menu(itemlist, 'Cerca film submenu', 'search', host)
+    film = ''
+    filmSub = {
+        'Al Cinema': {
+            'url': '/film-del-cinema',
+            'func': 'peliculas',
+            'args': ''
+        },
+        'Generi': {
+            'url': '',
+            'func': 'genres',
+            'args': 'genres'
+        },
+        'Anni': {
+            'url': '',
+            'func': 'genres',
+            'args': 'years'
+        },
+        'Mi sento fortunato': {
+            'url': '/piu-visti.html',
+            'func': 'genres',
+            'args': 'lucky'
+        },
+        'Popolari': {
+            'url': '/piu-visti.html',
+            'func': 'peliculas',
+            'args': ''
+        },
+        'Qualità': {
+            'url': '/piu-visti.html',
+            'func': 'genres',
+            'args': 'quality'
+        },
+        'Sub-ITA': {
+            'url': '/sub-ita/',
+            'func': 'peliculas',
+            'args': ''
+        }
+    }
 
-    # per autoplay
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
+    return locals()
 
-    support.channel_config(item, itemlist)
+##    support.log()
+##    itemlist = []
+
+##    # Menu Principale
+##    support.menu(itemlist, 'Novità bold', 'peliculas', host)
+##    support.menu(itemlist, 'Film per Genere', 'genres', host, args='genres')
+##    support.menu(itemlist, 'Film per Anno submenu', 'genres', host, args='years')
+##    support.menu(itemlist, 'Film per Qualità submenu', 'genres', host, args='quality')
+##    support.menu(itemlist, 'Al Cinema bold', 'peliculas', host + '/film-del-cinema')
+##    support.menu(itemlist, 'Popolari bold', 'peliculas', host + '/piu-visti.html')
+##    support.menu(itemlist, 'Mi sento fortunato bold', 'genres', host, args='lucky')
+##    support.menu(itemlist, 'Sub-ITA bold', 'peliculas', host + '/film-sub-ita/')
+##    support.menu(itemlist, 'Cerca film submenu', 'search', host)
+
+##    # per autoplay
+##    autoplay.init(item.channel, list_servers, list_quality)
+##    autoplay.show_option(item.channel, itemlist)
+
+##    support.channel_config(item, itemlist)
     
     return itemlist
 
