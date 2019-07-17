@@ -179,7 +179,7 @@ def lista_anime(item, nextpage=True, show_lang=True):
             Item(channel=item.channel,
                  action="episodi",
                  contentType="tvshow" if 'oav' not in scrapedtitle.lower() else "movie",
-                 title=color(scrapedtitle.replace(lang, "(%s)" % support.color(lang, "red") if show_lang else "").strip(), 'azure'),
+                 title=scrapedtitle.replace(lang, "(%s)" % support.color(lang, "red") if show_lang else "").strip(),
                  fulltitle=cleantitle,
                  url=scrapedurl,
                  show=cleantitle,

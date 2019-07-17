@@ -57,7 +57,7 @@ def carousel(item, regex=r'<h2>Ultime Richieste Inserite</h2>(.*?)<header>', con
         scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle)
         scrapedtitle = re.sub(r'[0-9]{4}', "", scrapedtitle)
         itemlist.append(
-            Item(channel=channel,
+            Item(channel=__channel__,
                  action="findvideos",
                  contentType=contentType,
                  title=scrapedtitle + " " + "[COLOR orange][" + year + "][/COLOR]",
@@ -113,7 +113,7 @@ def top_imdb(item, contentType='movie', regex=r'<h1.*?TOP IMDb.*?<h3>(.*?)<h3>')
         scrapedtitle = re.sub(r'[0-9]{4}', "", scrapedtitle)
         scrapedthumbnail = scrapedthumbnail.replace ("-90x135","").replace("/w92/", "/w600_and_h900_bestv2/")
         itemlist.append(
-            Item(channel=channel,
+            Item(channel=__channel__,
                  action="findvideos" if "movie" in contentType else "episodios",
                  contentType=item.contentType,
                  contentTitle=scrapedtitle,
@@ -128,7 +128,7 @@ def top_imdb(item, contentType='movie', regex=r'<h1.*?TOP IMDb.*?<h3>(.*?)<h3>')
         thumbnail = thumb(itemlist=[])
         scrapedurl = item.url + '{}' + str(p + 1)
         itemlist.append(
-            Item(channel=channel,
+            Item(channel=__channel__,
                  contentType=item.contentType,
                  action="top_imdb",
                  title="[COLOR blue][B]Successivo >[/B][/COLOR]",
@@ -173,7 +173,7 @@ def peliculas(item):
         scrapedtitle = re.sub(r'[0-9]{4}', "", scrapedtitle)
         type = "[COLOR aqua][Serie][/COLOR]" if "tvshows" in item.args else "[COLOR aqua][Film][/COLOR]"
         itemlist.append(
-            Item(channel=channel,
+            Item(channel=__channel__,
                  action="episodios" if "tvshows" in item.args else "findvideos",
                  contentType="episode" if "tvshows" in item.args else "movie",
                  title=scrapedtitle + " " + "[COLOR orange][" + year + "][/COLOR]" + " " + type,
@@ -223,7 +223,7 @@ def episodios(item):
         matches = re.compile(patron, re.DOTALL).findall(block)
         for scrapedurl, scrapedtitle in matches:
             itemlist.append(
-                Item(channel=channel,
+                Item(channel=__channel__,
                      action="videoplayer",
                      contentType=item.contentType,
                      title=scrapedtitle,
@@ -250,7 +250,7 @@ def episodios(item):
         if len(matches) > 1:
             for scrapedtitle, scrapedurl in matches:
                 itemlist.append(
-                    Item(channel=channel,
+                    Item(channel=__channel__,
                          action="player_list",
                          contentType=item.contentType,
                          title=scrapedtitle,
@@ -310,7 +310,7 @@ def player(item):
         for scrapedurl in matches:
             scrapedurl = "https://fvs.io/" + scrapedurl
             itemlist.append(
-                Item(channel=channel,
+                Item(channel=__channel__,
                     action="play",
                     contentType=item.contentType,
                     title=item.title,
@@ -345,7 +345,7 @@ def player_list(item):
             scrapedtitle = re.sub('Pir8|UBi|M L|BEDLAM|REPACK|DD5.1|bloody|SVU', '', scrapedtitle)
             scrapedtitle = scrapedtitle.replace(".", " ").replace(" - ", " ").replace("  -", "").replace("  ", "")
             itemlist.append(
-                Item(channel=channel,
+                Item(channel=__channel__,
                     action="halfplayer",
                     contentType=item.contentType,
                     title=scrapedtitle,
@@ -393,7 +393,7 @@ def dooplayer(item):
     for scrapedurl in matches:
         scrapedurl = "https://fvs.io/" + scrapedurl
         itemlist.append(
-            Item(channel=channel,
+            Item(channel=__channel__,
                  action="play",
                  contentType=item.contentType,
                  title=item.title,

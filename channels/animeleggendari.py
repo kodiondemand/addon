@@ -38,6 +38,7 @@ def mainlist(item):
                      
     autoplay.init(item.channel, list_servers, list_quality)
     autoplay.show_option(item.channel, itemlist)
+    support.channel_config(item, itemlist)
 
     return itemlist
 

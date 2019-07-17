@@ -31,6 +31,22 @@
 			"default": true,
 			"enabled": true,
 			"visible": true
+		},
+		{
+			"id": "autorenumber", 
+			"type": "bool", 
+			"label": "@70712", 
+			"default": false, 
+			"enabled": true, 
+			"visible": true
+		},
+		{
+			"id": "autorenumber_mode",
+			"type": "bool",
+			"label": "@70688",
+			"default": false,
+			"enabled": true,
+			"visible": "eq(-1,true)"
 		}
 	]
 }

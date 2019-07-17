@@ -33,6 +33,17 @@
         <setting id="downloadlistpath" type="folder" label="30018" visible="eq(-2,true)" default=""/>
     </category>
 
+    <category label="70715">
+        <setting label="70716" type="lsep"/>
+        <setting id="enable_news_menu" label="30130" type="bool" default="true"/>
+        <setting id="enable_channels_menu" label="30118" type="bool" default="true"/>
+        <setting id="enable_search_menu" label="30103" type="bool" default="true"/>
+        <setting id="enable_onair_menu" label="50001" type="bool" default="true"/>
+        <setting id="enable_link_menu" label="70527" type="bool" default="true"/>
+        <setting id="enable_fav_menu" label="30102" type="bool" default="true"/>
+        <setting id="enable_library_menu" label="30131" type="bool" default="true"/>
+    </category>
+
     <category label="30501">
         <!-- <setting id="downloadpath" type="folder" label="30017" default=""/>
         <setting id="downloadlistpath" type="folder" label="30018" default=""/> -->

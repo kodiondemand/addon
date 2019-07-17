@@ -12,6 +12,14 @@
   ],
   "settings": [
     {
+    "id": "channel_host",
+    "type": "text",
+    "label": "Host del canale",
+    "default": "https://altadefinizione01.estate/",
+    "enabled": true,
+    "visible": true
+    },
+    {
       "id": "modo_grafico",
       "type": "bool",
       "label": "Cerca informazioni extra",
@@ -19,6 +27,14 @@
       "enabled": true,
       "visible": true
     },
+		{
+      "id": "include_in_newest_peliculas",
+      "type": "bool",
+      "label": "Includi in Novità - Film",
+      "default": true,
+      "enabled": true,
+      "visible": true
+    },    
     {
       "id": "include_in_newest_film",
       "type": "bool",

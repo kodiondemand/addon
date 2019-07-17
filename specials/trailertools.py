@@ -69,7 +69,7 @@ def buscartrailer(item, trailers=[]):
             if "youtube" in url:
                 url = url.replace("embed/", "watch?v=")
             titulo, url, server = servertools.findvideos(url)[0]
-            title = "Trailer por defecto  [" + server + "]"
+            title = "Trailer  [" + server + "]"
             itemlist.append(item.clone(title=title, url=url, server=server, action="play"))
         if item.show or item.infoLabels['tvshowtitle'] or item.contentType != "movie":
             tipo = "tv"
@@ -81,7 +81,7 @@ def buscartrailer(item, trailers=[]):
             else:
                 for trailer in trailers:
                     title = trailer['name'] + " [" + trailer['size'] + "p] (" + trailer['language'].replace("en", "ING") \
-                        .replace("es", "ESP") + ")  [tmdb/youtube]"
+                        .replace("it", "ITA") + ")  [tmdb/youtube]"
                     itemlist.append(item.clone(action="play", title=title, url=trailer['url'], server="youtube"))
         except:
             import traceback
@@ -278,7 +278,7 @@ def search_links_abando(item):
         else:
             for scrapedurl, language, scrapedtitle in matches:
                 if language == "1":
-                    idioma = " (ESP)"
+                    idioma = " (ITA)"
                 else:
                     idioma = " (V.O)"
                 scrapedurl = urlparse.urljoin("http://www.abandomoviez.net/%s" % item.prefix, scrapedurl)

@@ -136,7 +136,8 @@ def peliculas(item):
     else:
         patron = r'<div class="media3">[^>]+><a href="([^"]+)"><img[^s]+src="([^"]+)"[^>]+><\/a><[^>]+><a[^<]+><p>([^<]+) \(([^\)]+)[^<]+<\/p>.*?<p>\s*([a-zA-Z-0-9]+)\s*<\/p>'
         itemlist = support.scrape(item, patron, ['url', 'thumb', 'title', 'year', 'quality'], headers, action=action, patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
-    return autorenumber.renumber(itemlist) if item.args == 'anime' else itemlist
+        if item.args == 'anime': autorenumber.renumber(itemlist)
+    return itemlist
 
 
 def episodios(item):
