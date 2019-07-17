@@ -66,6 +66,7 @@ def categorie(item):
     else: action = 'orderalf'
     blacklist = 'Altadefinizione01'
 
+
     if item.args == 'genres':
         patronBlock = r'<ul class="kategori_list">(.*?)</ul>'
         patron = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'

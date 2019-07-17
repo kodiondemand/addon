@@ -628,7 +628,7 @@ def nextPage(itemlist, item, data='', patron='', function_level=1, next_page='',
     return itemlist
 
 def pagination(itemlist, item, page, perpage, function_level=1):
-    if len(itemlist) >= page * perpage:
+    if len(itemlist) >= perpage: # page * perpage
         itemlist.append(
             Item(channel=item.channel,
                  action=inspect.stack()[function_level][3],

@@ -8,7 +8,7 @@ from core import servertools, support, jsontools
 from core.item import Item
 from platformcode import config, logger
 
-__channel__ = "altadefinizione01_club"
+__channel__ = "altadefinizione01"
 
 host = config.get_channel_url(__channel__)
 
