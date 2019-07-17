@@ -36,31 +36,24 @@ blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217
              'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?']
 
 
+@support.menu
 def mainlist(item):
     findhost()
+    film = ''
+    filmSub = [
+        ('HD', ['', 'menu', 'Film HD Streaming']),
+        ('Generi', ['', 'menu', 'Film per Genere']),
+        ('Anni', ['', 'menu', 'Film per Anno'])
+    ]
+    tvshow = '/serietv/'
+    tvshowSub = [
+        ('Aggiornamenti serie tv', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'last']),
+        ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
+        ('Per Genere', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Genere']),
+        ('Per anno', ['/serietv/aggiornamento-quotidiano-serie-tv/', 'menu', 'Serie-Tv per Anno'])
+    ]
 
-    autoplay.init(item.channel, list_servers, list_quality)
-
-    # Main options
-    itemlist = []
-    support.menu(itemlist, 'Ultimi 100 Film Aggiornati bold', 'last', host + '/lista-film-ultimi-100-film-aggiornati/')
-
-    support.menu(itemlist, 'Film bold', 'peliculas', host)
-    support.menu(itemlist, 'HD submenu', 'menu', host, args="Film HD Streaming")
-    support.menu(itemlist, 'Per genere submenu', 'menu', host, args="Film per Genere")
-    support.menu(itemlist, 'Per anno submenu', 'menu', host, args="Film per Anno")
-    support.menu(itemlist, 'Cerca film... submenu', 'search', host, args='film')
-
-    support.menu(itemlist, 'Serie TV bold', 'peliculas', host + '/serietv/', contentType='tvshow')
-    support.menu(itemlist, 'Aggiornamenti serie tv', 'last', host + '/serietv/aggiornamento-quotidiano-serie-tv/', contentType='tvshow')
-    support.menu(itemlist, 'Per Lettera submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Lettera")
-    support.menu(itemlist, 'Per Genere submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Genere")
-    support.menu(itemlist, 'Per anno submenu', 'menu', host + '/serietv/', contentType='tvshow', args="Serie-Tv per Anno")
-    support.menu(itemlist, 'Cerca serie... submenu', 'search', host + '/serietv/', contentType='tvshow', args='serie')
-    
-    autoplay.show_option(item.channel, itemlist)
-
-    return itemlist
+    return locals()
 
 
 def menu(item):
@@ -110,7 +103,7 @@ def newest(categoria):
     item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
     return support.scrape(item, r'<a href=([^>]+)>([^<([]+)(?:\[([A-Z]+)\])?\s\(([0-9]{4})\)<\/a>',
                    ['url', 'title', 'quality', 'year'],
-                   patron_block=r'Ultimi 100 film aggiunti:.*?<\/td>')
+                   patronBlock=r'Ultimi 100 film aggiunti:.*?<\/td>')
 
 
 def last(item):
@@ -170,21 +163,22 @@ def last(item):
     return itemlist
 
 
+@support.scrape
 def peliculas(item):
     support.log()
     if item.contentType == 'movie' or '/serietv/' not in item.url:
-        patron = r'<div class="?card-image"?>.*?<img src="?([^" ]+)"? alt.*?<a href="?([^" >]+)(?:\/|")>([^<[(]+)(?:\[([A-Za-z0-9/-]+)])? (?:\(([0-9]{4})\))?.*?<strong>([^<>&]+).*?DURATA ([0-9]+).*?<br(?: /)?>([^<>]+)'
-        listGroups = ['thumb', 'url', 'title', 'quality', 'year', 'genre', 'duration', 'plot']
+        patron = r'<div class="?card-image"?>.*?<img src="?(?P<thumb>[^" ]+)"? alt.*?<a href="?(?P<url>[^" >]+)(?:\/|")>(?P<title>[^<[(]+)(?:\[(?P<quality>[A-Za-z0-9/-]+)])? (?:\((?P<year>[0-9]{4})\))?.*?<strong>(?P<genre>[^<>&]+).*?DURATA (?P<duration>[0-9]+).*?<br(?: /)?>(?P<plot>[^<>]+)'
         action = 'findvideos'
     else:
-        patron = r'div class="card-image">.*?<img src="([^ ]+)" alt.*?<a href="([^ >]+)">([^<[(]+)<\/a>.*?<strong><span style="[^"]+">([^<>0-9(]+)\(([0-9]{4}).*?</(?:p|div)>(.*?)</div'
+        patron = r'div class="card-image">.*?<img src="(?P<thumb>[^ ]+)" alt.*?<a href="(?P<url>[^ >]+)">(?P<title>[^<[(]+)<\/a>.*?<strong><span style="[^"]+">(?P<genre>[^<>0-9(]+)\((?P<year>[0-9]{4}).*?</(?:p|div)>(?P<plot>.*?)</div'
         listGroups = ['thumb', 'url', 'title', 'genre', 'year', 'plot']
         action = 'episodios'
 
-    return support.scrape(item, patron_block=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
-                                              '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)'],
-                          patron=patron, listGroups=listGroups,
-                          patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">', blacklist=blacklist, action=action)
+    patronBlock=[r'<div class="?sequex-page-left"?>(.*?)<aside class="?sequex-page-right"?>',
+                                              '<div class="?card-image"?>.*?(?=<div class="?card-image"?>|<div class="?rating"?>)']
+    patronNext='<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">'
+
+    return locals()
 
 
 def episodios(item):

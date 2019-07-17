@@ -41,7 +41,7 @@ def search(item, text):
 
 def generos(item):
     patron = '<a href="([^"#]+)">([a-zA-Z]+)'
-    return support.scrape(item, patron, ['url', 'title'], patron_block='<a href="#">Genere</a><ul class="sub-menu">.*?</ul>', action='peliculas')
+    return support.scrape(item, patron, ['url', 'title'], patronBlock='<a href="#">Genere</a><ul class="sub-menu">.*?</ul>', action='peliculas')
 
 
 def peliculas(item):

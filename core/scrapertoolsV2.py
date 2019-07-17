@@ -32,6 +32,11 @@ def find_multiple_matches(text, pattern):
     return re.findall(pattern, text, re.DOTALL)
 
 
+def find_multiple_matches_groups(text, pattern):
+    r = re.compile(pattern)
+    return [m.groupdict() for m in r.finditer(text)]
+
+
 # Convierte los codigos html "&ntilde;" y lo reemplaza por "ñ" caracter unicode utf-8
 def decodeHtmlentities(data):
     entity_re = re.compile("&(#?)(\d{1,5}|\w{1,8})(;?)")

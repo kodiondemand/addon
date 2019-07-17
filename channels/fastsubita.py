@@ -208,13 +208,13 @@ def findvideos(item):
     itemlist = []
 
     # data = httptools.downloadpage(item.url, headers=headers).data
-    patron_block = '<div class="entry-content">(.*?)<footer class="entry-footer">'
-    # bloque = scrapertools.find_single_match(data, patron_block)
+    patronBlock = '<div class="entry-content">(.*?)<footer class="entry-footer">'
+    # bloque = scrapertools.find_single_match(data, patronBlock)
 
     patron = r'<a href="([^"]+)">'
     # matches = re.compile(patron, re.DOTALL).findall(bloque)
 
-    matches, data = support.match(item, patron, patron_block, headers)
+    matches, data = support.match(item, patron, patronBlock, headers)
 
     for scrapedurl in matches:
         if 'is.gd' in scrapedurl:

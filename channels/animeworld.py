@@ -45,10 +45,10 @@ def mainlist(item):
 
 def generi(item):
     log()
-    patron_block = r'</i>\sGeneri</a>\s*<ul class="sub">(.*?)</ul>'
+    patronBlock = r'</i>\sGeneri</a>\s*<ul class="sub">(.*?)</ul>'
     patron = r'<a href="([^"]+)"\stitle="([^"]+)">'
 
-    return support.scrape(item, patron, ['url','title'], patron_block=patron_block, action='video')
+    return support.scrape(item, patron, ['url','title'], patronBlock=patronBlock, action='video')
 
 
 # Crea Menu Filtro ======================================================
@@ -118,7 +118,7 @@ def search(item, texto):
 # Lista A-Z ====================================================
 
 def alfabetico(item):
-    return support.scrape(item, '<a href="([^"]+)" title="([^"]+)">', ['url', 'title'], patron_block=r'<span>.*?A alla Z.<\/span>.*?<ul>(.*?)<\/ul>', action='lista_anime')
+    return support.scrape(item, '<a href="([^"]+)" title="([^"]+)">', ['url', 'title'], patronBlock=r'<span>.*?A alla Z.<\/span>.*?<ul>(.*?)<\/ul>', action='lista_anime')
     
 
 def lista_anime(item):
@@ -259,9 +259,10 @@ def video(item):
 def episodios(item):
     log()
     itemlist = []
+
     patron_block = r'server  active(.*?)server  hidden '
     patron = r'<li><a [^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+" href="([^"]+)"[^>]+>([^<]+)<'
-    matches = support.match(item, patron, patron_block)[0]
+    matches = support.match(item, patron, patronBlock)[0]
 
     for scrapedurl, scrapedtitle in matches:
         itemlist.append(

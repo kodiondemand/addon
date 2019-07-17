@@ -123,7 +123,7 @@ def search_peliculas(item):
 
 def category(item):
     blacklist = ['Serie TV Altadefinizione', 'HD AltaDefinizione', 'Al Cinema', 'Serie TV', 'Miniserie', 'Programmi Tv', 'Live', 'Trailers', 'Serie TV Aggiornate', 'Aggiornamenti', 'Featured']
-    itemlist = support.scrape(item, '<li><a href="([^"]+)"><span></span>([^<]+)</a></li>', ['url', 'title'], headers, blacklist, patron_block='<ul class="table-list">(.*?)</ul>', action='peliculas')
+    itemlist = support.scrape(item, '<li><a href="([^"]+)"><span></span>([^<]+)</a></li>', ['url', 'title'], headers, blacklist, patronBlock='<ul class="table-list">(.*?)</ul>', action='peliculas')
     return support.thumb(itemlist)
 
 
@@ -132,7 +132,7 @@ def peliculas(item):
     action = 'findvideos' if item.extra == 'movie' else 'episodios'
     if item.args == 'movie':
         patron= r'<div class="mediaWrap mediaWrapAlt">[^<]+<a href="([^"]+)" title="Permalink to\s([^"]+) \(([^<]+)\).*?"[^>]+>[^<]+<img[^s]+src="([^"]+)"[^>]+>[^<]+<\/a>.*?<p>\s*([a-zA-Z-0-9]+)\s*<\/p>'  
-        itemlist = support.scrape(item, patron, ['url', 'title', 'year', 'thumb', 'quality'], headers, action=action, patron_block='<div id="main_col">(.*?)main_col', patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
+        itemlist = support.scrape(item, patron, ['url', 'title', 'year', 'thumb', 'quality'], headers, action=action, patronBlock='<div id="main_col">(.*?)main_col', patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')
     else:
         patron = r'<div class="media3">[^>]+><a href="([^"]+)"><img[^s]+src="([^"]+)"[^>]+><\/a><[^>]+><a[^<]+><p>([^<]+) \(([^\)]+)[^<]+<\/p>.*?<p>\s*([a-zA-Z-0-9]+)\s*<\/p>'
         itemlist = support.scrape(item, patron, ['url', 'thumb', 'title', 'year', 'quality'], headers, action=action, patronNext='<a class="nextpostslink" rel="next" href="([^"]+)">')

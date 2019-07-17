@@ -2,7 +2,7 @@
 # -*- Channel Altadefinizione01L Film - Serie -*-
 # -*- By Greko -*-
 
-import channelselector
+##import channelselector
 from specials import autoplay
 from core import servertools, support, jsontools
 from core.item import Item
@@ -11,88 +11,66 @@ from platformcode import config, logger
 __channel__ = "altadefinizione01_link"
 
 # ======== def per utility INIZIO ============================
+host = config.get_setting("channel_host", __channel__)
 
 list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
 list_quality = ['default']
 
-host = config.get_setting("channel_host", __channel__)
-
 headers = [['Referer', host]]
 # =========== home menu ===================
-
+@support.menu
 def mainlist(item):
-    """
-    Creo il menu principale del canale
-    :param item:
-    :return: itemlist []
-    """
-    support.log()
-    itemlist = []
 
-    # Menu Principale
-    support.menu(itemlist, 'Novità bold', 'peliculas', host)
-    support.menu(itemlist, 'Film per Genere', 'genres', host, args='genres')
-    support.menu(itemlist, 'Film per Anno submenu', 'genres', host, args='years')
-    support.menu(itemlist, 'Film per Qualità submenu', 'genres', host, args='quality') 
-    support.menu(itemlist, 'Al Cinema bold', 'peliculas', host + '/film-del-cinema')
-    support.menu(itemlist, 'Popolari bold', 'peliculas', host + '/piu-visti.html')
-    support.menu(itemlist, 'Mi sento fortunato bold', 'genres', host, args='lucky')    
-    support.menu(itemlist, 'Sub-ITA bold', 'peliculas', host + '/film-sub-ita/')
-    support.menu(itemlist, 'Cerca film submenu', 'search', host)
+    film = ''
+    filmSub = [
+        ('Al Cinema', ['/film-del-cinema', 'peliculas']),
+        ('Generi', ['', 'genres', 'genres']),
+        ('Anni', ['', 'genres', 'years']),
+        ('Mi sento fortunato', ['/piu-visti.html', 'genres', 'lucky']),
+        ('Popolari', ['/piu-visti.html', 'peliculas', '']),
+        ('Qualità', ['/piu-visti.html', 'genres', 'quality']),
+        ('Sub-ITA', ['/sub-ita/', 'peliculas'])
+    ]
 
-    # per autoplay
-    autoplay.init(item.channel, list_servers, list_quality)
-    autoplay.show_option(item.channel, itemlist)
-
-    support.channel_config(item, itemlist)
-    
-    return itemlist
+    return locals()
 
 # ======== def in ordine di action dal menu ===========================
 
+@support.scrape
 def peliculas(item):
-    support.log
+    #import web_pdb; web_pdb.set_trace()
+    support.log('peliculas',item)
     itemlist = []
 
-    patron = r'class="innerImage">.*?href="([^"]+)".*?src="([^"]+)"'\
-             '.*?class="ml-item-title">([^<]+)</.*?class="ml-item-label"> (\d{4}) <'\
-             '.*?class="ml-item-label">.*?class="ml-item-label ml-item-label-.+?"> '\
-             '(.+?) </div>.*?class="ml-item-label"> (.+?) </'
-    listGroups = ['url', 'thumb', 'title', 'year', 'quality', 'lang']
+    patron = r'class="innerImage">.*?href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
+             '.*?class="ml-item-title">(?P<title>[^<]+)</.*?class="ml-item-label"> '\
+             '(?P<year>\d{4}) <.*?class="ml-item-label"> (?P<duration>\d+) .*?'\
+             'class="ml-item-label ml-item-label-.+?"> (?P<quality>.+?) <.*?'\
+             'class="ml-item-label"> (?P<lang>.+?) </'
 
     patronNext =  '<span>\d</span> <a href="([^"]+)">'
-    
-    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
-                          headers= headers, patronNext=patronNext,
-                          action='findvideos')    
-    
-    return itemlist
+
+    return locals()   
 
 # =========== def pagina categorie ======================================
-
+@support.scrape
 def genres(item):
     support.log
-    itemlist = []
-    #data = httptools.downloadpage(item.url, headers=headers).data
+
     action = 'peliculas'
     if item.args == 'genres':
-        bloque = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Film">(.*?)</ul>'
     elif item.args == 'years':
-        bloque = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Anno">(.*?)</ul>'
     elif item.args == 'quality':
-        bloque = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
+        patronBlock = r'<ul class="listSubCat" id="Qualita">(.*?)</ul>'
     elif item.args == 'lucky': # sono i titoli random nella pagina, cambiano 1 volta al dì
-        bloque = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
+        patronBlock = r'FILM RANDOM.*?class="listSubCat">(.*?)</ul>'
         action = 'findvideos'
-     
-    patron = r'<li><a href="([^"]+)">(.*?)<'
 
-    listGroups = ['url','title']
-    itemlist = support.scrape(item, patron=patron, listGroups=listGroups,
-                          headers= headers, patron_block = bloque,
-                          action=action)    
+    patron = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
-    return itemlist
+    return locals()    
 
 # =========== def per cercare film/serietv =============
 #host+/index.php?do=search&story=avatar&subaction=search
@@ -133,15 +111,6 @@ def newest(categoria):
 
     return itemlist
 
+
 def findvideos(item):
-    support.log()
-    
-    itemlist = support.server(item, headers=headers)
-
-    # Requerido para FilterTools
-    # itemlist = filtertools.get_links(itemlist, item, list_language)
-
-    # Requerido para AutoPlay
-    autoplay.start(itemlist, item)
-    
-    return itemlist
+    return support.server(item, headers=headers)

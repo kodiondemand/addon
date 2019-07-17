@@ -70,7 +70,7 @@ def newest(categoria):
 
 
 def category(item):
-    return support.scrape(item, r'<li.*?><a href="(.*?)"[^>]+>(.*?)<\/a>' ,['url', 'title'], action='peliculas', patron_block= r'<ul class="' + item.args + r' scrolling">(.*?)<\/ul>')
+    return support.scrape(item, r'<li.*?><a href="(.*?)"[^>]+>(.*?)<\/a>' ,['url', 'title'], action='peliculas', patronBlock= r'<ul class="' + item.args + r' scrolling">(.*?)<\/ul>')
 
 
 def search(item, texto):
@@ -90,7 +90,7 @@ def search(item, texto):
 
 def peliculas_src(item):
     patron = r'<div class="thumbnail animation-2"><a href="([^"]+)"><img src="([^"]+)" alt="[^"]+" \/>[^>]+>([^<]+)<\/span>.*?<a href.*?>([^<]+)<\/a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*([0-9.]+)<\/span>)?.*?(?:<span class="year">([0-9]+)<\/span>)?[^>]+>[^>]+><p>(.*?)<\/p>'
-    return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'tvshow':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
+    return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, typeContentDict={'movie':['Film'], 'tvshow':['TV']}, typeActionDict={'findvideos':['Film'], 'episodios':['TV']})
     
 
 def peliculas(item):
@@ -102,7 +102,7 @@ def peliculas(item):
         return support.scrape(item, patron, ['url', 'thumb', 'rating', 'title', 'year', 'plot'], headers, action='episodios', patronNext='<span class="current">[^<]+<[^>]+><a href="([^"]+)"')
     else:
         patron = r'<div class="thumbnail animation-2"><a href="([^"]+)"><img src="([^"]+)" alt="[^"]+" \/>[^>]+>([^<]+)<\/span>.*?<a href.*?>([^<]+)<\/a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*([0-9.]+)<\/span>)?.*?(?:<span class="year">([0-9]+)<\/span>)?[^>]+>[^>]+><p>(.*?)<\/p>'
-        return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, type_content_dict={'movie':['Film'], 'tvshow':['TV']}, type_action_dict={'findvideos':['Film'], 'episodios':['TV']})
+        return support.scrape(item, patron, ['url', 'thumb', 'type', 'title', 'lang' 'rating', 'year', 'plot'], headers, typeContentDict={'movie':['Film'], 'tvshow':['TV']}, typeActionDict={'findvideos':['Film'], 'episodios':['TV']})
 
 def newep(item):
     log()
@@ -132,7 +132,7 @@ def newep(item):
     return itemlist
 
 def episodios(item):
-    return support.scrape(item, r'<a href="([^"]+)"><img src="([^"]+)">.*?<div class="numerando">([^<]+).*?<div class="episodiotitle">[^>]+>([^<]+)<\/a>',['url', 'thumb', 'episode', 'title'], patron_block='<div id="seasons">(.*?)<div class="sbox')
+    return support.scrape(item, r'<a href="([^"]+)"><img src="([^"]+)">.*?<div class="numerando">([^<]+).*?<div class="episodiotitle">[^>]+>([^<]+)<\/a>',['url', 'thumb', 'episode', 'title'], patronBlock='<div id="seasons">(.*?)<div class="sbox')
 
 def findvideos(item):
     log()
