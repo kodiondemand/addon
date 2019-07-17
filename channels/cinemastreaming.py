@@ -108,11 +108,11 @@ def episodios(item):
 
 
 def menu(item):
-    patron_block = r'<ul class="sub-menu">.*?</ul>'
+    patronBlock = r'<ul class="sub-menu">.*?</ul>'
     patron = r'menu-category-list"><a href="([^"]+)">([^<]+)<'
     list_groups = ["url", "title"]
 
-    return support.scrape(item, patron, list_groups, blacklist="Anime", action="peliculas_menu", patron_block=patron_block)
+    return support.scrape(item, patron, list_groups, blacklist="Anime", action="peliculas_menu", patronBlock=patronBlock)
 
 
 def search(item, texto):

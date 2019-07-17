@@ -58,7 +58,7 @@ def search(item, texto):
 
 def last_ep(item):
     log('ANIME PER TUTTI')
-    return support.scrape(item, '<a href="([^"]+)">([^<]+)<', ['url','title'],patron_block='<ul class="mh-tab-content-posts">(.*?)<\/ul>', action='findvideos')
+    return support.scrape(item, '<a href="([^"]+)">([^<]+)<', ['url','title'],patronBlock='<ul class="mh-tab-content-posts">(.*?)<\/ul>', action='findvideos')
 
 def newest(categoria):
     log('ANIME PER TUTTI')
@@ -83,7 +83,7 @@ def newest(categoria):
     return itemlist
 
 def genres(item):
-    itemlist = support.scrape(item, '<a href="([^"]+)">([^<]+)<', ['url', 'title'], action='peliculas', patron_block=r'Generi.*?<ul.*?>(.*?)<\/ul>', blacklist=['Contattaci','Privacy Policy', 'DMCA'])
+    itemlist = support.scrape(item, '<a href="([^"]+)">([^<]+)<', ['url', 'title'], action='peliculas', patronBlock=r'Generi.*?<ul.*?>(.*?)<\/ul>', blacklist=['Contattaci','Privacy Policy', 'DMCA'])
     return support.thumb(itemlist)
 
 def peliculas(item):    

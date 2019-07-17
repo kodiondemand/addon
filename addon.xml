@@ -5,7 +5,6 @@
     <import addon="script.module.libtorrent" optional="true"/>
     <import addon="metadata.themoviedb.org"/>
     <import addon="metadata.tvdb.com"/>
-    <import addon="script.module.web-pdb" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
