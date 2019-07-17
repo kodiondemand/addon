@@ -3,25 +3,22 @@
 # -*- Riscritto per KOD -*-
 # -*- By Greko -*-
 # -*- last change: 04/05/2019
+# -*- doppione di altadefinizione01
 
-import channelselector
 from specials import autoplay
-from core import servertools, support, jsontools
+from core import servertools, support
 from core.item import Item
 from platformcode import config, logger
 
 __channel__ = "altadefinizione01_club"
-
-# ======== def per utility INIZIO ============================
-
-list_servers = ['verystream','openload','rapidvideo','streamango'] # per l'autoplay
-list_quality = ['default'] # per l'autoplay
-
 host = config.get_channel_url(__channel__)
 
 headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'],
            ['Referer', host]]
-# =========== home menu ===================
+
+list_servers = ['verystream','openload','rapidvideo','streamango']
+list_quality = ['default']
+
 @support.menu
 def mainlist(item):
 

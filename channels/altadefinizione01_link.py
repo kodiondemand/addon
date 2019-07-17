@@ -2,7 +2,7 @@
 # -*- Channel Altadefinizione01L Film - Serie -*-
 # -*- By Greko -*-
 
-import channelselector
+##import channelselector
 from specials import autoplay
 from core import servertools, support, jsontools
 from core.item import Item
@@ -11,11 +11,10 @@ from platformcode import config, logger
 __channel__ = "altadefinizione01_link"
 
 # ======== def per utility INIZIO ============================
+host = config.get_setting("channel_host", __channel__)
 
 list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
 list_quality = ['default']
-
-host = config.get_setting("channel_host", __channel__)
 
 headers = [['Referer', host]]
 # =========== home menu ===================
