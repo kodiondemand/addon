@@ -16,8 +16,10 @@ host = config.get_channel_url(__channel__)
 headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'],
            ['Referer', host]]
 
+
 list_servers = ['verystream','openload','rapidvideo','streamango']
 list_quality = ['default']
+
 
 @support.menu
 def mainlist(item):
@@ -79,6 +81,7 @@ def categorie(item):
 # =========== def pagina lista alfabetica ===============================
 @support.scrape
 def orderalf(item):
+
     support.log('orderalf',item)
 
     action= 'findvideos'
@@ -114,6 +117,7 @@ def search(item, text):
 # =========== def per le novità nel menu principale =============
 
 def newest(categoria):
+
     support.log(categoria)
     itemlist = []
     item = Item()
