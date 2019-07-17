@@ -721,4 +721,3 @@ def channel_config(item, itemlist):
              folder=False,
              thumbnail=get_thumb('setting_0.png'))
     )
-

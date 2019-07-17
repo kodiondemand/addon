@@ -123,5 +123,5 @@ def newest(categoria):
         for line in sys.exc_info():
             logger.error("{0}".format(line))
         return []
-
+      
     return itemlist
