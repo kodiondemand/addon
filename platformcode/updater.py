@@ -17,7 +17,7 @@ addon = xbmcaddon.Addon('plugin.video.kod')
 
 _hdr_pat = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@.*")
 
-branch = 'stable'
+branch = 'master'
 user = 'kodiondemand'
 repo = 'addon'
 addonDir = xbmc.translatePath("special://home/addons/") + "plugin.video.kod/"
