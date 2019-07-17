@@ -5160,6 +5160,7 @@ msgstr ""
 "[CR]- Puoi scaricare una lista se ti inviano un codice di tinyupload o un url dove esso è ospitato."
 "[CR]- Se vuoi farlo manualmente, puoi copiare una lista KODvorites-*.json che hai inserito nella cartella userdata dell’addon. E puoi caricare questi json su qualche server e inviare i loro url ai tuoi amici per condividerli."
 "[CR]- Il servizio tinyupload.com è utilizzato per condividere le liste degli addon perché è gratuito, privato e relativamente veloce. I file rimangono salvati per 100 giorni se nessuno li scarica, sono privati perché richiedono un codice per accedervi e il limite di 50MB è sufficiente per le liste."
+
 msgctxt "#70612"
 msgid "Name of the list"
 msgstr "Nome della lista"
@@ -5571,3 +5572,15 @@ msgstr "Personalizza Homepage"
 msgctxt "#70716"
 msgid "Choose menus you wanna in homepage"
 msgstr "Seleziona gli elementi che vuoi visualizzare nella homepage"
+
+msgctxt "#70717"
+msgid "Are all the special episodes present?"
+msgstr "Sono presenti tutti gli episodi spaciali?"
+
+msgctxt "#70718"
+msgid "Ep. No (Empty for OK) "
+msgstr "N° Ep. (vuoto per OK) "
+
+msgctxt "#70719"
+msgid "I can't automatically find the special episode number, please enter it manually"
+msgstr "Non riesco a trovare automaticamente il numero dell'episodio speciale, per favore inseriscilo manualmente"

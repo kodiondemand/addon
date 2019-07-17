@@ -178,7 +178,9 @@ def scrape(item, patron = '', listGroups = [], headers="", blacklist="", data=""
                 longtitle = longtitle + typo(title2, 'bold _ -- _')
 
             ##    Aggiunto/modificato per gestire i siti che hanno i video
-            ##    in ita e subita delle serie tv nella stessa pagina                             
+            ##    in ita e subita delle serie tv nella stessa pagina
+            if scraped['lang'] == '': #altrimenti nei canali dei film mi aggiunge sub-ita a tutti i film successivi
+                lang = '' # o in alternativa lang = 'ITA'
             if scraped['lang']:              
                 if 'sub' in scraped['lang'].lower():
                     lang = 'Sub-ITA'
@@ -554,7 +556,7 @@ def nextPage(itemlist, item, data='', patron='', function_level=1, next_page='',
     return itemlist
 
 def pagination(itemlist, item, page, perpage, function_level=1):
-    if len(itemlist) >= page * perpage:
+    if len(itemlist) >= perpage: # page * perpage
         itemlist.append(
             Item(channel=item.channel,
                  action=inspect.stack()[function_level][3],

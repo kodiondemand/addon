@@ -39,7 +39,7 @@ def mainlist(item):
                 Item(channel=item.channel,
                      title="[COLOR azure]Categorie[/COLOR]",
                      action="categorias",
-                     url=host,
+                     url=host+'/streaming-film/',
                      thumbnail="http://orig03.deviantart.net/6889/f/2014/079/7/b/movies_and_popcorn_folder_icon_by_matheusgrilo-d7ay4tw.png"),
                 Item(channel=item.channel,
                      title="[COLOR azure]Animazione[/COLOR]",

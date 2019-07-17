@@ -88,9 +88,10 @@ def menu(item):
 
 def search(item, text):
     support.log(item.url, "search" ,text)
+    
 
     try:
-        item.url = item.url + "/?s=" + text
+        item.url = item.url + "/?s=" + text.replace(' ','+')
         return peliculas(item)
 
     # Continua la ricerca in caso di errore 
@@ -118,8 +119,10 @@ def last(item):
     itemlist = []
     infoLabels = {}
     quality = ''
-    PERPAGE = 20
+    PERPAGE = 30
     page = 1
+    count = 0
+
     if item.page:
         page = item.page
 
@@ -129,13 +132,14 @@ def last(item):
         matches = support.match(item, r'<a href=([^>]+)>([^(:(|[)]+)([^<]+)<\/a>', r'<strong>Ultimi 100 film Aggiornati:<\/a><\/strong>(.*?)<td>', headers)[0]
 
     for i, (url, title, info) in enumerate(matches):
-        if (page - 1) * PERPAGE > i: continue
-        if i >= page * PERPAGE: break
+        if (page - 1) * PERPAGE > i - count: continue
+        if i - count >= page * PERPAGE: break
         add = True
         title = title.rstrip()
         if item.contentType == 'tvshow':
             for i in itemlist:
                 if i.url == url: # togliamo i doppi
+                    count = count + 1
                     add = False
         else:
             infoLabels['year'] = scrapertoolsV2.find_single_match(info, r'\(([0-9]+)\)')
