@@ -68,20 +68,14 @@ def newest(categoria):
 
 
 def peliculas(item):
-#<<<<<<< newScrape
 #<<<<<<< stable
 #    itemlist = scrape(item, r'Lingua[^<]+<br>\s*<a href="(?:Lista episodi )?([^"]+)" title="(?:Lista episodi )?(.*?)(?: \(([0-9]+)\))?(?: Streaming)?">', ['url', 'title', 'year'], action='episodios', patron_block='<input type="submit" value="Vai!" class="blueButton">(.*?)<div class="footer">', patronNext='<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">')
 #    renumber(itemlist) 
 #    return itemlist
 #=======
-#    itemlist = scrape(item, r'Lingua[^<]+<br>\s*<a href="(?:Lista episodi )?([^"]+)" title="(?:Lista episodi )?(.*?)(?: \(([0-9]+)\))?(?: Streaming)?">', ['url', 'title', 'year'], action='episodios', patronBlock='<input type="submit" value="Vai!" class="blueButton">(.*?)<div class="footer">', patronNext='<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">')
-#    return renumber(itemlist)
+    itemlist = scrape(item, r'Lingua[^<]+<br>\s*<a href="(?:Lista episodi )?([^"]+)" title="(?:Lista episodi )?(.*?)(?: \(([0-9]+)\))?(?: Streaming)?">', ['url', 'title', 'year'], action='episodios', patronBlock='<input type="submit" value="Vai!" class="blueButton">(.*?)<div class="footer">', patronNext='<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">')
+    return renumber(itemlist)
 #>>>>>>> newScrape
-#=======
-    itemlist = scrape(item, r'Lingua[^<]+<br>\s*<a href="(?:Lista episodi )?([^"]+)" title="(?:Lista episodi )?(.*?)(?: \(([0-9]+)\))?(?: Streaming)?">', ['url', 'title', 'year'], action='episodios', patron_block='<input type="submit" value="Vai!" class="blueButton">(.*?)<div class="footer">', patronNext='<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">')
-    renumber(itemlist) 
-    return itemlist
-#>>>>>>> master
     
 
 def last(item):
@@ -105,20 +99,14 @@ def categorie(item):
 
 
 def episodios(item):
-#<<<<<<< newScrape
 #<<<<<<< stable
 #    itemlist = scrape(item, r'<li><a href="([^"]+)"[^<]+<b>(.*?)<\/b>[^>]+>([^<]+)<\/i>', ['url','title','title2'], patron_block='<div class="seasonEp">(.*?)<div class="footer">')
 #    renumber(itemlist, item, 'bold')
 #    return itemlist
 #=======
-#    itemlist = scrape(item, r'<li><a href="([^"]+)"[^<]+<b>(.*?)<\/b>[^>]+>([^<]+)<\/i>', ['url','title','title2'], patronBlock='<div class="seasonEp">(.*?)<div class="footer">')
-#    return renumber(itemlist, item, 'bold')
+    itemlist = scrape(item, r'<li><a href="([^"]+)"[^<]+<b>(.*?)<\/b>[^>]+>([^<]+)<\/i>', ['url','title','title2'], patronBlock='<div class="seasonEp">(.*?)<div class="footer">')
+    return renumber(itemlist, item, 'bold')
 #>>>>>>> newScrape
-#=======
-    itemlist = scrape(item, r'<li><a href="([^"]+)"[^<]+<b>(.*?)<\/b>[^>]+>([^<]+)<\/i>', ['url','title','title2'], patron_block='<div class="seasonEp">(.*?)<div class="footer">')
-    renumber(itemlist, item, 'bold')
-    return itemlist
-#>>>>>>> master
 
 def findvideos(item):
     log()
