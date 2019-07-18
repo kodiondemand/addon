@@ -55,8 +55,7 @@ def peliculas(item):
         scrapedurl = host + scrapedurl
         if not "/video/" in scrapedurl:
             continue
-##        html = scrapertools.cache_page(scrapedurl)
-        html = httptools.downloadpage(scrapedurl, headers=headers).data
+        html = scrapertools.cache_page(scrapedurl)
         start = html.find("Sinossi:")
         end = html.find('<div class="sx_col">', start)
         scrapedplot = html[start:end]

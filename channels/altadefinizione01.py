@@ -8,7 +8,7 @@ from core import servertools, support, jsontools
 from core.item import Item
 from platformcode import config, logger
 
-__channel__ = "altadefinizione01"
+__channel__ = "altadefinizione01_club"
 
 host = config.get_channel_url(__channel__)
 
@@ -123,5 +123,5 @@ def newest(categoria):
         for line in sys.exc_info():
             logger.error("{0}".format(line))
         return []
-      
+
     return itemlist

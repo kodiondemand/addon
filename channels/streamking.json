@@ -1,0 +1,10 @@
+{
+	"id": "streamking",
+	"name": "Stream King",
+	"language": ["ita"],
+	"active": true,
+	"adult": false,
+	"thumbnail": "http://streamking.cc/assets/img/logon.png",
+	"banner": "",
+	"categories": ["sport"]
+}

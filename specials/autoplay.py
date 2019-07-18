@@ -299,10 +299,7 @@ def start(itemlist, item):
 
                     # Intenta reproducir los enlaces
                     # Si el canal tiene metodo play propio lo utiliza
-                    try:
-                        channel = __import__('channels.%s' % channel_id, None, None, ["channels.%s" % channel_id])
-                    except:
-                        channel = __import__('specials.%s' % channel_id, None, None, ["specials.%s" % channel_id])
+                    channel = __import__('channels.%s' % channel_id, None, None, ["channels.%s" % channel_id])
                     if hasattr(channel, 'play'):
                         resolved_item = getattr(channel, 'play')(videoitem)
                         if len(resolved_item) > 0:

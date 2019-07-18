@@ -92,9 +92,9 @@ class Downloader:
     # Funciones
     def start_dialog(self, title=config.get_localized_string(60200)):
         from platformcode import platformtools
-        progreso = platformtools.dialog_progress(title, config.get_localized_string(60201))
+        progreso = platformtools.dialog_progress_bg(title, config.get_localized_string(60201))
         self.start()
-        while self.state == self.states.downloading and not progreso.iscanceled():
+        while self.state == self.states.downloading:
             time.sleep(0.1)
             line1 = "%s" % (self.filename)
             line2 = config.get_localized_string(59983) % (
@@ -102,10 +102,7 @@ class Downloader:
                 self.speed[1], self.speed[2], self.connections[0], self.connections[1])
             line3 = config.get_localized_string(60202) % (self.remaining_time)
 
-            progreso.update(int(self.progress), line1, line2, line3)
-        if self.state == self.states.downloading:
-            self.stop()
-        progreso.close()
+            progreso.update(int(self.progress), line1, line2 + line3)
 
     def start(self):
         if self._state == self.states.error: return

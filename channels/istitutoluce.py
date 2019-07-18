@@ -140,8 +140,7 @@ def peliculas(item):
         scrapedtitle = scrapedtitle.rsplit('/', 1)[-1].rsplit(".", 1)[0].replace("-", " ").title()
         scrapedurl = host + scrapedurl
 
-##        html = scrapertools.cache_page(scrapedurl)
-        html = httptools.downloadpage(scrapedurl, headers=headers).data
+        html = scrapertools.cache_page(scrapedurl)
         start = html.find('<p class="abstract">')
         end = html.find('</p>', start)
         scrapedplot = html[start:end]
