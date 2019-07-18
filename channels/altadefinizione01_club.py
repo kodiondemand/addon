@@ -21,6 +21,7 @@ list_quality = ['default']
 
 @support.menu
 def mainlist(item):
+
     film = ''
 
     filmSub = [
@@ -64,6 +65,7 @@ def categorie(item):
     if item.args != 'orderalf': action = "peliculas"
     else: action = 'orderalf'
     blacklist = 'Altadefinizione01'
+
 
     if item.args == 'genres':
         patronBlock = r'<ul class="kategori_list">(.*?)</ul>'
