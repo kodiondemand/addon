@@ -13,7 +13,7 @@ from core.support import menu, log
 from platformcode import logger, config
 from specials import autoplay
 
-host = "https://seriehd.info"
+host = "https://www.seriehd.zone"
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
