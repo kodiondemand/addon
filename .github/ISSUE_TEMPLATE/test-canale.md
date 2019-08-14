@@ -20,7 +20,8 @@ Cosa serve: il file .json
 1. Verifica del canale nelle sezioni indicate nel file .json, voce "categories".
 
 - [ ] Tutte
-- [ ] Alcune - Indicare le sezioni dove manca il canale
+- [ ] Alcune 
+- <textarea class = "form-control" > </textarea> Indicare le sezioni dove manca il canale
 - [ ] Nessuna - Voce Canale mancante nella lista. In questo caso non puoi continuare il test.
 
 2. Icone del canale [ ]
