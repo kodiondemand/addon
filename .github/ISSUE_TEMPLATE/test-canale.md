@@ -46,8 +46,8 @@ a. Cerca Informazioni extra (Default: Attivo)
 
 b. Includi in Novità (Default: Attivo)
 
-- [] Si
-- [] No
+- [ ] Si
+- [ ] No
 
 c. Includi in Novità - Italiano (Default: Attivo)
 
