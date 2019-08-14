@@ -21,7 +21,8 @@ Cosa serve: il file .json
 
 - [ ] Tutte
 - [ ] Alcune 
-- <textarea> </textarea> Indicare le sezioni dove manca il canale
+- <textarea name="textarea"
+   rows="10" cols="50">Indicare le sezioni dove manca il canale</textarea>
 - [ ] Nessuna - Voce Canale mancante nella lista. In questo caso non puoi continuare il test.
 
 2. Icone del canale [ ]
