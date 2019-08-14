@@ -4,7 +4,7 @@ about: Documento per il test del canale
 title: ''
 labels: 'Test Canale'
 assignees: ''
-projects: https://github.com/greko17/addon/issues/new?title=Test+Canale&projects=greko17/1
+projects: https://github.com/greko17/addon/issues/issues/new?template=test-canale.md&new?title=Test+Canale&projects=greko17/1
 ---
 
 ** Nome Canale **
