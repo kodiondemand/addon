@@ -8,7 +8,7 @@ projects: https://github.com/greko17/addon/issues/new?title=Test+Canale&projects
 ---
 
 
-Di ogni test mantieni la voce dell'esito e cancella le altre, dove occorre aggiungi informazioni. Specifica, dove possibile, il tipo di problema che incontri in quel test.
+Di ogni test inserisci una X tra le [ ] dell'esito corrispondente, dove occorre aggiungi le informazioni richieste. Specifica, dove possibile, il tipo di problema che incontri in quel test.
 Se hai suggerimenti/consigli/dubbi sui test...Proponili e/o chiedi!
  
 ***
@@ -18,14 +18,15 @@ Test N°.1: Lista Canali
 Cosa serve: il file .json
 
 1. Verifica del canale nelle sezioni indicate nel file .json, voce "categories".
+Queste voci corrispondono alle sezione che vedi in KODI.
 
 - [ ] Tutte
 - [ ] Alcune 
-- <textarea name="textarea"
-   rows="10" cols="50">Indicare le sezioni dove manca il canale</textarea>
+- Indica le sezioni dove manca il canale tra le [ ] e separate da ',':
+- [ ] 
 - [ ] Nessuna - Voce Canale mancante nella lista. In questo caso non puoi continuare il test.
 
-2. Icone del canale [ ]
+2. Icone del canale
 
 - [ ] Presenti
 - [ ] Non Presenti
@@ -109,7 +110,7 @@ Questo Test confronta i titoli che trovi accedendo alle voci di menu del canale 
 Tipo di problema = mancano dei titoli, i titoli sono errati, ai titoli corrispondono locandine errate o altro
 
 
-I test successivi sono divisi a seconda si tratta di film, serie tv o anime.
+I test successivi sono divisi a seconda della sezione in cui è visibile il canale: film, serie tv o anime.
 Cancella le sezioni non interessate dal canale. Verificale dalla voce "categories" del file .json.
 
 **Sezione FILM
@@ -127,24 +128,25 @@ Aggiungi 2-3 titoli in videoteca. Verificheremo successivamente la videoteca.
 
 2. Scarica Film
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 3. Paginazione ( cliccare sulla voce "Successivo" e verifica la 2° pagina nello stesso modo in cui lo hai fatto per la 1°)
 
-- [Ok] 
-- [X - indica il tipo di problema]
+- [ ] Sì
+- [ ] No, indica il tipo di problema
 
 4. Cerca o Cerca Film...
 Cerca un titolo a caso in KOD e lo stesso titolo sul sito. Confronta i risultati.
 
-- [Ok]
-- [X - indica il tipo di problema]
+- [ ] Sì, i risultati sono gli stessi
+- [ ] I risultati non sono gli stessi, ma c'è il titolo cercato
+- [ ] No - indica il tipo di problema
 
 5. Entra nella pagina del titolo, verifica che come ultima voce ci sia "Aggiungi in videoteca":
 
-- [Si, appare]
-- [Non appare]
+- [ ] Si, appare
+- [ ] No, non appare
 
 6. Eventuali problemi riscontrati
 - [ scrivi qui il problema/i ]
@@ -155,33 +157,34 @@ Test da effettuare mentre sei nella pagina dei titoli. Per ogni titolo verfica c
 
 1. Aggiungi Serie in videoteca
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 2. Aggiungi 2-3 titoli in videoteca. Verificheremo successivamente la videoteca.
-- [Aggiunti correttamente]
+- [ ] Aggiunti correttamente
 - [Indica eventuali problemi] (copia-incolla per tutti i titoli con cui hai avuto il problema)
 
 3. Scarica Serie
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 4. Cerca o Cerca Serie...
 Cerca un titolo a caso in KOD e lo stesso titolo sul sito. Confronta i risultati.
 
-- [Ok]
-- [X - indica il tipo di problema]
+- [ ] Sì, i risultati sono gli stessi
+- [ ] I risultati non sono gli stessi, ma c'è il titolo cercato
+- [ ] No - indica il tipo di problema
 
-5. Entra nella pagina della serie,  verifica che come ultima voce ci sia "Aggiungi in videoteca":
+5. Entra nella pagina della serie, verifica che come ultima voce ci sia "Aggiungi in videoteca":
 
-- [Non appare]
-- [Si, appare]
+- [ ] Si, appare
+- [ ] No, non appare
 
 6. Entra nella pagina dell'episodio, NON deve apparire la voce "Aggiungi in videoteca":
 
-- [Non appare]
-- [Si, appare]
+- [ ] Sì, non appare
+- [ ] No, appare
 
 7. Eventuali problemi riscontrati
 - [ scrivi qui il problema/i ]
@@ -192,38 +195,39 @@ Test da effettuare mentre sei nella pagina dei titoli. Per ogni titolo verfica c
 
 1. Aggiungi Serie in videoteca
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 2. Aggiungi 2-3 titoli in videoteca. Verificheremo successivamente la videoteca.
-- [Aggiunti correttamente]
+- [ ] Aggiunti correttamente
 - [Indica eventuali problemi] (copia-incolla per tutti i titoli con cui hai avuto il problema)
 
 3. Scarica Serie
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 4. Rinumerazione
 
-- [Si] 
-- [No]
+- [ ] Si
+- [ ] No
 
 5. Cerca o Cerca Serie...
 Cerca un titolo a caso in KOD e lo stesso titolo sul sito. Confronta i risultati.
 
-- [Ok]
-- [X - indica il tipo di problema]
+- [ ] Sì, i risultati sono gli stessi
+- [ ] I risultati non sono gli stessi, ma c'è il titolo cercato
+- [ ] No - indica il tipo di problema
 
 6. Entra nella pagina della serie,  verifica che come ultima voce ci sia "Aggiungi in videoteca":
 
-- [Si, appare]
-- [Non appare]
+- [ ] Si, appare
+- [ ] No, non appare
 
 7. Entra nella pagina dell'episodio, NON deve apparire la voce "Aggiungi in videoteca":
 
-- [Non appare]
-- [Si, appare]
+- [ ] Si, appare
+- [ ] No, non appare
 
 8. Eventuali problemi riscontrati
 - [ scrivi qui il problema/i ]
