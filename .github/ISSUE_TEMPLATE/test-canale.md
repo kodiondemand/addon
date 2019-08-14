@@ -4,7 +4,7 @@ about: Documento per il test del canale
 title: ''
 labels: 'Test Canale'
 assignees: ''
-project: https://github.com/greko17/addon/wiki/Test-passo-passo.-Caso-di-studio:-seriehd.-Seconda-Parte
+projects: https://github.com/greko17/addon/issues/new?title=Test+Canale&projects=projects/1
 ---
 
 ** Nome Canale **
