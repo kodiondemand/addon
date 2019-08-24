@@ -37,7 +37,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     try:
         code = scrapertools.find_single_match(data, '<p style="" class="" id="videolink">(.*?)</p>' )
-        url = "https://verystream.com/gettoken/" + code + "?mime=true"
+        url = "https://woof.tube/gettoken/" + code + "?mime=true"
         url = httptools.downloadpage(url, only_headers=True, follow_redirects=False).headers.get('location')
         extension = scrapertools.find_single_match(url, '(\..{,3})\?')
         itemlist.append([extension, url, 0,subtitle])
