@@ -4,7 +4,7 @@
       "ignore_urls": [],
       "patterns": [
         {
-          "pattern": "(?:verystream).*?/(?:e|stream)/([0-9a-zA-Z-_]+)",
+          "pattern": "(?:verystream|woof.tube).*?/(?:e|stream)/([0-9a-zA-Z-_]+)",
           "url": "https://verystream.com/e/\\1/"
         }
       ]
@@ -43,4 +43,3 @@
     ],
     "thumbnail": "server_verystream.png"
   }
-  
