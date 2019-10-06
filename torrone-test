@@ -1,0 +1,17 @@
+{
+  "channel_name": "Torrone Test",
+  "fanart": "https://www.romanengo.com/wp-content/uploads/2016/10/stagione-torrone-gianduia.jpg",
+  "thumbnail": "https://www.romanengo.com/wp-content/uploads/2016/10/stagione-torrone-gianduia.jpg",
+  "menu": [
+    {
+      "title": "AD Astra",
+      "link": "magnet:?xt=urn:btih:5E495BD09C779E17E6C86574B7E79F57986FF2F2&dn=Beethoven+-+9+Sinfonie+-+Toscanini.torrent&tr=http%3A%2F%2Ftracker.tntvillage.scambioetico.org%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.tntvillage.scambioetico.org%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.coppersurfer.tk%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2FIPv6.leechers-paradise.org%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.internetwarriors.net%3A1337%2Fannounce&tr=udp%3A%2F%2Ftracker.tiny-vps.com%3A6969%2Fannounce&tr=udp%3A%2F%2Ftracker.mg64.net%3A2710%2Fannounce&tr=udp%3A%2F%2Ftracker.openbittorrent.com%3A80%2Fannounce",
+      "thumbnail": ""
+    },
+    {
+      "title": "",
+      "link": "",
+      "thumbnail": ""
+    }
+  ]
+}
