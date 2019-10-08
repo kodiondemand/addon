@@ -200,9 +200,11 @@ def findvideos(item):
         quality, language, plot, poster = set_extra_values(url)
         title = ''
         title = set_title(title, language, quality)
-
-        itemlist.append(Item(channel=item.channel, title='%s'+title, url=url['url'], action='play', quality=quality,
-                             language=language, infoLabels = item.infoLabels))
+        
+        # skip item if no url is given in the json
+        if url['url']:
+            itemlist.append(Item(channel=item.channel, title='%s'+title, url=url['url'], action='play', quality=quality,
+                                 language=language, infoLabels = item.infoLabels))
 
     itemlist = servertools.get_servers_itemlist(itemlist, lambda i: i.title % i.server.capitalize())
 
