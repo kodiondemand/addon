@@ -623,8 +623,17 @@ def add_channel(item):
         platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70682))
         return
     channel_to_add['channel_name'] = json_file['channel_name']
-    channel_to_add['thumbnail'] = json_file['thumbnail']
-    channel_to_add['fanart'] = json_file['fanart']
+    
+    if json_file.has_key('thumbnail'):
+        channel_to_add['thumbnail'] = json_file['thumbnail']
+    else:
+        channel_to_add['thumbnail'] = ''
+
+    if json_file.has_key('fanart'):
+        channel_to_add['fanart'] = json_file['fanart']
+    else:
+        channel_to_add['fanart'] = ''
+    
     path = os.path.join(config.get_data_path(), 'community_channels.json')
 
     community_json = open(path, "r")
