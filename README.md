@@ -1,6 +1,7 @@
 # Kodi On Demand
 ### Un fork italiano di [Alfa](https://github.com/alfa-addon)
 Ognuno è libero (anzi, invitato!) a collaborare, per farlo è possibile utilizzare i pull request.
+KOD funziona con Kodi fino alla versione 18 (Python 2).
 
 KOD, come Alfa, è sotto licenza GPL v3, pertanto siete liberi di utilizzare parte del codice, a patto di rispettare i termini di suddetta licenza, che si possono riassumere in: 
  
