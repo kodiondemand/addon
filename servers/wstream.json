@@ -8,7 +8,7 @@
         "patterns": [
             {
                 "pattern": "wstream\\.video(?!<).*?(?<!api)(?:=|/)(?:embed-)?(?<!streaming\\.php\\?id=)([a-z0-9A-Z]+)(?:[^/_.a-z0-9A-Z]|$)",
-                "url": "https://wstream.video/video.php?file_code=\\1"
+                "url": "https://wstream.video/videofryugmhws/\\1"
             },
             {
                 "pattern": "wstream\\.video/([a-zA-Z0-9/]+.html)",
