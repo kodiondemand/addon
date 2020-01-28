@@ -35,6 +35,7 @@ def mainlist(item):
         ('HD', ['', 'menu', 'Film HD Streaming']),
         ('Generi', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
+        ('Paese', ['', 'menu', 'Film per Paese']),        
         ('Ultimi Aggiornati',['/lista-film-ultimi-100-film-aggiornati/', 'peliculas', 'newest']),
         ('Ultimi Aggiunti', ['/lista-film-ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
     ]
@@ -218,8 +219,15 @@ def findvideos(item):
 
     # Estrae i contenuti - Streaming 3D
     load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "pink", "Streaming 3D")
-
-    return support.server(item, itemlist=itemlist)
+    
+    itemlist=support.server(item, itemlist=itemlist)
+    itemlist.insert(0,
+        Item(channel=item.channel,
+             action="",
+             title="[COLOR orange]%s[/COLOR]" % QualityStr,
+             folder=False))
+    
+    return itemlist
 
     # Estrae i contenuti - Download
     # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")
