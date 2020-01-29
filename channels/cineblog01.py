@@ -209,7 +209,7 @@ def findvideos(item):
     matches = re.compile(patronvideos, re.DOTALL).finditer(data)
     QualityStr = ""
     for match in matches:
-        QualityStr = scrapertools.decodeHtmlentities(match.group(1))[6:]
+        QualityStr = scrapertools.decodeHtmlentities(match.group(1))
 
     # Estrae i contenuti - Streaming
     load_links(itemlist, '<strong>Streamin?g:</strong>(.*?)cbtable', "orange", "Streaming", "SD")
