@@ -21,10 +21,15 @@ def test_video_exists(page_url):
         page_url = 'https://wstream.video/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True).data
 
-    ID, code = scrapertools.find_single_match(data, r"""input\D*id=(?:'|")([^'"]+)(?:'|").*?value='([a-z0-9]+)""")
-    post = urllib.urlencode({ID: code})
-
-    data = httptools.downloadpage(page_url, headers=headers, post=post, follow_redirects=True).data
+    a = scrapertools.find_single_match(data, r"""input\D*id=(?:'|")([^'"]+)(?:'|").*?value='([a-z0-9]+)""")
+    if a:
+        ID, code = a
+        post = urllib.urlencode({ID: code})
+        data = httptools.downloadpage(page_url, headers=headers, post=post, follow_redirects=True).data
+    else:
+        page_url = scrapertools.find_single_match(data, r"""<center><a href='(https?:\/\/wstream[^']+)'\s*title='bkg'""")
+        if page_url:
+            data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True).data
 
     if "Not Found" in data or "File was deleted" in data:
         return False, config.get_localized_string(70449) % 'Wstream'
