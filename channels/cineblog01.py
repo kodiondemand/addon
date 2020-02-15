@@ -246,7 +246,7 @@ def findvid_serie(item):
         matches = re.compile(patron, re.DOTALL).finditer(html)
         for match in matches:
             scrapedurl = match.group(1)
-            scrapedtitle = match.group(2)
+            scrapedtitle = ("%s" %  support.color(blktxt,"orange") + " - " if blktxt else "") + match.group(2)
             # title = item.title + " [COLOR blue][" + scrapedtitle + "][/COLOR]"
             itemlist.append(
                 Item(channel=item.channel,
@@ -266,34 +266,16 @@ def findvid_serie(item):
     lnkblkp = []
 
     data = item.url
-
-    # First blocks of links
-    if data[0:data.find('<a')].find(':') > 0:
-        lnkblk.append(data[data.find(' - ') + 3:data[0:data.find('<a')].find(':') + 1])
-        lnkblkp.append(data.find(' - ') + 3)
-    else:
-        lnkblk.append(' ')
-        lnkblkp.append(data.find('<a'))
-
-    # Find new blocks of links
-    patron = r'<a\s[^>]+>[^<]+</a>([^<]+)'
-    matches = re.compile(patron, re.DOTALL).finditer(data)
-    for match in matches:
-        sep = match.group(1)
-        if sep != ' - ':
-            lnkblk.append(sep)
-
-    i = 0
-    if len(lnkblk) > 1:
-        for lb in lnkblk[1:]:
-            lnkblkp.append(data.find(lb, lnkblkp[i] + len(lnkblk[i])))
-            i = i + 1
-
-    for i in range(0, len(lnkblk)):
-        if i == len(lnkblk) - 1:
-            load_vid_series(data[lnkblkp[i]:], item, itemlist, lnkblk[i])
-        else:
-            load_vid_series(data[lnkblkp[i]:lnkblkp[i + 1]], item, itemlist, lnkblk[i])
+    
+    # Blocks with split
+    blk=re.split("(?:>\s*)?([A-Za-z\s0-9]*):\s*<",data,re.S)
+    blktxt=""
+    for b in blk:
+        if b[0:3]=="a h" or b[0:4]=="<a h":
+            load_vid_series("<%s>"%b, item, itemlist, blktxt)
+            blktxt=""
+        elif len(b.strip())>1:
+            blktxt=b.strip()
 
     return support.server(item, itemlist=itemlist)
 
