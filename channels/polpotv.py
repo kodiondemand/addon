@@ -23,7 +23,7 @@ def mainlist(item):
         ('Ultime Serie TV aggiunte', ['/api/shows', 'peliculas', '']),
         ('Generi', ['/api/genres', 'search_movie_by_genre', '']),
         ('Anni {film}', ['', 'search_movie_by_year', '']),
-        ('Cerca Film... bold', ['', 'search', ''])
+        ('Cerca... bold', ['', 'search', ''])
     ]
     return locals()
 
@@ -103,7 +103,14 @@ def search(item, texto):
         data = httptools.downloadpage(item.url, headers=headers).data
         json_object = jsontools.load(data)
         for movie in json_object['hydra:member']:
-            itemlist.extend(get_itemlist_movie(movie,item))
+            item.contentType='movie'
+            itemlist.extend(get_itemlist_element(movie,item))
+        item.url = host + "/api/shows?originalTitle="+texto+"&translations.name=" +texto
+        data = httptools.downloadpage(item.url, headers=headers).data
+        json_object = jsontools.load(data)
+        for tvshow in json_object['hydra:member']:
+            item.contentType='tvshow'
+            itemlist.extend(get_itemlist_element(tvshow,item))            
         return itemlist
     # Continua la ricerca in caso di errore
     except:
