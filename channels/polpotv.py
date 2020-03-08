@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # KoD - XBMC Plugin
 # Canale polpotv
-# ------------------------------------------------------------
+# ------------------------------------------------------------ 
 
 from core import scrapertools, httptools, support, jsontools
 from core.item import Item
