@@ -6,7 +6,7 @@
 	"adult": false,
 	"thumbnail": "polpotv.png",
 	"banner": "polpotv.png",
-	"categories": ["movie"],
+	"categories": ["movie","tvshow"],
 	"not_active":[],
 	"default_off":["include_in_newest"],
 	"settings": []

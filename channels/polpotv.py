@@ -64,34 +64,28 @@ def episodios(item):
     itemlist = []
     data = httptools.downloadpage(item.url, headers=headers).data
     json_object = jsontools.load(data)
-    i=1
     for season in json_object['seasons']:
-        item.url=host+season['@id']+'/releases'
-        itemlist_season=get_season(item)
+        seas_url=host+season['@id']+'/releases'
+        itemlist_season=get_season(item.channel, seas_url, season['seasonNumber'])
         if(len(itemlist_season)>0):
-            itemlist.append(
-                Item(channel=item.channel,
-                 action='',
-                 title=support.typo('Stagione '+str(i), '_ [] color kod bold'),
-                 url='',
-                 extra=season['@id'] ))
             itemlist.extend(itemlist_season)
-        i=i+1;
+
+    support.videolibrary(itemlist, item, 'color kod bold')
 
     return itemlist
 
-def get_season(item):
+def get_season(channel, seas_url, seasonNumber):
     support.log()
     itemlist = []
-    s=item.url
-    data = httptools.downloadpage(item.url, headers=headers).data
+    data = httptools.downloadpage(seas_url, headers=headers).data
     json_object = jsontools.load(data)
     for episode in json_object['hydra:member']:
         itemlist.append(
-            Item(channel=item.channel,
+            Item(channel=channel,
                  action='findvideos',
-                 title="Epsiodio "+str(episode['episodeNumber']),
-                 url=item.url,
+                 contentType='episode',
+                 title=str(seasonNumber)+"x"+str("%02d"%episode['episodeNumber']),
+                 url=seas_url,
                  extra=str(len(json_object['hydra:member'])-episode['episodeNumber'])))
     return itemlist[::-1]
 
