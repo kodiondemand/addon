@@ -54,14 +54,24 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = block if block else data
     # URL
     # logger.info(data)
-    matches = scrapertools.find_multiple_matches(data, '''src:\s*["']?(http.*?\.mp4)''')
-    # logger.info(str(matches))
+    if vres:
+        matches = scrapertools.find_multiple_matches(data, '''src:\s*["']?(http.*?\.mp4)''')
+    else:
+        matches = scrapertools.find_multiple_matches(data, '''src:\s*["']?(http.*?\.mp4)(?:[^,]+,[^,]+,res:([^,]+))?''')
+        if matches:
+            if len(matches[0])==2:
+                i=0
+                for m in matches:
+                    vres.append("%sx" % m[1])
+                    matches[i]=m[0]
+                    i+=1
+
     _headers = urllib.urlencode(httptools.default_headers)
 
     i = 0
     for media_url in matches:
         # URL del vídeo
-        video_urls.append([vres[i] + " mp4 [Akvideo] ", media_url.replace('https://', 'http://') + '|' + _headers])
+        video_urls.append([vres[i] if i<len(vres) else "" + " mp4 [Akvideo] ", media_url.replace('https://', 'http://') + '|' + _headers])
         i = i + 1
 
-    return sorted(video_urls, key=lambda x: int(x[0].split('x')[0]))
+    return sorted(video_urls, key=lambda x: int(x[0].split('x')[0])) if vres else video_urls
