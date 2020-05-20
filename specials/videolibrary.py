@@ -736,7 +736,7 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
 
     from platformcode import xbmc_videolibrary
     movies_path, tvshows_path = xbmc_videolibrary.check_sources(new_movies_path, new_tvshows_path)
-    logger.info('check_sources: ' + movies_path + ', ' + tvshows_path)
+    logger.info('check_sources: ' + str(movies_path) + ', ' + str(tvshows_path))
     if movies_path or tvshows_path:
         if not movies_path:
             filetools.rmdir(new_movies_path)
