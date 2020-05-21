@@ -12,15 +12,9 @@ from platformcode import logger, config
 
 
 def findhost():
-    page = httptools.downloadpage('https://cb01.uno/')
-    # permUrl = page.headers
-    # if 'location' in permUrl:
-    #     if 'google' in permUrl['location']:
-    #         host = permUrl['location'].replace('https://www.google.it/search?q=site:', '')
-    #     else:
-    #         host = permUrl['location']
-    # else:
-    host = support.match(page.data, patron=r'<a href="([^"]+)').match
+    host = httptools.downloadpage('https://cb01.uno/', follow_redirect=True).url
+    if host == 'https://cb01.uno/':
+        host = support.match(host, patron=r'<a href="([^"]+)', debug=True).match
     return host
 
 
