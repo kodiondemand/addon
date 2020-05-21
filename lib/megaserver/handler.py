@@ -1,13 +1,16 @@
-import BaseHTTPServer
-import urlparse
-import time
-import urllib
-import types
-import os
-import re
+import time, os, re, sys
+
+if sys.version_info[0] >= 3:
+    from http.server import BaseHTTPRequestHandler
+    import urllib.request as urllib
+    import urllib.parse as urlparse
+else:
+    from BaseHTTPServer import BaseHTTPRequestHandler
+    import urlparse
+    import urllib
 
 
-class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
+class Handler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
 
     def log_message(self, format, *args):
@@ -68,19 +71,19 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
         if self.server._client.file and urllib.unquote(url)[1:].decode("utf-8") == self.server._client.file.name:
             range = False
-            self.offset=0
+            self.offset = 0
             size, mime = self._file_info()
             start, end = self.parse_range(self.headers.get('Range', ""))
             self.size = size
-            
-            if start <> None:
+
+            if start != None:
                 if end == None: end = size - 1
                 self.offset=int(start)
                 self.size=int(end) - int(start) + 1
                 range=(int(start), int(end), int(size))
             else:
                 range = None
-            
+
             self.send_resp_header(mime, size, range)
             return True
 
@@ -98,7 +101,7 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
     def send_resp_header(self, cont_type, size, range=False):
-    
+
         if range:
             self.send_response(206, 'Partial Content')
         else:
@@ -108,15 +111,14 @@ class Handler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header('Accept-Ranges', 'bytes')
 
         if range:
-            if isinstance(range, (types.TupleType, types.ListType)) and len(range)==3:
+            if isinstance(range, (tuple, list)) and len(range)==3:
                 self.send_header('Content-Range', 'bytes %d-%d/%d' % range)
                 self.send_header('Content-Length', range[1]-range[0]+1)
             else:
                 raise ValueError('Invalid range value')
         else:
             self.send_header('Content-Length', size)
-            
+
         self.send_header('Connection', 'close')
         self.end_headers()
 
-        

@@ -12,9 +12,8 @@ from platformcode import platformtools, logger
 files = None
 
 def test_video_exists(page_url):
-    types= "Archivo"
-    gen = "o"
-    msg = "El link tiene algún problema."
+    types= "File"
+    msg = "The link has a problem."
     id_video = None
     get = ""
     seqno = random.randint(0, 0xFFFFFFFF)
@@ -29,25 +28,24 @@ def test_video_exists(page_url):
         get = "&n=" + f_id
         post = {"a":"f","c":1,"r":0}
         isfolder = True
-        types= "Carpeta"
-        gen = "a"
+        types= "Folder"
         if id_video:
             #Aqui ya para hacer un check se complica, no hay una manera directa aún teniendo la id del video dentro de la carpeta
             return True, ""
-            
-    codes = {-1: 'Se ha producido un error interno en Mega.nz',
-             -2: 'Error en la petición realizada, Cod -2',
-             -3: 'Un atasco temporal o malfuncionamiento en el servidor de Mega impide que se procese su link',
-             -4: 'Ha excedido la cuota de transferencia permitida. Vuelva a intentarlo más tarde',
-             -6: types + ' no encontrad' + gen + ', cuenta eliminada',
-             -9: types + ' no encontrad'+ gen,
-             -11: 'Acceso restringido',
-             -13: 'Está intentando acceder a un archivo incompleto',
-             -14: 'Una operación de desencriptado ha fallado',
-             -15: 'Sesión de usuario expirada o invalida, logueese de nuevo',
-             -16: types + ' no disponible, la cuenta del uploader fue baneada',
-             -17: 'La petición sobrepasa su cuota de transferiencia permitida',
-             -18: types + ' temporalmente no disponible, intentelo de nuevo más tarde'
+
+    codes = {-1: 'An internal error has occurred in Mega.nz',
+             -2: 'Error in the request made, Cod -2',
+             -3: 'A temporary jam or malfunction in the Mega server prevents your link from being processed',
+             -4: 'You have exceeded the allowed transfer fee. Try it again later',
+             -6: types + ' not find deleted account',
+             -9: types + ' not find',
+             -11: 'Restricted access',
+             -13: 'You are trying to access an incomplete file',
+             -14: 'Decryption operation failed',
+             -15: 'User session expired or invalid, log in again',
+             -16: types + ' not available, the uploader account was banned',
+             -17: 'The request exceeds your allowable transfer fee',
+             -18: types + ' temporarily unavailable, please try again later'
     }
     api = 'https://g.api.mega.co.nz/cs?id=%d%s' % (seqno, get)
     req_api = httptools.downloadpage(api, post=json.dumps([post])).data
@@ -65,16 +63,16 @@ def test_video_exists(page_url):
         return False, msg
     else:
         #Comprobación limite cuota restante
-        from megaserver import Client
+        from lib.megaserver import Client
+        global c
         c = Client(url=page_url, is_playing_fnc=platformtools.is_playing)
         global files
         files = c.get_files()
         if files == 509:
-            msg1 = "[B][COLOR tomato]El video excede el limite de visionado diario que Mega impone a los usuarios Free."
-            msg1 += " Prueba en otro servidor o canal.[/B][/COLOR]"
+            msg1 = "The video exceeds the daily viewing limit."
             return False, msg1
         elif isinstance(files, (int, long)):
-            return False, "Error codigo %s" % str(files)
+            return False, "Error code %s" % str(files)
 
         return True, ""
 

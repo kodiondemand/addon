@@ -1,9 +1,10 @@
-import base64
-import json
-import random
-import struct
-import time
-import urllib
+import base64, json, random, struct, time, sys, traceback
+if sys.version_info[0] >= 3:
+    import urllib.request as urllib
+    xrange = range
+else:
+    import urllib
+
 from core import httptools
 from threading import Thread
 
@@ -102,7 +103,7 @@ class Client(object):
                     return files
 
             except:
-                print(traceback.format_exc())
+                logger.info(traceback.format_exc())
                 pass
 
         return files

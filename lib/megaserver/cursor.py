@@ -1,5 +1,10 @@
-import urllib2
-import traceback
+import sys, traceback
+from platformcode import logger
+if sys.version_info[0] >= 3:
+    from urllib.request import Request, urlopen
+else:
+    from urllib2 import Request, urlopen
+
 
 class Cursor(object):
     def __init__(self, file):
@@ -18,14 +23,14 @@ class Cursor(object):
                 file = self._file._client.api_req({'a': 'g', 'g': 1, 'p': self._file.file_id})
                 self._file.url= file["g"]
 
-        req = urllib2.Request(self._file.url)
+        req = Request(self._file.url)
         req.headers['Range'] = 'bytes=%s-' % (offset)
         try:
-            self.conn = urllib2.urlopen(req)
+            self.conn = urlopen(req)
             try:
                 self.prepare_decoder(offset)
             except:
-                print(traceback.format_exc())
+                logger.error(traceback.format_exc())
         except:
             self.mega_request(offset, True)
 

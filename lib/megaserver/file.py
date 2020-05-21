@@ -28,8 +28,3 @@ class File(object):
         self.cursor = True
         self.cursors.append(c)
         return c
-
-    
-
-
-
