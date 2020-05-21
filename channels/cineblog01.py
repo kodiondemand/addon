@@ -112,7 +112,7 @@ def peliculas(item):
             action = 'findvideos'
         else:
             patronBlock = r'Ultime SerieTv aggiornate(?P<block>.*?)Lista'
-            patron = r'src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>[^>]+>[^>]+><a href="(?P<url>[^"]+)".*?<div class="rpwe-summary">.*?\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
+            patron = r'src=(?:")?(?P<thumb>[^ "]+)(?:")? alt=(?:")?(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>[^\(]*)\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
             action = 'episodios'
 
     elif '/serietv/' not in item.url:
@@ -120,7 +120,7 @@ def peliculas(item):
         action = 'findvideos'
 
     else:
-        patron = r'div class="card-image">.*?<img src="(?P<thumb>[^ ]+)" alt.*?<a href="(?P<url>[^ >]+)">(?P<title>.*?)(?: &#8211;\s*(?:[SS]tagione \d|\d).*?)?(?P<lang>(?:[Ss][Uu][Bb]-)?[Ii][Tt][Aa])?<\/a>.*?(?:<strong><span style="[^"]+">(?P<genre>[^<>0-9(]+)\((?P<year>[0-9]{4}).*?</(?:p|div)>(?P<plot>.*?))?</div'
+        patron = r'card-image[^>]*>\s*<a href=(?:")?(?P<url>[^" >]+)(?:")?\s*>\s*<img src=(?:")?(?P<thumb>[^" ]+)(?:")? alt="(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>(?P<genre>[^\(]+)\((?P<year>\d{4})[^>]*>[^>]+>[^>]+>[^>]+>(?:<p>)?(?P<plot>[^<]+)'
         action = 'episodios'
         item.contentType = 'tvshow'
 
@@ -131,10 +131,9 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    data = httptools.downloadpage(item.url, headers=headers).data
-    data = data.replace("'", '"')
-    data = re.sub('\n|\t', ' ', data)
-    data = re.sub(r'>\s+<', '> <', data)
+    # support.dbg()
+    data = support.match(item.url, headers=headers).data
+    support.log(data)
     if 'TUTTA LA ' in data:
         folderUrl = scrapertools.find_single_match(data, 'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="([^"]+)')
         data = httptools.downloadpage(folderUrl).data
@@ -144,7 +143,7 @@ def episodios(item):
             item.serieFolder = True
             return item
     else:
-        patronBlock = r'(?P<block><div class="sp-head[a-z ]*?" title="Espandi">\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?[^<>]*?<\/div>.*?)<div class="spdiv">\[riduci\]<\/div>'
+        patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
         patron = r'(?:/>|<p>|<strong>)(?P<url>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
         def itemlistHook(itemlist):
             title_dict = {}
@@ -230,7 +229,7 @@ def findvid_serie(item):
     def load_vid_series(html, item, itemlist, blktxt):
         support.log('HTML',html)
         # Estrae i contenuti
-        matches = support.match(html, patron=r'<a href="([^"]+)"[^=]+="_blank"[^>]+>(?!<!--)(.*?)(?:</a>|<img)').matches
+        matches = support.match(html, patron=r'<a href=(?:")?([^ "]+)[^>]+>(?!<!--)(.*?)(?:</a>|<img)').matches
         for url, server in matches:
             item = Item(channel=item.channel,
                         action="play",
