@@ -139,4 +139,6 @@ def findvideos(item):
     return support.hdpass_get_servers(item)
 
 def play(item):
-    return support.hdpass_get_url(item)
+    if 'hdpass' in item.url:
+        return support.hdpass_get_url(item)
+    return [item]

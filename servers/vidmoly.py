@@ -7,8 +7,9 @@ from platformcode import logger, config
 def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)
     global data
-    data = httptools.downloadpage(page_url).data
-    if "Not Found" in data:
+    resp = httptools.downloadpage(page_url)
+    data = resp.data
+    if resp.code == 404:
         return False, config.get_localized_string(70449) % "Vidmoly"
     return True, ""
 
