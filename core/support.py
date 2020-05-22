@@ -324,10 +324,11 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     break
                 else: AC = action
         if (scraped["title"] not in blacklist) and (search.lower() in longtitle.lower()):
+            contentType = 'episode' if function == 'episodios' else CT if CT else item.contentType
             it = Item(
                 channel=item.channel,
                 action=AC if AC else action,
-                contentType='episode' if function == 'episodios' else CT if CT else item.contentType,
+                contentType=contentType,
                 title=longtitle,
                 fulltitle=item.fulltitle if function == 'episodios' else title,
                 show=item.show if function == 'episodios' else title,
@@ -336,8 +337,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 infoLabels=infolabels,
                 thumbnail=item.thumbnail if function == 'episodios' or not scraped["thumb"] else scraped["thumb"],
                 args=item.args,
-                contentSerieName= item.contentSerieName if item.contentSerieName and function == 'peliculas' else title if 'movie' not in [item.contentType, CT] and function != 'episodios' else item.fulltitle,
-                contentTitle=item.contentTitle if item.contentTitle and function == 'peliculas' else title if 'movie' in [item.contentType, CT] and function == 'peliculas' else '',
+                contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
+                contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
                 contentLanguage = lang1,
                 contentEpisodeNumber=episode if episode else '',
                 news= item.news if item.news else '',
