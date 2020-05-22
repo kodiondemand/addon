@@ -462,11 +462,11 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                                  year=item.infoLabels['year'])
                 else:
                     # Busqueda de pelicula por titulo...
-                    if item.infoLabels['year'] or item.infoLabels['filtro']:
-                        # ...y año o filtro
-                        searched_title = item.contentTitle if item.contentTitle else item.fulltitle
-                        otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
-                                     filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
+                    # if item.infoLabels['year'] or item.infoLabels['filtro']:
+                    # ...y año o filtro
+                    searched_title = item.contentTitle if item.contentTitle else item.fulltitle
+                    otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
+                                    filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
                 if otmdb is not None:
                     if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
                         # Si la busqueda ha dado resultado y no se esta buscando una lista de items,
@@ -480,7 +480,6 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                 # La busqueda ha encontrado un resultado valido
                 __leer_datos(otmdb)
                 return len(item.infoLabels)
-
     # La busqueda en tmdb esta desactivada o no ha dado resultado
     # item.contentType = item.infoLabels['mediatype']
     return -1 * len(item.infoLabels)
