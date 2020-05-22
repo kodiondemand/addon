@@ -23,8 +23,7 @@ list_quality = ['1080p', 'HD', 'SD', 'CAM']
 def mainlist(item):
 
     film = ['/film',
-        ('Generi', ['', 'menu', 'genres']),
-        ('Anno', ['', 'menu', 'releases']),
+        ('Generi', ['', 'menu', 'genres'])
     ]
     tvshow = ['/serietv']
     anime = ['/genere/anime']
@@ -74,4 +73,7 @@ def findvideos(item):
 
 @support.scrape
 def menu(item):
-    return support.dooplay_menu(item, item.args)
+    action = 'peliculas'
+    data = support.match(item, patron=r'<a href="#">Genere<(.*?)</ul').match
+    patronMenu= r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<'
+    return locals()
