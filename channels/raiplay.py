@@ -292,7 +292,7 @@ def findvideos(item):
 
     itemlist.append(support.Item(channel = item.channel, server = 'directo', title = 'Diretto', fulltitle = item.fulltitle,
             show = item.show, thumbnail = item.thumbnail, fanart = item.json, url = getUrl(url), action = 'play' ))
-    return support.server(item, itemlist=itemlist, down_load=False)
+    return support.server(item, itemlist=itemlist, Download=False)
 
 
 def getUrl(pathId):

@@ -181,6 +181,7 @@ def list_tvshows(item):
     itemlist = []
     dead_list = []
     zombie_list = []
+    lista = []
     # Obtenemos todos los tvshow.nfo de la videoteca de SERIES recursivamente
     for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.TVSHOWS_PATH):
         for s in subcarpetas:
@@ -280,6 +281,7 @@ def list_tvshows(item):
                 else:
                     texto_update = config.get_localized_string(60023)
                     value = 1
+                    item_tvshow.title += " [B]" + u"\u2022".encode('utf-8') + "[/B]"
                     # item_tvshow.text_color = "0xFFDF7401"
 
                 # Menu contextual: Eliminar serie/canal
@@ -323,8 +325,7 @@ def list_tvshows(item):
                 ## verifica la existencia de los canales ##
                 if len(item_tvshow.library_urls) > 0:
                     itemlist.append(item_tvshow)
-
-
+                    lista.append({'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':tvshow_path})
 
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
@@ -332,7 +333,43 @@ def list_tvshows(item):
         itemlist.append(Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
                              title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False))
 
+        itemlist.append(Item(channel=item.channel, action="configure_update_videolibrary", thumbnail=item.thumbnail,
+                             title=typo(config.get_localized_string(60599), 'bold color kod'), lista=lista, folder=False))
+
     return itemlist
+
+def configure_update_videolibrary(item):
+    import xbmcgui
+    # Load list of options (active user channels that allow global search)
+    lista = []
+    ids = []
+    preselect = []
+
+    for i, item_tvshow in enumerate(item.lista):
+        it = xbmcgui.ListItem(item_tvshow["title"], '')
+        it.setArt({'thumb': item_tvshow["thumbnail"], 'fanart': item_tvshow["fanart"]})
+        lista.append(it)
+        ids.append(Item(nfo=item_tvshow['nfo']))
+        if item_tvshow['active']<=0:
+            preselect.append(i)
+
+    # Dialog to select
+    ret = xbmcgui.Dialog().multiselect(config.get_localized_string(60601), lista, preselect=preselect, useDetails=True)
+    if ret < 0:
+        return False  # order cancel
+    seleccionados = [ids[i] for i in ret]
+
+    for tvshow in ids:
+        if tvshow not in seleccionados:
+            tvshow.active = 0
+        elif tvshow in seleccionados:
+            tvshow.active = 1
+        mark_tvshow_as_updatable(tvshow, silent=True)
+
+    platformtools.itemlist_refresh()
+
+    return True
+
 
 
 def get_seasons(item):
@@ -1076,13 +1113,14 @@ def mark_season_as_watched(item):
     platformtools.itemlist_refresh()
 
 
-def mark_tvshow_as_updatable(item):
+def mark_tvshow_as_updatable(item, silent=False):
     logger.info()
     head_nfo, it = videolibrarytools.read_nfo(item.nfo)
     it.active = item.active
     filetools.write(item.nfo, head_nfo + it.tojson())
 
-    platformtools.itemlist_refresh()
+    if not silent:
+        platformtools.itemlist_refresh()
 
 
 def delete(item):

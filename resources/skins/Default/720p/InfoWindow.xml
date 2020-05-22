@@ -57,6 +57,7 @@
           <width>349</width>
           <height>500</height>
           <texture></texture>
+          <aspectratio>keep</aspectratio>
           <animation type="WindowOpen" reversible="false">
             <effect type="slide" start="200,0" end="0,0" delay="300" tween="cubic" time="200" />
             <effect type="fade" delay="300" end="100" time="240" />

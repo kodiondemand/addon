@@ -143,3 +143,6 @@ def findvideos(item):
         matches = support.match(url,patron=r'<a href="([^"]+)">(\d+)<', patronBlock=r'<h3>EPISODIO</h3><ul>(.*?)</ul>').matches
         if matches: item.url = support.urlparse.urljoin(url, matches[-1][0])
     return support.hdpass_get_servers(item)
+
+def play(item):
+    return support.hdpass_get_url(item)

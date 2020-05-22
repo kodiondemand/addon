@@ -1,7 +1,7 @@
 {
     "id": "animesubita",
     "name": "AnimeSubIta",
-    "active": true,
+    "active": false,
     "language": ["sub-ita"],
     "thumbnail": "animesubita.png",
     "bannermenu": "animesubita.png",

@@ -2,14 +2,12 @@
 # ------------------------------------------------------------
 # tvdb
 # ------------------------------------------------------------
-# Scraper para el site thetvdb.com usando API v2.1
-# Utilizado para obtener datos de series para la videoteca
-# del addon y también Kodi.
+# Scraper for thetvdb.com using API v2.1
+# Used to obtain series data for the video library
 # ------------------------------------------------------------
 
 from future import standard_library
 standard_library.install_aliases()
-#from builtins import str
 from future.builtins import object
 
 import urllib.request, urllib.error, urllib.parse
@@ -35,41 +33,41 @@ DEFAULT_HEADERS = {
     'Authorization': 'Bearer ' + TOKEN,
 }
 
-# Traducciones - Inicio
-DICT_STATUS = {'Continuing': 'En emisión', 'Ended': 'Finalizada'}
-DICT_GENRE = {
-    'Action': 'Acción',
-    'Adventure': 'Aventura',
-    'Animation': 'Animación',
-    'Children': 'Niños',
-    'Comedy': 'Comedia',
-    'Crime': 'Crimen',
-    'Documentary': 'Documental',
-    # 'Drama': 'Drama',
-    'Family': 'Familiar',
-    'Fantasy': 'Fantasía',
-    'Food': 'Comida',
-    'Game Show': 'Concurso',
-    'Home and Garden': 'Hogar y Jardín',
-    # 'Horror': 'Horror', 'Mini-Series': 'Mini-Series',
-    'Mystery': 'Misterio',
-    'News': 'Noticias',
-    # 'Reality': 'Telerrealidad',
-    'Romance': 'Romántico',
-    'Science-Fiction': 'Ciencia-Ficción',
-    'Soap': 'Telenovela',
-    # 'Special Interest': 'Special Interest',
-    'Sport': 'Deporte',
-    # 'Suspense': 'Suspense',
-    'Talk Show': 'Programa de Entrevistas',
-    # 'Thriller': 'Thriller',
-    'Travel': 'Viaje',
-    # 'Western': 'Western'
-}
-DICT_MPAA = {'TV-Y': 'Público pre-infantil: niños menores de 6 años', 'TV-Y7': 'Público infantil: desde 7 años',
-             'TV-G': 'Público general: sin supervisión familiar', 'TV-PG': 'Guía paterna: Supervisión paternal',
-             'TV-14': 'Mayores de 14 años', 'TV-MA': 'Mayores de 17 años'}
-# Traducciones - Fin
+# # Traducciones - Inicio
+# DICT_STATUS = {'Continuing': 'En emisión', 'Ended': 'Finalizada'}
+# DICT_GENRE = {
+#     'Action': 'Acción',
+#     'Adventure': 'Aventura',
+#     'Animation': 'Animación',
+#     'Children': 'Niños',
+#     'Comedy': 'Comedia',
+#     'Crime': 'Crimen',
+#     'Documentary': 'Documental',
+#     # 'Drama': 'Drama',
+#     'Family': 'Familiar',
+#     'Fantasy': 'Fantasía',
+#     'Food': 'Comida',
+#     'Game Show': 'Concurso',
+#     'Home and Garden': 'Hogar y Jardín',
+#     # 'Horror': 'Horror', 'Mini-Series': 'Mini-Series',
+#     'Mystery': 'Misterio',
+#     'News': 'Noticias',
+#     # 'Reality': 'Telerrealidad',
+#     'Romance': 'Romántico',
+#     'Science-Fiction': 'Ciencia-Ficción',
+#     'Soap': 'Telenovela',
+#     # 'Special Interest': 'Special Interest',
+#     'Sport': 'Deporte',
+#     # 'Suspense': 'Suspense',
+#     'Talk Show': 'Programa de Entrevistas',
+#     # 'Thriller': 'Thriller',
+#     'Travel': 'Viaje',
+#     # 'Western': 'Western'
+# }
+# DICT_MPAA = {'TV-Y': 'Público pre-infantil: niños menores de 6 años', 'TV-Y7': 'Público infantil: desde 7 años',
+#              'TV-G': 'Público general: sin supervisión familiar', 'TV-PG': 'Guía paterna: Supervisión paternal',
+#              'TV-14': 'Mayores de 14 años', 'TV-MA': 'Mayores de 17 años'}
+# # Traducciones - Fin
 
 otvdb_global = None
 
@@ -86,7 +84,7 @@ def find_and_set_infoLabels(item):
     tvdb_result = None
 
     title = item.contentSerieName
-    # Si el titulo incluye el (año) se lo quitamos
+    # If the title includes the (year) we will remove it
     year = scrapertools.find_single_match(title, "^.+?\s*(\(\d{4}\))$")
     if year:
         title = title.replace(year, "").strip()
@@ -104,24 +102,23 @@ def find_and_set_infoLabels(item):
     if not item.contentSeason:
         p_dialog.update(50, config.get_localized_string(60296), config.get_localized_string(60295))
     results, info_load = otvdb_global.get_list_results()
-    logger.debug("results es %s" % results)
+    logger.debug("results: %s" % results)
 
     if not item.contentSeason:
         p_dialog.update(100, config.get_localized_string(60296), config.get_localized_string(60297) % len(results))
         p_dialog.close()
 
     if len(results) > 1:
-        tvdb_result = platformtools.show_video_info(results, item=item, scraper=Tvdb,
-                                                    caption=config.get_localized_string(60298) % title)
+        tvdb_result = platformtools.show_video_info(results, item=item, scraper=Tvdb, caption=config.get_localized_string(60298) % title)
     elif len(results) > 0:
         tvdb_result = results[0]
 
     # todo revisar
     if isinstance(item.infoLabels, InfoLabels):
-        logger.debug("es instancia de infoLabels")
+        logger.debug("is an instance of infoLabels")
         infoLabels = item.infoLabels
     else:
-        logger.debug("NO ES instancia de infoLabels")
+        logger.debug("NOT an instance of infoLabels")
         infoLabels = InfoLabels()
 
     if tvdb_result:
@@ -146,12 +143,9 @@ def find_and_set_infoLabels(item):
 
 def set_infoLabels_item(item):
     """
-        Obtiene y fija (item.infoLabels) los datos extras de una serie, capitulo o pelicula.
-        @param item: Objeto que representa un pelicula, serie o capitulo. El atributo infoLabels sera modificado
-            incluyendo los datos extras localizados.
+        Gets and sets (item.infoLabels) the extra data of a series, chapter or movie.
+        @param item: Object that represents a movie, series or chapter. The infoLabels attribute will be modified including the extra localized data.
         @type item: Item
-
-
     """
     global otvdb_global
 
@@ -166,7 +160,7 @@ def set_infoLabels_item(item):
         try:
             int_season = int(item.infoLabels['season'])
         except ValueError:
-            logger.debug("El numero de temporada no es valido")
+            logger.debug("The season number is not valid")
             item.contentType = item.infoLabels['mediatype']
             return -1 * len(item.infoLabels)
 
@@ -184,12 +178,12 @@ def set_infoLabels_item(item):
             try:
                 int_episode = int(item.infoLabels['episode'])
             except ValueError:
-                logger.debug("El número de episodio (%s) no es valido" % repr(item.infoLabels['episode']))
+                logger.debug("The episode number (%s) is not valid" % repr(item.infoLabels['episode']))
                 item.contentType = item.infoLabels['mediatype']
                 return -1 * len(item.infoLabels)
 
-            # Tenemos numero de temporada y numero de episodio validos...
-            # ... buscar datos episodio
+            # We have a valid season number and episode number ...
+            # ... search episode data
             item.infoLabels['mediatype'] = 'episode'
 
             lang = DEFAULT_LANG
@@ -211,7 +205,7 @@ def set_infoLabels_item(item):
                         t.start()
                         l_hilo.append(t)
 
-                    # esperar q todos los hilos terminen
+                    # wait for all the threads to end
                     for x in l_hilo:
                         x.join()
 
@@ -228,7 +222,7 @@ def set_infoLabels_item(item):
 
             data_episode = otvdb_global.get_info_episode(otvdb_global.get_id(), int_season, int_episode, lang, _id)
 
-            # todo repasar valores que hay que insertar en infoLabels
+            # all go over values ​​to insert into infoLabels
             if data_episode:
                 item.infoLabels['title'] = data_episode['episodeName']
                 # fix en casos que el campo desde la api era null--> None
@@ -252,15 +246,15 @@ def set_infoLabels_item(item):
                 l_castandrole.extend([(p, '') for p in guest_stars])
                 item.infoLabels['castandrole'] = l_castandrole
 
-                # datos para nfo
+                # data for nfo
                 item.season_id = data_episode["airedSeasonID"]
                 item.episode_id = data_episode["id"]
 
                 return len(item.infoLabels)
 
         else:
-            # Tenemos numero de temporada valido pero no numero de episodio...
-            # ... buscar datos temporada
+            # We have a valid season number but no episode number ...
+            # ... search season data
             item.infoLabels['mediatype'] = 'season'
             data_season = otvdb_global.get_images(otvdb_global.get_id(), "season", int_season)
 
@@ -268,9 +262,9 @@ def set_infoLabels_item(item):
                 item.thumbnail = HOST_IMAGE + data_season['image_season_%s' % int_season][0]['fileName']
                 return len(item.infoLabels)
 
-    # Buscar...
+    # Search...
     else:
-        # Busquedas por ID...
+        # Search by ID ...
         if (not otvdb_global or otvdb_global.get_id() != item.infoLabels['tvdb_id']) and item.infoLabels['tvdb_id']:
             otvdb_global = Tvdb(tvdb_id=item.infoLabels['tvdb_id'])
 
@@ -280,29 +274,28 @@ def set_infoLabels_item(item):
         elif not otvdb_global and item.infoLabels['zap2it_id']:
             otvdb_global = Tvdb(zap2it_id=item.infoLabels['zap2it_id'])
 
-        # No se ha podido buscar por ID... se hace por título
+        # Unable to search by ID ... done by title
         if otvdb_global is None:
             otvdb_global = Tvdb(search=item.infoLabels['tvshowtitle'])
 
         if otvdb_global and otvdb_global.get_id():
             __leer_datos(otvdb_global)
-            # La busqueda ha encontrado un resultado valido
+            # The search has found a valid result
             return len(item.infoLabels)
 
 
 def get_nfo(item):
     """
-    Devuelve la información necesaria para que se scrapee el resultado en la videoteca de kodi,
+    Returns the information necessary for the result to be scraped into the kodi video library,
 
-    @param item: elemento que contiene los datos necesarios para generar la info
+    @param item: element that contains the data necessary to generate the info
     @type item: Item
     @rtype: str
     @return:
     """
 
     if "season" in item.infoLabels and "episode" in item.infoLabels:
-        info_nfo = "http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s\n" \
-                   % (item.infoLabels['tvdb_id'], item.season_id, item.episode_id)
+        info_nfo = "http://thetvdb.com/?tab=episode&seriesid=%s&seasonid=%s&id=%s\n" % (item.infoLabels['tvdb_id'], item.season_id, item.episode_id)
     else:
         info_nfo = ', '.join(item.infoLabels['url_scraper']) + "\n"
 
@@ -311,7 +304,7 @@ def get_nfo(item):
 
 def completar_codigos(item):
     """
-    Si es necesario comprueba si existe el identificador de tmdb y sino existe trata de buscarlo
+    If necessary, check if the tmdb identifier exists and if it does not exist try to find it
     @param item: tipo item
     @type item: Item
     """
@@ -347,27 +340,25 @@ class Tvdb(object):
         self.episodes = {}
 
         if kwargs.get('tvdb_id', ''):
-            # Busqueda por identificador tvdb
+            # Search by tvdb identifier
             self.__get_by_id(kwargs.get('tvdb_id', ''))
             if not self.list_results and config.get_setting("tvdb_retry_eng", "videolibrary"):
                 from platformcode import platformtools
-                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG,
-                                                  config.get_localized_string(60302), sound=False)
+                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG, config.get_localized_string(60302), sound=False)
                 self.__get_by_id(kwargs.get('tvdb_id', ''), "en")
                 self.lang = "en"
 
         elif self.search_name:
-            # Busqueda por texto
+            # BUsqueda by text
             self.__search(kwargs.get('search', ''), kwargs.get('imdb_id', ''), kwargs.get('zap2it_id', ''))
             if not self.list_results and config.get_setting("tvdb_retry_eng", "videolibrary"):
                 from platformcode import platformtools
-                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG,
-                                                  config.get_localized_string(60302))
+                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG, config.get_localized_string(60302))
                 self.__search(kwargs.get('search', ''), kwargs.get('imdb_id', ''), kwargs.get('zap2it_id', ''), "en")
                 self.lang = "en"
 
         if not self.result:
-            # No hay resultados de la busqueda
+            # No search results
             if kwargs.get('tvdb_id', ''):
                 buscando = kwargs.get('tvdb_id', '')
             else:
@@ -381,12 +372,12 @@ class Tvdb(object):
         if TOKEN == "":
             cls.__login()
         else:
-            # si la fecha no se corresponde con la actual llamamos a refresh_token, ya que el token expira en 24 horas
+            # if the date does not correspond to the current one we call refresh_token, since the token expires in 24 hours
             from time import gmtime, strftime
             current_date = strftime("%Y-%m-%d", gmtime())
 
             if config.get_setting("tvdb_token_date", "") != current_date:
-                # si se ha renovado el token grabamos la nueva fecha
+                # if the token has been renewed we save the new date
                 if cls.__refresh_token():
                     config.set_setting("tvdb_token_date", current_date)
 
@@ -408,7 +399,7 @@ class Tvdb(object):
 
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             dict_html = jsontools.load(html)
@@ -435,8 +426,8 @@ class Tvdb(object):
             response.close()
 
         except urllib.error.HTTPError as err:
-            logger.error("err.code es %s" % err.code)
-            # si hay error 401 es que el token se ha pasado de tiempo y tenemos que volver a llamar a login
+            logger.error("err.code %s" % err.code)
+            # if there is error 401 it is that the token has passed the time and we have to call login again
             if err.code == 401:
                 cls.__login()
             else:
@@ -444,7 +435,7 @@ class Tvdb(object):
 
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             dict_html = jsontools.load(html)
@@ -459,16 +450,16 @@ class Tvdb(object):
 
     def get_info_episode(self, _id, season=1, episode=1, lang=DEFAULT_LANG, id_episode=None):
         """
-        Devuelve los datos de un episodio.
-        @param _id: identificador de la serie
+        Returns the data of an episode.
+        @param _id: series identifier
         @type _id: str
-        @param season: numero de temporada [por defecto = 1]
+        @param season: season number [default = 1]
         @type season: int
-        @param episode: numero de episodio [por defecto = 1]
+        @param episode: episode number [default = 1]
         @type episode: int
-        @param lang: codigo de idioma para buscar
+        @param lang: language code to search
         @type lang: str
-        @param id_episode: codigo del episodio.
+        @param id_episode: episode code.
         @type id_episode: int
         @rtype: dict
         @return:
@@ -541,7 +532,7 @@ class Tvdb(object):
 
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             dict_html = jsontools.load(html)
@@ -552,10 +543,10 @@ class Tvdb(object):
 
     def get_list_episodes(self, _id, page=1):
         """
-        Devuelve el listado de episodios de una serie.
-        @param _id: identificador de la serie
+        Returns the list of episodes of a series.
+        @param _id: series identifier
         @type _id: str
-        @param page: numero de pagina a buscar [por defecto = 1]
+        @param page: page number to search [default = 1]
         @type page: int
         @rtype: dict
         @return:
@@ -604,7 +595,7 @@ class Tvdb(object):
 
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             self.list_episodes[page] = jsontools.load(html)
@@ -615,11 +606,11 @@ class Tvdb(object):
 
     def get_episode_by_id(self, _id, lang=DEFAULT_LANG, semaforo=None):
         """
-        Obtiene los datos de un episodio
-        @param _id: identificador del episodio
+        Get the data of an episode
+        @param _id: episode identifier
         @type _id: str
-        @param lang: código de idioma
-        @param semaforo: semaforo para multihilos
+        @param lang: language code
+        @param semaforo: semaphore for multihilos
         @type semaforo: threading.Semaphore
         @type lang: str
         @rtype: dict
@@ -691,7 +682,7 @@ class Tvdb(object):
 
         except Exception as ex:
             # if isinstance(ex, urllib).HTTPError:
-            logger.debug("code es %s " % ex.code)
+            logger.debug("code %s " % ex.code)
 
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
             logger.error("error en: %s" % message)
@@ -708,14 +699,14 @@ class Tvdb(object):
 
     def __search(self, name, imdb_id, zap2it_id, lang=DEFAULT_LANG):
         """
-        Busca una serie a través de una serie de parámetros.
-        @param name: nombre a buscar
+        Search for a series through a series of parameters.
+        @param name: name to search
         @type name: str
-        @param imdb_id: codigo identificativo de imdb
+        @param imdb_id: imdb identification code
         @type imdb_id: str
-        @param zap2it_id: codigo identificativo de zap2it
+        @param zap2it_id: zap2it identification code
         @type zap2it_id: str
-        @param lang: código de idioma
+        @param lang: language code
         @type lang: str
 
         data:{
@@ -756,10 +747,10 @@ class Tvdb(object):
 
         except Exception as ex:
             # if isinstance(ex, urllib.parse).HTTPError:
-            logger.debug("code es %s " % ex.code)
+            logger.debug("code %s " % ex.code)
 
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             dict_html = jsontools.load(html)
@@ -777,16 +768,16 @@ class Tvdb(object):
                 else:
                     index = 0
 
-                logger.debug("resultado %s" % resultado)
+                logger.debug("result %s" % resultado)
                 self.list_results = resultado
                 self.result = resultado[index]
 
     def __get_by_id(self, _id, lang=DEFAULT_LANG, from_get_list=False):
         """
-        Obtiene los datos de una serie por identificador.
-        @param _id: código de la serie
+        Gets the data for a string by identifier.
+        @param _id: series code
         @type _id: str
-        @param lang: código de idioma
+        @param lang: language code
         @type lang: str
         @rtype: dict
         @return:
@@ -845,10 +836,10 @@ class Tvdb(object):
 
         except Exception as ex:
             # if isinstance(ex, urllib).HTTPError:
-            logger.debug("code es %s " % ex.code)
+            logger.debug("code %s " % ex.code)
 
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
         else:
             dict_html = jsontools.load(html)
@@ -860,7 +851,7 @@ class Tvdb(object):
                 if not resultado1 and from_get_list:
                     return self.__get_by_id(_id, "en")
 
-                logger.debug("resultado %s" % dict_html)
+                logger.debug("Result %s" % dict_html)
                 resultado2 = {"image_poster": [{'keyType': 'poster', 'fileName': 'posters/%s-1.jpg' % _id}]}
                 resultado3 = {"image_fanart": [{'keyType': 'fanart', 'fileName': 'fanart/original/%s-1.jpg' % _id}]}
 
@@ -868,7 +859,7 @@ class Tvdb(object):
                 resultado.update(resultado2)
                 resultado.update(resultado3)
 
-                logger.debug("resultado total %s" % resultado)
+                logger.debug("total result %s" % resultado)
                 self.list_results = [resultado]
                 self.result = resultado
 
@@ -876,15 +867,15 @@ class Tvdb(object):
 
     def get_images(self, _id, image="poster", season=1, lang="en"):
         """
-        Obtiene un tipo de imagen para una serie para un idioma.
-        @param _id: identificador de la serie
+        Gets an image type for a string for a language.
+        @param _id: series identifier
         @type _id: str
-        @param image: codigo de busqueda, ["poster" (por defecto), "fanart", "season"]
+        @param image: search code, ["poster" (default), "fanart", "season"]
         @type image: str
-        @type season: numero de temporada
-        @param lang: código de idioma para el que se busca
+        @type season: season number
+        @param lang: language code for which you are searching
         @type lang: str
-        @return: diccionario con el tipo de imagenes elegidas.
+        @return: dictionary with the type of images chosen.
         @rtype: dict
 
         """
@@ -918,7 +909,7 @@ class Tvdb(object):
 
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error en: %s" % message)
+            logger.error("error: %s" % message)
 
             return {}
 
@@ -932,12 +923,12 @@ class Tvdb(object):
 
     def get_tvshow_cast(self, _id, lang=DEFAULT_LANG):
         """
-        obtiene el casting de una serie
-        @param _id: codigo de la serie
+        gets casting for a series
+        @param _id: series code
         @type _id: str
-        @param lang: codigo idioma para buscar
+        @param lang: language code to search
         @type lang: str
-        @return: diccionario con los actores
+        @return: dictionary with actors
         @rtype: dict
         """
         logger.info()
@@ -958,23 +949,22 @@ class Tvdb(object):
 
     def get_id(self):
         """
-        @return: Devuelve el identificador Tvdb de la serie cargada o una cadena vacia en caso de que no
-            hubiese nada cargado. Se puede utilizar este metodo para saber si una busqueda ha dado resultado o no.
+        @return: Returns the Tvdb identifier of the loaded string or an empty string in case nothing was loaded.
+        You can use this method to find out if a search has been successful or not.
         @rtype: str
         """
         return str(self.result.get('id', ""))
 
     def get_list_results(self):
         """
-        Devuelve los resultados encontramos para una serie.
+        Returns the results we found for a series.
         @rtype: list
-        @return: lista de resultados
+        @return: list of results
         """
         logger.info()
         list_results = []
 
-        # TODO revisar condicion
-        # si tenemos un resultado y tiene seriesName, ya tenemos la info de la serie, no hace falta volver a buscar
+        # if we have a result and it has seriesName, we already have the info of the series, it is not necessary to search again
         if len(self.list_results) == 1 and "seriesName" in self.result:
             list_results.append(self.result)
             info_load = True
@@ -1005,16 +995,15 @@ class Tvdb(object):
 
     def get_infoLabels(self, infoLabels=None, origen=None):
         """
-        @param infoLabels: Informacion extra de la pelicula, serie, temporada o capitulo.
+        @param infoLabels: Extra information about the movie, series, season or chapter.
         @type infoLabels: dict
         @param origen: Diccionario origen de donde se obtiene los infoLabels, por omision self.result
         @type origen: dict
-        @return: Devuelve la informacion extra obtenida del objeto actual. Si se paso el parametro infoLables, el valor
-        devuelto sera el leido como parametro debidamente actualizado.
+        @return: Returns the extra information obtained from the current object. If the infoLables parameter was passed,
+        the value returned will be read as a parameter duly updated.
         @rtype: dict
         """
 
-        # TODO revisar
         if infoLabels:
             # logger.debug("es instancia de infoLabels")
             ret_infoLabels = InfoLabels(infoLabels)
@@ -1024,7 +1013,7 @@ class Tvdb(object):
             # fix
             ret_infoLabels['mediatype'] = 'tvshow'
 
-        # Iniciar listados
+        # Start Listings
         l_castandrole = ret_infoLabels.get('castandrole', [])
 
         # logger.debug("self.result %s" % self.result)
@@ -1067,9 +1056,9 @@ class Tvdb(object):
 
             elif k == 'status':
                 # se traduce los estados de una serie
-                ret_infoLabels['status'] = DICT_STATUS.get(v, v)
+                ret_infoLabels['status'] = v
 
-            # no soy partidario de poner la cadena como studio pero es como lo hace el scraper de manera genérica
+            # I am not in favor of putting the chain as a studio but it is how the scraper does it in a generic way
             elif k == 'network':
                 ret_infoLabels['studio'] = v
 
@@ -1094,8 +1083,8 @@ class Tvdb(object):
                 # ret_infoLabels['code'] = v
 
             elif k in "rating":
-                # traducimos la clasificación por edades (content rating system)
-                ret_infoLabels['mpaa'] = DICT_MPAA.get(v, v)
+                # we translate the age rating (content rating system)
+                ret_infoLabels['mpaa'] = v
 
             elif k in "genre":
                 genre_list = ""
@@ -1104,7 +1093,7 @@ class Tvdb(object):
                         genre_list += ", "
 
                     # traducimos los generos
-                    genre_list += DICT_GENRE.get(i, i)
+                    genre_list += i
 
                 ret_infoLabels['genre'] = genre_list
 
@@ -1121,10 +1110,10 @@ class Tvdb(object):
                 l_castandrole.extend([(p['name'], p['role']) for p in v if p['name'] not in list(dic_aux.keys())])
 
             else:
-                logger.debug("Atributos no añadidos: %s=%s" % (k, v))
+                logger.debug("Attributes not added: %s=%s" % (k, v))
                 pass
 
-        # Ordenar las listas y convertirlas en str si es necesario
+        # Sort the lists and convert them to str if necessary
         if l_castandrole:
             ret_infoLabels['castandrole'] = l_castandrole
 

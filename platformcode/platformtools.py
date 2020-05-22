@@ -581,7 +581,7 @@ def set_infolabels(listitem, item, player=False):
             listitem.setInfo("video", infoLabels_kodi)
         except:
             listitem.setInfo("video", item.infoLabels)
-            logger.error(item.infoLabels)
+            # logger.error(item.infoLabels)
 
     # if item.infoLabels:
     #     if 'mediatype' not in item.infoLabels:

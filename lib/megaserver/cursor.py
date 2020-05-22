@@ -66,15 +66,8 @@ class Cursor(object):
 
     def prepare_decoder(self,offset):
         initial_value = self.initial_value + int(offset/16)
-        try:
-            from Cryptodome.Cipher import AES
-            from Cryptodome.Util import Counter
-            self.decryptor = AES.new(self._file._client.a32_to_str(self.k), AES.MODE_CTR, counter = Counter.new(128, initial_value = initial_value))
-        except:
-            from Crypto.Cipher import AES
-            from Crypto.Util import Counter
-            self.decryptor = AES.new(self._file._client.a32_to_str(self.k), AES.MODE_CTR, counter = Counter.new(128, initial_value = initial_value))
-
+        from lib import pyaes
+        self.decryptor = pyaes.AESModeOfOperationCTR(self._file._client.a32_to_str(self.k), counter=pyaes.Counter(initial_value=initial_value))
         rest = offset - int(offset/16)*16
         if rest:
             self.decode(str(0)*rest)

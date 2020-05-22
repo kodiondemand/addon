@@ -80,7 +80,7 @@ def mark_auto_as_watched(item):
                 videolibrary.mark_content_as_watched2(item)
                 break
 
-            time.sleep(30)
+            time.sleep(5)
 
         # Sincronizacion silenciosa con Trakt
         if sync_with_trakt and config.get_setting("trakt_sync"):
@@ -420,7 +420,7 @@ def mark_content_as_watched_on_kod(path):
 
         elif not PY3 and isinstance(title_plain, (str, unicode)):
             title_plain = title_plain.decode("utf-8").encode("utf-8")   #Hacemos esto porque si no genera esto: u'title_plain'
-        elif PY3 and isinstance(var, bytes):
+        elif PY3 and isinstance(title_plain, bytes):
             title_plain = title_plain.decode('utf-8')
         item.library_playcounts.update({title_plain: playCount_final})  #actualizamos el playCount del .nfo
 
@@ -829,6 +829,11 @@ def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvsh
         sql = 'UPDATE path SET strPath="%s" WHERE idPath=%s' % (strPath, idPath)
         logger.info('sql: ' + sql)
         nun_records, records = execute_sql_kodi(sql)
+    else:
+        progress.update(100)
+        xbmc.sleep(1000)
+        progress.close()
+        return
 
     p = 80
     progress.update(p, config.get_localized_string(20000), config.get_localized_string(80013))

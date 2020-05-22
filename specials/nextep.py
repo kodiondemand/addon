@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-import xbmc, xbmcgui, os
-from platformcode import config, platformtools, logger
+import xbmc, xbmcgui
+from platformcode import config, platformtools
 from time import time, sleep
-from core import scrapertools
 from core import jsontools, filetools
+from core.support import log
+from core.item import Item
+from platformcode.launcher import play_from_library
+
 import sys
 if sys.version_info[0] >= 3:
     from concurrent import futures
@@ -24,19 +27,18 @@ def check(item):
 
 
 def return_item(item):
-    logger.info()
+    log()
     with futures.ThreadPoolExecutor() as executor:
         future = executor.submit(next_ep, item)
         item = future.result()
     return item
 
 def run(item):
-    logger.info()
+    log()
     with futures.ThreadPoolExecutor() as executor:
         future = executor.submit(next_ep, item)
         item = future.result()
     if item.next_ep:
-        from platformcode.launcher import play_from_library
         return play_from_library(item)
 
 
@@ -47,7 +49,7 @@ def videolibrary(item):
 
 
 def next_ep(item):
-    logger.info()
+    log()
     condition = config.get_setting('next_ep')
     item.next_ep = False
     item.show_server = True
@@ -56,16 +58,14 @@ def next_ep(item):
 
     time_over = False
     time_limit = time() + 30
-    time_steps = [20,30,40,50,60,70,80,90,100,110,120]
     time_setting = config.get_setting('next_ep_seconds')
-    TimeFromEnd = time_setting if time_setting > 10 else time_steps[time_setting]
-
+    TimeFromEnd = time_setting
 
     # wait until the video plays
     while not platformtools.is_playing() and time() < time_limit:
         sleep(1)
 
-    while platformtools.is_playing() and time_over == False:
+    while platformtools.is_playing() and not time_over:
         try:
             Total = xbmc.Player().getTotalTime()
             Actual = xbmc.Player().getTime()
@@ -78,11 +78,11 @@ def next_ep(item):
     if time_over:
         if condition == 1: # hide server afther x second
             item.show_server = False
-        elif condition == 2: # play next fileif exist
+        elif condition == 2: # play next file if exist
 
-            # check i next file exist
-            current_filename = os.path.basename(item.strm_path)
-            base_path = os.path.basename(os.path.normpath(os.path.dirname(item.strm_path)))
+            # check if next file exist
+            current_filename = filetools.basename(item.strm_path)
+            base_path = filetools.basename(filetools.dirname(item.strm_path))
             path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"),base_path)
             fileList = []
             for file in filetools.listdir(path):
@@ -96,11 +96,10 @@ def next_ep(item):
                 next_file = None
             else:
                 next_file = fileList[nextIndex]
-                logger.info('NEXTFILE' + next_file)
+                log('Next File:', next_file)
 
             # start next episode window afther x time
             if next_file:
-                from core.item import Item
                 season_ep = next_file.split('.')[0]
                 season = season_ep.split('x')[0]
                 episode = season_ep.split('x')[1]
@@ -111,13 +110,13 @@ def next_ep(item):
                     contentEpisodeNumber= episode,
                     contentSeason= season,
                     contentTitle= next_ep,
-                    contentType= 'tvshow',
-                    infoLabels= {'episode': episode, 'mediatype': 'tvshow', 'season': season, 'title': next_ep},
+                    contentType= 'episode',
+                    infoLabels= {'episode': episode, 'mediatype': 'episode', 'season': season, 'title': next_ep},
                     strm_path= filetools.join(base_path, next_file))
 
                 global INFO
                 INFO = filetools.join(path, next_file.replace("strm", "nfo"))
-                logger.info('NEXTINFO' + INFO)
+                log('Next Info:',INFO)
 
                 nextDialog = NextDialog(ND, config.get_runtime_path())
                 nextDialog.show()
@@ -126,7 +125,7 @@ def next_ep(item):
                     pass
 
                 nextDialog.close()
-                logger.info('Next Episode: ' +str(nextDialog.stillwatching))
+                log('Next Episode:', nextDialog.stillwatching)
 
                 if nextDialog.stillwatching or nextDialog.continuewatching:
                     item.next_ep = True
@@ -135,7 +134,6 @@ def next_ep(item):
                         sleep(1)
                         xbmc.executebuiltin('Action(Back)')
                         sleep(0.5)
-                        from platformcode.launcher import play_from_library
                         return play_from_library(item)
                 else:
                     item.show_server = False
@@ -155,7 +153,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
     continuewatching = True
 
     def __init__(self, *args, **kwargs):
-        logger.info()
+        log()
         self.action_exitkeys_id = [xbmcgui.ACTION_STOP, xbmcgui.ACTION_BACKSPACE, xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK]
         self.progress_control = None
 
@@ -203,7 +201,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
             self.close()
 
     def onAction(self, action):
-        logger.info()
+        log()
         if action in self.action_exitkeys_id:
             self.set_continue_watching(False)
             self.close()

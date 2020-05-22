@@ -73,13 +73,18 @@ def elementum_download(item):
     if elementum_setting:
         set_elementum(True)
         time.sleep(3)
-        TorrentName = match(item.url, patron=r'btih(?::|%3A)([^&%]+)', string=True).match
-        post = 'uri=%s&file=null&all=1' % urllib.quote_plus(item.url)
-        match(elementum_host  + 'add', post=post, timeout=5, alfa_s=True, ignore_response_code=True)
-        while not filetools.isfile(filetools.join(elementum_setting.getSetting('torrents_path'), TorrentName + '.torrent')):
-            time.sleep(1)
+        if config.get_setting('downloadpath').startswith('smb'):
+            select = platformtools.dialog_yesno('Elementum', config.get_localized_string(70807))
+            if select:
+                xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?eyJjaGFubmVsIjoic2hvcnRjdXRzIiwgImFjdGlvbiI6IlNldHRpbmdPblBvc2l0aW9uIiwgImNhdGVnb3J5Ijo2LCAic2V0dGluZyI6MX0=)")
+        else:
+            TorrentName = match(item.url, patron=r'btih(?::|%3A)([^&%]+)', string=True).match
+            post = 'uri=%s&file=null&all=1' % urllib.quote_plus(item.url)
+            match(elementum_host  + 'add', post=post, timeout=5, alfa_s=True, ignore_response_code=True)
+            while not filetools.isfile(filetools.join(elementum_setting.getSetting('torrents_path'), TorrentName + '.torrent')):
+                time.sleep(1)
 
-        monitor_update(TorrentPath, TorrentName)
+            monitor_update(TorrentPath, TorrentName)
 
 
 def elementum_monitor():

@@ -209,7 +209,7 @@ def findvideos(item):
                          url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
                          server= 'directo')
                 )
-    return support.server(item, itemlist=itemlist, down_load=False)
+    return support.server(item, itemlist=itemlist, Download=False)
 
 def make_itemlist(itemlist, item, data):
     search = item.search if item.search else ''

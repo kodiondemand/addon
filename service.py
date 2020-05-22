@@ -256,6 +256,10 @@ def check_for_update(overwrite=True):
     item_dummy = Item()
     videolibrary.list_movies(item_dummy, silent=True)
 
+    if config.get_setting('trakt_sync'):
+        from core import trakt_tools
+        trakt_tools.update_all()
+
 
 def viewmodeMonitor():
     try:

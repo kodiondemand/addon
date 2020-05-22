@@ -50,7 +50,7 @@ def peliculas(item):
 
 
 def findvideos(item):
-    return support.server(item, video_library=False)
+    return support.server(item, Videolibrary=False)
 
 
 def search(item, text):

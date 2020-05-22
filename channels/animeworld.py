@@ -166,6 +166,8 @@ def findvideos(item):
                     url=url,
                     server='directo',
                     fulltitle=item.fulltitle,
+                    contentSerieName=item.contentSerieName,
+                    contentTitle=item.contentTitle,
                     show=item.show,
                     contentType=item.contentType,
                     folder=False))

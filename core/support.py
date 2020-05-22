@@ -37,25 +37,22 @@ def hdpass_get_servers(item):
         page = httptools.downloadpage(url, CF=False).data
         mir = scrapertools.find_single_match(page, patron_mir)
 
-        with futures.ThreadPoolExecutor() as executor:
-            thL = []
-            for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
-                mir_url = scrapertools.decodeHtmlentities(mir_url)
-                log(mir_url)
-                it = Item(channel=item.channel,
-                                action="play",
-                                fulltitle=item.fulltitle,
-                                quality=quality,
-                                show=item.show,
-                                thumbnail=item.thumbnail,
-                                contentType=item.contentType,
-                                title=srv,
-                                # server=srv,
-                                url= mir_url)
-                thL.append(executor.submit(hdpass_get_url, it))
-            for res in futures.as_completed(thL):
-                if res.result():
-                    ret.append(res.result()[0])
+        for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
+            mir_url = scrapertools.decodeHtmlentities(mir_url)
+            log(mir_url)
+            it = Item(channel=item.channel,
+                            action="play",
+                            fulltitle=item.fulltitle,
+                            quality=quality,
+                            show=item.show,
+                            thumbnail=item.thumbnail,
+                            contentType=item.contentType,
+                            title=srv,
+                            server=srv,
+                            url= mir_url)
+            if not servertools.get_server_parameters(srv.lower()):  # do not exists or it's empty
+                it = hdpass_get_url(it)[0]
+            ret.append(it)
         return ret
     # Carica la pagina
     itemlist = []
@@ -217,8 +214,12 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
 
         if scraped['season']:
             stagione = scraped['season']
+            item.infoLabels['season'] = int(scraped['season'])
+            item.infoLabels['episode'] = int(scraped['episode'])
             episode = str(int(scraped['season'])) +'x'+ str(int(scraped['episode'])).zfill(2)
         elif item.season:
+            item.infoLabels['season'] = int(item.season)
+            item.infoLabels['episode'] = int(scrapertools.find_single_match(scraped['episode'], r'(\d+)'))
             episode = item.season +'x'+ scraped['episode']
         elif item.contentType == 'tvshow' and (scraped['episode'] == '' and scraped['season'] == '' and stagione == ''):
             item.news = 'season_completed'
@@ -228,6 +229,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             if 'x' in episode:
                 ep = episode.split('x')
                 episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
+                item.infoLabels['season'] = int(ep[0])
+                item.infoLabels['episode'] = int(ep[1])
             second_episode = scrapertools.find_single_match(episode, r'x\d+x(\d+)')
             if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
 
@@ -243,14 +246,16 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
         if item.infoLabels["title"] == scraped["title"]:
             infolabels = item.infoLabels
         else:
-            infolabels = {}
+            if function == 'episodios':
+                infolabels = item.infoLabels
+            else:
+                infolabels = {}
             if scraped['year']:
                 infolabels['year'] = scraped['year']
             if scraped["plot"]:
                 infolabels['plot'] = plot
             if scraped['duration']:
-                matches = scrapertools.find_multiple_matches(scraped['duration'],
-                                                             r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
+                matches = scrapertools.find_multiple_matches(scraped['duration'],r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
                 for h, m in matches:
                     scraped['duration'] = int(h) * 60 + int(m)
                 if not matches:
@@ -331,8 +336,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 infoLabels=infolabels,
                 thumbnail=item.thumbnail if function == 'episodios' or not scraped["thumb"] else scraped["thumb"],
                 args=item.args,
-                contentSerieName= title if title else item.fulltitle if item.contentType or CT != 'movie' and function != 'episodios' else item.fulltitle if function == 'episodios' else '',
-                contentTitle= title if item.contentType or CT == 'movie' else '',
+                contentSerieName= item.contentSerieName if item.contentSerieName else title if 'movie' not in [item.contentType, CT] and function == 'episodios' else item.fulltitle,
+                contentTitle=item.contentTitle if item.contentTitle else title if 'movie' in [item.contentType, CT] else '',
                 contentLanguage = lang1,
                 contentEpisodeNumber=episode if episode else '',
                 news= item.news if item.news else '',
@@ -506,6 +511,10 @@ def scrape(func):
             itemlist = args['fullItemlistHook'](itemlist)
 
         # itemlist = filterLang(item, itemlist)   # causa problemi a newest
+
+        if config.get_setting('trakt_sync'):
+            from core import trakt_tools
+            trakt_tools.trakt_check(itemlist)
 
         return itemlist
 
@@ -1103,83 +1112,82 @@ def pagination(itemlist, item, page, perpage, function_level=1):
                  thumbnail=thumb()))
     return itemlist
 
-def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, down_load=True, patronTag=None, video_library=True):
-
+def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
+    log()
     if not data and not itemlist:
         data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
     if data:
         itemList = servertools.find_video_items(data=str(data))
         itemlist = itemlist + itemList
     verifiedItemlist = []
-    for videoitem in itemlist:
-        if not videoitem.server:
-            findS = servertools.findvideos(videoitem.url)
-            if findS:
-                findS = findS[0]
-            elif item.channel == 'community':
-                findS= ('Diretto', videoitem.url, 'directo')
-            else:
-                videoitem.url = unshortenit.unshorten(videoitem.url)[0]
-                findS = servertools.findvideos(videoitem.url)
-                if findS:
-                    findS = findS[0]
+
+    def getItem(videoitem):
+        if not servertools.get_server_parameters(videoitem.server.lower()):  # do not exists or it's empty
+            findS = servertools.get_server_from_url(videoitem.url)
+            log(findS)
+            if not findS:
+                if item.channel == 'community':
+                    findS= ('Diretto', videoitem.url, 'directo')
                 else:
-                    log(videoitem, 'Non supportato')
-                    continue
+                    videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
+                    findS = servertools.get_server_from_url(videoitem.url)
+                    if not findS:
+                        log(videoitem, 'Non supportato')
+                        return
             videoitem.server = findS[2]
             videoitem.title = findS[0]
             videoitem.url = findS[1]
 
-        item.title = typo(item.contentTitle.strip(),'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+        item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
-        videoitem.plot= typo(videoitem.title, 'bold') + (typo(videoitem.quality, '_ [] bold') if item.quality else '')
-        videoitem.title = (item.title  if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
+        quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
+        videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
+        videoitem.plot= typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
+        videoitem.channel = item.channel
         videoitem.fulltitle = item.fulltitle
         videoitem.show = item.show
         videoitem.thumbnail = item.thumbnail
-        videoitem.channel = item.channel
         videoitem.contentType = item.contentType
         videoitem.infoLabels = item.infoLabels
-        verifiedItemlist.append(videoitem)
+        videoitem.quality = quality
+        return videoitem
 
+    with futures.ThreadPoolExecutor() as executor:
+        thL = [executor.submit(getItem, videoitem) for videoitem in itemlist]
+        for it in futures.as_completed(thL):
+            if it.result():
+                verifiedItemlist.append(it.result())
+    try:
+        verifiedItemlist.sort(key=lambda it: int(re.sub(r'\D','',it.quality)))
+    except:
+        verifiedItemlist.sort(key=lambda it: it.quality, reverse=True)
     if patronTag:
         addQualityTag(item, verifiedItemlist, data, patronTag)
-    return controls(verifiedItemlist, item, AutoPlay, CheckLinks, down_load, video_library)
 
-def controls(itemlist, item, AutoPlay=True, CheckLinks=True, down_load=True, video_library=True):
-    from core import jsontools
-    from platformcode.config import get_setting
-
-    CL = get_setting('checklinks') or get_setting('checklinks', item.channel)
+    # Auto Play & Hide Links
     AP, HS = autoplay.get_channel_AP_HS(item)
 
-    if CL and not AP:
-        if get_setting('checklinks', item.channel):
-            checklinks = get_setting('checklinks', item.channel)
-            checklinks_number = get_setting('checklinks_number', item.channel)
-        else:
-            checklinks = get_setting('checklinks')
-            checklinks_number = get_setting('checklinks_number')
-        itemlist = servertools.check_list_links(itemlist, checklinks_number)
+    # Check Links
+    if not AP and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
+        if config.get_setting('checklinks', item.channel):
+            checklinks_number = config.get_setting('checklinks_number', item.channel)
+        elif config.get_setting('checklinks'):
+            checklinks_number = config.get_setting('checklinks_number')
+        verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
 
-    if AutoPlay == True and not 'downloads' in inspect.stack()[3][1] + inspect.stack()[4][1]:
-        autoplay.start(itemlist, item)
+    if AutoPlay and not 'downloads' in inspect.stack()[3][1] or not 'downloads' in inspect.stack()[3][1] or not inspect.stack()[4][1]:
+        autoplay.start(verifiedItemlist, item)
 
-    if item.contentChannel != 'videolibrary' and video_library: videolibrary(itemlist, item, function_level=3)
-    if down_load == True: download(itemlist, item, function_level=3)
+    if Videolibrary and item.contentChannel != 'videolibrary':
+        videolibrary(verifiedItemlist, item, function_level=3)
+    if Download:
+        download(verifiedItemlist, item, function_level=3)
 
-    VL = False
-    try:
-        if  'downloads' in inspect.stack()[3][1] + inspect.stack()[4][1] or \
-            inspect.stack()[4][3] == 'play_from_library' or \
-            inspect.stack()[5][3] == 'play_from_library' or \
-            'videolibrary' in inspect.stack()[3][1] or \
-            'videolibrary' in inspect.stack()[4][1]:
-            VL = True
-    except:
-        pass
-    if not AP or VL or not HS:
-        return itemlist
+    if not AP or not HS:
+        # for it in verifiedItemlist:
+        #     log(it)
+        return verifiedItemlist
+
 
 def filterLang(item, itemlist):
     # import channeltools
@@ -1197,14 +1205,16 @@ def aplay(item, itemlist, list_servers='', list_quality=''):
         autoplay.start(itemlist, item)
 
 
-def log(stringa1="", stringa2="", stringa3="", stringa4="", stringa5=""):
+def log(*args):
     # Function to simplify the log
     # Automatically returns File Name and Function Name
-
+    string = ''
+    for arg in args:
+        string += ' '+str(arg)
     frame = inspect.stack()[1]
     filename = frame[0].f_code.co_filename
     filename = os.path.basename(filename)
-    logger.info("[" + filename + "] - [" + inspect.stack()[1][3] + "] " + str(stringa1) + ( ' ' + str(stringa2) if stringa2 else '') + ( ' ' + str(stringa3) if stringa3 else '') + ( ' ' + str(stringa4) if stringa4 else '') + ( ' ' + str(stringa5) if stringa5 else '') )
+    logger.info("[" + filename + "] - [" + inspect.stack()[1][3] + "] " + string)
 
 
 def channel_config(item, itemlist):
@@ -1302,9 +1312,12 @@ def addQualityTag(item, itemlist, data, patron):
 def get_jwplayer_mediaurl(data, srvName):
     video_urls = []
     block = scrapertools.find_single_match(data, r'sources: \[([^\]]+)\]')
-    sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
-    if not sources:
+    if 'file:' in block:
+        sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
+    elif 'src:' in block:
         sources = scrapertools.find_multiple_matches(data, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+",[^,]+,\s*label:\s*"([^"]+)"')
+    else:
+        sources =[(block.replace('"',''), '')]
     for url, quality in sources:
         quality = 'auto' if not quality else quality
         if url.split('.')[-1] != 'mpd':

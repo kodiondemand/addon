@@ -101,6 +101,7 @@ def check(background=False):
                     localCommitFile = open(os.path.join(xbmc.translatePath("special://home/addons/"), 'plugin.video.kod', trackingFile), 'w')  # il file di tracking viene eliminato, lo ricreo
                     changelog += commitJson['commit']['message'] + "\n"
                     poFilesChanged = True
+                    serviceChanged = True
                     break
 
                 for file in commitJson['files']:
@@ -172,13 +173,6 @@ def check(background=False):
             localCommitFile = open(
                 os.path.join(xbmc.translatePath("special://home/addons/"), 'plugin.video.kod', trackingFile),
                 'w')  # il file di tracking viene eliminato, lo ricreo
-        if addon.getSetting("addon_update_message"):
-            if background:
-                platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
-                with open(xbmc.translatePath(changelogFile), 'a+') as fileC:
-                    fileC.write(changelog)
-            elif changelog:
-                platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80041) + changelog)
 
         localCommitFile.seek(0)
         localCommitFile.truncate()
@@ -188,6 +182,14 @@ def check(background=False):
         if poFilesChanged:
             refreshLang()
         updated = True
+
+        if addon.getSetting("addon_update_message"):
+            if background:
+                platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
+                with open(xbmc.translatePath(changelogFile), 'a+') as fileC:
+                    fileC.write(changelog)
+            elif changelog:
+                platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80041) + changelog)
     else:
         logger.info('Nessun nuovo aggiornamento')
 

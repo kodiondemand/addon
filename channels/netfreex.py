@@ -7,7 +7,10 @@ from core import support
 from core.item import Item
 from platformcode import logger, config
 
-host = config.get_channel_url()
+def findhost():
+    return 'https://' + support.match('https://netfreex.uno/', patron='value="site:([^"]+)"').match
+
+host = config.get_channel_url(findhost)
 headers = ""
 
 IDIOMAS = {'Italiano': 'IT'}

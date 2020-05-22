@@ -984,7 +984,7 @@ class Tmdb(object):
                 url += '&year=%s' % self.busqueda_year
 
             buscando = self.busqueda_texto.capitalize()
-            logger.info("[Tmdb.py] Buscando %s en pagina %s:\n%s" % (buscando, page, url))
+            logger.info("[Tmdb.py] Searching %s on page %s:\n%s" % (buscando, page, url))
             resultado = self.get_json(url)
             if not isinstance(resultado, dict):
                 resultado = ast.literal_eval(resultado.decode('utf-8'))

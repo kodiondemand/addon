@@ -8,6 +8,9 @@ from core import httptools, jsontools
 from core.item import Item
 from platformcode import config, logger
 from threading import Thread
+import sys
+if sys.version_info[0] >= 3: from concurrent import futures
+else: from concurrent_py2 import futures
 
 client_id = "502bd1660b833c1ae69828163c0848e84e9850061e5529f30930e7356cae73b1"
 client_secret = "1d30d5b24acf223a5e1ab6c61d08b69992d98ed5b0c7e26b052b5e6a592035a4"
@@ -196,58 +199,37 @@ def get_trakt_watched(id_type, mediatype, update=False):
 
 
 def trakt_check(itemlist):
-    from core.support import typo
-    id_result = ''
-    # check = u'\u221a'
-    check = typo(u'\u221a','[] color kod bold')+' '
-    synced = False
-    try:
-        for item in itemlist:
-            info = item.infoLabels
+    def sync(item, id_result):
+        info = item.infoLabels
+        try:
+            if info['mediatype'] == 'movie' and info['tmdb_id'] in id_result[info['mediatype']]:
+                item.infoLabels['playcount'] = 1
+            elif info['mediatype'] == 'episode' and info['tmdb_id'] in id_result[info['mediatype']]:
+                id = info['tmdb_id']
+                if info['season'] and info['episode'] and \
+                    str(info['season']) in id_result[info['mediatype']][id] and \
+                    str(info['episode']) in id_result[info['mediatype']][id][str(info['season'])]:
+                    item.infoLabels['playcount'] = 1
+        except:
+            pass
 
-            if info != '' and info['mediatype'] in ['movie', 'episode'] and item.channel != 'videolibrary':
+    if itemlist and itemlist[0].channel != 'videolibrary' \
+        and 'mediatype' in itemlist[0].infoLabels \
+        and itemlist[0].infoLabels['mediatype'] in ['movie', 'episode']:
 
-                if not synced:
-                    get_sync_from_file()
-                    synced = True
+        id_result = {}
+        id_result['movie'] = get_trakt_watched('tmdb', 'movies', True)
+        id_result['episode'] = get_trakt_watched('tmdb', 'shows', True)
 
-                mediatype = 'movies'
-                id_type = 'tmdb'
-
-                if info['mediatype'] == 'episode':
-                    mediatype = 'shows'
-
-                if id_result == '':
-                    id_result = get_trakt_watched(id_type, mediatype)
-                if info['mediatype'] == 'movie':
-                    if info[id_type + '_id'] in id_result:
-                        item.title = check + item.title
-
-                elif info['mediatype'] == 'episode':
-                    if info[id_type + '_id'] in id_result:
-                        id = info[id_type + '_id']
-                        if info['season'] != '' and info['episode'] != '':
-                            season = str(info['season'])
-
-                            if season in id_result[id]:
-                                episode = str(info['episode'])
-
-                                if episode in id_result[id][season]:
-                                    season_watched = id_result[id][season]
-
-                                    if episode in season_watched:
-                                        item.title = check + item.title
-            else:
-                break
-    except:
-        pass
+        with futures.ThreadPoolExecutor() as executor:
+            [executor.submit(sync, it, id_result) for it in itemlist]
 
     return itemlist
 
 
 def get_sync_from_file():
     logger.info()
-    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt')
+    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt_data.json')
     trakt_node = {}
     if os.path.exists(sync_path):
         trakt_node = jsontools.get_node_from_file('trakt', "TRAKT")
@@ -260,7 +242,7 @@ def get_sync_from_file():
 def update_trakt_data(mediatype, trakt_data):
     logger.info()
 
-    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt')
+    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt_data.json')
     if os.path.exists(sync_path):
         trakt_node = jsontools.get_node_from_file('trakt', "TRAKT")
         trakt_node[mediatype] = trakt_data
@@ -289,6 +271,7 @@ def wait_for_update_trakt():
     t.isAlive()
 
 def update_all():
+    # from core.support import dbg;dbg()
     from time import sleep
     logger.info()
     sleep(20)

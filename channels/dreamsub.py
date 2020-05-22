@@ -137,7 +137,7 @@ def findvideos(item):
                 language = 'ITA'
             if 'sub' in lang.lower():
                 language = 'Sub-' + language
-            quality = url.split('/')[-1]
+            quality = url.split('/')[-1].split('?')[0]
 
             itemlist.append(
                 support.Item(channel=item.channel,

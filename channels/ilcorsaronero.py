@@ -93,5 +93,5 @@ def search(item, text):
 
 def findvideos(item):
     if item.contentType == 'tvshow': item.contentType = 'episode'
-    video_library = True if 'movie' in item.args else False
-    return support.server(item, support.match(item.url, patron=r'"(magnet[^"]+)').match, video_library=video_library)
+    Videolibrary = True if 'movie' in item.args else False
+    return support.server(item, support.match(item.url, patron=r'"(magnet[^"]+)').match, Videolibrary=Videolibrary)

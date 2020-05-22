@@ -2504,6 +2504,10 @@ msgctxt "#60598"
 msgid "Video library configuration"
 msgstr ""
 
+msgctxt "#60599"
+msgid "Video library update configuration"
+msgstr ""
+
 msgctxt "#60600"
 msgid "TV shows"
 msgstr ""
@@ -5181,7 +5185,7 @@ msgid "Remove"
 msgstr ""
 
 msgctxt "#70600"
-msgid "Add Season"
+msgid "Add season"
 msgstr ""
 
 msgctxt "#70601"
@@ -6010,6 +6014,10 @@ msgstr ""
 msgctxt "#70806"
 msgid "Changing this parameter permanently overwrites the Elementum settings.\nDo you want to continue?"
 msgstr ""
+
+msgctxt "#70807"
+msgid "Elementum does not support network folder downloads, do you want to change the download location?"
+msgstr "Elementum non supporta i download su cartella di rete, vuoi cambiare il percorso di download?"
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

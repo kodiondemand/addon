@@ -126,3 +126,6 @@ def newest(categoria):
 def findvideos(item):
     support.log('findvideos ->', item)
     return support.hdpass_get_servers(item)
+
+def play(item):
+    return support.hdpass_get_url(item)
