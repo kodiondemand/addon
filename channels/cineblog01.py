@@ -135,7 +135,7 @@ def episodios(item):
     data = support.match(item.url, headers=headers).data
     support.log(data)
     if 'TUTTA LA ' in data:
-        folderUrl = scrapertools.find_single_match(data, 'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="([^"]+)')
+        folderUrl = scrapertools.find_single_match(data, 'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl).data
         patron = r'<a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
         sceneTitle = True
