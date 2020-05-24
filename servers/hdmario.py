@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from threading import Thread
 
-from core import httptools, scrapertools
+from core import httptools, scrapertools, filetools
 from platformcode import logger, config
-from BaseHTTPServer import BaseHTTPRequestHandler
 
 baseUrl = 'https://hdmario.live'
 
@@ -24,25 +22,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     secureProof = scrapertools.find_single_match(data, '\|(\w{22})\|')
     logger.info('X-Secure-Proof=' + secureProof)
 
-    from BaseHTTPServer import HTTPServer
-    server = HTTPServer(('localhost', 9017), GetHandler)
-    Thread(target=server.serve_forever).start()
+    data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '') + '.m3u8', headers=[['X-Secure-Proof', secureProof]]).data
+    filetools.write('special://temp/hdmario.m3u8', data, 'w')
 
-    video_urls = [['.m3u8 [HDmario]', 'http://localhost:9017/master/' + page_url.split('/')[-1].replace('?', '')]]
+    video_urls = [['.m3u8 [HDmario]', 'special://temp/hdmario.m3u8']]
 
     return video_urls
-
-def shutdown():
-    import time
-    time.sleep(1)
-    server.shutdown()
-
-class GetHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        global secureProof
-        data = httptools.downloadpage(baseUrl + self.path, headers=[['X-Secure-Proof', secureProof]]).data
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(data)
-        Thread(target=shutdown).start()
-        return
