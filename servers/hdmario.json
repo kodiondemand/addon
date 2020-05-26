@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "https?://hdmario.live/embed/([0-9]+)",
-        "url": "https://hdmario.live/embed/\\1?"
+        "url": "https://hdmario.live/embed/\\1"
       }
     ]
   },
