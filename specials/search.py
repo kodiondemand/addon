@@ -611,7 +611,7 @@ def discover_list(item):
             tvshow = True
         elem['tmdb_id'] = elem['id']
 
-        mode = item.mode or elem['media_type']
+        mode = item.mode or elem['mediatype']
         thumbnail = elem.get('thumbnail', '')
         fanart = elem.get('fanart', '')
 
