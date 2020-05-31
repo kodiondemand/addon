@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 
-#from builtins import str
+# from builtins import str
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -9,8 +9,7 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 import os
 from core.item import Item
 from core import jsontools
-from platformcode import config, logger
-from platformcode import launcher
+from platformcode import config, logger, launcher
 import xbmc, xbmcgui, xbmcplugin, xbmcaddon
 
 media_path = os.path.join(config.get_runtime_path(), "resources/skins/Default/media/side_menu/")
@@ -113,7 +112,7 @@ class Main(xbmcgui.WindowXMLDialog):
         self.items = []
 
     def onInit(self):
-        #### Compatibilidad con Kodi 18 ####
+        #### Kodi 18 compatibility ####
         if config.get_platform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
         

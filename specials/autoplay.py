@@ -8,12 +8,9 @@ from builtins import range
 
 import os
 
-from core import channeltools
-from core import jsontools
+from core import channeltools, jsontools
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
-from platformcode import launcher
+from platformcode import config, logger, platformtools, launcher
 from time import sleep
 from platformcode.config import get_setting
 
@@ -28,7 +25,7 @@ colorKOD = '0xFF65B3DA'
 
 def context():
     '''
-    Agrega la opcion Configurar AutoPlay al menu contextual
+    Add the Configure AutoPlay option to the context menu
 
     :return:
     '''
@@ -47,12 +44,12 @@ context = context()
 
 def show_option(channel, itemlist, text_color=colorKOD, thumbnail=None, fanart=None):
     '''
-    Agrega la opcion Configurar AutoPlay en la lista recibida
+    Add the option Configure AutoPlay in the received list
 
     :param channel: str
     :param itemlist: list (lista donde se desea integrar la opcion de configurar AutoPlay)
-    :param text_color: str (color para el texto de la opcion Configurar Autoplay)
-    :param thumbnail: str (direccion donde se encuentra el thumbnail para la opcion Configurar Autoplay)
+    :param text_color: str (color for the text of the option Configure Autoplay)
+    :param thumbnail: str (address where the thumbnail is for the Configure Autoplay option)
     :return:
     '''
     from channelselector import get_thumb
@@ -85,14 +82,16 @@ def show_option(channel, itemlist, text_color=colorKOD, thumbnail=None, fanart=N
 
 def start(itemlist, item):
     '''
-    Metodo principal desde donde se reproduce automaticamente los enlaces
-    - En caso la opcion de personalizar activa utilizara las opciones definidas por el usuario.
-    - En caso contrario intentara reproducir cualquier enlace que cuente con el idioma preferido.
+    Main method from which the links are automatically reproduced
+    - In case the option to activate it will use the options defined by the user.
+    - Otherwise it will try to reproduce any link that has the preferred language.
 
-    :param itemlist: list (lista de items listos para reproducir, o sea con action='play')
-    :param item: item (el item principal del canal)
-    :return: intenta autoreproducir, en caso de fallar devuelve el itemlist que recibio en un principio
+    :param itemlist: list (list of items ready to play, ie with action = 'play')
+    :param item: item (the main item of the channel)
+    :return: try to auto-reproduce, in case of failure it returns the itemlist that it received in the beginning
     '''
+    if item.global_search:
+        return itemlist
     logger.info()
 
     global PLAYED
@@ -103,11 +102,11 @@ def start(itemlist, item):
 
     
     if not config.is_xbmc():
-        #platformtools.dialog_notification('AutoPlay ERROR', 'Sólo disponible para XBMC/Kodi')
+        # platformtools.dialog_notification('AutoPlay ERROR', 'Sólo disponible para XBMC/Kodi')
         return itemlist
 
     if not autoplay_node:
-        # Obtiene el nodo AUTOPLAY desde el json
+        # Get AUTOPLAY node from json
         autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 
     channel_id = item.channel
@@ -122,12 +121,12 @@ def start(itemlist, item):
     if not channel_id in autoplay_node: # or not active:
         return itemlist
 
-    # Agrega servidores y calidades que no estaban listados a autoplay_node
+    # Add servers and qualities not listed to autoplay_node
     new_options = check_value(channel_id, itemlist)
 
-    # Obtiene el nodo del canal desde autoplay_node
+    # Get the channel node from autoplay_node
     channel_node = autoplay_node.get(channel_id, {})
-    # Obtiene los ajustes des autoplay para este canal
+    # Get the autoplay settings for this channel
     settings_node = channel_node.get('settings', {})
 
     if get_setting('autoplay') or settings_node['active']:
@@ -138,66 +137,65 @@ def start(itemlist, item):
         favorite_servers = []
         favorite_quality = []
 
-        #2nd lang, vemos si se quiere o no filtrar
+        # 2nd lang, see if you want to filter or not
         status_language = config.get_setting("filter_languages", channel_id)
 
 
-        # Guarda el valor actual de "Accion y Player Mode" en preferencias
+        # Save the current value of "Action and Player Mode" in preferences
         user_config_setting_action = config.get_setting("default_action")
         user_config_setting_player = config.get_setting("player_mode")
-        # Habilita la accion "Ver en calidad alta" (si el servidor devuelve más de una calidad p.e. gdrive)
+        # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
         if user_config_setting_action != 2:
             config.set_setting("default_action", 2)
         if user_config_setting_player != 0:
             config.set_setting("player_mode", 0)
 
-        # Informa que AutoPlay esta activo
-        #platformtools.dialog_notification('AutoPlay Activo', '', sound=False)
+        # Report that AutoPlay is active
+        # platformtools.dialog_notification('AutoPlay Activo', '', sound=False)
 
-        # Prioridades a la hora de ordenar itemlist:
-        #       0: Servidores y calidades
-        #       1: Calidades y servidores
-        #       2: Solo servidores
-        #       3: Solo calidades
-        #       4: No ordenar
+        # Priorities when ordering itemlist:
+        #       0: Servers and qualities
+        #       1: Qualities and servers
+        #       2: Servers only
+        #       3: Only qualities
+        #       4: Do not order
         if (settings_node['custom_servers'] and settings_node['custom_quality']) or get_setting('autoplay'):
-            priority = settings_node['priority']  # 0: Servidores y calidades o 1: Calidades y servidores
+            priority = settings_node['priority']  # 0: Servers and qualities or 1: Qualities and servers
         elif settings_node['custom_servers']:
-            priority = 2  # Solo servidores
+            priority = 2  # Servers only
         elif settings_node['custom_quality']:
-            priority = 3  # Solo calidades
+            priority = 3  # Only qualities
         else:
-            priority = 4  # No ordenar
+            priority = 4  # Do not order
 
-        # Obtiene las listas servidores, calidades disponibles desde el nodo del json de AutoPlay
+        # Get server lists, qualities available from AutoPlay json node
         server_list = channel_node.get('servers', [])
         for server in server_list:
             server = server.lower()
         quality_list = channel_node.get('quality', [])
 
-        # Si no se definen calidades la se asigna default como calidad unica
+        # If no qualities are defined, default is assigned as unique quality.
         if len(quality_list) == 0:
             quality_list =['default']
 
-        # Se guardan los textos de cada servidor y calidad en listas p.e. favorite_servers = ['verystream', 'openload',
-        # 'streamcloud']
+        # The texts of each server and quality are stored in lists, e.g. favorite_servers = ['verystream', 'openload', 'streamcloud']
         for num in range(1, 4):
             favorite_servers.append(channel_node['servers'][settings_node['server_%s' % num]].lower())
             favorite_quality.append(channel_node['quality'][settings_node['quality_%s' % num]])
 
-        # Se filtran los enlaces de itemlist y que se correspondan con los valores de autoplay
+        # Itemlist links are filtered and correspond to autoplay values
         for n, item in enumerate(itemlist):
             autoplay_elem = dict()
             b_dict = dict()
 
-            # Comprobamos q se trata de un item de video
+            # We check that it is a video item
             if 'server' not in item:
                 continue
-            #2nd lang lista idiomas
+            # 2nd lang language list
             if item.language not in favorite_langs:
                 favorite_langs.append(item.language)
 
-            # Agrega la opcion configurar AutoPlay al menu contextual
+            # Add the option to configure AutoPlay to the context menu
             if 'context' not in item:
                 item.context = list()
             if not [x for x in context if x['action'] == 'autoplay_config']:
@@ -206,15 +204,14 @@ def start(itemlist, item):
                                      "channel": "autoplay",
                                      "from_channel": channel_id})
 
-            # Si no tiene calidad definida le asigna calidad 'default'
+            # If it does not have a defined quality, it assigns a 'default' quality.
             if item.quality == '':
                 item.quality = 'default'
 
-            # Se crea la lista para configuracion personalizada
-            if priority < 2:  # 0: Servidores y calidades o 1: Calidades y servidores
+            # The list for custom settings is created
+            if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
 
-                # si el servidor y la calidad no se encuentran en las listas de favoritos o la url esta repetida,
-                # descartamos el item
+                # if the server and the quality are not in the favorites lists or the url is repeated, we discard the item
                 if item.server.lower() not in favorite_servers or item.quality not in favorite_quality \
                         or item.url in url_list_valid:
                     item.type_b = True
@@ -225,10 +222,9 @@ def start(itemlist, item):
                 autoplay_elem["indice_server"] = favorite_servers.index(item.server.lower())
                 autoplay_elem["indice_quality"] = favorite_quality.index(item.quality)
 
-            elif priority == 2:  # Solo servidores
+            elif priority == 2:  # Servers only
 
-                # si el servidor no se encuentra en la lista de favoritos o la url esta repetida,
-                # descartamos el item
+                # if the server is not in the favorites list or the url is repeated, we discard the item
                 if item.server.lower() not in favorite_servers or item.url in url_list_valid:
                     item.type_b = True
                     b_dict['videoitem'] = item
@@ -239,8 +235,7 @@ def start(itemlist, item):
 
             elif priority == 3:  # Solo calidades
 
-                # si la calidad no se encuentra en la lista de favoritos o la url esta repetida,
-                # descartamos el item
+                # if the quality is not in the favorites list or the url is repeated, we discard the item
                 if item.quality not in favorite_quality or item.url in url_list_valid:
                     item.type_b = True
                     b_dict['videoitem'] = item
@@ -249,13 +244,13 @@ def start(itemlist, item):
                 autoplay_elem["indice_lang"] = favorite_langs.index(item.language)
                 autoplay_elem["indice_quality"] = favorite_quality.index(item.quality)
 
-            else:  # No ordenar
+            else:  # Do not order
 
-                # si la url esta repetida, descartamos el item
+                # if the url is repeated, we discard the item
                 if item.url in url_list_valid:
                     continue
 
-            # Si el item llega hasta aqui lo añadimos al listado de urls validas y a autoplay_list
+            # If the item reaches here we add it to the list of valid urls and to autoplay_list
             url_list_valid.append(item.url)
             item.plan_b=True
             autoplay_elem['videoitem'] = item
@@ -263,20 +258,20 @@ def start(itemlist, item):
             # autoplay_elem['quality'] = item.quality
             autoplay_list.append(autoplay_elem)
 
-        # Ordenamos segun la prioridad
-        if priority == 0:  # Servidores y calidades
+        # We order according to priority
+        if priority == 0:  # Servers and qualities
             autoplay_list.sort(key=lambda orden: (orden['indice_lang'], orden['indice_server'], orden['indice_quality']))
 
-        elif priority == 1:  # Calidades y servidores
+        elif priority == 1:  # Qualities and servers
             autoplay_list.sort(key=lambda orden: (orden['indice_lang'], orden['indice_quality'], orden['indice_server']))
 
-        elif priority == 2:  # Solo servidores
+        elif priority == 2:  # Servers only
             autoplay_list.sort(key=lambda orden: (orden['indice_lang'], orden['indice_server']))
 
-        elif priority == 3:  # Solo calidades
+        elif priority == 3:  # Only qualities
             autoplay_list.sort(key=lambda orden: (orden['indice_lang'], orden['indice_quality']))
 
-        # Se prepara el plan b, en caso de estar activo se agregan los elementos no favoritos al final
+        # Plan b is prepared, in case it is active the non-favorite elements are added at the end
         try:
             plan_b = settings_node['plan_b']
         except:
@@ -284,23 +279,22 @@ def start(itemlist, item):
         text_b = ''
         if plan_b:
             autoplay_list.extend(autoplay_b)
-        # Si hay elementos en la lista de autoplay se intenta reproducir cada elemento, hasta encontrar uno
-        # funcional o fallen todos
+        # If there are elements in the autoplay list, an attempt is made to reproduce each element, until one is found or all fail.
 
         if autoplay_list or (plan_b and autoplay_b):
 
-            #played = False
+            # played = False
             max_intentos = 5
             max_intentos_servers = {}
 
-            # Si se esta reproduciendo algo detiene la reproduccion
+            # If something is playing it stops playing
             if platformtools.is_playing():
                 platformtools.stop_video()
 
             for autoplay_elem in autoplay_list:
                 play_item = Item
 
-                # Si no es un elemento favorito si agrega el texto plan b
+                # If it is not a favorite element if you add the text plan b
                 if autoplay_elem['videoitem'].type_b:
                     text_b = '(Plan B)'
                 if not platformtools.is_playing() and not PLAYED:
@@ -308,7 +302,7 @@ def start(itemlist, item):
                     if videoitem.server.lower() not in max_intentos_servers:
                         max_intentos_servers[videoitem.server.lower()] = max_intentos
 
-                    # Si se han alcanzado el numero maximo de intentos de este servidor saltamos al siguiente
+                    # If the maximum number of attempts of this server have been reached, we jump to the next
                     if max_intentos_servers[videoitem.server.lower()] == 0:
                         continue
 
@@ -318,10 +312,9 @@ def start(itemlist, item):
 
                     platformtools.dialog_notification("AutoPlay %s" %text_b, "%s%s%s" % (
                         videoitem.server.upper(), lang, videoitem.quality.upper()), sound=False)
-                    # TODO videoitem.server es el id del server, pero podria no ser el nombre!!!
+                    # TODO videoitem.server is the id of the server, but it might not be the name !!!
 
-                    # Intenta reproducir los enlaces
-                    # Si el canal tiene metodo play propio lo utiliza
+                    # Try to play the links If the channel has its own play method, use it
                     try:
                         channel = __import__('channels.%s' % channel_id, None, None, ["channels.%s" % channel_id])
                     except:
@@ -334,19 +327,19 @@ def start(itemlist, item):
                             else:
                                 videoitem = resolved_item[0]
 
-                    # Si no directamente reproduce y marca como visto
+                    # If not directly reproduce and mark as seen
 
-                    # Verifica si el item viene de la videoteca
+                    #Check if the item comes from the video library
                     try:
                         if base_item.contentChannel =='videolibrary':
-                            # Marca como visto
+                            # Mark as seen
                             from platformcode import xbmc_videolibrary
                             xbmc_videolibrary.mark_auto_as_watched(base_item)
-                            # Rellena el video con los datos del item principal y reproduce
+                            # Fill the video with the data of the main item and play
                             play_item = base_item.clone(url=videoitem)
                             platformtools.play_video(play_item.url, autoplay=True)
                         else:
-                            # Si no viene de la videoteca solo reproduce
+                            # If it doesn't come from the video library, just play
                             platformtools.play_video(videoitem, autoplay=True)
                     except:
                         pass
@@ -358,18 +351,16 @@ def start(itemlist, item):
                     except:
                         logger.debug(str(len(autoplay_list)))
 
-                    # Si hemos llegado hasta aqui es por q no se ha podido reproducir
+                    # If we have come this far, it is because it could not be reproduced
                     max_intentos_servers[videoitem.server.lower()] -= 1
 
-                    # Si se han alcanzado el numero maximo de intentos de este servidor
-                    # preguntar si queremos seguir probando o lo ignoramos
+                    # If the maximum number of attempts of this server has been reached, ask if we want to continue testing or ignore it.
                     if max_intentos_servers[videoitem.server.lower()] == 0:
                         text = config.get_localized_string(60072) % videoitem.server.upper()
-                        if not platformtools.dialog_yesno("AutoPlay", text,
-                                                          config.get_localized_string(60073)):
+                        if not platformtools.dialog_yesno("AutoPlay", text, config.get_localized_string(60073)):
                             max_intentos_servers[videoitem.server.lower()] = max_intentos
 
-                    # Si no quedan elementos en la lista se informa
+                    # If there are no items in the list, it is reported
                     if autoplay_elem == autoplay_list[-1]:
                          platformtools.dialog_notification('AutoPlay', config.get_localized_string(60072) % videoitem.server.upper())
 
@@ -378,7 +369,7 @@ def start(itemlist, item):
         if new_options:
             platformtools.dialog_notification("AutoPlay", config.get_localized_string(60076), sound=False)
 
-        # Restaura si es necesario el valor previo de "Accion y Player Mode" en preferencias
+        # Restore if necessary the previous value of "Action and Player Mode" in preferences
         if user_config_setting_action != 2:
             config.set_setting("default_action", user_config_setting_action)
         if user_config_setting_player != 0:
@@ -389,15 +380,15 @@ def start(itemlist, item):
 
 def init(channel, list_servers, list_quality, reset=False):
     '''
-    Comprueba la existencia de canal en el archivo de configuracion de Autoplay y si no existe lo añade.
-    Es necesario llamar a esta funcion al entrar a cualquier canal que incluya la funcion Autoplay.
+    Check the existence of a channel in the Autoplay configuration file and if it does not exist, add it.
+    It is necessary to call this function when entering any channel that includes the Autoplay function.
 
-    :param channel: (str) id del canal
-    :param list_servers: (list) lista inicial de servidores validos para el canal. No es necesario incluirlos todos,
-        ya que la lista de servidores validos se ira actualizando dinamicamente.
-    :param list_quality: (list) lista inicial de calidades validas para el canal. No es necesario incluirlas todas,
-        ya que la lista de calidades validas se ira actualizando dinamicamente.
-    :return: (bool) True si la inicializacion ha sido correcta.
+    :param channel: (str) channel id
+    :param list_servers: (list) initial list of valid servers for the channel. It is not necessary to include them all,
+        since the list of valid servers will be updated dynamically.
+    :param list_quality: (list) initial list of valid qualities for the channel. It is not necessary to include them all,
+        since the list of valid qualities will be updated dynamically.
+    :return: (bool) True if the initialization was successful.
     '''
     logger.info()
     change = False
@@ -418,13 +409,13 @@ def init(channel, list_servers, list_quality, reset=False):
         if channel not in autoplay_node or reset:
             change = True
 
-            # Se comprueba que no haya calidades ni servidores duplicados
+            # It is verified that there are no duplicate qualities or servers
             if 'default' not in list_quality:
                 list_quality.append('default')
             # list_servers = list(set(list_servers))
             # list_quality = list(set(list_quality))
 
-            # Creamos el nodo del canal y lo añadimos
+            # We create the channel node and add it
             channel_node = {"servers": list_servers,
                             "quality": list_quality,
                             "settings": {
@@ -458,11 +449,11 @@ def init(channel, list_servers, list_quality, reset=False):
 
 
 def check_value(channel, itemlist):
-    ''' comprueba la existencia de un valor en la lista de servidores o calidades
-        si no existiera los agrega a la lista en el json
+    ''' 
+    checks the existence of a value in the list of servers or qualities if it does not exist adds them to the list in the json
 
     :param channel: str
-    :param values: list (una de servidores o calidades)
+    :param values: list (one of servers or qualities)
     :param value_type: str (server o quality)
     :return: list
     '''
@@ -471,7 +462,7 @@ def check_value(channel, itemlist):
     change = False
 
     if not autoplay_node:
-        # Obtiene el nodo AUTOPLAY desde el json
+        # Get AUTOPLAY node from json
         autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 
     channel_node = autoplay_node.get(channel)
@@ -507,7 +498,7 @@ def autoplay_config(item):
     channel_name = channel_parameters['title']
 
     if not autoplay_node:
-        # Obtiene el nodo AUTOPLAY desde el json
+        # Get AUTOPLAY node from json
         autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 
     channel_node = autoplay_node.get(item.from_channel, {})
@@ -515,21 +506,19 @@ def autoplay_config(item):
 
     allow_option = True
 
-    active_settings = {"id": "active", "label": config.get_localized_string(60079),
-                      "type": "bool", "default": False, "enabled": allow_option,
-                       "visible": allow_option}
+    active_settings = {"id": "active", "label": config.get_localized_string(60079), "type": "bool",
+                       "default": False, "enabled": allow_option, "visible": allow_option}
 
     list_controls.append(active_settings)
     dict_values['active'] = settings_node.get('active', False)
 
-    hide_servers = {"id": "hide_servers", "label": config.get_localized_string(70747),
-                      "type": "bool", "default": False, "enabled": "eq(-" + str(len(list_controls)) + ",true)",
-                       "visible": allow_option}
+    hide_servers = {"id": "hide_servers", "label": config.get_localized_string(70747), "type": "bool",
+                    "default": False, "enabled": "eq(-" + str(len(list_controls)) + ",true)", "visible": allow_option}
 
     list_controls.append(hide_servers)
     dict_values['hide_servers'] = settings_node.get('hide_servers', False)
 
-    # Idioma
+    # Language
     status_language = config.get_setting("filter_languages", item.from_channel)
     if not status_language:
         status_language = 0
@@ -546,7 +535,7 @@ def autoplay_config(item):
                  "type": "label", "enabled": True, "visible": True}
     list_controls.append(separador)
 
-    # Seccion servidores favoritos
+    # Favorite servers section
     server_list = channel_node.get("servers", [])
     if not server_list:
         enabled = False
@@ -578,7 +567,7 @@ def autoplay_config(item):
         if settings_node.get("server_%s" % num, 0) > len(server_list) - 1:
             dict_values["server_%s" % num] = 0
 
-    # Seccion Calidades favoritas
+    # Favorite Qualities Section
     quality_list = channel_node.get("quality", [])
     if not quality_list:
         enabled = False
@@ -586,8 +575,7 @@ def autoplay_config(item):
     else:
         enabled = "eq(-" + str(len(list_controls)) + ",true)"
 
-    custom_quality_settings = {"id": "custom_quality", "label": config.get_localized_string(60083),
-                               "type": "bool", "default": False, "enabled": enabled, "visible": True}
+    custom_quality_settings = {"id": "custom_quality", "label": config.get_localized_string(60083), "type": "bool", "default": False, "enabled": enabled, "visible": True}
     custom_quality_pos = len(list_controls)
     list_controls.append(custom_quality_settings)
     if dict_values['active'] and enabled:
@@ -617,7 +605,7 @@ def autoplay_config(item):
     list_controls.append(plan_b)
 
 
-    # Seccion Prioridades
+    # Priorities Section
     priority_list = [config.get_localized_string(70174), config.get_localized_string(70175)]
     set_priority = {"id": "priority", "label": config.get_localized_string(60085), "type": "list", "default": 0,
                     "enabled": True, "visible": "eq(-5,true)+eq(-9,true)+eq(-12,true)", "lvalues": priority_list}
@@ -626,7 +614,7 @@ def autoplay_config(item):
 
 
 
-    # Abrir cuadro de dialogo
+    # Open dialog box
     platformtools.show_channel_settings(list_controls=list_controls, dict_values=dict_values, callback='save',
                                         item=item, caption='%s - AutoPlay' % channel_name,
                                         custom_button={'visible': True,
@@ -637,7 +625,7 @@ def autoplay_config(item):
 
 def save(item, dict_data_saved):
     '''
-    Guarda los datos de la ventana de configuracion
+    Save the data from the configuration window
 
     :param item: item
     :param dict_data_saved: dict
@@ -647,7 +635,7 @@ def save(item, dict_data_saved):
     global autoplay_node
 
     if not autoplay_node:
-        # Obtiene el nodo AUTOPLAY desde el json
+        # Get AUTOPLAY node from json
         autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 
     new_config = dict_data_saved
@@ -665,7 +653,7 @@ def save(item, dict_data_saved):
 
 def get_languages(channel):
     '''
-    Obtiene los idiomas desde el json del canal
+    Get the languages ​​from the channel's json
 
     :param channel: str
     :return: list
@@ -685,9 +673,9 @@ def get_languages(channel):
 
 def is_active(channel):
     '''
-    Devuelve un booleano q indica si esta activo o no autoplay en el canal desde el que se llama
+    Returns a boolean that indicates whether or not autoplay is active on the channel from which it is called
 
-    :return: True si esta activo autoplay para el canal desde el que se llama, False en caso contrario.
+    :return:True if autoplay is active for the channel from which it is called, False otherwise.
     '''
     logger.info()
     global autoplay_node
@@ -696,18 +684,18 @@ def is_active(channel):
         return False
 
     if not autoplay_node:
-        # Obtiene el nodo AUTOPLAY desde el json
+        # Get AUTOPLAY node from json
         autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 
-        # Obtine el canal desde el q se hace la llamada
+        # Get the channel from which the call is made
         #import inspect
         #module = inspect.getmodule(inspect.currentframe().f_back)
         #canal = module.__name__.split('.')[1]
     canal = channel
 
-    # Obtiene el nodo del canal desde autoplay_node
+    # Get the channel node from autoplay_node
     channel_node = autoplay_node.get(canal, {})
-    # Obtiene los ajustes des autoplay para este canal
+    # Get the autoplay settings for this channel
     settings_node = channel_node.get('settings', {})
 
     return settings_node.get('active', False) or get_setting('autoplay')
@@ -727,7 +715,7 @@ def reset(item, dict):
 
 # def set_status(status):
 #     logger.info()
-#     # Obtiene el nodo AUTOPLAY desde el json
+#     # Get AUTOPLAY node from json
 #     autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
 #     autoplay_node['status'] = status
 #
@@ -737,7 +725,7 @@ def reset(item, dict):
 def get_channel_AP_HS(item):
     autoplay_node = jsontools.get_node_from_file('autoplay', 'AUTOPLAY')
     channel_node = autoplay_node.get(item.channel, {})
-    if not channel_node:  # non ha mai aperto il menu del canale quindi in autoplay_data.json non c'e la key
+    if not channel_node:  # never opened the channel menu so in autoplay_data.json there is no key
         try:
             channelFile = __import__('channels.' + item.channel, fromlist=["channels.%s" % item.channel])
         except:

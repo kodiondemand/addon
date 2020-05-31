@@ -6,6 +6,11 @@
 from core import support, httptools
 from core.item import Item
 from platformcode import config
+import sys
+if sys.version_info[0] >= 3:
+    from urllib.parse import unquote
+else:
+    from urllib import unquote
 
 
 list_servers = ['verystream', 'openload', 'wstream']
@@ -51,29 +56,26 @@ def genre(item):
 
 
 def peliculas(item):
-
     return support.dooplay_peliculas(item, True if "/genere/" in item.url else False)
 
 
 def episodios(item):
-
     return support.dooplay_get_episodes(item)
 
 
 def findvideos(item):
-
     itemlist = []
-    for link in support.dooplay_get_links(item, host):
-        if link['title'] != 'Guarda il trailer':
-            itemlist.append(
-                Item(channel=item.channel,
-                     action="play",
-                     url=link['url'],
-                     fulltitle=item.fulltitle,
-                     thumbnail=item.thumbnail,
-                     show=item.show,
-                     quality=link['title'],
-                     contentType=item.contentType,
-                     folder=False))
+    matches = support.match(item, patron=r'<a href="([^"]+)[^>]+>Download[^>]+>[^>]+>[^>]+><strong class="quality">([^<]+)<').matches
+    for url, quality in matches:
+        itemlist.append(
+            Item(channel=item.channel,
+                 action="play",
+                 url=unquote(support.match(url, patron=[r'dest=([^"]+)"',r'/(http[^"]+)">Click']).match),
+                 fulltitle=item.fulltitle,
+                 thumbnail=item.thumbnail,
+                 show=item.show,
+                 quality=quality,
+                 contentType=item.contentType,
+                 folder=False))
 
     return support.server(item, itemlist=itemlist)

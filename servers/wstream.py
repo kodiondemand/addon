@@ -30,7 +30,7 @@ def test_video_exists(page_url):
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
     real_url = page_url
-    if "Not Found" in data or "File was deleted" in data:
+    if "Not Found" in data or "File was deleted" in data or 'Video is processing' in data:
         return False, config.get_localized_string(70449) % 'Wstream'
     else:
         return True, ""

@@ -11,17 +11,13 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 from future.builtins import filter
 from past.utils import old_div
 
-import re
-import time
-import unicodedata
-import xbmc
+import re, time, unicodedata, xbmc
 
 from channelselector import get_thumb
 from core import filetools, jsontools, scraper, scrapertools, servertools, videolibrarytools, support
 from core.downloader import Downloader
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 from core.support import log, dbg, typo
 from servers import torrent
 

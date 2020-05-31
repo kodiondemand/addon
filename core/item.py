@@ -12,9 +12,9 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3:
     #from future import standard_library
     #standard_library.install_aliases()
-    import urllib.parse as urllib                               # Es muy lento en PY2.  En PY3 es nativo
+    import urllib.parse as urllib                               # It is very slow in PY2. In PY3 it is native
 else:
-    import urllib                                               # Usamos el nativo de PY2 que es más rápido
+    import urllib                                               # We use the native of PY2 which is faster
 from core.scrapertools import unescape
 
 import base64
@@ -29,14 +29,14 @@ class InfoLabels(dict):
 
     def __setitem__(self, name, value):
         if name in ["season", "episode"]:
-            # forzamos int() en season y episode
+            # we force int () in season and episode
             try:
                 super(InfoLabels, self).__setitem__(name, int(value))
             except:
                 pass
 
         elif name in ['IMDBNumber', 'imdb_id']:
-            # Por compatibilidad hemos de guardar el valor en los tres campos
+            # For compatibility we have to save the value in the three fields
             super(InfoLabels, self).__setitem__('IMDBNumber', str(value))
             # super(InfoLabels, self).__setitem__('code', value)
             super(InfoLabels, self).__setitem__('imdb_id', str(value))
@@ -62,22 +62,22 @@ class InfoLabels(dict):
         El parametro 'default' en la funcion obj_infoLabels.get(key,default) tiene preferencia sobre los aqui definidos.
         """
         if key in ['rating']:
-            # Ejemplo de clave q devuelve un str formateado como float por defecto
+            # Key example q returns a str formatted as float by default
             return '0.0'
 
         elif key == 'code':
             code = []
-            # Añadir imdb_id al listado de codigos
+            # Add imdb_id to the code list
             if 'imdb_id' in list(super(InfoLabels, self).keys()) and super(InfoLabels, self).__getitem__('imdb_id'):
                 code.append(super(InfoLabels, self).__getitem__('imdb_id'))
 
-            # Completar con el resto de codigos
+            # Complete with the rest of the codes
             for scr in ['tmdb_id', 'tvdb_id', 'noscrap_id']:
                 if scr in list(super(InfoLabels, self).keys()) and super(InfoLabels, self).__getitem__(scr):
                     value = "%s%s" % (scr[:-2], super(InfoLabels, self).__getitem__(scr))
                     code.append(value)
 
-            # Opcion añadir un code del tipo aleatorio
+            # Option to add a code of the random type
             if not code:
                 import time
                 value = time.strftime("%Y%m%d%H%M%S", time.gmtime())
@@ -109,7 +109,7 @@ class InfoLabels(dict):
                 return 'list'
 
         else:
-            # El resto de claves devuelven cadenas vacias por defecto
+            # The rest of the keys return empty strings by default
             return ""
 
     def tostring(self, separador=', '):
@@ -132,7 +132,7 @@ class InfoLabels(dict):
 class Item(object):
     def __init__(self, **kwargs):
         """
-        Inicializacion del item
+        Item initialization
         """
 
         # Creamos el atributo infoLabels
@@ -159,14 +159,13 @@ class Item(object):
 
     def __contains__(self, m):
         """
-        Comprueba si un atributo existe en el item
+        Check if an attribute exists in the item
         """
         return m in self.__dict__
 
     def __setattr__(self, name, value):
         """
-        Función llamada al modificar cualquier atributo del item, modifica algunos atributos en función de los datos
-        modificados.
+        Function called when modifying any attribute of the item, modifies some attributes based on the modified data.
         """
         if PY3: name = self.toutf8(name)
         value = self.toutf8(value)
@@ -175,14 +174,14 @@ class Item(object):
                 self.__setattr__(key, value[key])
             return
 
-        # Descodificamos los HTML entities
+        # We decode the HTML entities
         if name in ["title", "plot", "fulltitle", "contentPlot", "contentTitle"]:
             value = self.decode_html(value)
 
-        # Al modificar cualquiera de estos atributos content...
+        # By modifying any of these attributes content...
         if name in ["contentTitle", "contentPlot", "plot", "contentSerieName", "contentType", "contentEpisodeTitle",
                     "contentSeason", "contentEpisodeNumber", "contentThumbnail", "show", "contentQuality", "quality"]:
-            # ...y actualizamos infoLables
+            # ...and update infoLables
             if name == "contentTitle":
                 self.__dict__["infoLabels"]["title"] = value
             elif name == "contentPlot" or name == "plot":
@@ -203,13 +202,13 @@ class Item(object):
                 self.__dict__["infoLabels"]["quality"] = value
 
         elif name == "duration":
-            # String q representa la duracion del video en segundos
+            # String q represents the duration of the video in seconds
             self.__dict__["infoLabels"]["duration"] = str(value)
 
         elif name == "viewcontent" and value not in ["files", "movies", "tvshows", "seasons", "episodes"]:
             super(Item, self).__setattr__("viewcontent", "files")
 
-        # Al asignar un valor a infoLables
+        # When assigning a value to infoLables
         elif name == "infoLabels":
             if isinstance(value, dict):
                 value_defaultdict = InfoLabels(value)
@@ -220,22 +219,22 @@ class Item(object):
 
     def __getattr__(self, name):
         """
-        Devuelve los valores por defecto en caso de que el atributo solicitado no exista en el item
+        Returns the default values ​​in case the requested attribute does not exist in the item
         """
         if name.startswith("__"):
             return super(Item, self).__getattribute__(name)
 
-        # valor por defecto para folder
+        # default value for folder
         if name == "folder":
             return True
 
-        # valor por defecto para contentChannel
+        # default value for contentChannel
         elif name == "contentChannel":
             return "list"
 
-        # valor por defecto para viewcontent
+        # default value for viewcontent
         elif name == "viewcontent":
-            # intentamos fijarlo segun el tipo de contenido...
+            # we try to fix it according to the type of content...
             if self.__dict__["infoLabels"]["mediatype"] == 'movie':
                 viewcontent = 'movies'
             elif self.__dict__["infoLabels"]["mediatype"] in ["tvshow", "season", "episode"]:
@@ -246,7 +245,7 @@ class Item(object):
             self.__dict__["viewcontent"] = viewcontent
             return viewcontent
 
-        # valores guardados en infoLabels
+        # values ​​saved in infoLabels
         elif name in ["contentTitle", "contentPlot", "contentSerieName", "show", "contentType", "contentEpisodeTitle",
                       "contentSeason", "contentEpisodeNumber", "contentThumbnail", "plot", "duration",
                       "contentQuality", "quality"]:
@@ -258,7 +257,7 @@ class Item(object):
                 return self.__dict__["infoLabels"]["tvshowtitle"]
             elif name == "contentType":
                 ret = self.__dict__["infoLabels"]["mediatype"]
-                if ret == 'list' and self.__dict__.get("fulltitle", None):  # retrocompatibilidad
+                if ret == 'list' and self.__dict__.get("fulltitle", None):  # backward compatibility
                     ret = 'movie'
                     self.__dict__["infoLabels"]["mediatype"] = ret
                 return ret
@@ -275,7 +274,7 @@ class Item(object):
             else:
                 return self.__dict__["infoLabels"][name]
 
-        # valor por defecto para el resto de atributos
+        # default value for all other attributes
         else:
             return ""
 
@@ -284,28 +283,28 @@ class Item(object):
 
     def set_parent_content(self, parentContent):
         """
-        Rellena los campos contentDetails con la informacion del item "padre"
-        @param parentContent: item padre
+        Fill the contentDetails fields with the information of the item "parent"
+        @param parentContent: item father
         @type parentContent: item
         """
-        # Comprueba que parentContent sea un Item
+        # Check that parentContent is an Item
         if not type(parentContent) == type(self):
             return
-        # Copia todos los atributos que empiecen por "content" y esten declarados y los infoLabels
+        # Copy all the attributes that start with "content" and are declared and the infoLabels
         for attr in parentContent.__dict__:
             if attr.startswith("content") or attr == "infoLabels":
                 self.__setattr__(attr, parentContent.__dict__[attr])
 
     def tostring(self, separator=", "):
         """
-        Genera una cadena de texto con los datos del item para el log
-        Uso: logger.info(item.tostring())
-        @param separator: cadena que se usará como separador
+        Generate a text string with the item's data for the log
+        Use: logger.info(item.tostring())
+        @param separator: string to be used as a separator
         @type separator: str
         '"""
         dic = self.__dict__.copy()
 
-        # Añadimos los campos content... si tienen algun valor
+        # We add the content fields... if they have any value
         for key in ["contentTitle", "contentPlot", "contentSerieName", "contentEpisodeTitle",
                     "contentSeason", "contentEpisodeNumber", "contentThumbnail"]:
             value = self.__getattr__(key)
@@ -337,10 +336,9 @@ class Item(object):
 
     def tourl(self):
         """
-        Genera una cadena de texto con los datos del item para crear una url, para volver generar el Item usar
-        item.fromurl().
+        Generate a text string with the item data to create a url, to re-generate the Item use item.fromurl ().
 
-        Uso: url = item.tourl()
+        Use: url = item.tourl()
         """
         dump = json.dump(self.__dict__).encode("utf8")
         # if empty dict
@@ -351,9 +349,9 @@ class Item(object):
 
     def fromurl(self, url):
         """
-        Genera un item a partir de una cadena de texto. La cadena puede ser creada por la funcion tourl() o tener
-        el formato antiguo: plugin://plugin.video.kod/?channel=... (+ otros parametros)
-        Uso: item.fromurl("cadena")
+        Generate an item from a text string. The string can be created by the tourl () function or have
+        the old format: plugin: //plugin.video.kod/? channel = ... (+ other parameters)
+        Use: item.fromurl("string")
 
         @param url: url
         @type url: str
@@ -384,12 +382,12 @@ class Item(object):
     def tojson(self, path=""):
         from core import filetools
         """
-        Crea un JSON a partir del item, para guardar archivos de favoritos, lista de descargas, etc...
-        Si se especifica un path, te lo guarda en la ruta especificada, si no, devuelve la cadena json
-        Usos: item.tojson(path="ruta\archivo\json.json")
-              file.write(item.tojson())
+        Create a JSON from the item, to save favorite files, download list, etc....
+        If a path is specified, it saves it in the specified path, if not, it returns the string json
+        Applications: item.tojson(path="path\archivo\json.json")
+                      file.write(item.tojson())
 
-        @param path: ruta
+        @param path: path
         @type path: str
         """
         if path:
@@ -401,14 +399,14 @@ class Item(object):
     def fromjson(self, json_item=None, path=""):
         from core import filetools
         """
-        Genera un item a partir de un archivo JSON
-        Si se especifica un path, lee directamente el archivo, si no, lee la cadena de texto pasada.
-        Usos: item = Item().fromjson(path="ruta\archivo\json.json")
-              item = Item().fromjson("Cadena de texto json")
+        Generate an item from a JSON file
+        If a path is specified, it directly reads the file, if not, it reads the passed text string.
+        Applications: item = Item().fromjson(path="path\archivo\json.json")
+                      item = Item().fromjson("Cadena de texto json")
 
         @param json_item: item
         @type json_item: json
-        @param path: ruta
+        @param path: path
         @type path: str
         """
         if path:
@@ -431,9 +429,9 @@ class Item(object):
 
     def clone(self, **kwargs):
         """
-        Genera un nuevo item clonando el item actual
-        Usos: NuevoItem = item.clone()
-              NuevoItem = item.clone(title="Nuevo Titulo", action = "Nueva Accion")
+        Generate a new item by cloning the current item
+        Applications: NewItem = item.clone()
+                      NuewItem = item.clone(title="New Title", action = "New Action")
         """
         newitem = copy.deepcopy(self)
         if "infoLabels" in kwargs:
@@ -447,8 +445,8 @@ class Item(object):
     @staticmethod
     def decode_html(value):
         """
-        Descodifica las HTML entities
-        @param value: valor a decodificar
+        Decode the HTML entities
+        @param value: value to decode
         @type value: str
         """
         try:
@@ -461,7 +459,7 @@ class Item(object):
 
     def toutf8(self, *args):
         """
-        Pasa el item a utf8
+        Pass the item to utf8
         """
         if len(args) > 0:
             value = args[0]

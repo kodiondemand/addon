@@ -64,10 +64,16 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
+    blacklist = ['GUIDA PRINCIPIANTI Vedere film e documentari streaming gratis', 'Guida Dsda']
+    data = support.match(item).data
+    # debug =True
     if item.args == 'collection':
-        patron = r'<div class="cover-racolta">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>[^>]+>(?P<title>[^<]+)<'
-    elif item.args == 'raccolta':
-        patron = r'<a (?:style="[^"]+" )?href="(?P<url>[^"]+)"[^>]+>(?:[^>]+><strong>)?(?P<title>[^<]+)(?:</a>)?</strong'
+        if 'class="panel"' in data:
+            item.args = 'raccolta'
+            patron = r'class="title-episodio">(?P<title>[^<]+)<(?P<url>.*?)<p'
+            # patron = r'<a (?:style="[^"]+" )?href="(?P<url>[^"]+)"[^>]+>(?:[^>]+><strong>)?(?P<title>[^<]+)(?:</a>)?</strong'
+        else:
+            patron = r'<div class="cover-racolta">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)".*?<p class="title[^>]+>(?P<title>[^<]+)<'
     else:
         patron = r'<article[^>]+>[^>]+>[^>]+>(?:<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>)?.*?<a href="(?P<url>[^"]+)">\s*(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<p>(?P<plot>[^<]+)<'
         patronNext = r'<a class="page-numbers next" href="([^"]+)">'
@@ -80,13 +86,10 @@ def peliculas(item):
             item.action = 'episodios'
             item.contentSerieName = title
             item.contentTitle = ''
-        elif 'collezione' in item.fulltitle.lower():
+        elif 'collezion' in item.fulltitle.lower() or \
+             'raccolt' in item.fulltitle.lower() or \
+             'filmografia' in item.fulltitle.lower():
             item.args = 'collection'
-            item.action = 'peliculas'
-            item.contentTitle = title
-            item.contentSerieName = ''
-        elif 'raccolta' in item.fulltitle.lower():
-            item.args = 'raccolta'
             item.action = 'peliculas'
             item.contentTitle = title
             item.contentSerieName = ''
@@ -111,7 +114,21 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    patron = r'class="title-episodio">(?P<episode>[^<]+)<(?P<url>.*?)<p'
+    html = support.match(item, patron=r'class="title-episodio">(\d+x\d+)')
+    data = html.data
+    if html.match:
+        patron = r'class="title-episodio">(?P<episode>[^<]+)<(?P<url>.*?)<p'
+    else:
+        patron = r'class="title-episodio">(?P<title>[^<]+)<(?P<url>.*?)<p'
+
+        def itemlistHook(itemlist):
+            counter = 0
+            for item in itemlist:
+                episode = support.match(item.title, patron=r'\d+').match
+                if episode == '1':
+                    counter += 1
+                item.title = support.typo(str(counter) + 'x' + episode.zfill(2) + support.re.sub(r'\[[^\]]+\](?:\d+)?','',item.title),'bold')
+            return itemlist
     return locals()
 
 

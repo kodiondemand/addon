@@ -1,22 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import re
-import urllib
+import re, urllib, xbmcaddon
 from base64 import b64decode as bdec
 
-import xbmcaddon
-
 from channelselector import get_thumb
-from core import filetools
-from core import httptools
-from core import jsontools
-from core import scrapertools
+from core import filetools, httptools, jsontools, scrapertools, trakt_tools
 from core.item import Item
 from core.support import typo
 from core.tmdb import Tmdb
-from core import trakt_tools
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -102,8 +94,7 @@ def search_(item):
             return listado_fa(item)
         if "myanimelist" in item.url:
             item.url += texto.replace(" ", "%20")
-            item.url += "&type=0&score=0&status=0&p=0&r=0&sm=0&sd=0&sy=0&em=0&ed=0&ey=0&c[0]=a" \
-                        "&c[1]=b&c[2]=c&c[3]=d&c[4]=f&gx=0"
+            item.url += "&type=0&score=0&status=0&p=0&r=0&sm=0&sd=0&sy=0&em=0&ed=0&ey=0&c[0]=a&c[1]=b&c[2]=c&c[3]=d&c[4]=f&gx=0"
             item.action = "busqueda_mal"
             return busqueda_mal(item)
 
@@ -125,8 +116,7 @@ def search_(item):
 def busqueda(item):
     logger.info()
 
-    new_item = Item(title=item.contentTitle, text=item.contentTitle.replace("+", " "), mode=item.contentType,
-         infoLabels=item.infoLabels)
+    new_item = Item(title=item.contentTitle, text=item.contentTitle.replace("+", " "), mode=item.contentType, infoLabels=item.infoLabels)
 
     from specials import search
     return search.channel_search(new_item)
@@ -278,35 +268,26 @@ def trakt(item):
         itemlist.append(item.clone(title=typo(config.get_localized_string(70048), 'color kod bold'), extra="cuenta"))
     else:
         item.extra = "movie"
-        # Se comprueba si existe un token guardado y sino se ejecuta el proceso de autentificación
+        # A saved token is checked and the authentication process is executed
         if not token_auth:
-            #folder = (config.get_platform() == "plex")
+            # folder = (config.get_platform() == "plex")
             itemlist.append(item.clone(title=config.get_localized_string(70054), action="auth_trakt", folder=folder))
         else:
             itemlist.append(item.clone(title=config.get_localized_string(70055), action="", ))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watchlist/movies%s" % page,
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watchlist/movies%s" % page, order="added", how="desc"))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watchlist/shows%s" % page,
-                           extra="show",
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watchlist/shows%s" % page, extra="show", order="added", how="desc"))
             itemlist.append(item.clone(title=config.get_localized_string(70056), action="", ))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watched/movies%s" % page,
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watched/movies%s" % page, order="added", how="desc"))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watched/shows%s" % page,
-                           extra="show",
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watched/shows%s" % page, extra="show", order="added", how="desc"))
             itemlist.append(item.clone(title=config.get_localized_string(70068), action="", ))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/collection/movies%s" % page,
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/collection/movies%s" % page, order="added", how="desc"))
             itemlist.append(
-                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/collection/shows%s" % page,
-                           extra="show",
-                           order="added", how="desc"))
+                item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/collection/shows%s" % page, extra="show", order="added", how="desc"))
             itemlist.append(
                 item.clone(title=config.get_localized_string(70057), action="acciones_trakt", url="users/me/lists", ))
 
@@ -320,24 +301,17 @@ def mal(item):
         item.login = True
 
     itemlist.append(
-        item.clone(title=config.get_localized_string(70058), url="https://myanimelist.net/topanime.php?type=tv&limit=0", action="top_mal",
-                   contentType="tvshow", extra="tv"))
-    itemlist.append(item.clone(title=config.get_localized_string(70059), url="https://myanimelist.net/topanime.php?type=movie&limit=0",
-                               action="top_mal",
-                               contentType="movie", extra="movie"))
+        item.clone(title=config.get_localized_string(70058), url="https://myanimelist.net/topanime.php?type=tv&limit=0", action="top_mal", contentType="tvshow", extra="tv"))
+    itemlist.append(item.clone(title=config.get_localized_string(70059), url="https://myanimelist.net/topanime.php?type=movie&limit=0", action="top_mal", contentType="movie", extra="movie"))
     itemlist.append(
-        item.clone(title=config.get_localized_string(70061), url="https://myanimelist.net/topanime.php?type=ova&limit=0", action="top_mal",
-                   contentType="tvshow", extra="tv", tipo="ova"))
+        item.clone(title=config.get_localized_string(70061), url="https://myanimelist.net/topanime.php?type=ova&limit=0", action="top_mal", contentType="tvshow", extra="tv", tipo="ova"))
     itemlist.append(
-        item.clone(title=config.get_localized_string(70028), url="https://myanimelist.net/topanime.php?type=bypopularity&limit=0",
-                   action="top_mal"))
-    itemlist.append(item.clone(title=config.get_localized_string(70060), url="https://myanimelist.net/topanime.php?type=upcoming&limit=0",
-                               action="top_mal"))
+        item.clone(title=config.get_localized_string(70028), url="https://myanimelist.net/topanime.php?type=bypopularity&limit=0", action="top_mal"))
+    itemlist.append(item.clone(title=config.get_localized_string(70060), url="https://myanimelist.net/topanime.php?type=upcoming&limit=0", action="top_mal"))
     itemlist.append(item.clone(title=config.get_localized_string(70062), url="", action="indices_mal"))
     itemlist.append(item.clone(title=config.get_localized_string(70063), url="", action="indices_mal"))
     if config.get_platform() != "plex":
-        itemlist.append(item.clone(title=config.get_localized_string(70064), url="https://myanimelist.net/anime.php?q=",
-                                   action="search_"))
+        itemlist.append(item.clone(title=config.get_localized_string(70064), url="https://myanimelist.net/anime.php?q=", action="search_"))
     itemlist.append(item.clone(title=typo(config.get_localized_string(70038), 'bold submenu'), action="filtro_mal"))
 
     itemlist.append(item.clone(title=typo(config.get_localized_string(70057), 'bold submenu'), action="cuenta_mal"))
@@ -345,15 +319,15 @@ def mal(item):
     return itemlist
 
 
-##-------------------- SECCION TMDB ------------------------##
+##-------------------- SECTION TMDB ------------------------##
 def listado_tmdb(item):
-    # Listados principales de la categoría Tmdb (Más populares, más vistas, etc...)
+    # Main listings of the Tmdb category (Most popular, Most viewed, etc ...)
     itemlist = []
     item.fanart = default_fan
     if not item.pagina:
         item.pagina = 1
 
-    # Listado de actores
+    # List of actors
     if 'nm' in item.infoLabels['imdb_id']:
         try:
 
@@ -370,7 +344,7 @@ def listado_tmdb(item):
     else:
         ob_tmdb = Tmdb(discover=item.search, tipo=item.extra, idioma_busqueda=langt)
 
-    # Sagas y colecciones
+    # Sagas and collections
     if "collection" in item.search["url"]:
         try:
             new_item = item.clone(action="", url='')
@@ -394,7 +368,7 @@ def listado_tmdb(item):
     else:
         try:
             orden = False
-            # Si se hace una búsqueda por actores o directores, se extraen esos resultados
+            # If you do a search for actors or directors, those results are extracted
             if "cast" in ob_tmdb.result and not item.crew:
                 ob_tmdb.results = ob_tmdb.result["cast"]
                 orden = True
@@ -404,7 +378,7 @@ def listado_tmdb(item):
             for i in range(0, len(ob_tmdb.results)):
                 new_item = item.clone(action="detalles", url='', infoLabels={'mediatype': item.contentType})
                 new_item.infoLabels = ob_tmdb.get_infoLabels(new_item.infoLabels, origen=ob_tmdb.results[i])
-                # Si no hay sinopsis en idioma elegido, buscar en el alternativo
+                # If there is no synopsis in the chosen language, search in the alternative
                 if not new_item.infoLabels["plot"] and not 'person' in item.search["url"]:
                     ob_tmdb2 = Tmdb(id_Tmdb=new_item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda=langt_alt)
                     new_item.infoLabels["plot"] = ob_tmdb2.get_sinopsis()
@@ -443,7 +417,7 @@ def listado_tmdb(item):
                                          % (typo(new_item.contentTitle,'bold'),
                                             typo(new_item.infoLabels['rating'].replace("0.0", ""),'color kod bold'))
                 else:
-                    # Si es una búsqueda de personas se incluye en el título y fanart una película por la que es conocido
+                    # If it is a search for people, a film for which it is known is included in the title and fanart
                     known_for = ob_tmdb.results[i].get("known_for")
                     type=item.type
                     if known_for:
@@ -475,7 +449,7 @@ def detalles(item):
     itemlist = []
     images = {}
     data = ""
-    # Si viene de seccion imdb
+    # If it comes from imdb section
     if not item.infoLabels["tmdb_id"]:
         headers = [['Accept-Language', langi]]
         #data = httptools.downloadpage("http://www.imdb.com/title/" + item.infoLabels['imdb_id'], headers=headers,
@@ -483,7 +457,7 @@ def detalles(item):
         data = httptools.downloadpage("http://www.imdb.com/title/" + item.infoLabels['imdb_id'], headers=headers).data
 
         pics = scrapertools.find_single_match(data, 'showAllVidsAndPics.*?href=".*?(tt\d+)')
-        # Imágenes imdb
+        # Imdb images
         if pics:
             images["imdb"] = {'url': 'http://www.imdb.com/_json/title/%s/mediaviewer' % pics}
 
@@ -495,7 +469,7 @@ def detalles(item):
 
     try:
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
-        # Si no hay sinopsis en idioma elegido, buscar en el alternativo
+        # If there is no synopsis in the chosen language, search in the alternative
         if not item.infoLabels["plot"]:
             item.infoLabels["plot"] = ob_tmdb.get_sinopsis(idioma_alternativo=langt_alt)
     except:
@@ -505,7 +479,7 @@ def detalles(item):
     if item.infoLabels['thumbnail']:
         item.thumbnail = item.infoLabels['thumbnail']
 
-    # Sinopsis, votos de imdb
+    # Synopsis, votes from imdb
     if data:
         plot = scrapertools.find_single_match(data, 'class="inline canwrap" itemprop="description">(.*?)</div>')
         plot = scrapertools.htmlclean(plot)
@@ -525,29 +499,24 @@ def detalles(item):
         itemlist.append(item.clone(title="--- %s ---" % item.infoLabels['tagline'], action=""))
 
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
-    # Búsqueda por títulos idioma elegido y/o versión original y español
+    # Search by titles chosen language and / or original version and Spanish
     itemlist.append(item.clone(action="busqueda", title=config.get_localized_string(70069) % (title, item.contentTitle)))
     if item.infoLabels['originaltitle'] and item.contentTitle != item.infoLabels['originaltitle']:
-        itemlist.append(item.clone(action="busqueda", contentTitle=item.infoLabels['originaltitle'],
-                                   title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
+        itemlist.append(item.clone(action="busqueda", contentTitle=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
 
     if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
         tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.extra, idioma_busqueda=def_lang)
         if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle \
                 and tmdb_lang.result["title"] != item.infoLabels['originaltitle']:
             tmdb_lang = tmdb_lang.result["title"]
-            itemlist.append(item.clone(action="busqueda", title=config.get_localized_string(70066) % tmdb_lang,
-                                       contentTitle=tmdb_lang))
+            itemlist.append(item.clone(action="busqueda", title=config.get_localized_string(70066) % tmdb_lang, contentTitle=tmdb_lang))
 
-            # En caso de serie, opción de info por temporadas
+            # In case of series, option of info by seasons
     if item.contentType == "tvshow" and item.infoLabels['tmdb_id']:
-        itemlist.append(item.clone(action="info_seasons",
-                                   title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
-    # Opción de ver el reparto y navegar por sus películas/series
+        itemlist.append(item.clone(action="info_seasons", title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
+    # Option to watch the cast and browse their movies / series
     if item.infoLabels['tmdb_id']:
-        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071),
-                                   infoLabels={'tmdb_id': item.infoLabels['tmdb_id'],
-                                               'mediatype': item.contentType}))
+        itemlist.append(item.clone(action="reparto", title=config.get_localized_string(70071), infoLabels={'tmdb_id': item.infoLabels['tmdb_id'], 'mediatype': item.contentType}))
 
     if config.is_xbmc():
         item.contextual = True
@@ -556,8 +525,7 @@ def detalles(item):
 
     try:
         images['tmdb'] = ob_tmdb.result["images"]
-        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), images=images,
-                                   extra="menu"))
+        itemlist.append(item.clone(action="imagenes", title=config.get_localized_string(70316), images=images, extra="menu"))
     except:
         pass
 
@@ -580,9 +548,7 @@ def detalles(item):
             url_album = scrapertools.find_single_match(data_music, 'album(?:|s) on request.*?href="([^"]+)"')
             if url_album:
                 url_album = "https://nl.hideproxy.me" + url_album
-                itemlist.append(
-                    item.clone(action="musica_movie", title=config.get_localized_string(70317), url=url_album,
-                               ))
+                itemlist.append(item.clone(action="musica_movie", title=config.get_localized_string(70317), url=url_album))
     except:
         pass
 
@@ -591,7 +557,7 @@ def detalles(item):
         itemlist.append(item.clone(title=config.get_localized_string(70318), action="menu_trakt"))
 
     itemlist.append(item.clone(title="", action=""))
-    # Es parte de una colección
+    # It is part of a collection
     try:
         if ob_tmdb.result.get("belongs_to_collection"):
             new_item = item.clone(search='', infoLabels={'mediatype': item.contentType})
@@ -602,12 +568,11 @@ def detalles(item):
             if saga["backdrop_path"]:
                 new_item.fanart = 'http://image.tmdb.org/t/p/original' + saga["backdrop_path"]
             new_item.search = {'url': 'collection/%s' % saga['id'], 'language': langt}
-            itemlist.append(new_item.clone(title=config.get_localized_string(70327) % saga["name"], action="listado_tmdb",
-                                           ))
+            itemlist.append(new_item.clone(title=config.get_localized_string(70327) % saga["name"], action="listado_tmdb"))
     except:
         pass
 
-    # Películas/Series similares y recomendaciones
+    # Similar Movies / Series and Recommendations
     if item.infoLabels['tmdb_id']:
         item.extra = item.contentType.replace('tvshow', 'tv')
         title = title.replace("película", config.get_localized_string(70137)).replace("serie", config.get_localized_string(30123))
@@ -624,7 +589,7 @@ def detalles(item):
 
 
 def reparto(item):
-    # Actores y equipo de rodaje de una película/serie
+    # Actors and film crew for a movie / series
     itemlist = []
     item.extra=item.contentType.replace('tvshow','tv')
     item.search = {'url': '%s/%s/credits' % (item.extra, item.infoLabels['tmdb_id'])}
@@ -672,7 +637,7 @@ def reparto(item):
 
 
 def info_seasons(item):
-    # Info de temporadas y episodios
+    # Season and episode info
     itemlist = []
     ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo="tv", idioma_busqueda=langt)
 
@@ -719,7 +684,7 @@ def info_seasons(item):
 
 
 def indices_tmdb(item):
-    # Indices por genero y año
+    # Indices by gender and year
     itemlist = []
     from datetime import datetime
     if config.get_localized_string(70032) in item.title:
@@ -835,7 +800,7 @@ def filtro(item):
 
 def filtrado(item, values):
     values_copy = values.copy()
-    # Guarda el filtro para que sea el que se cargue por defecto
+    # Save the filter to be the one loaded by default
     if "save" in values and values["save"]:
         values_copy.pop("save")
         config.set_setting("filtro_defecto_" + item.extra, values_copy, item.channel)
@@ -882,24 +847,24 @@ def musica_movie(item):
     return itemlist
 
 
-##-------------------- SECCION IMDB ------------------------##
+##-------------------- SECTION IMDB ------------------------##
 def listado_imdb(item):
-    # Método principal para secciones de imdb
+    # Main method for imdb sections
     itemlist = []
 
     headers = [['Accept-Language', langi]]
     if "www.imdb.com" in item.url:
-        #data = httptools.downloadpage(item.url, headers=headers, replace_headers=True).data
+        # data = httptools.downloadpage(item.url, headers=headers, replace_headers=True).data
         data = httptools.downloadpage(item.url, headers=headers).data
     else:
         url = 'http://www.imdb.com/search/title?' + item.url
-        #data = httptools.downloadpage(url, headers=headers, replace_headers=True).data
+        # data = httptools.downloadpage(url, headers=headers, replace_headers=True).data
         data = httptools.downloadpage(url, headers=headers).data
 
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     data = re.sub(r"\s{2}", " ", data)
 
-    # Listado de actores
+    # List of actors
     if 'search/name' in item.url:
         patron = '<td class="image">.*?src="([^"]+)".*?href="/name/(nm\d+).*?>([^<]+)<.*?href.*?>([^<]+)</a>' \
                  '</span>(.*?)</td>'
@@ -996,7 +961,7 @@ def filtro_imdb(item):
     valores = {}
 
     dict_values = None
-    # Se utilizan los valores por defecto/guardados
+    # Default / saved values ​​are used
     valores_guardados = config.get_setting("filtro_defecto_imdb_" + item.extra, item.channel)
     if valores_guardados:
         dict_values = valores_guardados
@@ -1086,7 +1051,7 @@ def filtro_imdb(item):
 
 def filtrado_imdb(item, values):
     values_copy = values.copy()
-    # Guarda el filtro para que sea el que se cargue por defecto
+    # Save the filter to be the one loaded by default
     if "save" in values and values["save"]:
         values_copy.pop("save")
         config.set_setting("filtro_defecto_imdb_" + item.extra, values_copy, item.channel)
@@ -1119,7 +1084,7 @@ def filtrado_imdb(item, values):
 
 
 def indices_imdb(item):
-    # Índices imdb por año y genero
+    # Imdb indices by year and gender
     itemlist = []
     from datetime import datetime
     if config.get_localized_string(70032) in item.title:
@@ -1149,12 +1114,12 @@ def indices_imdb(item):
     return itemlist
 
 
-##-------------------- SECCION FILMAFFINITY ------------------------##
+##-------------------- FILMAFFINITY SECTION ------------------------##
 def listado_fa(item):
-    # Método para listados principales de filmaffinity
+    # Filmaffinity main listing method
     itemlist = []
 
-    # Listados con paginación por post
+    # Listings with pagination per post
     if item.extra == "top":
         if item.page_fa:
             post = "from=%s" % item.page_fa
@@ -1176,7 +1141,7 @@ def listado_fa(item):
     data = re.sub(r"\s{2}", " ", data)
 
     votaciones = []
-    # Si es la sección de estrenos cambia la estructura del scraper
+    # If it is the premiere section, change the structure of the scraper
     if item.extra == "estrenos":
         patron = '<i class="fa fa-calendar"></i>\s*(\d+[^<]+)<(.*?)(?:<div class="panel panel-default">|' \
                  '<div class="text-center")'
@@ -1269,7 +1234,7 @@ def listado_fa(item):
 
 
 def indices_fa(item):
-    # Índices por genero, año, temas y sagas/colecciones
+    # Indexes by gender, year, themes and sagas / collections
     itemlist = []
     if item.url:
         data = httptools.downloadpage(item.url).data
@@ -1357,7 +1322,7 @@ def indices_fa(item):
 
 
 def temas_fa(item):
-    # Películas y series por temas
+    # Movies and series by themes
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
@@ -1402,7 +1367,7 @@ def detalles_fa(item):
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     data = re.sub(r"\s{2}", " ", data)
 
-    # Se extrae el título original para posibles búsquedas en tmdb posteriores
+    # The original title is extracted for possible searches in later tmdb
     orig_title = scrapertools.find_single_match(data, 'itemprop="datePublished">.*?<dd>([^<]+)</dd>').strip()
     if item.contentType == "movie":
         item.infoLabels['originaltitle'] = re.sub(r"(?i)\(TV Series\)|\(S\)|\(TV\)", "", orig_title)
@@ -1426,11 +1391,11 @@ def detalles_fa(item):
         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.extra, idioma_busqueda=langt)
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
-        # Si no hay sinopsis en idioma elegido, buscar en el alternativo
+        # If there is no synopsis in the chosen language, search in the alternative
         if not item.infoLabels["plot"]:
             item.infoLabels["plot"] = ob_tmdb.get_sinopsis(idioma_alternativo=langt_alt)
 
-    # Se concatena el plot de filmaffinity al de tmdb si lo hay
+    # The filmaffinity plot is concatenated to the tmdb plot if any
     plot = scrapertools.find_single_match(data, '<dd itemprop="description">(.*?)</dd>')
     plot = plot.replace("<br><br />", "\n")
     plot = scrapertools.decodeHtmlentities(plot).replace(" (FILMAFFINITY)", "")
@@ -1439,7 +1404,7 @@ def detalles_fa(item):
     elif plot and not item.infoLabels['plot']:
         item.infoLabels['plot'] = plot
 
-    # Se busca y rellena con la info de filmaffinity para diferenciarla de tmdb
+    # It is searched and filled with the filmaffinity info to differentiate it from tmdb
     if not item.infoLabels['duration']:
         duration = scrapertools.find_single_match(data, '<dd itemprop="duration">(\d+)')
         if duration:
@@ -1544,7 +1509,7 @@ def detalles_fa(item):
     token_auth = config.get_setting("token_trakt", "trakt")
     if token_auth and ob_tmdb.result:
         itemlist.append(item.clone(title=config.get_localized_string(70323), action="menu_trakt"))
-    # Acciones si se configura cuenta en FA (Votar y añadir/quitar en listas)
+    # Actions if account is configured in FA (Vote and add / remove in lists)
     mivoto = scrapertools.find_single_match(data, 'bg-my-rating.*?>\s*(\d+)')
     itk = scrapertools.find_single_match(data, 'data-itk="([^"]+)"')
     folder = not config.is_xbmc()
@@ -1568,7 +1533,7 @@ def detalles_fa(item):
         new_item.infoLabels["duration"] = ""
         itemlist.append(new_item)
 
-    # Si pertenece a una saga/colección
+    # If you belong to a saga / collection
     if ob_tmdb.result:
         itemlist.append(item.clone(title="", action="", infoLabels={}))
         if ob_tmdb.result.get("belongs_to_collection"):
@@ -1603,7 +1568,7 @@ def filtro_fa(item):
     valores = {}
 
     dict_values = None
-    # Se utilizan los valores por defecto/guardados
+    # Default / saved values ​​are used
     valores_guardados = config.get_setting("filtro_defecto_filmaf_" + item.extra, item.channel)
     if valores_guardados:
         dict_values = valores_guardados
@@ -1675,7 +1640,7 @@ def filtro_fa(item):
 
 def filtrado_fa(item, values):
     values_copy = values.copy()
-    # Guarda el filtro para que sea el que se cargue por defecto
+    # Save the filter to be the one loaded by default
     if "save" in values and values["save"]:
         values_copy.pop("save")
         config.set_setting("filtro_defecto_filmaf_" + item.extra, values_copy, item.channel)
@@ -1732,7 +1697,7 @@ def login_fa():
 
 
 def cuenta_fa(item):
-    # Menú de cuenta filmaffinity
+    # Filmaffinity account menu
     itemlist = []
     login, message = login_fa()
     if not login:
@@ -1748,7 +1713,7 @@ def cuenta_fa(item):
 
 
 def acciones_fa(item):
-    # Acciones cuenta filmaffinity, votar, ver listas o añadir/quitar de lista
+    # Actions account filmaffinity, vote, view lists or add / remove from list
     itemlist = []
 
     if item.accion == "votos" or item.accion == "lista":
@@ -1847,7 +1812,7 @@ def acciones_fa(item):
 
 
 def votar_fa(item):
-    # Ventana para seleccionar el voto
+    # Window to select the vote
     logger.info()
 
     list_controls = []
@@ -1889,7 +1854,7 @@ def callback_voto(item, values):
 
 
 def newlist(item):
-    # Creación de nueva lista en filmaffinity
+    # Creation of new list in filmaffinity
     itemlist = []
     if item.accion == "lista":
         location = httptools.downloadpage(item.url, only_headers=True).headers["location"]
@@ -1910,7 +1875,7 @@ def newlist(item):
     return itemlist
 
 
-##-------------------- LISTADOS DE IMAGENES ------------------------##
+##-------------------- IMAGE LISTINGS ------------------------##
 def imagenes(item):
     itemlist = []
 
@@ -2055,13 +2020,13 @@ def fanartv(item):
     return item, resultado
 
 
-##-------------------- SECCION TRAKT.TV ------------------------##
+##-------------------- SECTION TRAKT.TV ------------------------##
 def auth_trakt(item):
     return trakt_tools.auth_trakt()
 
 
 def menu_trakt(item):
-    # Menú con acciones de cuenta trakt (vistas, watchlist, coleccion)
+    # Menu with trakt account actions (views, watchlist, collection)
     itemlist = []
     token_auth = config.get_setting("token_trakt", "trakt")
     tipo = item.extra.replace("tv", "show") + "s"
@@ -2279,9 +2244,9 @@ def order_trakt(item, values):
     return acciones_trakt(item)
 
 
-##-------------------- SECCION MYANIMELIST ------------------------##
+##-------------------- MYANIMELIST SECTION ------------------------##
 def top_mal(item):
-    # Para los menús principales de tops pelícuas/series/ovas
+    # For the main menus of movie tops / series / ova
     itemlist = []
     data = httptools.downloadpage(item.url, cookies=False).data
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
@@ -2388,7 +2353,7 @@ def detalles_mal(item):
         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.extra, idioma_busqueda=langt)
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
-    # Se concatena sinopsis myanimelist con la de tmdb si la hubiese
+    # Myanimelist synopsis is concatenated with that of tmdb if any
     plot = scrapertools.find_single_match(data, '<span itemprop="description">(.*?)</span>')
     plot = plot.replace("<br />", "\n").replace("<i>", "[I]").replace("</i>", "[/I]")
     plot = scrapertools.decodeHtmlentities(plot)
@@ -2411,7 +2376,7 @@ def detalles_mal(item):
         except:
             pass
 
-    # Se sobreescribe la info de myanimelist sobre la de tmdb
+    # Myanimelist info overwrites tmdb info
     generos = scrapertools.find_single_match(data, 'Genres:</span>(.*?)</div>')
     if generos:
         item.infoLabels['genre'] = scrapertools.htmlclean(generos)
@@ -2445,7 +2410,7 @@ def detalles_mal(item):
     itemlist.append(item.clone(action="videos_mal", title=config.get_localized_string(70353),
                                url=item.url + "/video"))
 
-    # Opción para ver la info de personajes y dobladores/equipo de rodaje
+    # Option to see the info of characters and voiceovers / filming equipment
     if not "No characters or voice actors" in data and not "No staff for this anime" in data:
         itemlist.append(item.clone(action="staff_mal", title=config.get_localized_string(70354),
                                    url=item.url + "/characters"))
@@ -2497,7 +2462,7 @@ def detalles_mal(item):
     if token_auth and ob_tmdb.result:
         itemlist.append(item.clone(title=config.get_localized_string(70323), action="menu_trakt"))
 
-    # Se listan precuelas, secuelas y series alternativas
+    # Prequels, sequels and alternative series are listed
     prequel = scrapertools.find_single_match(data, 'Prequel:</td>(.*?)</td>')
     if prequel:
         matches = scrapertools.find_multiple_matches(prequel, 'href="([^"]+)">(.*?)</a>')
@@ -2550,7 +2515,7 @@ def detalles_mal(item):
                        search={'url': '%s/%s/recommendations' % (item.extra, item.infoLabels['tmdb_id']),
                                'language': langt, 'page': 1}, ))
 
-    # Recomendaciones myanimelist y búsqueda de info en anidb (fansubs en español)
+    # Myanimelist recommendations and info search on anidb (fansubs in Spanish)
     itemlist.append(item.clone(title=config.get_localized_string(70359), action="reco_mal"))
     anidb_link = scrapertools.find_single_match(data,
                                                 '<a href="(http://anidb.info/perl-bin/animedb.pl\?show=anime&amp;aid=\d+)')
@@ -2562,7 +2527,7 @@ def detalles_mal(item):
 
 
 def videos_mal(item):
-    # Método para episodios en crunchyroll y trailer/promocionales
+    # Method for crunchyroll and trailer / promotional episodes
     itemlist = []
 
     data = httptools.downloadpage(item.url, cookies=False).data
@@ -2604,7 +2569,7 @@ def videos_mal(item):
 
 
 def reco_mal(item):
-    # Recomendaciones de myanimelist
+    # Myanimelist recommendations
     itemlist = []
 
     data = httptools.downloadpage(item.url + "/userrecs", cookies=False).data
@@ -2628,7 +2593,7 @@ def reco_mal(item):
 
 
 def indices_mal(item):
-    # Índices por temporadas y generos
+    # Seasonal and gender indices
     itemlist = []
     url_base = ""
     if "Temporadas" in item.title:
@@ -2664,7 +2629,7 @@ def indices_mal(item):
 
 
 def season_mal(item):
-    # Scraper para temporadas de anime
+    # Scraper for anime seasons
     itemlist = []
 
     cookie_session = get_cookie_value()
@@ -2758,7 +2723,7 @@ def season_mal(item):
 
 
 def staff_mal(item):
-    # Dobladores/Equipo de rodaje
+    # Benders / Filming Equipment
     itemlist = []
     data = httptools.downloadpage(item.url, cookies=False).data
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
@@ -2869,7 +2834,7 @@ def detail_staff(item):
 
 
 def busqueda_mal(item):
-    # Scraper para búsquedas en myanimelist
+    # Scraper for myanimelist searches
     itemlist = []
 
     cookie_session = get_cookie_value()
@@ -2942,7 +2907,7 @@ def busqueda_mal(item):
 
 
 def info_anidb(item, itemlist, url):
-    # Extrae info, puntuación y fansubs en anidb
+    # Extract info, score and fansubs on anidb
     data = httptools.downloadpage(url).data
     data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     data = re.sub(r"\s{2}", " ", data)
@@ -2994,7 +2959,7 @@ def filtro_mal(item):
     list_controls = []
     valores = {}
     dict_values = None
-    # Se utilizan los valores por defecto/guardados
+    # Default / saved values ​​are used
     valores_guardados = config.get_setting("filtro_defecto_mal", item.channel)
     if valores_guardados:
         dict_values = valores_guardados
@@ -3044,7 +3009,7 @@ def filtro_mal(item):
 
 def callback_mal(item, values):
     values_copy = values.copy()
-    # Guarda el filtro para que sea el que se cargue por defecto
+    # Save the filter to be the one loaded by default
     if "save" in values and values["save"]:
         values_copy.pop("save")
         config.set_setting("filtro_defecto_mal", values_copy, item.channel)
@@ -3072,7 +3037,7 @@ def callback_mal(item, values):
 
 
 def musica_anime(item):
-    # Lista los animes y canciones disponibles similares al título del anime
+    # List available anime and songs similar to the anime title
     logger.info()
     itemlist = []
 
@@ -3145,7 +3110,7 @@ def login_mal(from_list=False):
 
 
 def cuenta_mal(item):
-    # Menú de cuenta myanimelist
+    # Myanimelist account menu
     itemlist = []
     login, message, user = login_mal(True)
     if not login:
@@ -3167,7 +3132,7 @@ def cuenta_mal(item):
 
 
 def items_mal(item):
-    # Scraper para las listas personales
+    # Scraper for personal lists
     logger.info()
     itemlist = []
     data = httptools.downloadpage(item.url).data
@@ -3213,7 +3178,7 @@ def items_mal(item):
 
 
 def menu_mal(item):
-    # Opciones cuenta MAL, añadir a lista/votar
+    # Options BAD account, add to list / vote
     itemlist = []
 
     data = httptools.downloadpage(item.url).data
@@ -3271,7 +3236,7 @@ def addlist_mal(item):
     url = "https://myanimelist.net/ownlist/anime/add.json"
     if item.lista:
         url = "https://myanimelist.net/ownlist/anime/edit.json"
-    #data = httptools.downloadpage(url, post=jsontools.dump(post), headers=headers_mal, replace_headers=True).data
+    # data = httptools.downloadpage(url, post=jsontools.dump(post), headers=headers_mal, replace_headers=True).data
     data = httptools.downloadpage(url, post=jsontools.dump(post), headers=headers_mal).data
     item.title = "En tu lista"
     if config.is_xbmc():

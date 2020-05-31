@@ -1,18 +1,12 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Parámetros de configuración (kodi)
+# Configuration parameters (kodi)
 # ------------------------------------------------------------
 
-#from builtins import str
-import sys
+# from builtins import str
+import sys, os, re, xbmc, xbmcaddon
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
-
-import os
-import re
-
-import xbmc
-import xbmcaddon
 
 PLUGIN_NAME = "kod"
 
@@ -29,7 +23,7 @@ def get_addon_core():
 
 def get_addon_version(with_fix=True):
     '''
-    Devuelve el número de versión del addon, y opcionalmente número de fix si lo hay
+    Returns the version number of the addon, and optionally fix number if there is one
     '''
     if with_fix:
         return __settings__.getAddonInfo('version') + " " + get_addon_version_fix()
@@ -61,17 +55,17 @@ def dev_mode():
 
 def get_platform(full_version=False):
     """
-        Devuelve la información la version de xbmc o kodi sobre el que se ejecuta el plugin
+        Returns the information the version of xbmc or kodi on which the plugin is run
 
-        @param full_version: indica si queremos toda la informacion o no
+        @param full_version: indicates if we want all the information or not
         @type full_version: bool
         @rtype: str o dict
-        @return: Si el paramentro full_version es True se retorna un diccionario con las siguientes claves:
-            'num_version': (float) numero de version en formato XX.X
-            'name_version': (str) nombre clave de cada version
-            'video_db': (str) nombre del archivo que contiene la base de datos de videos
-            'plaform': (str) esta compuesto por "kodi-" o "xbmc-" mas el nombre de la version segun corresponda.
-        Si el parametro full_version es False (por defecto) se retorna el valor de la clave 'plaform' del diccionario anterior.
+        @return: If the full_version parameter is True, a dictionary with the following keys is returned:
+            'num_version': (float) version number in XX.X format
+            'name_version': (str) key name of each version
+            'video_db': (str) name of the file that contains the video database
+            'plaform': (str) is made up of "kodi-" or "xbmc-" plus the version name as appropriate.
+        If the full_version parameter is False (default) the value of the 'plaform' key from the previous dictionary is returned.
     """
 
     ret = {}
@@ -130,7 +124,7 @@ def get_channel_url(findhostMethod=None, name=None):
         return channels_data[name]
 
 def get_system_platform():
-    """ fonction: pour recuperer la platform que xbmc tourne """
+    """ function: to recover the platform that xbmc is running """
     platform = "unknown"
     if xbmc.getCondVisibility("system.platform.linux"):
         platform = "linux"
@@ -172,7 +166,7 @@ def enable_disable_autorun(is_enabled):
     return True
 
 def get_all_settings_addon():
-    # Lee el archivo settings.xml y retorna un diccionario con {id: value}
+    # Read the settings.xml file and return a dictionary with {id: value}
     from core import scrapertools
 
     infile = open(os.path.join(get_data_path(), "settings.xml"), "r")
@@ -194,27 +188,26 @@ def open_settings():
 
 def get_setting(name, channel="", server="", default=None):
     """
-    Retorna el valor de configuracion del parametro solicitado.
+    Returns the configuration value of the requested parameter.
 
-    Devuelve el valor del parametro 'name' en la configuracion global, en la configuracion propia del canal 'channel'
-    o en la del servidor 'server'.
+    Returns the value of the parameter 'name' in the global configuration, in the own configuration of the channel 'channel' or in that of the server 'server'.
 
-    Los parametros channel y server no deben usarse simultaneamente. Si se especifica el nombre del canal se devolvera
-    el resultado de llamar a channeltools.get_channel_setting(name, channel, default). Si se especifica el nombre del
-    servidor se devolvera el resultado de llamar a servertools.get_channel_setting(name, server, default). Si no se
-    especifica ninguno de los anteriores se devolvera el valor del parametro en la configuracion global si existe o
-    el valor default en caso contrario.
+    The channel and server parameters should not be used simultaneously. If the channel name is specified it will be returned
+    the result of calling channeltools.get_channel_setting (name, channel, default). If the name of the
+    server will return the result of calling servertools.get_channel_setting (name, server, default). If I dont know
+    Specify none of the above will return the value of the parameter in the global configuration if it exists or
+    the default value otherwise.
 
-    @param name: nombre del parametro
+    @param name: parameter name
     @type name: str
-    @param channel: nombre del canal
+    @param channel: channel name
     @type channel: str
-    @param server: nombre del servidor
+    @param server: server name
     @type server: str
-    @param default: valor devuelto en caso de que no exista el parametro name
+    @param default: return value in case the name parameter does not exist
     @type default: any
 
-    @return: El valor del parametro 'name'
+    @return: The value of the parameter 'name'
     @rtype: any
 
     """
@@ -261,26 +254,24 @@ def get_setting(name, channel="", server="", default=None):
 
 def set_setting(name, value, channel="", server=""):
     """
-    Fija el valor de configuracion del parametro indicado.
+    Sets the configuration value of the indicated parameter.
 
-    Establece 'value' como el valor del parametro 'name' en la configuracion global o en la configuracion propia del
-    canal 'channel'.
-    Devuelve el valor cambiado o None si la asignacion no se ha podido completar.
+    Set 'value' as the value of the parameter 'name' in the global configuration or in the own configuration of the channel 'channel'.
+    Returns the changed value or None if the assignment could not be completed.
 
-    Si se especifica el nombre del canal busca en la ruta \addon_data\plugin.video.kod\settings_channels el
-    archivo channel_data.json y establece el parametro 'name' al valor indicado por 'value'. Si el archivo
-    channel_data.json no existe busca en la carpeta channels el archivo channel.json y crea un archivo channel_data.json
-    antes de modificar el parametro 'name'.
-    Si el parametro 'name' no existe lo añade, con su valor, al archivo correspondiente.
+    If the name of the channel is specified, search in the path \ addon_data \ plugin.video.kod \ settings_channels the
+    channel_data.json file and set the parameter 'name' to the value indicated by 'value'. If the file
+    channel_data.json does not exist look in the channels folder for the channel.json file and create a channel_data.json file before modifying the 'name' parameter.
+    If the parameter 'name' does not exist, it adds it, with its value, to the corresponding file.
 
 
-    Parametros:
-    name -- nombre del parametro
-    value -- valor del parametro
-    channel [opcional] -- nombre del canal
+    Parameters:
+    name - name of the parameter
+    value - value of the parameter
+    channel [optional] - channel name
 
-    Retorna:
-    'value' en caso de que se haya podido fijar el valor y None en caso contrario
+    Returns:
+    'value' if the value could be set and None otherwise
 
     """
     if channel:
@@ -304,7 +295,7 @@ def set_setting(name, value, channel="", server=""):
 
         except Exception as ex:
             from platformcode import logger
-            logger.error("Error al convertir '%s' no se guarda el valor \n%s" % (name, ex))
+            logger.error("Error converting '%s' value is not saved \n%s" % (name, ex))
             return None
 
         return value
@@ -322,7 +313,7 @@ def get_localized_string(code):
         # All encodings to utf8
         elif not PY3 and isinstance(dev, str):
             dev = unicode(dev, "utf8", errors="replace").encode("utf8")
-        
+
         # Bytes encodings to utf8
         elif PY3 and isinstance(dev, bytes):
             dev = dev.decode("utf8")
@@ -365,7 +356,7 @@ def get_runtime_path():
 def get_data_path():
     dev = xbmc.translatePath(__settings__.getAddonInfo('Profile'))
 
-    # Crea el directorio si no existe
+    # Create the directory if it doesn't exist
     if not os.path.exists(dev):
         os.makedirs(dev)
 
@@ -405,7 +396,7 @@ def verify_directories_created():
     for path, default in config_paths:
         saved_path = get_setting(path)
 
-        # videoteca
+        # video store
         if path == "videolibrarypath":
             if not saved_path:
                 saved_path = xbmc_videolibrary.search_library_path()
@@ -435,7 +426,7 @@ def verify_directories_created():
         if not filetools.exists(content_path):
             logger.debug("Creating %s: %s" % (path, content_path))
 
-            # si se crea el directorio
+            # if the directory is created
             filetools.mkdir(content_path)
 
     from platformcode import xbmc_videolibrary
@@ -444,11 +435,10 @@ def verify_directories_created():
 
     try:
         from core import scrapertools
-        # Buscamos el archivo addon.xml del skin activo
-        skindir = filetools.join(xbmc.translatePath("special://home"), 'addons', xbmc.getSkinDir(),
-                                 'addon.xml')
-        if not os.path.isdir(skindir): return # No hace falta mostrar error en el log si no existe la carpeta
-        # Extraemos el nombre de la carpeta de resolución por defecto
+        # We look for the addon.xml file of the active skin
+        skindir = filetools.join(xbmc.translatePath("special://home"), 'addons', xbmc.getSkinDir(), 'addon.xml')
+        if not os.path.isdir(skindir): return # No need to show error in log if folder doesn't exist
+        # We extract the name of the default resolution folder
         folder = ""
         data = filetools.read(skindir)
         res = scrapertools.find_multiple_matches(data, '(<res .*?>)')
@@ -457,22 +447,18 @@ def verify_directories_created():
                 folder = scrapertools.find_single_match(r, 'folder="([^"]+)"')
                 break
 
-        # Comprobamos si existe en el addon y sino es así, la creamos
+        # We check if it exists in the addon and if not, we create it
         default = filetools.join(get_runtime_path(), 'resources', 'skins', 'Default')
         if folder and not filetools.exists(filetools.join(default, folder)):
             filetools.mkdir(filetools.join(default, folder))
 
-        # Copiamos el archivo a dicha carpeta desde la de 720p si éste no existe o si el tamaño es diferente
+        # We copy the file to said folder from the 720p folder if it does not exist or if the size is different
         if folder and folder != '720p':
             for root, folders, files in filetools.walk(filetools.join(default, '720p')):
                 for f in files:
-                    if not filetools.exists(filetools.join(default, folder, f)) or \
-                            (filetools.getsize(filetools.join(default, folder, f)) !=
-                                filetools.getsize(filetools.join(default, '720p', f))):
-                        filetools.copy(filetools.join(default, '720p', f),
-                                       filetools.join(default, folder, f),
-                                       True)
+                    if not filetools.exists(filetools.join(default, folder, f)) or (filetools.getsize(filetools.join(default, folder, f)) != filetools.getsize(filetools.join(default, '720p', f))):
+                        filetools.copy(filetools.join(default, '720p', f), filetools.join(default, folder, f), True)
     except:
         import traceback
-        logger.error("Al comprobar o crear la carpeta de resolución")
+        logger.error("When checking or creating the resolution folder")
         logger.error(traceback.format_exc())

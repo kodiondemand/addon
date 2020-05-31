@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Lista de vídeos favoritos
+# List of favorite videos
 # ------------------------------------------------------------
 
-import os
-import time
+import os, time
 
-from core import filetools
-from core import scrapertools
+from core import filetools, scrapertools
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 
 try:
-    # Fijamos la ruta a favourites.xml
+    # We set the path to favorites.xml
     if config.is_xbmc():
         import xbmc
 
@@ -32,8 +29,7 @@ def mainlist(item):
 
     for name, thumb, data in read_favourites():
         if "plugin://plugin.video.%s/?" % config.PLUGIN_NAME in data:
-            url = scrapertools.find_single_match(data, 'plugin://plugin.video.%s/\?([^;]*)' % config.PLUGIN_NAME) \
-                .replace("&quot", "")
+            url = scrapertools.find_single_match(data, 'plugin://plugin.video.%s/\?([^;]*)' % config.PLUGIN_NAME).replace("&quot", "")
 
             item = Item().fromurl(url)
             item.title = name
@@ -45,7 +41,7 @@ def mainlist(item):
             elif type(item.context) != list:
                 item.context = []
 
-            item.context.extend([{"title": config.get_localized_string(30154),  # "Quitar de favoritos"
+            item.context.extend([{"title": config.get_localized_string(30154),  # "Remove from favorites "
                                   "action": "delFavourite",
                                   "channel": "favorites",
                                   "from_title": item.title},
@@ -88,7 +84,7 @@ def addFavourite(item):
     logger.info()
     # logger.debug(item.tostring('\n'))
 
-    # Si se llega aqui mediante el menu contextual, hay que recuperar los parametros action y channel
+    # If you get here through the context menu, you must retrieve the action and channel parameters
     if item.from_action:
         item.__dict__["action"] = item.__dict__.pop("from_action")
     if item.from_channel:
@@ -100,8 +96,7 @@ def addFavourite(item):
     favourites_list.append((titulo, item.thumbnail, data))
 
     if save_favourites(favourites_list):
-        platformtools.dialog_ok(config.get_localized_string(30102), titulo,
-                                config.get_localized_string(30108))  # 'se ha añadido a favoritos'
+        platformtools.dialog_ok(config.get_localized_string(30102), titulo, config.get_localized_string(30108))  # 'added to favorites'
 
 
 def delFavourite(item):
@@ -117,8 +112,7 @@ def delFavourite(item):
             favourites_list.remove(fav)
 
             if save_favourites(favourites_list):
-                platformtools.dialog_ok(config.get_localized_string(30102), item.title,
-                                        config.get_localized_string(30105).lower())  # 'Se ha quitado de favoritos'
+                platformtools.dialog_ok(config.get_localized_string(30102), item.title, config.get_localized_string(30105).lower())  # 'Removed from favorites'
                 platformtools.itemlist_refresh()
             break
 
@@ -127,22 +121,21 @@ def renameFavourite(item):
     logger.info()
     # logger.debug(item.tostring('\n'))
 
-    # Buscar el item q queremos renombrar en favourites.xml
+    # Find the item we want to rename in favorites.xml
     favourites_list = read_favourites()
     for i, fav in enumerate(favourites_list):
         if fav[0] == item.from_title:
-            # abrir el teclado
+            # open keyboard
             new_title = platformtools.dialog_input(item.from_title, item.title)
             if new_title:
                 favourites_list[i] = (new_title, fav[1], fav[2])
                 if save_favourites(favourites_list):
-                    platformtools.dialog_ok(config.get_localized_string(30102), item.from_title,
-                                            "se ha renombrado como:", new_title)  # 'Se ha quitado de favoritos'
+                    platformtools.dialog_ok(config.get_localized_string(30102), item.from_title, config.get_localized_string(60086) + ' ', new_title)  # 'Removed from favorites'
                     platformtools.itemlist_refresh()
 
 
 ##################################################
-# Funciones para migrar favoritos antiguos (.txt)
+# Features to migrate old favorites (.txt)
 def readbookmark(filepath):
     logger.info()
     import urllib
@@ -176,7 +169,7 @@ def readbookmark(filepath):
     except:
         plot = lines[4].strip()
 
-    # Campos contentTitle y canal añadidos
+    # ContentTitle and channel fields added
     if len(lines) >= 6:
         try:
             contentTitle = urllib.unquote_plus(lines[5].strip())
@@ -199,7 +192,7 @@ def readbookmark(filepath):
 
 
 def check_bookmark(readpath):
-    # Crea un listado con las entradas de favoritos
+    # Create a list with favorite entries
     itemlist = []
 
     if readpath.startswith("special://") and config.is_xbmc():
@@ -207,12 +200,12 @@ def check_bookmark(readpath):
         readpath = xbmc.translatePath(readpath)
 
     for fichero in sorted(filetools.listdir(readpath)):
-        # Ficheros antiguos (".txt")
+        # Old files (".txt")
         if fichero.endswith(".txt"):
-            # Esperamos 0.1 segundos entre ficheros, para que no se solapen los nombres de archivo
+            # We wait 0.1 seconds between files, so that the file names do not overlap
             time.sleep(0.1)
 
-            # Obtenemos el item desde el .txt
+            # We get the item from the .txt
             canal, titulo, thumbnail, plot, server, url, contentTitle = readbookmark(filetools.join(readpath, fichero))
             if canal == "":
                 canal = "favorites"
@@ -222,21 +215,21 @@ def check_bookmark(readpath):
             filetools.rename(filetools.join(readpath, fichero), fichero[:-4] + ".old")
             itemlist.append(item)
 
-    # Si hay Favoritos q guardar
+    # If there are Favorites to save
     if itemlist:
         favourites_list = read_favourites()
         for item in itemlist:
             data = "ActivateWindow(10025,&quot;plugin://plugin.video.kod/?" + item.tourl() + "&quot;,return)"
             favourites_list.append((item.title, item.thumbnail, data))
         if save_favourites(favourites_list):
-            logger.debug("Conversion de txt a xml correcta")
+            logger.debug("Correct txt to xml conversion")
 
 
-# Esto solo funcionara al migrar de versiones anteriores, ya no existe "bookmarkpath"
+# This will only work when migrating from previous versions, there is no longer a "bookmarkpath"
 try:
     if config.get_setting("bookmarkpath") != "":
         check_bookmark(config.get_setting("bookmarkpath"))
     else:
-        logger.info("No existe la ruta a los favoritos de versiones antiguas")
+        logger.info("No path to old version favorites")
 except:
     pass

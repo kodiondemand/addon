@@ -23,23 +23,23 @@ def mainlist(item):
 
     menu = [
         ('BDRiP {film}', ['/categoria.php?active=0&category=1&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True]]),
-        ('Cerca BDRiP... submenu {film}', ['/torrent-ita/1/', 'search', ['search', 'movie', True]]),
+        ('Cerca BDRiP... {submenu} {film}', ['/torrent-ita/1/', 'search', ['search', 'movie', True]]),
         ('DVD {film}', ['/categoria.php?active=0&category=20&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True]]),
-        ('Cerca DVD... submenu {film}', ['/torrent-ita/20/', 'search', ['search', 'movie', True]]),
+        ('Cerca DVD... {submenu} {film}', ['/torrent-ita/20/', 'search', ['search', 'movie', True]]),
         ('Screener {film}', ['/categoria.php?active=0&category=19&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True]]),
-        ('Cerca Screener.. submenu {film}', ['/torrent-ita/19/', 'search', ['search', 'movie', True]]),
+        ('Cerca Screener.. {submenu} {film}', ['/torrent-ita/19/', 'search', ['search', 'movie', True]]),
         ('Serie TV', ['/categoria.php?active=0&category=15&order=data&by=DES&page=', 'peliculas', [0 , 'tvshow', True]]),
-        ('Cerca Serie TV.. submenu', ['/torrent-ita/15/', 'search', ['search', 'tvshow',True]]),
+        ('Cerca Serie TV.. {submenu}', ['/torrent-ita/15/', 'search', ['search', 'tvshow',True]]),
         ('Anime', ['/categoria.php?active=0&category=5&order=data&by=DESC&page=', 'peliculas', [0, 'anime', True]]),
-        ('Cerca Anime.. submenu', ['/torrent-ita/5/', 'search', ['search', 'anime', True]]),
+        ('Cerca Anime.. {submenu}', ['/torrent-ita/5/', 'search', ['search', 'anime', True]]),
         ('Musica', ['/categoria.php?active=0&category=2&order=data&by=DESC&page=', 'peliculas', [0, 'music', False]]),
-        ('Cerca Musica.. submenu', ['/torrent-ita/2/', 'search', ['search', 'music', False]]),
+        ('Cerca Musica.. {submenu}', ['/torrent-ita/2/', 'search', ['search', 'music', False]]),
         ('Audiolibri {musica}', ['/categoria.php?active=0&category=18&order=data&by=DESC&page=', 'peliculas', [0, 'music', False]]),
-        ('Cerca Audiolibri.. submenu', ['/torrent-ita/18/', 'search', ['search', 'music', False]]),
+        ('Cerca Audiolibri.. {submenu}', ['/torrent-ita/18/', 'search', ['search', 'music', False]]),
         # mostrerebbe anche risultati non "multimediali" e allungherebbero inutilmente la ricerca globale
         # ('Altro {film}', ['/categoria.php?active=0&category=4&order=data&by=DESC&page=', 'peliculas', [0, 'other', False]]),
-        # ('Cerca altro.. submenu', ['/torrent-ita/4/', 'search', ['search', 'other', False]]),
-        # ('Cerca Tutto... color kod bold', ['/argh.php?search=', 'search', ['search', 'all', False]])
+        # ('Cerca altro.. {submenu}', ['/torrent-ita/4/', 'search', ['search', 'other', False]]),
+        # ('Cerca Tutto... {color kod bold}', ['/argh.php?search=', 'search', ['search', 'all', False]])
     ]
 
     return locals()

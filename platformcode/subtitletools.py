@@ -9,19 +9,16 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3:
     #from future import standard_library
     #standard_library.install_aliases()
-    import urllib.parse as urllib                               # Es muy lento en PY2.  En PY3 es nativo
+    import urllib.parse as urllib                               # It is very slow in PY2. In PY3 it is native
 else:
-    import urllib                                               # Usamos el nativo de PY2 que es más rápido
+    import urllib                                               # We use the native of PY2 which is faster
 
 import os
 import re
 import string
 
 from unicodedata import normalize
-from core import filetools
-from core import httptools
-from core import jsontools
-from core import scrapertools
+from core import filetools, httptools, jsontools, scrapertools
 
 import xbmc
 import xbmcgui
@@ -32,22 +29,22 @@ if not PY3: allchars = string.maketrans('', '')
 deletechars = ',\\/:*"<>|?'
 
 
-# Extraemos el nombre de la serie, temporada y numero de capitulo ejemplo: 'fringe 1x01'
+# We extract the name of the series, season and chapter number example: 'fringe 1x01'
 def regex_tvshow(compare, file, sub=""):
-    regex_expressions = ['[Ss]([0-9]+)[][._-]*[Ee]([0-9]+)([^\\\\/]*)$',
-                         '[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)',  # foo.1x09 
-                         '[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',  # foo.109
-                         '([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',
-                         '[\\\\/\\._ -]([0-9]+)([0-9][0-9])[^\\/]*',
-                         'Season ([0-9]+) - Episode ([0-9]+)[^\\/]*',
-                         'Season ([0-9]+) Episode ([0-9]+)[^\\/]*',
-                         '[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*',
-                         '[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)',  # foo_[s01]_[e01]
-                         '[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)',  # foo, s01e01, foo.s01.e01, foo.s01-e01
-                         's([0-9]+)ep([0-9]+)[^\\/]*',  # foo - s01ep03, foo - s1ep03
-                         '[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$',
-                         '[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$',
-                         '[\\\\/\\._ \\[\\(-]([0-9]+)X([0-9]+)([^\\\\/]*)$'
+    regex_expressions = [r'[Ss]([0-9]+)[][._-]*[Ee]([0-9]+)([^\\\\/]*)$',
+                         r'[\._ \-]([0-9]+)x([0-9]+)([^\\/]*)',  # foo.1x09 
+                         r'[\._ \-]([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',  # foo.109
+                         r'([0-9]+)([0-9][0-9])([\._ \-][^\\/]*)',
+                         r'[\\\\/\\._ -]([0-9]+)([0-9][0-9])[^\\/]*',
+                         r'Season ([0-9]+) - Episode ([0-9]+)[^\\/]*',
+                         r'Season ([0-9]+) Episode ([0-9]+)[^\\/]*',
+                         r'[\\\\/\\._ -][0]*([0-9]+)x[0]*([0-9]+)[^\\/]*',
+                         r'[[Ss]([0-9]+)\]_\[[Ee]([0-9]+)([^\\/]*)',  # foo_[s01]_[e01]
+                         r'[\._ \-][Ss]([0-9]+)[\.\-]?[Ee]([0-9]+)([^\\/]*)',  # foo, s01e01, foo.s01.e01, foo.s01-e01
+                         r's([0-9]+)ep([0-9]+)[^\\/]*',  # foo - s01ep03, foo - s1ep03
+                         r'[Ss]([0-9]+)[][ ._-]*[Ee]([0-9]+)([^\\\\/]*)$',
+                         r'[\\\\/\\._ \\[\\(-]([0-9]+)x([0-9]+)([^\\\\/]*)$',
+                         r'[\\\\/\\._ \\[\\(-]([0-9]+)X([0-9]+)([^\\\\/]*)$'
                          ]
     sub_info = ""
     tvshow = 0
@@ -83,8 +80,7 @@ def regex_tvshow(compare, file, sub=""):
     else:
         return "", "", ""
 
-        # Obtiene el nombre de la pelicula o capitulo de la serie guardado previamente en configuraciones del plugin 
-        # y luego lo busca en el directorio de subtitulos, si los encuentra los activa.
+        # Gets the name of the movie or episode of the series previously saved in plugin settings and then searches for it in the subtitles directory, if it finds them, activates them.
 
 
 def set_Subtitle():
@@ -134,7 +130,7 @@ def set_Subtitle():
         except:
             logger.error("error al cargar subtitulos")
 
-            # Limpia los caracteres unicode
+            # Clean unicode characters
 
 
 def _normalize(title, charset='utf-8'):
@@ -222,9 +218,7 @@ def searchSubtitle(item):
             filetools.join(full_path_tvshow, "%s %sx%s.mp4" % (tvshow_title, season, episode)))
         logger.info(full_path_video_new)
         listitem = xbmcgui.ListItem(title_new, iconImage="DefaultVideo.png", thumbnailImage="")
-        listitem.setInfo("video",
-                         {"Title": title_new, "Genre": "Tv shows", "episode": int(episode), "season": int(season),
-                          "tvshowtitle": tvshow_title})
+        listitem.setInfo("video", {"Title": title_new, "Genre": "Tv shows", "episode": int(episode), "season": int(season), "tvshowtitle": tvshow_title})
 
     else:
         full_path_video_new = xbmc.translatePath(filetools.join(path_movie_subt, title_new + ".mp4"))
@@ -248,7 +242,7 @@ def searchSubtitle(item):
         # xbmctools.launchplayer(full_path_video_new,listitem)
     except:
         copy = False
-        logger.error("Error : no se pudo copiar")
+        logger.error("Error : could not copy")
 
     time.sleep(1)
 
@@ -289,10 +283,9 @@ def saveSubtitleName(item):
 def get_from_subdivx(sub_url):
 
     """
-    :param sub_url: Url de descarga del subtitulo alojado en suvdivx.com
-           Por Ejemplo: http://www.subdivx.com/bajar.php?id=573942&u=8
+    :param sub_url: Download url of the subtitle hosted on suvdivx.com For Example: http://www.subdivx.com/bajar.php?id=573942&u=8
 
-    :return: La ruta al subtitulo descomprimido
+    :return: The path to the unzipped subtitle
     """
 
     logger.info()
@@ -319,20 +312,20 @@ def get_from_subdivx(sub_url):
             filetools.write(filename, data_dl)
             sub = extract_file_online(sub_dir, filename)
         except:
-           logger.info('sub no valido')
+           logger.info('sub invalid')
     else:
-       logger.info('sub no valido')
+       logger.info('sub invalid')
     return sub
 
 
 def extract_file_online(path, filename):
 
     """
-    :param path: Ruta donde se encuentra el archivo comprimido
+    :param path: Path where the compressed file is located
 
-    :param filename: Nombre del archivo comprimido
+    :param filename:  
 
-    :return: Devuelve la ruta al subtitulo descomprimido
+    :return:  
     """
 
     logger.info()

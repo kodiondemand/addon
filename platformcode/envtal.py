@@ -10,13 +10,7 @@ import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import xbmc
-import xbmcaddon
-
-import os
-import subprocess
-import re
-import platform
+import xbmc, xbmcaddon, os, subprocess, re, platform
 
 try:
     import ctypes
@@ -123,18 +117,14 @@ def get_environment():
             environment['kodi_bmode'] = '0'
             environment['kodi_rfactor'] = '4.0'
             if filetools.exists(filetools.join(xbmc.translatePath("special://userdata"), "advancedsettings.xml")):
-                advancedsettings = filetools.read(filetools.join(xbmc.translatePath("special://userdata"),
-                                                                 "advancedsettings.xml")).split('\n')
+                advancedsettings = filetools.read(filetools.join(xbmc.translatePath("special://userdata"), "advancedsettings.xml")).split('\n')
                 for label_a in advancedsettings:
                     if 'memorysize' in label_a:
-                        environment['kodi_buffer'] = str(old_div(int(scrapertools.find_single_match
-                                                                     (label_a, '>(\d+)<\/')), 1024 ** 2))
+                        environment['kodi_buffer'] = str(old_div(int(scrapertools.find_single_match(label_a, r'>(\d+)<\/')), 1024 ** 2))
                     if 'buffermode' in label_a:
-                        environment['kodi_bmode'] = str(scrapertools.find_single_match
-                                                        (label_a, '>(\d+)<\/'))
+                        environment['kodi_bmode'] = str(scrapertools.find_single_match(label_a, r'>(\d+)<\/'))
                     if 'readfactor' in label_a:
-                        environment['kodi_rfactor'] = str(scrapertools.find_single_match
-                                                          (label_a, '>(.*?)<\/'))
+                        environment['kodi_rfactor'] = str(scrapertools.find_single_match(label_a, r'>(.*?)<\/'))
         except:
             pass
 
@@ -142,14 +132,12 @@ def get_environment():
         try:
             if environment['os_name'].lower() == 'windows':
                 free_bytes = ctypes.c_ulonglong(0)
-                ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(environment['userdata_path']),
-                                                           None, None, ctypes.pointer(free_bytes))
+                ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(environment['userdata_path']), None, None, ctypes.pointer(free_bytes))
                 environment['userdata_free'] = str(round(float(free_bytes.value) / (1024 ** 3), 3))
             else:
                 disk_space = os.statvfs(environment['userdata_path'])
                 if not disk_space.f_frsize: disk_space.f_frsize = disk_space.f_frsize.f_bsize
-                environment['userdata_free'] = str(round((float(disk_space.f_bavail) / \
-                                                          (1024 ** 3)) * float(disk_space.f_frsize), 3))
+                environment['userdata_free'] = str(round((float(disk_space.f_bavail) / (1024 ** 3)) * float(disk_space.f_frsize), 3))
         except:
             environment['userdata_free'] = '?'
 
@@ -158,22 +146,15 @@ def get_environment():
             environment['videolab_episodios'] = '?'
             environment['videolab_pelis'] = '?'
             environment['videolab_path'] = str(xbmc.translatePath(config.get_videolibrary_path()))
-            if filetools.exists(filetools.join(environment['videolab_path'], \
-                                               config.get_setting("folder_tvshows"))):
-                environment['videolab_series'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], \
-                                                                                          config.get_setting(
-                                                                                              "folder_tvshows")))))
+            if filetools.exists(filetools.join(environment['videolab_path'],  config.get_setting("folder_tvshows"))):
+                environment['videolab_series'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.get_setting("folder_tvshows")))))
                 counter = 0
-                for root, folders, files in filetools.walk(filetools.join(environment['videolab_path'], \
-                                                                          config.get_setting("folder_tvshows"))):
+                for root, folders, files in filetools.walk(filetools.join(environment['videolab_path'], config.get_setting("folder_tvshows"))):
                     for file in files:
                         if file.endswith('.strm'): counter += 1
                 environment['videolab_episodios'] = str(counter)
-            if filetools.exists(filetools.join(environment['videolab_path'], \
-                                               config.get_setting("folder_movies"))):
-                environment['videolab_pelis'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], \
-                                                                                         config.get_setting(
-                                                                                             "folder_movies")))))
+            if filetools.exists(filetools.join(environment['videolab_path'], config.get_setting("folder_movies"))):
+                environment['videolab_pelis'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.get_setting("folder_movies")))))
         except:
             pass
         try:
@@ -184,14 +165,12 @@ def get_environment():
         try:
             if environment['os_name'].lower() == 'windows':
                 free_bytes = ctypes.c_ulonglong(0)
-                ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(environment['videolab_path']),
-                                                           None, None, ctypes.pointer(free_bytes))
+                ctypes.windll.kernel32.GetDiskFreeSpaceExW(ctypes.c_wchar_p(environment['videolab_path']), None, None, ctypes.pointer(free_bytes))
                 environment['videolab_free'] = str(round(float(free_bytes.value) / (1024 ** 3), 3))
             else:
                 disk_space = os.statvfs(environment['videolab_path'])
                 if not disk_space.f_frsize: disk_space.f_frsize = disk_space.f_frsize.f_bsize
-                environment['videolab_free'] = str(round((float(disk_space.f_bavail) / \
-                                                          (1024 ** 3)) * float(disk_space.f_frsize), 3))
+                environment['videolab_free'] = str(round((float(disk_space.f_bavail) / (1024 ** 3)) * float(disk_space.f_frsize), 3))
         except:
             environment['videolab_free'] = '?'
 
@@ -439,131 +418,116 @@ def paint_env(item, environment={}):
     thumb = get_thumb("setting_0.png")
 
     cabecera = """\
-    Muestra las [COLOR yellow]variables[/COLOR] del ecosistema de Kodi que puden ser relevantes para el diagnóstico de problema en Alfa:
-        - Versión de Alfa con Fix
+    It shows the [COLOR yellow] variables [/ COLOR] of the Kodi ecosystem that may be relevant to the problem diagnosis in Alpha:
+        - Alpha version with Fix
         - Debug Alfa: True/False
     """
     plataform = """\
-    Muestra los datos especificos de la [COLOR yellow]plataforma[/COLOR] en la que está alojado Kodi:
-        - Sistema Operativo
-        - Modelo (opt)
-        - Versión SO
-        - Procesador
-        - Aquitectura
-        - Idioma de Kodi
+    It shows the specific data of the [COLOR yellow] platform [/ COLOR] where Kodi is hosted:
+        - Operating system
+        - Model (opt)
+        - SO version
+        - Processor
+        - Architecture
+        - Kodi language
     """
     kodi = """\
-    Muestra los datos especificos de la instalación de [COLOR yellow]Kodi[/COLOR]:
-        - Versión de Kodi
-        - Base de Datos de Vídeo
-        - Versión de Python
+    It shows the specific data of the installation of [COLOR yellow] Kodi [/ COLOR]:
+        - Kodi version
+        - Video Database
+        - Python version
     """
     cpu = """\
-    Muestra los datos consumo actual de [COLOR yellow]CPU(s)[/COLOR]
+    Displays the current consumption data of [COLOR yellow] CPU (s) [/ COLOR]
     """
     memoria = """\
-    Muestra los datos del uso de [COLOR yellow]Memoria[/COLOR] del sistema:
-        - Memoria total
-        - Memoria disponible
+    Displays the usage data of [COLOR yellow] System [/ COLOR] memory:
+        - Total memory
+        - Available memory
         - en [COLOR yellow]Advancedsettings.xml[/COLOR]
-             - Buffer de memoria 
-                 configurado: 
-                 para Kodi: 3 x valor de 
+             - Memory buffer
+                 configured:
+                 for Kodi: 3 x value of
                  <memorysize>
-             - Buffermode: cachea: 
+             - Buffermode: cache:
                  * Internet (0, 2)
-                 * También local (1)
+                 * Also local (1)
                  * No Buffer (3)
-             - Readfactor: readfactor * 
-                 avg bitrate vídeo
+             - Readfactor: readfactor *
+                 avg bitrate video
     """
     userdata = """\
-    Muestra los datos del "path" de [COLOR yellow]Userdata[/COLOR]:
+    It shows the data of the "path" of [COLOR yellow] Userdata [/ COLOR]:
         - Path
-        - Espacio disponible
+        - Available space
     """
     videoteca = """\
-    Muestra los datos de la [COLOR yellow]Videoteca[/COLOR]:
-        - Nº de Series y Episodios
-        - Nº de Películas
-        - Tipo de actulización
+    It shows the data of the [COLOR yellow] Video Library [/ COLOR]:
+        - Number of Series and Episodes
+        - No. of Movies
+        - Update type
         - Path
-        - Espacio disponible
+        - Available space
     """
     torrent = """\
-    Muestra los datos generales del estado de [COLOR yellow]Torrent[/COLOR]:
-        - ID del cliente seleccionado
-        - Descompresión automática de archivos RAR?
-        - Está activo Libtorrent?
-        - Se descomprimen los RARs en background?
-        - Está operativo el módulo UnRAR? Qué plataforma?
+    It shows the general data of the status of [COLOR yellow] Torrent [/ COLOR]:
+        - ID of the selected customer
+        - Automatic decompression of RAR files?
+        - Is Libtorrent active?
+        - Are RARs decompressed in the background?
+        - Is the UnRAR module operational? Which platform?
     """
     torrent_error = """\
-    Muestra los datos del error de importación de [COLOR yellow]Libtorrent[/COLOR]
+    Displays the import error data for [COLOR yellow] Libtorrent [/ COLOR]
     """
     torrent_cliente = """\
-    Muestra los datos de los [COLOR yellow]Clientes Torrent[/COLOR]:
-        - Nombre del Cliente
-        - Tamaño de buffer inicial
-        - Path de descargas
-        - Tamaño de buffer en Memoria 
+    It shows the data of the [COLOR yellow] Torrent Clients [/ COLOR]:
+        - Customer name
+        - Initial buffer size
+        - Download path
+        - Memory buffer size
                 (opt, si no disco)
-        - Espacio disponible
+        - Available space
     """
     proxy = """\
-    Muestra las direcciones de canales o servidores que necesitan [COLOR yellow]Proxy[/COLOR]
+    Shows the addresses of channels or servers that need [COLOR yellow] Proxy [/ COLOR]
     """
     log = """\
-    Muestra el tamaño actual del [COLOR yellow]Log[/COLOR]
+    Displays the current size of the [COLOR yellow] Log [/ COLOR]
     """
     reporte = """\
-    Enlaza con la utilidad que permite el [COLOR yellow]envío del Log[/COLOR] de Kodi a través de un servicio Pastebin
+    Links with the utility that allows the [COLOR yellow] to send the Kodi Log [/ COLOR] through a Pastebin service
     """
 
-    itemlist.append(Item(channel=item.channel, title="[COLOR orange][B]Variables " +
-                                                     "de entorno Alfa: %s Debug: %s[/B][/COLOR]" %
-                                                     (environment['addon_version'], environment['debug']),
+    itemlist.append(Item(channel=item.channel, title="KoD environment variables: %s Debug: %s" % (environment['addon_version'], environment['debug']),
                          action="", plot=cabecera, thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]%s[/COLOR]' %
-                                                     environment['os_name'] + ' ' + environment['prod_model'] + ' ' +
-                                                     environment['os_release'] + ' ' + environment['machine'] + ' ' +
-                                                     environment['architecture'] + ' ' + environment['language'],
+    itemlist.append(Item(channel=item.channel, title=environment['os_name'] + ' ' + environment['prod_model'] + ' ' + environment['os_release'] + ' ' + environment['machine'] + ' ' + environment['architecture'] + ' ' + environment['language'],
                          action="", plot=plataform, thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Kodi [/COLOR]' +
-                                                     environment['num_version'] + ', Vídeo: ' + environment[
-                                                         'video_db'] +
-                                                     ', Python ' + environment['python_version'], action="",
+    itemlist.append(Item(channel=item.channel, title='Kodi ' + environment['num_version'] + ', Vídeo: ' + environment[ 'video_db'] + ', Python ' + environment['python_version'], action="",
                          plot=kodi, thumbnail=thumb, folder=False))
 
     if environment['cpu_usage']:
-        itemlist.append(Item(channel=item.channel, title='[COLOR yellow]CPU: [/COLOR]' +
-                                                         environment['cpu_usage'], action="", plot=cpu, thumbnail=thumb,
-                             folder=False))
+        itemlist.append(Item(channel=item.channel, title='CPU: ' + environment['cpu_usage'], action="", plot=cpu, thumbnail=thumb, folder=False))
 
     if environment['mem_total'] or environment['mem_free']:
-        itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Memoria: [/COLOR]Total: ' +
+        itemlist.append(Item(channel=item.channel, title='Memory: Total: ' +
                                                          environment['mem_total'] + ' MB / Disp.: ' +
                                                          environment['mem_free'] + ' MB / Buffers: ' +
-                                                         str(int(
-                                                             environment['kodi_buffer']) * 3) + ' MB / Buffermode: ' +
+                                                         str(int(environment['kodi_buffer']) * 3) + ' MB / Buffermode: ' +
                                                          environment['kodi_bmode'] + ' / Readfactor: ' +
                                                          environment['kodi_rfactor'],
                              action="", plot=memoria, thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Userdata: [/COLOR]' +
-                                                     environment['userdata_path'] + ' - Free: ' + environment[
-                                                         'userdata_free'].replace('.', ',') +
+    itemlist.append(Item(channel=item.channel, title='Userdata:' +
+                                                     environment['userdata_path'] + ' - Free: ' + environment[ 'userdata_free'].replace('.', ',') +
                                                      ' GB', action="", plot=userdata, thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Videoteca: [/COLOR]Series/Epis: ' +
-                                                     environment['videolab_series'] + '/' + environment[
-                                                         'videolab_episodios'] +
-                                                     ' - Pelis: ' + environment['videolab_pelis'] + ' - Upd: ' +
-                                                     environment['videolab_update'] + ' - Path: ' +
-                                                     environment['videolab_path'] + ' - Free: ' + environment[
-                                                         'videolab_free'].replace('.', ',') +
+    itemlist.append(Item(channel=item.channel, title='Video store: Series/Epis: ' +
+                                                     environment['videolab_series'] + '/' + environment['videolab_episodios'] +
+                                                     ' - Movie: ' + environment['videolab_pelis'] + ' - Upd: ' + environment['videolab_update'] + ' - Path: ' +
+                                                     environment['videolab_path'] + ' - Free: ' + environment[ 'videolab_free'].replace('.', ',') +
                                                      ' GB', action="", plot=videoteca, thumbnail=thumb, folder=False))
 
     if environment['torrent_list']:
@@ -571,41 +535,27 @@ def paint_env(item, environment={}):
             if x == 0:
                 cliente_alt = cliente.copy()
                 del cliente_alt['Torrent_opt']
-                itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Torrent: [/COLOR]Opt: %s, %s' \
-                                                                 % (str(cliente['Torrent_opt']),
-                                                                    str(cliente_alt).replace('{', '').replace('}', '') \
-                                                                    .replace("'", '').replace('_', ' ')), action="",
-                                     plot=torrent, thumbnail=thumb,
-                                     folder=False))
+                itemlist.append(Item(channel=item.channel, title='Torrent: Opt: %s, %s' % (str(cliente['Torrent_opt']), str(cliente_alt).replace('{', '').replace('}', '').replace("'", '').replace('_', ' ')), action="",
+                                     plot=torrent, thumbnail=thumb, folder=False))
             elif x == 1 and environment['torrent_error']:
                 itemlist.append(Item(channel=item.channel,
-                                     title='[COLOR magenta]- %s[/COLOR]' % str(cliente).replace('{', '').replace('}',
-                                                                                                                 '') \
-                                     .replace("'", '').replace('_', ' '), action="", plot=torrent_error,
-                                     thumbnail=thumb,
-                                     folder=False))
+                                     title=str(cliente).replace('{', '').replace('}','').replace("'", '').replace('_', ' '), action="", plot=torrent_error,
+                                     thumbnail=thumb, folder=False))
             else:
                 cliente_alt = cliente.copy()
                 del cliente_alt['Plug_in']
                 cliente_alt['Libre'] = cliente_alt['Libre'].replace('.', ',') + ' GB'
-                itemlist.append(Item(channel=item.channel, title='[COLOR yellow]- %s: [/COLOR]: %s' %
-                                                                 (str(cliente['Plug_in']),
-                                                                  str(cliente_alt).replace('{', '').replace('}', '') \
-                                                                  .replace("'", '').replace('\\\\', '\\')), action="",
-                                     plot=torrent_cliente,
-                                     thumbnail=thumb, folder=False))
+                itemlist.append(Item(channel=item.channel, title='- %s: %s' % (str(cliente['Plug_in']), str(cliente_alt).replace('{', '').replace('}', '').replace("'", '').replace('\\\\', '\\')), action="",
+                                     plot=torrent_cliente, thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]Proxy: [/COLOR]' +
-                                                     environment['proxy_active'], action="", plot=proxy,
-                         thumbnail=thumb,
-                         folder=False))
+    itemlist.append(Item(channel=item.channel, title='Proxy: ' + environment['proxy_active'], action="", plot=proxy,
+                         thumbnail=thumb, folder=False))
 
-    itemlist.append(Item(channel=item.channel, title='[COLOR yellow]TAMAÑO del LOG: [/COLOR]' +
-                                                     environment['log_size'].replace('.', ',') + ' MB', action="",
+    itemlist.append(Item(channel=item.channel, title='LOG SIZE: ' + environment['log_size'].replace('.', ',') + ' MB', action="",
                          plot=log, thumbnail=thumb,
                          folder=False))
 
-    itemlist.append(Item(title="[COLOR hotpink][B]==> Reportar un fallo[/B][/COLOR]",
+    itemlist.append(Item(title="==> Report a bug",
                          channel="setting", action="report_menu", category='Configuración',
                          unify=False, plot=reporte, thumbnail=get_thumb("error.png")))
 

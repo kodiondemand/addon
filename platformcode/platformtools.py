@@ -21,8 +21,7 @@ else:
 import os, xbmc, xbmcgui, xbmcplugin
 
 from channelselector import get_thumb
-from core import channeltools
-from core import trakt_tools, scrapertools
+from core import channeltools, trakt_tools, scrapertools
 from core.item import Item
 from platformcode import logger, config, unify
 

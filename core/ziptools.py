@@ -17,8 +17,8 @@ from core import filetools
 
 class ziptools(object):
     def extract(self, file, dir, folder_to_extract="", overwrite_question=False, backup=False):
-        logger.info("file=%s" % file)
-        logger.info("dir=%s" % dir)
+        logger.info("file= %s" % file)
+        logger.info("dir= %s" % dir)
 
         if not dir.endswith(':') and not filetools.exists(dir):
             filetools.mkdir(dir)
@@ -32,7 +32,7 @@ class ziptools(object):
             name = nameo.replace(':', '_').replace('<', '_').replace('>', '_').replace('|', '_').replace('"', '_').replace('?', '_').replace('*', '_')
             logger.info("name=%s" % nameo)
             if not name.endswith('/'):
-                logger.info("no es un directorio")
+                logger.info("it's not a directory")
                 try:
                     (path, filename) = filetools.split(filetools.join(dir, name))
                     logger.info("path=%s" % path)
@@ -53,31 +53,28 @@ class ziptools(object):
                 try:
                     if filetools.exists(outfilename) and overwrite_question:
                         from platformcode import platformtools
-                        dyesno = platformtools.dialog_yesno("El archivo ya existe",
-                                                            "El archivo %s a descomprimir ya existe" \
-                                                            ", ¿desea sobrescribirlo?" \
-                                                            % filetools.basename(outfilename))
+                        dyesno = platformtools.dialog_yesno("File already exists "," File %s to unzip already exists, do you want to overwrite it?" % filetools.basename(outfilename))
                         if not dyesno:
                             break
                         if backup:
                             import time
-                            hora_folder = "Copia seguridad [%s]" % time.strftime("%d-%m_%H-%M", time.localtime())
+                            hora_folder = "Backup [%s]" % time.strftime("%d-%m_%H-%M", time.localtime())
                             backup = filetools.join(config.get_data_path(), 'backups', hora_folder, folder_to_extract)
                             if not filetools.exists(backup):
                                 filetools.mkdir(backup)
                             filetools.copy(outfilename, filetools.join(backup, filetools.basename(outfilename)))
 
                     if not filetools.write(outfilename, zf.read(nameo), silent=True, vfs=VFS):  #TRUNCA en FINAL en Kodi 19 con VFS
-                        logger.error("Error en fichero " + nameo)
+                        logger.error("File error " + nameo)
                 except:
                     import traceback
                     logger.error(traceback.format_exc())
-                    logger.error("Error en fichero " + nameo)
+                    logger.error("File error " + nameo)
 
         try:
             zf.close()
         except:
-            logger.info("Error cerrando .zip " + file)
+            logger.info("Error closing .zip " + file)
 
     def _createstructure(self, file, dir):
         self._makedirs(self._listdirs(file), dir)

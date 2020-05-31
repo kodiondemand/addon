@@ -18,7 +18,7 @@ addonid = addon.getAddonInfo('id')
 
 LIST_SITE = ['http://www.ansa.it/', 'https://www.google.it']#, 'https://www.google.com']
 
-# lista di siti che non verranno raggiunti con i DNS del gestore
+# list of sites that will not be reached with the manager's DNS
 
 LST_SITE_CHCK_DNS = ['https://www.casacinema.me/', 'https://cb01-nuovo-indirizzo.info/']
                      #'https://www.italia-film.pw', 'https://www.cb01.uno/',] # tolti
@@ -41,13 +41,8 @@ class Kdicc():
 
     def check_Ip(self):
         """
-            controllo l'ip
-            se ip_addr = 127.0.0.1 o ip_addr = '' allora il device non
-            e' connesso al modem/router
-
             check the ip
-            if ip_addr = 127.0.0.1 or ip_addr = '' then the device does not
-            is connected to the modem/router
+            if ip_addr = 127.0.0.1 or ip_addr = '' then the device does not is connected to the modem/router
 
             return: bool
         """
@@ -59,7 +54,7 @@ class Kdicc():
 
     def check_Adsl(self):
         """
-            controllo se il device raggiunge i siti
+            check if the device reaches the sites
         """
 
         urls = LIST_SITE
@@ -67,8 +62,8 @@ class Kdicc():
         http_errr = 0
         for rslt in r:
             xbmc.log("check_Adsl rslt: %s" % rslt['code'], level=xbmc.LOGNOTICE)
-            # Errno -2 potrebbe essere mancanza di connessione adsl o sito non raggiungibile....
-            # anche nei casi in cui ci sia il cambio gestore.
+            # Errno -2 could be lack of adsl connection or unreachable site ....
+            # even in cases where there is a change of manager.
             if rslt['code'] == '111' or '[Errno -3]' in str(rslt['code']) or 'Errno -2' in str(rslt['code']):
                 http_errr +=1
 
@@ -80,7 +75,7 @@ class Kdicc():
 
     def check_Dns(self):
         """
-            Controllo se i DNS raggiungono certi siti
+            Control if DNS reaches certain sites
         """
         if self.lst_site_check_dns == []:
             urls = LST_SITE_CHCK_DNS
@@ -88,7 +83,7 @@ class Kdicc():
             urls = self.lst_site_check_dns
 
         r = self.rqst(urls)
-        xbmc.log("check_Dns risultato: %s" % r, level=xbmc.LOGNOTICE)
+        xbmc.log("check_Dns result: %s" % r, level=xbmc.LOGNOTICE)
         http_errr = 0
         for rslt in r:
             xbmc.log("check_Dns rslt: %s" % rslt['code'], level=xbmc.LOGNOTICE)
@@ -103,7 +98,7 @@ class Kdicc():
 
     def rqst(self, lst_urls):
         """
-            url deve iniziare con http(s):'
+            url must start with http(s):'
             return : (esito, sito, url, code, reurl)
         """
         rslt_final = []
@@ -114,7 +109,7 @@ class Kdicc():
         for sito in lst_urls:
             rslt = {}
             try:
-                r = requests.head(sito, allow_redirects = True)#, timeout=7) # da errore dopo l'inserimento in lib di httplib2
+                r = requests.head(sito, allow_redirects = True) #, timeout=7) # from error after lib insertion of httplib2
                 if r.url.endswith('/'):
                     r.url = r.url[:-1]
                 if str(sito) != str(r.url):
@@ -130,17 +125,17 @@ class Kdicc():
                 xbmc.log("Risultato nel try: %s" %  (r,), level=xbmc.LOGNOTICE)
 
             except requests.exceptions.ConnectionError as conn_errr:
-                # Errno 10061 per s.o. win
-                # gli Errno 10xxx e 11xxx saranno da compattare in qualche modo?
-                # gli errori vengono inglobati in code = '111' in quanto in quel momento
-                # non vengono raggiunti per una qualsiasi causa
+                # Errno 10061 for s.o. win
+                # will the Errno 10xxx and 11xxx be to be compacted in any way?
+                # the errors are incorporated in code = '111' since at that moment
+                # they are not reached for any reason
                 if '[Errno 111]' in str(conn_errr) or 'Errno 10060' in str(conn_errr) \
                      or 'Errno 10061' in str(conn_errr) \
                      or '[Errno 110]' in str(conn_errr) \
                      or 'ConnectTimeoutError' in str(conn_errr) \
                      or 'Errno 11002' in str(conn_errr) or 'ReadTimeout' in str(conn_errr) \
                      or 'Errno 11001' in str(conn_errr) \
-                     or 'Errno -2' in str(conn_errr): # questo errore è anche nel code: -2
+                     or 'Errno -2' in str(conn_errr): # this error is also in the code: -2
                     rslt['code'] = '111'
                     rslt['url'] = str(sito)
                     rslt['http_err'] = 'Connection error'
@@ -169,11 +164,11 @@ class Kdicc():
                 else:
                     rslt['code'] = code.status
             except httplib2.ServerNotFoundError as msg:
-                # sia per mancanza di ADSL che per i siti non esistenti
+                # both for lack of ADSL and for non-existent sites
                 rslt['code'] = -2
             except socket.error as msg:
-                # per siti irraggiungibili senza DNS corretti
-                #[Errno 111] Connection refused
+                # for unreachable sites without correct DNS
+                # [Errno 111] Connection refused
                 rslt['code'] = 111
             except:
                 rslt['code'] = 'Connection error'
@@ -181,8 +176,7 @@ class Kdicc():
 
     def view_Advise(self, txt = '' ):
         """
-            Avviso per utente
-            testConnected
+            Notice per user testConnected
         """
         ip = self.check_Ip()
         if ip:
@@ -201,37 +195,36 @@ class Kdicc():
             txt = config.get_localized_string(707402)
             dialog.notification(addonname, txt, xbmcgui.NOTIFICATION_INFO, 10000)
 """
-    def richiamato in launcher.py
+    def called in launcher.py
 """
 def test_conn(is_exit, check_dns, view_msg,
               lst_urls, lst_site_check_dns, in_addon):
 
     ktest = Kdicc(is_exit, check_dns, view_msg, lst_urls, lst_site_check_dns, in_addon)
-    # se non ha l'ip lo comunico all'utente
+    # if it does not have the IP, I will communicate it to the user
     if not ktest.check_Ip():
-        # non permetto di entrare nell'addon
         # I don't let you get into the addon
-        # inserire codice lingua
+        # enter language code
         if view_msg == True:
             ktest.view_Advise(config.get_localized_string(70720))
         if ktest.is_exit == True:
             exit()
-    # se non ha connessione ADSL lo comunico all'utente
+    # if it has no ADSL connection, I will communicate it to the user
     if not ktest.check_Adsl():
         if view_msg == True:
             ktest.view_Advise(config.get_localized_string(70721))
         if ktest.is_exit == True:
             exit()
-    # se ha i DNS filtrati lo comunico all'utente
+    # if it has DNS filtered, I will communicate it to the user
     if check_dns == True:
         if not ktest.check_Dns():
             if view_msg == True:
                 ktest.view_Advise(config.get_localized_string(70722))
 
-    xbmc.log("############ Inizio Check DNS ############", level=xbmc.LOGNOTICE)
+    xbmc.log("############ Start Check DNS ############", level=xbmc.LOGNOTICE)
     xbmc.log("## IP: %s" %  (ktest.ip_addr), level=xbmc.LOGNOTICE)
     xbmc.log("## DNS: %s" %  (ktest.dns), level=xbmc.LOGNOTICE)
-    xbmc.log("############ Fine Check DNS ############", level=xbmc.LOGNOTICE)
+    xbmc.log("############# End Check DNS #############", level=xbmc.LOGNOTICE)
     # if check_dns == True:
     #     if ktest.check_Ip() == True and ktest.check_Adsl() == True and ktest.check_Dns() == True:
     #         return True
@@ -243,21 +236,17 @@ def test_conn(is_exit, check_dns, view_msg,
     #     else:
     #         return False
 
-# def per la creazione del file channels.json
+# def for creating the channels.json file
 def check_channels(inutile=''):
     """
-    leggo gli host dei canali dal file channels.json
-    li controllo
-    scrivo il file channels-test.json
-    con il codice di errore e il nuovio url in caso di redirect
+    I read the channel hosts from the channels.json file, I check them,
+    I write the channels-test.json file with the error code and the new url in case of redirect
 
-    gli url DEVONO avere http(s)
+    urls MUST have http (s)
 
-    Durante il controllo degli urls vengono rieffettuati
-    i controlli di ip, asdl e dns.
-    Questo perchè può succedere che in un qualsiasi momento
-    la connessione possa avere problemi. Nel caso accada, il controllo e
-    relativa scrittura del file viene interrotto con messaggio di avvertimento
+    During the urls check the ip, asdl and dns checks are carried out.
+    This is because it can happen that at any time the connection may have problems. If it does, check it
+    relative writing of the file is interrupted with a warning message
     """
     logger.info()
 
@@ -272,37 +261,37 @@ def check_channels(inutile=''):
     for chann, host in sorted(data.items()):
 
         ris = []
-        # per avere un'idea della tempistica
-        # utile solo se si controllano tutti i canali
-        # per i canali con error 522 si perdono circa  40 sec...
+        # to get an idea of ​​the timing
+        # useful only if you control all channels
+        # for channels with error 522 about 40 seconds are lost ...
         logger.info("check #### INIZIO #### channel - host :%s - %s " % (chann, host))
 
         rslt = Kdicc(lst_urls = [host]).http_Resp()
 
-        # tutto ok
+        # all right
         if rslt['code'] == 200:
             risultato[chann] = host
         # redirect
         elif str(rslt['code']).startswith('3'):
-            #risultato[chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
+            # risultato[chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
             if rslt['redirect'].endswith('/'):
                 rslt['redirect'] = rslt['redirect'][:-1]
             risultato[chann] = rslt['redirect']
-        # sito inesistente
+        # non-existent site
         elif rslt['code'] == -2:
             risultato[chann] = 'Host Sconosciuto - '+ str(rslt['code']) +' - '+ host
-        # sito non raggiungibile - probabili dns non settati
+        # site not reachable - probable dns not set
         elif rslt['code'] == 111:
             risultato[chann] = ['Host non raggiungibile - '+ str(rslt['code']) +' - '+ host]
         else:
-            # altri tipi di errore
-            #risultato[chann] = 'Errore Sconosciuto - '+str(rslt['code']) +' - '+ host
+            # other types of errors
+            # risultato[chann] = 'Errore Sconosciuto - '+str(rslt['code']) +' - '+ host
             risultato[chann] = host
 
         logger.info("check #### FINE #### rslt :%s  " % (rslt))
 
     fileJson_test = 'channels-test.json'
-    # scrivo il file aggiornato
+    # I write the updated file
     with open(folderJson+'/'+fileJson_test, 'w') as f:
         data = json.dump(risultato, f, sort_keys=True, indent=4)
         logger.info(data)

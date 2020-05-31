@@ -12,11 +12,9 @@ from builtins import range
 from past.utils import old_div
 
 from channelselector import get_thumb
-from core import filetools
-from core import servertools
+from core import filetools, servertools
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 import xbmcgui
 
 CHANNELNAME = "setting"
@@ -73,7 +71,7 @@ def menu_channels(item):
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60546) + ":", action="", folder=False,
                          text_bold = True, thumbnail=get_thumb("setting_0.png")))
 
-    # Inicio - Canales configurables
+    # Home - Configurable channels
     import channelselector
     from core import channeltools
     channel_list = channelselector.filterchannels("all")
@@ -85,7 +83,7 @@ def menu_channels(item):
             itemlist.append(Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60547) % channel.title,
                                  action="channel_config", config=channel.channel, folder=False,
                                  thumbnail=channel.thumbnail))
-    # Fin - Canales configurables
+    # End - Configurable channels
     itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False, thumbnail=get_thumb("setting_0.png")))
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60548) + ":", action="", folder=False,
                          text_bold=True, thumbnail=get_thumb("channels.png")))
@@ -98,7 +96,7 @@ def channel_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels", item.config))
 
 
-def autostart(item):  # item necessario launcher.py linea 265
+def autostart(item):  # item required launcher.py line 265
     if config.enable_disable_autorun(AUTOSTART):
         logger.info('AUTOSTART ENABLED')
         # xbmcgui.Dialog().ok(config.get_localized_string(20000), config.get_localized_string(70709))
@@ -126,7 +124,7 @@ def autostart(item):  # item necessario launcher.py linea 265
 
 #     torrent_options = [config.get_localized_string(30006), config.get_localized_string(70254), config.get_localized_string(70255)]
 #     torrent_options.extend(platformtools.torrent_client_installed())
-    
+
 
 #     list_controls = [
 #         {
@@ -257,7 +255,7 @@ def menu_servers(item):
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60552),
                          action="", folder=False, text_bold = True, thumbnail=get_thumb("setting_0.png")))
 
-    # Inicio - Servidores configurables
+    # Home - Configurable servers
 
     server_list = list(servertools.get_debriders_list().keys())
     for server in server_list:
@@ -280,7 +278,7 @@ def menu_servers(item):
                 Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60553) % server_parameters["name"],
                      action="server_config", config=server, folder=False, thumbnail=""))
 
-    # Fin - Servidores configurables
+    # End - Configurable servers
 
     return itemlist
 
@@ -332,13 +330,13 @@ def cb_servers_blacklist(item, dict_values):
             config.set_setting('filter_servers', v)
         else:
             config.set_setting("black_list", v, server=k)
-            if v:  # Si el servidor esta en la lista negra no puede estar en la de favoritos
+            if v:  # If the server is blacklisted it cannot be in the favorites list
                 config.set_setting("favorites_servers_list", 100, server=k)
                 f = True
                 progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
         i += 1
 
-    if not f:  # Si no hay ningun servidor en la lista, desactivarla
+    if not f:  # If there is no server in the list, deactivate it
         config.set_setting('filter_servers', False)
 
     progreso.close()
@@ -406,7 +404,7 @@ def cb_servers_favorites(server_names, dict_values):
         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % server_parameters['name'])
         i += 1
 
-    if not dict_name:  # Si no hay ningun servidor en lalista desactivarla
+    if not dict_name:  # If there is no server in the list, deactivate it
         config.set_setting("favorites_servers", False)
 
     progreso.close()
@@ -420,7 +418,7 @@ def submenu_tools(item):
     logger.info()
     itemlist = list()
 
-    # Herramientas personalizadas
+    # Custom tools
     import os
     channel_custom = os.path.join(config.get_runtime_path(), 'channels', 'custom.py')
     if not filetools.exists(channel_custom):
@@ -483,9 +481,9 @@ def check_quickfixes(item):
 def conf_tools(item):
     logger.info()
 
-    # Activar o desactivar canales
+    # Enable or disable channels
     if item.extra == "channels_onoff":
-        if config.get_platform(True)['num_version'] >= 17.0: # A partir de Kodi 16 se puede usar multiselect, y de 17 con preselect
+        if config.get_platform(True)['num_version'] >= 17.0: # From Kodi 16 you can use multiselect, and from 17 with preselect
             return channels_onoff(item)
 
         import channelselector
@@ -515,14 +513,14 @@ def conf_tools(item):
                                               config.get_localized_string(60593)]})
 
             for channel in channel_list:
-                # Si el canal esta en la lista de exclusiones lo saltamos
+                # If the channel is on the exclusion list, we skip it
                 if channel.channel not in excluded_channels:
 
                     channel_parameters = channeltools.get_channel_parameters(channel.channel)
 
                     status_control = ""
                     status = config.get_setting("enabled", channel.channel)
-                    # si status no existe es que NO HAY valor en _data.json
+                    # if status does not exist, there is NO value in _data.json
                     if status is None:
                         status = channel_parameters["active"]
                         logger.debug("%s | Status (XML): %s" % (channel.channel, status))
@@ -552,15 +550,14 @@ def conf_tools(item):
                                                        callback="channel_status",
                                                        custom_button={"visible": False})
 
-    # Comprobacion de archivos channel_data.json
+    # Checking channel_data.json files
     elif item.extra == "lib_check_datajson":
         itemlist = []
         import channelselector
         from core import channeltools
         channel_list = channelselector.filterchannels("allchannelstatus")
 
-        # Tener una lista de exclusion no tiene mucho sentido por que se comprueba si channel.json tiene "settings",
-        # pero por si acaso se deja
+        # Having an exclusion list doesn't make much sense because it checks if channel.json has "settings", but just in case it is left
         excluded_channels = ['url',
                              'setting',
                              'help']
@@ -573,9 +570,9 @@ def conf_tools(item):
                 list_status = None
                 default_settings = None
 
-                # Se comprueba si el canal esta en la lista de exclusiones
+                # It is checked if the channel is in the exclusion list
                 if channel.channel not in excluded_channels:
-                    # Se comprueba que tenga "settings", sino se salta
+                    # It is checked that it has "settings", otherwise it skips
                     list_controls, dict_settings = channeltools.get_channel_controls_settings(channel.channel)
 
                     if not list_controls:
@@ -586,23 +583,22 @@ def conf_tools(item):
                         continue
                         # logger.info(channel.channel + " SALTADO!")
 
-                    # Se cargan los ajustes del archivo json del canal
-                    file_settings = os.path.join(config.get_data_path(), "settings_channels",
-                                                 channel.channel + "_data.json")
+                    # The json file settings of the channel are loaded
+                    file_settings = os.path.join(config.get_data_path(), "settings_channels", channel.channel + "_data.json")
                     dict_settings = {}
                     dict_file = {}
                     if filetools.exists(file_settings):
-                        # logger.info(channel.channel + " Tiene archivo _data.json")
+                        # logger.info(channel.channel + " Has _data.json file")
                         channeljson_exists = True
-                        # Obtenemos configuracion guardada de ../settings/channel_data.json
+                        # We get saved settings from ../settings/channel_data.json
                         try:
                             dict_file = jsontools.load(filetools.read(file_settings))
                             if isinstance(dict_file, dict) and 'settings' in dict_file:
                                 dict_settings = dict_file['settings']
                         except EnvironmentError:
-                            logger.error("ERROR al leer el archivo: %s" % file_settings)
+                            logger.error("ERROR when reading the file: %s" % file_settings)
                     else:
-                        # logger.info(channel.channel + " No tiene archivo _data.json")
+                        # logger.info(channel.channel + " No _data.json file")
                         channeljson_exists = False
 
                     if channeljson_exists:
@@ -614,12 +610,12 @@ def conf_tools(item):
                     else:
                         datajson_size = None
 
-                    # Si el _data.json esta vacio o no existe...
+                    # If the _data.json is empty or does not exist ...
                     if (len(dict_settings) and datajson_size) == 0 or not channeljson_exists:
-                        # Obtenemos controles del archivo ../channels/channel.json
+                        # We get controls from the file ../channels/channel.json
                         needsfix = True
                         try:
-                            # Se cargan los ajustes por defecto
+                            # Default settings are loaded
                             list_controls, default_settings = channeltools.get_channel_controls_settings(
                                 channel.channel)
                             # logger.info(channel.title + " | Default: %s" % default_settings)
@@ -628,26 +624,26 @@ def conf_tools(item):
                             logger.error(channel.title + config.get_localized_string(60570) % traceback.format_exc())
                             # default_settings = {}
 
-                        # Si _data.json necesita ser reparado o no existe...
+                        # If _data.json needs to be repaired or doesn't exist ...
                         if needsfix or not channeljson_exists:
                             if default_settings is not None:
-                                # Creamos el channel_data.json
+                                # We create the channel_data.json
                                 default_settings.update(dict_settings)
                                 dict_settings = default_settings
                                 dict_file['settings'] = dict_settings
-                                # Creamos el archivo ../settings/channel_data.json
+                                # We create the file ../settings/channel_data.json
                                 if not filetools.write(file_settings, jsontools.dump(dict_file), silent=True):
-                                    logger.error("ERROR al salvar el archivo: %s" % file_settings)
+                                    logger.error("ERROR saving file: %s" % file_settings)
                                 list_status = config.get_localized_string(60560)
                             else:
                                 if default_settings is None:
                                     list_status = config.get_localized_string(60571)
 
                     else:
-                        # logger.info(channel.channel + " - NO necesita correccion!")
+                        # logger.info(channel.channel + " - NO correction needed!")
                         needsfix = False
 
-                    # Si se ha establecido el estado del canal se añade a la lista
+                    # If the channel status has been set it is added to the list
                     if needsfix is not None:
                         if needsfix:
                             if not channeljson_exists:
@@ -657,8 +653,7 @@ def conf_tools(item):
                                 list_status = config.get_localized_string(60589)
                                 list_colour = "green"
                         else:
-                            # Si "needsfix" es "false" y "datjson_size" es None habra
-                            # ocurrido algun error
+                            # If "needsfix" is "false" and "datjson_size" is None, an error will have occurred
                             if datajson_size is None:
                                 list_status = config.get_localized_string(60590)
                                 list_colour = "red"
@@ -673,9 +668,9 @@ def conf_tools(item):
                                              thumbnail=channel.thumbnail,
                                              text_color=list_colour))
                     else:
-                        logger.error("Algo va mal con el canal %s" % channel.channel)
+                        logger.error("Something is wrong with the channel %s" % channel.channel)
 
-                # Si el canal esta en la lista de exclusiones lo saltamos
+                # If the channel is on the exclusion list, we skip it
                 else:
                     continue
         except:
@@ -689,7 +684,7 @@ def channels_onoff(item):
     import channelselector, xbmcgui
     from core import channeltools
 
-    # Cargar lista de opciones
+    # Load list of options
     # ------------------------
     lista = []; ids = []
     channels_list = channelselector.filterchannels('allchannelstatus')
@@ -704,11 +699,11 @@ def channels_onoff(item):
         lista.append(it)
         ids.append(channel.channel)
 
-    # Diálogo para pre-seleccionar
+    # Dialog to pre-select
     # ----------------------------
     preselecciones = [config.get_localized_string(70517), config.get_localized_string(70518), config.get_localized_string(70519)]
     ret = platformtools.dialog_select(config.get_localized_string(60545), preselecciones)
-    if ret == -1: return False # pedido cancel
+    if ret == -1: return False # order cancel
     if ret == 2: preselect = []
     elif ret == 1: preselect = list(range(len(ids)))
     else:
@@ -719,13 +714,13 @@ def channels_onoff(item):
             if channel_status:
                 preselect.append(i)
 
-    # Diálogo para seleccionar
+    # Dialog to select
     # ------------------------
     ret = xbmcgui.Dialog().multiselect(config.get_localized_string(60545), lista, preselect=preselect, useDetails=True)
-    if ret == None: return False # pedido cancel
+    if ret == None: return False # order cancel
     seleccionados = [ids[i] for i in ret]
 
-    # Guardar cambios en canales activados
+    # Save changes to activated channels
     # ------------------------------------
     for canal in ids:
         channel_status = config.get_setting('enabled', canal)
@@ -744,7 +739,7 @@ def channel_status(item, dict_values):
         for k in dict_values:
 
             if k == "all_channels":
-                logger.info("Todos los canales | Estado seleccionado: %s" % dict_values[k])
+                logger.info("All channels | Selected state: %s" % dict_values[k])
                 if dict_values[k] != 0:
                     excluded_channels = ['url', 'search',
                                          'videolibrary', 'setting',
@@ -759,25 +754,25 @@ def channel_status(item, dict_values):
                             new_status_all = None
                             new_status_all_default = channel_parameters["active"]
 
-                            # Opcion Activar todos
+                            # Option Activate all
                             if dict_values[k] == 1:
                                 new_status_all = True
 
-                            # Opcion Desactivar todos
+                            # Option Deactivate all
                             if dict_values[k] == 2:
                                 new_status_all = False
 
-                            # Opcion Recuperar estado por defecto
+                            # Retrieve default status option
                             if dict_values[k] == 3:
-                                # Si tiene "enabled" en el _data.json es porque el estado no es el del channel.json
+                                # If you have "enabled" in the _data.json, it is because the state is not that of the channel.json
                                 if config.get_setting("enabled", channel.channel):
                                     new_status_all = new_status_all_default
 
-                                # Si el canal no tiene "enabled" en el _data.json no se guarda, se pasa al siguiente
+                                # If the channel does not have "enabled" in the _data.json it is not saved, it goes to the next
                                 else:
                                     continue
 
-                            # Se guarda el estado del canal
+                            # Channel status is saved
                             if new_status_all is not None:
                                 config.set_setting("enabled", new_status_all, channel.channel)
                     break
@@ -785,15 +780,15 @@ def channel_status(item, dict_values):
                     continue
 
             else:
-                logger.info("Canal: %s | Estado: %s" % (k, dict_values[k]))
+                logger.info("Channel: %s | State: %s" % (k, dict_values[k]))
                 config.set_setting("enabled", dict_values[k], k)
-                logger.info("el valor esta como %s " % config.get_setting("enabled", k))
+                logger.info("the value is like %s " % config.get_setting("enabled", k))
 
         platformtools.itemlist_update(Item(channel=CHANNELNAME, action="mainlist"))
 
     except:
         import traceback
-        logger.error("Detalle del error: %s" % traceback.format_exc())
+        logger.error("Error detail: %s" % traceback.format_exc())
         platformtools.dialog_notification(config.get_localized_string(60579), config.get_localized_string(60580))
 
 
@@ -823,15 +818,15 @@ def restore_tools(item):
             path = filetools.dirname(tvshow_file)
 
             if not serie.active:
-                # si la serie no esta activa descartar
+                # if the series is not active discard
                 continue
 
-            # Eliminamos la carpeta con la serie ...
+            # We delete the folder with the series ...
             if tvshow_file.endswith('.strm') or tvshow_file.endswith('.json') or tvshow_file.endswith('.nfo'):
                 os.remove(os.path.join(path, tvshow_file))
             # filetools.rmdirtree(path)
 
-            # ... y la volvemos a añadir
+            # ... and we add it again
             service.update(path, p_dialog, i, t, serie, 3)
         p_dialog.close()
 
@@ -855,7 +850,7 @@ def restore_tools(item):
                 path = filetools.dirname(movie_json)
                 movie = Item().fromjson(filetools.read(movie_json))
 
-                # Eliminamos la carpeta con la pelicula ...
+                # We delete the folder with the movie ...
                 filetools.rmdirtree(path)
 
                 import math
@@ -863,69 +858,69 @@ def restore_tools(item):
 
                 p_dialog2.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (movie.contentTitle,
                                                                                    movie.channel.capitalize()))
-                # ... y la volvemos a añadir
+                # ... and we add it again
                 videolibrarytools.save_movie(movie)
             except Exception as ex:
-                logger.error("Error al crear de nuevo la película")
+                logger.error("Error creating movie again")
                 template = "An exception of type %s occured. Arguments:\n%r"
                 message = template % (type(ex).__name__, ex.args)
                 logger.error(message)
 
         p_dialog2.close()
 
-        
+
 def report_menu(item):
     logger.info('URL: ' + item.url)
-    
+
     from channelselector import get_thumb
-    
+
     thumb_debug = get_thumb("update.png")
     thumb_error = get_thumb("error.png")
     thumb_next = get_thumb("next.png")
     itemlist = []
     paso = 1
 
-    # Crea un menú de opciones para permitir al usuario reportar un fallo de Alfa a través de un servidor "pastebin"
-    # Para que el informe sea completo el usuario debe tener la opción de DEBUG=ON
-    # Los servidores "pastbin" gratuitos tienen limitación de capacidad, por lo que el tamaño del log es importante
-    # Al final de la operación de upload, se pasa al usuario la dirección de log en el servidor para que los reporte
-    
+    # Create a menu of options to allow the user to report an Alpha failure through a "pastebin" server
+    # For the report to be complete, the user must have the option DEBUG = ON
+    # Free pastbin servers have capacity limitations, so the size of the log is important
+    # At the end of the upload operation, the user is passed the log address on the server to report them
+
     itemlist.append(Item(channel=item.channel, action="", title=config.get_localized_string(707418),
                 thumbnail=thumb_next, folder=False))
-    #if not config.get_setting('debug'):
-    itemlist.append(Item(channel=item.channel, action="activate_debug", extra=True, 
+    # if not config.get_setting('debug'):
+    itemlist.append(Item(channel=item.channel, action="activate_debug", extra=True,
                     title=config.get_localized_string(707419) %
                     str(paso), thumbnail=thumb_debug, folder=False))
     paso += 1
-    itemlist.append(Item(channel="channelselector", action="getmainlist", 
+    itemlist.append(Item(channel="channelselector", action="getmainlist",
                     title=config.get_localized_string(707420) %
                     str(paso), thumbnail=thumb_debug))
     paso += 1
-    itemlist.append(Item(channel=item.channel, action="report_send", 
+    itemlist.append(Item(channel=item.channel, action="report_send",
                     title=config.get_localized_string(707421) %
                     str(paso), thumbnail=thumb_error, folder=False))
     paso += 1
-    #if config.get_setting('debug'):
-    itemlist.append(Item(channel=item.channel, action="activate_debug", extra=False, 
+    # if config.get_setting('debug'):
+    itemlist.append(Item(channel=item.channel, action="activate_debug", extra=False,
                     title=config.get_localized_string(707422) % str(paso),
                     thumbnail=thumb_debug, folder=False))
     paso += 1
-    
+
     if item.url:
         itemlist.append(Item(channel=item.channel, action="", title="", folder=False))
-    
-        itemlist.append(Item(channel=item.channel, action="", 
+
+        itemlist.append(Item(channel=item.channel, action="",
                     title=config.get_localized_string(707423),
                     thumbnail=thumb_next, folder=False))
-    
+
         if item.one_use:
             action = ''
             url = ''
         else:
             action = 'call_browser'
             url = item.url
-        itemlist.append(Item(channel=item.channel, action=action, 
-                    title="**- LOG: [COLOR gold]%s[/COLOR] -**" % item.url, url=url, 
+        itemlist.append(Item(channel=item.channel, action=action,
+                    title="**- LOG: [COLOR gold]%s[/COLOR] -**" % item.url, url=url,
                     thumbnail=thumb_next, unify=False, folder=False))
 
         itemlist.append(Item(channel=item.channel, action="call_browser",
@@ -935,24 +930,24 @@ def report_menu(item):
         itemlist.append(Item(channel=item.channel, action="call_browser",
                              url='https://t.me/kodiondemand', title="Su telegram",
                              thumbnail=thumb_next, unify=False, folder=False))
-        
+
         if item.one_use:
-            itemlist.append(Item(channel=item.channel, action="", 
-                    title="[COLOR orange]NO ACCEDA al INFORME: se BORRARÁ[/COLOR]", 
+            itemlist.append(Item(channel=item.channel, action="",
+                    title="[COLOR orange]NO ACCEDA al INFORME: se BORRARÁ[/COLOR]",
                     thumbnail=thumb_next, folder=False))
-            itemlist.append(Item(channel=item.channel, action="", 
-                    title="[COLOR orange]ya que es de un solo uso[/COLOR]", 
+            itemlist.append(Item(channel=item.channel, action="",
+                    title="[COLOR orange]ya que es de un solo uso[/COLOR]",
                     thumbnail=thumb_next, folder=False))
-    
+
     return itemlist
-    
-    
+
+
 def activate_debug(item):
     logger.info(item.extra)
     from platformcode import platformtools
-    
-    # Activa/Desactiva la opción de DEBUB en settings.xml
-    
+
+    #Enable / disable DEBUB option in settings.xml
+
     if isinstance(item.extra, str):
         return report_menu(item)
     if item.extra:
@@ -961,20 +956,20 @@ def activate_debug(item):
     else:
         config.set_setting('debug', False)
         platformtools.dialog_notification(config.get_localized_string(707430), config.get_localized_string(707432))
-        
-        
+
+
 def report_send(item, description='', fatal=False):
     import xbmc
     import random
     import traceback
 
     if PY3:
-        #from future import standard_library
-        #standard_library.install_aliases()
-        import urllib.parse as urlparse                         # Es muy lento en PY2.  En PY3 es nativo
+        # from future import standard_library
+        # standard_library.install_aliases()
+        import urllib.parse as urlparse                         # It is very slow in PY2. In PY3 it is native
         import urllib.parse as urllib
     else:
-        import urllib                                           # Usamos el nativo de PY2 que es más rápido
+        import urllib                                           # We use the native of PY2 which is faster
         import urlparse
 
     try:
@@ -983,149 +978,149 @@ def report_send(item, description='', fatal=False):
     except:
         requests_status = False
         logger.error(traceback.format_exc())
-    
+
     from core import jsontools, httptools, scrapertools
     from platformcode import envtal
-    
-    # Esta función realiza la operación de upload del LOG.  El tamaño del archivo es de gran importacia porque
-    # los servicios de "pastebin" gratuitos tienen limitaciones, a veces muy bajas.
-    # Hay un ervicio, File.io, que permite subida directa de "achivos binarios" a través de la función "request"
-    # Esto aumenta dráticamente la capacidad del envío del log, muy por encima de lo necesitado
-    # Por ello es necesario contar con una lista de servicios "pastebin" que puedan realizar la operación de upload,
-    # ya sea por capacidad disponible o por disponibilidad.
-    # Para poder usar los servidores "pastebin" con un código común, se ha creado un diccionario con los servidores
-    # y sus características.  En cada entrada se recogen las peculiaridades de cada servidor, tanto para formar
-    # la petición consu POST como para la forma de recibir el código del upload en la respuesta (json, header, regex
-    # en datos,...).
-    # Al iniciar este método se aleatoriza la lista de servidores "pastebin" para evitar que todos los usuarios hagan 
-    # uploads contra el mismo servidor y puedan ocasionar sobrecargas.
-    # Se lee el arcivo de log y se compara su tamaño con la capacidad del servidor (parámetro 10 de cada entrada 
-    # (empezando desde 0), expresado en MB, hasta que se encuentra uno capacitado.  Si el upload falla se sigue intentado
-    # con los siguientes servidores que tengan la capacidad requerida.  
-    # Si no se encuentra ningun servidor disponible se pide al usuario que lo intente más tarde, o que suba el log
-    # directamente en el foro.  Si es un problema de tamaño, se le pide que reicinie Kodi y reporducza el fallo, para
-    # que el LOG sea más pequeño.
-    
-    
+
+    # This function performs the LOG upload operation. The file size is of great importance because
+    # Free pastebin services have limitations, sometimes very low.
+    # There is an ervice, File.io, that allows direct upload of "binary files" through the "request" function
+    # This dramatically increases the ability to send the log, well above what is needed.
+    # Therefore it is necessary to have a list of "pastebin" services that can perform the upload operation,
+    # either by available capacity or by availability.
+    # In order to use the "pastebin" servers with a common code, a dictionary has been created with the servers
+    # and their characteristics. In each entry the peculiarities of each server are collected, both to form
+    # the request with POST as for the way to receive the upload code in the response (json, header, regex
+    # in data, ...).
+    # Starting this method randomizes the list of "pastebin" servers to prevent all users from doing
+    # uploads against the same server and may cause overloads.
+    # The log file is read and its size is compared with the server capacity (parameter 10 of each entry
+    # (starting from 0), expressed in MB, until a qualified one is found. If the upload fails, it continues trying
+    # with the following servers that have the required capacity.
+    # If no available server is found, the user is asked to try again later, or to upload the log.
+    # directly on the forum. If it is a size problem, you are asked to reset Kodi and redo the fault, to
+    # that the LOG is smaller.
+
+
     pastebin_list = {
-    'hastebin': ('1', 'https://hastebin.com/', 'documents', 'random', '', '', 
-                'data', 'json', 'key', '', '0.29', '10', True, 'raw/', '', ''), 
-    'dpaste': ('1', 'http://dpaste.com/', 'api/v2/', 'random', 'content=', 
-                '&syntax=text&title=%s&poster=alfa&expiry_days=7', 
+    'hastebin': ('1', 'https://hastebin.com/', 'documents', 'random', '', '',
+                'data', 'json', 'key', '', '0.29', '10', True, 'raw/', '', ''),
+    'dpaste': ('1', 'http://dpaste.com/', 'api/v2/', 'random', 'content=',
+                '&syntax=text&title=%s&poster=alfa&expiry_days=7',
                 'headers', '', '', 'location', '0.23', '15', True, '', '.txt', ''),
-    'ghostbin': ('1', 'https://ghostbin.com/', 'paste/new', 'random', 'lang=text&text=', 
-                '&expire=2d&password=&title=%s', 
-                'data', 'regex', '<title>(.*?)\s*-\s*Ghostbin<\/title>', '', 
+    'ghostbin': ('1', 'https://ghostbin.com/', 'paste/new', 'random', 'lang=text&text=',
+                '&expire=2d&password=&title=%s',
+                'data', 'regex', '<title>(.*?)\s*-\s*Ghostbin<\/title>', '',
                 '0.49', '15', False, 'paste/', '', ''),
-    'write.as': ('1', 'https://write.as/', 'api/posts', 'random', 'body=', '&title=%s', 
+    'write.as': ('1', 'https://write.as/', 'api/posts', 'random', 'body=', '&title=%s',
                 'data', 'json', 'data', 'id', '0.018', '15', True, '', '', ''),
-    'oneclickpaste': ('1', 'http://oneclickpaste.com/', 'index.php', 'random', 'paste_data=', 
-                '&title=%s&format=text&paste_expire_date=1W&visibility=0&pass=&submit=Submit', 
-                'data', 'regex', '<a class="btn btn-primary" href="[^"]+\/(\d+\/)">\s*View\s*Paste\s*<\/a>', 
+    'oneclickpaste': ('1', 'http://oneclickpaste.com/', 'index.php', 'random', 'paste_data=',
+                '&title=%s&format=text&paste_expire_date=1W&visibility=0&pass=&submit=Submit',
+                'data', 'regex', '<a class="btn btn-primary" href="[^"]+\/(\d+\/)">\s*View\s*Paste\s*<\/a>',
                 '', '0.060', '5', True, '', '', ''),
-    'bpaste': ('1', 'https://bpaste.net/', '', 'random', 'code=', '&lexer=text&expiry=1week', 
-                'data', 'regex', 'View\s*<a\s*href="[^*]+/(.*?)">raw<\/a>', '', 
+    'bpaste': ('1', 'https://bpaste.net/', '', 'random', 'code=', '&lexer=text&expiry=1week',
+                'data', 'regex', 'View\s*<a\s*href="[^*]+/(.*?)">raw<\/a>', '',
                 '0.79', '15', True, 'raw/', '', ''),
-    'dumpz': ('0', 'http://dumpz.org/', 'api/dump', 'random', 'code=', '&lexer=text&comment=%s&password=', 
+    'dumpz': ('0', 'http://dumpz.org/', 'api/dump', 'random', 'code=', '&lexer=text&comment=%s&password=',
                 'headers', '', '', 'location', '0.99', '15', False, '', '', ''),
-    'file.io': ('1', 'https://file.io/', '', 'random', '', 'expires=1w', 
-                'requests', 'json', 'key', '', '99.0', '30', False, '', '.log', ''), 
-    'uploadfiles': ('1', 'https://up.uploadfiles.io/upload', '', 'random', '', '', 
-                'requests', 'json', 'url', '', '99.0', '30', False, None, '', '') 
+    'file.io': ('1', 'https://file.io/', '', 'random', '', 'expires=1w',
+                'requests', 'json', 'key', '', '99.0', '30', False, '', '.log', ''),
+    'uploadfiles': ('1', 'https://up.uploadfiles.io/upload', '', 'random', '', '',
+                'requests', 'json', 'url', '', '99.0', '30', False, None, '', '')
                  }
-    pastebin_list_last = ['hastebin', 'ghostbin', 'file.io']            # Estos servicios los dejamos los últimos
-    pastebin_one_use = ['file.io']                                      # Servidores de un solo uso y se borra
+    pastebin_list_last = ['hastebin', 'ghostbin', 'file.io']            # We leave these services the last
+    pastebin_one_use = ['file.io']                                      # Single-use servers and deletes
     pastebin_dir = []
     paste_file = {}
     paste_params = ()
     paste_post = ''
     status = False
     msg = config.get_localized_string(707424)
-    
-    # Se verifica que el DEBUG=ON, si no está se rechaza y se pide al usuario que lo active y reproduzca el fallo
+
+    # DEBUG = ON is verified, if it is not it is rejected and the user is asked to activate it and reproduce the fault
     if not config.get_setting('debug'):
         platformtools.dialog_notification(config.get_localized_string(707425), config.get_localized_string(707426))
         return report_menu(item)
-    
-    # De cada al futuro se permitira al usuario que introduzca una breve descripción del fallo que se añadirá al LOG
+
+    # From each to the future the user will be allowed to enter a brief description of the fault that will be added to the LOG
     if description == 'OK':
         description = platformtools.dialog_input('', 'Introduzca una breve descripción del fallo')
 
-    # Escribimos en el log algunas variables de Kodi y Alfa que nos ayudarán en el diagnóstico del fallo
+    # We write in the log some Kodi and Alpha variables that will help us diagnose the failure
     environment = envtal.list_env()
     if not environment['log_path']:
         environment['log_path'] = str(filetools.join(xbmc.translatePath("special://logpath/"), 'kodi.log'))
         environment['log_size_bytes'] = str(filetools.getsize(environment['log_path']))
         environment['log_size'] = str(round(float(environment['log_size_bytes']) / (1024*1024), 3))
-    
-    # Se lee el archivo de LOG
+
+    # LOG file is read
     log_path = environment['log_path']
     if filetools.exists(log_path):
-        log_size_bytes = int(environment['log_size_bytes'])             # Tamaño del archivivo en Bytes
-        log_size = float(environment['log_size'])                       # Tamaño del archivivo en MB
-        log_data = filetools.read(log_path)                             # Datos del archivo
-        if not log_data:                                                # Algún error?
+        log_size_bytes = int(environment['log_size_bytes'])             # File size in Bytes
+        log_size = float(environment['log_size'])                       # File size in MB
+        log_data = filetools.read(log_path)                             # File data
+        if not log_data:                                                # Some mistake?
             platformtools.dialog_notification(config.get_localized_string(707427), '', 2)
             return report_menu(item)
-    else:                                                               # Log no existe o path erroneo?
+    else:                                                               # Log no existe or erroneous path?
         platformtools.dialog_notification(config.get_localized_string(707427), '', 2)
         return report_menu(item)
 
-    # Si se ha introducido la descripción del fallo, se inserta la principio de los datos del LOG
-    # log_title = '***** DESCRIPCIÓN DEL FALLO *****'
+    # If the fault description has been entered, the beginning of the LOG data is inserted
+    # log_title = '***** FAULT DESCRIPTION *****'
     # if description:
     #     log_data = '%s\n%s\n\n%s' %(log_title, description, log_data)
-    
-    # Se aleatorizan los nombre de los servidores "patebin"
+
+    # Server names "patebin" are scrambled
     for label_a, value_a in list(pastebin_list.items()):
         if label_a not in pastebin_list_last:
             pastebin_dir.append(label_a)
     random.shuffle(pastebin_dir)
-    pastebin_dir.extend(pastebin_list_last)                             # Estos servicios los dejamos los últimos
-    
-    #pastebin_dir = ['uploadfiles']                                      # Para pruebas de un servicio
-    #log_data = 'TEST PARA PRUEBAS DEL SERVICIO'
-        
-    # Se recorre la lista de servidores "pastebin" hasta localizar uno activo, con capacidad y disponibilidad
+    pastebin_dir.extend(pastebin_list_last)                             # We leave these services the last
+
+    #pastebin_dir = ['uploadfiles']                                      # For testing a service
+    #log_data = 'TEST FOR SERVICE TESTS'
+
+    # The list of "pastebin" servers is scrolled to locate an active one, with capacity and availability
     for paste_name in pastebin_dir:
-        if pastebin_list[paste_name][0] != '1':                         # Si no esta activo el servidore, pasamos
+        if pastebin_list[paste_name][0] != '1':                         # If the server is not active, we pass
             continue
-        if pastebin_list[paste_name][6] == 'requests' and not requests_status:  # Si "requests" no esta activo, pasamos
+        if pastebin_list[paste_name][6] == 'requests' and not requests_status:  # If "requests" is not active, we pass
             continue
 
-        paste_host = pastebin_list[paste_name][1]                       # URL del servidor "pastebin"
-        paste_sufix = pastebin_list[paste_name][2]                      # sufijo del API para el POST
+        paste_host = pastebin_list[paste_name][1]                       # Server URL "pastebin"
+        paste_sufix = pastebin_list[paste_name][2]                      # API suffix for POST
         paste_title = ''
         if pastebin_list[paste_name][3] == 'random':
-            paste_title = "LOG" + str(random.randrange(1, 999999999))   # Título del LOG
-        paste_post1 = pastebin_list[paste_name][4]                      # Parte inicial del POST
-        paste_post2 = pastebin_list[paste_name][5]                      # Parte secundaria del POST
-        paste_type = pastebin_list[paste_name][6]                       # Tipo de downloadpage: DATA o HEADERS
-        paste_resp = pastebin_list[paste_name][7]                       # Tipo de respuesta: JSON o datos con REGEX
-        paste_resp_key = pastebin_list[paste_name][8]                   # Si es JSON, etiqueta `primaria con la CLAVE
-        paste_url = pastebin_list[paste_name][9]                        # Etiqueta primaria para HEADER y sec. para JSON
-        paste_file_size = float(pastebin_list[paste_name][10])          # Capacidad en MB del servidor
-        if paste_file_size > 0:                                         # Si es 0, la capacidad es ilimitada
-            if log_size > paste_file_size:                              # Verificación de capacidad y tamaño
-                msg = 'Archivo de log demasiado grande.  Reinicie Kodi y reinténtelo'
+            paste_title = "LOG" + str(random.randrange(1, 999999999))   # LOG title
+        paste_post1 = pastebin_list[paste_name][4]                      # Initial part of the POST
+        paste_post2 = pastebin_list[paste_name][5]                      # Secondary part of POST
+        paste_type = pastebin_list[paste_name][6]                       # Type of downloadpage: DATE HEADERS
+        paste_resp = pastebin_list[paste_name][7]                       # Response type: JSON or data with REGEX
+        paste_resp_key = pastebin_list[paste_name][8]                   # If JSON, label `primary with KEY
+        paste_url = pastebin_list[paste_name][9]                        # Primary label for HEADER and sec. for JSON
+        paste_file_size = float(pastebin_list[paste_name][10])          # Server capacity in MB
+        if paste_file_size > 0:                                         # If it is 0, the capacity is unlimited
+            if log_size > paste_file_size:                              # Capacity and size verification
+                msg = 'Log file too large. Restart Kodi and retry'
                 continue
-        paste_timeout = int(pastebin_list[paste_name][11])              # Timeout para el servidor
-        paste_random_headers = pastebin_list[paste_name][12]            # Utiliza RAMDOM headers para despistar el serv.?
-        paste_host_return = pastebin_list[paste_name][13]               # Parte de url para componer la clave para usuario
-        paste_host_return_tail = pastebin_list[paste_name][14]          # Sufijo de url para componer la clave para usuario
+        paste_timeout = int(pastebin_list[paste_name][11])              # Timeout for the server
+        paste_random_headers = pastebin_list[paste_name][12]            # Do you use RAMDOM headers to mislead the serv?
+        paste_host_return = pastebin_list[paste_name][13]               # Part of url to compose the key for user
+        paste_host_return_tail = pastebin_list[paste_name][14]          # Url suffix to compose user key
         paste_headers = {}
-        if pastebin_list[paste_name][15]:                               # Headers requeridas por el servidor
+        if pastebin_list[paste_name][15]:                               # Headers required by the server
             paste_headers.update(jsontools.load((pastebin_list[paste_name][15])))
 
         if paste_name in pastebin_one_use:
-            pastebin_one_use_msg = '[COLOR red]NO ACCEDA al INFORME: se BORRARÁ[/COLOR]'
+            pastebin_one_use_msg = 'DO NOT ACCESS THE REPORT: it will be DELETED'
             item.one_use = True
         else:
             pastebin_one_use_msg = ''
-        
+
         try:
-            # Se crea el POST con las opciones del servidor "pastebin"
-            # Se trata el formato de "requests"
+            # POST is created with server options "pastebin"
+            # This is the "requests" format
             if paste_type == 'requests':
                 paste_file = {'file': (paste_title+'.log', log_data)}
                 if paste_post1:
@@ -1135,14 +1130,14 @@ def report_send(item, description='', fatal=False):
                         paste_params = paste_post2 % (paste_title+'.log', log_size_bytes)
                     else:
                         paste_params = paste_post2
-            
-            #Se trata el formato de downloads
+
+            # This is the download format
             else:
-                #log_data = 'Test de Servidor para ver su viabilidad (áéíóúñ¿?)'
-                if paste_name in ['hastebin']:                              # Hay algunos servicios que no necesitan "quote"
+                # log_data = 'Server Test to see its viability (áéíóúñ¿?)'
+                if paste_name in ['hastebin']:                              # There are some services that do not need "quote"
                     paste_post = log_data
                 else:
-                    paste_post = urllib.quote_plus(log_data)                # Se hace un "quote" de los datos del LOG
+                    paste_post = urllib.quote_plus(log_data)                # A "quote" is made from the LOG data
                 if paste_post1:
                     paste_post = '%s%s' % (paste_post1, paste_post)
                 if paste_post2:
@@ -1151,104 +1146,101 @@ def report_send(item, description='', fatal=False):
                     else:
                         paste_post += paste_post2
 
-            # Se hace la petición en downloadpage con HEADERS o DATA, con los parámetros del servidor
+            # Request is made on downloadpage with HEADERS or DATA, with server parameters
             if paste_type == 'headers':
-                data = httptools.downloadpage(paste_host+paste_sufix, post=paste_post, 
-                            timeout=paste_timeout, random_headers=paste_random_headers, 
+                data = httptools.downloadpage(paste_host+paste_sufix, post=paste_post,
+                            timeout=paste_timeout, random_headers=paste_random_headers,
                             headers=paste_headers).headers
             elif paste_type == 'data':
-                data = httptools.downloadpage(paste_host+paste_sufix, post=paste_post, 
-                            timeout=paste_timeout, random_headers=paste_random_headers, 
+                data = httptools.downloadpage(paste_host+paste_sufix, post=paste_post,
+                            timeout=paste_timeout, random_headers=paste_random_headers,
                             headers=paste_headers).data
-            
-            # Si la petición es con formato REQUESTS, se realiza aquí
+
+            # If the request is in REQUESTS format, it is made here
             elif paste_type == 'requests':
-                #data = requests.post(paste_host, params=paste_params, files=paste_file, 
+                #data = requests.post(paste_host, params=paste_params, files=paste_file,
                 #            timeout=paste_timeout)
-                data = httptools.downloadpage(paste_host, params=paste_params, file=log_data, 
-                            file_name=paste_title+'.log', timeout=paste_timeout, 
+                data = httptools.downloadpage(paste_host, params=paste_params, file=log_data,
+                            file_name=paste_title+'.log', timeout=paste_timeout,
                             random_headers=paste_random_headers, headers=paste_headers)
         except:
             msg = 'Inténtelo más tarde'
-            logger.error('Fallo al guardar el informe. ' + msg)
+            logger.error('Failed to save report. ' + msg)
             logger.error(traceback.format_exc())
             continue
 
-        # Se analiza la respuesta del servidor y se localiza la clave del upload para formar la url a pasar al usuario
+        # The server response is analyzed and the upload key is located to form the url to pass to the user
         if data:
             paste_host_resp = paste_host
-            if paste_host_return == None:                               # Si devuelve la url completa, no se compone
+            if paste_host_return == None:                               # If you return the full url, it is not composed
                 paste_host_resp = ''
                 paste_host_return = ''
-            
-            # Respuestas a peticiones REQUESTS
-            if paste_type == 'requests':                                # Respuesta de petición tipo "requests"?
-                if paste_resp == 'json':                                                # Respuesta en formato JSON?
+
+            # Responses to REQUESTS requests
+            if paste_type == 'requests':                                # Response of request type "requests"?
+                if paste_resp == 'json':                                                # Answer in JSON format?
                     if paste_resp_key in data.data:
                         if not paste_url:
-                            key = jsontools.load(data.data)[paste_resp_key]             # con una etiqueta
+                            key = jsontools.load(data.data)[paste_resp_key]             # with a label
                         else:
-                            key = jsontools.load(data.data)[paste_resp_key][paste_url]  # con dos etiquetas anidadas
-                        item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key, 
+                            key = jsontools.load(data.data)[paste_resp_key][paste_url]  # with two nested tags
+                        item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key,
                                     paste_host_return_tail)
                     else:
-                        logger.error('ERROR en formato de retorno de datos. data.data=' + 
-                                    str(data.data))
+                        logger.error('ERROR in data return format. data.data=' + str(data.data))
                         continue
-            
-            # Respuestas a peticiones DOWNLOADPAGE
-            elif paste_resp == 'json':                                  # Respuesta en formato JSON?
+
+            # Responses to DOWNLOADPAGE requests
+            elif paste_resp == 'json':                                  # Answer in JSON format?
                 if paste_resp_key in data:
                     if not paste_url:
-                        key = jsontools.load(data)[paste_resp_key]      # con una etiqueta
+                        key = jsontools.load(data)[paste_resp_key]      # with a label
                     else:
-                        key = jsontools.load(data)[paste_resp_key][paste_url]   # con dos etiquetas anidadas
-                    item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key, 
+                        key = jsontools.load(data)[paste_resp_key][paste_url]   # con two nested tags
+                    item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key,
                                     paste_host_return_tail)
                 else:
-                    logger.error('ERROR en formato de retorno de datos. data=' + str(data))
+                    logger.error('ERROR in data return format. data=' + str(data))
                     continue
-            elif paste_resp == 'regex':                                 # Respuesta en DATOS, a buscar con un REGEX?
+            elif paste_resp == 'regex':                                 # Answer in DATA, to search with a REGEX?
                 key = scrapertools.find_single_match(data, paste_resp_key)
                 if key:
-                    item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key, 
+                    item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key,
                                     paste_host_return_tail)
                 else:
-                    logger.error('ERROR en formato de retorno de datos. data=' + str(data))
+                    logger.error('ERROR in data return format. data=' + str(data))
                     continue
-            elif paste_type == 'headers':                               # Respuesta en HEADERS, a buscar en "location"?
+            elif paste_type == 'headers':                               # Answer in HEADERS, to search in "location"?
                 if paste_url in data:
-                    item.url = data[paste_url]                          # Etiqueta de retorno de la clave
-                    item.url =  urlparse.urljoin(paste_host_resp + paste_host_return, 
+                    item.url = data[paste_url]                          # Key return label
+                    item.url =  urlparse.urljoin(paste_host_resp + paste_host_return,
                                     item.url + paste_host_return_tail)
                 else:
-                    logger.error('ERROR en formato de retorno de datos. response.headers=' + 
-                                    str(data))
+                    logger.error('ERROR in data return format. response.headers=' + str(data))
                     continue
             else:
-                logger.error('ERROR en formato de retorno de datos. paste_type=' + 
-                                    str(paste_type) + ' / DATA: ' + data)
+                logger.error('ERROR in data return format. paste_type=' + str(paste_type) + ' / DATA: ' + data)
                 continue
 
-            status = True                                               # Operación de upload terminada con éxito
-            logger.info('Report created: ' + str(item.url))    #Se guarda la URL del informe a usuario
-            # if fatal:                                                   # De uso futuro, para logger.crash
-            #     platformtools.dialog_ok('Informe de ERROR en Alfa CREADO', 'Repórtelo en el foro agregando ERROR FATAL y esta URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
-            # else:                                                       # Se pasa la URL del informe a usuario
-            #     platformtools.dialog_ok('Informe de Fallo en Alfa CREADO', 'Repórtelo en el foro agregando una descripcion del fallo y esta URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
+            status = True                                               # Upload operation completed successfully
+            logger.info('Report created: ' + str(item.url))    # The URL of the user report is saved
+            # if fatal:                                                   # For future use, for logger.crash
+            #     platformtools.dialog_ok('KoD CREATED ERROR report', 'Report it in the forum by adding FATAL ERROR and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
+            # else:                                                       # Report URL passed to user
+            #     platformtools.dialog_ok('KoD Crash Report CREATED', 'Report it on the forum by adding a bug description and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
 
-            break                                                       # Operación terminado, no seguimos buscando
-    
-    if not status and not fatal:                                        # Operación fracasada...
-        platformtools.dialog_notification(config.get_localized_string(707428), msg)   #... se notifica la causa
+            break                                                       # Operation finished, we don't keep looking
+
+    if not status and not fatal:                                        # Operation failed ...
+        platformtools.dialog_notification(config.get_localized_string(707428), msg)   #... cause is reported
         logger.error(config.get_localized_string(707428) + msg)
-    
-    # Se devuelve control con item.url actualizado, así aparecerá en el menú la URL del informe
+
+    # Control is returned with updated item.url, so the report URL will appear in the menu
     item.action = 'report_menu'
     platformtools.itemlist_update(item, True)
     # return report_menu(item)
-    
-    
+
+
 def call_browser(item):
     import webbrowser
     if not webbrowser.open(item.url):

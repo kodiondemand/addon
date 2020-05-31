@@ -73,7 +73,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
         # logger.debug(str(data_in))
 
         if self.listData:
-            # Datos comunes a todos los listados
+            # Data common to all listings
             infoLabels = self.scraper().get_infoLabels(origen=data_in)
 
             if "original_language" in infoLabels:
@@ -84,78 +84,77 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
 
     def start(self, data, caption="Información del vídeo", item=None, scraper=Tmdb):
         """
-        Muestra una ventana con la info del vídeo. Opcionalmente se puede indicar el titulo de la ventana mendiante
-        el argumento 'caption'.
+        It shows a window with the info of the video. Optionally, the title of the window can be indicated by means of the argument 'caption'.
 
-        Si se pasa un item como argumento 'data' usa el scrapper Tmdb para buscar la info del vídeo
-            En caso de peliculas:
-                Coge el titulo de los siguientes campos (en este orden)
-                      1. contentTitle (este tiene prioridad 1)
-                      2. title (este tiene prioridad 2)
-                El primero que contenga "algo" lo interpreta como el titulo (es importante asegurarse que el titulo este en
-                su sitio)
+        If an item is passed as the 'data' argument use the Tmdb scrapper to find the video info
+            In case of movies:
+                Take the title from the following fields (in this order)
+                      1. contentTitle (this has priority 1)
+                      2. title (this has priority 2)
+                The first one containing "something" interprets it as the title (it is important to make sure that the title is in
+                your site)
 
-            En caso de series:
-                1. Busca la temporada y episodio en los campos contentSeason y contentEpisodeNumber
-                2. Intenta Sacarlo del titulo del video (formato: 1x01)
+            In case of series:
+                1. Find the season and episode in the contentSeason and contentEpisodeNumber fields
+                2. Try to remove it from the video title (format: 1x01)
 
-                Aqui hay dos opciones posibles:
-                      1. Tenemos Temporada y episodio
-                        Muestra la información del capitulo concreto
-                      2. NO Tenemos Temporada y episodio
-                        En este caso muestra la informacion generica de la serie
+                Here are two possible options:
+                      1. We have Season and episode
+                        Shows the information of the specific chapter
+                      2. We DO NOT have Season and episode
+                        In this case it shows the generic information of the series
 
-        Si se pasa como argumento 'data' un  objeto InfoLabels(ver item.py) muestra en la ventana directamente
-        la información pasada (sin usar el scrapper)
-            Formato:
-                En caso de peliculas:
-                    infoLabels({
+        If an InfoLabels object (see item.py) is passed as an argument 'data' it shows in the window directly
+        the past information (without using the scrapper)
+            Format:
+                In case of movies:
+                    infoLabels ({
                              "type"           : "movie",
-                             "title"          : "Titulo de la pelicula",
-                             "original_title" : "Titulo original de la pelicula",
-                             "date"           : "Fecha de lanzamiento",
-                             "language"       : "Idioma original de la pelicula",
-                             "rating"         : "Puntuacion de la pelicula",
-                             "votes"          : "Numero de votos",
-                             "genres"         : "Generos de la pelicula",
-                             "thumbnail"      : "Ruta para el thumbnail",
-                             "fanart"         : "Ruta para el fanart",
-                             "plot"           : "Sinopsis de la pelicula"
+                             "title": "Title of the movie",
+                             "original_title": "Original movie title",
+                             "date": "Release date",
+                             "language": "Original language of the movie",
+                             "rating": "Rating of the movie",
+                             "votes": "Number of votes",
+                             "genres": "Genres of the movie",
+                             "thumbnail": "Path for the thumbnail",
+                             "fanart": "Route for the fanart",
+                             "plot": "Synopsis of the movie"
                           }
-                En caso de series:
-                    infoLabels({
+                In case of series:
+                    infoLabels ({
                              "type"           : "tv",
-                             "title"          : "Titulo de la serie",
-                             "episode_title"  : "Titulo del episodio",
-                             "date"           : "Fecha de emision",
-                             "language"       : "Idioma original de la serie",
-                             "rating"         : "Puntuacion de la serie",
-                             "votes"          : "Numero de votos",
-                             "genres"         : "Generos de la serie",
-                             "thumbnail"      : "Ruta para el thumbnail",
-                             "fanart"         : "Ruta para el fanart",
-                             "plot"           : "Sinopsis de la del episodio o de la serie",
-                             "seasons"        : "Numero de Temporadas",
-                             "season"         : "Temporada",
-                             "episodes"       : "Numero de episodios de la temporada",
-                             "episode"        : "Episodio"
+                             "title": "Title of the series",
+                             "episode_title": "Episode title",
+                             "date": "Date of issue",
+                             "language": "Original language of the series",
+                             "rating": "Punctuation of the series",
+                             "votes": "Number of votes",
+                             "genres": "Genres of the series",
+                             "thumbnail": "Path for the thumbnail",
+                             "fanart": "Route for the fanart",
+                             "plot": "Synopsis of the episode or series",
+                             "seasons": "Number of Seasons",
+                             "season": "Season",
+                             "episodes": "Number of episodes of the season",
+                             "episode": "Episode"
                           }
-        Si se pasa como argumento 'data' un listado de InfoLabels() con la estructura anterior, muestra los botones
-        'Anterior' y 'Siguiente' para ir recorriendo la lista. Ademas muestra los botones 'Aceptar' y 'Cancelar' que
-        llamaran a la funcion 'callback' del canal desde donde se realiza la llamada pasandole como parametros el elemento
-        actual (InfoLabels()) o None respectivamente.
+        If a list of InfoLabels () with the previous structure is passed as the 'data' argument, it shows the buttons
+        'Previous' and 'Next' to scroll through the list. It also shows the 'Accept' and 'Cancel' buttons that
+        call the function 'callback' of the channel from where the call is made, passing the element as parameters
+        current (InfoLabels ()) or None respectively.
 
-        @param data: información para obtener datos del scraper.
+        @param data: information to get scraper data.
         @type data: item, InfoLabels, list(InfoLabels)
-        @param caption: titulo de la ventana.
+        @param caption: window title.
         @type caption: str
-        @param item: elemento del que se va a mostrar la ventana de información
+        @param item: item for which the information window is to be displayed
         @type item: Item
-        @param scraper: scraper que tiene los datos de las peliculas o series a mostrar en la ventana.
+        @param scraper: scraper that has the data of the movies or series to show in the window.
         @type scraper: Scraper
         """
 
-        # Capturamos los parametros
+        # We capture the parameters
         self.caption = caption
         self.item = item
         self.indexList = -1
@@ -171,7 +170,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
 
         self.get_scraper_data(data)
 
-        # Muestra la ventana
+        # Show window
         self.doModal()
         return self.return_value
 
@@ -184,19 +183,19 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
         self.scraper = Tmdb
 
     def onInit(self):
-        #### Compatibilidad con Kodi 18 ####
+        #### Kodi 18 compatibility ####
         if config.get_platform(True)['num_version'] < 18:
             if xbmcgui.__version__ == "1.2":
                 self.setCoordinateResolution(1)
             else:
                 self.setCoordinateResolution(5)
 
-        # Ponemos el título y las imagenes
+        # We put the title and the images
         self.getControl(10002).setLabel(self.caption)
         self.getControl(10004).setImage(self.result.get("fanart", ""))
         self.getControl(10005).setImage(self.result.get("thumbnail", "images/img_no_disponible.png"))
 
-        # Cargamos los datos para el formato pelicula
+        # We load the data for the movie format
         if self.result.get("mediatype", "movie") == "movie":
             self.getControl(10006).setLabel(config.get_localized_string(60377))
             self.getControl(10007).setLabel(self.result.get("title", "N/A"))
@@ -211,7 +210,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
             self.getControl(100016).setLabel(config.get_localized_string(60382))
             self.getControl(100017).setLabel(self.result.get("genre", "N/A"))
 
-        # Cargamos los datos para el formato serie
+        # We load the data for the serial format
         else:
             self.getControl(10006).setLabel(config.get_localized_string(60383))
             self.getControl(10007).setLabel(self.result.get("title", "N/A"))
@@ -235,7 +234,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
                 self.getControl(100020).setLabel(config.get_localized_string(60387))
                 self.getControl(100021).setLabel(self.result.get("date", "N/A"))
 
-        # Sinopsis
+        # Synopsis
         if self.result['plot']:
             self.getControl(100022).setLabel(config.get_localized_string(60388))
             self.getControl(100023).setText(self.result.get("plot", "N/A"))
@@ -243,20 +242,20 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
             self.getControl(100022).setLabel("")
             self.getControl(100023).setText("")
 
-        # Cargamos los botones si es necesario
-        self.getControl(10024).setVisible(self.indexList > -1)  # Grupo de botones
-        self.getControl(ID_BUTTON_PREVIOUS).setEnabled(self.indexList > 0)  # Anterior
+        # We load the buttons if necessary
+        self.getControl(10024).setVisible(self.indexList > -1)  # Button group
+        self.getControl(ID_BUTTON_PREVIOUS).setEnabled(self.indexList > 0)  # Previous
 
         if self.listData:
             m = len(self.listData)
         else:
             m = 1
 
-        self.getControl(ID_BUTTON_NEXT).setEnabled(self.indexList + 1 != m)  # Siguiente
+        self.getControl(ID_BUTTON_NEXT).setEnabled(self.indexList + 1 != m)  # Following
         self.getControl(100029).setLabel("(%s/%s)" % (self.indexList + 1, m))  # x/m
 
-        # Ponemos el foco en el Grupo de botones, si estuviera desactivado "Anterior" iria el foco al boton "Siguiente"
-        # si "Siguiente" tb estuviera desactivado pasara el foco al botón "Cancelar"
+        # We put the focus in the Group of buttons, if "Previous" was deactivated the focus would go to the "Next" button
+        # if "Next" tb is deactivated it will pass the focus to the "Cancel" button
         self.setFocus(self.getControl(10024))
 
         return self.return_value
@@ -331,6 +330,6 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
         # Down
         elif action == 4:
             self.setFocus(self.getControl(ID_BUTTON_OK))
-        # Pulsa ESC o Atrás, simula click en boton cancelar
+        # Press ESC or Back, simulate click on cancel button
         if action in [10, 92]:
             self.onClick(ID_BUTTON_CANCEL)

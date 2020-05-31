@@ -42,7 +42,7 @@ def mainlist(item):
         ]
 
     Tvshow = [
-        ('Show TV bullet bold', ['/tv-show/', 'peliculas', '', 'tvshow'])
+        ('Show TV {bullet bold}', ['/tv-show/', 'peliculas', '', 'tvshow'])
         ]
 
     search = ''

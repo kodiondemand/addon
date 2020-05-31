@@ -180,13 +180,12 @@ class Client(object):
       return self.base64urlencode(self.a32_to_str(a))
 
     def aes_cbc_decrypt(self, data, key):
-        from lib import pyaes
-        decryptor = pyaes.AESModeOfOperationCBC(key, '\0' * 16)
-        decrypted = ''
-        for p in range(0, len(data), 16):
-            decrypted += decryptor.decrypt(data[p:p + 16]).replace('\0', '')
-        logger.info(decrypted)
-        return decrypted
+        try:
+            from Cryptodome.Cipher import AES
+        except:
+            from Crypto.Cipher import AES
+        decryptor = AES.new(key, AES.MODE_CBC, '\0' * 16)
+        return decryptor.decrypt(data)
 
     def aes_cbc_decrypt_a32(self,data, key):
       return self.str_to_a32(self.aes_cbc_decrypt(self.a32_to_str(data), self.a32_to_str(key)))

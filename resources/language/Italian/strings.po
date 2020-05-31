@@ -116,8 +116,8 @@ msgid "Contextual menu"
 msgstr "Menu contestuale"
 
 msgctxt "#30025"
-msgid ""
-msgstr ""
+msgid "Other possible results"
+msgstr "Altri possibili risultati:"
 
 msgctxt "#30026"
 msgid "Direct"
@@ -528,8 +528,8 @@ msgid "Synchronization with Trakt started"
 msgstr "Sincronizzazione con Trakt iniziata"
 
 msgctxt "#59972"
-msgid "Search for: '%s' | Found: %d vídeos | Time: %2.f seconds"
-msgstr "Ricerca di: '%s' | Trovati: %d video | Tempo: %2.f secondi"
+msgid "Search for: '%s' | Time: %2.f seconds"
+msgstr "Ricerca di: '%s' | Tempo: %2.f secondi"
 
 msgctxt "#59973"
 msgid "Search Cancelled"

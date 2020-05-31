@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# channeltools - Herramientas para trabajar con canales
+# channeltools - Tools for working with channels
 # ------------------------------------------------------------
 
 from __future__ import absolute_import
@@ -29,11 +29,11 @@ def get_channel_parameters(channel_name):
             channel_parameters = get_channel_json(channel_name)
             # logger.debug(channel_parameters)
             if channel_parameters:
-                # cambios de nombres y valores por defecto
+                # name and default changes
                 channel_parameters["title"] = channel_parameters.pop("name") + (' [DEPRECATED]' if 'deprecated' in channel_parameters and channel_parameters['deprecated'] else '')
                 channel_parameters["channel"] = channel_parameters.pop("id")
 
-                # si no existe el key se declaran valor por defecto para que no de fallos en las funciones que lo llaman
+                # if the key does not exist, they are declared a default value so that there are no failures in the functions that call it
                 channel_parameters["update_url"] = channel_parameters.get("update_url", DEFAULT_UPDATE_URL)
                 channel_parameters["language"] = channel_parameters.get("language", ["all"])
                 channel_parameters["active"] = channel_parameters.get("active", False)
@@ -45,7 +45,7 @@ def get_channel_parameters(channel_name):
                 channel_parameters["banner"] = channel_parameters.get("banner", "")
                 channel_parameters["fanart"] = channel_parameters.get("fanart", "")
 
-                # Imagenes: se admiten url y archivos locales dentro de "resources/images"
+                # Images: url and local files are allowed inside "resources / images"
                 if channel_parameters.get("thumbnail") and "://" not in channel_parameters["thumbnail"]:
                     channel_parameters["thumbnail"] = filetools.join(remote_path, "resources", "thumb", channel_parameters["thumbnail"])
                 if channel_parameters.get("banner") and "://" not in channel_parameters["banner"]:
@@ -53,7 +53,7 @@ def get_channel_parameters(channel_name):
                 if channel_parameters.get("fanart") and "://" not in channel_parameters["fanart"]:
                     channel_parameters["fanart"] = filetools.join(remote_path, "resources", channel_parameters["fanart"])
 
-                # Obtenemos si el canal tiene opciones de configuración
+                # We obtain if the channel has configuration options
                 channel_parameters["has_settings"] = False
                 if 'settings' in channel_parameters:
                     channel_parameters['settings'] = get_default_settings(channel_name)
@@ -71,8 +71,7 @@ def get_channel_parameters(channel_name):
                 dict_channels_parameters[channel_name] = channel_parameters
 
             else:
-                # para evitar casos donde canales no están definidos como configuración
-                # lanzamos la excepcion y asi tenemos los valores básicos
+                # To avoid cases where channels are not defined as configuration, we throw the exception and thus we have the basic values
                 raise Exception
 
         except Exception as ex:
@@ -123,7 +122,7 @@ def get_channel_controls_settings(channel_name):
 
     for c in list_controls:
         if 'id' not in c or 'type' not in c or 'default' not in c:
-            # Si algun control de la lista  no tiene id, type o default lo ignoramos
+            # If any control in the list does not have id, type or default, we ignore it
             continue
 
         # new dict with key(id) and value(default) from settings
@@ -173,7 +172,7 @@ def get_default_settings(channel_name):
         default_controls_renumber = default_file['renumber']
         channel_json = get_channel_json(channel_name)
 
-        #  Collects configurations
+        # Collects configurations
         channel_language = channel_json['language']
         channel_controls = channel_json['settings']
         categories = channel_json['categories']
@@ -189,28 +188,22 @@ def get_default_settings(channel_name):
                     label = label[-1]
                     if label == 'peliculas':
                         if 'movie' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string(
-                                30122)
-                            control['default'] = False if ('include_in_newest' in default_off) or (
-                                        'include_in_newest_peliculas' in default_off) else True
+                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30122)
+                            control['default'] = False if ('include_in_newest' in default_off) or ( ' include_in_newest_peliculas' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
                     elif label == 'series':
                         if 'tvshow' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string(
-                                30123)
-                            control['default'] = False if ('include_in_newest' in default_off) or (
-                                        'include_in_newest_series' in default_off) else True
+                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30123)
+                            control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_series' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
                     elif label == 'anime':
                         if 'anime' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string(
-                                30124)
-                            control['default'] = False if ('include_in_newest' in default_off) or (
-                                        'include_in_newest_anime' in default_off) else True
+                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30124)
+                            control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_anime' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
@@ -239,24 +232,24 @@ def get_default_settings(channel_name):
 def get_channel_setting(name, channel, default=None):
     from core import filetools
     """
-    Retorna el valor de configuracion del parametro solicitado.
+    Returns the configuration value of the requested parameter.
 
-    Devuelve el valor del parametro 'name' en la configuracion propia del canal 'channel'.
+    Returns the value of the parameter 'name' in the own configuration of the channel 'channel'.
 
-    Busca en la ruta \addon_data\plugin.video.kod\settings_channels el archivo channel_data.json y lee
-    el valor del parametro 'name'. Si el archivo channel_data.json no existe busca en la carpeta channels el archivo
-    channel.json y crea un archivo channel_data.json antes de retornar el valor solicitado. Si el parametro 'name'
-    tampoco existe en el el archivo channel.json se devuelve el parametro default.
+    Look in the path \addon_data\plugin.video.kod\settings_channels for the file channel_data.json and read
+    the value of the parameter 'name'. If the file channel_data.json does not exist look in the channels folder for the file
+    channel.json and create a channel_data.json file before returning the requested value. If the parameter 'name'
+    also does not exist in the channel.json file the default parameter is returned.
 
 
-    @param name: nombre del parametro
+    @param name: parameter name
     @type name: str
-    @param channel: nombre del canal
+    @param channel: channel name
     @type channel: str
-    @param default: valor devuelto en caso de que no exista el parametro name
+    @param default: return value in case the name parameter does not exist
     @type default: any
 
-    @return: El valor del parametro 'name'
+    @return: The value of the parameter 'name'
     @rtype: any
 
     """
@@ -266,58 +259,58 @@ def get_channel_setting(name, channel, default=None):
     if channel not in ['trakt']: def_settings = get_default_settings(channel)
 
     if filetools.exists(file_settings):
-        # Obtenemos configuracion guardada de ../settings/channel_data.json
+        # We get saved configuration from ../settings/channel_data.json
         try:
             dict_file = jsontools.load(filetools.read(file_settings))
             if isinstance(dict_file, dict) and 'settings' in dict_file:
                 dict_settings = dict_file['settings']
         except EnvironmentError:
-            logger.error("ERROR al leer el archivo: %s" % file_settings)
+            logger.error("ERROR when reading the file: %s" % file_settings)
 
     if not dict_settings or name not in dict_settings:
-        # Obtenemos controles del archivo ../channels/channel.json
+        # We get controls from the file ../channels/channel.json
         try:
             list_controls, default_settings = get_channel_controls_settings(channel)
         except:
             default_settings = {}
 
-        if name in default_settings:  # Si el parametro existe en el channel.json creamos el channel_data.json
+        if name in default_settings:  #If the parameter exists in the channel.json we create the channel_data.json
             default_settings.update(dict_settings)
             dict_settings = default_settings
             dict_file['settings'] = dict_settings
-            # Creamos el archivo ../settings/channel_data.json
+            # We create the file ../settings/channel_data.json
             json_data = jsontools.dump(dict_file)
             if not filetools.write(file_settings, json_data, silent=True):
-                logger.error("ERROR al salvar el archivo: %s" % file_settings)
+                logger.error("ERROR saving file: %s" % file_settings)
 
-    # Devolvemos el valor del parametro local 'name' si existe, si no se devuelve default
+    # We return the value of the local parameter 'name' if it exists, if default is not returned
     return dict_settings.get(name, default)
 
 
 def set_channel_setting(name, value, channel):
     from core import filetools
     """
-    Fija el valor de configuracion del parametro indicado.
+    Sets the configuration value of the indicated parameter.
 
-    Establece 'value' como el valor del parametro 'name' en la configuracion propia del canal 'channel'.
-    Devuelve el valor cambiado o None si la asignacion no se ha podido completar.
+    Set 'value' as the value of the parameter 'name' in the own configuration of the channel 'channel'.
+    Returns the changed value or None if the assignment could not be completed.
 
-    Si se especifica el nombre del canal busca en la ruta \addon_data\plugin.video.kod\settings_channels el
-    archivo channel_data.json y establece el parametro 'name' al valor indicado por 'value'.
-    Si el parametro 'name' no existe lo añade, con su valor, al archivo correspondiente.
+    If the name of the channel is specified, search in the path \addon_data\plugin.video.kod\settings_channels the
+    channel_data.json file and set the parameter 'name' to the value indicated by 'value'.
+    If the parameter 'name' does not exist, it adds it, with its value, to the corresponding file.
 
-    @param name: nombre del parametro
+    @param name: parameter name
     @type name: str
-    @param value: valor del parametro
+    @param value: parameter value
     @type value: str
-    @param channel: nombre del canal
+    @param channel: channel name
     @type channel: str
 
-    @return: 'value' en caso de que se haya podido fijar el valor y None en caso contrario
+    @return: 'value' if the value could be set and None otherwise
     @rtype: str, None
 
     """
-    # Creamos la carpeta si no existe
+    # We create the folder if it does not exist
     if not filetools.exists(filetools.join(config.get_data_path(), "settings_channels")):
         filetools.mkdir(filetools.join(config.get_data_path(), "settings_channels"))
 
@@ -327,16 +320,16 @@ def set_channel_setting(name, value, channel):
     dict_file = None
 
     if filetools.exists(file_settings):
-        # Obtenemos configuracion guardada de ../settings/channel_data.json
+        # We get saved settings from ../settings/channel_data.json
         try:
             dict_file = jsontools.load(filetools.read(file_settings))
             dict_settings = dict_file.get('settings', {})
         except EnvironmentError:
-            logger.error("ERROR al leer el archivo: %s" % file_settings)
+            logger.error("ERROR when reading the file: %s" % file_settings)
 
     dict_settings[name] = value
 
-    # comprobamos si existe dict_file y es un diccionario, sino lo creamos
+    # we check if dict_file exists and it is a dictionary, if not we create it
     if dict_file is None or not dict_file:
         dict_file = {}
 
@@ -345,7 +338,7 @@ def set_channel_setting(name, value, channel):
     # Creamos el archivo ../settings/channel_data.json
     json_data = jsontools.dump(dict_file)
     if not filetools.write(file_settings, json_data, silent=True):
-        logger.error("ERROR al salvar el archivo: %s" % file_settings)
+        logger.error("ERROR saving file: %s" % file_settings)
         return None
 
     return value

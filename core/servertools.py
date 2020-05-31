@@ -12,9 +12,9 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3:
     #from future import standard_library
     #standard_library.install_aliases()
-    import urllib.parse as urlparse                             # Es muy lento en PY2.  En PY3 es nativo
+    import urllib.parse as urlparse                             #It is very slow in PY2. In PY3 it is native
 else:
-    import urlparse                                             # Usamos el nativo de PY2 que es más rápido
+    import urlparse                                             # We use the native of PY2 which is faster
 
 from future.builtins import range
 from past.utils import old_div
@@ -35,38 +35,38 @@ server_list = {}
 
 def find_video_items(item=None, data=None):
     """
-    Función genérica para buscar vídeos en una página, devolviendo un itemlist con los items listos para usar.
-     - Si se pasa un Item como argumento, a los items resultantes mantienen los parametros del item pasado
-     - Si no se pasa un Item, se crea uno nuevo, pero no contendra ningun parametro mas que los propios del servidor.
+    Generic function to search for videos on a page, returning an itemlist with the ready-to-use items.
+     - If an Item is passed as an argument, the resulting items keep the parameters of the last item
+     - If an Item is not passed, a new one is created, but it will not contain any parameters other than those of the server.
 
-    @param item: Item al cual se quieren buscar vídeos, este debe contener la url válida
+    @param item: Item to which you want to search for videos, this must contain the valid url
     @type item: Item
-    @param data: Cadena con el contendio de la página ya descargado (si no se pasa item)
+    @param data: String with the page content already downloaded (if item is not passed)
     @type data: str
 
-    @return: devuelve el itemlist con los resultados
+    @return: returns the itemlist with the results
     @rtype: list
     """
     logger.info()
     itemlist = []
 
-    # Descarga la página
+    # Download the page
     if data is None:
         data = httptools.downloadpage(item.url).data
 
     data = unshortenit.findlinks(data)
 
-    # Crea un item si no hay item
+    # Create an item if there is no item
     if item is None:
         item = Item()
-    # Pasa los campos thumbnail y title a contentThumbnail y contentTitle
+    # Pass the thumbnail and title fields to contentThumbnail and contentTitle
     else:
         if not item.contentThumbnail:
             item.contentThumbnail = item.thumbnail
         if not item.contentTitle:
             item.contentTitle = item.title
 
-    # Busca los enlaces a los videos
+    # Find the links to the videos
     for label, url, server, thumbnail in findvideos(data):
         title = config.get_localized_string(70206) % label
         itemlist.append(
@@ -77,29 +77,28 @@ def find_video_items(item=None, data=None):
 
 def get_servers_itemlist(itemlist, fnc=None, sort=False):
     """
-    Obtiene el servidor para cada uno de los items, en funcion de su url.
-     - Asigna el servidor, la url modificada, el thumbnail (si el item no contiene contentThumbnail se asigna el del thumbnail)
-     - Si se pasa una funcion por el argumento fnc, esta se ejecuta pasando el item como argumento,
-       el resultado de esa funcion se asigna al titulo del item
-       - En esta funcion podemos modificar cualquier cosa del item
-       - Esta funcion siempre tiene que devolver el item.title como resultado
-     - Si no se encuentra servidor para una url, se asigna "directo"
-     
-    @param itemlist: listado de items
+    Get the server for each of the items, based on their url.
+     - Assign the server, the modified url, the thumbnail (if the item does not contain contentThumbnail the thumbnail is assigned)
+     - If a function is passed through the fnc argument, it is executed by passing the item as an argument, the result of that function is assigned to the title of the item
+     - In this function we can modify anything of the item
+     - This function always has to return the item.title as a result
+     - If no server is found for a url, it is assigned "direct"
+
+    @param itemlist: item list
     @type itemlist: list
-    @param fnc: función para ejecutar con cada item (para asignar el titulo)
+    @param fnc: function to execute with each item (to assign the title)
     @type fnc: function
-    @param sort: indica si el listado resultante se ha de ordenar en funcion de la lista de servidores favoritos
+    @param sort: indicates whether the resulting list should be ordered based on the list of favorite servers
     @type sort: bool
     """
-    # Recorre los servidores
+    # Roam the servers
     for serverid in list(get_servers_list().keys()):
         server_parameters = get_server_parameters(serverid)
 
-        # Recorre los patrones
+        # Walk the patterns
         for pattern in server_parameters.get("find_videos", {}).get("patterns", []):
             logger.info(pattern["pattern"])
-            # Recorre los resultados
+            # Scroll through the results
             for match in re.compile(pattern["pattern"], re.DOTALL).finditer(
                     "\n".join([item.url.split('|')[0] for item in itemlist if not item.server])):
                 url = pattern["url"]
@@ -117,13 +116,13 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
                         else:
                             item.url = url
 
-    # Eliminamos los servidores desactivados
-    #itemlist = filter(lambda i: not i.server or is_server_enabled(i.server), itemlist)
-    # Filtrar si es necesario
+    # We remove the deactivated servers
+    # itemlist = filter(lambda i: not i.server or is_server_enabled(i.server), itemlist)
+    # Filter if necessary
     itemlist = filter_servers(itemlist)
 
     for item in itemlist:
-        # Asignamos "directo" en caso de que el server no se encuentre en Alfa
+        # We assign "direct" in case the server is not in KoD
         if not item.server and item.url:
             item.server = "directo"
 
@@ -131,7 +130,7 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
             item.title = fnc(item)
 
 
-    # Ordenar segun favoriteslist si es necesario
+    # Sort according to favoriteslist if necessary
     if sort:
         itemlist = sort_servers(itemlist)
 
@@ -140,11 +139,11 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
 
 def findvideos(data, skip=False):
     """
-    Recorre la lista de servidores disponibles y ejecuta la funcion findvideosbyserver para cada uno de ellos
-    :param data: Texto donde buscar los enlaces
-    :param skip: Indica un limite para dejar de recorrer la lista de servidores. Puede ser un booleano en cuyo caso
-    seria False para recorrer toda la lista (valor por defecto) o True para detenerse tras el primer servidor que
-    retorne algun enlace. Tambien puede ser un entero mayor de 1, que representaria el numero maximo de enlaces a buscar.
+    Scroll through the list of available servers and run the findvideosbyserver function for each of them
+    :param data: Text where to look for the links
+    :param skip: Indicates a limit to stop scrolling through the list of servers. It can be a boolean in which case
+    It would be False to go through the whole list (default value) or True to stop after the first server that
+    return some link. It can also be an integer greater than 1, which would represent the maximum number of links to search.
     :return:
     """
     logger.info()
@@ -155,7 +154,7 @@ def findvideos(data, skip=False):
 
     is_filter_servers = False
 
-    # Ejecuta el findvideos en cada servidor activo
+    # Run findvideos on each active server
     for serverid in servers_list:
         '''if not is_server_enabled(serverid):
             continue'''
@@ -183,16 +182,16 @@ def findvideosbyserver(data, serverid):
         return []
     devuelve = []
     if "find_videos" in server_parameters:
-        # Recorre los patrones
+        # Walk the patterns
         for pattern in server_parameters["find_videos"].get("patterns", []):
             msg = "%s\npattern: %s" % (serverid, pattern["pattern"])
-            # Recorre los resultados
+            # Scroll through the results
             for match in re.compile(pattern["pattern"], re.DOTALL).finditer(data):
                 url = pattern["url"]
-                # Crea la url con los datos
+                # Create the url with the data
                 for x in range(len(match.groups())):
                     url = url.replace("\\%s" % (x + 1), match.groups()[x])
-                msg += "\nurl encontrada: %s" % url
+                msg += "\nfound url: %s" % url
                 value = server_parameters["name"], url, serverid, server_parameters.get("thumbnail", "")
                 if value not in devuelve and url not in server_parameters["find_videos"].get("ignore_urls", []):
                     devuelve.append(value)
@@ -211,7 +210,7 @@ def get_server_from_url(url):
     logger.info()
     servers_list = list(get_servers_list().keys())
 
-    # Ejecuta el findvideos en cada servidor activo
+    # Run findvideos on each active server
     for serverid in servers_list:
         '''if not is_server_enabled(serverid):
             continue'''
@@ -224,18 +223,18 @@ def get_server_from_url(url):
         if not server_parameters["active"]:
             continue
         if "find_videos" in server_parameters:
-            # Recorre los patrones
+            # Walk the patterns
             for n, pattern in enumerate(server_parameters["find_videos"].get("patterns", [])):
                 msg = "%s\npattern: %s" % (serverid, pattern["pattern"])
                 if not "pattern_compiled" in pattern:
                     # logger.info('compiled ' + serverid)
                     pattern["pattern_compiled"] = re.compile(pattern["pattern"])
                     dict_servers_parameters[serverid]["find_videos"]["patterns"][n]["pattern_compiled"] = pattern["pattern_compiled"]
-                # Recorre los resultados
+                # Scroll through the results
                 match = re.search(pattern["pattern_compiled"], url)
                 if match:
                     url = pattern["url"]
-                    # Crea la url con los datos
+                    # Create the url with the data
                     for x in range(len(match.groups())):
                         url = url.replace("\\%s" % (x + 1), match.groups()[x])
                     msg += "\nurl encontrada: %s" % url
@@ -249,19 +248,19 @@ def get_server_from_url(url):
 
 def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialogo=False, background_dialog=False):
     """
-    Función para obtener la url real del vídeo
-    @param server: Servidor donde está alojado el vídeo
+    Function to get the real url of the video
+    @param server: Server where the video is hosted
     @type server: str
-    @param url: url del vídeo
+    @param url: video url
     @type url: str
-    @param video_password: Password para el vídeo
+    @param video_password: Password for the video
     @type video_password: str
-    @param muestra_dialogo: Muestra el diálogo de progreso
+    @param muestra_dialogo: Show progress dialog
     @type muestra_dialogo: bool
     @type background_dialog: bool
     @param background_dialog: if progress dialog should be in background
 
-    @return: devuelve la url del video
+    @return: returns the url of the video
     @rtype: list
     """
     logger.info("Server: %s, Url: %s" % (server, url))
@@ -273,14 +272,14 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
     error_messages = []
     opciones = []
 
-    # Si el vídeo es "directo" o "local", no hay que buscar más
+    # If the video is "direct" or "local", look no further
     if server == "directo" or server == "local":
         if isinstance(video_password, list):
             return video_password, len(video_password) > 0, "<br/>".join(error_messages)
-        logger.info("Server: %s, la url es la buena" % server)
+        logger.info("Server: %s, url is good" % server)
         video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2][-4:], server), url])
 
-    # Averigua la URL del vídeo
+    # Find out the video URL
     else:
         if server:
             server_parameters = get_server_parameters(server)
@@ -288,12 +287,11 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
             server_parameters = {}
 
         if server_parameters:
-            # Muestra un diágo de progreso
+            # Show a progress dialog
             if muestra_dialogo:
-                progreso = (platformtools.dialog_progress_bg if background_dialog else platformtools.dialog_progress)(config.get_localized_string(20000),
-                                                         config.get_localized_string(70180) % server_parameters["name"])
+                progreso = (platformtools.dialog_progress_bg if background_dialog else platformtools.dialog_progress)(config.get_localized_string(20000), config.get_localized_string(70180) % server_parameters["name"])
 
-            # Cuenta las opciones disponibles, para calcular el porcentaje
+            # Count the available options, to calculate the percentage
 
             orden = [
                 ["free"] + [server] + [premium for premium in server_parameters["premium"] if not premium == server],
@@ -309,76 +307,76 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
             priority = int(config.get_setting("resolve_priority"))
             opciones = sorted(opciones, key=lambda x: orden[priority].index(x))
 
-            logger.info("Opciones disponibles: %s | %s" % (len(opciones), opciones))
+            logger.info("Available options: %s | %s" % (len(opciones), opciones))
         else:
-            logger.error("No existe conector para el servidor %s" % server)
+            logger.error("There is no connector for the server %s" % server)
             error_messages.append(config.get_localized_string(60004) % server)
             muestra_dialogo = False
 
-        # Importa el server
+        # Import the server
         try:
             server_module = __import__('servers.%s' % server, None, None, ["servers.%s" % server])
-            logger.info("Servidor importado: %s" % server_module)
+            logger.info("Imported server: %s" % server_module)
         except:
             server_module = None
             if muestra_dialogo:
                 progreso.close()
-            logger.error("No se ha podido importar el servidor: %s" % server)
+            logger.error("Could not import server: %s" % server)
             import traceback
             logger.error(traceback.format_exc())
 
-        # Si tiene una función para ver si el vídeo existe, lo comprueba ahora
+        # If it has a function to see if the video exists, check it now
         if hasattr(server_module, 'test_video_exists'):
-            logger.info("Invocando a %s.test_video_exists" % server)
+            logger.info("Invoking a %s.test_video_exists" % server)
             try:
                 video_exists, message = server_module.test_video_exists(page_url=url)
 
                 if not video_exists:
                     error_messages.append(message)
-                    logger.info("test_video_exists dice que el video no existe")
+                    logger.info("test_video_exists says video doesn't exist")
                     if muestra_dialogo:
                         progreso.close()
                 else:
-                    logger.info("test_video_exists dice que el video SI existe")
+                    logger.info("test_video_exists says the video DOES exist")
             except:
-                logger.error("No se ha podido comprobar si el video existe")
+                logger.error("Could not verify if the video exists")
                 import traceback
                 logger.error(traceback.format_exc())
 
-        # Si el video existe y el modo free está disponible, obtenemos la url
+        # If the video exists and the free mode is available, we get the url
         if video_exists:
             for opcion in opciones:
-                # Opcion free y premium propio usa el mismo server
+                # Own free and premium option uses the same server
                 if opcion == "free" or opcion == server:
                     serverid = server_module
                     server_name = server_parameters["name"]
 
-                # Resto de opciones premium usa un debrider
+                # Rest of premium options use a debrider
                 else:
                     serverid = __import__('servers.debriders.%s' % opcion, None, None,
                                           ["servers.debriders.%s" % opcion])
                     server_name = get_server_parameters(opcion)["name"]
 
-                # Muestra el progreso
+                # Show progress
                 if muestra_dialogo:
                     progreso.update((old_div(100, len(opciones))) * opciones.index(opcion), config.get_localized_string(70180) % server_name)
 
-                # Modo free
+                # Free mode
                 if opcion == "free":
                     try:
-                        logger.info("Invocando a %s.get_video_url" % server)
+                        logger.info("Invoking a %s.get_video_url" % server)
                         response = serverid.get_video_url(page_url=url, video_password=video_password)
                         video_urls.extend(response)
                     except:
-                        logger.error("Error al obtener la url en modo free")
+                        logger.error("Error getting url in free mode")
                         error_messages.append(config.get_localized_string(60006) % server_name)
                         import traceback
                         logger.error(traceback.format_exc())
 
-                # Modo premium
+                # Premium mode
                 else:
                     try:
-                        logger.info("Invocando a %s.get_video_url" % opcion)
+                        logger.info("Invoking a %s.get_video_url" % opcion)
                         response = serverid.get_video_url(page_url=url, premium=True,
                                                           user=config.get_setting("user", server=opcion),
                                                           password=config.get_setting("password", server=opcion),
@@ -390,27 +388,27 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
                         else:
                             error_messages.append(config.get_localized_string(60006) % server_name)
                     except:
-                        logger.error("Error en el servidor: %s" % opcion)
+                        logger.error("Server errorr: %s" % opcion)
                         error_messages.append(config.get_localized_string(60006) % server_name)
                         import traceback
                         logger.error(traceback.format_exc())
 
-                # Si ya tenemos URLS, dejamos de buscar
+                # If we already have URLS, we stop searching
                 if video_urls and config.get_setting("resolve_stop") == True:
                     break
 
-            # Cerramos el progreso
+            # We close progress
             if muestra_dialogo:
                 progreso.update(100, config.get_localized_string(60008))
                 progreso.close()
 
-            # Si no hay opciones disponibles mostramos el aviso de las cuentas premium
+            # If there are no options available, we show the notice of premium accounts
             if video_exists and not opciones and server_parameters.get("premium"):
                 listapremium = [get_server_parameters(premium)["name"] for premium in server_parameters["premium"]]
                 error_messages.append(
                     config.get_localized_string(60009) % (server, " o ".join(listapremium)))
 
-            # Si no tenemos urls ni mensaje de error, ponemos uno generico
+            # If we do not have urls or error messages, we put a generic one
             elif not video_urls and not error_messages:
                 error_messages.append(config.get_localized_string(60006) % get_server_parameters(server)["name"])
 
@@ -419,51 +417,51 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
 
 def get_server_name(serverid):
     """
-    Función obtener el nombre del servidor real a partir de una cadena.
-    @param serverid: Cadena donde mirar
+    Function get real server name from string.
+    @param serverid: Chain where to look
     @type serverid: str
 
-    @return: Nombre del servidor
+    @return: Server name
     @rtype: str
     """
     serverid = serverid.lower().split(".")[0]
 
-    # Obtenemos el listado de servers
+    # We get the list of servers
     server_list = list(get_servers_list().keys())
 
-    # Si el nombre está en la lista
+    # If the name is in the list
     if serverid in server_list:
         return serverid
 
-    # Recorre todos los servers buscando el nombre
+    # Browse all servers looking for the name
     for server in server_list:
         params = get_server_parameters(server)
-        # Si la nombre esta en el listado de ids
+        # If the name is in the list of ids
         if serverid in params["id"]:
             return server
-        # Si el nombre es mas de una palabra, comprueba si algun id esta dentro del nombre:
+        # If the name is more than one word, check if any id is inside the name:
         elif len(serverid.split()) > 1:
             for id in params["id"]:
                 if id in serverid:
                     return server
 
-    # Si no se encuentra nada se devuelve una cadena vacia
+    # If nothing is found an empty string is returned
     return ""
 
 
 def is_server_enabled(server):
     """
-    Función comprobar si un servidor está segun la configuración establecida
-    @param server: Nombre del servidor
+    Function check if a server is according to the established configuration
+    @param server: Server name
     @type server: str
 
-    @return: resultado de la comprobación
+    @return: check result
     @rtype: bool
     """
 
     server = get_server_name(server)
 
-    # El server no existe
+    # The server does not exist
     if not server:
         return False
 
@@ -481,11 +479,11 @@ def is_server_enabled(server):
 
 def get_server_parameters(server):
     """
-    Obtiene los datos del servidor
-    @param server: Nombre del servidor
+    Get data from server
+    @param server: Server name
     @type server: str
 
-    @return: datos del servidor
+    @return: server data
     @rtype: dict
     """
     # logger.info("server %s" % server)
@@ -503,12 +501,11 @@ def get_server_parameters(server):
             # Debriders
             elif filetools.isfile(filetools.join(config.get_runtime_path(), "servers", "debriders", server + ".json")):
                 path = filetools.join(config.get_runtime_path(), "servers", "debriders", server + ".json")
-            #
-            #Cuando no está bien definido el server en el canal (no existe conector), muestra error por no haber "path" y se tiene que revisar el canal
-            #
+
+            # When the server is not well defined in the channel (there is no connector), it shows an error because there is no "path" and the channel has to be checked
             dict_server = jsontools.load(filetools.read(path))
 
-            # Imagenes: se admiten url y archivos locales dentro de "resources/images"
+            # Images: url and local files are allowed inside "resources / images"
             if dict_server.get("thumbnail") and "://" not in dict_server["thumbnail"]:
                 dict_server["thumbnail"] = filetools.join(config.get_runtime_path(), "resources", "media",
                                                         "servers", dict_server["thumbnail"])
@@ -573,7 +570,7 @@ def get_server_controls_settings(server_name):
     # Conversion de str a bool, etc...
     for c in list_controls:
         if 'id' not in c or 'type' not in c or 'default' not in c:
-            # Si algun control de la lista  no tiene id, type o default lo ignoramos
+            # If any control in the list does not have id, type or default, we ignore it
             continue
 
         # new dict with key(id) and value(default) from settings
@@ -584,28 +581,28 @@ def get_server_controls_settings(server_name):
 
 def get_server_setting(name, server, default=None):
     """
-        Retorna el valor de configuracion del parametro solicitado.
+        Returns the configuration value of the requested parameter.
 
-        Devuelve el valor del parametro 'name' en la configuracion propia del servidor 'server'.
+        Returns the value of the parameter 'name' in the own configuration of the server 'server'.
 
-        Busca en la ruta \addon_data\plugin.video.addon\settings_servers el archivo server_data.json y lee
-        el valor del parametro 'name'. Si el archivo server_data.json no existe busca en la carpeta servers el archivo 
-        server.json y crea un archivo server_data.json antes de retornar el valor solicitado. Si el parametro 'name'
-        tampoco existe en el el archivo server.json se devuelve el parametro default.
+        Look in the path \addon_data\plugin.video.addon\settings_servers for the file server_data.json and read
+        the value of the parameter 'name'. If the server_data.json file does not exist look in the servers folder for the file
+        server.json and create a server_data.json file before returning the requested value. If the parameter 'name'
+        also does not exist in the server.json file the default parameter is returned.
 
 
-        @param name: nombre del parametro
+        @param name: parameter name
         @type name: str
-        @param server: nombre del servidor
+        @param server: server name
         @type server: str
-        @param default: valor devuelto en caso de que no exista el parametro name
+        @param default: return value in case the name parameter does not exist
         @type default: any
 
-        @return: El valor del parametro 'name'
+        @return: The parameter value 'name'
         @rtype: any
 
         """
-    # Creamos la carpeta si no existe
+    # We create the folder if it does not exist
     if not filetools.exists(filetools.join(config.get_data_path(), "settings_servers")):
         filetools.mkdir(filetools.join(config.get_data_path(), "settings_servers"))
 
@@ -613,34 +610,34 @@ def get_server_setting(name, server, default=None):
     dict_settings = {}
     dict_file = {}
     if filetools.exists(file_settings):
-        # Obtenemos configuracion guardada de ../settings/channel_data.json
+        # We get saved configuration from ../settings/channel_data.json
         try:
             dict_file = jsontools.load(filetools.read(file_settings))
             if isinstance(dict_file, dict) and 'settings' in dict_file:
                 dict_settings = dict_file['settings']
         except EnvironmentError:
-            logger.info("ERROR al leer el archivo: %s" % file_settings)
+            logger.info("ERROR when reading the file: %s" % file_settings)
 
     if not dict_settings or name not in dict_settings:
-        # Obtenemos controles del archivo ../servers/server.json
+        # We get controls from the file ../servers/server.json
         try:
             list_controls, default_settings = get_server_controls_settings(server)
         except:
             default_settings = {}
-        if name in default_settings:  # Si el parametro existe en el server.json creamos el server_data.json
+        if name in default_settings:  # If the parameter exists in the server.json we create the server_data.json
             default_settings.update(dict_settings)
             dict_settings = default_settings
             dict_file['settings'] = dict_settings
-            # Creamos el archivo ../settings/channel_data.json
+            # We create the file ../settings/channel_data.json
             if not filetools.write(file_settings, jsontools.dump(dict_file)):
-                logger.info("ERROR al salvar el archivo: %s" % file_settings)
+                logger.info("ERROR saving file: %s" % file_settings)
 
-    # Devolvemos el valor del parametro local 'name' si existe, si no se devuelve default
+    # We return the value of the local parameter 'name' if it exists, if default is not returned
     return dict_settings.get(name, default)
 
 
 def set_server_setting(name, value, server):
-    # Creamos la carpeta si no existe
+    # We create the folder if it does not exist
     if not filetools.exists(filetools.join(config.get_data_path(), "settings_servers")):
         filetools.mkdir(filetools.join(config.get_data_path(), "settings_servers"))
 
@@ -650,24 +647,24 @@ def set_server_setting(name, value, server):
     dict_file = None
 
     if filetools.exists(file_settings):
-        # Obtenemos configuracion guardada de ../settings/channel_data.json
+        # We get saved configuration from ../settings/channel_data.json
         try:
             dict_file = jsontools.load(filetools.read(file_settings))
             dict_settings = dict_file.get('settings', {})
         except EnvironmentError:
-            logger.info("ERROR al leer el archivo: %s" % file_settings)
+            logger.info("ERROR when reading the file: %s" % file_settings)
 
     dict_settings[name] = value
 
-    # comprobamos si existe dict_file y es un diccionario, sino lo creamos
+    # we check if dict_file exists and it is a dictionary, if not we create it
     if dict_file is None or not dict_file:
         dict_file = {}
 
     dict_file['settings'] = dict_settings
 
-    # Creamos el archivo ../settings/channel_data.json
+    # We create the file ../settings/channel_data.json
     if not filetools.write(file_settings, jsontools.dump(dict_file)):
-        logger.info("ERROR al salvar el archivo: %s" % file_settings)
+        logger.info("ERROR saving file: %s" % file_settings)
         return None
 
     return value
@@ -675,10 +672,9 @@ def set_server_setting(name, value, server):
 
 def get_servers_list():
     """
-    Obtiene un diccionario con todos los servidores disponibles
+    Get a dictionary with all available servers
 
-    @return: Diccionario cuyas claves son los nombre de los servidores (nombre del json)
-    y como valor un diccionario con los parametros del servidor.
+    @return: Diccionario cuyas claves son los nombre de los servidores (nombre del json) and as a value a dictionary with the server parameters.
     @rtype: dict
     """
     global server_list
@@ -693,10 +689,9 @@ def get_servers_list():
 
 def get_debriders_list():
     """
-    Obtiene un diccionario con todos los debriders disponibles
+    Get a dictionary with all available debriders
 
-    @return: Diccionario cuyas claves son los nombre de los debriders (nombre del json)
-    y como valor un diccionario con los parametros del servidor.
+    @return: Dictionary whose keys are the names of the debriders (name of the json) and as a value a dictionary with the server parameters.
     @rtype: dict
     """
     server_list = {}
@@ -711,60 +706,52 @@ def get_debriders_list():
 
 def sort_servers(servers_list):
     """
-    Si esta activada la opcion "Ordenar servidores" en la configuracion de servidores y existe un listado de servidores 
-    favoritos en la configuracion lo utiliza para ordenar la lista servers_list
-    :param servers_list: Listado de servidores para ordenar. Los elementos de la lista servers_list pueden ser strings
-    u objetos Item. En cuyo caso es necesario q tengan un atributo item.server del tipo str.
-    :return: Lista del mismo tipo de objetos que servers_list ordenada en funcion de los servidores favoritos.
+    If the option "Order servers" is activated in the server configuration and there is a list of servers
+    favorites in settings use it to sort the servers_list list
+    :param servers_list: List of servers to order. The items in the servers_list can be strings or Item objects. In which case it is necessary that they have an item.server attribute of type str.
+    :return: List of the same type of objects as servers_list ordered according to the favorite servers.
     """
     if servers_list and config.get_setting('favorites_servers'):
         if isinstance(servers_list[0], Item):
-            servers_list = sorted(servers_list,
-                                  key=lambda x: config.get_setting("favorites_servers_list", server=x.server) or 100)
+            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x.server) or 100)
         else:
-            servers_list = sorted(servers_list,
-                                  key=lambda x: config.get_setting("favorites_servers_list", server=x) or 100)
+            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x) or 100)
 
     return servers_list
 
 
 def filter_servers(servers_list):
     """
-    Si esta activada la opcion "Filtrar por servidores" en la configuracion de servidores, elimina de la lista 
-    de entrada los servidores incluidos en la Lista Negra.
-    :param servers_list: Listado de servidores para filtrar. Los elementos de la lista servers_list pueden ser strings
-    u objetos Item. En cuyo caso es necesario q tengan un atributo item.server del tipo str.
-    :return: Lista del mismo tipo de objetos que servers_list filtrada en funcion de la Lista Negra.
+    If the option "Filter by servers" is activated in the server configuration, removes the servers included in the Black List from the entry list.
+    :param servers_list: List of servers to filter. The items in the servers_list can be strings or Item objects. In which case it is necessary that they have an item.server attribute of type str.
+    :return: List of the same type of objects as servers_list filtered based on the Black List.
     """
-    #Eliminamos los inactivos
+    # We eliminate the inactive
     if servers_list:
         servers_list = [i for i in servers_list if not i.server or is_server_enabled(i.server)]
 
-    
+
     if servers_list and config.get_setting('filter_servers'):
         if isinstance(servers_list[0], Item):
             servers_list_filter = [x for x in servers_list if not config.get_setting("black_list", server=x.server)]
         else:
             servers_list_filter = [x for x in servers_list if not config.get_setting("black_list", server=x)]
 
-        # Si no hay enlaces despues de filtrarlos
-        if servers_list_filter or not platformtools.dialog_yesno(config.get_localized_string(60000),
-                                                                 config.get_localized_string(60010),
-                                                                 config.get_localized_string(70281)):
+        # If there are no links after filtering
+        if servers_list_filter or not platformtools.dialog_yesno(config.get_localized_string(60000), config.get_localized_string(60010), config.get_localized_string(70281)):
             servers_list = servers_list_filter
-    
+
     return servers_list
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# Comprobación de enlaces
-# -----------------------
+
+# Checking links
 
 def check_list_links(itemlist, numero='', timeout=3):
     """
-    Comprueba una lista de enlaces a videos y la devuelve modificando el titulo con la verificacion.
-    El parámetro numero indica cuantos enlaces hay que verificar (0:5, 1:10, 2:15, 3:20)
-    El parámetro timeout indica un tope de espera para descargar la página
+    Check a list of video links and return it by modifying the title with verification.
+    The number parameter indicates how many links to check (0:5, 1:10, 2:15, 3:20)
+    The timeout parameter indicates a waiting limit to download the page
     """
     numero = numero if numero > 4 else ((int(numero) + 1) * 5) if numero != '' else 5
     import sys
@@ -790,47 +777,43 @@ def check_list_links(itemlist, numero='', timeout=3):
 
 def check_video_link(item, timeout=3):
     """
-        Comprueba si el enlace a un video es valido y devuelve un string de 2 posiciones con la verificacion.
-        :param url, server: Link y servidor
-        :return: str(2) '??':No se ha podido comprobar. 'Ok':Parece que el link funciona. 'NO':Parece que no funciona.
-        """
+        Check if the link to a video is valid and return a 2-position string with verification.
+        :param url, server: Link and server
+        :return: str(2) '??':Could not be verified. 'Ok': The link seems to work. 'NO': It doesn't seem to work.
+    """
     url = item.url
     server = item.server
-    
+
     NK = "[COLOR 0xFFF9B613][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
     OK = "[COLOR 0xFF00C289][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
     KO = "[COLOR 0xFFC20000][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
-
-    # NK = "[COLOR 0xFFF9B613][B]♥[/B][/COLOR]"
-    # OK = "[COLOR 0xFF00C289][B]♥[/B][/COLOR]"
-    # KO = "[COLOR 0xFFC20000][B]♥[/B][/COLOR]"
 
     try:
         server_module = __import__('servers.%s' % server, None, None, ["servers.%s" % server])
     except:
         server_module = None
-        logger.info("[check_video_link] No se puede importar el servidor! %s" % server)
+        logger.info("[check_video_link] Cannot import server! %s" % server)
         return item, NK
-        
+
     if hasattr(server_module, 'test_video_exists'):
         ant_timeout = httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT
-        httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = timeout  # Limitar tiempo de descarga
-        
+        httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = timeout  # Limit download time
+
         try:
             video_exists, message = server_module.test_video_exists(page_url=url)
             if not video_exists:
-                logger.info("[check_video_link] No existe! %s %s %s" % (message, server, url))
+                logger.info("[check_video_link] Does not exist! %s %s %s" % (message, server, url))
                 resultado = KO
             else:
-                logger.info("[check_video_link] comprobacion OK %s %s" % (server, url))
+                logger.info("[check_video_link] check ok %s %s" % (server, url))
                 resultado = OK
         except:
-            logger.info("[check_video_link] No se puede comprobar ahora! %s %s" % (server, url))
+            logger.info("[check_video_link] Can't check now! %s %s" % (server, url))
             resultado = NK
 
         finally:
-            httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = ant_timeout  # Restaurar tiempo de descarga
+            httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = ant_timeout  # Restore download time
             return item, resultado
 
-    logger.info("[check_video_link] No hay test_video_exists para servidor: %s" % server)
+    logger.info("[check_video_link] There is no test_video_exists for server: %s" % server)
     return item, NK

@@ -17,7 +17,7 @@ def mainlist(item):
     return itemlist
 
 
-# Al llamarse "search" la función, el launcher pide un text a buscar y lo añade como parámetro
+# When the function "search" is called, the launcher asks for a text to search for and adds it as a parameter
 def search(item, text):
     log(text)
 

@@ -2,24 +2,18 @@
 # ------------------------------------------------------------
 # Unify
 # ------------------------------------------------------------
-# Herramientas responsables de unificar diferentes tipos de
-# datos obtenidos de las paginas
+# Tools responsible for unifying different types of data obtained from the pages
 # ----------------------------------------------------------
 
 # from builtins import str
-import sys
+import sys, os, unicodedata, re
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import os
-import unicodedata
-import re
-
-from platformcode import config
+from platformcode import config, logger
 from core.item import Item
 from core import scrapertools
-from platformcode import logger
 
 thumb_dict = {"movies": "https://s10.postimg.cc/fxtqzdog9/peliculas.png",
               "tvshows": "https://s10.postimg.cc/kxvslawe1/series.png",
@@ -147,10 +141,10 @@ def set_genre(string):
 
 def remove_format(string):
     # logger.info()
-    # logger.debug('entra en remove: %s' % string)
+    # logger.debug('enter remove: %s' % string)
     string = string.rstrip()
     string = re.sub(r'(\[|\[\/)(?:color|COLOR|b|B|i|I).*?\]|\[|\]|\(|\)|\:|\.', '', string)
-    # logger.debug('sale de remove: %s' % string)
+    # logger.debug('leaves remove: %s' % string)
     return string
 
 
@@ -163,7 +157,7 @@ def normalize(string):
 
 def simplify(string):
     # logger.info()
-    # logger.debug('entra en simplify: %s'%string)
+    # logger.debug('enter simplify: %s'%string)
     string = remove_format(string)
     string = string.replace('-', ' ').replace('_', ' ')
     string = re.sub(r'\d+', '', string)
@@ -196,7 +190,7 @@ def add_info_plot(plot, languages, quality):
     last = '[/I][/B]\n'
 
     if languages:
-        l_part = '[COLOR yellowgreen][B][I]Idiomas:[/COLOR] '
+        l_part = 'Languages: '
         mid = ''
 
         if isinstance(languages, list):
@@ -208,7 +202,7 @@ def add_info_plot(plot, languages, quality):
         p_lang = '%s%s%s' % (l_part, mid, last)
 
     if quality:
-        q_part = '[COLOR yellowgreen][B][I]Calidad:[/COLOR] '
+        q_part = 'Quality: '
         p_quality = '%s%s%s' % (q_part, quality, last)
 
     if languages and quality:
@@ -236,18 +230,17 @@ def set_color(title, category):
 
     color_scheme = {'otro': 'white', 'dual': 'white'}
 
-    # logger.debug('category antes de remove: %s' % category)
+    # logger.debug('category before remove: %s' % category)
     category = remove_format(category).lower()
-    # logger.debug('category despues de remove: %s' % category)
-    # Lista de elementos posibles en el titulo
+    # logger.debug('category after remove: %s' % category)
+    # List of possible elements in the title
     color_list = ['movie', 'tvshow', 'year', 'rating_1', 'rating_2', 'rating_3', 'quality', 'cast', 'lat', 'vose',
                   'vos', 'vo', 'server', 'library', 'update', 'no_update']
 
-    # Se verifica el estado de la opcion de colores personalizados
+    # Check the status of the custom colors options
     custom_colors = config.get_setting('title_color')
 
-    # Se Forma el diccionario de colores para cada elemento, la opcion esta activas utiliza la configuracion del
-    #  usuario, si no  pone el titulo en blanco.
+    # The color dictionary is formed for each element, the option is active uses the user's configuration, if it does not leave the title blank.
     if title not in ['', ' ']:
 
         for element in color_list:
@@ -258,13 +251,13 @@ def set_color(title, category):
                 # color_scheme[element] = 'white'
 
         if category in ['update', 'no_update']:
-            # logger.debug('title antes de updates: %s' % title)
+            # logger.debug('title before updates: %s' % title)
             title = re.sub(r'\[COLOR .*?\]', '[COLOR %s]' % color_scheme[category], title)
         else:
             if category not in ['movie', 'tvshow', 'library', 'otro']:
-                title = "[COLOR %s][%s][/COLOR]" % (color_scheme[category], title)
+                title = title
             else:
-                title = "[COLOR %s]%s[/COLOR]" % (color_scheme[category], title)
+                title = title
     return title
 
 
@@ -317,17 +310,17 @@ def title_format(item):
     language_color = 'otro'
     simple_language = ''
 
-    # logger.debug('item.title antes de formatear: %s' % item.title.lower())
+    # logger.debug('item.title before formatting: %s' % item.title.lower())
 
-    # TODO se deberia quitar cualquier elemento que no sea un enlace de la lista de findvideos para quitar esto
+    # TODO any item other than a link should be removed from the findvideos list to remove this
 
-    # Palabras "prohibidas" en los titulos (cualquier titulo que contengas estas no se procesara en unify)
+    # Words "prohibited" in the titles (any title that contains these will not be processed in unify)
     excluded_words = ['online', 'descarga', 'downloads', 'trailer', 'videoteca', 'gb', 'autoplay']
 
-    # Actions excluidos, (se define canal y action) los titulos que contengan ambos valores no se procesaran en unify
+    # Excluded actions, (channel and action are defined) the titles that contain both values ​​will not be processed in unify
     excluded_actions = [('videolibrary', 'get_episodes')]
 
-    # Verifica el item sea valido para ser formateado por unify
+    # Verify the item is valid to be formatted by unify
 
     if item.channel == 'trailertools' or (item.channel.lower(), item.action.lower()) in excluded_actions or \
             item.action == '':
@@ -340,37 +333,36 @@ def title_format(item):
         if not valid:
             return item
 
-    # Verifica si hay marca de visto de trakt
+    # Check for trakt tick marks
 
     visto = False
-    # logger.debug('titlo con visto? %s' % item.title)
+    # logger.debug('I titlo with visa? %s' % item.title)
 
     if '[[I]v[/I]]' in item.title or '[COLOR limegreen][v][/COLOR]' in item.title:
         visto = True
 
-    # Se elimina cualquier formato previo en el titulo
+    # Any previous format in the title is eliminated
     if item.action != '' and item.action != 'mainlist' and item.unify:
         item.title = remove_format(item.title)
 
-    # logger.debug('visto? %s' % visto)
+    # logger.debug('seen? %s' % visto)
 
-    # Evita que aparezcan los idiomas en los mainlist de cada canal
+    # Prevents languages ​​from appearing in the main lists of each channel
     if item.action == 'mainlist':
         item.language = ''
 
     info = item.infoLabels
-    # logger.debug('item antes de formatear: %s'%item)
+    # logger.debug('item before formatr: %s'%item)
 
     if hasattr(item, 'text_color'):
         item.text_color = ''
 
     if valid and item.unify != False:
 
-        # Formamos el titulo para serie, se debe definir contentSerieName
-        # o show en el item para que esto funcione.
+        # We form the title for series, contentSerieName or show must be defined in the item for this to work.
         if item.contentSerieName:
 
-            # Si se tiene la informacion en infolabels se utiliza
+            # If you have the information in infolabels it is used
             if item.contentType == 'episode' and info['episode'] != '':
                 if info['title'] == '':
                     info['title'] = '%s - Episodio %s' % (info['tvshowtitle'], info['episode'])
@@ -391,12 +383,12 @@ def title_format(item):
 
             else:
 
-                # En caso contrario se utiliza el titulo proporcionado por el canal
+                # Otherwise the title provided by the channel is used
                 # logger.debug ('color_scheme[tvshow]: %s' % color_scheme['tvshow'])
                 item.title = '%s' % set_color(item.title, 'tvshow')
 
         elif item.contentTitle:
-            # Si el titulo no tiene contentSerieName entonces se formatea como pelicula
+            # If the title does not have contentSerieName then it is formatted as a movie
             saga = False
             if 'saga' in item.title.lower():
                 item.title = '%s [Saga]' % set_color(item.contentTitle, 'movie')
@@ -415,11 +407,10 @@ def title_format(item):
             # logger.debug('novedades')
             item.title = '%s [%s]' % (item.title, item.channel)
 
-        # Verificamos si item.language es una lista, si lo es se toma
-        # cada valor y se normaliza formado una nueva lista
+        # We check if item.language is a list, if it is, each value is taken and normalized, forming a new list
 
         if hasattr(item, 'language') and item.language != '':
-            # logger.debug('tiene language: %s'%item.language)
+            # logger.debug('has language: %s'%item.language)
             if isinstance(item.language, list):
                 language_list = []
                 for language in item.language:
@@ -429,7 +420,7 @@ def title_format(item):
                         # logger.debug('language_list: %s' % language_list)
                 simple_language = language_list
             else:
-                # Si item.language es un string se normaliza
+                # If item.language is a string it is normalized
                 if item.language != '':
                     lang = True
                     simple_language = set_lang(item.language).upper()
@@ -438,8 +429,7 @@ def title_format(item):
 
             # item.language = simple_language
 
-        # Damos formato al año si existiera y lo agregamos
-        # al titulo excepto que sea un episodio
+        # We format the year if it exists and add it to the title except that it is an episode
         if info and info.get("year", "") not in ["", " "] and item.contentType != 'episode' and not info['season']:
             try:
                 year = '%s' % set_color(info['year'], 'year')
@@ -447,14 +437,14 @@ def title_format(item):
             except:
                 logger.debug('infoLabels: %s' % info)
 
-        # Damos formato al puntaje si existiera y lo agregamos al titulo
+        # We format the score if it exists and add it to the title
         if info and info['rating'] and info['rating'] != '0.0' and not info['season']:
 
-            # Se normaliza el puntaje del rating
+            # The rating score is normalized
 
             rating_value = check_rating(info['rating'])
 
-            # Asignamos el color dependiendo el puntaje, malo, bueno, muy bueno, en caso de que exista
+            # We assign the color depending on the score, bad, good, very good, in case it exists
 
             if rating_value:
                 value = float(rating_value)
@@ -471,13 +461,13 @@ def title_format(item):
                 color_rating = 'otro'
             item.title = '%s %s' % (item.title, set_color(rating, color_rating))
 
-        # Damos formato a la calidad si existiera y lo agregamos al titulo
+        # We format the quality if it exists and add it to the title
         if item.quality and isinstance(item.quality, str):
             quality = item.quality.strip()
         else:
             quality = ''
 
-        # Damos formato al idioma-calidad si existieran y los agregamos al plot
+        # We format the language-quality if they exist and add them to the plot
         quality_ = set_color(quality, 'quality')
 
         if (lang or quality) and item.action == "play":
@@ -498,14 +488,14 @@ def title_format(item):
                 plot_ = add_info_plot('', simple_language, quality_)
                 item.contentPlot = plot_
 
-        # Para las busquedas por canal
+        # For channel searches
         if item.from_channel != '':
             from core import channeltools
             channel_parameters = channeltools.get_channel_parameters(item.from_channel)
             logger.debug(channel_parameters)
             item.title = '%s [%s]' % (item.title, channel_parameters['title'])
 
-        # Formato para actualizaciones de series en la videoteca sobreescribe los colores anteriores
+        # Format for series updates in the video library overwrites the previous colors
 
         if item.channel == 'videolibrary' and item.context != '':
             if item.action == 'get_seasons':
@@ -514,15 +504,14 @@ def title_format(item):
                 if 'Activar' in item.context[1]['title']:
                     item.title = '%s' % (set_color(item.title, 'no_update'))
 
-        # logger.debug('Despues del formato: %s' % item)
-        # Damos formato al servidor si existiera
+        # logger.debug('After the format: %s' % item)
+        # We format the server if it exists
         if item.server:
             server = '%s' % set_color(item.server.strip().capitalize(), 'server')
 
-        # Compureba si estamos en findvideos, y si hay server, si es asi no se muestra el
-        # titulo sino el server, en caso contrario se muestra el titulo normalmente.
+        # Check if we are in findvideos, and if there is a server, if so, the title is not shown but the server, otherwise the title is normally shown.
 
-        # logger.debug('item.title antes de server: %s'%item.title)
+        # logger.debug('item.title before server: %s'%item.title)
         if item.action != 'play' and item.server:
             item.title = '%s %s' % (item.title, server.strip())
 
@@ -544,7 +533,7 @@ def title_format(item):
             if item.channel == 'videolibrary':
                 item.title += ' [%s]' % item.contentChannel
 
-            # si hay verificacion de enlaces
+            # if there is verification of links
             if item.alive != '':
                 if item.alive.lower() == 'no':
                     item.title = '[[COLOR red][B]X[/B][/COLOR]] %s' % item.title
@@ -553,14 +542,14 @@ def title_format(item):
         else:
             item.title = '%s' % item.title
 
-        # logger.debug('item.title despues de server: %s' % item.title)
+        # logger.debug('item.title after server: %s' % item.title)
     elif 'library' in item.action:
         item.title = '%s' % set_color(item.title, 'library')
     elif item.action == '' and item.title != '':
         item.title = '**- %s -**' % item.title
     elif item.unify:
         item.title = '%s' % set_color(item.title, 'otro')
-    # logger.debug('antes de salir %s' % item.title)
+    # logger.debug('before leaving %s' % item.title)
     if visto:
         try:
             check = u'\u221a'
@@ -579,8 +568,7 @@ def title_format(item):
 
 def thumbnail_type(item):
     # logger.info()
-    # Se comprueba que tipo de thumbnail se utilizara en findvideos,
-    # Poster o Logo del servidor
+    # Check what type of thumbnail will be used in findvideos, Poster or Logo of the server
 
     thumb_type = config.get_setting('video_thumbnail_type')
     info = item.infoLabels
@@ -612,16 +600,16 @@ def check_rating(rating):
 
     def check_decimal_length(_rating):
         """
-       Dejamos que el float solo tenga un elemento en su parte decimal, "7.10" --> "7.1"
-       @param _rating: valor del rating
+       We let the float only have one element in its decimal part, "7.10" --> "7.1"
+       @param _rating: rating value
        @type _rating: float
-       @return: devuelve el valor modificado si es correcto, si no devuelve None
+       @return: returns the modified value if it is correct, if it does not return None
        @rtype: float|None
        """
         # logger.debug("rating %s" % _rating)
 
         try:
-            # convertimos los deciamles p.e. 7.1
+            # we convert the deciamles ex. 7.1
             return "%.1f" % round(_rating, 1)
         except Exception as ex_dl:
             template = "An exception of type %s occured. Arguments:\n%r"
@@ -631,20 +619,20 @@ def check_rating(rating):
 
     def check_range(_rating):
         """
-       Comprobamos que el rango de rating sea entre 0.0 y 10.0
-       @param _rating: valor del rating
+       We check that the rating range is between 0.0 and 10.0
+       @param _rating: rating value
        @type _rating: float
-       @return: devuelve el valor si está dentro del rango, si no devuelve None
+       @return: returns the value if it is within the range, if it does not return None
        @rtype: float|None
        """
         # logger.debug("rating %s" % _rating)
-        # fix para comparacion float
+        # fix for float comparison
         dec = Decimal(_rating)
         if 0.0 <= dec <= 10.0:
-            # logger.debug("estoy en el rango!")
+            # logger.debug("i'm in range!")
             return _rating
         else:
-            # logger.debug("NOOO estoy en el rango!")
+            # logger.debug("NOOO I'm in range!")
             return None
 
     def convert_float(_rating):
@@ -657,26 +645,26 @@ def check_rating(rating):
             return None
 
     if not isinstance(rating, float):
-        # logger.debug("no soy float")
+        # logger.debug("I'm not float")
         if isinstance(rating, int):
-            # logger.debug("soy int")
+            # logger.debug("I am int")
             rating = convert_float(rating)
         elif isinstance(rating, str):
-            # logger.debug("soy str")
+            # logger.debug("I'm str")
 
             rating = rating.replace("<", "")
             rating = convert_float(rating)
 
             if rating is None:
-                # logger.debug("error al convertir str, rating no es un float")
-                # obtenemos los valores de numericos
+                # logger.debug("error converting str, rating is not a float")
+                # we get the numerical values
                 new_rating = scrapertools.find_single_match(rating, "(\d+)[,|:](\d+)")
                 if len(new_rating) > 0:
                     rating = convert_float("%s.%s" % (new_rating[0], new_rating[1]))
 
         else:
             logger.error("no se que soy!!")
-            # obtenemos un valor desconocido no devolvemos nada
+            # we get an unknown value we don't return anything
             return None
 
     if rating:

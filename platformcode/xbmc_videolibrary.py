@@ -5,21 +5,12 @@
 from future import standard_library
 standard_library.install_aliases()
 #from builtins import str
-import sys
+import sys, os, threading, time, re, math, xbmc
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import os
-import threading
-import time
-import re
-import math
-
-import xbmc
-from core import filetools
-from core import jsontools
-from platformcode import config, logger
-from platformcode import platformtools
+from core import filetools, jsontools
+from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
 
@@ -82,25 +73,25 @@ def mark_auto_as_watched(item):
 
             time.sleep(5)
 
-        # Sincronizacion silenciosa con Trakt
+        # Silent sync with Trakt
         if sync_with_trakt and config.get_setting("trakt_sync"):
             sync_trakt_kodi()
 
             # logger.debug("Fin del hilo")
 
-    # Si esta configurado para marcar como visto
+    # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
 
 
 def sync_trakt_addon(path_folder):
     """
-       Actualiza los valores de episodios vistos si
+       Updates the values ​​of episodes seen if
     """
     logger.info()
-    # si existe el addon hacemos la busqueda
+    # if the addon exists we do the search
     if xbmc.getCondVisibility('System.HasAddon("script.trakt")'):
-        # importamos dependencias
+        # we import dependencies
         paths = ["special://home/addons/script.module.dateutil/lib/", "special://home/addons/script.module.six/lib/",
                  "special://home/addons/script.module.arrow/lib/", "special://home/addons/script.module.trakt/lib/",
                  "special://home/addons/script.trakt/"]
@@ -108,7 +99,7 @@ def sync_trakt_addon(path_folder):
         for path in paths:
             sys.path.append(xbmc.translatePath(path))
 
-        # se obtiene las series vistas
+        # the series seen is obtained
         try:
             from resources.lib.traktapi import traktAPI
             traktapi = traktAPI()
@@ -118,9 +109,9 @@ def sync_trakt_addon(path_folder):
         shows = traktapi.getShowsWatched({})
         shows = list(shows.items())
 
-        # obtenemos el id de la serie para comparar
+        # we get the series id to compare
         _id = re.findall("\[(.*?)\]", path_folder, flags=re.DOTALL)[0]
-        logger.debug("el id es %s" % _id)
+        logger.debug("the id is %s" % _id)
 
         if "tt" in _id:
             type_id = "imdb"
@@ -131,15 +122,15 @@ def sync_trakt_addon(path_folder):
             type_id = "tmdb"
             _id = _id.strip("tmdb_")
         else:
-            logger.error("No hay _id de la serie")
+            logger.error("There is no _id of the series")
             return
 
-        # obtenemos los valores de la serie
+        # we obtain the values ​​of the series
         from core import videolibrarytools
         tvshow_file = filetools.join(path_folder, "tvshow.nfo")
         head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)
 
-        # buscamos en las series de trakt
+        # we look in the trakt series
         for show in shows:
             show_aux = show[1].to_dict()
 
@@ -148,30 +139,27 @@ def sync_trakt_addon(path_folder):
                 # logger.debug("ID ES %s" % _id_trakt)
                 if _id_trakt:
                     if _id == _id_trakt:
-                        logger.debug("ENCONTRADO!! %s" % show_aux)
+                        logger.debug("FOUND! %s" % show_aux)
 
-                        # creamos el diccionario de trakt para la serie encontrada con el valor que tiene "visto"
+                        # we create the trakt dictionary for the found series with the value that has "seen"
                         dict_trakt_show = {}
 
                         for idx_season, season in enumerate(show_aux['seasons']):
                             for idx_episode, episode in enumerate(show_aux['seasons'][idx_season]['episodes']):
-                                sea_epi = "%sx%s" % (show_aux['seasons'][idx_season]['number'],
-                                                     str(show_aux['seasons'][idx_season]['episodes'][idx_episode][
-                                                             'number']).zfill(2))
+                                sea_epi = "%sx%s" % (show_aux['seasons'][idx_season]['number'], str(show_aux['seasons'][idx_season]['episodes'][idx_episode]['number']).zfill(2))
 
-                                dict_trakt_show[sea_epi] = show_aux['seasons'][idx_season]['episodes'][idx_episode][
-                                    'watched']
+                                dict_trakt_show[sea_epi] = show_aux['seasons'][idx_season]['episodes'][idx_episode]['watched']
                         logger.debug("dict_trakt_show %s " % dict_trakt_show)
 
-                        # obtenemos las keys que son episodios
+                        # we get the keys that are episodes
                         regex_epi = re.compile('\d+x\d+')
                         keys_episodes = [key for key in serie.library_playcounts if regex_epi.match(key)]
-                        # obtenemos las keys que son temporadas
+                        # we get the keys that are seasons
                         keys_seasons = [key for key in serie.library_playcounts if 'season ' in key]
-                        # obtenemos los numeros de las keys temporadas
+                        # we get the numbers of the seasons keys
                         seasons = [key.strip('season ') for key in keys_seasons]
 
-                        # marcamos los episodios vistos
+                        # we mark the episodes watched
                         for k in keys_episodes:
                             serie.library_playcounts[k] = dict_trakt_show.get(k, 0)
 
@@ -179,7 +167,7 @@ def sync_trakt_addon(path_folder):
                             episodios_temporada = 0
                             episodios_vistos_temporada = 0
 
-                            # obtenemos las keys de los episodios de una determinada temporada
+                            # we obtain the keys of the episodes of a certain season
                             keys_season_episodes = [key for key in keys_episodes if key.startswith("%sx" % season)]
 
                             for k in keys_season_episodes:
@@ -187,7 +175,7 @@ def sync_trakt_addon(path_folder):
                                 if serie.library_playcounts[k] > 0:
                                     episodios_vistos_temporada += 1
 
-                            # se comprueba que si todos los episodios están vistos, se marque la temporada como vista
+                            # it is verified that if all the episodes are watched, the season is marked as watched
                             if episodios_temporada == episodios_vistos_temporada:
                                 serie.library_playcounts.update({"season %s" % season: 1})
 
@@ -199,11 +187,11 @@ def sync_trakt_addon(path_folder):
                             if serie.library_playcounts[k] > 0:
                                 temporada_vista += 1
 
-                        # se comprueba que si todas las temporadas están vistas, se marque la serie como vista
+                        # sCheck that if all seasons are viewed, the series is marked as view
                         if temporada == temporada_vista:
                             serie.library_playcounts.update({serie.title: 1})
 
-                        logger.debug("los valores nuevos %s " % serie.library_playcounts)
+                        logger.debug("the new values %s " % serie.library_playcounts)
                         filetools.write(tvshow_file, head_nfo + serie.tojson())
 
                         break
@@ -211,7 +199,7 @@ def sync_trakt_addon(path_folder):
                         continue
 
                 else:
-                    logger.error("no se ha podido obtener el id, trakt tiene: %s" % show_aux['ids'])
+                    logger.error("could not get id, trakt has: %s" % show_aux['ids'])
 
             except:
                 import traceback
@@ -219,7 +207,7 @@ def sync_trakt_addon(path_folder):
 
 
 def sync_trakt_kodi(silent=True):
-    # Para que la sincronizacion no sea silenciosa vale con silent=False
+    # So that the synchronization is not silent it is worth with silent = False
     if xbmc.getCondVisibility('System.HasAddon("script.trakt")'):
         notificacion = True
         if (not config.get_setting("sync_trakt_notification", "videolibrary") and platformtools.is_playing()):
@@ -234,11 +222,11 @@ def sync_trakt_kodi(silent=True):
 
 def mark_content_as_watched_on_kodi(item, value=1):
     """
-    marca el contenido como visto o no visto en la libreria de Kodi
+    mark the content as seen or not seen in the Kodi library
     @type item: item
-    @param item: elemento a marcar
+    @param item: element to mark
     @type value: int
-    @param value: >0 para visto, 0 para no visto
+    @param value: > 0 for seen, 0 for not seen
     """
     logger.info()
     # logger.debug("item:\n" + item.tostring('\n'))
@@ -253,23 +241,22 @@ def mark_content_as_watched_on_kodi(item, value=1):
         data = get_data(payload)
         if 'result' in data and "movies" in data['result']:
 
-            if item.strm_path:              #Si Item es de un episodio
+            if item.strm_path:              # If Item is from an episode
                 filename = filetools.basename(item.strm_path)
                 head, tail = filetools.split(filetools.split(item.strm_path)[0])
-            else:                           #Si Item es de la Serie
+            else:                           # If Item is from the Series
                 filename = filetools.basename(item.path)
                 head, tail = filetools.split(filetools.split(item.path)[0])
             path = filetools.join(tail, filename)
 
             for d in data['result']['movies']:
                 if d['file'].replace("/", "\\").endswith(path.replace("/", "\\")):
-                    # logger.debug("marco la pelicula como vista")
+                    # logger.debug("I mark the movie as a view")
                     movieid = d['movieid']
                     break
 
         if movieid != 0:
-            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {
-                "movieid": movieid, "playcount": value}, "id": 1}
+            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": movieid, "playcount": value}, "id": 1}
 
     else:  # item.contentType != 'movie'
         episodeid = 0
@@ -280,10 +267,10 @@ def mark_content_as_watched_on_kodi(item, value=1):
         data = get_data(payload)
         if 'result' in data and "episodes" in data['result']:
 
-            if item.strm_path:              #Si Item es de un episodio
+            if item.strm_path:              # If Item is from an episode
                 filename = filetools.basename(item.strm_path)
                 head, tail = filetools.split(filetools.split(item.strm_path)[0])
-            else:                           #Si Item es de la Serie
+            else:                           # If Item is from the Series
                 filename = filetools.basename(item.path)
                 head, tail = filetools.split(filetools.split(item.path)[0])
             path = filetools.join(tail, filename)
@@ -291,35 +278,33 @@ def mark_content_as_watched_on_kodi(item, value=1):
             for d in data['result']['episodes']:
 
                 if d['file'].replace("/", "\\").endswith(path.replace("/", "\\")):
-                    # logger.debug("marco el episodio como visto")
+                    # logger.debug("I mark the episode as seen")
                     episodeid = d['episodeid']
                     break
 
         if episodeid != 0:
-            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {
-                "episodeid": episodeid, "playcount": value}, "id": 1}
+            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": episodeid, "playcount": value}, "id": 1}
 
     if payload_f:
-        # Marcar como visto
+        # Mark as seen
         data = get_data(payload_f)
         # logger.debug(str(data))
         if data['result'] != 'OK':
-            logger.error("ERROR al poner el contenido como visto")
+            logger.error("ERROR putting content as viewed")
 
 
 def mark_season_as_watched_on_kodi(item, value=1):
     """
-        marca toda la temporada como vista o no vista en la libreria de Kodi
+        mark the entire season as seen or unseen in the Kodi library
         @type item: item
-        @param item: elemento a marcar
+        @param item: element to mark
         @type value: int
-        @param value: >0 para visto, 0 para no visto
+        @param value: > 0 for seen, 0 for not seen
         """
     logger.info()
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    # Solo podemos marcar la temporada como vista en la BBDD de Kodi si la BBDD es local,
-    # en caso de compartir BBDD esta funcionalidad no funcionara
+    # We can only mark the season as seen in the Kodi database if the database is local, in case of sharing database this functionality will not work
     if config.get_setting("db_mode", "videolibrary"):
         return
 
@@ -336,9 +321,7 @@ def mark_season_as_watched_on_kodi(item, value=1):
         item_path1 += "\\"
     item_path2 = item_path1.replace("\\", "/")
 
-    sql = 'update files set playCount= %s where idFile  in ' \
-          '(select idfile from episode_view where (strPath like "%s" or strPath like "%s")%s)' % \
-          (value, item_path1, item_path2, request_season)
+    sql = 'update files set playCount= %s where idFile in (select idfile from episode_view where (strPath like "%s" or strPath like "%s")%s)' % (value, item_path1, item_path2, request_season)
 
     execute_sql_kodi(sql)
 
@@ -348,9 +331,9 @@ def mark_content_as_watched_on_kod(path):
     from core import videolibrarytools
 
     """
-        marca toda la serie o película como vista o no vista en la Videoteca de Alfa basado en su estado en la Videoteca de Kodi
+        mark the entire series or movie as viewed or unseen in the Alpha Video Library based on their status in the Kodi Video Library
         @type str: path
-        @param path: carpeta de contenido a marcar
+        @param path: content folder to mark
         """
     logger.info()
     #logger.debug("path: " + path)
@@ -361,9 +344,8 @@ def mark_content_as_watched_on_kod(path):
     if not VIDEOLIBRARY_PATH:
         return
 
-    # Solo podemos marcar el contenido como vista en la BBDD de Kodi si la BBDD es local,
-    # en caso de compartir BBDD esta funcionalidad no funcionara
-    #if config.get_setting("db_mode", "videolibrary"):
+    # We can only mark the content as a view in the Kodi database if the database is local, in case of sharing database this functionality will not work
+    # if config.get_setting("db_mode", "videolibrary"):
     #    return
 
     path2 = ''
@@ -375,60 +357,60 @@ def mark_content_as_watched_on_kod(path):
 
     if "\\" in path:
         path = path.replace("/", "\\")
-    head_nfo, item = videolibrarytools.read_nfo(path)                   #Leo el .nfo del contenido
+    head_nfo, item = videolibrarytools.read_nfo(path)                   # I read the content .nfo
     if not item:
-        logger.error('.NFO no encontrado: ' + path)
+        logger.error('.NFO not found: ' + path)
         return
 
-    if FOLDER_TVSHOWS in path:                                          #Compruebo si es CINE o SERIE
-        contentType = "episode_view"                                    #Marco la tabla de BBDD de Kodi Video
-        nfo_name = "tvshow.nfo"                                         #Construyo el nombre del .nfo
-        path1 = path.replace("\\\\", "\\").replace(nfo_name, '')        #para la SQL solo necesito la carpeta
+    if FOLDER_TVSHOWS in path:                                          # I check if it is CINEMA or SERIES
+        contentType = "episode_view"                                    # I mark the Kodi Video BBDD table
+        nfo_name = "tvshow.nfo"                                         # I build the name of the .nfo
+        path1 = path.replace("\\\\", "\\").replace(nfo_name, '')        # for SQL I just need the folder
         if not path2:
-            path2 = path1.replace("\\", "/")                            #Formato no Windows
+            path2 = path1.replace("\\", "/")                            # Format no Windows
         else:
             path2 = path2.replace(nfo_name, '')
 
     else:
-        contentType = "movie_view"                                      #Marco la tabla de BBDD de Kodi Video
-        path1 = path.replace("\\\\", "\\")                              #Formato Windows
+        contentType = "movie_view"                                      # I mark the Kodi Video BBDD table
+        path1 = path.replace("\\\\", "\\")                              # Windows format
         if not path2:
-            path2 = path1.replace("\\", "/")                            #Formato no Windows
-        nfo_name = scrapertools.find_single_match(path2, '\]\/(.*?)$')  #Construyo el nombre del .nfo
-        path1 = path1.replace(nfo_name, '')                             #para la SQL solo necesito la carpeta
-        path2 = path2.replace(nfo_name, '')                             #para la SQL solo necesito la carpeta
-    path2 = filetools.remove_smb_credential(path2)                      #Si el archivo está en un servidor SMB, quitamos las credenciales
+            path2 = path1.replace("\\", "/")                            # Format no Windows
+        nfo_name = scrapertools.find_single_match(path2, '\]\/(.*?)$')  # I build the name of the .nfo
+        path1 = path1.replace(nfo_name, '')                             # for SQL I just need the folder
+        path2 = path2.replace(nfo_name, '')                             # for SQL I just need the folder
+    path2 = filetools.remove_smb_credential(path2)                      # If the file is on an SMB server, we remove the credentials
 
-    #Ejecutmos la sentencia SQL
+    # Let's execute the SQL statement
     sql = 'select strFileName, playCount from %s where (strPath like "%s" or strPath like "%s")' % (contentType, path1, path2)
     nun_records = 0
     records = None
-    nun_records, records = execute_sql_kodi(sql)                        #ejecución de la SQL
-    if nun_records == 0:                                                #hay error?
-        logger.error("Error en la SQL: " + sql + ": 0 registros")
-        return                                                          #salimos: o no está catalogado en Kodi, o hay un error en la SQL
+    nun_records, records = execute_sql_kodi(sql)                        # SQL execution
+    if nun_records == 0:                                                # is there an error?
+        logger.error("SQL error: " + sql + ": 0 registros")
+        return                                                          # we quit: either it is not cataloged in Kodi, or there is an error in the SQL
 
-    for title, playCount in records:                                    #Ahora recorremos todos los registros obtenidos
+    for title, playCount in records:                                    # Now we go through all the records obtained
         if contentType == "episode_view":
-            title_plain = title.replace('.strm', '')                    #Si es Serie, quitamos el sufijo .strm
+            title_plain = title.replace('.strm', '')                    # If it is Serial, we remove the suffix .strm
         else:
-            title_plain = scrapertools.find_single_match(item.strm_path, '.(.*?\s\[.*?\])') #si es peli, quitamos el título
-        if playCount is None or playCount == 0:                         #todavía no se ha visto, lo ponemos a 0
+            title_plain = scrapertools.find_single_match(item.strm_path, '.(.*?\s\[.*?\])') # if it's a movie, we remove the title
+        if playCount is None or playCount == 0:                         # not yet seen, we set it to 0
             playCount_final = 0
         elif playCount >= 1:
             playCount_final = 1
 
         elif not PY3 and isinstance(title_plain, (str, unicode)):
-            title_plain = title_plain.decode("utf-8").encode("utf-8")   #Hacemos esto porque si no genera esto: u'title_plain'
+            title_plain = title_plain.decode("utf-8").encode("utf-8")   # We do this because if it doesn't generate this: u'title_plain '
         elif PY3 and isinstance(title_plain, bytes):
             title_plain = title_plain.decode('utf-8')
-        item.library_playcounts.update({title_plain: playCount_final})  #actualizamos el playCount del .nfo
+        item.library_playcounts.update({title_plain: playCount_final})  # update the .nfo playCount
 
-    if item.infoLabels['mediatype'] == "tvshow":                        #Actualizamos los playCounts de temporadas y Serie
+    if item.infoLabels['mediatype'] == "tvshow":                        # We update the Season and Series playCounts
         for season in item.library_playcounts:
-            if "season" in season:                                      #buscamos las etiquetas "season" dentro de playCounts
-                season_num = int(scrapertools.find_single_match(season, 'season (\d+)'))    #salvamos el núm, de Temporada
-                item = videolibrary.check_season_playcount(item, season_num)    #llamamos al método que actualiza Temps. y Series
+            if "season" in season:                                      # we look for the tags "season" inside playCounts
+                season_num = int(scrapertools.find_single_match(season, 'season (\d+)'))    # we save the season number
+                item = videolibrary.check_season_playcount(item, season_num)    # We call the method that updates Temps. and series
 
     filetools.write(path, head_nfo + item.tojson())
 
@@ -437,7 +419,7 @@ def mark_content_as_watched_on_kod(path):
 
 def get_data(payload):
     """
-    obtiene la información de la llamada JSON-RPC con la información pasada en payload
+    get the information of the JSON-RPC call with the information passed in payload
     @type payload: dict
     @param payload: data
     :return:
@@ -483,12 +465,12 @@ def get_data(payload):
 
 def update(folder_content=config.get_setting("folder_tvshows"), folder=""):
     """
-    Actualiza la libreria dependiendo del tipo de contenido y la ruta que se le pase.
+    Update the library depending on the type of content and the path passed to it.
 
     @type folder_content: str
-    @param folder_content: tipo de contenido para actualizar, series o peliculas
+    @param folder_content: type of content to update, series or movies
     @type folder: str
-    @param folder: nombre de la carpeta a escanear.
+    @param folder: name of the folder to scan.
     """
     logger.info(folder)
 
@@ -512,7 +494,7 @@ def update(folder_content=config.get_setting("folder_tvshows"), folder=""):
                 videolibrarypath = videolibrarypath[:-1]
             update_path = videolibrarypath + "/" + folder_content + "/" + folder + "/"
         else:
-            #update_path = filetools.join(videolibrarypath, folder_content, folder) + "/"   # Problemas de encode en "folder"
+            # update_path = filetools.join(videolibrarypath, folder_content, folder) + "/"   # Encoder problems in "folder"
             update_path = filetools.join(videolibrarypath, folder_content, ' ').rstrip()
 
         if videolibrarypath.startswith("special:") or not scrapertools.find_single_match(update_path, '(^\w+:\/\/)'):
@@ -535,9 +517,9 @@ def search_library_path():
 
 def set_content(content_type, silent=False, custom=False):
     """
-    Procedimiento para auto-configurar la videoteca de kodi con los valores por defecto
+    Procedure to auto-configure the kodi video library with the default values
     @type content_type: str ('movie' o 'tvshow')
-    @param content_type: tipo de contenido para configurar, series o peliculas
+    @param content_type: content type to configure, series or movies
     """
     logger.info()
     continuar = True
@@ -556,14 +538,14 @@ def set_content(content_type, silent=False, custom=False):
         if seleccion == -1 or seleccion == 0:
             if not xbmc.getCondVisibility('System.HasAddon(metadata.themoviedb.org)'):
                 if not silent:
-                    # Preguntar si queremos instalar metadata.themoviedb.org
+                    # Ask if we want to install metadata.themoviedb.org
                     install = platformtools.dialog_yesno(config.get_localized_string(60046))
                 else:
                     install = True
 
                 if install:
                     try:
-                        # Instalar metadata.themoviedb.org
+                        # Install metadata.themoviedb.org
                         xbmc.executebuiltin('xbmc.installaddon(metadata.themoviedb.org)', True)
                         logger.info("Instalado el Scraper de películas de TheMovieDB")
                     except:
@@ -580,7 +562,7 @@ def set_content(content_type, silent=False, custom=False):
             if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.universal)'):
                 continuar = False
                 if not silent:
-                    # Preguntar si queremos instalar metadata.universal
+                    # Ask if we want to install metadata.universal
                     install = platformtools.dialog_yesno(config.get_localized_string(70095))
                 else:
                     install = True
@@ -610,16 +592,16 @@ def set_content(content_type, silent=False, custom=False):
         if seleccion == -1 or seleccion == 0:
             if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
                 if not silent:
-                    # Preguntar si queremos instalar metadata.tvdb.com
+                    #Ask if we want to install metadata.tvdb.com
                     install = platformtools.dialog_yesno(config.get_localized_string(60048))
                 else:
                     install = True
 
                 if install:
                     try:
-                        # Instalar metadata.tvdb.com
+                        # Install metadata.tvdb.com
                         xbmc.executebuiltin('xbmc.installaddon(metadata.tvdb.com)', True)
-                        logger.info("Instalado el Scraper de series de The TVDB")
+                        logger.info("The TVDB series Scraper installed ")
                     except:
                         pass
 
@@ -634,14 +616,14 @@ def set_content(content_type, silent=False, custom=False):
             if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
                 continuar = False
                 if not silent:
-                    # Preguntar si queremos instalar metadata.tvshows.themoviedb.org
+                    # Ask if we want to install metadata.tvshows.themoviedb.org
                     install = platformtools.dialog_yesno(config.get_localized_string(60050))
                 else:
                     install = True
 
                 if install:
                     try:
-                        # Instalar metadata.tvshows.themoviedb.org
+                        # Install metadata.tvshows.themoviedb.org
                         xbmc.executebuiltin('xbmc.installaddon(metadata.tvshows.themoviedb.org)', True)
                         if xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
                             continuar = True
@@ -659,7 +641,7 @@ def set_content(content_type, silent=False, custom=False):
     if continuar:
         continuar = False
 
-        # Buscamos el idPath
+        # We look for the idPath
         sql = 'SELECT MAX(idPath) FROM path'
         nun_records, records = execute_sql_kodi(sql)
         if nun_records == 1:
@@ -677,7 +659,7 @@ def set_content(content_type, silent=False, custom=False):
         if not sql_videolibrarypath.endswith(sep):
             sql_videolibrarypath += sep
 
-        # Buscamos el idParentPath
+        # We are looking for the idParentPath
         sql = 'SELECT idPath, strPath FROM path where strPath LIKE "%s"' % sql_videolibrarypath
         nun_records, records = execute_sql_kodi(sql)
         if nun_records == 1:
@@ -685,7 +667,7 @@ def set_content(content_type, silent=False, custom=False):
             videolibrarypath = records[0][1][:-1]
             continuar = True
         else:
-            # No existe videolibrarypath en la BD: la insertamos
+            # There is no videolibrarypath in the DB: we insert it
             sql_videolibrarypath = videolibrarypath
             if not sql_videolibrarypath.endswith(sep):
                 sql_videolibrarypath += sep
@@ -703,7 +685,7 @@ def set_content(content_type, silent=False, custom=False):
     if continuar:
         continuar = False
 
-        # Fijamos strContent, strScraper, scanRecursive y strSettings
+        # We set strContent, strScraper, scanRecursive and strSettings
         if content_type == 'movie':
             strContent = 'movies'
             scanRecursive = 2147483647
@@ -719,7 +701,7 @@ def set_content(content_type, silent=False, custom=False):
             settings_data = filetools.read(path_settings)
             strSettings = ' '.join(settings_data.split()).replace("> <", "><")
             strSettings = strSettings.replace("\"","\'")
-            strActualizar = "¿Desea configurar este Scraper en español como opción por defecto para películas?"
+            strActualizar = "Do you want to set this Scraper in Spanish as the default option for movies?"
             if not videolibrarypath.endswith(sep):
                 videolibrarypath += sep
             strPath = videolibrarypath + config.get_setting("folder_movies") + sep
@@ -738,13 +720,13 @@ def set_content(content_type, silent=False, custom=False):
             settings_data = filetools.read(path_settings)
             strSettings = ' '.join(settings_data.split()).replace("> <", "><")
             strSettings = strSettings.replace("\"","\'")
-            strActualizar = "¿Desea configurar este Scraper en español como opción por defecto para series?"
+            strActualizar = "Do you want to configure this Scraper in Spanish as a default option for series?"
             if not videolibrarypath.endswith(sep):
                 videolibrarypath += sep
             strPath = videolibrarypath + config.get_setting("folder_tvshows") + sep
 
         logger.info("%s: %s" % (content_type, strPath))
-        # Comprobamos si ya existe strPath en la BD para evitar duplicados
+        # We check if strPath already exists in the DB to avoid duplicates
         sql = 'SELECT idPath FROM path where strPath="%s"' % strPath
         nun_records, records = execute_sql_kodi(sql)
         sql = ""
@@ -1011,12 +993,12 @@ def clean(path_list=[]):
 
 def execute_sql_kodi(sql):
     """
-    Ejecuta la consulta sql contra la base de datos de kodi
-    @param sql: Consulta sql valida
+    Run sql query against kodi database
+    @param sql: Valid sql query
     @type sql: str
-    @return: Numero de registros modificados o devueltos por la consulta
+    @return: Number of records modified or returned by the query
     @rtype nun_records: int
-    @return: lista con el resultado de la consulta
+    @return: list with the query result
     @rtype records: list of tuples
     """
     logger.info()
@@ -1024,12 +1006,12 @@ def execute_sql_kodi(sql):
     nun_records = 0
     records = None
 
-    # Buscamos el archivo de la BBDD de videos segun la version de kodi
+    # We look for the archive of the video database according to the version of kodi
     video_db = config.get_platform(True)['video_db']
     if video_db:
         file_db = filetools.join(xbmc.translatePath("special://userdata/Database"), video_db)
 
-    # metodo alternativo para localizar la BBDD
+    # alternative method to locate the database
     if not file_db or not filetools.exists(file_db):
         file_db = ""
         for f in filetools.listdir(xbmc.translatePath("special://userdata/Database")):
@@ -1040,14 +1022,14 @@ def execute_sql_kodi(sql):
                 break
 
     if file_db:
-        logger.info("Archivo de BD: %s" % file_db)
+        logger.info("DB file: %s" % file_db)
         conn = None
         try:
             import sqlite3
             conn = sqlite3.connect(file_db)
             cursor = conn.cursor()
 
-            logger.info("Ejecutando sql: %s" % sql)
+            logger.info("Running sql: %s" % sql)
             cursor.execute(sql)
             conn.commit()
 
@@ -1061,15 +1043,15 @@ def execute_sql_kodi(sql):
                 nun_records = conn.total_changes
 
             conn.close()
-            logger.info("Consulta ejecutada. Registros: %s" % nun_records)
+            logger.info("Query executed. Records: %s" % nun_records)
 
         except:
-            logger.error("Error al ejecutar la consulta sql")
+            logger.error("Error executing sql query")
             if conn:
                 conn.close()
 
     else:
-        logger.debug("Base de datos no encontrada")
+        logger.debug("Database not found")
 
     return nun_records, records
 

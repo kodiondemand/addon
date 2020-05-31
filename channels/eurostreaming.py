@@ -26,8 +26,8 @@ def mainlist(item):
 
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
-    mix = [('Aggiornamenti bullet bold {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
-           ('Archivio bullet bold {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
+    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
+           ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
     search = ''
 
     return locals()

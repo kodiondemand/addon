@@ -497,7 +497,10 @@ class UnshortenIt(object):
             if 'myfoldersakstream.php' in uri or '/verys/' in uri:
                 return uri, 0
             r = None
-            import pyaes
+            try:
+                from Cryptodome.Cipher import AES
+            except:
+                from Crypto.Cipher import AES
 
             def decrypt(str):
                 str = str.replace("_ppl_", "+").replace("_eqq_", "=").replace("_sll_", "/")
@@ -505,7 +508,7 @@ class UnshortenIt(object):
                 key = "naphajU2usWUswec"
                 decoded = b64decode(str)
                 decoded = decoded + '\0' * (len(decoded) % 16)
-                crypt_object = pyaes.AESModeOfOperationCBC(key, iv)
+                crypt_object = AES.new(key, AES.MODE_CBC, iv)
                 decrypted = ''
                 for p in range(0, len(decoded), 16):
                     decrypted += crypt_object.decrypt(decoded[p:p + 16]).replace('\0', '')

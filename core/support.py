@@ -668,11 +668,12 @@ def stayonline(id):
     return data
 
 
-def menuItem(itemlist, filename, title='', action='', url='', contentType='movie', args=[]):
+def menuItem(itemlist, filename, title='', action='', url='', contentType='movie', args=[], style=True):
     # Function to simplify menu creation
 
     # Call typo function
-    title = typo(title)
+    if style:
+        title = typo(title)
 
     if contentType == 'movie': extra = 'movie'
     else: extra = 'tvshow'
@@ -687,11 +688,6 @@ def menuItem(itemlist, filename, title='', action='', url='', contentType='movie
         contentType = contentType
     ))
 
-    # Apply auto Thumbnails at the menus
-    from channelselector import thumb
-    thumb(itemlist)
-    return itemlist
-
 
 def menu(func):
     def wrapper(*args):
@@ -699,17 +695,19 @@ def menu(func):
         args = func(*args)
 
         item = args['item']
+        log(item.channel + ' start')
         host = func.__globals__['host']
         list_servers = func.__globals__['list_servers'] if 'list_servers' in func.__globals__ else ['directo']
         list_quality = func.__globals__['list_quality'] if 'list_quality' in func.__globals__ else ['default']
         log('LIST QUALITY', list_quality)
         filename = func.__module__.split('.')[1]
-        global_search = False
+        single_search = False
         # listUrls = ['film', 'filmSub', 'tvshow', 'tvshowSub', 'anime', 'animeSub', 'search', 'top', 'topSub']
         listUrls = ['top', 'film', 'tvshow', 'anime', 'search']
         listUrls_extra = []
         dictUrl = {}
 
+        global_search = item.global_search
 
         # Main options
         itemlist = []
@@ -722,61 +720,71 @@ def menu(func):
             if name == 'anime': title = 'Anime'
 
             if name == 'search' and dictUrl[name] is not None:
-                global_search = True
+                single_search = True
 
             # Make TOP MENU
             elif name == 'top' and dictUrl[name] is not None:
-                for sub, var in dictUrl['top']:
-                    menuItem(itemlist, filename,
-                             title = sub + ' italic bold',
-                             url = host + var[0] if len(var) > 0 else '',
-                             action = var[1] if len(var) > 1 else 'peliculas',
-                             args=var[2] if len(var) > 2 else '',
-                             contentType= var[3] if len(var) > 3 else 'movie')
+                if not global_search:
+                    for sub, var in dictUrl['top']:
+                        menuItem(itemlist, filename,
+                                 title = sub + '{italic bold}',
+                                 url = host + var[0] if len(var) > 0 else '',
+                                 action = var[1] if len(var) > 1 else 'peliculas',
+                                 args=var[2] if len(var) > 2 else '',
+                                 contentType= var[3] if len(var) > 3 else 'movie')
 
             # Make MAIN MENU
             elif dictUrl[name] is not None:
-                if len(dictUrl[name]) == 0: url = ''
-                else: url = dictUrl[name][0] if type(dictUrl[name][0]) is not tuple and len(dictUrl[name][0]) > 0 else ''
-                menuItem(itemlist, filename,
-                         title + ' bullet bold', 'peliculas',
-                         host + url,
-                         contentType='movie' if name == 'film' else 'tvshow')
-                if len(dictUrl[name]) > 0:
-                    if type(dictUrl[name][0]) is not tuple and type(dictUrl[name]) is not str: dictUrl[name].pop(0)
-                if dictUrl[name] is not None and type(dictUrl[name]) is not str:
-                    for sub, var in dictUrl[name]:
-                        menuItem(itemlist, filename,
-                             title = sub + ' submenu  {' + title + '}',
-                             url = host + var[0] if len(var) > 0 else '',
-                             action = var[1] if len(var) > 1 else 'peliculas',
-                             args=var[2] if len(var) > 2 else '',
-                             contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow')
+                if len(dictUrl[name]) == 0:
+                    url = ''
+                else:
+                    url = dictUrl[name][0] if type(dictUrl[name][0]) is not tuple and len(dictUrl[name][0]) > 0 else ''
+
+                if not global_search:
+                    menuItem(itemlist, filename,
+                             title + '{bullet bold}', 'peliculas',
+                             host + url,
+                             contentType='movie' if name == 'film' else 'tvshow')
+                    if len(dictUrl[name]) > 0:
+                        if type(dictUrl[name][0]) is not tuple and type(dictUrl[name]) is not str: dictUrl[name].pop(0)
+                    if dictUrl[name] is not None and type(dictUrl[name]) is not str:
+                        for sub, var in dictUrl[name]:
+                            menuItem(itemlist, filename,
+                                 title = sub + '{submenu}  {' + title + '}',
+                                 url = host + var[0] if len(var) > 0 else '',
+                                 action = var[1] if len(var) > 1 else 'peliculas',
+                                 args=var[2] if len(var) > 2 else '',
+                                 contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow')
                 # add search menu for category
-                if 'search' not in args: menuItem(itemlist, filename, config.get_localized_string(70741) % title + ' … submenu bold', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow')
+                if 'search' not in args: menuItem(itemlist, filename, config.get_localized_string(70741) % title + '… {submenu bold}', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow', style=not global_search)
 
         # Make EXTRA MENU (on bottom)
-        for name, var in args.items():
-            if name not in listUrls and name != 'item':
-               listUrls_extra.append(name)
-        for name in listUrls_extra:
-            dictUrl[name] = args[name] if name in args else None
-            for sub, var in dictUrl[name]:
-                menuItem(itemlist, filename,
-                             title = sub + ' ',
-                             url = host + var[0] if len(var) > 0 else '',
-                             action = var[1] if len(var) > 1 else 'peliculas',
-                             args=var[2] if len(var) > 2 else '',
-                             contentType= var[3] if len(var) > 3 else 'movie',)
+        if not global_search:
+            for name, var in args.items():
+                if name not in listUrls and name != 'item':
+                   listUrls_extra.append(name)
+            for name in listUrls_extra:
+                dictUrl[name] = args[name] if name in args else None
+                for sub, var in dictUrl[name]:
+                    menuItem(itemlist, filename,
+                                 title = sub + ' ',
+                                 url = host + var[0] if len(var) > 0 else '',
+                                 action = var[1] if len(var) > 1 else 'peliculas',
+                                 args=var[2] if len(var) > 2 else '',
+                                 contentType= var[3] if len(var) > 3 else 'movie',)
 
-        if global_search:
-            menuItem(itemlist, filename, config.get_localized_string(70741) % '… bold', 'search', host + dictUrl['search'])
+        if single_search:
+            menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)
 
-        if 'get_channel_results' not in inspect.stack()[1][3]:
+        if not global_search:
             autoplay.init(item.channel, list_servers, list_quality)
             autoplay.show_option(item.channel, itemlist)
-        channel_config(item, itemlist)
+            channel_config(item, itemlist)
 
+            # Apply auto Thumbnails at the menus
+            from channelselector import thumb
+            thumb(itemlist)
+        log(item.channel + ' end')
         return itemlist
 
     return wrapper
@@ -785,57 +793,56 @@ def menu(func):
 def typo(string, typography=''):
 
     kod_color = '0xFF65B3DA' #'0xFF0081C2'
+
     try: string = str(string)
     except: string = str(string.encode('utf8'))
 
-    if typography:
-        string = string + ' ' + typography
     if config.get_localized_string(30992) in string:
         string = string + ' >'
 
-    # If there are no attributes, it applies the default ones
-    attribute = ['[]','()','submenu','color','bold','italic','_','--','[B]','[I]','[COLOR]']
     if int(config.get_setting('view_mode_channel').split(',')[-1]) in [0, 50, 55]:
        VLT = True
     else:
         VLT = False
-    # Otherwise it uses the typographical attributes of the string
-    # else:
-    if 'capitalize' in string.lower():
-        string = re.sub(r'\s*capitalize','',string).capitalize()
-    if 'uppercase' in string.lower():
-        string =  re.sub(r'\s*uppercase','',string).upper()
-    if 'lowercase' in string.lower():
-        string =  re.sub(r'\s*lowercase','',string).lower()
-    if '[]' in string:
-        string = '[' + re.sub(r'\s*\[\]','',string) + ']'
-    if '()' in string:
-        string = '(' + re.sub(r'\s*\(\)','',string) + ')'
-    if 'submenu' in string:
-        if VLT:
-            string = "•• " + re.sub(r'\s*submenu','',string)
-        else:
-            string = re.sub(r'\s*submenu','',string)
-    if 'color' in string:
-        color = scrapertools.find_single_match(string, 'color ([a-z]+)')
-        if color == 'kod' or '': color = kod_color
-        string = '[COLOR '+ color +']' + re.sub(r'\scolor\s([a-z]+)','',string) + '[/COLOR]'
-    if 'bold' in string:
-        string = '[B]' + re.sub(r'\s*bold','',string) + '[/B]'
-    if 'italic' in string:
-        string = '[I]' + re.sub(r'\s*italic','',string) + '[/I]'
-    if '_' in string:
-        string = ' ' + re.sub(r'\s*_','',string)
-    if '--' in string:
-        string = ' - ' + re.sub(r'\s*--','',string)
-    if 'bullet' in string:
-        if VLT:
-            string = '[B]' + "•" + '[/B] ' + re.sub(r'\s*bullet','',string)
-        else:
-            string = re.sub(r'\s*bullet','',string)
-    if '{}' in string:
-        string = re.sub(r'\s*\{\}','',string)
 
+
+    if not typography and '{' in string:
+        typography = string.split('{')[1].strip(' }').lower()
+        string = string.replace('{' + typography + '}','').strip()
+    else:
+        string = string.strip()
+        typography.lower()
+
+
+    if 'capitalize' in typography:
+        string = string.capitalize()
+    if 'uppercase' in typography:
+        string = string.upper()
+    if 'lowercase' in typography:
+        string = string.lower()
+    if '[]' in typography:
+        string = '[' + string + ']'
+    if '()' in typography:
+        string = '(' + string + ')'
+    if 'submenu' in typography:
+        if VLT: string = "•• " + string
+        else: string = string
+    if 'color kod' in typography:
+        string = '[COLOR ' + kod_color + ']' + string + '[/COLOR]'
+    elif 'color' in typography:
+        color = scrapertools.find_single_match(typography, 'color ([a-zA-Z0-9]+)')
+        string = '[COLOR ' + color + ']' + string + '[/COLOR]'
+    if 'bold' in typography:
+        string = '[B]' + string + '[/B]'
+    if 'italic' in typography:
+        string = '[I]' + string + '[/I]'
+    if '_' in typography:
+        string = ' ' + string
+    if '--' in typography:
+        string = ' - ' + string
+    if 'bullet' in typography:
+        if VLT: string = '[B]' + "•" + '[/B] ' + string
+        else: string = string
     return string
 
 
@@ -1169,7 +1176,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     AP, HS = autoplay.get_channel_AP_HS(item)
 
     # Check Links
-    if not AP and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
+    if not AP and not item.global_search and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
         if config.get_setting('checklinks', item.channel):
             checklinks_number = config.get_setting('checklinks_number', item.channel)
         elif config.get_setting('checklinks'):

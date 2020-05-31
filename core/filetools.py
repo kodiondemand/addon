@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # filetools
-# Gestion de archivos con discriminación xbmcvfs/samba/local
+# File management with xbmcvfs / samba / local discrimination
 # ------------------------------------------------------------
 
 from __future__ import division
-#from builtins import str
+# from builtins import str
 from future.builtins import range
 from past.utils import old_div
 import sys
@@ -18,13 +18,13 @@ import traceback
 from core import scrapertools
 from platformcode import platformtools, logger
 
-xbmc_vfs = True                                                 # False para desactivar XbmcVFS, True para activar
+xbmc_vfs = True                                                 # False to disable XbmcVFS, True to enable
 if xbmc_vfs:
     try:
         import xbmcvfs
         if not PY3:
-            reload(sys)                                         ### Workoround.  Revisar en la migración a Python 3
-            sys.setdefaultencoding('utf-8')                     # xbmcvfs degrada el valor de defaultencoding.  Se reestablece
+            reload(sys)                                         # Workoround. Review on migration to Python 3
+            sys.setdefaultencoding('utf-8')                     # xbmcvfs demeans the value of defaultencoding. It is reestablished
         xbmc_vfs = True
     except:
         xbmc_vfs = False
@@ -35,9 +35,9 @@ if not xbmc_vfs:
         from lib.sambatools import libsmb as samba
     except:
         samba = None
-        # Python 2.4 No compatible con modulo samba, hay que revisar
+        # Python 2.4 Not compatible with samba module, you have to check
 
-# Windows es "mbcs" linux, osx, android es "utf8"
+# Windows is "mbcs" linux, osx, android is "utf8"
 if os.name == "nt":
     fs_encoding = ""
 else:
@@ -47,15 +47,15 @@ else:
 
 def validate_path(path):
     """
-    Elimina cáracteres no permitidos
-    @param path: cadena a validar
+    Eliminate illegal characters
+    @param path: string to validate
     @type path: str
     @rtype: str
-    @return: devuelve la cadena sin los caracteres no permitidos
+    @return: returns the string without the characters not allowed
     """
     chars = ":*?<>|"
-    if scrapertools.find_single_match(path, '(^\w+:\/\/)'):
-        protocolo = scrapertools.find_single_match(path, '(^\w+:\/\/)')
+    if scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
+        protocolo = scrapertools.find_single_match(path, r'(^\w+:\/\/)')
         import re
         parts = re.split(r'^\w+:\/\/(.+?)/(.+)', path)[1:3]
         return protocolo + parts[0] + "/" + ''.join([c for c in parts[1] if c not in chars])
@@ -72,19 +72,19 @@ def validate_path(path):
 
 def encode(path, _samba=False):
     """
-    Codifica una ruta según el sistema operativo que estemos utilizando.
-    El argumento path tiene que estar codificado en utf-8
-    @type path unicode o str con codificación utf-8
-    @param path parámetro a codificar
+    It encodes a path according to the operating system we are using.
+    The path argument has to be encoded in utf-8
+    @type unicode or str path with utf-8 encoding
+    @param path parameter to encode
     @type _samba bool
-    @para _samba si la ruta es samba o no
+    @para _samba if the path is samba or not
     @rtype: str
-    @return ruta codificada en juego de caracteres del sistema o utf-8 si samba
+    @return path encoded in system character set or utf-8 if samba
     """
     if not isinstance(path, unicode):
         path = unicode(path, "utf-8", "ignore")
 
-    if scrapertools.find_single_match(path, '(^\w+:\/\/)') or _samba:
+    if scrapertools.find_single_match(path, r'(^\w+:\/\/)') or _samba:
         path = path.encode("utf-8", "ignore")
     else:
         if fs_encoding and not PY3:
@@ -95,12 +95,12 @@ def encode(path, _samba=False):
 
 def decode(path):
     """
-    Convierte una cadena de texto al juego de caracteres utf-8
-    eliminando los caracteres que no estén permitidos en utf-8
-    @type: str, unicode, list de str o unicode
-    @param path: puede ser una ruta o un list() con varias rutas
+    Converts a text string to the utf-8 character set
+    removing characters that are not allowed in utf-8
+    @type: str, unicode, list of str o unicode
+    @param path:can be a path or a list () with multiple paths
     @rtype: str
-    @return: ruta codificado en UTF-8
+    @return: ruta encoded in UTF-8
     """
     if isinstance(path, list):
         for x in range(len(path)):
@@ -116,16 +116,15 @@ def decode(path):
 
 def read(path, linea_inicio=0, total_lineas=None, whence=0, silent=False, vfs=True):
     """
-    Lee el contenido de un archivo y devuelve los datos
-    @param path: ruta del fichero
+    Read the contents of a file and return the data
+    @param path: file path
     @type path: str
-    @param linea_inicio: primera linea a leer del fichero
-    @type linea_inicio: int positivo
-    @param total_lineas: numero maximo de lineas a leer. Si es None o superior al total de lineas se leera el
-        fichero hasta el final.
-    @type total_lineas: int positivo
+    @param linea_inicio: first line to read from the file
+    @type linea_inicio: positive int
+    @param total_lineas: maximum number of lines to read. If it is None or greater than the total lines, the file will be read until the end.
+    @type total_lineas: positive int
     @rtype: str
-    @return: datos que contiene el fichero
+    @return: data contained in the file
     """
     path = encode(path)
     try:
@@ -182,13 +181,13 @@ def read(path, linea_inicio=0, total_lineas=None, whence=0, silent=False, vfs=Tr
 
 def write(path, data, mode="wb", silent=False, vfs=True):
     """
-    Guarda los datos en un archivo
-    @param path: ruta del archivo a guardar
+    Save the data to a file
+    @param path: file path to save
     @type path: str
-    @param data: datos a guardar
+    @param data: data to save
     @type data: str
     @rtype: bool
-    @return: devuelve True si se ha escrito correctamente o False si ha dado un error
+    @return: returns True if it was written correctly or False if it gave an error
     """
     path = encode(path)
     try:
@@ -205,7 +204,7 @@ def write(path, data, mode="wb", silent=False, vfs=True):
         f.write(data)
         f.close()
     except:
-        logger.error("ERROR al guardar el archivo: %s" % path)
+        logger.error("ERROR saving file: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
         return False
@@ -215,11 +214,11 @@ def write(path, data, mode="wb", silent=False, vfs=True):
 
 def file_open(path, mode="r", silent=False, vfs=True):
     """
-    Abre un archivo
-    @param path: ruta
+    Open a file
+    @param path: path
     @type path: str
     @rtype: str
-    @return: objeto file
+    @return: file object
     """
     path = encode(path)
     try:
@@ -245,11 +244,11 @@ def file_open(path, mode="r", silent=False, vfs=True):
 
 def file_stat(path, silent=False, vfs=True):
     """
-    Stat de un archivo
-    @param path: ruta
+    Stat of a file
+    @param path: path
     @type path: str
     @rtype: str
-    @return: objeto file
+    @return: file object
     """
     path = encode(path)
     try:
@@ -266,13 +265,13 @@ def file_stat(path, silent=False, vfs=True):
 
 def rename(path, new_name, silent=False, strict=False, vfs=True):
     """
-    Renombra un archivo o carpeta
-    @param path: ruta del fichero o carpeta a renombrar
+    Rename a file or folder
+    @param path: path of the file or folder to rename
     @type path: str
-    @param new_name: nuevo nombre
+    @param new_name: new name
     @type new_name: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     path = encode(path)
     try:
@@ -309,13 +308,13 @@ def rename(path, new_name, silent=False, strict=False, vfs=True):
 
 def move(path, dest, silent=False, strict=False, vfs=True):
     """
-    Mueve un archivo
-    @param path: ruta del fichero a mover
+    Move a file
+    @param path: path of the file to move
     @type path: str
-    @param dest: ruta donde mover
+    @param dest: path where to move
     @type dest: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     try:
         if xbmc_vfs and vfs:
@@ -343,10 +342,10 @@ def move(path, dest, silent=False, strict=False, vfs=True):
             dest = encode(dest)
             path = encode(path)
             os.rename(path, dest)
-        # mixto En este caso se copia el archivo y luego se elimina el de origen
+        # mixed In this case the file is copied and then the source file is deleted
         else:
             if not silent:
-                dialogo = platformtools.dialog_progress("Copiando archivo", "")
+                dialogo = platformtools.dialog_progress("Copying file", "")
             return copy(path, dest) == True and remove(path) == True
     except:
         logger.error("ERROR when moving file: %s to %s" % (path, dest))
@@ -359,29 +358,29 @@ def move(path, dest, silent=False, strict=False, vfs=True):
 
 def copy(path, dest, silent=False, vfs=True):
     """
-    Copia un archivo
-    @param path: ruta del fichero a copiar
+    Copy a file
+    @param path: path of the file to copy
     @type path: str
-    @param dest: ruta donde copiar
+    @param dest: path to copy
     @type dest: str
-    @param silent: se muestra o no el cuadro de dialogo
+    @param silent: the dialog box is displayed or not
     @type silent: bool
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     try:
         if xbmc_vfs and vfs:
             path = encode(path)
             dest = encode(dest)
             if not silent:
-                dialogo = platformtools.dialog_progress("Copiando archivo", "")
+                dialogo = platformtools.dialog_progress("Copying file", "")
             return bool(xbmcvfs.copy(path, dest))
 
         fo = file_open(path, "rb")
         fd = file_open(dest, "wb")
         if fo and fd:
             if not silent:
-                dialogo = platformtools.dialog_progress("Copiando archivo", "")
+                dialogo = platformtools.dialog_progress("Copying file", "")
             size = getsize(path)
             copiado = 0
             while True:
@@ -408,11 +407,11 @@ def copy(path, dest, silent=False, vfs=True):
 
 def exists(path, silent=False, vfs=True):
     """
-    Comprueba si existe una carpeta o fichero
-    @param path: ruta
+    Check if there is a folder or file
+    @param path: path
     @type path: str
     @rtype: bool
-    @return: Retorna True si la ruta existe, tanto si es una carpeta como un archivo
+    @return: Returns True if the path exists, whether it is a folder or a file
     """
     path = encode(path)
     try:
@@ -434,16 +433,16 @@ def exists(path, silent=False, vfs=True):
 
 def isfile(path, silent=False, vfs=True):
     """
-    Comprueba si la ruta es un fichero
-    @param path: ruta
+    Check if the path is a file
+    @param path: path
     @type path: str
     @rtype: bool
-    @return: Retorna True si la ruta existe y es un archivo
+    @return: Returns True if the path exists and is a file
     """
     path = encode(path)
     try:
         if xbmc_vfs and vfs:
-            if not scrapertools.find_single_match(path, '(^\w+:\/\/)'):
+            if not scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
                 return os.path.isfile(path)
             if path.endswith('/') or path.endswith('\\'):
                 path = path[:-1]
@@ -466,16 +465,16 @@ def isfile(path, silent=False, vfs=True):
 
 def isdir(path, silent=False, vfs=True):
     """
-    Comprueba si la ruta es un directorio
-    @param path: ruta
+    Check if the path is a directory
+    @param path: path
     @type path: str
     @rtype: bool
-    @return: Retorna True si la ruta existe y es un directorio
+    @return: Returns True if the path exists and is a directory
     """
     path = encode(path)
     try:
         if xbmc_vfs and vfs:
-            if not scrapertools.find_single_match(path, '(^\w+:\/\/)'):
+            if not scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
                 return os.path.isdir(path)
             if path.endswith('/') or path.endswith('\\'):
                 path = path[:-1]
@@ -498,11 +497,11 @@ def isdir(path, silent=False, vfs=True):
 
 def getsize(path, silent=False, vfs=True):
     """
-    Obtiene el tamaño de un archivo
-    @param path: ruta del fichero
+    Gets the size of a file
+    @param path: file path
     @type path: str
     @rtype: str
-    @return: tamaño del fichero
+    @return: file size
     """
     path = encode(path)
     try:
@@ -525,11 +524,11 @@ def getsize(path, silent=False, vfs=True):
 
 def remove(path, silent=False, vfs=True):
     """
-    Elimina un archivo
-    @param path: ruta del fichero a eliminar
+    Delete a file
+    @param path: path of the file to delete
     @type path: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     path = encode(path)
     try:
@@ -551,11 +550,11 @@ def remove(path, silent=False, vfs=True):
 
 def rmdirtree(path, silent=False, vfs=True):
     """
-    Elimina un directorio y su contenido
-    @param path: ruta a eliminar
+    Delete a directory and its contents
+    @param path: path to remove
     @type path: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     path = encode(path)
     try:
@@ -591,11 +590,11 @@ def rmdirtree(path, silent=False, vfs=True):
 
 def rmdir(path, silent=False, vfs=True):
     """
-    Elimina un directorio
-    @param path: ruta a eliminar
+    Delete a directory
+    @param path: path to remove
     @type path: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     path = encode(path)
     try:
@@ -619,11 +618,11 @@ def rmdir(path, silent=False, vfs=True):
 
 def mkdir(path, silent=False, vfs=True):
     """
-    Crea un directorio
-    @param path: ruta a crear
+    Create a directory
+    @param path: path to create
     @type path: str
     @rtype: bool
-    @return: devuelve False en caso de error
+    @return: returns False on error
     """
     path = encode(path)
     try:
@@ -652,37 +651,37 @@ def mkdir(path, silent=False, vfs=True):
 
 def walk(top, topdown=True, onerror=None, vfs=True):
     """
-    Lista un directorio de manera recursiva
-    @param top: Directorio a listar, debe ser un str "UTF-8"
+    List a directory recursively
+    @param top: Directory to list, must be a str "UTF-8"
     @type top: str
-    @param topdown: se escanea de arriba a abajo
+    @param topdown: scanned from top to bottom
     @type topdown: bool
-    @param onerror: muestra error para continuar con el listado si tiene algo seteado sino levanta una excepción
+    @param onerror: show error to continue listing if you have something set but raise an exception
     @type onerror: bool
-    ***El parametro followlinks que por defecto es True, no se usa aqui, ya que en samba no discrimina los links
+    ***The followlinks parameter, which by default is True, is not used here, since in samba it does not discriminate links
     """
     top = encode(top)
     if xbmc_vfs and vfs:
         for a, b, c in walk_vfs(top, topdown, onerror):
-            # list(b) es para que haga una copia del listado de directorios
-            # si no da error cuando tiene que entrar recursivamente en directorios con caracteres especiales
+            # list (b) is for you to make a copy of the directory listing
+            # if it doesn't give error when you have to recursively enter directories with special characters
             yield a, list(b), c
     elif top.lower().startswith("smb://"):
         for a, b, c in samba.walk(top, topdown, onerror):
-            # list(b) es para que haga una copia del listado de directorios
-            # si no da error cuando tiene que entrar recursivamente en directorios con caracteres especiales
+            # list (b) is for you to make a copy of the directory listing
+            # if it doesn't give error when you have to recursively enter directories with special characters
             yield decode(a), decode(list(b)), decode(c)
     else:
         for a, b, c in os.walk(top, topdown, onerror):
-            # list(b) es para que haga una copia del listado de directorios
-            # si no da error cuando tiene que entrar recursivamente en directorios con caracteres especiales
+            # list (b) is for you to make a copy of the directory listing
+            # if it doesn't give error when you have to recursively enter directories with special characters
             yield decode(a), decode(list(b)), decode(c)
 
 
 def walk_vfs(top, topdown=True, onerror=None):
     """
-    Lista un directorio de manera recursiva
-    Como xmbcvfs no tiene esta función, se copia la lógica de libsmb(samba) para realizar la previa al Walk
+    List a directory recursively
+    Since xmbcvfs does not have this function, the logic of libsmb (samba) is copied to carry out the pre-Walk
     """
     top = encode(top)
     dirs, nondirs = xbmcvfs.listdir(top)
@@ -707,11 +706,11 @@ def walk_vfs(top, topdown=True, onerror=None):
 
 def listdir(path, silent=False, vfs=True):
     """
-    Lista un directorio
-    @param path: Directorio a listar, debe ser un str "UTF-8"
+    List a directory
+    @param path: Directory to list, must be a str "UTF-8"
     @type path: str
     @rtype: str
-    @return: contenido de un directorio
+    @return: content of a directory
     """
 
     path = encode(path)
@@ -732,10 +731,10 @@ def listdir(path, silent=False, vfs=True):
 
 def join(*paths):
     """
-    Junta varios directorios
-    Corrige las barras "/" o "\" segun el sistema operativo y si es o no smaba
+    Join several directories
+    Correct the bars "/" or "\" according to the operating system and whether or not it is smaba
     @rytpe: str
-    @return: la ruta concatenada
+    @return: the concatenated path
     """
     list_path = []
     if paths[0].startswith("/"):
@@ -754,14 +753,14 @@ def join(*paths):
 
 def split(path, vfs=True):
     """
-    Devuelve una tupla formada por el directorio y el nombre del fichero de una ruta
+    Returns a tuple consisting of the directory and filename of a path
     @param path: ruta
     @type path: str
     @return: (dirname, basename)
     @rtype: tuple
     """
-    if scrapertools.find_single_match(path, '(^\w+:\/\/)'):
-        protocol = scrapertools.find_single_match(path, '(^\w+:\/\/)')
+    if scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
+        protocol = scrapertools.find_single_match(path, r'(^\w+:\/\/)')
         if '/' not in path[6:]:
             path = path.replace(protocol, protocol + "/", 1)
         return path.rsplit('/', 1)
@@ -771,10 +770,10 @@ def split(path, vfs=True):
 
 def basename(path, vfs=True):
     """
-    Devuelve el nombre del fichero de una ruta
-    @param path: ruta
+    Returns the file name of a path
+    @param path: path
     @type path: str
-    @return: fichero de la ruta
+    @return: path file
     @rtype: str
     """
     return split(path)[1]
@@ -782,10 +781,10 @@ def basename(path, vfs=True):
 
 def dirname(path, vfs=True):
     """
-    Devuelve el directorio de una ruta
-    @param path: ruta
+    Returns the directory of a path
+    @param path: path
     @type path: str
-    @return: directorio de la ruta
+    @return: path directory
     @rtype: str
     """
     return split(path)[0]
@@ -797,15 +796,15 @@ def is_relative(path):
 
 def remove_tags(title):
     """
-    devuelve el titulo sin tags como color
+    returns the title without tags as color
     @type title: str
     @param title: title
     @rtype: str
-    @return: cadena sin tags
+    @return: string without tags
     """
     logger.info()
 
-    title_without_tags = scrapertools.find_single_match(title, '\[color .+?\](.+)\[\/color\]')
+    title_without_tags = scrapertools.find_single_match(title, r'\[color .+?\](.+)\[\/color\]')
 
     if title_without_tags:
         return title_without_tags
@@ -815,19 +814,19 @@ def remove_tags(title):
 
 def remove_smb_credential(path):
     """
-    devuelve el path sin contraseña/usuario para paths de SMB
-    @param path: ruta
+    returns the path without password / user for SMB paths
+    @param path: path
     @type path: str
-    @return: cadena sin credenciales
+    @return: chain without credentials
     @rtype: str
     """
     logger.info()
 
-    if not scrapertools.find_single_match(path, '(^\w+:\/\/)'):
+    if not scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
         return path
 
-    protocol = scrapertools.find_single_match(path, '(^\w+:\/\/)')
-    path_without_credentials = scrapertools.find_single_match(path, '^\w+:\/\/(?:[^;\n]+;)?(?:[^:@\n]+[:|@])?(?:[^@\n]+@)?(.*?$)')
+    protocol = scrapertools.find_single_match(path, r'(^\w+:\/\/)')
+    path_without_credentials = scrapertools.find_single_match(path, r'^\w+:\/\/(?:[^;\n]+;)?(?:[^:@\n]+[:|@])?(?:[^@\n]+@)?(.*?$)')
 
     if path_without_credentials:
         return (protocol + path_without_credentials)

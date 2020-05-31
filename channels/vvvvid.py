@@ -54,22 +54,22 @@ def mainlist(item):
                 ('Generi',['series/', 'peliculas', 'channel/10004/last/?category=']),
                 ('A-Z',['series/', 'peliculas', 'channel/10003/last/?filter='])
                 ]
-        show = [('Show bold {tv}',['show/', 'peliculas', '', 'tvshow']),
-                ('Popolari submenu {tv}',['show/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite submenu {tv}',['show/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi submenu {tv}',['show/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z submenu {tv}',['show/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
-                ('Cerca Show... bold submenu {tv}', ['show/', 'search', '', 'tvshow'])
+        show = [('Show {bold} {tv}',['show/', 'peliculas', '', 'tvshow']),
+                ('Popolari {submenu} {tv}',['show/', 'peliculas', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {tv}',['show/', 'peliculas', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {tv}',['show/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {tv}',['show/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+                ('Cerca Show... {bold submenu} {tv}', ['show/', 'search', '', 'tvshow'])
                 ]
-        kids = [('Kids bold',['kids/', 'peliculas', '', 'tvshow']),
-                ('Popolari submenu {kids}',['kids/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite submenu {kids}',['kids/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi submenu {kids}',['kids/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z submenu {kids}',['kids/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
-                ('Cerca Kids... bold submenu {kids}', ['kids/', 'search', '', 'tvshow'])
+        kids = [('Kids {bold}',['kids/', 'peliculas', '', 'tvshow']),
+                ('Popolari {submenu} {kids}',['kids/', 'peliculas', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {kids}',['kids/', 'peliculas', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {kids}',['kids/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {kids}',['kids/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+                ('Cerca Kids... {bold submenu} {kids}', ['kids/', 'search', '', 'tvshow'])
                 ]
     else:
-        Top = [("Visibile solo dall'Italia bold",[])]
+        Top = [("Visibile solo dall'Italia {bold}",[])]
     return locals()
 
 

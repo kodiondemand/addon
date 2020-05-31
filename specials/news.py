@@ -11,25 +11,19 @@ from core.support import typo
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import glob
-import os
-import re
-import time
+import glob, os, re, time
 from threading import Thread
 
 from channelselector import get_thumb, auto_filter
-from core import channeltools
-from core import jsontools
-from core import scrapertools, support
+from core import channeltools, jsontools, scrapertools, support
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 
 THUMBNAILS = {'0': 'posters', '1': 'banners', '2': 'squares'}
 
 __perfil__ = config.get_setting('perfil', "news")
 
-# Fijar perfil de color
+# Set color profile
 perfil = [['0xFF0B7B92', '0xFF89FDFB', '0xFFACD5D4'],
           ['0xFFB31313', '0xFFFF9000', '0xFFFFEE82'],
           ['0xFF891180', '0xFFCB22D7', '0xFFEEA1EB'],
@@ -141,7 +135,7 @@ def get_channels_list():
     list_canales = {'peliculas': [], 'series': [],'anime': [], 'italiano':[], 'documentales': []}
 
     any_active = False
-    # Rellenar listas de canales disponibles
+    # Fill available channel lists
     channels_path = os.path.join(config.get_runtime_path(), "channels", '*.json')
     channel_language = config.get_setting("channel_language", default="all")
     if channel_language =="auto":
@@ -151,16 +145,16 @@ def get_channels_list():
         channel_id = os.path.basename(infile)[:-5]
         channel_parameters = channeltools.get_channel_parameters(channel_id)
 
-        # No incluir si es un canal inactivo
+        # Do not include if it is an inactive channel
         if not channel_parameters["active"]:
             continue
 
-        # No incluir si el canal es en un idioma filtrado
+        # Do not include if the channel is in a filtered language
         if channel_language != "all" and channel_language not in str(channel_parameters["language"]) \
                 and "*" not in channel_parameters["language"]:
             continue
 
-        # Incluir en cada categoria, si en su configuracion el canal esta activado para mostrar novedades
+        # Include in each category, if in your configuration the channel is activated to show news
 
         for categoria in list_canales:
             include_in_newest = config.get_setting("include_in_newest_" + categoria, channel_id)
@@ -267,7 +261,7 @@ def novedades(item):
 
     if any_active and len(list_canales[item.extra])>0:
         import math
-        # fix float porque la division se hace mal en python 2.x
+        # fix float because division is done poorly in python 2.x
         number_of_channels = float(100) / len(list_canales[item.extra])
 
         for index, channel in enumerate(list_canales[item.extra]):
@@ -294,7 +288,7 @@ def novedades(item):
                     progreso.update(percentage, "", config.get_localized_string(60520) % channel_title)
                 get_newest(channel_id, item.extra)
 
-        # Modo Multi Thread: esperar q todos los hilos terminen
+        # Multi Thread mode: wait for all threads to finish
         if multithread:
             pendent = [a for a in threads if a.isAlive()]
             t = float(100) / len(pendent)
@@ -326,15 +320,15 @@ def novedades(item):
         if mode != 'normal':
             result_mode=0
 
-        if result_mode == 0:  # Agrupados por contenido
+        if result_mode == 0:  # Grouped by content
             ret = group_by_content(list_newest)
-        elif result_mode == 1:  # Agrupados por canales
+        elif result_mode == 1:  # Grouped by channels
             ret = group_by_channel(list_newest)
-        else:  # Sin agrupar
+        else:  # Ungrouped
             ret = no_group(list_newest)
 
         while time.time() - start_time < 2:
-            # mostrar cuadro de progreso con el tiempo empleado durante almenos 2 segundos
+            # show progress chart with time spent for at least 2 seconds
             time.sleep(0.5)
         if mode == 'normal':
             progreso.close()
@@ -356,8 +350,8 @@ def get_newest(channel_id, categoria):
     global list_newest
     global list_newest_tourl
 
-    # Solicitamos las novedades de la categoria (item.extra) buscada en el canal channel
-    # Si no existen novedades para esa categoria en el canal devuelve una lista vacia
+    # We request the news of the category (item.extra) searched in the channel channel
+    # If there are no news for that category in the channel, it returns an empty list
     try:
 
         puede = True
@@ -381,7 +375,7 @@ def get_newest(channel_id, categoria):
             exist=True
         else:
             cache_node = {}
-        #logger.debug('cache node: %s' % cache_node)
+        # logger.debug('cache node: %s' % cache_node)
         for item in list_result:
             # logger.info("item="+item.tostring())
             item.channel = channel_id
@@ -399,11 +393,11 @@ def get_newest(channel_id, categoria):
 
 
 def get_title(item):
-    #support.log("ITEM NEWEST ->", item)
+    # support.log("ITEM NEWEST ->", item)
     # item.contentSerieName c'è anche se è un film
     if item.contentSerieName and item.contentType != 'movie':  # Si es una serie
         title = item.contentSerieName
-        #title = re.compile("\[.*?\]", re.DOTALL).sub("", item.contentSerieName)
+        # title = re.compile("\[.*?\]", re.DOTALL).sub("", item.contentSerieName)
         if not scrapertools.get_season_and_episode(title) and item.contentEpisodeNumber:
             # contentSeason non c'è in support
             if not item.contentSeason:
@@ -414,14 +408,14 @@ def get_title(item):
             if seas:
                 title = "%s - %s" % (seas, title)
 
-    elif item.contentTitle:  # Si es una pelicula con el canal adaptado
+    elif item.contentTitle:  # If it is a movie with the adapted channel
         title = item.contentTitle
-    elif item.contentTitle:  # Si el canal no esta adaptado
+    elif item.contentTitle:  # If the channel is not adapted
         title = item.contentTitle
-    else:  # Como ultimo recurso
+    else:  # As a last resort
         title = item.title
 
-    # Limpiamos el titulo de etiquetas de formato anteriores
+    # We clean the title of previous format labels
     title = re.compile("\[/*COLO.*?\]", re.DOTALL).sub("", title)
     title = re.compile("\[/*B\]", re.DOTALL).sub("", title)
     title = re.compile("\[/*I\]", re.DOTALL).sub("", title)
@@ -452,9 +446,9 @@ def no_group(list_result_canal):
     global channels_id_name
 
     for i in list_result_canal:
-        #support.log("NO GROUP i -> ", i)
+        # support.log("NO GROUP i -> ", i)
         canale = channels_id_name[i.channel]
-        canale = canale # per differenziarlo dal colore delle altre voci
+        canale = canale # to differentiate it from the color of the other items
         i.title = get_title(i) + " [" + canale + "]"
 #        i.text_color = color3
 
@@ -471,12 +465,12 @@ def group_by_channel(list_result_canal):
     for i in list_result_canal:
         if i.channel not in dict_canales:
             dict_canales[i.channel] = []
-        # Formatear titulo
+        # Format title
         i.title = get_title(i)
-        # Añadimos el contenido al listado de cada canal
+        # We add the content to the list of each channel
         dict_canales[i.channel].append(i)
 
-    # Añadimos el contenido encontrado en la lista list_result
+    # We add the content found in the list_result list
     for c in sorted(dict_canales):
         itemlist.append(Item(channel="news", title=channels_id_name[c] + ':', text_color=color1, text_bold=True))
 
@@ -498,10 +492,10 @@ def group_by_content(list_result_canal):
     list_result = []
 
     for i in list_result_canal:
-        # Formatear titulo
+        # Format title
         i.title = get_title(i)
 
-        # Eliminar tildes y otros caracteres especiales para la key
+        # Remove tildes and other special characters for the key
         import unicodedata
         try:
             new_key = i.title.lower().strip().decode("UTF-8")
@@ -511,16 +505,16 @@ def group_by_content(list_result_canal):
             new_key = i.title
 
         if new_key in dict_contenidos:
-            # Si el contenido ya estaba en el diccionario añadirlo a la lista de opciones...
+            #If the content was already in the dictionary add it to the list of options ...
             dict_contenidos[new_key].append(i)
-        else:  # ...sino añadirlo al diccionario
+        else:  # ...but add it to the dictionary
             dict_contenidos[new_key] = [i]
 
-    # Añadimos el contenido encontrado en la lista list_result
+    # We add the content found in the list_result list
     for v in list(dict_contenidos.values()):
         title = v[0].title
         if len(v) > 1:
-            # Eliminar de la lista de nombres de canales los q esten duplicados
+            # Remove duplicate q's from the channel names list
             canales_no_duplicados = []
             for i in v:
                 if i.channel not in canales_no_duplicados:
@@ -622,16 +616,16 @@ def setting_channel(item):
         channel_id = os.path.basename(infile)[:-5]
         channel_parameters = channeltools.get_channel_parameters(channel_id)
 
-        # No incluir si es un canal inactivo
+        # Do not include if it is an inactive channel
         if not channel_parameters["active"]:
             continue
 
-        # No incluir si el canal es en un idioma filtrado
+        # Do not include if the channel is in a filtered language
         if channel_language != "all" and channel_language not in str(channel_parameters["language"]) \
                 and "*" not in channel_parameters["language"]:
             continue
 
-        # No incluir si en su configuracion el canal no existe 'include_in_newest'
+        # Do not include if the channel does not exist 'include_in_newest' in your configuration
         include_in_newest = config.get_setting("include_in_newest_" + item.extra, channel_id)
         if include_in_newest is None:
             continue

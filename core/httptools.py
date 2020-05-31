@@ -384,7 +384,7 @@ def downloadpage(url, **opt):
                 info_dict.append(('Success', 'False'))
                 response['code'] = str(e)
                 info_dict.append(('Response code', str(e)))
-                info_dict.append(('Finalizado en', time.time() - inicio))
+                info_dict.append(('Finished in', time.time() - inicio))
                 if not opt.get('alfa_s', False):
                     show_infobox(info_dict)
                 return type('HTTPResponse', (), response)

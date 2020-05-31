@@ -80,15 +80,14 @@ def to_utf8(dct):
 
 def get_node_from_file(name_file, node, path=None):
     """
-    Obtiene el nodo de un fichero JSON
+    Gets the node of a JSON file
 
-    @param name_file: Puede ser el nombre de un canal o server (sin incluir extension)
-     o bien el nombre de un archivo json (con extension)
+    @param name_file: It can be the name of a channel or server (not including extension) or the name of a json file (with extension)
     @type name_file: str
-    @param node: nombre del nodo a obtener
+    @param node: name of the node to obtain
     @type node: str
-    @param path: Ruta base del archivo json. Por defecto la ruta de settings_channels.
-    @return: dict con el nodo a devolver
+    @param path: Base path of the json file. By default the path of settings_channels.
+    @return: dict with the node to return
     @rtype: dict
     """
     logger.info()
@@ -121,14 +120,13 @@ def get_node_from_file(name_file, node, path=None):
 
 def check_to_backup(data, fname, dict_data):
     """
-    Comprueba que si dict_data(conversion del fichero JSON a dict) no es un diccionario, se genere un fichero con
-    data de nombre fname.bk.
+    Check that if dict_data (conversion of the JSON file to dict) is not a dictionary, a file with data name fname.bk will be generated.
 
-    @param data: contenido del fichero fname
+    @param data: fname file content
     @type data: str
-    @param fname: nombre del fichero leido
+    @param fname: name of the read file
     @type fname: str
-    @param dict_data: nombre del diccionario
+    @param dict_data: dictionary name
     @type dict_data: dict
     """
     logger.info()
@@ -137,7 +135,7 @@ def check_to_backup(data, fname, dict_data):
         logger.error("Error loading json from file %s" % fname)
 
         if data != "":
-            # se crea un nuevo fichero
+            # a new file is created
             from core import filetools
             title = filetools.write("%s.bk" % fname, data)
             if title != "":
@@ -150,16 +148,15 @@ def check_to_backup(data, fname, dict_data):
 
 def update_node(dict_node, name_file, node, path=None, silent=False):
     """
-    actualiza el json_data de un fichero con el diccionario pasado
+    update the json_data of a file with the last dictionary
 
-    @param dict_node: diccionario con el nodo
+    @param dict_node: dictionary with node
     @type dict_node: dict
-    @param name_file: Puede ser el nombre de un canal o server (sin incluir extension)
-     o bien el nombre de un archivo json (con extension)
+    @param name_file: It can be the name of a channel or server (not including extension) or the name of a json file (with extension)
     @type name_file: str
-    @param node: nodo a actualizar
-    @param path: Ruta base del archivo json. Por defecto la ruta de settings_channels.
-    @return result: Devuelve True si se ha escrito correctamente o False si ha dado un error
+    @param node: node to update
+    @param path: Base path of the json file. By default the path of settings_channels.
+    @return result: Returns True if it was written correctly or False if it gave an error
     @rtype: bool
     @return json_data
     @rtype: dict
@@ -182,7 +179,7 @@ def update_node(dict_node, name_file, node, path=None, silent=False):
     try:
         data = filetools.read(fname)
         dict_data = load(data)
-        # es un dict
+        # it's a dict
         if dict_data:
             if node in dict_data:
                 if not silent: logger.debug("   the key exists %s" % node)

@@ -1,90 +1,65 @@
 # -*- coding: utf-8 -*-
 
-#from future import standard_library
-#standard_library.install_aliases()
-#from builtins import str
+# from future import standard_library
+# standard_library.install_aliases()
+# from builtins import str
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 if PY3:
-    import urllib.parse as urllib                               # Es muy lento en PY2.  En PY3 es nativo
+    import urllib.parse as urllib                               # It is very slow in PY2. In PY3 it is native
 else:
-    import urllib                                               # Usamos el nativo de PY2 que es más rápido
+    import urllib                                               # We use the native of PY2 which is faster
 
 from future.builtins import range
 from future.builtins import object
 
-import ast
+import ast, copy, re, sqlite3, time, xbmcaddon
 
-import copy
-import re
-import sqlite3
-import time
-
-import xbmcaddon
-
-from core import filetools
-from core import httptools
-from core import jsontools
-from core import scrapertools
+from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
-from platformcode import config
-from platformcode import logger
+from platformcode import config, logger
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 
-# -----------------------------------------------------------------------------------------------------------
-# Conjunto de funciones relacionadas con las infoLabels.
-#   version 1.0:
-#       Version inicial
+# ------------------------------------------------- -------------------------------------------------- --------
+# Set of functions related to infoLabels.
+# version 1.0:
+# Initial version
 #
-#   Incluyen:
-#       set_infoLabels(source, seekTmdb, idioma_busqueda): Obtiene y fija (item.infoLabels) los datos extras de una o
-# varias series, capitulos o peliculas.
-#       set_infoLabels_item(item, seekTmdb, idioma_busqueda): Obtiene y fija (item.infoLabels) los datos extras de una
-# serie, capitulo o pelicula.
-#       set_infoLabels_itemlist(item_list, seekTmdb, idioma_busqueda): Obtiene y fija (item.infoLabels) los datos
-# extras de una lista de series, capitulos o peliculas.
-#       infoLabels_tostring(item): Retorna un str con la lista ordenada con los infoLabels del item
+# Include:
+#  - set_infoLabels (source, seekTmdb, search_language): Gets and sets (item.infoLabels) the extra data of one or several series, chapters or movies.
+#  - set_infoLabels_item (item, seekTmdb, search_language): Gets and sets (item.infoLabels) the extra data of a series, chapter or movie.
+#  - set_infoLabels_itemlist (item_list, seekTmdb, search_language): Gets and sets (item.infoLabels) the data extras from a list of series, chapters or movies.
+#  - infoLabels_tostring (item): Returns a str with the list ordered with the item's infoLabels
 #
-#   Uso:
-#       tmdb.set_infoLabels(item, seekTmdb = True)
+# Usage:
+#  - tmdb.set_infoLabels (item, seekTmdb = True)
 #
-#       Obtener datos basicos de una pelicula:
-#           Antes de llamar al metodo set_infoLabels el titulo a buscar debe estar en item.contentTitle
-#           y el año en item.infoLabels['year'].
+# Get basic data from a movie:
+# Before calling the set_infoLabels method the title to search for must be in item.contentTitle and the year in item.infoLabels ['year'].
 #
-#       Obtener datos basicos de una serie:
-#           Antes de llamar al metodo set_infoLabels el titulo a buscar debe estar en item.show o en
-# item.contentSerieName.
+# Obtain basic data from a series:
+# Before calling the set_infoLabels method the title to search for must be in item.show or in item.contentSerieName.
 #
-#       Obtener mas datos de una pelicula o serie:
-#           Despues de obtener los datos basicos en item.infoLabels['tmdb'] tendremos el codigo de la serie o pelicula.
-#           Tambien podriamos directamente fijar este codigo, si se conoce, o utilizar los codigo correspondientes de:
-#           IMDB (en item.infoLabels['IMDBNumber'] o item.infoLabels['code'] o item.infoLabels['imdb_id']), TVDB
-# (solo series, en item.infoLabels['tvdb_id']),
-#           Freebase (solo series, en item.infoLabels['freebase_mid']),TVRage (solo series, en
-# item.infoLabels['tvrage_id'])
+# Get more data from a movie or series:
+# After obtaining the basic data in item.infoLabels ['tmdb'] we will have the code of the series or movie.
+# We could also directly set this code, if known, or use the corresponding code of:
+# IMDB (in item.infoLabels ['IMDBNumber'] or item.infoLabels ['code'] or item.infoLabels ['imdb_id']), TVDB (only series, in item.infoLabels ['tvdb_id']),
+# Freebase (series only, on item.infoLabels ['freebase_mid']), TVRage (series only, on item.infoLabels ['tvrage_id'])
 #
-#       Obtener datos de una temporada:
-#           Antes de llamar al metodo set_infoLabels el titulo de la serie debe estar en item.show o en
-# item.contentSerieName,
-#           el codigo TMDB de la serie debe estar en item.infoLabels['tmdb'] (puede fijarse automaticamente mediante
-# la consulta de datos basica)
-#           y el numero de temporada debe estar en item.infoLabels['season'].
+# Get data from a season:
+# Before calling the set_infoLabels method the series title must be in item.show or in item.contentSerieName,
+# the series TMDB code must be in item.infoLabels ['tmdb'] (it can be set automatically by the basic data query)
+# and the season number must be in item.infoLabels ['season'].
 #
-#       Obtener datos de un episodio:
-#           Antes de llamar al metodo set_infoLabels el titulo de la serie debe estar en item.show o en
-# item.contentSerieName,
-#           el codigo TMDB de la serie debe estar en item.infoLabels['tmdb'] (puede fijarse automaticamente mediante la
-# consulta de datos basica),
-#           el numero de temporada debe estar en item.infoLabels['season'] y el numero de episodio debe estar en
-# item.infoLabels['episode'].
-#
-#
-# --------------------------------------------------------------------------------------------------------------
+# Get data from an episode:
+# Before calling the set_infoLabels method the series title must be in item.show or in item.contentSerieName,
+# the TMDB code of the series must be in item.infoLabels ['tmdb'] (it can be set automatically using the basic data query),
+# the season number must be in item.infoLabels ['season'] and the episode number must be in item.infoLabels ['episode'].
+# ------------------------------------------------- -------------------------------------------------- -----------
 
 otmdb_global = None
 fname = filetools.join(config.get_data_path(), "kod_db.sqlite")
@@ -110,7 +85,7 @@ def drop_bd():
 create_bd()
 
 
-# El nombre de la funcion es el nombre del decorador y recibe la funcion que decora.
+# The function name is the name of the decorator and receives the function that decorates.
 def cache_response(fn):
     logger.info()
 
@@ -153,7 +128,7 @@ def cache_response(fn):
 
             # 1 month - 30 days
             elif cache_expire == 3:
-                # no tenemos en cuenta febrero o meses con 31 días
+                # we do not take into account February or months with 31 days
                 if elapsed > datetime.timedelta(days=30):
                     valided = False
                 else:
@@ -167,7 +142,7 @@ def cache_response(fn):
         result = {}
         try:
 
-            # no está activa la cache
+            # cache is not active
             if not config.get_setting("tmdb_cache", default=False):
                 result = fn(*args)
             else:
@@ -199,7 +174,7 @@ def cache_response(fn):
             # elapsed_time = time.time() - start_time
             # logger.debug("TARDADO %s" % elapsed_time)
 
-        # error al obtener los datos
+        # error getting data
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
             logger.error("error in: %s" % message)
@@ -211,17 +186,15 @@ def cache_response(fn):
 
 def set_infoLabels(source, seekTmdb=True, idioma_busqueda=def_lang, forced=False):
     """
-    Dependiendo del tipo de dato de source obtiene y fija (item.infoLabels) los datos extras de una o varias series,
-    capitulos o peliculas.
+    Depending on the data type of source, it obtains and sets (item.infoLabels) the extra data of one or more series, chapters or movies.
 
-    @param source: variable que contiene la información para establecer infoLabels
+    @param source: variable that contains the information to set infoLabels
     @type source: list, item
-    @param seekTmdb: si es True hace una busqueda en www.themoviedb.org para obtener los datos, en caso contrario
-        obtiene los datos del propio Item.
+    @param seekTmdb: if it is True, it searches www.themoviedb.org to obtain the data, otherwise it obtains the data of the Item itself.
     @type seekTmdb: bool
-    @param idioma_busqueda: fija el valor de idioma en caso de busqueda en www.themoviedb.org
+    @param idioma_busqueda: set the language value in case of search at www.themoviedb.org
     @type idioma_busqueda: str
-    @return: un numero o lista de numeros con el resultado de las llamadas a set_infoLabels_item
+    @return: a number or list of numbers with the result of the calls to set_infoLabels_item
     @rtype: int, list
     """
 
@@ -240,23 +213,18 @@ def set_infoLabels(source, seekTmdb=True, idioma_busqueda=def_lang, forced=False
 
 def set_infoLabels_itemlist(item_list, seekTmdb=False, idioma_busqueda=def_lang, forced=False):
     """
-    De manera concurrente, obtiene los datos de los items incluidos en la lista item_list.
+    Concurrently, it gets the data of the items included in the item_list.
 
-    La API tiene un limite de 40 peticiones por IP cada 10'' y por eso la lista no deberia tener mas de 30 items
-    para asegurar un buen funcionamiento de esta funcion.
+    The API has a limit of 40 requests per IP every 10 '' and that is why the list should not have more than 30 items to ensure the proper functioning of this function.
 
-    @param item_list: listado de objetos Item que representan peliculas, series o capitulos. El atributo
-        infoLabels de cada objeto Item sera modificado incluyendo los datos extras localizados.
+    @param item_list: list of Item objects that represent movies, series or chapters. The infoLabels attribute of each Item object will be modified including the extra localized data.
     @type item_list: list
-    @param seekTmdb: Si es True hace una busqueda en www.themoviedb.org para obtener los datos, en caso contrario
-        obtiene los datos del propio Item si existen.
+    @param seekTmdb: If it is True, it searches www.themoviedb.org to obtain the data, otherwise it obtains the data of the Item itself if they exist.
     @type seekTmdb: bool
-    @param idioma_busqueda: Codigo del idioma segun ISO 639-1, en caso de busqueda en www.themoviedb.org.
+    @param idioma_busqueda: Language code according to ISO 639-1, in case of search at www.themoviedb.org.
     @type idioma_busqueda: str
 
-    @return: Una lista de numeros cuyo valor absoluto representa la cantidad de elementos incluidos en el atributo
-        infoLabels de cada Item. Este numero sera positivo si los datos se han obtenido de www.themoviedb.org y
-        negativo en caso contrario.
+    @return: A list of numbers whose absolute value represents the number of elements included in the infoLabels attribute of each Item. This number will be positive if the data has been obtained from www.themoviedb.org and negative otherwise.
     @rtype: list
     """
 
@@ -284,32 +252,29 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, idioma_busqueda=def_lang,
         i += 1
         l_hilo.append(t)
 
-    # esperar q todos los hilos terminen
+    # wait for all the threads to end
     for x in l_hilo:
         x.join()
 
-    # Ordenar lista de resultados por orden de llamada para mantener el mismo orden q item_list
+    # Sort results list by call order to keep the same order q item_list
     r_list.sort(key=lambda i: i[0])
 
-    # Reconstruir y devolver la lista solo con los resultados de las llamadas individuales
+    # Rebuild and return list only with results of individual calls
     return [ii[2] for ii in r_list]
 
 
 def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None):
     """
-    Obtiene y fija (item.infoLabels) los datos extras de una serie, capitulo o pelicula.
+    Gets and sets (item.infoLabels) the extra data of a series, chapter or movie.
 
-    @param item: Objeto Item que representa un pelicula, serie o capitulo. El atributo infoLabels sera modificado
-        incluyendo los datos extras localizados.
+    @param item: Item object that represents a movie, series or chapter. The infoLabels attribute will be modified including the extra localized data.
     @type item: Item
-    @param seekTmdb: Si es True hace una busqueda en www.themoviedb.org para obtener los datos, en caso contrario
-        obtiene los datos del propio Item si existen.
+    @param seekTmdb: If it is True, it searches www.themoviedb.org to obtain the data, otherwise it obtains the data of the Item itself if they exist.
     @type seekTmdb: bool
-    @param idioma_busqueda: Codigo del idioma segun ISO 639-1, en caso de busqueda en www.themoviedb.org.
+    @param idioma_busqueda: Language code according to ISO 639-1, in case of search at www.themoviedb.org.
     @type idioma_busqueda: str
-    @param lock: para uso de threads cuando es llamado del metodo 'set_infoLabels_itemlist'
-    @return: Un numero cuyo valor absoluto representa la cantidad de elementos incluidos en el atributo item.infoLabels.
-        Este numero sera positivo si los datos se han obtenido de www.themoviedb.org y negativo en caso contrario.
+    @param lock: For use of threads when calling the 'set_infoLabels_itemlist' method
+    @return: A number whose absolute value represents the number of elements included in the item.infoLabels attribute. This number will be positive if the data has been obtained from www.themoviedb.org and negative otherwise.
     @rtype: int
     """
     global otmdb_global
@@ -322,7 +287,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
             item.fanart = item.infoLabels['fanart']
 
     if seekTmdb:
-        # Comprobamos q tipo de contenido es...
+        # We check what type of content it is...
         if item.contentType == 'movie':
             tipo_busqueda = 'movie'
         else:
@@ -338,15 +303,12 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
             if lock:
                 lock.acquire()
 
-            if not otmdb_global or (item.infoLabels['tmdb_id']
-                                    and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
+            if not otmdb_global or (item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
                     or (otmdb_global.texto_buscado and otmdb_global.texto_buscado != item.infoLabels['tvshowtitle']):
                 if item.infoLabels['tmdb_id']:
-                    otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
-                                        idioma_busqueda=idioma_busqueda)
+                    otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
                 else:
-                    otmdb_global = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
-                                        idioma_busqueda=idioma_busqueda, year=item.infoLabels['year'])
+                    otmdb_global = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda, year=item.infoLabels['year'])
 
                 __leer_datos(otmdb_global)
 
@@ -361,13 +323,13 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     logger.debug("The episode number (%s) is not valid" % repr(item.infoLabels['episode']))
                     return -1 * len(item.infoLabels)
 
-                # Tenemos numero de temporada y numero de episodio validos...
-                # ... buscar datos episodio
+                # We have valid season number and episode number...
+                # ... search episode data
                 item.infoLabels['mediatype'] = 'episode'
                 episodio = otmdb_global.get_episodio(numtemporada, episode)
 
                 if episodio:
-                    # Actualizar datos
+                    # Update data
                     __leer_datos(otmdb_global)
                     item.infoLabels['title'] = episodio['episodio_titulo']
                     if episodio['episodio_sinopsis']:
@@ -388,15 +350,15 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     return len(item.infoLabels)
 
             else:
-                # Tenemos numero de temporada valido pero no numero de episodio...
-                # ... buscar datos temporada
+                # We have a valid season number but no episode number...
+                # ... search season data
                 item.infoLabels['mediatype'] = 'season'
                 temporada = otmdb_global.get_temporada(numtemporada)
                 if not isinstance(temporada, dict):
                     temporada = ast.literal_eval(temporada.decode('utf-8'))
 
                 if temporada:
-                    # Actualizar datos
+                    # Update data
                     __leer_datos(otmdb_global)
                     item.infoLabels['title'] = temporada['name'] if 'name' in temporada else ''
                     if 'overview' in  temporada and temporada['overview']:
@@ -418,69 +380,62 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
             if lock and lock.locked():
                 lock.release()
 
-        # Buscar...
+        # Search...
         else:
             otmdb = copy.copy(otmdb_global)
-            # Busquedas por ID...
+            # Search by ID...
             if item.infoLabels['tmdb_id']:
-                # ...Busqueda por tmdb_id
-                otmdb = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
-                             idioma_busqueda=idioma_busqueda)
+                # ...Search for tmdb_id
+                otmdb = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
 
             elif item.infoLabels['imdb_id']:
-                # ...Busqueda por imdb code
-                otmdb = Tmdb(external_id=item.infoLabels['imdb_id'], external_source="imdb_id",
-                             tipo=tipo_busqueda,
-                             idioma_busqueda=idioma_busqueda)
+                # ...Search by imdb code
+                otmdb = Tmdb(external_id=item.infoLabels['imdb_id'], external_source="imdb_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
 
-            elif tipo_busqueda == 'tv':  # buscar con otros codigos
+            elif tipo_busqueda == 'tv':  # bsearch with other codes
                 if item.infoLabels['tvdb_id']:
-                    # ...Busqueda por tvdb_id
-                    otmdb = Tmdb(external_id=item.infoLabels['tvdb_id'], external_source="tvdb_id", tipo=tipo_busqueda,
-                                 idioma_busqueda=idioma_busqueda)
+                    # ...Search for tvdb_id
+                    otmdb = Tmdb(external_id=item.infoLabels['tvdb_id'], external_source="tvdb_id", tipo=tipo_busqueda,  idioma_busqueda=idioma_busqueda)
                 elif item.infoLabels['freebase_mid']:
-                    # ...Busqueda por freebase_mid
-                    otmdb = Tmdb(external_id=item.infoLabels['freebase_mid'], external_source="freebase_mid",
-                                 tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    # ...Search for freebase_mid
+                    otmdb = Tmdb(external_id=item.infoLabels['freebase_mid'], external_source="freebase_mid", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
                 elif item.infoLabels['freebase_id']:
-                    # ...Busqueda por freebase_id
-                    otmdb = Tmdb(external_id=item.infoLabels['freebase_id'], external_source="freebase_id",
-                                 tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    # ...Search by freebase_id
+                    otmdb = Tmdb(external_id=item.infoLabels['freebase_id'], external_source="freebase_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
                 elif item.infoLabels['tvrage_id']:
-                    # ...Busqueda por tvrage_id
-                    otmdb = Tmdb(external_id=item.infoLabels['tvrage_id'], external_source="tvrage_id",
-                                 tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    # ...Search by tvrage_id
+                    otmdb = Tmdb(external_id=item.infoLabels['tvrage_id'], external_source="tvrage_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
 
-            #if otmdb is None:
+            # if otmdb is None:
             if not item.infoLabels['tmdb_id'] and not item.infoLabels['imdb_id'] and not item.infoLabels['tvdb_id'] and not item.infoLabels['freebase_mid'] and not item.infoLabels['freebase_id'] and not item.infoLabels['tvrage_id']:
-                # No se ha podido buscar por ID...
-                # hacerlo por titulo
+                # Could not search by ID ...
+                # do it by title
                 if tipo_busqueda == 'tv':
-                    # Busqueda de serie por titulo y filtrando sus resultados si es necesario
+                    # Serial search by title and filtering your results if necessary
                     otmdb = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
                                  idioma_busqueda=idioma_busqueda, filtro=item.infoLabels.get('filtro', {}),
                                  year=item.infoLabels['year'])
                 else:
-                    # Busqueda de pelicula por titulo...
+                    # Movie search by title ...
                     # if item.infoLabels['year'] or item.infoLabels['filtro']:
-                    # ...y año o filtro
+                    # ...and year or filter
                     searched_title = item.contentTitle if item.contentTitle else item.fulltitle
                     otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
                                     filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
                 if otmdb is not None:
                     if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
-                        # Si la busqueda ha dado resultado y no se esta buscando una lista de items,
-                        # realizar otra busqueda para ampliar la informacion
+                        # If the search has been successful and you are not looking for a list of items,
+                        # carry out another search to expand the information
                         otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
 
             if lock and lock.locked():
                 lock.release()
 
             if otmdb is not None and otmdb.get_id():
-                # La busqueda ha encontrado un resultado valido
+                # The search has found a valid result
                 __leer_datos(otmdb)
                 return len(item.infoLabels)
-    # La busqueda en tmdb esta desactivada o no ha dado resultado
+    # Search in tmdb is deactivated or has not given result
     # item.contentType = item.infoLabels['mediatype']
     return -1 * len(item.infoLabels)
 
@@ -500,7 +455,7 @@ def find_and_set_infoLabels(item):
         tipo_contenido = config.get_localized_string(60298)
         title = item.contentSerieName
 
-    # Si el titulo incluye el (año) se lo quitamos
+    # If the title includes the (year) we will remove it
     year = scrapertools.find_single_match(title, "^.+?\s*(\(\d{4}\))$")
     if year:
         title = title.replace(year, "").strip()
@@ -510,8 +465,7 @@ def find_and_set_infoLabels(item):
         if not item.infoLabels.get("imdb_id"):
             otmdb_global = Tmdb(texto_buscado=title, tipo=tipo_busqueda, year=item.infoLabels['year'])
         else:
-            otmdb_global = Tmdb(external_id=item.infoLabels.get("imdb_id"), external_source="imdb_id",
-                                tipo=tipo_busqueda)
+            otmdb_global = Tmdb(external_id=item.infoLabels.get("imdb_id"), external_source="imdb_id", tipo=tipo_busqueda)
     elif not otmdb_global or str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']:
         otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda, idioma_busqueda=def_lang)
 
@@ -519,8 +473,7 @@ def find_and_set_infoLabels(item):
 
     if len(results) > 1:
         from platformcode import platformtools
-        tmdb_result = platformtools.show_video_info(results, item=item,
-                                                    caption= tipo_contenido % title)
+        tmdb_result = platformtools.show_video_info(results, item=item, caption= tipo_contenido % title)
     elif len(results) > 0:
         tmdb_result = results[0]
 
@@ -531,7 +484,7 @@ def find_and_set_infoLabels(item):
 
     if tmdb_result:
         infoLabels['tmdb_id'] = tmdb_result['id']
-        # todo mirar si se puede eliminar y obtener solo desde get_nfo()
+        # all look if it can be removed and get only from get_nfo ()
         infoLabels['url_scraper'] = ["https://www.themoviedb.org/%s/%s" % (tipo_busqueda, infoLabels['tmdb_id'])]
         if infoLabels['tvdb_id']:
             infoLabels['url_scraper'].append("http://thetvdb.com/index.php?tab=series&id=%s" % infoLabels['tvdb_id'])
@@ -547,16 +500,14 @@ def find_and_set_infoLabels(item):
 
 def get_nfo(item):
     """
-    Devuelve la información necesaria para que se scrapee el resultado en la videoteca de kodi, para tmdb funciona
-    solo pasandole la url.
-    @param item: elemento que contiene los datos necesarios para generar la info
+    Returns the information necessary for the result to be scraped into the kodi video library, for tmdb it works only by passing it the url.
+    @param item: element that contains the data necessary to generate the info
     @type item: Item
     @rtype: str
     @return:
     """
     if "season" in item.infoLabels and "episode" in item.infoLabels:
-        info_nfo = "https://www.themoviedb.org/tv/%s/season/%s/episode/%s\n" % \
-                   (item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
+        info_nfo = "https://www.themoviedb.org/tv/%s/season/%s/episode/%s\n" % (item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
     else:
         info_nfo = ', '.join(item.infoLabels['url_scraper']) + "\n"
 
@@ -565,10 +516,10 @@ def get_nfo(item):
 
 def completar_codigos(item):
     """
-    Si es necesario comprueba si existe el identificador de tvdb y sino existe trata de buscarlo
+    If necessary, check if the tvdb identifier exists and if it does not exist try to find it
     """
     if item.contentType != "movie" and not item.infoLabels['tvdb_id']:
-        # Lanzar busqueda por imdb_id en tvdb
+        # Launch search for imdb_id on tvdb
         from core.tvdb import Tvdb
         ob = Tvdb(imdb_id=item.infoLabels['imdb_id'])
         item.infoLabels['tvdb_id'] = ob.get_id()
@@ -585,8 +536,7 @@ def discovery(item, dict_=False, cast=False):
         listado = Tmdb(discover = dict_, cast=cast)
 
     elif item.search_type == 'discover':
-        listado = Tmdb(discover={'url':'discover/%s' % item.type, 'with_genres':item.list_type, 'language':def_lang,
-                                 'page':item.page})
+        listado = Tmdb(discover={'url':'discover/%s' % item.type, 'with_genres':item.list_type, 'language':def_lang, 'page':item.page})
 
     elif item.search_type == 'list':
         if item.page == '':
@@ -602,7 +552,7 @@ def get_genres(type):
     return genres.dic_generos[lang]
 
 
-# Clase auxiliar
+# Auxiliary class
 class ResultDictDefault(dict):
     # Python 2.4
     def __getitem__(self, key):
@@ -613,14 +563,13 @@ class ResultDictDefault(dict):
 
     def __missing__(self, key):
         """
-        valores por defecto en caso de que la clave solicitada no exista
+        default values ​​in case the requested key does not exist
         """
         if key in ['genre_ids', 'genre', 'genres']:
             return list()
         elif key == 'images_posters':
             posters = dict()
-            if 'images' in list(super(ResultDictDefault, self).keys()) and \
-                            'posters' in super(ResultDictDefault, self).__getitem__('images'):
+            if 'images' in list(super(ResultDictDefault, self).keys()) and 'posters' in super(ResultDictDefault, self).__getitem__('images'):
                 posters = super(ResultDictDefault, self).__getitem__('images')['posters']
                 super(ResultDictDefault, self).__setattr__("images_posters", posters)
 
@@ -628,8 +577,7 @@ class ResultDictDefault(dict):
 
         elif key == "images_backdrops":
             backdrops = dict()
-            if 'images' in list(super(ResultDictDefault, self).keys()) and \
-                            'backdrops' in super(ResultDictDefault, self).__getitem__('images'):
+            if 'images' in list(super(ResultDictDefault, self).keys()) and 'backdrops' in super(ResultDictDefault, self).__getitem__('images'):
                 backdrops = super(ResultDictDefault, self).__getitem__('images')['backdrops']
                 super(ResultDictDefault, self).__setattr__("images_backdrops", backdrops)
 
@@ -637,15 +585,14 @@ class ResultDictDefault(dict):
 
         elif key == "images_profiles":
             profiles = dict()
-            if 'images' in list(super(ResultDictDefault, self).keys()) and \
-                            'profiles' in super(ResultDictDefault, self).__getitem__('images'):
+            if 'images' in list(super(ResultDictDefault, self).keys()) and 'profiles' in super(ResultDictDefault, self).__getitem__('images'):
                 profiles = super(ResultDictDefault, self).__getitem__('images')['profiles']
                 super(ResultDictDefault, self).__setattr__("images_profiles", profiles)
 
             return profiles
 
         else:
-            # El resto de claves devuelven cadenas vacias por defecto
+            # The rest of the keys return empty strings by default
             return ""
 
     def __str__(self):
@@ -668,78 +615,78 @@ class ResultDictDefault(dict):
 
 # ---------------------------------------------------------------------------------------------------------------
 # class Tmdb:
-#   Scraper para el addon basado en el Api de https://www.themoviedb.org/
-#   version 1.4:
-#       - Documentada limitacion de uso de la API (ver mas abajo).
-#       - Añadido metodo get_temporada()
-#   version 1.3:
-#       - Corregido error al devolver None el path_poster y el backdrop_path
-#       - Corregido error que hacia que en el listado de generos se fueran acumulando de una llamada a otra
-#       - Añadido metodo get_generos()
-#       - Añadido parametros opcional idioma_alternativo al metodo get_sinopsis()
+# Scraper for the API based addon from https://www.themoviedb.org/
+# version 1.4:
+# - Documented limitation of API use (see below).
+# - Added get_temporada () method
+# version 1.3:
+# - Fixed error when returning None the path_poster and backdrop_path
+# - Fixed a bug that caused the list of genres to accumulate from one call to another
+# - Added get_generos () method
+# - Added optional parameters alternative_language to the get_sinopsis () method
 #
 #
-#   Uso:
-#   Metodos constructores:
-#    Tmdb(texto_buscado, tipo)
-#        Parametros:
-#            texto_buscado:(str) Texto o parte del texto a buscar
-#            tipo: ("movie" o "tv") Tipo de resultado buscado peliculas o series. Por defecto "movie"
-#            (opcional) idioma_busqueda: (str) codigo del idioma segun ISO 639-1
-#            (opcional) include_adult: (bool) Se incluyen contenidos para adultos en la busqueda o no. Por defecto
+# Usage:
+# Construction methods:
+# Tmdb (search_text, type)
+# Parameters:
+# searched_text: (str) Text or part of the text to search
+# type: ("movie" or "tv") Type of result searched for movies or series. Default "movie"
+# (optional) language_search: (str) language code according to ISO 639-1
+# (optional) include_adult: (bool) Adult content is included in the search or not. Default
 # 'False'
-#            (opcional) year: (str) Año de lanzamiento.
-#            (opcional) page: (int) Cuando hay muchos resultados para una busqueda estos se organizan por paginas.
-#                            Podemos cargar la pagina que deseemos aunque por defecto siempre es la primera.
-#        Return:
-#            Esta llamada devuelve un objeto Tmdb que contiene la primera pagina del resultado de buscar 'texto_buscado'
-#            en la web themoviedb.org. Cuantos mas parametros opcionales se incluyan mas precisa sera la busqueda.
-#            Ademas el objeto esta inicializado con el primer resultado de la primera pagina de resultados.
-#    Tmdb(id_Tmdb,tipo)
-#       Parametros:
-#           id_Tmdb: (str) Codigo identificador de una determinada pelicula o serie en themoviedb.org
-#           tipo: ("movie" o "tv") Tipo de resultado buscado peliculas o series. Por defecto "movie"
-#           (opcional) idioma_busqueda: (str) codigo del idioma segun ISO 639-1
-#       Return:
-#           Esta llamada devuelve un objeto Tmdb que contiene el resultado de buscar una pelicula o serie con el
-# identificador id_Tmd
-#           en la web themoviedb.org.
-#    Tmdb(external_id, external_source, tipo)
-#       Parametros:
-#           external_id: (str) Codigo identificador de una determinada pelicula o serie en la web referenciada por
+# (optional) year: (str) Release year.
+# (optional) page: (int) When there are many results for a search these are organized by pages.
+# We can load the page we want, although by default it is always the first page.
+# Return:
+# This call returns a Tmdb object containing the first page of the search result 'search_text'
+# on the themoviedb.org website. The more optional parameters are included, the more precise the search will be.
+# Also the object is initialized with the first result of the first page of results.
+# Tmdb (id_Tmdb, type)
+# Parameters:
+# id_Tmdb: (str) Identifier code of a certain movie or series at themoviedb.org
+# type: ("movie" or "tv") Type of result searched for movies or series. Default "movie"
+# (optional) language_search: (str) language code according to ISO 639-1
+# Return:
+# This call returns a Tmdb object that contains the result of searching for a movie or series with the
+# identifier id_Tmd
+# on the themoviedb.org website.
+# Tmdb (external_id, external_source, type)
+# Parameters:
+# external_id: (str) Identifier code of a certain movie or series on the web referenced by
 # 'external_source'.
-#           external_source: (Para series:"imdb_id","freebase_mid","freebase_id","tvdb_id","tvrage_id"; Para
-# peliculas:"imdb_id")
-#           tipo: ("movie" o "tv") Tipo de resultado buscado peliculas o series. Por defecto "movie"
-#           (opcional) idioma_busqueda: (str) codigo del idioma segun ISO 639-1
-#       Return:
-#           Esta llamada devuelve un objeto Tmdb que contiene el resultado de buscar una pelicula o serie con el
-# identificador 'external_id' de
-#           la web referenciada por 'external_source' en la web themoviedb.org.
+# external_source: (For series: "imdb_id", "freebase_mid", "freebase_id", "tvdb_id", "tvrage_id"; For
+# movies: "imdb_id")
+# type: ("movie" or "tv") Type of result searched for movies or series. Default "movie"
+# (optional) language_search: (str) language code according to ISO 639-1
+# Return:
+# This call returns a Tmdb object that contains the result of searching for a movie or series with the
+# identifier 'external_id' of
+# the website referenced by 'external_source' on the themoviedb.org website.
 #
-#   Metodos principales:
-#    get_id(): Retorna un str con el identificador Tmdb de la pelicula o serie cargada o una cadena vacia si no hubiese
-# nada cargado.
-#    get_sinopsis(idioma_alternativo): Retorna un str con la sinopsis de la serie o pelicula cargada.
-#    get_poster (tipo_respuesta,size): Obtiene el poster o un listado de posters.
-#    get_backdrop (tipo_respuesta,size): Obtiene una imagen de fondo o un listado de imagenes de fondo.
-#    get_temporada(temporada): Obtiene un diccionario con datos especificos de la temporada.
-#    get_episodio (temporada, capitulo): Obtiene un diccionario con datos especificos del episodio.
-#    get_generos(): Retorna un str con la lista de generos a los que pertenece la pelicula o serie.
+# Main methods:
+# get_id (): Returns a str with the Tmdb identifier of the loaded movie or series or an empty string if there were no
+# nothing loaded.
+# get_sinopsis (alternate_language): Returns a str with the synopsis of the series or movie loaded.
+# get_poster (response_type, size): Get the poster or a list of posters.
+# get_backdrop (response_type, size): Get a background image or a list of background images.
+# get_temporada (season): Get a dictionary with season-specific data.
+# get_episodio (season, episode): Get a dictionary with specific data of the episode.
+# get_generos (): Returns a str with the list of genres to which the movie or series belongs.
 #
 #
-#   Otros metodos:
-#    load_resultado(resultado, page): Cuando la busqueda devuelve varios resultados podemos seleccionar que resultado
-# concreto y de que pagina cargar los datos.
+# Other methods:
+# load_resultado (result, page): When the search returns several results we can select which result
+# concrete and from which page to load the data.
 #
-#   Limitaciones:
-#   El uso de la API impone un limite de 20 conexiones simultaneas (concurrencia) o 30 peticiones en 10 segundos por IP
-# Informacion sobre la api : http://docs.themoviedb.apiary.io
+# Limitations:
+# The use of the API imposes a limit of 20 simultaneous connections (concurrency) or 30 requests in 10 seconds per IP
+# Information about the api: http://docs.themoviedb.apiary.io
 # -------------------------------------------------------------------------------------------------------------------
 
 
 class Tmdb(object):
-    # Atributo de clase
+    # Class attribute
     dic_generos = {}
     '''
     dic_generos={"id_idioma1": {"tv": {"id1": "name1",
@@ -830,17 +777,15 @@ class Tmdb(object):
         self.busqueda_filtro = kwargs.get('filtro', {})
         self.discover = kwargs.get('discover', {})
 
-        # Reellenar diccionario de generos si es necesario
-        if (self.busqueda_tipo == 'movie' or self.busqueda_tipo == "tv") and \
-                (self.busqueda_idioma not in Tmdb.dic_generos or
-                         self.busqueda_tipo not in Tmdb.dic_generos[self.busqueda_idioma]):
+        # Refill gender dictionary if necessary
+        if (self.busqueda_tipo == 'movie' or self.busqueda_tipo == "tv") and (self.busqueda_idioma not in Tmdb.dic_generos or self.busqueda_tipo not in Tmdb.dic_generos[self.busqueda_idioma]):
             self.rellenar_dic_generos(self.busqueda_tipo, self.busqueda_idioma)
 
         if not self.busqueda_tipo:
             self.busqueda_tipo = 'movie'
 
         if self.busqueda_id:
-            # Busqueda por identificador tmdb
+            #Search by tmdb identifier
             self.__by_id()
 
         elif self.busqueda_texto:
@@ -848,12 +793,10 @@ class Tmdb(object):
             self.__search(page=self.page)
 
         elif 'external_source' in kwargs and 'external_id' in kwargs:
-            # Busqueda por identificador externo segun el tipo.
+            # Search by external identifier according to type.
             # TV Series: imdb_id, freebase_mid, freebase_id, tvdb_id, tvrage_id
             # Movies: imdb_id
-            if (self.busqueda_tipo == 'movie' and kwargs.get('external_source') == "imdb_id") or \
-                    (self.busqueda_tipo == 'tv' and kwargs.get('external_source') in (
-                            "imdb_id", "freebase_mid", "freebase_id", "tvdb_id", "tvrage_id")):
+            if (self.busqueda_tipo == 'movie' and kwargs.get('external_source') == "imdb_id") or (self.busqueda_tipo == 'tv' and kwargs.get('external_source') in ("imdb_id", "freebase_mid", "freebase_id", "tvdb_id", "tvrage_id")):
                 self.busqueda_id = kwargs.get('external_id')
                 self.__by_id(source=kwargs.get('external_source'))
 
@@ -880,9 +823,9 @@ class Tmdb(object):
                 if dict_data["status_code"] == 25:
                     while "status_code" in dict_data and dict_data["status_code"] == 25:
                         wait = int(res_headers['retry-after'])
-                        #logger.error("Limite alcanzado, esperamos para volver a llamar en ...%s" % wait)
+                        #logger.error("Limit reached, we wait to call back on ...%s" % wait)
                         time.sleep(wait)
-                        # logger.debug("RE Llamada #%s" % d)
+                        # logger.debug("RE Call #%s" % d)
                         result = httptools.downloadpage(url, cookies=False)
 
                         res_headers = result.headers
@@ -890,7 +833,7 @@ class Tmdb(object):
                         dict_data = jsontools.load(result.data)
                         # logger.debug("result_data es %s" % dict_data)
 
-        # error al obtener los datos
+        # error getting data
         except Exception as ex:
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
             logger.error("error in: %s" % message)
@@ -900,14 +843,13 @@ class Tmdb(object):
 
     @classmethod
     def rellenar_dic_generos(cls, tipo='movie', idioma=def_lang):
-        # Rellenar diccionario de generos del tipo e idioma pasados como parametros
+        # Fill dictionary of genres of the type and language passed as parameters
         if idioma not in cls.dic_generos:
             cls.dic_generos[idioma] = {}
 
         if tipo not in cls.dic_generos[idioma]:
             cls.dic_generos[idioma][tipo] = {}
-            url = ('http://api.themoviedb.org/3/genre/%s/list?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s'
-                   % (tipo, idioma))
+            url = ('http://api.themoviedb.org/3/genre/%s/list?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s' % (tipo, idioma))
             try:
                 logger.info("[Tmdb.py] Filling in dictionary of genres")
 
@@ -959,7 +901,7 @@ class Tmdb(object):
                 self.result = ResultDictDefault(resultado)
 
             else:
-                # No hay resultados de la busqueda
+                # No search results
                 msg = "The search of %s gave no results" % buscando
                 logger.debug(msg)
 
@@ -995,7 +937,6 @@ class Tmdb(object):
                 results = resultado["results"]
 
             if self.busqueda_filtro and total_results > 1:
-                # TODO documentar esta parte
                 for key, value in list(dict(self.busqueda_filtro).items()):
                     for r in results[:]:
                         if not r[key]:
@@ -1006,13 +947,13 @@ class Tmdb(object):
 
         if results:
             if index_results >= len(results):
-                # Se ha solicitado un numero de resultado mayor de los obtenidos
+                # A higher number of results has been requested than those obtained
                 logger.error(
                     "The search for '%s' gave %s results for the page %s \n It is impossible to show the result number %s"
                     % (buscando, len(results), page, index_results))
                 return 0
 
-            # Retornamos el numero de resultados de esta pagina
+            # We return the number of results of this page
             self.results = results
             self.total_results = total_results
             self.total_pages = total_pages
@@ -1020,7 +961,7 @@ class Tmdb(object):
             return len(self.results)
 
         else:
-            # No hay resultados de la busqueda
+            # No search results
             msg = "The search for '%s' gave no results for page %s" % (buscando, page)
             logger.error(msg)
             return 0
@@ -1033,8 +974,8 @@ class Tmdb(object):
         total_pages = 0
 
         # Ejemplo self.discover: {'url': 'discover/movie', 'with_cast': '1'}
-        # url: Método de la api a ejecutar
-        # resto de claves: Parámetros de la búsqueda concatenados a la url
+        # url: API method to run
+        # rest of keys: Search parameters concatenated to the url
         type_search = self.discover.get('url', '')
         if type_search:
             params = []
@@ -1074,7 +1015,7 @@ class Tmdb(object):
                     "The search for '%s' did not give %s results" % (type_search, index_results))
                 return 0
 
-        # Retornamos el numero de resultados de esta pagina
+        # We return the number of results of this page
         if results:
             self.results = results
             self.total_results = total_results
@@ -1086,13 +1027,12 @@ class Tmdb(object):
                 self.result = results
             return len(self.results)
         else:
-            # No hay resultados de la busqueda
+            # No search results
             logger.error("The search for '%s' gave no results" % type_search)
             return 0
 
     def load_resultado(self, index_results=0, page=1):
-        # Si no hay resultados, solo hay uno o
-        # si el numero de resultados de esta pagina es menor al indice buscado salir
+        # If there are no results, there is only one or if the number of results on this page is less than the index sought to exit
         self.result = ResultDictDefault()
         num_result_page = len(self.results)
 
@@ -1112,7 +1052,6 @@ class Tmdb(object):
 
     def get_list_resultados(self, num_result=20):
         # logger.info("self %s" % str(self))
-        # TODO documentar
         res = []
 
         if num_result <= 0:
@@ -1141,9 +1080,9 @@ class Tmdb(object):
 
     def get_generos(self, origen=None):
         """
-        :param origen: Diccionario origen de donde se obtiene los infoLabels, por omision self.result
+        :param origen: Source dictionary where the infoLabels are obtained, by default self.result
         :type origen: Dict
-        :return: Devuelve la lista de generos a los que pertenece la pelicula o serie.
+        :return: Returns the list of genres to which the movie or series belongs.
         :rtype: str
         """
         genre_list = []
@@ -1152,7 +1091,7 @@ class Tmdb(object):
             origen = self.result
 
         if "genre_ids" in origen:
-            # Buscar lista de generos por IDs
+            # Search list of genres by IDs
             for i in origen.get("genre_ids"):
                 try:
                     genre_list.append(Tmdb.dic_generos[self.busqueda_idioma][self.busqueda_tipo][str(i)])
@@ -1160,7 +1099,7 @@ class Tmdb(object):
                     pass
 
         elif "genre" in origen or "genres" in origen:
-            # Buscar lista de generos (lista de objetos {id,nombre})
+            # Search genre list (object list {id, name})
             v = origen["genre"]
             v.extend(origen["genres"])
             for i in v:
@@ -1175,9 +1114,7 @@ class Tmdb(object):
 
     def get_id(self):
         """
-
-        :return: Devuelve el identificador Tmdb de la pelicula o serie cargada o una cadena vacia en caso de que no
-            hubiese nada cargado. Se puede utilizar este metodo para saber si una busqueda ha dado resultado o no.
+        :return: Returns the Tmdb identifier of the loaded movie or series or an empty string in case nothing was loaded. You can use this method to find out if a search has been successful or not.
         :rtype: str
         """
         return str(self.result.get('id', ""))
@@ -1185,12 +1122,10 @@ class Tmdb(object):
     def get_sinopsis(self, idioma_alternativo=""):
         """
 
-        :param idioma_alternativo: codigo del idioma, segun ISO 639-1, en el caso de que en el idioma fijado para la
-            busqueda no exista sinopsis.
-            Por defecto, se utiliza el idioma original. Si se utiliza None como idioma_alternativo, solo se buscara en
-            el idioma fijado.
+        :param idioma_alternativo: Language code, according to ISO 639-1, if there is no synopsis in the language set for the search.
+            By default, the original language is used. If None is used as the alternative_language, it will only search in the set language.
         :type idioma_alternativo: str
-        :return: Devuelve la sinopsis de una pelicula o serie
+        :return: Returns the synopsis of a movie or series
         :rtype: str
         """
         ret = ""
@@ -1198,15 +1133,14 @@ class Tmdb(object):
         if 'id' in self.result:
             ret = self.result.get('overview')
             if ret == "" and str(idioma_alternativo).lower() != 'none':
-                # Vamos a lanzar una busqueda por id y releer de nuevo la sinopsis
+                # Let's launch a search for id and reread the synopsis again
                 self.busqueda_id = str(self.result["id"])
                 if idioma_alternativo:
                     self.busqueda_idioma = idioma_alternativo
                 else:
                     self.busqueda_idioma = self.result['original_language']
 
-                url = ('http://api.themoviedb.org/3/%s/%s?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s' %
-                       (self.busqueda_tipo, self.busqueda_id, self.busqueda_idioma))
+                url = ('http://api.themoviedb.org/3/%s/%s?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s' % (self.busqueda_tipo, self.busqueda_id, self.busqueda_idioma))
 
                 resultado = self.get_json(url)
                 if not isinstance(resultado, dict):
@@ -1221,15 +1155,13 @@ class Tmdb(object):
     def get_poster(self, tipo_respuesta="str", size="original"):
         """
 
-        @param tipo_respuesta: Tipo de dato devuelto por este metodo. Por defecto "str"
+        @param tipo_respuesta: Data type returned by this method. Default "str"
         @type tipo_respuesta: list, str
         @param size: ("w45", "w92", "w154", "w185", "w300", "w342", "w500", "w600", "h632", "w780", "w1280", "original")
-            Indica la anchura(w) o altura(h) de la imagen a descargar. Por defecto "original"
-        @return: Si el tipo_respuesta es "list" devuelve un listado con todas las urls de las imagenes tipo poster del
-            tamaño especificado.
-            Si el tipo_respuesta es "str" devuelve la url de la imagen tipo poster, mas valorada, del tamaño
-            especificado.
-            Si el tamaño especificado no existe se retornan las imagenes al tamaño original.
+            Indicates the width (w) or height (h) of the image to download. Default "original"
+        @return: If the response_type is "list" it returns a list with all the urls of the poster images of the specified size.
+            If the response_type is "str" ​​it returns the url of the poster image, most valued, of the specified size.
+            If the specified size does not exist, the images are returned to the original size.
         @rtype: list, str
         """
         ret = []
@@ -1247,7 +1179,7 @@ class Tmdb(object):
             return []
 
         if len(self.result['images_posters']) == 0:
-            # Vamos a lanzar una busqueda por id y releer de nuevo
+            # We are going to launch a search by id and reread again
             self.busqueda_id = str(self.result["id"])
             self.__by_id()
 
@@ -1255,7 +1187,7 @@ class Tmdb(object):
             for i in self.result['images_posters']:
                 imagen_path = i['file_path']
                 if size != "original":
-                    # No podemos pedir tamaños mayores que el original
+                    # We cannot order sizes larger than the original
                     if size[1] == 'w' and int(imagen_path['width']) < int(size[1:]):
                         size = "original"
                     elif size[1] == 'h' and int(imagen_path['height']) < int(size[1:]):
@@ -1268,16 +1200,15 @@ class Tmdb(object):
 
     def get_backdrop(self, tipo_respuesta="str", size="original"):
         """
-        Devuelve las imagenes de tipo backdrop
-        @param tipo_respuesta: Tipo de dato devuelto por este metodo. Por defecto "str"
+        Returns the images of type backdrop
+        @param tipo_respuesta: Data type returned by this method. Default "str"
         @type tipo_respuesta: list, str
         @param size: ("w45", "w92", "w154", "w185", "w300", "w342", "w500", "w600", "h632", "w780", "w1280", "original")
-            Indica la anchura(w) o altura(h) de la imagen a descargar. Por defecto "original"
+            Indicates the width (w) or height (h) of the image to download. Default "original"
         @type size: str
-        @return: Si el tipo_respuesta es "list" devuelve un listado con todas las urls de las imagenes tipo backdrop del
-            tamaño especificado.
-        Si el tipo_respuesta es "str" devuelve la url de la imagen tipo backdrop, mas valorada, del tamaño especificado.
-        Si el tamaño especificado no existe se retornan las imagenes al tamaño original.
+        @return: If the response_type is "list" it returns a list with all the urls of the backdrop images of the specified size.
+            If the response_type is "str" ​​it returns the url of the backdrop type image, most valued, of the specified size.
+            If the specified size does not exist, the images are returned to the original size.
         @rtype: list, str
         """
         ret = []
@@ -1295,7 +1226,7 @@ class Tmdb(object):
             return []
 
         if len(self.result['images_backdrops']) == 0:
-            # Vamos a lanzar una busqueda por id y releer de nuevo todo
+            # Let's launch a search by id and reread everything
             self.busqueda_id = str(self.result["id"])
             self.__by_id()
 
@@ -1303,7 +1234,7 @@ class Tmdb(object):
             for i in self.result['images_backdrops']:
                 imagen_path = i['file_path']
                 if size != "original":
-                    # No podemos pedir tamaños mayores que el original
+                    # We cannot order sizes larger than the original
                     if size[1] == 'w' and int(imagen_path['width']) < int(size[1:]):
                         size = "original"
                     elif size[1] == 'h' and int(imagen_path['height']) < int(size[1:]):
@@ -1316,13 +1247,13 @@ class Tmdb(object):
 
     def get_temporada(self, numtemporada=1):
         # --------------------------------------------------------------------------------------------------------------------------------------------
-        #   Parametros:
-        #       numtemporada: (int) Numero de temporada. Por defecto 1.
-        #   Return: (dic)
-        #       Devuelve un dicionario con datos sobre la temporada.
-        #       Puede obtener mas informacion sobre los datos devueltos en:
-        #           http://docs.themoviedb.apiary.io/#reference/tv-seasons/tvidseasonseasonnumber/get
-        #           http://docs.themoviedb.apiary.io/#reference/tv-seasons/tvidseasonseasonnumbercredits/get
+        # Parameters:
+        # season number: (int) Season number. Default 1.
+        # Return: (Dec)
+        # Returns a dictionary with data about the season.
+        # You can get more information about the returned data at:
+        # http://docs.themoviedb.apiary.io/#reference/tv-seasons/tvidseasonseasonnumber/get
+        # http://docs.themoviedb.apiary.io/#reference/tv-seasons/tvidseasonseasonnumbercredits/get
         # --------------------------------------------------------------------------------------------------------------------------------------------
         if not self.result["id"] or self.busqueda_tipo != "tv":
             return {}
@@ -1332,7 +1263,7 @@ class Tmdb(object):
             numtemporada = 1
 
         if not self.temporada.get(numtemporada, {}):
-            # Si no hay datos sobre la temporada solicitada, consultar en la web
+            # If there is no information about the requested season, check the website
 
             # http://api.themoviedb.org/3/tv/1407/season/1?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es&
             # append_to_response=credits
@@ -1352,7 +1283,7 @@ class Tmdb(object):
                 self.temporada[numtemporada] = {"episodes": {}}
 
             if "status_code" in self.temporada[numtemporada]:
-                #Se ha producido un error
+                # An error has occurred
                 msg = config.get_localized_string(70496) + buscando + config.get_localized_string(70497)
                 msg += "\nTmdb error: %s %s" % (
                 self.temporada[numtemporada]["status_code"], self.temporada[numtemporada]["status_message"])
@@ -1363,16 +1294,16 @@ class Tmdb(object):
 
     def get_episodio(self, numtemporada=1, capitulo=1):
         # --------------------------------------------------------------------------------------------------------------------------------------------
-        #   Parametros:
-        #       numtemporada(opcional): (int) Numero de temporada. Por defecto 1.
-        #       capitulo: (int) Numero de capitulo. Por defecto 1.
-        #   Return: (dic)
-        #       Devuelve un dicionario con los siguientes elementos:
-        #           "temporada_nombre", "temporada_sinopsis", "temporada_poster", "temporada_num_episodios"(int),
-        #           "temporada_air_date",  "episodio_vote_count", "episodio_vote_average",
-        #           "episodio_titulo", "episodio_sinopsis", "episodio_imagen", "episodio_air_date",
-        #           "episodio_crew" y "episodio_guest_stars",
-        #       Con capitulo == -1 el diccionario solo tendra los elementos referentes a la temporada
+        # Parameters:
+        # season number (optional): (int) Season number. Default 1.
+        # chapter: (int) Chapter number. Default 1.
+        # Return: (Dec)
+        # Returns a dictionary with the following elements:
+        # "season_name", "season_synopsis", "season_poster", "season_num_ episodes" (int),
+        # "season_air_date", "episode_vote_count", "episode_vote_average",
+        # "episode_title", "episode_synopsis", "episode_image", "episode_air_date",
+        # "episode_crew" and "episode_guest_stars",
+        # With chapter == -1 the dictionary will only have the elements referring to the season
         # --------------------------------------------------------------------------------------------------------------------------------------------
         if not self.result["id"] or self.busqueda_tipo != "tv":
             return {}
@@ -1388,16 +1319,16 @@ class Tmdb(object):
         if not isinstance(temporada, dict):
             temporada = ast.literal_eval(temporada.decode('utf-8'))
         if not temporada:
-            # Se ha producido un error
+            # An error has occurred
             return {}
 
         if len(temporada["episodes"]) == 0 or len(temporada["episodes"]) < capitulo:
-            # Se ha producido un error
+            # An error has occurred
             logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
             return {}
 
         ret_dic = dict()
-        # Obtener datos para esta temporada
+        # Get data for this season
         ret_dic["temporada_nombre"] = temporada["name"]
         ret_dic["temporada_sinopsis"] = temporada["overview"]
         ret_dic["temporada_num_episodios"] = len(temporada["episodes"])
@@ -1414,8 +1345,7 @@ class Tmdb(object):
         ret_dic["temporada_cast"] = dic_aux.get('cast', [])
         ret_dic["temporada_crew"] = dic_aux.get('crew', [])
         if capitulo == -1:
-            # Si solo buscamos datos de la temporada,
-            # incluir el equipo tecnico que ha intervenido en algun capitulo
+            # If we only look for season data, include the technical team that has intervened in any chapter
             dic_aux = dict((i['id'], i) for i in ret_dic["temporada_crew"])
             for e in temporada["episodes"]:
                 for crew in e['crew']:
@@ -1423,7 +1353,7 @@ class Tmdb(object):
                         dic_aux[crew['id']] = crew
             ret_dic["temporada_crew"] = list(dic_aux.values())
 
-        # Obtener datos del capitulo si procede
+        # Obtain chapter data if applicable
         if capitulo != -1:
             episodio = temporada["episodes"][capitulo - 1]
             ret_dic["episodio_titulo"] = episodio["name"]
@@ -1446,8 +1376,7 @@ class Tmdb(object):
 
     def get_videos(self):
         """
-        :return: Devuelve una lista ordenada (idioma/resolucion/tipo) de objetos Dict en la que cada uno de
-        sus elementos corresponde con un trailer, teaser o clip de youtube.
+        :return: Returns an ordered list (language / resolution / type) of Dict objects in which each of its elements corresponds to a trailer, teaser or clip from youtube.
         :rtype: list of Dict
         """
         ret = []
@@ -1455,7 +1384,7 @@ class Tmdb(object):
             if self.result['videos']:
                 self.result["videos"] = self.result["videos"]['results']
             else:
-                # Primera búsqueda de videos en el idioma de busqueda
+                # First video search in the search language
                 url = "http://api.themoviedb.org/3/%s/%s/videos?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s" \
                       % (self.busqueda_tipo, self.result['id'], self.busqueda_idioma)
 
@@ -1467,10 +1396,9 @@ class Tmdb(object):
                     dict_videos['results'] = sorted(dict_videos['results'], key=lambda x: (x['type'], x['size']))
                     self.result["videos"] = dict_videos['results']
 
-            # Si el idioma de busqueda no es ingles, hacer una segunda búsqueda de videos en inglés
+            # If the search language is not English, do a second video search in English
             if self.busqueda_idioma != 'en':
-                url = "http://api.themoviedb.org/3/%s/%s/videos?api_key=a1ab8b8669da03637a4b98fa39c39228" \
-                      % (self.busqueda_tipo, self.result['id'])
+                url = "http://api.themoviedb.org/3/%s/%s/videos?api_key=a1ab8b8669da03637a4b98fa39c39228" % (self.busqueda_tipo, self.result['id'])
 
                 dict_videos = self.get_json(url)
                 if not isinstance(dict_videos, dict):
@@ -1480,7 +1408,7 @@ class Tmdb(object):
                     dict_videos['results'] = sorted(dict_videos['results'], key=lambda x: (x['type'], x['size']))
                     self.result["videos"].extend(dict_videos['results'])
 
-            # Si las busqueda han obtenido resultados devolver un listado de objetos
+            # If the searches have obtained results, return a list of objects
             for i in self.result['videos']:
                 if i['site'] == "YouTube":
                     ret.append({'name': i['name'],
@@ -1493,12 +1421,11 @@ class Tmdb(object):
 
     def get_infoLabels(self, infoLabels=None, origen=None):
         """
-        :param infoLabels: Informacion extra de la pelicula, serie, temporada o capitulo.
+        :param infoLabels: Extra information about the movie, series, season or chapter.
         :type infoLabels: Dict
-        :param origen: Diccionario origen de donde se obtiene los infoLabels, por omision self.result
+        :param origen: Source dictionary where the infoLabels are obtained, by default self.result
         :type origen: Dict
-        :return: Devuelve la informacion extra obtenida del objeto actual. Si se paso el parametro infoLables, el valor
-        devuelto sera el leido como parametro debidamente actualizado.
+        :return: Returns the extra information obtained from the current object. If the infoLables parameter was passed, the returned value will be read as a duly updated parameter.
         :rtype: Dict
         """
 
@@ -1507,7 +1434,7 @@ class Tmdb(object):
         else:
             ret_infoLabels = InfoLabels()
 
-        # Iniciar listados
+        # Start Listings
         l_country = [i.strip() for i in ret_infoLabels['country'].split(',') if ret_infoLabels['country']]
         l_director = [i.strip() for i in ret_infoLabels['director'].split(',') if ret_infoLabels['director']]
         l_writer = [i.strip() for i in ret_infoLabels['writer'].split(',') if ret_infoLabels['writer']]
@@ -1524,9 +1451,9 @@ class Tmdb(object):
 
         items = list(origen.items())
 
-        # Informacion Temporada/episodio
+        # Season / episode information
         if ret_infoLabels['season'] and self.temporada.get(ret_infoLabels['season']):
-            # Si hay datos cargados de la temporada indicada
+            # If there is data loaded for the indicated season
             episodio = -1
             if ret_infoLabels['episode']:
                 episodio = ret_infoLabels['episode']
@@ -1550,12 +1477,12 @@ class Tmdb(object):
                 else:
                     ret_infoLabels['plot'] = self.get_sinopsis()
 
-            elif k == 'runtime':                                #Duration for movies
+            elif k == 'runtime':                                # Duration for movies
                 ret_infoLabels['duration'] = int(v) * 60
 
-            elif k == 'episode_run_time':                       #Duration for episodes
+            elif k == 'episode_run_time':                       # Duration for episodes
                 try:
-                    for v_alt in v:                             #It comes as a list (?!)
+                    for v_alt in v:                             # It comes as a list (?!)
                         ret_infoLabels['duration'] = int(v_alt) * 60
                 except:
                     pass
@@ -1650,7 +1577,7 @@ class Tmdb(object):
                 # logger.debug("Atributos no añadidos: " + k +'= '+ str(v))
                 pass
 
-        # Ordenar las listas y convertirlas en str si es necesario
+        # Sort the lists and convert them to str if necessary
         if l_castandrole:
             ret_infoLabels['castandrole'] = sorted(l_castandrole, key=lambda tup: tup[0])
         if l_country:

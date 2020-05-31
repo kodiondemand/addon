@@ -198,25 +198,56 @@ def channel_search(item):
     cnt = 0
 
     progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list),
-                                             str(searching_titles))
+                                             ', '.join(searching_titles))
     config.set_setting('tmdb_active', False)
 
+    search_action_list = []
+    module_dict = {}
+    for ch in channel_list:
+        try:
+            module = __import__('channels.%s' % ch, fromlist=["channels.%s" % ch])
+            mainlist = getattr(module, 'mainlist')(Item(channel=ch, global_search=True))
+
+            module_dict[ch] = module
+            search_action_list.extend([elem for elem in mainlist if
+                             elem.action == "search" and (mode == 'all' or elem.contentType == mode)])
+            if progress.iscanceled():
+                return []
+        except:
+            import traceback
+            logger.error('error importing/getting search items of ' + ch)
+            logger.error(traceback.format_exc())
+
+    total_search_actions = len(search_action_list)
     with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
-        c_results = [executor.submit(get_channel_results, ch, item) for ch in channel_list]
+        c_results = []
+        for search_action in search_action_list:
+            c_results.append(executor.submit(get_channel_results, item, module_dict, search_action))
+            if progress.iscanceled():
+                break
 
         for res in futures.as_completed(c_results):
-            cnt += 1
-            finished = res.result()[0]
+            search_action = res.result()[0]
+            channel = search_action.channel
             if res.result()[1]:
-                ch_list[res.result()[0]] = res.result()[1]
+                if channel not in ch_list:
+                    ch_list[channel] = []
+                ch_list[channel].extend(res.result()[1])
 
             if progress.iscanceled():
                 break
-            if finished in searching:
-                searching_titles.remove(searching_titles[searching.index(finished)])
-                searching.remove(finished)
-                progress.update(old_div((cnt * 100), len(channel_list)), config.get_localized_string(70744) % str(len(channel_list) - cnt),
-                                str(searching_titles))
+
+            search_action_list.remove(search_action)
+            # if no action of this channel remains
+            for it in search_action_list:
+                if it.channel == channel:
+                    break
+            else:
+                cnt += 1
+                searching_titles.remove(searching_titles[searching.index(channel)])
+                searching.remove(channel)
+                progress.update(old_div(((total_search_actions - len(search_action_list)) * 100), total_search_actions), config.get_localized_string(70744) % str(len(channel_list) - cnt),
+                                ', '.join(searching_titles))
 
     progress.close()
 
@@ -225,7 +256,7 @@ def channel_search(item):
                                              config.get_localized_string(60293))
 
     config.set_setting('tmdb_active', True)
-    res_count = 0
+    # res_count = 0
     for key, value in ch_list.items():
         ch_name = channel_titles[channel_list.index(key)]
         grouped = list()
@@ -235,12 +266,11 @@ def channel_search(item):
             if len(value) == 1:
                 if not value[0].action or config.get_localized_string(70006).lower() in value[0].title.lower():
                     continue
-            tmdb.set_infoLabels_itemlist(value, True, forced=True)
             for elem in value:
                 if not elem.infoLabels.get('year', ""):
                     elem.infoLabels['year'] = '-'
-                    tmdb.set_infoLabels_item(elem, True)
-
+            tmdb.set_infoLabels_itemlist(value, True, forced=True)
+            for elem in value:
                 if elem.infoLabels['tmdb_id'] == searched_id:
                     elem.from_channel = key
                     if not config.get_setting('unify'):
@@ -272,7 +302,7 @@ def channel_search(item):
                 title = typo(ch_name,'bold') + typo(str(len(grouped)), '_ [] color kod bold')
             else:
                 title = typo('%s %s' % (len(grouped), config.get_localized_string(70695)), 'bold')
-            res_count += len(grouped)
+            # res_count += len(grouped)
             plot=''
 
             for it in grouped:
@@ -281,35 +311,48 @@ def channel_search(item):
             results.append(Item(channel='search', title=title,
                                 action='get_from_temp', thumbnail=ch_thumb, itemlist=[ris.tourl() for ris in grouped], plot=plot, page=1))
 
+    progress.close()
+    # "All Together" and movie mode -> search servers
+    if config.get_setting('result_mode') == 1 and mode == 'movie':
+        progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(60683))
+        valid_servers = []
+        with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
+            c_results = [executor.submit(get_servers, v, module_dict) for v in valid]
+            completed = 0
 
+            for res in futures.as_completed(c_results):
+                if progress.iscanceled():
+                    break
+                if res.result():
+                    completed += 1
+                    valid_servers.extend(res.result())
+                    progress.update(old_div(completed * 100, len(valid)))
+        valid = valid_servers
+        progress.close()
 
     # send_to_temp(to_temp)
-    config.set_setting('tmdb_active', True)
-    if item.mode == 'all':
-        if config.get_setting('result_mode', 'search') != 0:
-            res_count = len(results)
-        results = sorted(results, key=lambda it: it.title)
-        results_statistic = config.get_localized_string(59972) % (item.title, res_count, time.time() - start)
-        results.insert(0, Item(title = typo(results_statistic,'color kod bold')))
+
+    results = sorted(results, key=lambda it: it.title)
+    results_statistic = config.get_localized_string(59972) % (item.title, time.time() - start)
+    if mode == 'all':
+        results.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
+    else:
+        valid.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
+
+        if results:
+            results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=get_thumb('search.png')))
     # logger.debug(results_statistic)
     return valid + results
 
 
-def get_channel_results(ch, item):
+def get_channel_results(item, module_dict, search_action):
+    ch = search_action.channel
     max_results = 10
     results = list()
+    module = module_dict[ch]
+
     try:
-        ch_params = channeltools.get_channel_parameters(ch)
-
-        module = __import__('channels.%s' % ch_params["channel"], fromlist=["channels.%s" % ch_params["channel"]])
-        mainlist = getattr(module, 'mainlist')(Item(channel=ch_params["channel"]))
-        search_action = [elem for elem in mainlist if elem.action == "search" and (item.mode == 'all' or elem.contentType == item.mode)]
-
-        if search_action:
-            for search_ in search_action:
-                results.extend(module.search(search_, item.text))
-        else:
-            results.extend(module.search(item, item.text))
+        results.extend(module.search(search_action, item.text))
 
         if len(results) < 0 and len(results) < max_results and item.mode != 'all':
 
@@ -319,9 +362,22 @@ def get_channel_results(ch, item):
 
             results = get_info(results)
 
-        return [ch, results]
+        return [search_action, results]
     except:
-        return [ch, results]
+        return [search_action, results]
+
+
+def get_servers(item, module_dict):
+    item.global_search = True
+    ch = item.channel
+    results = list()
+    module = module_dict[ch]
+    try:
+        results = getattr(module, item.action)(item)
+    except:
+        import traceback
+        logger.error(traceback.format_exc())
+    return [r.clone(title=r.title + typo(item.channel, '_ [] color kod')) for r in results if r.action == 'play']
 
 
 def get_info(itemlist):

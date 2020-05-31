@@ -239,10 +239,6 @@ def findvideos(item): # Questa def. deve sempre essere nominata findvideos
                 Item(channel=item.channel, title='[COLOR lightblue][B]Aggiungi alla videoteca[/B][/COLOR]', url=item.url,
                      action='add_pelicula_to_library', extra='findservers', contentTitle=item.contentTitle))
 
-    # Necessario per filtrare i Link
-    if checklinks:
-        itemlist = servertools.check_list_links(itemlist, checklinks_number)
-
     # Necessario per  FilterTools
     # itemlist = filtertools.get_links(itemlist, item, list_language)
 

@@ -14,23 +14,14 @@ import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import urllib.request, urllib.parse, urllib.error
-
-import os
-import re
-import socket
-import threading
-import time
-
-import xbmc
-import xbmcgui
+import urllib.request, urllib.parse, urllib.error, os, re, socket, threading, time, xbmc, xbmcgui
 from core import downloadtools
 from platformcode import config, logger
 
 
 # Download a file and start playing while downloading
 def download_and_play(url, file_name, download_path):
-    # Lanza thread
+    # Start thread
     logger.info("Active threads " + str(threading.active_count()))
     logger.info("" + repr(threading.enumerate()))
     logger.info("Starting download thread...")
@@ -40,7 +31,7 @@ def download_and_play(url, file_name, download_path):
     logger.info("Active threads " + str(threading.active_count()))
     logger.info("" + repr(threading.enumerate()))
 
-    # Espera
+    # Wait
     logger.info("Waiting...")
 
     while True:
@@ -52,8 +43,7 @@ def download_and_play(url, file_name, download_path):
         while not cancelled and download_thread.isAlive():
             dialog.update(download_thread.get_progress(), config.get_localized_string(60313),
                           config.get_localized_string(60314) + str(int(old_div(download_thread.get_speed(), 1024))) + " KB/s " + str(
-                              download_thread.get_actual_size()) + config.get_localized_string(60316) + str(
-                              download_thread.get_total_size()) + "MB",
+                              download_thread.get_actual_size()) + config.get_localized_string(60316) + str( download_thread.get_total_size()) + "MB",
                           config.get_localized_string(60202) % (str(downloadtools.sec_to_hms(download_thread.get_remaining_time()))))
             xbmc.sleep(1000)
 
@@ -65,25 +55,25 @@ def download_and_play(url, file_name, download_path):
 
         logger.info("End of waiting")
 
-        # Lanza el reproductor
+        # Launch the player
         player = CustomPlayer()
         player.set_download_thread(download_thread)
         player.PlayStream(download_thread.get_file_name())
 
-        # Fin de reproducción
-        logger.info("Fin de reproducción")
+        # End of playback
+        logger.info("End of playback")
 
         if player.is_stopped():
-            logger.info("Terminado por el usuario")
+            logger.info("Terminated by user")
             break
         else:
             if not download_thread.isAlive():
-                logger.info("La descarga ha terminado")
+                logger.info("Download has finished")
                 break
             else:
                 logger.info("Continua la descarga")
 
-    # Cuando el reproductor acaba, si continúa descargando lo para ahora
+    # When the player finishes, if you continue downloading it for now
     logger.info("Download thread alive=" + str(download_thread.isAlive()))
     if download_thread.isAlive():
         logger.info("Killing download thread")
@@ -141,7 +131,7 @@ class CustomPlayer(xbmc.Player):
 # Download in background
 class DownloadThread(threading.Thread):
     def __init__(self, url, file_name, download_path):
-        logger.info(repr(file))
+        # logger.info(repr(file))
         self.url = url
         self.download_path = download_path
         self.file_name = os.path.join(download_path, file_name)
@@ -194,17 +184,17 @@ class DownloadThread(threading.Thread):
         logger.info()
 
         comando = "./megacrypter.sh"
-        logger.info("comando=" + comando)
+        logger.info("command= " + comando)
 
         oldcwd = os.getcwd()
-        logger.info("oldcwd=" + oldcwd)
+        logger.info("oldcwd= " + oldcwd)
 
         cwd = os.path.join(config.get_runtime_path(), "tools")
-        logger.info("cwd=" + cwd)
+        logger.info("cwd= " + cwd)
         os.chdir(cwd)
-        logger.info("directory changed to=" + os.getcwd())
+        logger.info("directory changed to= " + os.getcwd())
 
-        logger.info("destino=" + self.download_path)
+        logger.info("destination= " + self.download_path)
 
         os.system(comando + " '" + self.url + "' \"" + self.download_path + "\"")
         # p = subprocess.Popen([comando , self.url , self.download_path], cwd=cwd, stdout=subprocess.PIPE , stderr=subprocess.PIPE )
@@ -218,18 +208,18 @@ class DownloadThread(threading.Thread):
 
         headers = []
 
-        # Se asegura de que el fichero se podrá crear
-        logger.info("nombrefichero=" + self.file_name)
+        # Ensures that the file can be created
+        logger.info("filename= " + self.file_name)
         self.file_name = xbmc.makeLegalFilename(self.file_name)
-        logger.info("nombrefichero=" + self.file_name)
-        logger.info("url=" + self.url)
+        logger.info("filename= " + self.file_name)
+        logger.info("url= " + self.url)
 
-        # Crea el fichero
+        # Create the file
         existSize = 0
         f = open(self.file_name, 'wb')
         grabado = 0
 
-        # Interpreta las cabeceras en una URL como en XBMC
+        # Interpret headers in a URL like in XBMC
         if "|" in self.url:
             additional_headers = self.url.split("|")[1]
             if "&" in additional_headers:
@@ -244,7 +234,7 @@ class DownloadThread(threading.Thread):
                 headers.append([name, value])
 
             self.url = self.url.split("|")[0]
-            logger.info("url=" + self.url)
+            logger.info("url= " + self.url)
 
         # Timeout del socket a 60 segundos
         socket.setdefaulttimeout(60)
@@ -253,7 +243,7 @@ class DownloadThread(threading.Thread):
         h = urllib.request.HTTPHandler(debuglevel=0)
         request = urllib.request.Request(self.url)
         for header in headers:
-            logger.info("Header=" + header[0] + ": " + header[1])
+            logger.info("Header= " + header[0] + ": " + header[1])
             request.add_header(header[0], header[1])
 
         # Lanza la petición
@@ -262,14 +252,14 @@ class DownloadThread(threading.Thread):
         try:
             connexion = opener.open(request)
         except urllib.error.HTTPError as e:
-            logger.error("error %d (%s) al abrir la url %s" % (e.code, e.msg, self.url))
+            logger.error("error %d (%s) opening url %s" % (e.code, e.msg, self.url))
             # print e.code
             # print e.msg
             # print e.hdrs
             # print e.fp
             f.close()
 
-            # El error 416 es que el rango pedido es mayor que el fichero => es que ya está completo
+            # Error 416 is that the requested range is greater than the file => is that it is already complete
             if e.code == 416:
                 return 0
             else:
@@ -286,21 +276,21 @@ class DownloadThread(threading.Thread):
         blocksize = 100 * 1024
 
         bloqueleido = connexion.read(blocksize)
-        logger.info("Iniciando descarga del fichero, bloqueleido=%s" % len(bloqueleido))
+        logger.info("Starting file download, blocked= %s" % len(bloqueleido))
 
         maxreintentos = 10
 
         while len(bloqueleido) > 0:
             try:
                 if os.path.exists(self.force_stop_file_name):
-                    logger.info("Detectado fichero force_stop, se interrumpe la descarga")
+                    logger.info("Force_stop file detected, download is interrupted")
                     f.close()
 
                     xbmc.executebuiltin("XBMC.Notification(%s,%s,300)" % (config.get_localized_string(60319),config.get_localized_string(60320)))
 
                     return
 
-                # Escribe el bloque leido
+                # Write the block read
                 # try:
                 #    import xbmcvfs
                 #    f.write( bloqueleido )
@@ -309,12 +299,12 @@ class DownloadThread(threading.Thread):
                 grabado = grabado + len(bloqueleido)
                 logger.info("grabado=%d de %d" % (grabado, totalfichero))
                 percent = int(float(grabado) * 100 / float(totalfichero))
-                self.progress = percent;
+                self.progress = percent
                 totalmb = float(float(totalfichero) / (1024 * 1024))
                 descargadosmb = float(float(grabado) / (1024 * 1024))
                 self.actual_size = int(descargadosmb)
 
-                # Lee el siguiente bloque, reintentando para no parar todo al primer timeout
+                #Read the next block, retrying not to stop everything at the first timeout
                 reintentos = 0
                 while reintentos <= maxreintentos:
                     try:
@@ -333,13 +323,13 @@ class DownloadThread(threading.Thread):
                     except:
                         import sys
                         reintentos = reintentos + 1
-                        logger.info("ERROR en la descarga del bloque, reintento %d" % reintentos)
+                        logger.info("ERROR in block download, retry %d" % reintentos)
                         for line in sys.exc_info():
                             logger.error("%s" % line)
 
-                # Ha habido un error en la descarga
+                # There was an error in the download
                 if reintentos > maxreintentos:
-                    logger.error("ERROR en la descarga del fichero")
+                    logger.error("ERROR in the file download")
                     f.close()
 
                     return -2

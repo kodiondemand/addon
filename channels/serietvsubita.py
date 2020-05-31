@@ -25,8 +25,8 @@ def mainlist(item):
     log()
     itemlist = []
     tvshowSub = [
-        ('Novità bold',[ '', 'peliculas_tv', '', 'tvshow']),
-        ('Serie TV bold',[ '', 'lista_serie', '', 'tvshow']),
+        ('Novità {bold}',[ '', 'peliculas_tv', '', 'tvshow']),
+        ('Serie TV {bold}',[ '', 'lista_serie', '', 'tvshow']),
         ('Per Lettera', ['', 'list_az', 'serie', 'tvshow'])
     ]
     cerca = [(support.typo('Cerca...', 'bold'),[ '', 'search', '', 'tvshow'])]

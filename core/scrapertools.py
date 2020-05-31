@@ -56,15 +56,15 @@ def find_multiple_matches_groups(text, pattern):
     return [m.groupdict() for m in r.finditer(text)]
 
 
-# Convierte los codigos html "&ntilde;" y lo reemplaza por "ñ" caracter unicode utf-8
+# Convert html codes "&ntilde;" and replace it with "ñ" unicode utf-8 character
 def decodeHtmlentities(data):
-    entity_re = re.compile("&(#?)(\d{1,5}|\w{1,8})(;?)")
+    entity_re = re.compile(r"&(#?)(\d{1,5}|\w{1,8})(;?)")
 
     def substitute_entity(match):
         ent = match.group(2) + match.group(3)
         res = ""
         while not ent in html5 and not ent.endswith(";") and match.group(1) != "#":
-            # Excepción para cuando '&' se usa como argumento en la urls contenidas en los datos
+            # Exception for when '&' is used as an argument in the urls contained in the data
             try:
                 res = ent[-1] + res
                 ent = ent[:-1]
@@ -85,9 +85,9 @@ def decodeHtmlentities(data):
 
 
 def unescape(text):
-    """Removes HTML or XML character references
-       and entities from a text string.
-       keep &amp;, &gt;, &lt; in the source code.
+    """
+    Removes HTML or XML character references and entities from a text string.
+    keep &amp;, &gt;, &lt; in the source code.
     from Fredrik Lundh
     http://effbot.org/zone/re-sub.htm#unescape-html
     """
@@ -122,7 +122,7 @@ def unescape(text):
 
     return re.sub("&#?\w+;", fixup, str(text))
 
-    # Convierte los codigos html "&ntilde;" y lo reemplaza por "ñ" caracter unicode utf-8
+    # Convert html codes "&ntilde;" and replace it with "ñ" unicode utf-8 character
 
 
 # def decodeHtmlentities(string):
@@ -277,7 +277,7 @@ def htmlclean(cadena):
 def slugify(title):
     # print title
 
-    # Sustituye acentos y eñes
+    # Substitutes accents and eñes
     title = title.replace("Á", "a")
     title = title.replace("É", "e")
     title = title.replace("Í", "i")
@@ -305,23 +305,23 @@ def slugify(title):
     title = title.replace("/", "-")
     title = title.replace("&amp;", "&")
 
-    # Pasa a minúsculas
+    # Lowercase
     title = title.lower().strip()
 
-    # Elimina caracteres no válidos
+    # Remove invalid characters
     validchars = "abcdefghijklmnopqrstuvwxyz1234567890- "
     title = ''.join(c for c in title if c in validchars)
 
-    # Sustituye espacios en blanco duplicados y saltos de línea
-    title = re.compile("\s+", re.DOTALL).sub(" ", title)
+    # Replace duplicate blanks and line breaks
+    title = re.compile(r"\s+", re.DOTALL).sub(" ", title)
 
-    # Sustituye espacios en blanco por guiones
-    title = re.compile("\s", re.DOTALL).sub("-", title.strip())
+    # Replace blanks with hyphens
+    title = re.compile(r"\s", re.DOTALL).sub("-", title.strip())
 
-    # Sustituye espacios en blanco duplicados y saltos de línea
-    title = re.compile("\-+", re.DOTALL).sub("-", title)
+    # Replace duplicate blanks and line breaks
+    title = re.compile(r"\-+", re.DOTALL).sub("-", title)
 
-    # Arregla casos especiales
+    # Fix special cases
     if title.startswith("-"):
         title = title[1:]
 
@@ -337,10 +337,10 @@ def remove_htmltags(string):
 
 def remove_show_from_title(title, show):
     # print slugify(title)+" == "+slugify(show)
-    # Quita el nombre del programa del título
+    # Remove program name from title
     if slugify(title).startswith(slugify(show)):
 
-        # Convierte a unicode primero, o el encoding se pierde
+        # Convert to unicode first, or encoding is lost
         title = unicode(title, "utf-8", "replace")
         show = unicode(show, "utf-8", "replace")
         title = title[len(show):].strip()
@@ -351,7 +351,7 @@ def remove_show_from_title(title, show):
         if title == "":
             title = str(time.time())
 
-        # Vuelve a utf-8
+        # Return to utf-8
         title = title.encode("utf-8", "ignore")
         show = show.encode("utf-8", "ignore")
 
@@ -360,15 +360,15 @@ def remove_show_from_title(title, show):
 
 def get_filename_from_url(url):
     if PY3:
-        import urllib.parse as urlparse                             # Es muy lento en PY2.  En PY3 es nativo
+        import urllib.parse as urlparse                             # It is very slow in PY2. In PY3 it is native
     else:
-        import urlparse                                             # Usamos el nativo de PY2 que es más rápido
+        import urlparse                                             # We use the native of PY2 which is faster
 
     parsed_url = urlparse.urlparse(url)
     try:
         filename = parsed_url.path
     except:
-        # Si falla es porque la implementación de parsed_url no reconoce los atributos como "path"
+        # If it fails it is because the implementation of parsed_url does not recognize the attributes as "path"
         if len(parsed_url) >= 4:
             filename = parsed_url[2]
         else:
@@ -382,15 +382,15 @@ def get_filename_from_url(url):
 
 def get_domain_from_url(url):
     if PY3:
-       import urllib.parse as urlparse                             # Es muy lento en PY2.  En PY3 es nativo
+       import urllib.parse as urlparse                             # It is very slow in PY2. In PY3 it is native
     else:
-       import urlparse                                             # Usamos el nativo de PY2 que es más rápido
+       import urlparse                                             # We use the native of PY2 which is faster
 
     parsed_url = urlparse.urlparse(url)
     try:
         filename = parsed_url.netloc
     except:
-        # Si falla es porque la implementación de parsed_url no reconoce los atributos como "path"
+        # If it fails it is because the implementation of parsed_url does not recognize the attributes as "path"
         if len(parsed_url) >= 4:
             filename = parsed_url[1]
         else:
@@ -401,8 +401,8 @@ def get_domain_from_url(url):
 
 def get_season_and_episode(title):
     """
-    Retorna el numero de temporada y de episodio en formato "1x01" obtenido del titulo de un episodio
-    Ejemplos de diferentes valores para title y su valor devuelto:
+    Returns the season and episode number in "1x01" format obtained from the title of an episode
+    Examples of different values ​​for title and its return value:
         "serie 101x1.strm", "s101e1.avi", "t101e1.avi"  -> '101x01'
         "Name TvShow 1x6.avi" -> '1x06'
         "Temp 3 episodio 2.avi" -> '3x02'
@@ -412,9 +412,9 @@ def get_season_and_episode(title):
         "Episodio 25: titulo episodio" -> '' (no existe el numero de temporada)
         "Serie X Temporada 1" -> '' (no existe el numero del episodio)
     @type title: str
-    @param title: titulo del episodio de una serie
+    @param title: title of a series episode
     @rtype: str
-    @return: Numero de temporada y episodio en formato "1x01" o cadena vacia si no se han encontrado
+    @return: Nseason and episode number in "1x01" format or empty string if not found
     """
     filename = ""
 

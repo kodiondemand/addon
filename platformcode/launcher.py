@@ -11,31 +11,30 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 # if PY3:
-#     import urllib.error as urllib2                              # Es muy lento en PY2.  En PY3 es nativo
+#     import urllib.error as urllib2                              # It is very slow in PY2. In PY3 it is native
 # else:
-#     import urllib2                                              # Usamos el nativo de PY2 que es más rápido
+#     import urllib2                                              # We use the native of PY2 which is faster
 
 import os
 
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 from platformcode.logger import WebErrorException
 
 
 def start():
-    """ Primera funcion que se ejecuta al entrar en el plugin.
-    Dentro de esta funcion deberian ir todas las llamadas a las
-    funciones que deseamos que se ejecuten nada mas abrir el plugin.
+    """ First function that is executed when entering the plugin.
+    Within this function all calls should go to
+    functions that we want to execute as soon as we open the plugin.
     """
     logger.info()
-    #config.set_setting('show_once', True)
+    # config.set_setting('show_once', True)
     # Test if all the required directories are created
     config.verify_directories_created()
-    # controlla se l'utente ha qualche problema di connessione
-    # se lo ha: non lo fa entrare nell'addon
-    # se ha problemi di DNS avvia ma lascia entrare
-    # se tutto ok: entra nell'addon
+    # check if the user has any connection problems
+    # if it has: it does not enter the addon
+    # if it has DNS problems start but let in
+    # if everything is ok: enter the addon
 
     from specials.checkhost import test_conn
     import threading
@@ -191,7 +190,7 @@ def run(item=None):
 
             # Special play action
             if item.action == "play":
-                #define la info para trakt
+                # define la info para trakt
                 try:
                     from core import trakt_tools
                     trakt_tools.set_trakt_info(item)
@@ -444,14 +443,14 @@ def limit_itemlist(itemlist):
 def play_from_library(item):
     itemlist=[]
     """
-        Los .strm al reproducirlos desde kodi, este espera que sea un archivo "reproducible" asi que no puede contener
-        más items, como mucho se puede colocar un dialogo de seleccion.
-        Esto lo solucionamos "engañando a kodi" y haciendole creer que se ha reproducido algo, asi despues mediante
-        "Container.Update()" cargamos el strm como si un item desde dentro del addon se tratara, quitando todas
-        las limitaciones y permitiendo reproducir mediante la funcion general sin tener que crear nuevos métodos para
-        la videoteca.
+        The .strm files when played from kodi, this expects it to be a "playable" file so it cannot contain
+        more items, at most a selection dialog can be placed.
+        We solve this by "cheating kodi" and making him believe that something has been reproduced, so later by
+        "Container.Update ()" we load the strm as if an item from inside the addon were treated, removing all
+        the limitations and allowing to reproduce through the general function without having to create new methods to
+        the video library.
         @type item: item
-        @param item: elemento con información
+        @param item: item with information
     """
     item.fromLibrary = True
     logger.info()
@@ -463,30 +462,28 @@ def play_from_library(item):
     from time import sleep, time
     from specials import nextep
 
-    # Intentamos reproducir una imagen (esto no hace nada y ademas no da error)
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True,
-                              xbmcgui.ListItem(
-                                  path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    # We try to reproduce an image (this does nothing and also does not give an error)
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
 
-    # Por si acaso la imagen hiciera (en futuras versiones) le damos a stop para detener la reproduccion
-    # sleep(0.5)              ### Si no se pone esto se bloquea Kodi
+    # Just in case the image did (in future versions) we give stop to stop the reproduction
+    # sleep(0.5)              ### If you don't put this on you crash Kodi
     xbmc.Player().stop()
 
-    # modificamos el action (actualmente la videoteca necesita "findvideos" ya que es donde se buscan las fuentes
+    # we modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
     check_next_ep = nextep.check(item)
 
 
     window_type = config.get_setting("window_type", "videolibrary")
 
-    # y volvemos a lanzar kodi
+    # and we launch kodi again
     if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
-        # Ventana convencional
+        # Conventional window
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
 
     else:
 
-        # Ventana emergente
+        # Pop-up window
         item.show_server = True
 
         from specials import videolibrary, autoplay
@@ -505,22 +502,22 @@ def play_from_library(item):
 
         else:
             while platformtools.is_playing():
-                    # Ventana convencional
+                    # Conventional window
                     sleep(5)
             p_dialog.update(50, '')
 
         it = item
         if item.show_server or not check_next_ep:
 
-            '''# Se filtran los enlaces segun la lista negra
-            if config.get_setting('filter_servers', "servers"):
-                itemlist = servertools.filter_servers(itemlist)'''
+            # The links are filtered according to the blacklist
+            # if config.get_setting('filter_servers', "servers"):
+            #     itemlist = servertools.filter_servers(itemlist)
 
-            # Se limita la cantidad de enlaces a mostrar
+            # The number of links to show is limited
             if config.get_setting("max_links", "videolibrary") != 0:
                 itemlist = limit_itemlist(itemlist)
 
-            # Se "limpia" ligeramente la lista de enlaces
+            # The list of links is slightly "cleaned"
             if config.get_setting("replace_VD", "videolibrary") == 1:
                 itemlist = reorder_itemlist(itemlist)
 
@@ -532,12 +529,12 @@ def play_from_library(item):
 
             if len(itemlist) > 0:
                 while not xbmc.Monitor().abortRequested():
-                    # El usuario elige el mirror
+                    # The user chooses the mirror
                     opciones = []
                     for item in itemlist:
                         opciones.append(item.title)
 
-                    # Se abre la ventana de seleccion
+                    # The selection window opens
                     if (item.contentSerieName != "" and
                                 item.contentSeason != "" and
                                 item.contentEpisodeNumber != ""):

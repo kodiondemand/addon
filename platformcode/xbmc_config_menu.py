@@ -25,12 +25,12 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
 
     Construction method:
         SettingWindow(list_controls, dict_values, title, callback, item)
-            Parametros:
-                list_controls: (list) Lista de controles a incluir en la ventana, segun el siguiente esquema:
+            Parameters:
+                list_controls: (list) List of controls to include in the window, according to the following scheme:
                     (opcional)list_controls= [
                                 {'id': "nameControl1",
                                   'type': "bool",                       # bool, text, list, label
-                                  'label': "Control 1: tipo RadioButton",
+                                  'label': "Control 1: type RadioButton",
                                   'color': '0xFFee66CC',                # text color in hexadecimal ARGB format
                                   'default': True,
                                   'enabled': True,
@@ -38,7 +38,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                 },
                                 {'id': "nameControl2",
                                   'type': "text",                       # bool, text, list, label
-                                  'label': "Control 2: tipo Cuadro de texto",
+                                  'label': "Control 2: type text box",
                                   'color': '0xFFee66CC',
                                   'default': "Valor por defecto",
                                   'hidden': False,                      # only for type = text Indicates whether to hide the text (for passwords)
@@ -47,7 +47,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                 },
                                 {'id': "nameControl3",
                                   'type': "list",                       # bool, text, list, label
-                                  'label': "Control 3: tipo Lista",
+                                  'label': "Control 3: type List",
                                   'color': '0xFFee66CC',
                                   'default': 0,                         # Default value index in lvalues
                                   'enabled': True,
@@ -71,7 +71,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                 {
                                    "id": "name_control_1",
                                     "type": "bool",
-                                    "label": "Control 1: tipo RadioButton",
+                                    "label": "Control 1: type RadioButton",
                                     "default": false,
                                     "enabled": true,
                                     "visible": true,
@@ -80,8 +80,8 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                 {
                                     "id": "name_control_2",
                                     "type": "text",
-                                    "label": "Control 2: tipo Cuadro de texto",
-                                    "default": "Valor por defecto",
+                                    "label": "Control 2: type text box",
+                                    "default": "Default value",
                                     "hidden": true,
                                     "enabled": true,
                                     "visible": true,
@@ -90,7 +90,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                 {
                                     "id": "name_control_3",
                                     "type": "list",
-                                    "label": "Control 3: tipo Lista",
+                                    "label": "Control 3: type List",
                                     "default": 0,
                                     "enabled": true,
                                     "visible": true,
