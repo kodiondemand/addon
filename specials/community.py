@@ -111,12 +111,8 @@ def show_menu(item):
 
 
 
-        if 'channel_name' in json and not 'disable_search' in json:
-            if 'search' in json and 'url' in json['search']:
-                search_json = json['search']
-                itemlist += get_search_menu(item, search_json, channel_name=json['channel_name'])
-            else:
-                itemlist += get_search_menu(item, json, channel_name=json['channel_name'])
+        if 'channel_name' in json and not 'disable_search' in json and 'search' not in json:
+            itemlist += get_search_menu(item, json, channel_name=json['channel_name'])
     support.log('PAGINATION:', disable_pagination)
     return itemlist
 
