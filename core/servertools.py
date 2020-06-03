@@ -683,7 +683,7 @@ def get_servers_list():
             if server.endswith(".json") and not server == "version.json":
                 server_parameters = get_server_parameters(server)
                 server_list[server.split(".")[0]] = server_parameters
-        server_list = sort_servers(server_list)
+        if type(server_list) != dict: server_list = sort_servers(server_list)
     return server_list
 
 
