@@ -1059,8 +1059,8 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
     if not typography: typography = 'color kod bold'
 
     title = typo(config.get_localized_string(30161), typography)
-    contentSerieName=item.contentSerieName if item.contentSerieName else ''
-    contentTitle=item.contentTitle if item.contentTitle else ''
+    contentSerieName=item.contentSerieName if item.contentSerieName else item.fulltitle if item.contentType != 'movie' else ''
+    contentTitle=item.contentTitle if item.contentTitle else item.fulltitle if item.contentType == 'movie' else ''
 
     if (function == 'findvideos' and contentType == 'movie') \
         or (function == 'episodios' and contentType != 'movie'):
