@@ -13,16 +13,19 @@ except ImportError:
 from core import httptools, scrapertools
 from platformcode import logger, config, platformtools
 
-headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'], ['Host', 'wstream.video']]
 
 def test_video_exists(page_url):
+    global headers
+    headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],
+               ['Host', scrapertools.get_domain_from_url(page_url)]]
+
     logger.info("(page_url='%s')" % page_url)
-    resp = httptools.downloadpage(page_url.replace('wstream.video', '116.202.226.34'), headers=headers, verify=False)
+    resp = httptools.downloadpage(page_url.replace(headers[1][1], '116.202.226.34'), headers=headers, verify=False)
 
     global data, real_url
     data = resp.data
 
-    page_url = resp.url.replace('wstream.video', '116.202.226.34')
+    page_url = resp.url.replace(headers[1][1], '116.202.226.34')
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, headers=headers, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
         # logger.info('WCODE=' + code)
@@ -30,7 +33,7 @@ def test_video_exists(page_url):
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
     real_url = page_url
-    if "Not Found" in data or "File was deleted" in data or 'Video is processing' in data:
+    if "Not Found" in data or "File was deleted" in data or 'Video is processing' in data or 'Sorry this video is unavailable' in data:
         return False, config.get_localized_string(70449) % 'Wstream'
     else:
         return True, ""
@@ -75,11 +78,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     logger.info("[Wstream] url=" + page_url)
     video_urls = []
-    global data, real_url
+    global data, real_url, headers
     # logger.info(data)
+
     sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
-    captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', 'wstream.video')) if sitekey else ''
+    captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', headers[1][1])) if sitekey else ''
 
     possibleParam = scrapertools.find_multiple_matches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
     if possibleParam[0][0]:
@@ -95,7 +99,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
         return []
 
-    headers.append(['Referer', real_url.replace('116.202.226.34', 'wstream.video')])
+    headers.append(['Referer', real_url.replace('116.202.226.34', headers[1][1])])
     _headers = urllib.urlencode(dict(headers))
 
     post_data = scrapertools.find_single_match(data, r"</div>\s*<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")

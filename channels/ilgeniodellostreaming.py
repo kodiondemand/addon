@@ -173,7 +173,6 @@ def newest(categoria):
 
 
 def findvideos(item):
-    from lib import unshortenit
     log()
     matches = support.match(item, patron=[r'class="metaframe rptss" src="([^"]+)"',r' href="#option-\d">([^\s]+)\s*([^\s]+)']).matches
     itemlist = []
@@ -188,24 +187,13 @@ def findvideos(item):
             if 'player.php' in match:
                 match = support.httptools.downloadpage(match, follow_redirect=True).url
             list_url.append(match)
-
-    def unshorten(i, url):
-        url = unshortenit.unshorten(url)[0]
-        return support.Item(
-            channel=item.channel,
-            title=list_servers[i],
-            url=url,
-            action='play',
-            quality=list_quality[i],
-            infoLabels=item.infoLabels)
-    import sys
-    if sys.version_info[0] >= 3:
-        from concurrent import futures
-    else:
-        from concurrent_py2 import futures
-    with futures.ThreadPoolExecutor() as executor:
-        unshList = [executor.submit(unshorten, i, url) for i, url in enumerate(list_url)]
-        for it in futures.as_completed(unshList):
-            itemlist.append(it.result())
+    for i, url in enumerate(list_url):
+        itemlist.append(support.Item(
+                channel=item.channel,
+                title=list_servers[i],
+                url=url,
+                action='play',
+                quality=list_quality[i],
+                infoLabels=item.infoLabels))
 
     return support.server(item, itemlist=itemlist)

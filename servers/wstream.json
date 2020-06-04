@@ -7,12 +7,16 @@
     "find_videos": {
         "patterns": [
             {
-                "pattern": "wstream\\.video(?!<)(?:=|/)(?:video[a-zA-Z0-9.?_]*|embed[a-zA-Z0-9]*|)?(?!api|swembedid)(?:-|/|=)?(?:[a-z0-9A-Z]+/)?([a-z0-9A-Z]+)",
+                "pattern": "(?:wstream\\.video)(?!<)(?:=|/)(?:video[a-zA-Z0-9.?_]*|embed[a-zA-Z0-9]*|)?(?!api|swembedid)(?:-|/|=)?(?:[a-z0-9A-Z]+/)?([a-z0-9A-Z]+)",
                 "url": "http://wstream.video/video.php?file_code=\\1"
             },
             {
-                "pattern": "wstream\\.video/((?:api/vcmod/fastredirect/streaming\\.php\\?id=|swembedid/)[$0-9]+)",
+                "pattern": "(?:wstream\\.video)/((?:api/vcmod/fastredirect/streaming\\.php\\?id=|swembedid/)[$0-9]+)",
                 "url": "http://wstream.video/\\1"
+            },
+            {
+                "pattern": "https://nored.icu/swembedid/([0-9]+)",
+                "url": "http://nored.icu/swembedid/\\1"
             }
         ],
         "ignore_urls": []
