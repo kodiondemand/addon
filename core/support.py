@@ -86,9 +86,12 @@ def hdpass_get_servers(item):
     return server(item, itemlist=itemlist)
 
 def hdpass_get_url(item):
-    patron_media = r'<iframe allowfullscreen custom-src="([^"]+)'
     data = httptools.downloadpage(item.url, CF=False).data
-    item.url = base64.b64decode(scrapertools.find_single_match(data, patron_media))
+    src = scrapertools.find_single_match(data, r'<iframe allowfullscreen custom-src="([^"]+)')
+    if src:
+        item.url = base64.b64decode(src)
+    else:
+        item.url = scrapertools.find_single_match(data, r'<iframe allowfullscreen src="([^"]+)')
     return [item]
 
 def color(text, color):
@@ -1150,7 +1153,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
 
         quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
         videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
-        videoitem.plot= typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
+        videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
         videoitem.channel = item.channel
         videoitem.fulltitle = item.fulltitle
         videoitem.show = item.show
@@ -1161,7 +1164,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         return videoitem
 
     with futures.ThreadPoolExecutor() as executor:
-        thL = [executor.submit(getItem, videoitem) for videoitem in itemlist]
+        thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url]
         for it in futures.as_completed(thL):
             if it.result():
                 verifiedItemlist.append(it.result())
