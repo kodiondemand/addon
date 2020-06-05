@@ -217,9 +217,16 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
 
         if scraped['season']:
             stagione = scraped['season']
+            ep = re.sub(r'\s-\s|-|x|&#8211|&#215;|×', 'x', scraped['episode'])
+            if 'x' in ep:
+                episode = ep.split('x')[0]
+                second_episode = ep.split('x')[1]
+            else:
+                episode = ep
+                second_episode = ''
             item.infoLabels['season'] = int(scraped['season'])
-            item.infoLabels['episode'] = int(scraped['episode'])
-            episode = str(int(scraped['season'])) +'x'+ str(int(scraped['episode'])).zfill(2)
+            item.infoLabels['episode'] = int(episode)
+            episode = str(int(scraped['season'])) +'x'+ str(int(episode)).zfill(2) + ('x' + str(int(second_episode)).zfill(2) if second_episode else '')
         elif item.season:
             item.infoLabels['season'] = int(item.season)
             item.infoLabels['episode'] = int(scrapertools.find_single_match(scraped['episode'], r'(\d+)'))
