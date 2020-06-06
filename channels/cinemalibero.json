@@ -6,6 +6,6 @@
 	"thumbnail": "cinemalibero.png",
 	"banner": "cinemalibero.png",
 	"categories": ["movie","tvshow"],
-	"not_active": ["include_in_newest_anime"],
+	"not_active": ["include_in_newest_anime", "include_in_newest_peliculas"],
     "settings": []
 }

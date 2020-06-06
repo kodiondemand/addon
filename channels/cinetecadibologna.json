@@ -6,6 +6,6 @@
 	"thumbnail": "cinetecadibologna.png",
 	"banner": "cinetecadibologna.png",
 	"categories": ["documentary"],
-	"not_active":["include_in_newest"],
+	"not_active":["include_in_newest_peliculas", "include_in_newest_series", "include_in_newest_anime"],
 	"settings": []
 }

@@ -124,7 +124,7 @@ def peliculas(item):
         action = 'episodios'
         item.contentType = 'tvshow'
 
-    patronNext = '<a class="?page-link"? href="?([^>]+)"?><i class="fa fa-angle-right">'
+    patronNext = '<a class="?page-link"? href="?([^>"]+)"?><i class="fa fa-angle-right">'
 
     return locals()
 

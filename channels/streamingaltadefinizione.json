@@ -6,5 +6,6 @@
     "thumbnail": "popcornstream.png",
     "banner": "popcornstream.png",
     "categories": ["movie","tvshow","anime"],
+    "not_active":["include_in_newest_peliculas", "include_in_newest_series", "include_in_newest_anime"],
     "settings": []
 }

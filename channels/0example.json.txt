@@ -59,14 +59,6 @@ se vanno cancellati tutti deve rimanere la voce:
 		  "visible": false
 		},
         {
-		  "id": "include_in_newest_italiano",
-		  "type": "bool",
-		  "label": "@70727",
-		  "default": false,
-		  "enabled": false,
-		  "visible": false
-        },
-        {
 		  "id": "checklinks",
 		  "type": "bool",
 		  "label": "Verifica se i link esistono",

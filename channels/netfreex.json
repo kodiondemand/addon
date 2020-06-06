@@ -6,6 +6,6 @@
 	"thumbnail": "netfreex.png",
 	"banner": "netfreex.png",
 	"categories": ["tvshow", "movie", "anime"],
-	"not_active": ["include_in_newest_peliculas", "include_in_newest_anime", "include_in_newest_italiano", "include_in_newest_series"],
+	"not_active": ["include_in_newest_peliculas", "include_in_newest_anime", "include_in_newest_series"],
 	"settings": []
 }

@@ -17,8 +17,7 @@ list_quality = ['HD', 'default']
 def mainlist(item):
 
     top = [('Novità',['', 'peliculas', 'new', 'tvshow']),
-           ('Aggiornamenti', ['', 'peliculas', 'last', 'tvshow']),
-           ('Popolari', ['', 'peliculas', 'most_view', 'tvshow'])]
+           ('Aggiornamenti', ['', 'peliculas', 'last', 'tvshow'])]
     tvshow = ['/lista-serie-tv/']
     anime =['/lista-anime-2/',
                ('Sub-Ita',['/lista-anime-sub-ita/', 'peliculas', 'sub']),
@@ -34,7 +33,6 @@ def search(item, texto):
     item.url = host + '/?s=' + texto
     try:
         return peliculas(item)
-        return itemlist
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -63,6 +61,7 @@ def newest(categoria):
 def peliculas(item):
     pagination = ''
     anime = True
+    # debug = True
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if item.args == 'search':
@@ -72,10 +71,10 @@ def peliculas(item):
         patronNext = r'<a href="([^"]+)"\s*>Articoli meno recenti'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
-        patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>'
-    elif item.args == 'most_view':
-        patronBlock = 'I piu visti</h2>(?P<block>.*)</ul>'
-        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src(?:set)?="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
+    # elif item.args == 'most_view':
+    #     patronBlock = 'I piu visti</h2>(?P<block>.*)</ul>'
+    #     patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
     elif item.args == 'new':
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
         patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'

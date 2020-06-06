@@ -13,6 +13,8 @@ from xml.dom import minidom
 
 host = 'http://api.radiotime.com'
 headers = [['Referer', host]]
+list_servers = ['directo']
+list_quality = ['default']
 
 @support.scrape
 def mainlist(item):
@@ -31,6 +33,9 @@ def mainlist(item):
                 url = item.url,
                 action='search',
                 thumbnail=support.thumb(thumb='search.png')))
+        support.autoplay.init(item.channel, list_servers, list_quality)
+        support.autoplay.show_option(item.channel, itemlist)
+        support.channel_config(item, itemlist)
         return itemlist
     return locals()
 

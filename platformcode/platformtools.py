@@ -716,8 +716,9 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                             'channel=infoplus&action=start&from_channel=' + item.channel)))
 
         # Go to the Main Menu (channel.mainlist)
-        if parent_item.channel not in ["news", "channelselector", "downloads"] and item.action != "mainlist" and parent_item.action != "mainlist":
-            context_commands.insert(0, (config.get_localized_string(60349), "XBMC.Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
+        if parent_item.channel not in ["news", "channelselector", "downloads"] and item.action != "mainlist":
+            if parent_item.action != "mainlist":
+                context_commands.insert(0, (config.get_localized_string(60349), "XBMC.Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
             context_commands.insert(1, (config.get_localized_string(70739), "XBMC.Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         # Add to Favorites

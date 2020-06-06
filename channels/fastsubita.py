@@ -32,7 +32,6 @@ def mainlist(item):
 
     Tvshow = [
         ('Aggiornamenti', ['', 'peliculas', '', 'update']),
-        ('Per Lettera {TV}', ['/elenco-serie-tv/', 'genres', 'genres']),
         ('Cerca... {bold}{TV}', ['','search'])
     ]
 

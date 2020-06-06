@@ -132,7 +132,7 @@ def get_channels_list():
 ##    import web_pdb; web_pdb.set_trace()
 ##    list_canales = {'peliculas': [], '4k': [], 'terror': [], 'infantiles': [], 'series': [], 'anime': [],
 ##                    'castellano': [], 'latino':[], 'italiano':[], 'torrent':[], 'documentales': []}
-    list_canales = {'peliculas': [], 'series': [],'anime': [], 'italiano':[], 'documentales': []}
+    list_canales = {'peliculas': [], 'series': [], 'anime': [], 'documentales': []}
 
     any_active = False
     # Fill available channel lists

@@ -13,7 +13,7 @@
 """
 import re
 
-from core import servertools, httptools, support
+from core import httptools, support
 from core.item import Item
 from platformcode import config
 

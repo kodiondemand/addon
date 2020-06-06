@@ -53,6 +53,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     log()
+    # debug = True
 
     if item.args == 'search':
         patronBlock = r'<div class="search-page">(?P<block>.*?)<footer class="main">'

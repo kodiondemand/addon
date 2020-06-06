@@ -13,8 +13,8 @@ from platformcode import config, unify
 
 
 def findhost():
-    permUrl = httptools.downloadpage('https://www.tantifilm.info/', follow_redirects=False).data
-    host = 'https://' + scrapertools.find_single_match(permUrl, r'Ora siamo ([A-Za-z0-9./]+)')
+    permUrl = httptools.downloadpage('https://www.tantifilm.wiki/').data
+    host = scrapertools.find_single_match(permUrl, r'Nuovo indirizzo: <a href="([^"]+)')
     return host
 
 host = config.get_channel_url(findhost)
