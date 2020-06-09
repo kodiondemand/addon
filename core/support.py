@@ -6,8 +6,7 @@ import inspect
 import os
 import re
 import sys
-
-from lib.guessit import guessit
+from time import time
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -283,6 +282,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
         longtitle = title + (s if title and title2 else '') + title2 + '\n'
 
         if sceneTitle:
+            from lib.guessit import guessit
             try:
                 parsedTitle = guessit(title)
                 title = longtitle = parsedTitle.get('title', '')
@@ -437,7 +437,7 @@ def scrape(func):
                 data = re.sub('\n|\t', ' ', data)
                 data = re.sub(r'>\s+<', '> <', data)
                 # replace all ' with " and eliminate newline, so we don't need to worry about
-
+            scrapingTime = time()
             if patronBlock:
                 if debugBlock:
                     regexDbg(item, patronBlock, headers, data)
@@ -479,7 +479,6 @@ def scrape(func):
             else:
                 break
 
-
         if (pagination and len(matches) <= pag * pagination) or not pagination: # next page with pagination
             if patronNext and inspect.stack()[1][3] != 'newest':
                 nextPage(itemlist, item, data, patronNext, function)
@@ -502,8 +501,8 @@ def scrape(func):
         if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode']:
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
-        from specials import autorenumber
         if anime:
+            from specials import autorenumber
             if function == 'episodios' or item.action == 'episodios': autorenumber.renumber(itemlist, item, 'bold')
             else: autorenumber.renumber(itemlist)
         # if anime and autorenumber.check(item) == False and len(itemlist)>0 and not scrapertools.find_single_match(itemlist[0].title, r'(\d+.\d+)'):
@@ -514,7 +513,6 @@ def scrape(func):
             videolibrary(itemlist, item, function=function)
         if function == 'episodios' or function == 'findvideos':
             download(itemlist, item, function=function)
-
         if 'patronMenu' in args and itemlist:
             itemlist = thumb(itemlist, genre=True)
 
@@ -526,7 +524,7 @@ def scrape(func):
         if config.get_setting('trakt_sync'):
             from core import trakt_tools
             trakt_tools.trakt_check(itemlist)
-
+        log('scraping time: ' , time()-scrapingTime)
         return itemlist
 
     return wrapper

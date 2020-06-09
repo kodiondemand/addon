@@ -31,12 +31,10 @@ try:
     import xbmcgui
 except:
     xbmcgui = None
-import xbmc
-import re, base64, json, os, inspect
+import re, base64, json, inspect
 from core import jsontools, tvdb, scrapertools, filetools
-from core.support import typo, log, dbg
-from platformcode import config, platformtools,  logger
-from platformcode.config import get_setting
+from core.support import typo, log
+from platformcode import config, platformtools
 
 TAG_TVSHOW_RENUMERATE = "TVSHOW_AUTORENUMBER"
 TAG_ID = "ID"

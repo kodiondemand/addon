@@ -2,7 +2,7 @@
 # -*- Channel Community -*-
 
 
-import re, os, inspect, xbmcaddon, xbmcgui
+import re, inspect, xbmcgui
 
 from core import httptools, jsontools, tmdb, support, filetools
 from core.item import Item
@@ -33,7 +33,6 @@ def mainlist(item):
         with open(path, "w") as file:
             file.write('{"channels":{}}')
             file.close()
-    autoplay.init(item.channel, list_servers, list_quality)
 
     return show_channels(item)
 
@@ -74,7 +73,6 @@ def show_channels(item):
                              context=context,
                              path=path))
 
-    autoplay.show_option(item.channel, itemlist)
     support.channel_config(item, itemlist)
     return itemlist
 
