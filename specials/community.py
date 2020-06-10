@@ -589,14 +589,18 @@ def filter_thread(filter, key, item, description):
 # for load json from item or url
 def load_json(item, no_order=False):
     support.log()
-
-    url = item.url if type(item) == Item else item
+    if type(item) == Item:
+        url = item.url
+        filterkey = item.filterkey
+    else:
+        url = item
+        filterkey = ''
     try:
         if url.startswith('http'):
             json_file = httptools.downloadpage(url).data
         else:
             json_file = open(url, "r").read()
-        if no_order or item.filterkey:
+        if no_order or filterkey:
             json = jsontools.load(json_file)
         else:
             json = jsontools.load(json_file, object_pairs_hook=OrderedDict)
