@@ -1195,7 +1195,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         autoplay.start(verifiedItemlist, item)
 
     if Videolibrary and item.contentChannel != 'videolibrary':
-        videolibrary(verifiedItemlist, item, function_level=3)
+        videolibrary(verifiedItemlist, item)
     if Download:
         download(verifiedItemlist, item, function_level=3)
 
