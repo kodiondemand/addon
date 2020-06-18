@@ -97,8 +97,11 @@ def show_menu(item):
                 get_menu(item, json, key, itemlist)
             if item.filterkey and not item.filter:
                 itemlist += submenu(item, json, key)
-            elif key in ['movies_list','tvshows_list', 'generic_list']:
+            elif key in ['movies_list', 'tvshows_list', 'generic_list']:
                 itemlist += peliculas(item, json, key)
+            elif key in ['seasons_list']:
+                item.url = json
+                itemlist += get_seasons(item)
             elif key in ['episodes_list']:
                 itemlist += episodios(item, json, key)
             elif key in ['links']:
@@ -171,7 +174,7 @@ def peliculas(item, json='', key='', itemlist=[]):
     infoLabels = item.infoLabels if item.infoLabels else {}
     contentType = 'tvshow' if 'tvshow' in key else 'movie'
     itlist = filterkey = []
-    action = 'findvideos'
+    action = 'show_menu'
 
     if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'search'] and not item.filterkey and not item.disable_pagination:
         Pagination = int(defp) if defp.isdigit() else ''
@@ -189,8 +192,8 @@ def peliculas(item, json='', key='', itemlist=[]):
 
         title = option['title'] if 'title' in option else ''
 
-        if 'tvshows_list' in key and 'links' not in option:
-            action = 'episodios'
+        # if 'tvshows_list' in key and 'links' not in option:
+        #     action = 'episodios'
 
         # filter elements
         if (not item.filter or item.filter.lower() in filterkey) and item.search.lower() in title.lower() and title:
