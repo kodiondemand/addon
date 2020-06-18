@@ -80,8 +80,7 @@ def delete_key():
     from platformcode import platformtools
     import xbmc
 
-    file_xml = "special://profile/keymaps/kod.xml"
-    filetools.write(xbmc.translatePath(file_xml), '')
+    filetools.remove(xbmc.translatePath( "special://profile/keymaps/kod.xml"))
     platformtools.dialog_notification(config.get_localized_string(70701),config.get_localized_string(70702))
 
     config.set_setting("shortcut_key", '')
