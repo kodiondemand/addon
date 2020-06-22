@@ -79,7 +79,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.info("[Wstream] url=" + page_url)
     video_urls = []
     global data, real_url, headers
-    # logger.info(data)
+    # from core.support import dbg;dbg()
+    logger.info(data)
 
     sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
@@ -111,9 +112,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         getSources(data)
 
     if not video_urls:
-        media_urls = scrapertools.find_multiple_matches(data, r'(http[^\s]*?\.mp4)')
+        media_urls = scrapertools.find_multiple_matches(data, r'(http[^\s]*?\.(?:mp4|m3u8))')
 
         for media_url in media_urls:
-            video_urls.append(['video' + " mp4 [wstream] ", media_url + '|' + _headers])
+            video_urls.append([media_url.split('.')[-1] + " [Wstream] ", media_url + '|' + _headers])
     video_urls.sort(key=lambda x: x[0])
     return video_urls
