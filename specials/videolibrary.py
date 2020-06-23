@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
-import sys
-
-from core.support import typo
+import sys, xbmc, os, traceback
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -11,12 +9,10 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 import xbmc, os, traceback
 
 from channelselector import get_thumb, thumb
-from core import filetools
-from core import scrapertools
-from core import videolibrarytools
+from core import filetools, scrapertools, videolibrarytools
+from core.support import typo
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 from lib import generictools
 from distutils import dir_util
 
@@ -24,16 +20,15 @@ from distutils import dir_util
 def mainlist(item):
     logger.info()
 
-    itemlist = list()
-    itemlist.append(Item(channel=item.channel, action="list_movies", title=config.get_localized_string(60509),
-                         category=config.get_localized_string(70270),
-                         thumbnail=get_thumb("videolibrary_movie.png")))
-    itemlist.append(Item(channel=item.channel, action="list_tvshows", title=config.get_localized_string(60600),
-                         category=config.get_localized_string(70271),
-                         thumbnail=get_thumb("videolibrary_tvshow.png")))
-    itemlist.append(Item(channel='shortcuts', action="SettingOnPosition",
-                         category=2, setting=1, title=typo(config.get_localized_string(70287),'bold color kod'),
-                         thumbnail = get_thumb("setting_0.png")))
+    itemlist = [Item(channel=item.channel, action="list_movies", title=config.get_localized_string(60509),
+                     category=config.get_localized_string(70270),
+                     thumbnail=get_thumb("videolibrary_movie.png")),
+                Item(channel=item.channel, action="list_tvshows", title=config.get_localized_string(60600),
+                     category=config.get_localized_string(70271),
+                     thumbnail=get_thumb("videolibrary_tvshow.png")),
+                Item(channel='shortcuts', action="SettingOnPosition",
+                     category=2, setting=1, title=typo(config.get_localized_string(70287),'bold color kod'),
+                     thumbnail = get_thumb("setting_0.png"))]
 
     return itemlist
 
@@ -713,12 +708,12 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
 
     notify = False
     progress = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80011))
-    current_path = xbmc.translatePath(current_path)
-    new_path = xbmc.translatePath(new_path)
-    current_movies_path = filetools.join(current_path, current_movies_folder)
-    new_movies_path = filetools.join(new_path, new_movies_folder)
-    current_tvshows_path = os.path.join(current_path, current_tvshows_folder)
-    new_tvshows_path = os.path.join(new_path, new_tvshows_folder)
+    current_path = u'' + xbmc.translatePath(current_path)
+    new_path = u'' + xbmc.translatePath(new_path)
+    current_movies_path = u'' + filetools.join(current_path, current_movies_folder)
+    new_movies_path = u'' + filetools.join(new_path, new_movies_folder)
+    current_tvshows_path = u'' + filetools.join(current_path, current_tvshows_folder)
+    new_tvshows_path = u'' + filetools.join(new_path, new_tvshows_folder)
 
     logger.info('current_movies_path: ' + current_movies_path)
     logger.info('new_movies_path: ' + new_movies_path)
@@ -1083,7 +1078,7 @@ def delete(item):
         raiz, carpeta_serie, ficheros = next(filetools.walk(_item.path))
         if ficheros == []:
             filetools.rmdir(_item.path)
-        elif platformtools.dialog_yesno(heading, config.get_localized_string(70081) % os.path.basename(_item.path)):
+        elif platformtools.dialog_yesno(heading, config.get_localized_string(70081) % filetools.basename(_item.path)):
             filetools.rmdirtree(_item.path)
 
         logger.info("All links removed")
