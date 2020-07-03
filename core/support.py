@@ -39,13 +39,8 @@ def hdpass_get_servers(item):
         for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
             mir_url = scrapertools.decodeHtmlentities(mir_url)
             log(mir_url)
-            it = Item(channel=item.channel,
-                            action="play",
-                            fulltitle=item.fulltitle,
+            it = item.clone(action="play",
                             quality=quality,
-                            show=item.show,
-                            thumbnail=item.thumbnail,
-                            contentType=item.contentType,
                             title=srv,
                             server=srv,
                             url= mir_url)
@@ -114,7 +109,7 @@ def search(channel, item, texto):
 
 def dbg():
     if config.dev_mode():
-        import web_pdb;
+        import web_pdb
         if not web_pdb.WebPdb.active_instance:
             import webbrowser
             webbrowser.open('http://127.0.0.1:5555')
@@ -128,7 +123,8 @@ def regexDbg(item, patron, headers, data=''):
 
         if not data:
             html = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data.replace("'", '"')
-            html = re.sub('\n|\t', ' ', html)
+            html = html.replace('\n', ' ')
+            html = html.replace('\t', ' ')
         else:
             html = data
         headers = {'content-type': 'application/json'}
@@ -167,6 +163,14 @@ def cleantitle(title):
     title = scrapertools.decodeHtmlentities(title)
     cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip()
     return cleantitle
+
+def unifyEp(ep):
+    # ep = re.sub(r'\s-\s|-|&#8211;|&#215;|×', 'x', scraped['episode'])
+    ep = ep.replace('-', 'x')
+    ep = ep.replace('&#8211;', 'x')
+    ep = ep.replace('&#215;', 'x')
+    ep = ep.replace('×', 'x')
+    return ep
 
 def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle):
     itemlist = []
@@ -216,10 +220,10 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
 
         if scraped['season']:
             stagione = scraped['season']
-            ep = re.sub(r'\s-\s|-|x|&#8211|&#215;|×', 'x', scraped['episode'])
+            ep = unifyEp(scraped['episode'])
             if 'x' in ep:
-                episode = ep.split('x')[0]
-                second_episode = ep.split('x')[1]
+                episode = ep.split('x')[0].strip()
+                second_episode = ep.split('x')[1].strip()
             else:
                 episode = ep
                 second_episode = ''
@@ -234,7 +238,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             item.news = 'season_completed'
             episode = ''
         else:
-            episode = re.sub(r'\s-\s|-|x|&#8211|&#215;|×', 'x', scraped['episode']) if scraped['episode'] else ''
+            episode = unifyEp(scraped['episode']) if scraped['episode'] else ''
             if 'x' in episode:
                 ep = episode.split('x')
                 episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
@@ -292,7 +296,10 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     if parsedTitle.get('screen_size'):
                         quality += ' ' + str(parsedTitle.get('screen_size', ''))
                 if not scraped['year']:
-                    infolabels['year'] = parsedTitle.get('year', '')
+                    if type(parsedTitle.get('year', '')) == list:
+                        infolabels['year'] =parsedTitle.get('year', '')[0]
+                    else:
+                        infolabels['year'] = parsedTitle.get('year', '')
                 if parsedTitle.get('episode') and parsedTitle.get('season'):
                     longtitle = title + s
 
@@ -434,7 +441,8 @@ def scrape(func):
             if not data:
                 page = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True)
                 data = page.data.replace("'", '"')
-                data = re.sub('\n|\t', ' ', data)
+                data = data.replace('\n', ' ')
+                data = data.replace('\t', ' ')
                 data = re.sub(r'>\s+<', '> <', data)
                 # replace all ' with " and eliminate newline, so we don't need to worry about
             scrapingTime = time()
@@ -479,8 +487,8 @@ def scrape(func):
             else:
                 break
 
-        if (pagination and len(matches) <= pag * pagination) or not pagination: # next page with pagination
-            if patronNext and inspect.stack()[1][3] != 'newest':
+        if (pagination and len(matches) <= pag * pagination) or not pagination:  # next page with pagination
+            if patronNext and inspect.stack()[1][3] not in ['newest', 'search']:
                 nextPage(itemlist, item, data, patronNext, function)
 
         # next page for pagination
@@ -543,12 +551,13 @@ def dooplay_get_links(item, host):
     for type, post, nume, title, server in matches:
         postData = urlencode({
             "action": "doo_player_ajax",
-            "post": post,
+            "post": post, 
             "nume": nume,
             "type": type
         })
         dataAdmin = httptools.downloadpage(host + '/wp-admin/admin-ajax.php', post=postData,headers={'Referer': item.url}).data
-        link = scrapertools.find_single_match(dataAdmin, "<iframe.*src='([^']+)'")
+        link = scrapertools.find_single_match(dataAdmin, r"<iframe.*src='([^']+)'")
+        if not link: link = scrapertools.find_single_match(dataAdmin, r'"embed_url":"([^"]+)"').replace('\\','')
         ret.append({
             'url': link,
             'title': title,
@@ -785,8 +794,8 @@ def menu(func):
             menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)
 
         if not global_search:
-            autoplay.init(item.channel, list_servers, list_quality)
-            autoplay.show_option(item.channel, itemlist)
+            # autoplay.init(item.channel, list_servers, list_quality)
+            # autoplay.show_option(item.channel, itemlist)
             channel_config(item, itemlist)
 
             # Apply auto Thumbnails at the menus
@@ -915,8 +924,9 @@ def match(item_url_string, **args):
         data = httptools.downloadpage(url, **args).data.replace("'", '"')
 
     # format page data
-    data = re.sub(r'\n|\t', ' ', data)
-    data = re.sub(r'>\s\s*<', '><', data)
+    data = data.replace('\n', ' ')
+    data = data.replace('\t', ' ')
+    data = re.sub(r'>\s+<', '><', data)
 
     # collect blocks of a page
     if patronBlock:
@@ -1094,6 +1104,7 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
 def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page='', resub=[]):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
+    log()
     action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level
     if next_page == '':
         next_page = scrapertools.find_single_match(data, patron)
@@ -1102,7 +1113,7 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
         if resub: next_page = re.sub(resub[0], resub[1], next_page)
         if 'http' not in next_page:
             next_page = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (next_page if next_page.startswith('/') else '/' + next_page)
-        next_page = re.sub('&amp;', '&',next_page)
+        next_page = next_page.replace('&amp;', '&')
         log('NEXT= ', next_page)
         itemlist.append(
             Item(channel=item.channel,
@@ -1166,6 +1177,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         videoitem.contentType = item.contentType
         videoitem.infoLabels = item.infoLabels
         videoitem.quality = quality
+        # videoitem.nfo = item.nfo
+        # videoitem.strm_path = item.strm_path
         return videoitem
 
     with futures.ThreadPoolExecutor() as executor:
@@ -1180,11 +1193,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     if patronTag:
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
-    # Auto Play & Hide Links
-    AP, HS = autoplay.get_channel_AP_HS(item)
-
     # Check Links
-    if not AP and not item.global_search and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
+    if not item.global_search and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
         if config.get_setting('checklinks', item.channel):
             checklinks_number = config.get_setting('checklinks_number', item.channel)
         elif config.get_setting('checklinks'):
@@ -1198,11 +1208,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         videolibrary(verifiedItemlist, item)
     if Download:
         download(verifiedItemlist, item, function_level=3)
-
-    if not AP or not HS:
-        # for it in verifiedItemlist:
-        #     log(it)
-        return verifiedItemlist
+    # if item.contentChannel == 'videolibrary' or not config.get_setting('autoplay'):
+    return verifiedItemlist
 
 
 def filterLang(item, itemlist):
@@ -1213,12 +1220,12 @@ def filterLang(item, itemlist):
         itemlist = filtertools.get_links(itemlist, item, list_language)
     return itemlist
 
-def aplay(item, itemlist, list_servers='', list_quality=''):
-    if inspect.stack()[1][3] == 'mainlist':
-        autoplay.init(item.channel, list_servers, list_quality)
-        autoplay.show_option(item.channel, itemlist)
-    else:
-        autoplay.start(itemlist, item)
+# def aplay(item, itemlist, list_servers='', list_quality=''):
+#     if inspect.stack()[1][3] == 'mainlist':
+#         autoplay.init(item.channel, list_servers, list_quality)
+#         autoplay.show_option(item.channel, itemlist)
+#     else:
+#         autoplay.start(itemlist, item)
 
 
 def log(*args):

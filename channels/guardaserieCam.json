@@ -1,0 +1,11 @@
+{
+    "id": "guardaserieCam",
+    "name": "GuardaSerie Cam",
+    "language": ["ita", "sub-ita"],
+    "active": true,
+    "thumbnail": "https://raw.githubusercontent.com/32Dexter/DexterRepo/master/media/guardaserie_live.png",
+    "banner": "",
+    "categories": ["tvshow"],
+    "not_active": ["include_in_newest"],
+    "settings": []
+}

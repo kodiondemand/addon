@@ -10,8 +10,8 @@ from core import support
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
-list_servers = ['verystream', 'openload', 'wstream', 'speedvideo']
-list_quality = ['HD', 'SD']
+
+
 
 @support.menu
 def mainlist(item):

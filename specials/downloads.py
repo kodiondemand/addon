@@ -539,10 +539,10 @@ def get_match_list(data, match_list, order_list=None, only_ascii=False, ignoreca
 
 def sort_method(item):
     """
-    Puntua cada item en funcion de varios parametros:
+    Score each item based on various parameters:
     @type item: item
-    @param item: elemento que se va a valorar.
-    @return:  puntuacion otenida
+    @param item: item to be valued.
+    @return:  punctuation obtained
     @rtype: int
     """
     lang_orders = {}

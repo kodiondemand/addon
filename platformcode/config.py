@@ -462,3 +462,7 @@ def verify_directories_created():
         import traceback
         logger.error("When checking or creating the resolution folder")
         logger.error(traceback.format_exc())
+
+
+def get_online_server_thumb(server):
+    return "https://raw.github.com/kodiondemand/media/master/resources/servers/" + server.lower() + '.png'

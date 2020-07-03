@@ -11,8 +11,8 @@ la lista delle pagine non sarà affatto 'uniforme' (a seconda di come viene pres
 
 host = config.get_channel_url()
 headers = [['Referer', 'org.telegram.messenger']]
-list_servers = ['directo']
-list_quality = ['default']
+
+
 
 downPrefix = 'https://stsh.ml/Down-'
 
@@ -122,17 +122,12 @@ def episodios(item):
             if '-' in season:  # vedi https://stpgs.ml/SerieTv/Atypical-S01-8-8.html
                 season = season.split('-')[0]
             itemlist.append(
-                Item(channel=item.channel,
-                     action="findvideos",
-                     title=str(int(season)) + 'x' + str(n) + support.typo(item.quality, '-- [] color kod'),
-                     url=url,
-                     fulltitle=item.fulltitle,
-                     thumbnail=item.thumbnail,
-                     show=item.show,
-                     quality=item.quality,
-                     contentType='episode',
-                     folder=True,
-                     args={'id': id, 'season': season, 'episode': episode}))
+                item.clone(action="findvideos",
+                           title=str(int(season)) + 'x' + str(n) + support.typo(item.quality, '-- [] color kod'),
+                           url=url,
+                           contentType='episode',
+                           folder=True,
+                           args={'id': id, 'season': season, 'episode': episode}))
 
     support.videolibrary(itemlist, item)
     return itemlist
@@ -154,21 +149,7 @@ def findvideos(item):
 
     if res:
         itemlist.append(
-            Item(channel=item.channel,
-                 action="play",
-                 title='contentful',
-                 url=res,
-                 server='directo',
-                 fulltitle=item.fulltitle,
-                 thumbnail=item.thumbnail,
-                 quality=item.quality,
-                 contentType=item.contentType))
-        # download = itemlist[0].clone()
-        # if item.contentType == 'movie':
-        #     download.url = downPrefix + id
-        # else:
-        #     download.url = downPrefix + id + '-S' + season + '-' + episode
-        # itemlist.append(download)
+            item.clone(action="play", title='contentful', url=res, server='directo'))
     else:
         # google drive...
         pass

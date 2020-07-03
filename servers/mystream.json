@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "mystream",
-  "name": "mystream",
+  "name": "MyStream",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://i.postimg.cc/t43grQdh/mystream1.png"
+  ]
 }

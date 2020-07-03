@@ -15,7 +15,7 @@
   },
   "free": true,
   "id": "bdupload",
-  "name": "bdupload",
+  "name": "BDUpload",
   "settings": [
     {
       "default": false,
@@ -42,6 +42,6 @@
       "visible": false
     }
   ],
-  "thumbnail": "https://s18.postimg.cc/68colqvyx/logo-bdupload.png",
+  
   "version": 1
 }

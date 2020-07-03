@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "dostream",
-  "name": "dostream",
+  "name": "DoStream",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s14.postimg.cc/lczc08bsx/dostream.png"
+  ]
 }

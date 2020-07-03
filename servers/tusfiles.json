@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "tusfiles",
-  "name": "tusfiles",
+  "name": "TusFiles",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://tusfiles.com/i/TFLOGO.png"
+  ]
 }

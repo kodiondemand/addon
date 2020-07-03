@@ -18,7 +18,7 @@
         <control type="image">
           <width>100%</width>
           <height>100%</height>
-          <texture colordiffuse="FF232323">Shortcut/white.png</texture>
+          <texture colordiffuse="FF232323">white.png</texture>
         </control>
         <!-- FANART -->
         <control type="image" id="10004">
@@ -47,8 +47,8 @@
           <top>25</top>
           <width>30</width>
           <height>30</height>
-          <texturefocus colordiffuse="FFFFFFFF">Controls/DialogCloseButton-focus.png</texturefocus>
-          <texturenofocus colordiffuse="55FFFFFF">Controls/DialogCloseButton-focus.png</texturenofocus>
+          <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+          <texturenofocus colordiffuse="55FFFFFF">close.png</texturenofocus>
         </control>
         <!-- LOCANDINA -->
         <control type="image" id="10005"> 
@@ -315,8 +315,8 @@
             <width>200</width>
             <height>50</height>
             <textwidth>110</textwidth>
-            <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-            <texturenofocus colordiffuse="000081C2">Shortcut/white.png</texturenofocus>
+            <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000081C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70005]</label>
@@ -327,8 +327,8 @@
             <width>200</width>
             <height>50</height>
             <textwidth>110</textwidth>
-            <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-            <texturenofocus colordiffuse="000081C2">Shortcut/white.png</texturenofocus>
+            <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000081C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70006]</label>
@@ -339,8 +339,8 @@
             <width>200</width>
             <height>50</height>
             <textwidth>110</textwidth>
-            <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-            <texturenofocus colordiffuse="000081C2">Shortcut/white.png</texturenofocus>
+            <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000081C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70002]</label>
@@ -351,8 +351,8 @@
             <width>200</width>
             <height>50</height>
             <textwidth>110</textwidth>
-            <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-            <texturenofocus colordiffuse="000081C2">Shortcut/white.png</texturenofocus>
+            <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000081C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70007]</label>

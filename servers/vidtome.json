@@ -4,14 +4,18 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "vidto.me/(?:embed-|)([A-z0-9]+)",
-        "url": "http://vidto.me/embed-\\1.html"
+        "pattern": "(?:vidtome.stream|vidto.me)/(?!api)(?:embed-)?([A-z0-9]+)",
+        "url": "http://vidtome.stream/\\1.html"
+      },
+      {
+        "pattern": "vidtome.stream/api/fastredirect/streaming\\.php\\?file_real=([A-z0-9]+)",
+        "url": "http://vidtome.stream/api/fastredirect/streaming.php?file_real=\\1"
       }
     ]
   },
   "free": true,
   "id": "vidtome",
-  "name": "vidtome",
+  "name": "Vidto.me",
   "settings": [
     {
       "default": false,

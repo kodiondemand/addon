@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "rcdnme",
-  "name": "rcdnme",
+  "name": "RCDN",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://i.imgur.com/NErNgTg.jpg"
+  ]
 }

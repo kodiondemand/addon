@@ -7,16 +7,16 @@ from core import support
 from core.item import Item
 from platformcode import logger, config
 
-def findhost():
-    return 'https://' + support.match('https://netfreex.uno/', patron='value="site:([^"]+)"').match
+# def findhost():
+#     return 'https://' + support.match('https://netfreex.uno/', patron='value="site:([^"]+)"').match
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = ""
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['wstream']
-list_quality = ['1080p', 'HD', 'SD', 'CAM']
+
+
 
 
 @support.menu
@@ -59,15 +59,7 @@ def findvideos(item):
         if link['title'] != 'Guarda il trailer':
             logger.info(link['title'])
             itemlist.append(
-                Item(channel=item.channel,
-                     action="play",
-                     url=link['url'],
-                     fulltitle=item.fulltitle,
-                     thumbnail=item.thumbnail,
-                     show=item.show,
-                     quality=link['title'],
-                     contentType=item.contentType,
-                     folder=False))
+                item.clone(action="play", url=link['url'], quality=link['title']))
     return support.server(item, itemlist=itemlist)
 
 

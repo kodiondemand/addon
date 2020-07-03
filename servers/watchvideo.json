@@ -15,7 +15,7 @@
   },
   "free": true,
   "id": "watchvideo",
-  "name": "watchvideo",
+  "name": "WatchVideo",
   "settings": [
     {
       "default": false,
@@ -41,6 +41,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://i.imgur.com/vDev2I6.png?1"
+  ]
 }

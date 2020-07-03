@@ -15,15 +15,9 @@ def findhost():
 host = support.config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-
-list_servers = ['akstream', 'wstream', 'mixdrop', 'vidtome', 'turbovid', 'speedvideo', 'flashx', 'nowvideo', 'deltabit']
-list_quality = ['default']
-
 @support.menu
 def mainlist(item):
     support.log()
-
-
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
     mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
@@ -37,7 +31,7 @@ def mainlist(item):
 def peliculas(item):
     action = 'episodios'
     if item.args == 'newest':
-        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>.*?)[^Ã¢ÂÂâ][\s]*<a href="(?P<url>[^"]+)"[^>]*> ?(?P<episode>\d+x\d+-\d+|\d+x\d+) .*?[ ]?\(?(?P<lang>SUB ITA)?\)?</a>'
+        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+)–\s*<a href="(?P<url>[^"]+)"[^>]*>\s?(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
         pagination = ''
     else:
         patron = r'<div class="post-thumb">.*?\s<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)\s?(?: Serie Tv)?\s?\(?(?P<year>\d{4})?\)?<\/a><\/h2>'
@@ -55,7 +49,7 @@ def episodios(item):
 
     def itemHook(item):
         if not item.url:
-            item.url =''
+            item.url = ''
         return item
 
     return locals()

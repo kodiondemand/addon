@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "filescdn",
-  "name": "filescdn",
+  "name": "Files CDN",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s31.postimg.cc/ijne6piij/filescdn.png"
+  ]
 }

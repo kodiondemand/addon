@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "videobin",
-  "name": "videobin",
+  "name": "VideoBin",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": ""
+  ]
 }

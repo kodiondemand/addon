@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "fastplay",
-  "name": "fastplay",
+  "name": "FastPlay",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://i.imgur.com/vHDcd6Y.png?1"
+  ]
 }

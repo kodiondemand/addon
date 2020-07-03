@@ -266,8 +266,7 @@ def viewmodeMonitor():
         currentModeName = xbmc.getInfoLabel('Container.Viewmode')
         win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
         currentMode = int(win.getFocusId())
-        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel(
-                'Container.FolderPath') and currentMode < 1000 and currentMode > 50:  # inside addon and in itemlist view
+        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
             content, Type = platformtools.getCurrentView()
             if content:
                 defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])

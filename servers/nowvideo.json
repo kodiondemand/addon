@@ -2,7 +2,7 @@
   "id": "nowvideo",
   "name": "nowvideo",
   "active": true,
-  "thumbnail": "http://nowvideo.club/images/logo.png", 
+  
   "find_videos": {
     "ignore_urls": [],
     "patterns": [
@@ -13,7 +13,7 @@
       {
         "pattern": "nowvideo.club/(?:videos|play/)([A-z0-9]+)",
         "url": "http:\/\/nowvideo.club\/videos/\\1"
-      }      
+      }
     ]
   },
   "free": true,

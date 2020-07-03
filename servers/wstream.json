@@ -3,7 +3,7 @@
     "name": "Wstream",
     "active": true,
     "free": true,
-    "thumbnail": "server_wstream.png",
+    
     "find_videos": {
         "patterns": [
             {

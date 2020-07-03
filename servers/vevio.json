@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "vevio",
-  "name": "vevio",
+  "name": "VEVio",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s8.postimg.cc/opp2c3p6d/vevio1.png"
+  ]
 }

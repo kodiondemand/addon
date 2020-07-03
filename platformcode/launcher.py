@@ -3,19 +3,9 @@
 # XBMC Launcher (xbmc / kodi)
 # ------------------------------------------------------------
 
-#from future import standard_library
-#standard_library.install_aliases()
-#from builtins import str
-import sys
+import sys, os
 PY3 = False
-if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
-
-# if PY3:
-#     import urllib.error as urllib2                              # It is very slow in PY2. In PY3 it is native
-# else:
-#     import urllib2                                              # We use the native of PY2 which is faster
-
-import os
+if sys.version_info[0] >= 3:PY3 = True; unicode = str; unichr = chr; long = int
 
 from core.item import Item
 from platformcode import config, logger, platformtools
@@ -65,11 +55,7 @@ def run(item=None):
                         config.get_localized_string(70137): 'peliculas',
                         config.get_localized_string(30123): 'series',
                         config.get_localized_string(30124): 'anime',
-                        config.get_localized_string(70018): 'infantiles',
                         config.get_localized_string(60513): 'documentales',
-                        config.get_localized_string(70013): 'terror',
-                        config.get_localized_string(70014): 'castellano',
-                        config.get_localized_string(59976): 'latino',
                         config.get_localized_string(70171): 'torrent',
                     }
                     if not config.get_setting("category") in dictCategory.keys():
@@ -142,7 +128,6 @@ def run(item=None):
             if tmdb.drop_bd():
                 platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(60011), time=2000, sound=False)
         elif item.action == "itemInfo":
-            import base64
             platformtools.dialog_textviewer('Item info', item.parent)
         elif item.action == "open_browser":
             import webbrowser
@@ -155,18 +140,10 @@ def run(item=None):
                         import urllib.request as urllib
                     except ImportError:
                         import urllib
-                    short = urllib.urlopen(
-                        'https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read().decode('utf-8')
-                    platformtools.dialog_ok(config.get_localized_string(20000),
-                                            config.get_localized_string(70740) % short)
+                    short = urllib.urlopen('https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read().decode('utf-8')
+                    platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % short)
         # Action in certain channel specified in "action" and "channel" parameters
         else:
-            # # Actualiza el canal individual
-            # if (item.action == "mainlist" and item.channel != "channelselector" and
-            #             config.get_setting("check_for_channel_updates") == True):
-            #     from core import updater
-            #     updater.update_channel(item.channel)
-
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
                 CHANNELS = 'channels'
@@ -181,8 +158,7 @@ def run(item=None):
 
             if os.path.exists(channel_file):
                 try:
-                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None,
-                                         None, ['%s.%s' % (CHANNELS, item.channel)])
+                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
                 except ImportError:
                     exec("import " + CHANNELS + "." + item.channel + " as channel")
 
@@ -211,7 +187,7 @@ def run(item=None):
                             item.isFavourite = True
                         platformtools.play_video(item)
 
-                    # Permitir varias calidades desde play en el canal
+                    # Permitir varias calidades desde play en el Channel
                     elif len(itemlist) > 0 and isinstance(itemlist[0], list):
                         item.video_urls = itemlist
                         platformtools.play_video(item)
@@ -232,7 +208,6 @@ def run(item=None):
                 # First checks if channel has a "findvideos" function
                 if hasattr(channel, 'findvideos'):
                     itemlist = getattr(channel, item.action)(item)
-                    itemlist = servertools.filter_servers(itemlist)
 
                 # If not, uses the generic findvideos function
                 else:
@@ -310,32 +285,18 @@ def run(item=None):
 
                 platformtools.render_items(itemlist, item)
 
-    # except urllib2.URLError as e:
-    #     import traceback
-    #     logger.error(traceback.format_exc())
-    #
-    #     # Grab inner and third party errors
-    #     if hasattr(e, 'reason'):
-    #         logger.error("Reason for the error, code: %s | Reason: %s" % (str(e.reason[0]), str(e.reason[1])))
-    #         texto = config.get_localized_string(30050)  # "No se puede conectar con el sitio web"
-    #         platformtools.dialog_ok(config.get_localized_string(20000), texto)
-    #
-    #     # Grab server response errors
-    #     elif hasattr(e, 'code'):
-    #         logger.error("HTTP error code: %d" % e.code)
-    #         # "El sitio web no funciona correctamente (error http %d)"
-    #         platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(30051) % e.code)
+
     except WebErrorException as e:
         import traceback
         from core import scrapertools
 
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + '([^.]+)\.py"'
-        canal = scrapertools.find_single_match(traceback.format_exc(), patron)
+        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + r'([^.]+)\.py"'
+        Channel = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         platformtools.dialog_ok(
-            config.get_localized_string(59985) + canal,
+            config.get_localized_string(59985) + Channel,
             config.get_localized_string(60013) %(e))
     except:
         import traceback
@@ -343,8 +304,8 @@ def run(item=None):
 
         logger.error(traceback.format_exc())
 
-        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + '([^.]+)\.py"'
-        canal = scrapertools.find_single_match(traceback.format_exc(), patron)
+        patron = 'File "' + os.path.join(config.get_runtime_path(), "channels", "").replace("\\", "\\\\") + r'([^.]+)\.py"'
+        Channel = scrapertools.find_single_match(traceback.format_exc(), patron)
 
         try:
             import xbmc
@@ -356,15 +317,12 @@ def run(item=None):
         except:
             log_message = ""
 
-        if canal:
+        if Channel:
             if item.url:
-                if platformtools.dialog_yesno(config.get_localized_string(60087) % canal, config.get_localized_string(60014),
-                        log_message, nolabel='ok', yeslabel=config.get_localized_string(70739)):
+                if platformtools.dialog_yesno(config.get_localized_string(60087) % Channel, config.get_localized_string(60014), log_message, nolabel='ok', yeslabel=config.get_localized_string(70739)):
                     run(Item(action="open_browser", url=item.url))
             else:
-                platformtools.dialog_ok(config.get_localized_string(60087) % canal,
-                                           config.get_localized_string(60014),
-                                           log_message)
+                platformtools.dialog_ok(config.get_localized_string(60087) % Channel, config.get_localized_string(60014), log_message)
         else:
             platformtools.dialog_ok(
                 config.get_localized_string(60038),
@@ -384,8 +342,7 @@ def reorder_itemlist(itemlist):
     modified = 0
     not_modified = 0
 
-    to_change = [[config.get_localized_string(60335), '[V]'],
-                 [config.get_localized_string(60336), '[D]']]
+    to_change = [[config.get_localized_string(60335), '[V]'], [config.get_localized_string(60336), '[D]']]
 
     for item in itemlist:
         if not PY3:
@@ -441,7 +398,6 @@ def limit_itemlist(itemlist):
 
 
 def play_from_library(item):
-    itemlist=[]
     """
         The .strm files when played from kodi, this expects it to be a "playable" file so it cannot contain
         more items, at most a selection dialog can be placed.
@@ -452,115 +408,67 @@ def play_from_library(item):
         @type item: item
         @param item: item with information
     """
+    import xbmcgui, xbmcplugin, xbmc
+    from time import sleep
+
+    itemlist=[]
     item.fromLibrary = True
     logger.info()
     # logger.debug("item: \n" + item.tostring('\n'))
 
-    import xbmcgui
-    import xbmcplugin
-    import xbmc
-    from time import sleep, time
-    from specials import nextep
-
-    # We try to reproduce an image (this does nothing and also does not give an error)
+    # Try to reproduce an image (this does nothing and also does not give an error)
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-
-    # Just in case the image did (in future versions) we give stop to stop the reproduction
-    # sleep(0.5)              ### If you don't put this on you crash Kodi
     xbmc.Player().stop()
 
-    # we modify the action (currently the video library needs "findvideos" since this is where the sources are searched
+    # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
-    check_next_ep = nextep.check(item)
-
 
     window_type = config.get_setting("window_type", "videolibrary")
-
-    # and we launch kodi again
+    # and launch kodi again
     if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
         # Conventional window
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
 
     else:
-
         # Pop-up window
-        item.show_server = True
-
-        from specials import videolibrary, autoplay
+        from specials import videolibrary
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
         p_dialog.update(0, '')
-
+        item.play_from = 'window'
         itemlist = videolibrary.findvideos(item)
+        p_dialog.update(100, ''); sleep(0.5); p_dialog.close()
+        while platformtools.is_playing(): # Conventional window
+            sleep(1)
+        play_time = platformtools.resume_playback(item, True)
+        if not play_time and config.get_setting('autoplay'):
+            return
 
-        if check_next_ep and autoplay.is_active(item.contentChannel):
-            p_dialog.update(100, '')
-            sleep(0.5)
-            p_dialog.close()
-            item = nextep.return_item(item)
-            if item.next_ep:
-                return play_from_library(item)
+        # The number of links to show is limited
+        if config.get_setting("max_links", "videolibrary") != 0: itemlist = limit_itemlist(itemlist)
+        # The list of links is slightly "cleaned"
+        if config.get_setting("replace_VD", "videolibrary") == 1: itemlist = reorder_itemlist(itemlist)
 
-        else:
-            while platformtools.is_playing():
-                    # Conventional window
-                    sleep(5)
-            p_dialog.update(50, '')
-
-        it = item
-        if item.show_server or not check_next_ep:
-
-            # The links are filtered according to the blacklist
-            # if config.get_setting('filter_servers', "servers"):
-            #     itemlist = servertools.filter_servers(itemlist)
-
-            # The number of links to show is limited
-            if config.get_setting("max_links", "videolibrary") != 0:
-                itemlist = limit_itemlist(itemlist)
-
-            # The list of links is slightly "cleaned"
-            if config.get_setting("replace_VD", "videolibrary") == 1:
-                itemlist = reorder_itemlist(itemlist)
-
-
-            p_dialog.update(100, '')
-            sleep(0.5)
-            p_dialog.close()
-
-
-            if len(itemlist) > 0:
-                while not xbmc.Monitor().abortRequested():
-                    # The user chooses the mirror
-                    opciones = []
-                    for item in itemlist:
-                        opciones.append(item.title)
-
-                    # The selection window opens
-                    if (item.contentSerieName != "" and
-                                item.contentSeason != "" and
-                                item.contentEpisodeNumber != ""):
-                        cabecera = ("%s - %sx%s -- %s" %
-                                    (item.contentSerieName,
-                                    item.contentSeason,
-                                    item.contentEpisodeNumber,
-                                    config.get_localized_string(30163)))
+        if len(itemlist) > 0:
+            while not xbmc.Monitor().abortRequested():
+                # The user chooses the mirror
+                options = []
+                selection_implementation = 0
+                for item in itemlist:
+                    item.thumbnail = config.get_online_server_thumb(item.server)
+                    quality = '[B][' + item.quality + '][/B]' if item.quality else ''
+                    if item.server:
+                        it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (item.server, quality, item.contentTitle))
+                        it.setArt({'thumb':item.thumbnail})
+                        options.append(it)
                     else:
-                        cabecera = config.get_localized_string(30163)
-
-
-                    seleccion = platformtools.dialog_select(cabecera, opciones)
-
-                    if seleccion == -1:
-                        return
-                    else:
-                        item = videolibrary.play(itemlist[seleccion])[0]
-                        item.play_from = 'window'
-                        platformtools.play_video(item)
-
-                    if (platformtools.is_playing() and item.action) or item.server == 'torrent' or autoplay.is_active(item.contentChannel):
-                        break
-
-        if it.show_server and check_next_ep:
-            nextep.run(it)
-            sleep(0.5)
-            p_dialog.close()
-
+                        selection_implementation += 1
+                # The selection window opens
+                if (item.contentSerieName and item.contentSeason and item.contentEpisodeNumber): head = ("%s - %sx%s | %s" % (item.contentSerieName, item.contentSeason, item.contentEpisodeNumber, config.get_localized_string(30163)))
+                else: head = config.get_localized_string(30163)
+                selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
+                if selection == -1:
+                    return
+                else:
+                    item = videolibrary.play(itemlist[selection  + selection_implementation])[0]
+                    platformtools.play_video(item)
+                if (platformtools.is_playing() and item.action) or item.server == 'torrent' or config.get_setting('autoplay'): break

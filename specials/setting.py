@@ -292,52 +292,42 @@ def server_debrid_config(item):
 
 def servers_blacklist(item):
     server_list = servertools.get_servers_list()
-    dict_values = {}
+    blacklisted = []
 
-    list_controls = [{"id": "filter_servers",
-                      "type": "bool",
-                      "label": "@30068",
-                      "default": False,
-                      "enabled": True,
-                      "visible": True}]
-    dict_values['filter_servers'] = config.get_setting('filter_servers')
-    if dict_values['filter_servers'] == None:
-        dict_values['filter_servers'] = False
+    list_controls = []
+    list_servers = []
+
     for i, server in enumerate(sorted(server_list.keys())):
         server_parameters = server_list[server]
-        controls, defaults = servertools.get_server_controls_settings(server)
-        dict_values[server] = config.get_setting("black_list", server=server)
+        defaults = servertools.get_server_parameters(server)
 
-        control = {"id": server,
-                   "type": "bool",
-                   "label": '    %s' % server_parameters["name"],
-                   "default": defaults.get("black_list", False),
-                   "enabled": "eq(-%s,True)" % (i + 1),
-                   "visible": True}
+        control = server_parameters["name"]
+        # control.setArt({'thumb:': server_parameters['thumb'] if 'thumb' in server_parameters else config.get_online_server_thumb(server)})
+        if defaults.get("black_list", False) or config.get_setting("black_list", server=server):
+            blacklisted.append(i)
+
         list_controls.append(control)
+        list_servers.append(server)
+    ris = platformtools.dialog_multiselect(config.get_localized_string(60550), list_controls, preselect=blacklisted)
+    if ris is not None:
+        cb_servers_blacklist({list_servers[n]: True if n in ris else False for n, it in enumerate(list_controls)})
+    # return platformtools.show_channel_settings(list_controls=list_controls, dict_values=dict_values, caption=config.get_localized_string(60550), callback="cb_servers_blacklist")
 
-    return platformtools.show_channel_settings(list_controls=list_controls, dict_values=dict_values,
-                                               caption=config.get_localized_string(60550), callback="cb_servers_blacklist")
 
-
-def cb_servers_blacklist(item, dict_values):
-    f = False
+def cb_servers_blacklist(dict_values):
+    blaklisted = []
     progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
     n = len(dict_values)
     i = 1
     for k, v in list(dict_values.items()):
-        if k == 'filter_servers':
-            config.set_setting('filter_servers', v)
-        else:
-            config.set_setting("black_list", v, server=k)
-            if v:  # If the server is blacklisted it cannot be in the favorites list
-                config.set_setting("favorites_servers_list", 100, server=k)
-                f = True
-                progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
+        config.set_setting("black_list", v, server=k)
+        if v:  # If the server is blacklisted it cannot be in the favorites list
+            config.set_setting("favorites_servers_list", 0, server=k)
+            blaklisted.append(k)
+            f = True
+            progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
         i += 1
-
-    if not f:  # If there is no server in the list, deactivate it
-        config.set_setting('filter_servers', False)
+    config.set_setting("black_list", blaklisted, server='servers')
 
     progreso.close()
 
@@ -347,12 +337,19 @@ def servers_favorites(item):
     dict_values = {}
 
     list_controls = [{'id': 'favorites_servers',
-                      'type': "bool",
+                      'type': 'bool',
                       'label': config.get_localized_string(60577),
                       'default': False,
                       'enabled': True,
+                      'visible': True},
+                     {'id': 'quality_priority',
+                      'type': 'bool',
+                      'label': config.get_localized_string(30069),
+                      'default': False,
+                      'enabled': 'eq(-1,True)',
                       'visible': True}]
     dict_values['favorites_servers'] = config.get_setting('favorites_servers')
+    dict_values['quality_priority'] = config.get_setting('quality_priority')
     if dict_values['favorites_servers'] == None:
         dict_values['favorites_servers'] = False
 
@@ -369,13 +366,13 @@ def servers_favorites(item):
         if orden > 0:
             dict_values[orden] = len(server_names) - 1
 
-    for x in range(1, 6):
+    for x in range(1, 12):
         control = {'id': x,
-                   'type': "list",
+                   'type': 'list',
                    'label': config.get_localized_string(60597) % x,
                    'lvalues': server_names,
                    'default': 0,
-                   'enabled': "eq(-%s,True)" % x,
+                   'enabled': 'eq(-%s,True)' % str(x + 1),
                    'visible': True}
         list_controls.append(control)
 
@@ -385,11 +382,14 @@ def servers_favorites(item):
 
 def cb_servers_favorites(server_names, dict_values):
     dict_name = {}
+    dict_favorites = {}
     progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
 
     for i, v in list(dict_values.items()):
         if i == "favorites_servers":
             config.set_setting("favorites_servers", v)
+        elif i == "quality_priority":
+            config.set_setting("quality_priority", v)
         elif int(v) > 0:
             dict_name[server_names[v]] = int(i)
 
@@ -398,11 +398,19 @@ def cb_servers_favorites(server_names, dict_values):
     i = 1
     for server, server_parameters in servers_list:
         if server_parameters['name'] in list(dict_name.keys()):
+            dict_favorites[dict_name[server_parameters['name']]] = server
             config.set_setting("favorites_servers_list", dict_name[server_parameters['name']], server=server)
         else:
             config.set_setting("favorites_servers_list", 0, server=server)
         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % server_parameters['name'])
         i += 1
+
+    c = 2
+    favorites_servers_list = []
+    while c in dict_favorites:
+        favorites_servers_list.append(dict_favorites[c])
+        c += 1
+    config.set_setting("favorites_servers_list", favorites_servers_list, server='servers')
 
     if not dict_name:  # If there is no server in the list, deactivate it
         config.set_setting("favorites_servers", False)
@@ -716,7 +724,7 @@ def channels_onoff(item):
 
     # Dialog to select
     # ------------------------
-    ret = xbmcgui.Dialog().multiselect(config.get_localized_string(60545), lista, preselect=preselect, useDetails=True)
+    ret = platformtools.dialog_multiselect(config.get_localized_string(60545), lista, preselect=preselect, useDetails=True)
     if ret == None: return False # order cancel
     seleccionados = [ids[i] for i in ret]
 

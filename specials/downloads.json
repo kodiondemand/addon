@@ -1,6 +1,6 @@
 {
   "id": "downloads",
-  "name": "Descargas",
+  "name": "Download",
   "active": false,
   "language": ["*"],
   "categories": [
@@ -84,38 +84,6 @@
       "default": 5,
       "enabled": true,
       "visible": true
-    },
-    {
-      "type": "label",
-      "label": "@70237",
-      "enabled": true,
-      "visible": true
-    },
-    {
-      "id": "server_reorder",
-      "type": "list",
-      "label": "@70238",
-      "lvalues": [
-        "@70244",
-        "@70245"
-      ],
-      "default": 0,
-      "enabled": true,
-      "visible": true
-    },
-    {
-      "id": "language",
-      "type": "list",
-      "label": "@70246",
-      "lvalues": [
-        "Ita, Sub, Eng",
-        "Eng, Ita, Sub",
-        "Sub, Ita, Eng",
-        "Eng, Sub, Ita"
-      ],
-      "default": 0,
-      "enabled": "eq(-1,'@70245')",
-      "visible": "eq(-1,'@70245')"
-    }    
+    }
   ]
 }

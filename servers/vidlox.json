@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "vidlox",
-  "name": "vidlox",
+  "name": "Vidlox",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s1.postimg.cc/wathgtvin/logo-vidlox1.png"
+  ]
 }

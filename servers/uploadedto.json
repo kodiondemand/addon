@@ -23,7 +23,7 @@
       "uploaded"
     ]
   },
-  "name": "uploadedto",
+  "name": "Uploaded",
   "premium": [
     "uploadedto",
     "realdebrid",
@@ -79,6 +79,5 @@
       "type": "text",
       "visible": true
     }
-  ],
-  "thumbnail": "server_uploadedto.png"
+  ]
 }

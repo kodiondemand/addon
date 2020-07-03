@@ -288,10 +288,6 @@ def get_links(list_item, item, list_language, list_quality=None, global_filter_l
 
     second_lang = config.get_setting('second_language')
 
-    # Sort by favorite servers, delete blacklist servers and disabled
-    from core import servertools
-    list_item= servertools.filter_servers(list_item)
-
     logger.debug("total de items : %s" % len(list_item))
 
     new_itemlist = []

@@ -15,7 +15,7 @@
   },
   "free": true,
   "id": "mailru",
-  "name": "mailru",
+  "name": "Mailru",
   "settings": [
     {
       "default": false,
@@ -41,6 +41,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s26.postimg.cc/6ebn509jd/mailru1.png"
+  ]
 }

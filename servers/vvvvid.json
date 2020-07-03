@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "vvvvid",
-  "name": "vvvvid",
+  "name": "VVVVID",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": ""
+  ]
 }

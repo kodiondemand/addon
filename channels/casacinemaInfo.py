@@ -32,8 +32,8 @@ from core.item import Item
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
-list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
-list_quality = ['default', 'HD', '3D', '4K', 'DVD', 'SD']
+
+
 
 @support.menu
 def mainlist(item):

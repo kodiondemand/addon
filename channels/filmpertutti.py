@@ -16,8 +16,8 @@ def findhost():
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
-list_servers = ['mixdrop', 'akvideo', 'wstream', 'onlystream', 'speedvideo']
-list_quality = ['HD', 'SD']
+
+
 
 @support.menu
 def mainlist(item):

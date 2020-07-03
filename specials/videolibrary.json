@@ -210,21 +210,6 @@
       "visible": true
     },
     {
-      "id": "watched_setting",
-      "type": "list",
-      "label": "@60635",
-      "default": 3,
-      "visible": true,
-      "enabled": "eq(-1,true)",
-      "lvalues": [
-        "5 min",
-        "30%",
-        "50%",
-        "80%",
-        "@60636"
-      ]
-    },
-    {
       "id": "sync_trakt",
       "type": "label",
       "label": "@60637",

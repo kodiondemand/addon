@@ -76,6 +76,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
     anime = True
     if 'movie' in item.url:
         item.contentType = 'movie'
@@ -88,7 +89,7 @@ def peliculas(item):
         patronBlock = r'<div id="%s"[^>]+>(?P<block>.*?)<div class="vistaDettagliata"' % item.args[1]
         patron = r'<li>\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="thumb">[^>]+>[^>]+>[^>]+>\s*[EePp]+\s*(?P<episode>\d+)[^>]+>[^>]+>[^>]+>(?P<lang>[^<]*)<[^>]+>[^>]+>\s<img src="(?P<thumb>[^"]+)"'
     else:
-        patron = r'<div class="showStreaming"> <b>(?P<title>[^<]+)[^>]+>[^>]+>\s*Stato streaming: (?:[^<]+)<[^>]+>[^>]+>\s*Lingua:[ ](?P<lang>ITA\/JAP|ITA|JAP|SUB ITA)?[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<div class="[^"]+" style="background: url\((?P<thumb>[^\)]+)\)'
+        patron = r'<div class="showStreaming"> <b>(?P<title>[^<]+)[^>]+>[^>]+>\s*<span>Lingua:\s*(?P<lang>[^>]+)?>[<>br\s]+a href="(?P<url>[^"]+)"[^>]+>.*?--image-url:url\(/*(?P<thumb>[^\)]+).*?Anno di inizio</b>:\s*(?P<year>[0-9]{4})'
         patronNext = '<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">'
 
     return locals()
@@ -120,14 +121,7 @@ def findvideos(item):
         return episodios(item)
 
     if 'vvvvid' in matches.data:
-        itemlist.append(
-                support.Item(channel=item.channel,
-                            action="play",
-                            contentType=item.contentType,
-                            title='vvvid',
-                            url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match,
-                            server='vvvvid',
-                            ))
+        itemlist.append(item.clone(action="play", title='VVVVID', url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match, server='vvvvid'))
     else:
     # matches.matches.sort()
         support.log('VIDEO')
@@ -139,17 +133,7 @@ def findvideos(item):
                 language = 'Sub-' + language
             quality = url.split('/')[-1].split('?')[0]
 
-            itemlist.append(
-                support.Item(channel=item.channel,
-                            action="play",
-                            contentType=item.contentType,
-                            title=language,
-                            url=url,
-                            contentLanguage = language,
-                            quality = quality,
-                            order = quality.replace('p','').zfill(4),
-                            server='directo',
-                            ))
+            itemlist.append(item.clone(action="play", title=language, url=url, contentLanguage = language, quality = quality, order = quality.replace('p','').zfill(4), server='directo',))
 
     itemlist.sort(key=lambda x: (x.title, x.order), reverse=False)
     return support.server(item, itemlist=itemlist)

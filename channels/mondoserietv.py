@@ -9,8 +9,8 @@ host = support.config.get_channel_url()
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['akstream', 'wstream', 'vidtome', 'backin', 'nowvideo', 'verystream']
-list_quality = ['default']
+
+
 
 headers = {'Referer': host}
 

@@ -22,9 +22,6 @@ from platformcode import config
 host = config.get_channel_url()
 headers = [['Referer', host]]
 
-list_servers = ['speedvideo']
-list_quality = []
-
 
 @support.menu
 def mainlist(item):

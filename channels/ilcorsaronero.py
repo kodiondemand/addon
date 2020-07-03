@@ -15,8 +15,8 @@ support.log('HOST',host)
 # host = 'https://ilcorsaronero.xyz'
 headers = [['Referer', host]]
 
-list_servers = ['torrent']
-list_quality = ['default']
+
+
 
 @support.menu
 def mainlist(item):
@@ -51,8 +51,7 @@ def peliculas(item):
     if item.args[1] in ['tvshow', 'anime', 'music', 'other']:
         patron = r'>[^"<]+'
     else:
-        patron = r'>(?P<quality>[^"<]+)'
-    patron += '</td> <TD[^>]+><A class="tab" HREF="(?P<url>[^"]+)"\s*>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<size>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<seed>[^<]+)'
+        patron = r'>(?P<quality>[^"<]+)</td> <TD[^>]+><A class="tab" HREF="(?P<url>[^"]+)"\s*>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<size>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<seed>[^<]+)'
     def itemHook(item):
         item.contentType = item.args[1]
 
@@ -62,21 +61,13 @@ def peliculas(item):
         def itemlistHook(itemlist):
             args = item.args
             args[0] += 1
-            itemlist.append(
-                support.Item(channel=item.channel,
-                            action = item.action,
-                            contentType=item.contentType,
-                            title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),
-                            url=item.url,
-                            args=args,
-                            thumbnail=support.thumb()))
+            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), args=args, thumbnail=support.thumb()))
             return itemlist
     return locals()
 
 
 def search(item, text):
     support.log(item, text)
-    itemlist = []
     if 'all' in item.args:
         item.url += text
     else:

@@ -3,7 +3,7 @@
 # Backup and restore video library
 # ------------------------------------------------------------
 
-import datetime, xbmc
+import datetime,  xbmc
 
 from core import ziptools, videolibrarytools, filetools
 from platformcode import logger, config, platformtools, xbmc_videolibrary

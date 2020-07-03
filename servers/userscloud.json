@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "userscloud",
-  "name": "userscloud",
+  "name": "Userscloud",
   "premium": [
     "realdebrid",
     "alldebrid"
@@ -41,6 +41,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://i.imgur.com/u4W2DgA.png?1"
+  ]
 }

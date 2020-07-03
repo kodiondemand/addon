@@ -13,8 +13,8 @@ from xml.dom import minidom
 
 host = 'http://api.radiotime.com'
 headers = [['Referer', host]]
-list_servers = ['directo']
-list_quality = ['default']
+
+
 
 @support.scrape
 def mainlist(item):
@@ -27,14 +27,7 @@ def mainlist(item):
         return item
     def itemlistHook(itemlist):
         itemlist.append(
-            support.Item(
-                channel=item.channel,
-                title=support.typo('Cerca...', 'bold color kod'),
-                url = item.url,
-                action='search',
-                thumbnail=support.thumb(thumb='search.png')))
-        support.autoplay.init(item.channel, list_servers, list_quality)
-        support.autoplay.show_option(item.channel, itemlist)
+            item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb(thumb='search.png')))
         support.channel_config(item, itemlist)
         return itemlist
     return locals()
@@ -47,16 +40,12 @@ def radio(item):
     if data.matches:
         for title, location, url, quality, song, type, thumbnail in data.matches:
             itemlist.append(
-                support.Item(
-                    channel = item.channel,
-                    title = support.typo(title, 'bold') + support.typo(quality + ' kbps','_ [] bold color kod'),
-                    thumbnail = thumbnail,
-                    url = url,
-                    contentType = 'music',
-                    plot = support.typo(location, 'bold') + '\n' + song,
-                    action = 'findvideos'
-                )
-            )
+                item.clone(title = support.typo(title, 'bold') + support.typo(quality + ' kbps','_ [] bold color kod'),
+                           thumbnail = thumbnail,
+                           url = url,
+                           contentType = 'music',
+                           plot = support.typo(location, 'bold') + '\n' + song,
+                           action = 'findvideos'))
     else:
         matches = support.match(data.data, patron= r'text="(?P<title>[^\("]+)(?:\([^\)]+\))?" URL="(?P<url>[^"]+)" (?:guide_id="[^"]+" )?(?:stream_type="[^"]+" )?topic_duration="(?P<duration>[^"]+)" subtext="(?P<plot>[^"]+)" item="[^"]+" image="(?P<thumb>[^"]+)"').matches
         if matches:
@@ -64,29 +53,22 @@ def radio(item):
                 infoLabels={}
                 infoLabels['duration'] = duration
                 itemlist.append(
-                    support.Item(
-                        channel = item.channel,
-                        title = support.typo(title, 'bold'),
-                        thumbnail = thumbnail,
-                        infolLbels = infoLabels,
-                        url = url,
-                        contentType = 'music',
-                        plot = plot,
-                        action = 'findvideos'
-                    )
-                )
+                    item.clone(title = support.typo(title, 'bold'),
+                               thumbnail = thumbnail,
+                               infolLbels = infoLabels,
+                               url = url,
+                               contentType = 'music',
+                               plot = plot,
+                               action = 'findvideos'))
         else:
             matches = support.match(data.data, patron= r'text="(?P<title>[^"]+)" URL="(?P<url>[^"]+)"').matches
             for title, url in matches:
                 itemlist.append(
-                    support.Item(
-                        channel = item.channel,
-                        title = support.typo(title, 'bold'),
-                        thumbnail = item.thumbnail,
-                        url = url,
-                        action = 'radio'
-                    )
-                )
+                    item.clone(channel = item.channel,
+                               title = support.typo(title, 'bold'),
+                               thumbnail = item.thumbnail,
+                               url = url,
+                               action = 'radio'))
     return itemlist
 
 

@@ -9,8 +9,8 @@ from core.support import config, log
 
 host = config.get_channel_url()
 
-list_servers = ['mixdrop', 'speedvideo', 'gounlimited', 'onlystream', 'youtube']
-list_quality = ['default']
+
+
 
 headers = [['Referer', host]]
 

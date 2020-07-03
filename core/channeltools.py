@@ -256,7 +256,7 @@ def get_channel_setting(name, channel, default=None):
     file_settings = filetools.join(config.get_data_path(), "settings_channels", channel + "_data.json")
     dict_settings = {}
     dict_file = {}
-    if channel not in ['trakt']: def_settings = get_default_settings(channel)
+    if channel not in ['trakt', 'autoplay']: def_settings = get_default_settings(channel)
 
     if filetools.exists(file_settings):
         # We get saved configuration from ../settings/channel_data.json

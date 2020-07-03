@@ -9,8 +9,8 @@ from core import httptools, support, scrapertools
 from core.item import Item
 from platformcode import config
 
-list_servers = ['akstream', 'wstream', 'backin', 'clipwatching', 'cloudvideo', 'verystream', 'onlystream', 'mixdrop']
-list_quality = ['default']
+
+
 
 # rimanda a .today che contiene tutti link a .plus
 # def findhost():

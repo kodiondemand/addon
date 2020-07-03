@@ -10,8 +10,8 @@ host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 
-list_servers = ['mixdrop', 'vidoza', 'vcstream', 'gounlimited']
-list_quality = ['1080p', '720p', '480p', '360']
+
+
 
 @support.menu
 def mainlist(item):

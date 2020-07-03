@@ -11,7 +11,7 @@
   },
   "free": false,
   "id": "rapidgator",
-  "name": "rapidgator",
+  "name": "Rapid Gator",
   "premium": [
     "realdebrid",
     "alldebrid"
@@ -41,6 +41,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "server_rapidgator.png"
+  ]
 }

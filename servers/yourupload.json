@@ -21,7 +21,7 @@
   },
   "free": true,
   "id": "yourupload",
-  "name": "yourupload",
+  "name": "YourUpload",
   "settings": [
     {
       "default": false,
@@ -47,6 +47,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail" : "https://s1.postimg.cc/4wje61el4f/yourupload1.png"
+  ]
 }

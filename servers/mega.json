@@ -27,7 +27,7 @@
   },
   "free": true,
   "id": "mega",
-  "name": "mega",
+  "name": "Mega",
   "premium": [
     "realdebrid"
   ],
@@ -56,6 +56,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "server_mega.png"
+  ]
 }

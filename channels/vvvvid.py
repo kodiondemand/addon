@@ -30,8 +30,8 @@ except:
 
 main_host = host
 host += '/vvvvid/ondemand/'
-list_servers = ['vvvvid']
-list_quality = ['default']
+
+
 
 @support.menu
 def mainlist(item):
@@ -123,12 +123,10 @@ def peliculas(item):
         for key in keys:
             if key not in ['1','2']:
                 itemlist.append(
-                    Item(channel = item.channel,
-                        title = support.typo(key.upper() if Filter == 'filter' else key['name'], 'bold'),
-                        url =  item.url + item.args + (key if Filter == 'filter' else str(key['id'])),
-                        action = 'peliculas',
-                        args = 'filters',
-                        contentType = item.contentType))
+                    item.clone(title = support.typo(key.upper() if Filter == 'filter' else key['name'], 'bold'),
+                               url =  item.url + item.args + (key if Filter == 'filter' else str(key['id'])),
+                               action = 'peliculas',
+                               args = 'filters'))
 
     else :
         json_file=loadjs(item.url)
@@ -167,19 +165,10 @@ def episodios(item):
             if make_item == True:
                 if type(title) == tuple: title = title[0]
                 itemlist.append(
-                    Item(
-                        channel = item.channel,
-                        title = title,
-                        fulltitle= item.fulltitle,
-                        show= item.show,
-                        url=  host + show_id + '/season/' + str(key['season_id']) + '/',
-                        action= 'findvideos',
-                        video_id= key['video_id'],
-                        thumbnail= item.thumbnail,
-                        fanart = item.fanart,
-                        plot=item.plot,
-                        contentType = item.contentType
-                    ))
+                    item.clone(title = title,
+                               url=  host + show_id + '/season/' + str(key['season_id']) + '/',
+                               action= 'findvideos',
+                               video_id= key['video_id']))
     autorenumber.renumber(itemlist, item, 'bold')
     if autorenumber.check(item) == True \
         or support.match(itemlist[0].title, patron=r"(\d+x\d+)").match:
@@ -204,10 +193,10 @@ def findvideos(item):
                 url = support.match('https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/playlist.m3u').data
                 url = url.split()[-1]
                 itemlist.append(
-                    Item(action= 'play',
-                         title='direct',
-                         url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
-                         server= 'directo')
+                    item.clone(action= 'play',
+                               title='direct',
+                               url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
+                               server= 'directo')
                 )
     return support.server(item, itemlist=itemlist, Download=False)
 
@@ -220,18 +209,15 @@ def make_itemlist(itemlist, item, data):
             infoLabels['title'] = infoLabels['tvshowtitle'] = key['title']
             title = encode(key['title'])
             itemlist.append(
-                Item(
-                    channel = item.channel,
-                    title = support.typo(title, 'bold'),
-                    fulltitle= title,
-                    show= title,
-                    url= host + str(key['show_id']) + '/seasons/',
-                    action= 'findvideos' if item.contentType == 'movie' else 'episodios',
-                    contentType = item.contentType,
-                    contentSerieName= key['title'] if item.contentType != 'movie' else '',
-                    contentTitle= title if item.contentType == 'movie' else '',
-                    infoLabels=infoLabels
-            ))
+                item.clone(title = support.typo(title, 'bold'),
+                           fulltitle= title,
+                           show= title,
+                           url= host + str(key['show_id']) + '/seasons/',
+                           action= 'findvideos' if item.contentType == 'movie' else 'episodios',
+                           contentType = item.contentType,
+                           contentSerieName= key['title'] if item.contentType != 'movie' else '',
+                           contentTitle= title if item.contentType == 'movie' else '',
+                           infoLabels=infoLabels))
     return itemlist
 
 def loadjs(url):

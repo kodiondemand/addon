@@ -7,6 +7,7 @@ import re
 
 try:
     import urllib.parse as urllib
+    # unichr = chr
 except ImportError:
     import urllib
 
@@ -31,6 +32,21 @@ def test_video_exists(page_url):
         # logger.info('WCODE=' + code)
         page_url = 'https://116.202.226.34/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
+
+    if 'nored.icu' in str(headers):
+        var = scrapertools.find_single_match(data, r'var [a-zA-Z0-9]+ = \[([^\]]+).*?')
+        value = scrapertools.find_single_match(data, r'String\.fromCharCode\(parseInt\(value\) \D (\d+)')
+        if var and value:
+            dec = ''
+            for v in var.split(','):
+                dec += chr(int(v) - int(value))
+            page_url = 'https://116.202.226.34/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
+            headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],['Host', 'wstream.video']]
+            # from core.support import dbg;dbg()
+            new_data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
+            logger.info('NEW DATA: \n' + new_data)
+            if new_data:
+                data = new_data
 
     real_url = page_url
     if "Not Found" in data or "File was deleted" in data or 'Video is processing' in data or 'Sorry this video is unavailable' in data:
@@ -80,7 +96,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     global data, real_url, headers
     # from core.support import dbg;dbg()
-    logger.info(data)
+    # logger.info(data)
 
     sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
@@ -103,7 +119,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     headers.append(['Referer', real_url.replace('116.202.226.34', headers[1][1])])
     _headers = urllib.urlencode(dict(headers))
 
-    post_data = scrapertools.find_single_match(data, r"</div>\s*<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
+    post_data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
     if post_data != "":
         from lib import jsunpack
         data = jsunpack.unpack(post_data)

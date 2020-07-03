@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "jetload",
-  "name": "jetload",
+  "name": "Jetload",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://jetload.net/jetlogo.png"
+  ]
 }

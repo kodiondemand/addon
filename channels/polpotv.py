@@ -13,8 +13,8 @@ host = config.get_channel_url()
 
 headers = [['Accept', 'application/ld+json']]
 
-list_servers = ['directo']
-list_quality = ['1080p','720p','480p','360p']
+
+
 
 @support.menu
 def mainlist(item):
@@ -90,18 +90,11 @@ def get_season(item, seas_url, seasonNumber):
     json_object = jsontools.load(data)
     for episode in json_object['hydra:member']:
         itemlist.append(
-            Item(channel=item.channel,
-                 action='findvideos',
-                 contentType='episode',
-                 fulltitle=item.fulltitle,
-                 show=item.show,
-                 contentSerieName=item.contentSerieName,
-                 title=str(seasonNumber)+"x"+str("%02d"%episode['episodeNumber']),
-                 url=seas_url,
-                 thumbnail=item.thumbnail,
-                 fanart=item.fanart,
-                 plot=item.plot,
-                 extra=str(len(json_object['hydra:member'])-episode['episodeNumber'])))
+            item.clone(action='findvideos',
+                       contentType='episode',
+                       title=str(seasonNumber)+"x"+str("%02d"%episode['episodeNumber']),
+                       url=seas_url,
+                       extra=str(len(json_object['hydra:member'])-episode['episodeNumber'])))
     return itemlist[::-1]
 
 def search(item, texto):
@@ -135,12 +128,10 @@ def search_movie_by_genre(item):
     json_object = jsontools.load(data)
     for genre in json_object['hydra:member']:
         itemlist.append(
-            Item(channel=item.channel,
-             action="peliculas",
-             title=support.typo(genre['name'],'bold'),
-             contentType='movie',
-             url="%s/api/movies?genres.id=%s" %(host,genre['id']),
-             extra=item.extra))
+            item.clone(action="peliculas",
+                       title=support.typo(genre['name'],'bold'),
+                       contentType='movie',
+                       url="%s/api/movies?genres.id=%s" %(host,genre['id'])))
     return support.thumb(itemlist, True)
 
 def search_movie_by_year(item):
@@ -150,12 +141,12 @@ def search_movie_by_year(item):
     itemlist = []
     for i in range(100):
         year_to_search = year - i
-        itemlist.append(Item(channel=item.channel,
-                           url="%s/api/movies?releaseDate=%s" %(host,year_to_search),
-                           plot="1",
-                           type="movie",
-                           title=support.typo(year_to_search,'bold'),
-                           action="peliculas"))
+        itemlist.append(
+            item.clone(channel=item.channel,url="%s/api/movies?releaseDate=%s" %(host,year_to_search),
+                       plot="1",
+                       type="movie",
+                       title=support.typo(year_to_search,'bold'),
+                       action="peliculas"))
     return itemlist
 
 def findvideos(item):
@@ -169,17 +160,12 @@ def findvideos(item):
             array_index=int(item.extra)
         for video in json_object['hydra:member'][array_index]['playlist']['videos']:
             itemlist.append(
-                Item(
-                    channel=item.channel,
-                    action="play",
-                    title='Direct',
-                    thumbnail=item.thumbnail,
-                    fulltitle = item.fulltitle,
-                    search = item.search,
-                    url=video['src'],
-                    server='directo',
-                    quality=str(video['size'])+ 'p',
-                    folder=False))
+                item.clone(action="play",
+                           title='Direct',
+                           url=video['src'],
+                           server='directo',
+                           quality=str(video['size'])+ 'p',
+                           folder=False))
     except:
         pass
     return support.server(item, itemlist=itemlist)
@@ -219,22 +205,19 @@ def get_itemlist_element(element,item):
         next_action='episodios'
         quality=''
         url="%s%s"
-    itemlist.append(
-        Item(channel=item.channel,
-             action=next_action,
-             title=support.typo(scrapedtitle,'bold') + quality,
-             fulltitle=scrapedtitle,
-             show=scrapedtitle,
-             plot=scrapedplot,
-             fanart=scrapedfanart,
-             thumbnail=scrapedthumbnail,
-             contentType=item.contentType,
-             contentTitle=scrapedtitle,
-             url=url %(host,element['@id'] ),
-             infoLabels=infoLabels,
-             extra=item.extra))
 
     if item.contentType=='movie':
-        for item in itemlist:
-            item= support.tmdb.find_and_set_infoLabels(item)
+        support.tmdb.set_infoLabels_itemlist(itemlist)
+    itemlist.append(
+        item.clone(action=next_action,
+                   title=support.typo(scrapedtitle, 'bold') + quality,
+                   fulltitle=scrapedtitle,
+                   show=scrapedtitle,
+                   plot=scrapedplot,
+                   fanart=scrapedfanart,
+                   thumbnail=scrapedthumbnail,
+                   contentTitle=scrapedtitle,
+                   url=url % (host, element['@id']),
+                   infoLabels=infoLabels))
+
     return itemlist

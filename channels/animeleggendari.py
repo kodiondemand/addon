@@ -11,8 +11,8 @@ host = support.config.get_channel_url()
 headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0'],
            ['Referer', host]]
 
-list_servers = ['verystream','openload','rapidvideo','streamango']
-list_quality = ['default']
+
+
 
 
 @support.menu

@@ -5,83 +5,63 @@
     <onload>Dialog.Close(videoosd,true)</onload>
     <controls>
         <control type="group">
+            <top>15</top>
+            <right>0</right>
+            <width>140</width>
+            <height>40</height>
             <animation type="WindowOpen" reversible="false">
-                <effect type="fade" start="0" end="100" time="600" />
-                <effect type="slide" start="115,0" end="0,0" time="600" />
+                <effect type="fade" start="0" end="100" time="400" />
+                <effect type="slide" start="115,0" end="0,0" time="400" />
             </animation>
             <animation type="WindowClose" reversible="false">
-                <effect type="fade" start="100" end="0" time="400" />
-                <effect type="slide" start="0,0" end="115,0" time="400" />
+                <effect type="fade" start="100" end="0" time="300" />
+                <effect type="slide" start="0,0" end="115,0" time="300" />
             </animation>
-            <control type="group">
+            <control type="image">
+                <top>0</top>
                 <right>0</right>
-                <top>15</top>
-                <height>50</height>
                 <width>100%</width>
-                <!-- Background -->
-                <control type="image">
-                    <top>0</top>
-                    <width>100%</width>
+                <height>100%</height>
+                <texture colordiffuse="80232323">white.png</texture>
+            </control>
+            <control type="grouplist" id="20">
+                <orientation>horizontal</orientation>
+                <top>0</top>
+                <right>20</right>
+                <height>40</height>
+                <itemgap>0</itemgap>
+                <align>right</align>
+                <control type="button" id="3012">
+                    <label>[B]$INFO[Player.TimeRemaining(secs),,][/B]</label>
                     <height>40</height>
-                    <!-- <texture colordiffuse="00111111">NextDialog/button-bg.png</texture> -->
+                    <width>80</width>
+                    <font>font30_title</font>
+                    <textoffsetx>10</textoffsetx>
+                    <textcolor>80FFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <selectedcolor>80FFFFFF</selectedcolor>
+                    <shadowcolor>22000000</shadowcolor>
+                    <aligny>center</aligny>
+                    <align>left</align>
+                    <texturefocus border="0" colordiffuse="FFFFFFFF">NextDialog/play.png</texturefocus>
+                    <texturenofocus border="0" colordiffuse="80FFFFFF">NextDialog/play.png</texturenofocus>
+                    <pulseonselect>no</pulseonselect>
                 </control>
-                <control type="group">
-                    <top>0</top>
-                    <right>0</right>
-                    <width>100%</width>
-                    <!-- buttons -->
-                    <control type="button" id="3012">
-                        <left>-1000</left>
-                        <top>-1000</top>
-                        <height>1</height>
-                        <width>1</width>
-                    </control>
-                    <control type="grouplist" id="20">
-                        <orientation>horizontal</orientation>
-                        <height>40</height>
-                        <itemgap>0</itemgap>
-                        <align>right</align>
-                        <control type="button" id="11">
-                            <label>[B]$INFO[Player.TimeRemaining(secs),,][/B]</label>
-                            <onclick>SendClick(3012)</onclick>
-                            <!-- <visible>!Integer.IsGreater(Player.TimeRemaining,59)</visible> -->
-                            <height>40</height>
-                            <width>100</width>
-                            <font>font30_title</font>
-                            <textoffsetx>12</textoffsetx>
-                            <textcolor>80FFFFFF</textcolor>
-                            <focusedcolor>FFFFFFFF</focusedcolor>
-                            <selectedcolor>80FFFFFF</selectedcolor>
-                            <shadowcolor>22000000</shadowcolor>
-                            <aligny>center</aligny>
-                            <align>left</align>
-                            <texturefocus border="10">NextDialog/play-fo.png</texturefocus>
-                            <texturenofocus border="10">NextDialog/play-nf.png</texturenofocus>
-                            <pulseonselect>no</pulseonselect>
-                        </control>
-                        <control type="button" id="3013">
-                            <label></label>
-                            <height>40</height>
-                            <width>40</width>
-                            <font>font30_title</font>
-                            <textoffsetx>30</textoffsetx>
-                            <textcolor>80FFFFFF</textcolor>
-                            <focusedcolor>FFFFFFFF</focusedcolor>
-                            <selectedcolor>80FFFFFF</selectedcolor>
-                            <shadowcolor>22000000</shadowcolor>
-                            <aligny>center</aligny>
-                            <align>center</align>
-                            <texturefocus border="10">NextDialog/close-fo.png</texturefocus>
-                            <texturenofocus border="10">NextDialog/close-nf.png</texturenofocus>
-                            <pulseonselect>no</pulseonselect>
-                        </control>
-                            <control type="image">
-                            <top>0</top>
-                            <width>20</width>
-                            <height>40</height>
-                            <texture>NextDialog/background.png</texture>
-                        </control>
-                    </control>
+                <control type="button" id="3013">
+                    <label></label>
+                    <height>40</height>
+                    <width>40</width>
+                    <font>font30_title</font>
+                    <textoffsetx>30</textoffsetx>
+                    <textcolor>80FFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <selectedcolor>80FFFFFF</selectedcolor>
+                    <shadowcolor>22000000</shadowcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus border="10" colordiffuse="FFFFFFFF">NextDialog/close.png</texturefocus>
+                    <texturenofocus border="10" colordiffuse="80FFFFFF">NextDialog/close.png</texturenofocus>
+                    <pulseonselect>no</pulseonselect>
                 </control>
             </control>
         </control>

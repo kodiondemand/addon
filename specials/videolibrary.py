@@ -78,7 +78,7 @@ def list_movies(item, silent=False):
                 # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
 
                 for canal_org in new_item.library_urls:
-                    canal = generictools.verify_channel(canal_org)
+                    canal = canal_org
                     try:
                         if canal in ['community', 'downloads']:
                             channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
@@ -202,7 +202,6 @@ def list_tvshows(item):
                 # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
 
                 for canal in item_tvshow.library_urls:
-                    canal = generictools.verify_channel(canal)
                     try:
                         if canal in ['community', 'downloads']:
                             channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
@@ -339,7 +338,7 @@ def configure_update_videolibrary(item):
             preselect.append(i)
 
     # Select Dialog
-    ret = xbmcgui.Dialog().multiselect(config.get_localized_string(60601), lista, preselect=preselect, useDetails=True)
+    ret = platformtools.dialog_multiselect(config.get_localized_string(60601), lista, preselect=preselect, useDetails=True)
     if ret < 0:
         return False  # order cancel
     seleccionados = [ids[i] for i in ret]
@@ -567,6 +566,7 @@ def findvideos(item):
 
         item_json = Item().fromjson(filetools.read(json_path))
         list_servers = []
+        # from core.support import dbg;dbg()
 
         try:
             # FILTERTOOLS
@@ -578,12 +578,14 @@ def findvideos(item):
 
             # We run find_videos, from the channel or common
             item_json.contentChannel = 'videolibrary'
+            item_json.play_from = item.play_from
+            item_json.nfo = item.nfo
+            item_json.strm_path = item.strm_path
             if hasattr(channel, 'findvideos'):
                 from core import servertools
                 if item_json.videolibray_emergency_urls:
                     del item_json.videolibray_emergency_urls
                 list_servers = getattr(channel, 'findvideos')(item_json)
-                list_servers = servertools.filter_servers(list_servers)
             elif item_json.action == 'play':
                 from platformcode import platformtools
                 # autoplay.set_status(True)
@@ -625,10 +627,7 @@ def findvideos(item):
 
     if autoplay.play_multi_channel(item, itemlist):  # hideserver
         return []
-    from inspect import stack
-    from specials import nextep
-    if nextep.check(item) and stack()[1][3] == 'run':
-        nextep.videolibrary(item)
+
     add_download_items(item, itemlist)
     return itemlist
 

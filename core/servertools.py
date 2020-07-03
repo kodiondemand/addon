@@ -118,8 +118,6 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
 
     # We remove the deactivated servers
     # itemlist = filter(lambda i: not i.server or is_server_enabled(i.server), itemlist)
-    # Filter if necessary
-    itemlist = filter_servers(itemlist)
 
     for item in itemlist:
         # We assign "direct" in case the server is not in KoD
@@ -152,23 +150,24 @@ def findvideos(data, skip=False):
     servers_list = list(get_servers_list().keys())
 
 
-    is_filter_servers = False
+    # is_filter_servers = False
 
     # Run findvideos on each active server
     for serverid in servers_list:
         '''if not is_server_enabled(serverid):
             continue'''
-        if config.get_setting("filter_servers") == True and config.get_setting("black_list", server=serverid):
-            is_filter_servers = True
+        if config.get_setting('servers_blacklist') and serverid not in config.get_setting("black_list", server='servers'):
+        # if config.get_setting("filter_servers") == True and config.get_setting("black_list", server=serverid):
+        #     is_filter_servers = True
             continue
         devuelve.extend(findvideosbyserver(data, serverid))
         if skip and len(devuelve) >= skip:
             devuelve = devuelve[:skip]
             break
-    if config.get_setting("filter_servers") == False:  is_filter_servers = False
-    if not devuelve and is_filter_servers:
-        platformtools.dialog_ok(config.get_localized_string(60000), config.get_localized_string(60001))
-
+    # if config.get_setting("filter_servers") == False:  is_filter_servers = False
+    # logger.info('DEVUELVE: ' + str(devuelve))
+    # if not devuelve and is_filter_servers:
+    #     platformtools.dialog_ok(config.get_localized_string(60000), config.get_localized_string(60001))
     return devuelve
 
 
@@ -214,8 +213,6 @@ def get_server_from_url(url):
     for serverid in servers_list:
         '''if not is_server_enabled(serverid):
             continue'''
-        if config.get_setting("filter_servers") == True and config.get_setting("black_list", server=serverid):
-            continue
         serverid = get_server_name(serverid)
         if not serverid:
             continue
@@ -535,35 +532,35 @@ def get_server_parameters(server):
     return dict_servers_parameters[server]
 
 
-def get_server_json(server_name):
-    # logger.info("server_name=" + server_name)
-    try:
-        server_path = filetools.join(config.get_runtime_path(), "servers", server_name + ".json")
-        if not filetools.exists(server_path):
-            server_path = filetools.join(config.get_runtime_path(), "servers", "debriders", server_name + ".json")
-
-        # logger.info("server_path=" + server_path)
-        server_json = jsontools.load(filetools.read(server_path))
-        # logger.info("server_json= %s" % server_json)
-
-    except Exception as ex:
-        template = "An exception of type %s occured. Arguments:\n%r"
-        message = template % (type(ex).__name__, ex.args)
-        logger.error(" %s" % message)
-        server_json = None
-
-    return server_json
+# def get_server_json(server_name):
+#     # logger.info("server_name=" + server_name)
+#     try:
+#         server_path = filetools.join(config.get_runtime_path(), "servers", server_name + ".json")
+#         if not filetools.exists(server_path):
+#             server_path = filetools.join(config.get_runtime_path(), "servers", "debriders", server_name + ".json")
+#
+#         # logger.info("server_path=" + server_path)
+#         server_json = jsontools.load(filetools.read(server_path))
+#         # logger.info("server_json= %s" % server_json)
+#
+#     except Exception as ex:
+#         template = "An exception of type %s occured. Arguments:\n%r"
+#         message = template % (type(ex).__name__, ex.args)
+#         logger.error(" %s" % message)
+#         server_json = None
+#
+#     return server_json
 
 
 def get_server_host(server_name):
     from core import scrapertools
-    return [scrapertools.get_domain_from_url(pattern['url']) for pattern in get_server_json(server_name)['find_videos']['patterns']]
+    return [scrapertools.get_domain_from_url(pattern['url']) for pattern in get_server_parameters(server_name)['find_videos']['patterns']]
 
 
 def get_server_controls_settings(server_name):
     dict_settings = {}
 
-    list_controls = get_server_json(server_name).get('settings', [])
+    list_controls = get_server_parameters(server_name).get('settings', [])
     import copy
     list_controls = copy.deepcopy(list_controls)
 
@@ -720,33 +717,7 @@ def sort_servers(servers_list):
     return servers_list
 
 
-def filter_servers(servers_list):
-    """
-    If the option "Filter by servers" is activated in the server configuration, removes the servers included in the Black List from the entry list.
-    :param servers_list: List of servers to filter. The items in the servers_list can be strings or Item objects. In which case it is necessary that they have an item.server attribute of type str.
-    :return: List of the same type of objects as servers_list filtered based on the Black List.
-    """
-    # We eliminate the inactive
-    if servers_list:
-        servers_list = [i for i in servers_list if not i.server or is_server_enabled(i.server)]
-
-
-    if servers_list and config.get_setting('filter_servers'):
-        if isinstance(servers_list[0], Item):
-            servers_list_filter = [x for x in servers_list if not config.get_setting("black_list", server=x.server)]
-        else:
-            servers_list_filter = [x for x in servers_list if not config.get_setting("black_list", server=x)]
-
-        # If there are no links after filtering
-        if servers_list_filter or not platformtools.dialog_yesno(config.get_localized_string(60000), config.get_localized_string(60010), config.get_localized_string(70281)):
-            servers_list = servers_list_filter
-
-    return servers_list
-
-
-
 # Checking links
-
 def check_list_links(itemlist, numero='', timeout=3):
     """
     Check a list of video links and return it by modifying the title with verification.

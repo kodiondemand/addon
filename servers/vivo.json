@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "vivo",
-  "name": "vivo",
+  "name": "VIVO",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s15.postimg.cc/oiyhtpdqj/vivo.png"
+  ]
 }

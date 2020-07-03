@@ -124,7 +124,7 @@ def set_category_context(item):
                      "extra": item.extra,
                      "action": "setting_channel",
                      "channel": item.channel}]
-    item.category = config.get_localized_string(60679) % item.extra
+    item.category = config.get_localized_string(60679) % re.sub('\[[^\]]+\]','',item.title).strip()
 
 
 def get_channels_list():

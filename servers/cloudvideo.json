@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "cloudvideo",
-  "name": "cloudvideo",
+  "name": "Cloudvideo",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,6 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "server_cloudvideo.png"
+  ]
 }
+  

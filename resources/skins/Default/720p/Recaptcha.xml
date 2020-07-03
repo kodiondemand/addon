@@ -19,7 +19,7 @@
 			<width>510</width>
 			<height>640</height>
             <left>45</left>
-			<texture>Shortcut/dialog-bg-solid.png</texture>
+			<texture>Controls/dialog-bg-solid.png</texture>
         </control>
 		<control type="textbox" id="10000">
           <top>30</top>
@@ -39,8 +39,8 @@
             <textwidth>110</textwidth>
             <textcolor>FFFFFFFF</textcolor>
             <focusedcolor>FFFFFFFF</focusedcolor>
-            <texturefocus>Controls/KeyboardKey.png</texturefocus>
-            <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>
+            <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000082C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70007]</label>
@@ -57,8 +57,8 @@
             <textwidth>110</textwidth>
             <textcolor>FFFFFFFF</textcolor>
             <focusedcolor>FFFFFFFF</focusedcolor>
-            <texturefocus>Controls/KeyboardKey.png</texturefocus>
-            <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>
+            <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000082C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 707433]</label>
@@ -75,8 +75,8 @@
             <textwidth>110</textwidth>
             <textcolor>FFFFFFFF</textcolor>
             <focusedcolor>FFFFFFFF</focusedcolor>
-            <texturefocus>Controls/KeyboardKey.png</texturefocus>
-            <texturenofocus>Controls/KeyboardKeyNF.png</texturenofocus>
+            <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+            <texturenofocus colordiffuse="000082C2">white.png</texturenofocus>
             <align>center</align>
             <aligny>center</aligny>
             <label>$ADDON[plugin.video.kod 70008]</label>
@@ -96,9 +96,9 @@
             <left>75</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10002</onup>
 			<ondown>10008</ondown>
@@ -110,9 +110,9 @@
             <left>225</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10003</onup>
 			<ondown>10009</ondown>
@@ -124,9 +124,9 @@
             <left>375</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10004</onup>
 			<ondown>10010</ondown>
@@ -138,9 +138,9 @@
             <left>75</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10005</onup>
 			<ondown>10011</ondown>
@@ -152,9 +152,9 @@
             <left>225</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10006</onup>
 			<ondown>10012</ondown>
@@ -166,9 +166,9 @@
             <left>375</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10007</onup>
 			<ondown>10013</ondown>
@@ -180,9 +180,9 @@
             <left>75</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10008</onup>
 			<ondown>10002</ondown>
@@ -194,9 +194,9 @@
             <left>225</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10009</onup>
 			<ondown>10003</ondown>
@@ -208,9 +208,9 @@
             <left>375</left>
             <width>150</width>
             <height>150</height>
-            <texturefocus colordiffuse="AA232323">Controls/background-diffuse.png</texturefocus>
-            <texturenofocus colordiffuse="00232323">Controls/background-diffuse.png</texturenofocus>
-		    <alttexturefocus colordiffuse="FF232323">Controls/check_mark.png</alttexturefocus>
+            <texturefocus colordiffuse="AA232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="00232323">white.png</texturenofocus>
+		    <alttexturefocus colordiffuse="FF0082C2">Controls/check_mark.png</alttexturefocus>
 		    <alttexturenofocus colordiffuse="FFFFFFFF">Controls/check_mark.png</alttexturenofocus>
 			<onup>10010</onup>
 			<ondown>10004</ondown>

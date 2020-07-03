@@ -7,16 +7,12 @@
 
 import re
 
-from core import scrapertools, httptools, support
+from core import support
 from core.support import log
 from core.item import Item
 from platformcode import config
 
 host = config.get_channel_url()
-
-list_servers = ['verystream', 'openload', 'streamango']
-list_quality = ['default']
-
 headers = [['Referer', host]]
 
 @support.menu

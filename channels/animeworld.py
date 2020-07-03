@@ -3,15 +3,12 @@
 # Canale per animeworld
 # ----------------------------------------------------------
 
-from core import  support, jsontools
+from core import support, jsontools
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 __channel__ = 'animeworld'
-
-list_servers = ['directo', 'animeworld', 'vvvvid']
-list_quality = ['default', '480p', '720p', '1080p']
 
 
 def order():
@@ -35,6 +32,7 @@ def genres(item):
     action = 'peliculas'
     patronBlock = r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> Generi <span.[^>]+>(?P<block>.*?)</ul>'
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
+
     def itemHook(item):
         item.url = host + '/filter?' + item.name + '=' + item.value + '&sort='
         return item
@@ -45,7 +43,8 @@ def genres(item):
 def menu(item):
     action = 'submenu'
     patronBlock=r'<form class="filters.*?>(?P<block>.*?)</form>'
-    patronMenu=r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> (?P<title>.*?) <span.[^>]+>(?P<url>.*?)</ul>'
+    patronMenu=r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> (?P<title>.*?) <span.[^>]+>(?P<other>.*?)</ul>'
+
     def itemlistHook(itemlist):
         item.title = support.typo('Tutti','bold')
         item.action = 'peliculas'
@@ -57,7 +56,7 @@ def menu(item):
 @support.scrape
 def submenu(item):
     action = 'peliculas'
-    data = item.url
+    data = item.other
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
     def itemHook(item):
         item.url = host + '/filter?' + item.name + '=' + item.value + '&language[]=' + item.args + '&sort='
@@ -157,20 +156,7 @@ def findvideos(item):
 
         if serverid == '18':
             url = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, ID), patron=r'source src="([^"]+)"', debug=False).match
-            itemlist.append(
-                support.Item(
-                    channel=item.channel,
-                    action="play",
-                    title='diretto',
-                    quality='',
-                    url=url,
-                    server='directo',
-                    fulltitle=item.fulltitle,
-                    contentSerieName=item.contentSerieName,
-                    contentTitle=item.contentTitle,
-                    show=item.show,
-                    contentType=item.contentType,
-                    folder=False))
+            itemlist.append(item.clone(action="play", title='diretto', url=url, server='directo'))
 
         elif serverid == '26':
             matches = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, item.url.split('/')[-1]), patron=r'<a href="([^"]+)"', ).matches

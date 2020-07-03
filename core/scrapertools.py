@@ -40,8 +40,20 @@ def printMatches(matches):
 
 def find_single_match(data, patron, index=0):
     try:
-        matches = re.findall(patron, data, flags=re.DOTALL)
-        return matches[index]
+        if index == 0:
+            matches = re.search(patron, data, flags=re.DOTALL)
+            if matches:
+                if len(matches.groups()) == 1:
+                    return matches.group(1)
+                elif len(matches.groups()) > 1:
+                    return matches.groups()
+                else:
+                    return matches.group()
+            else:
+                return ""
+        else:
+            matches = re.findall(patron, data, flags=re.DOTALL)
+            return matches[index]
     except:
         return ""
 
@@ -91,6 +103,8 @@ def unescape(text):
     from Fredrik Lundh
     http://effbot.org/zone/re-sub.htm#unescape-html
     """
+    if not ('&' in text and ';' in text):
+        return text
 
     def fixup(m):
         text = m.group(0)
@@ -418,7 +432,7 @@ def get_season_and_episode(title):
     """
     filename = ""
 
-    patrons = ["(\d+)\s*[x-]\s*(\d+)", "(\d+)\s*×\s*(\d+)", "(?:[Ss]|[Tt])(\d+)(?:[Ee]|Ep\.)(\d+)",
+    patrons = ["(\d+)\s*[x-]\s*(\d+)", "(\d+)\s*×\s*(\d+)", "(?:[Ss]|[Tt])(\d+)\s?(?:[Ee]|Ep\.?)(\d+)",
                "(?:[Ss]tag|[Ss]eason|[Ss]tagione\w*)\s*(\d+)\s*(?:[Ee]pi|[Ee]pisode|[Ee]pisodio\w*)\s*(\d+)"]
 
     for patron in patrons:

@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "thevid",
-  "name": "thevid",
+  "name": "TheVid",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://thevid.net/imgs/thevid.png"
+  ]
 }

@@ -9,8 +9,8 @@ host = support.config.get_channel_url()
 
 headers = [['Referer', host]]
 
-list_servers = ['wstream', 'openload', 'streamango']
-list_quality = ['HD', 'default']
+
+
 
 
 @support.menu

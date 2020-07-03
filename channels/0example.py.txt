@@ -69,10 +69,6 @@ host = config.get_channel_url(findhost)
 host = config.get_channel_url()
 headers = [['Referer', host]]
 
-# server di esempio...
-list_servers = ['supervideo', 'streamcherry','rapidvideo', 'streamango', 'openload']
-# quality di esempio
-list_quality = ['default', 'HD', '3D', '4K', 'DVD', 'SD']
 
 ### fine variabili
 

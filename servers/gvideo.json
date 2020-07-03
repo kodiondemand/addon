@@ -27,7 +27,7 @@
   },
   "free": true,
   "id": "gvideo",
-  "name": "gvideo",
+  "name": "G Video",
   "premium": [
     "realdebrid",
     "alldebrid"
@@ -57,6 +57,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s11.postimg.cc/giobzkprz/logo-google1.png"
+  ]
 }

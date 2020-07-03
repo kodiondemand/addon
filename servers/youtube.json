@@ -15,7 +15,7 @@
   },
   "free": true,
   "id": "youtube",
-  "name": "youtube",
+  "name": "YouTube",
   "premium": [
     "realdebrid",
     "alldebrid"
@@ -45,6 +45,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "server_youtube.png"
+  ]
 }

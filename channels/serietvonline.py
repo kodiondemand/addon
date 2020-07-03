@@ -28,8 +28,8 @@ def findhost():
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-list_servers = ['akvideo', 'wstream', 'backin', 'vidtome', 'nowvideo']
-list_quality = ['default']
+
+
 
 
 @support.menu
@@ -64,6 +64,7 @@ def peliculas(item):
     blacklist = ['DMCA', 'Contatti', 'Attenzione NON FARTI OSCURARE', 'Lista Cartoni Animati e Anime']
     patronBlock = r'<h1>.+?</h1>(?P<block>.*?)<div class="footer_c">'
     patronNext = r'<div class="siguiente"><a href="([^"]+)" >'
+    # debug = True
 
     if item.args == 'search':
         patronBlock = r'>Lista Serie Tv</a></li></ul></div><div id="box_movies">(?P<block>.*?)<div id="paginador">'
@@ -87,7 +88,7 @@ def peliculas(item):
         pagination = 25
 
         if item.args == 'lista':
-            patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.*?)[ ]?(?P<year>\d+)?(?: Streaming | MD iSTANCE )?<'
+            patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.*?)(?P<year>\d{4})?<'
             patronBlock = r'Lista dei film disponibili in streaming e anche in download\.</p>(?P<block>.*?)<div class="footer_c">'
         else:
             patron = r'<tr><td><a href="(?P<url>[^"]+)"(?:|.+?)?>(?:&nbsp;&nbsp;)?[ ]?(?P<title>.*?)[ ]?(?P<quality>HD)?[ ]?(?P<year>\d+)?(?: | HD | Streaming | MD(?: iSTANCE)? )?</a>'
@@ -183,17 +184,6 @@ def findvideos(item):
             series = support.typo(item.contentSerieName, ' bold color kod')
             itemlist = support.server(item, data=url_video)
 
-            itemlist.append(
-                Item(channel=item.channel,
-                        title=goseries + series,
-                        fulltitle=item.fulltitle,
-                        show=item.show,
-                        contentType='tvshow',
-                        contentSerieName=item.contentSerieName,
-                        url=url_serie,
-                        action='episodios',
-                        contentTitle=item.contentSerieName,
-                        plot = goseries + series + "con tutte le puntate",
-                        ))
+            itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodios', plot = goseries + series + "con tutte le puntate"))
 
         return itemlist

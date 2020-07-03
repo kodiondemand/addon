@@ -19,7 +19,7 @@
         <control type="image">
           <width>100%</width>
           <height>100%</height>
-          <texture colordiffuse="FF232323">Shortcut/white.png</texture>
+          <texture colordiffuse="FF232323">white.png</texture>
         </control>
         <!-- Divider -->
         <control type="image">
@@ -27,7 +27,7 @@
           <right>0</right>
           <width>100%</width>
           <height>1</height>
-          <texture colordiffuse="33FFFFFF">Shortcut/white.png</texture>
+          <texture colordiffuse="33FFFFFF">white.png</texture>
         </control>
         <!-- Header -->
         <control type="label" id="10002">
@@ -47,8 +47,8 @@
           <top>25</top>
           <width>30</width>
           <height>30</height>
-          <texturefocus colordiffuse="FFFFFFFF">Controls/DialogCloseButton-focus.png</texturefocus>
-          <texturenofocus colordiffuse="55FFFFFF">Controls/DialogCloseButton-focus.png</texturenofocus>
+          <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+          <texturenofocus colordiffuse="55FFFFFF">close.png</texturenofocus>
         </control>
         <!-- OK -->
         <control type="button" id="10004">
@@ -58,8 +58,8 @@
           <height>60</height>
           <textwidth>110</textwidth>
           <textcolor>FFFFFFFF</textcolor>
-          <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-          <texturenofocus colordiffuse="FF191919">Shortcut/white.png</texturenofocus>
+          <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+          <texturenofocus colordiffuse="FF191919">white.png</texturenofocus>
           <align>center</align>
           <aligny>center</aligny>
           <label>$ADDON[plugin.video.kod 70001]</label>
@@ -72,8 +72,8 @@
           <height>60</height>
           <textwidth>110</textwidth>
           <textcolor>FFFFFFFF</textcolor>
-          <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-          <texturenofocus colordiffuse="FF191919">Shortcut/white.png</texturenofocus>
+          <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+          <texturenofocus colordiffuse="FF191919">white.png</texturenofocus>
           <align>center</align>
           <aligny>center</aligny>
           <label>$ADDON[plugin.video.kod 70002]</label>
@@ -86,8 +86,8 @@
           <height>60</height>
           <textwidth>110</textwidth>
           <textcolor>FFFFFFFF</textcolor>
-          <texturefocus colordiffuse="FF0081C2">Shortcut/white.png</texturefocus>
-          <texturenofocus colordiffuse="FF191919">Shortcut/white.png</texturenofocus>
+          <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+          <texturenofocus colordiffuse="FF191919">white.png</texturenofocus>
           <align>center</align>
           <aligny>center</aligny>
           <label>$ADDON[plugin.video.kod 70003]</label>
@@ -102,7 +102,7 @@
             <top>0</top>
             <left>0</left>
             <width>900</width>
-            <height>680</height>
+            <height>580</height>
             <font>font20</font>
             <textcolor>FFFFFFFF</textcolor>
             <align>center</align>
@@ -116,14 +116,14 @@
           <right>0</right>
           <width>10</width>
           <height>540</height>
-          <texture border="2" colordiffuse="FF232323">Shortcut/white.png</texture>
+          <texture border="2" colordiffuse="FF232323">white.png</texture>
         </control>
         <control type="image" id="10009">
           <top>120</top>
           <right>0</right>
           <width>10</width>
           <height>540</height>
-          <texture border="2" colordiffuse="33FFFFFF">Shortcut/white.png</texture>
+          <texture border="2" colordiffuse="33FFFFFF">white.png</texture>
         </control>
       </control>
     </controls>

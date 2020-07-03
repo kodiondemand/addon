@@ -135,7 +135,7 @@ def save_movie(item, silent=False):
 
     for raiz, subcarpetas, ficheros in filetools.walk(MOVIES_PATH):
         for c in subcarpetas:
-            code = scrapertools.find_single_match(c, '\[(.*?)\]')
+            code = scrapertools.find_single_match(c, r'\[(.*?)\]')
             if code and code in item.infoLabels['code']:
                 path = filetools.join(raiz, c)
                 _id = code
@@ -192,7 +192,7 @@ def save_movie(item, silent=False):
             headers = {}
             if item.headers:
                 headers = item.headers
-            channel = generictools.verify_channel(item.channel)
+            channel = item.channel
             if config.get_setting("emergency_urls", channel) in [1, 3]:
                 item = emergency_urls(item, None, json_path, headers=headers)
                 if item_nfo.emergency_urls and not isinstance(item_nfo.emergency_urls, dict):
@@ -364,7 +364,7 @@ def filter_list(episodelist, action=None, path=None):
         stop = False
         while not stop:
             for episode in episodelist:
-                title = scrapertools.find_single_match(episode.title, '(\d+x\d+)')
+                title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
                 if not any(title in word for word in ep_list) and episode.contentLanguage == langs[count]:
                     ep_list.append(episode.title)
             if count < len(langs)-1: count += 1
@@ -386,14 +386,14 @@ def filter_list(episodelist, action=None, path=None):
         stop = False
         while not stop:
             for episode in episodelist:
-                title = scrapertools.find_single_match(episode.title, '(\d+x\d+)')
+                title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
                 if not any(title in word for word in ep_list) and episode.quality.lower() in quality_dict[quality_list[selection]]:
                     ep_list.append(episode.title)
             if selection != 0: selection = selection - 1
             else: stop = True
             if quality_list[selection] == 'N/A':
                 for episode in episodelist:
-                    title = scrapertools.find_single_match(episode.title, '(\d+x\d+)')
+                    title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
                     if not any(title in word for word in ep_list):
                         ep_list.append(episode.title)
 
@@ -473,7 +473,7 @@ def save_tvshow(item, episodelist, silent=False):
 
     for raiz, subcarpetas, ficheros in filetools.walk(TVSHOWS_PATH):
         for c in subcarpetas:
-            code = scrapertools.find_single_match(c, '\[(.*?)\]')
+            code = scrapertools.find_single_match(c, r'\[(.*?)\]')
             if code and code != 'None' and code in item.infoLabels['code']:
                 path = filetools.join(raiz, c)
                 _id = code
@@ -602,12 +602,12 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         p_dialog = platformtools.dialog_progress(config.get_localized_string(20000), config.get_localized_string(60064))
         p_dialog.update(0, config.get_localized_string(60065))
 
-    channel_alt = generictools.verify_channel(serie.channel)            # We prepare to add the emergency urls
+    channel_alt = serie.channels                                                    # We prepare to add the emergency urls
     emergency_urls_stat = config.get_setting("emergency_urls", channel_alt)         # Does the channel want emergency urls?
     emergency_urls_succ = False
     try: channel = __import__('specials.%s' % channel_alt, fromlist=["specials.%s" % channel_alt])
     except: channel = __import__('channels.%s' % channel_alt, fromlist=["channels.%s" % channel_alt])
-    if serie.torrent_caching_fail:                              # If the conversion process has failed, they are not cached
+    if serie.torrent_caching_fail:                                                  # If the conversion process has failed, they are not cached
         emergency_urls_stat = 0
         del serie.torrent_caching_fail
 
@@ -679,8 +679,8 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
         high_sea = e.contentSeason
         high_epi = e.contentEpisodeNumber
-        if scrapertools.find_single_match(e.title, '[a|A][l|L]\s*(\d+)'):
-            high_epi = int(scrapertools.find_single_match(e.title, 'al\s*(\d+)'))
+        if scrapertools.find_single_match(e.title, r'[a|A][l|L]\s*(\d+)'):
+            high_epi = int(scrapertools.find_single_match(e.title, r'al\s*(\d+)'))
         max_sea = e.infoLabels["number_of_seasons"]
         max_epi = 0
         if e.infoLabels["number_of_seasons"] and (e.infoLabels["temporada_num_episodios"] or e.infoLabels["number_of_seasons"] == 1):
@@ -981,8 +981,8 @@ def add_tvshow(item, channel=None):
 
         if not channel:
             try:
-                # channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
-                channel = __import__('specials.%s' % channel_alt, fromlist=["specials.%s" % channel_alt])
+                channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+                # channel = __import__('specials.%s' % item.channel, fromlist=["specials.%s" % item.channel])
             except ImportError:
                 exec("import channels." + item.channel + " as channel")
 
@@ -998,9 +998,8 @@ def add_tvshow(item, channel=None):
         #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
 
         # Get the episode list
-
         itemlist = getattr(channel, item.action)(item)
-        if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'(\d+.\d+)'):
+        if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'(\d+x\d+)'):
             from specials.autorenumber import select_type, renumber, check
             if not check(item):
                 action = item.action
@@ -1066,7 +1065,7 @@ def emergency_urls(item, channel=None, path=None, headers={}):
     # we launched a "lookup" in the "findvideos" of the channel to obtain the emergency links
     try:
         if channel == None:                             # If the caller has not provided the channel structure, it is created
-            channel = generictools.verify_channel(item.channel)             # It is verified if it is a clone, which returns "newpct1"
+            channel = item.channel                      # It is verified if it is a clone, which returns "newpct1"
             #channel = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
             channel = __import__('specials.%s' % channel_alt, fromlist=["specials.%s" % channel_alt])
         if hasattr(channel, 'findvideos'):                                  # If the channel has "findvideos" ...
@@ -1099,7 +1098,7 @@ def emergency_urls(item, channel=None, path=None, headers={}):
         try:
             referer = None
             post = None
-            channel_bis = generictools.verify_channel(item.channel)
+            channel_bis =item.channel
             if config.get_setting("emergency_urls_torrents", channel_bis) and item_res.emergency_urls and path != None:
                 videolibrary_path = config.get_videolibrary_path()          # we detect the absolute path of the title
                 movies = config.get_setting("folder_movies")

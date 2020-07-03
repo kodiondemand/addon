@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "deltabit",
-  "name": "deltabit",
+  "name": "Deltabit",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://deltabit.co/img/logo.png"
+  ]
 }

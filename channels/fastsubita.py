@@ -23,8 +23,8 @@ from platformcode import config
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
-list_servers = ['wstream', 'upstream', 'flashx', 'vidoza', 'vidtome']
-list_quality = ['default']
+
+
 
 
 @support.menu
@@ -100,7 +100,6 @@ def genres(item):
 
 def search(item, text):
     support.log('search', item)
-    itemlist = []
     text = text.replace(' ', '+')
     item.url = host + '?s=' + text
     try:
@@ -133,7 +132,7 @@ def newest(categoria):
         except:
             import sys
             for line in sys.exc_info():
-                support.log('newest log: ', {0}.format(line))
+                support.log('newest log: ', line)
             return []
 
     return itemlist
@@ -163,16 +162,16 @@ def findvideos(item):
     titles = support.typo(series.upper().replace('-', ' '), 'bold color kod')
     goseries = support.typo("Vai alla Serie:", ' bold color kod')
     itemlist.append(
-        Item(channel=item.channel,
-                title=goseries + titles,
-                fulltitle=titles,
-                show=series,
-                contentType='tvshow',
-                contentSerieName=series,
-                url=host+"/serietv/"+series,
-                action='episodios',
-                contentTitle=titles,
-                plot = "Vai alla Serie " + titles + " con tutte le puntate",
-                ))
+        item.clone(channel=item.channel,
+                   title=goseries + titles,
+                   fulltitle=titles,
+                   show=series,
+                   contentType='tvshow',
+                   contentSerieName=series,
+                   url=host+"/serietv/"+series,
+                   action='episodios',
+                   contentTitle=titles,
+                   plot = "Vai alla Serie " + titles + " con tutte le puntate",
+                   ))
 
     return itemlist

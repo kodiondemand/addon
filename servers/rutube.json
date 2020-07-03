@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "rutube",
-  "name": "rutube",
+  "name": "RUTube",
   "premium": [
     "alldebrid"
   ],
@@ -40,6 +40,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://www.cubancouncil.com/uploads/project_images/rutube_branding_black.png.648x0_q90_replace_alpha.jpg"
+  ]
 }

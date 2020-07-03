@@ -9,8 +9,8 @@ from core import support
 host = support.config.get_channel_url() + '/cb01-anime-cartoon'
 
 Blacklist = ['AVVISO IMPORTANTE – CB01.ROCKS', 'Lista Alfabetica Completa Anime/Cartoon', 'CB01.UNO ▶ TROVA L’INDIRIZZO UFFICIALE','Lista Richieste Up &amp; Re-Up']
-list_servers = ['verystream', 'openload', 'streamango', 'thevideome']
-list_quality = ['1080p', '720p', '480p', '360']
+
+
 headers = [['Referer', host]]
 
 @support.menu
@@ -62,7 +62,7 @@ def peliculas(item):
     blacklist = Blacklist
     item.contentType = 'tvshow'
     if item.args == 'newest':
-        patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
+        patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img[^>]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
     else:
         patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> <h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
         patronNext = r'<link rel="next" href="([^"]+)"'

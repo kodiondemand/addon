@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "uppom",
-  "name": "uppom",
+  "name": "Uppom",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "http://uppom.live/images/logo.png"
+  ]
 }

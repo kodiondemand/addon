@@ -19,8 +19,8 @@ def findhost():
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
-list_servers = ['verystream', 'openload', 'streamango', 'vidlox', 'youtube']
-list_quality = ['default']
+
+
 
 
 @support.menu
@@ -58,13 +58,13 @@ def peliculas(item):
         # support.regexDbg(item, patron, headers)
     else:
         patronNext = r'<a class="nextpostslink" rel="next" href="([^"]+)">'
-        patron = r'<div class="mediaWrap mediaWrapAlt">\s?<a href="(?P<url>[^"]+)"(?:[^>]+>|)>?\s?<img[^s]+src="([^"]+)"[^>]+>\s?<\/a>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?:[ ]<lang>[sSuUbB\-iItTaA]+)?(?:[ ]?\((?P<year>[\-\d+]+)\)).[^<]+[^>]+><\/a>.+?<p>\s*(?P<quality>[a-zA-Z-0-9\.]+)\s*<\/p>[^>]+>'
+        patron = r'<div class="mediaWrap mediaWrapAlt">\s?<a href="(?P<url>[^"]+)"(?:[^>]+>|)>?\s?<img[^s]+src="([^"]+)"[^>]+>\s?<\/a>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?P<lang>[sSuUbB\-iItTaA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?)\).[^<]+[^>]+><\/a>.+?<p>\s*(?P<quality>[a-zA-Z-0-9\.]+)\s*<\/p>[^>]+>'
         patronBlock = r'<div id="main_col">(?P<block>.*?)<!\-\- main_col \-\->'
 
     # if item.args != 'all' and item.args != 'search':
     #     action = 'findvideos' if item.extra == 'movie' else 'episodios'
     #     item.contentType = 'movie' if item.extra == 'movie' else 'tvshow'
-    #debug = True
+    # debug = True
     return locals()
 
 

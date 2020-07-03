@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "anonfile",
-  "name": "anonfile",
+  "name": "AnonFile",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://anonfile.com/img/logo/logo-anonfile.png"
+  ]
 }

@@ -21,8 +21,8 @@ def findhost():
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-list_servers = ['mixdrop', 'akstream', 'wstream', 'backin']
-list_quality = ['HD', 'SD', 'default']
+
+
 
 checklinks = config.get_setting('checklinks', 'cineblog01')
 checklinks_number = config.get_setting('checklinks_number', 'cineblog01')
@@ -135,7 +135,7 @@ def episodios(item):
     data = support.match(item.url, headers=headers).data
     support.log(data)
     if 'TUTTA LA ' in data:
-        folderUrl = scrapertools.find_single_match(data, 'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
+        folderUrl = scrapertools.find_single_match(data, r'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl).data
         patron = r'<a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
         sceneTitle = True
@@ -181,18 +181,7 @@ def findvideos(item):
         matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
         for scrapedurl, scrapedtitle in matches:
             logger.debug("##### findvideos %s ## %s ## %s ##" % (desc_txt, scrapedurl, scrapedtitle))
-            itemlist.append(
-                Item(channel=item.channel,
-                     action="play",
-                     title=scrapedtitle,
-                     url=scrapedurl,
-                     server=scrapedtitle,
-                     fulltitle=item.fulltitle,
-                     thumbnail=item.thumbnail,
-                     show=item.show,
-                     quality=quality,
-                     contentType=item.contentType,
-                     folder=False))
+            itemlist.append(item.clone(action="play", title=scrapedtitle, url=scrapedurl, server=scrapedtitle, quality=quality))
 
     support.log()
 
@@ -213,7 +202,7 @@ def findvideos(item):
 
     itemlist = support.server(item, itemlist=itemlist)
     # Extract the quality format
-    patronvideos = '([\w.]+)</strong></div></td>'
+    patronvideos = r'([\w.]+)</strong></div></td>'
     support.addQualityTag(item, itemlist, data, patronvideos)
 
     return itemlist
@@ -231,24 +220,13 @@ def findvid_serie(item):
         # Estrae i contenuti
         matches = support.match(html, patron=r'<a href=(?:")?([^ "]+)[^>]+>(?!<!--)(.*?)(?:</a>|<img)').matches
         for url, server in matches:
-            item = Item(channel=item.channel,
-                        action="play",
-                        title=server,
-                        url=url,
-                        server=server,
-                        fulltitle=item.fulltitle,
-                        show=item.show,
-                        quality=blktxt,
-                        contentType=item.contentType,
-                        folder=False)
+            item = item.clone(action="play", title=server, url=url, server=server, quality=blktxt)
             if 'swzz' in item.url: item.url = support.swzz_get_url(item)
             itemlist.append(item)
 
     support.log()
 
     itemlist = []
-    lnkblk = []
-    lnkblkp = []
 
     data = re.sub(r'((?:<p>|<strong>)?[^\d]*\d*(?:&#215;|Ã)[0-9]+[^<]+)', '' ,item.url)
 
@@ -267,4 +245,4 @@ def findvid_serie(item):
 
 def play(item):
     support.log()
-    return servertools.find_video_items(data=item.url)
+    return servertools.find_video_items(item, data=item.url)

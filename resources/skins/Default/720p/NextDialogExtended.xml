@@ -6,12 +6,12 @@
     <controls>
         <control type="group">
             <animation type="WindowOpen" reversible="false">
-                <effect type="fade" start="0" end="100" time="600" />
-                <effect type="slide" start="115,0" end="0,0" time="600" />
+                <effect type="fade" start="0" end="100" time="400" />
+                <effect type="slide" start="115,0" end="0,0" time="400" />
             </animation>
             <animation type="WindowClose" reversible="false">
-                <effect type="fade" start="100" end="0" time="400" />
-                <effect type="slide" start="0,0" end="115,0" time="400" />
+                <effect type="fade" start="100" end="0" time="300" />
+                <effect type="slide" start="0,0" end="115,0" time="300" />
             </animation>
             <control type="group">
                 <right>30</right>
@@ -26,59 +26,47 @@
                     <height>180</height>
                     <texture>$INFO[Window.Property(next_img)]</texture>
                 </control>
-                <control type="group">
-                    <top>0</top>
+                <control type="grouplist" id="20">
+                    <orientation>vertical</orientation>
+                    <height>220</height>
+                    <width>326</width>
+                    <itemgap>0</itemgap>
                     <right>0</right>
-                    <width>100%</width>
-                    <!-- buttons -->
                     <control type="button" id="3012">
-                        <left>-1000</left>
-                        <top>-1000</top>
-                        <height>1</height>
-                        <width>1</width>
-                    </control>
-                    <control type="grouplist" id="20">
-                        <orientation>vertical</orientation>
-                        <height>220</height>
-						<width>326</width>
-                        <itemgap>0</itemgap>
+                        <label></label>
+                        <height>180</height>
+                        <width>326</width>
                         <right>0</right>
-                        <control type="button" id="11">
-                            <label></label>
-                            <onclick>SendClick(3012)</onclick>
-                            <height>180</height>
-                            <width>326</width>
-							<right>0</right>
-                            <font>font30_title</font>
-                            <textoffsety>20</textoffsety>
-                            <textcolor>FFFFFFFF</textcolor>
-                            <focusedcolor>FFFFFFFF</focusedcolor>
-                            <selectedcolor>FFFFFFFF</selectedcolor>
-                            <shadowcolor>22000000</shadowcolor>
-                            <aligny>top</aligny>
-                            <align>center</align>
-                            <texturefocus border="10">NextDialog/background-play.png</texturefocus>
-                            <texturenofocus border="10" colordiffuse="00232323">NextDialog/background-diffuse.png</texturenofocus>
-                            <pulseonselect>no</pulseonselect>
-                        </control>
-                        <control type="button" id="3013">
-                            <label>$ADDON[plugin.video.kod  60396]</label>
-                            <height>40</height>
-                            <width>326</width>
-                            <font>font30_title</font>
-                            <textoffsetx>20</textoffsetx>
-                            <textcolor>80FFFFFF</textcolor>
-                            <focusedcolor>FFFFFFFF</focusedcolor>
-                            <selectedcolor>80FFFFFF</selectedcolor>
-                            <shadowcolor>22000000</shadowcolor>
-                            <aligny>center</aligny>
-                            <align>center</align>
-                            <texturefocus border="10" colordiffuse="88232323">NextDialog/background-diffuse.png</texturefocus>
-                            <texturenofocus border="10" colordiffuse="88232323">NextDialog/background-diffuse.png</texturenofocus>
-                            <pulseonselect>no</pulseonselect>
-                        </control>
+                        <font>font30_title</font>
+                        <textoffsety>20</textoffsety>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <focusedcolor>FFFFFFFF</focusedcolor>
+                        <selectedcolor>FFFFFFFF</selectedcolor>
+                        <shadowcolor>22000000</shadowcolor>
+                        <aligny>top</aligny>
+                        <align>center</align>
+                        <texturefocus border="10">NextDialog/background-play.png</texturefocus>
+                        <texturenofocus border="10" colordiffuse="00232323">white.png</texturenofocus>
+                        <pulseonselect>no</pulseonselect>
                     </control>
-					<control type="label">
+                    <control type="button" id="3013">
+                        <label>$ADDON[plugin.video.kod  60396]</label>
+                        <height>40</height>
+                        <width>326</width>
+                        <font>font30_title</font>
+                        <textoffsetx>20</textoffsetx>
+                        <textcolor>80FFFFFF</textcolor>
+                        <focusedcolor>FFFFFFFF</focusedcolor>
+                        <selectedcolor>FFFFFFFF</selectedcolor>
+                        <shadowcolor>22000000</shadowcolor>
+                        <aligny>center</aligny>
+                        <align>center</align>
+                        <texturefocus border="10" colordiffuse="FF0082C2">white.png</texturefocus>
+                        <texturenofocus border="10"  colordiffuse="FF232323">white.png</texturenofocus>
+                        <pulseonselect>no</pulseonselect>
+                    </control>
+                </control>
+                    <control type="label">
                     <bottom>60</bottom>
                     <height>40</height>
                     <aligny>center</aligny>
@@ -86,12 +74,12 @@
                     <align>center</align>
                     <scroll>true</scroll>
                     <scrollspeed>50</scrollspeed>
-					<textcolor>FFFFFFFF</textcolor>
-					<shadowcolor>ff000000</shadowcolor>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <shadowcolor>FF000000</shadowcolor>
                     <info>Window.Property(title)</info>
                     <font>font30_title</font>
                 </control>
-				<control type="label">
+                <control type="label">
                     <bottom>40</bottom>
                     <height>40</height>
                     <aligny>center</aligny>
@@ -99,25 +87,24 @@
                     <align>center</align>
                     <scroll>true</scroll>
                     <scrollspeed>50</scrollspeed>
-					<textcolor>FFFFFFFF</textcolor>
-					<shadowcolor>ff000000</shadowcolor>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <shadowcolor>FF000000</shadowcolor>
                     <info>Window.Property(ep_title)</info>
                     <font>font20_title</font>
                 </control>
-				<control type="label">
+                <control type="label">
                     <top>20</top>
-					<right>25</right>
+                    <right>25</right>
                     <height>auto</height>
                     <aligny>top</aligny>
                     <visible>true</visible>
                     <align>right</align>
                     <scroll>true</scroll>
                     <scrollspeed>50</scrollspeed>
-					<textcolor>FFFFFFFF</textcolor>
-					<shadowcolor>ff000000</shadowcolor>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <shadowcolor>FF000000</shadowcolor>
                     <info>Player.TimeRemaining(secs),,</info>
                     <font>font30_title</font>
-                </control>
                 </control>
             </control>
         </control>

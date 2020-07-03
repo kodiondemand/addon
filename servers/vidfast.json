@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "vidfast",
-  "name": "vidfast",
+  "name": "VidFast",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://i.postimg.cc/jdnS13jQ/vidfast.jpg"
+  ]
 }

@@ -17,8 +17,8 @@ headers = [['Referer', host]]
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['gounlimited', 'rapidgator', 'uploadedto', 'vidtome']
-list_quality = ['default']
+
+
 
 @support.menu
 def mainlist(item):
@@ -42,7 +42,7 @@ def cleantitle(scrapedtitle):
     scrapedtitle = scrapertools.decodeHtmlentities(scrapedtitle.strip())
     scrapedtitle = scrapedtitle.replace('[HD]', '').replace('’', '\'').replace('×', 'x').replace('Game of Thrones –','')\
         .replace('In The Dark 2019', 'In The Dark (2019)').replace('"', "'").strip()
-    year = scrapertools.find_single_match(scrapedtitle, '\((\d{4})\)')
+    year = scrapertools.find_single_match(scrapedtitle, r'\((\d{4})\)')
     if year:
         scrapedtitle = scrapedtitle.replace('(' + year + ')', '')
 
@@ -58,7 +58,7 @@ def findvideos(item):
     data = re.sub(r'\n|\t|\s+', ' ', data)
     # recupero il blocco contenente i link
     blocco = scrapertools.find_single_match(data, r'<div class="entry">([\s\S.]*?)<div class="post').replace('..:: Episodio ', 'Episodio ').strip()
-    matches = scrapertools.find_multiple_matches(blocco, '(S(\d*)E(\d*))\s')
+    matches = scrapertools.find_multiple_matches(blocco, r'(S(\d*)E(\d*))\s')
     if len(matches) > 0:
         for fullseasonepisode, season, episode in matches:
             blocco = blocco.replace(fullseasonepisode + ' ', 'Episodio ' + episode + ' ')
@@ -74,7 +74,7 @@ def findvideos(item):
     if len(matches):
         data = matches[0][0]
 
-    patron = 'href="(https?://www\.keeplinks\.(?:co|eu)/p(?:[0-9]*)/([^"]+))"'
+    patron = r'href="(https?://www\.keeplinks\.(?:co|eu)/p(?:[0-9]*)/([^"]+))"'
     matches = re.compile(patron, re.DOTALL).findall(data)
     for keeplinks, id in matches:
         headers2 = [['Cookie', 'flag[' + id + ']=1; defaults=1; nopopatall=' + str(int(time.time()))],
@@ -116,18 +116,15 @@ def lista_serie(item):
         if i >= p * PERPAGE: break
         title = cleantitle(scrapedtitle)
         itemlist.append(
-            Item(channel=item.channel,
-                 extra=item.extra,
-                 action="episodios",
-                 title=title,
-                 url=scrapedurl,
-                 thumbnail=scrapedthumbnail,
-                 fulltitle=title,
-                 show=title,
-                 plot=scrapedplot,
-                 contentType='episode',
-                 originalUrl=scrapedurl,
-                 folder=True))
+            item.clone(action="episodios",
+                       title=title,
+                       url=scrapedurl,
+                       thumbnail=scrapedthumbnail,
+                       fulltitle=title,
+                       show=title,
+                       plot=scrapedplot,
+                       contentType='episode',
+                       originalUrl=scrapedurl))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
@@ -162,7 +159,7 @@ def episodios(item, itemlist=[]):
 
             # recupero la stagione
             season = scrapertools.find_single_match(scrapedtitle, 'Stagione ([0-9]*)')
-            blocco = scrapertools.find_single_match(data, '<div class="entry">[\s\S.]*?<div class="post')
+            blocco = scrapertools.find_single_match(data, r'<div class="entry">[\s\S.]*?<div class="post')
             blocco = blocco.replace('<strong>Episodio ', '<strong>Episodio ').replace(' </strong>', ' </strong>')
             blocco = blocco.replace('<strong>Episodio ', '<strong>S' + season.zfill(2) + 'E')
             matches = scrapertools.find_multiple_matches(blocco, r'(S(\d*)E(\d*))\s')
@@ -189,18 +186,15 @@ def episodios(item, itemlist=[]):
             infoLabels['episode'] = episode
             fullepisode += ' ' + support.typo("Sub-ITA", '_ [] color kod')
             itemlist.append(
-                Item(channel=item.channel,
-                     extra=item.extra,
-                     action="findvideos",
-                     fulltitle=scrapedtitle,
-                     show=scrapedtitle,
-                     title=fullepisode,
-                     url=scrapedurl,
-                     thumbnail=scrapedthumbnail,
-                     plot=scrapedplot,
-                     contentSerieName=title,
-                     infoLabels=infoLabels,
-                     folder=True))
+                item.clone(action="findvideos",
+                           fulltitle=scrapedtitle,
+                           show=scrapedtitle,
+                           title=fullepisode,
+                           url=scrapedurl,
+                           thumbnail=scrapedthumbnail,
+                           plot=scrapedplot,
+                           contentSerieName=title,
+                           infoLabels=infoLabels))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
@@ -224,7 +218,7 @@ def peliculas_tv(item):
     log()
     itemlist = []
 
-    patron = '<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>'
+    patron = r'<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>'
 
     html = support.match(item, patron=patron, headers=headers)
     matches = html.matches
@@ -249,18 +243,16 @@ def peliculas_tv(item):
             infoLabels['episode'] = episode[2].zfill(2)
 
             itemlist.append(
-                Item(channel=item.channel,
-                     action="findvideos",
-                     fulltitle=scrapedtitle,
-                     show=scrapedtitle,
-                     title=title + " - " + episode[0] + " " + support.typo("Sub-ITA", '_ [] color kod'),
-                     url=scrapedurl,
-                     thumbnail=scrapedthumbnail,
-                     contentSerieName=title,
-                     contentLanguage='Sub-ITA',
-                     plot=scrapedplot,
-                     infoLabels=infoLabels,
-                     folder=True))
+                item.clone(action="findvideos",
+                           fulltitle=scrapedtitle,
+                           show=scrapedtitle,
+                           title=title + " - " + episode[0] + " " + support.typo("Sub-ITA", '_ [] color kod'),
+                           url=scrapedurl,
+                           thumbnail=scrapedthumbnail,
+                           contentSerieName=title,
+                           contentLanguage='Sub-ITA',
+                           plot=scrapedplot,
+                           infoLabels=infoLabels))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
@@ -301,7 +293,7 @@ def search(item, texto):
     log(texto)
     itemlist = []
 
-    patron = '<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
+    patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
     matches = support.match(item, patron=patron, headers=headers).matches
     for i, (scrapedurl, scrapedtitle) in enumerate(matches):
         if texto.upper() in scrapedtitle.upper():
@@ -309,18 +301,15 @@ def search(item, texto):
             scrapedplot = ""
             title = cleantitle(scrapedtitle)
             itemlist.append(
-                Item(channel=item.channel,
-                     extra=item.extra,
-                     action="episodios",
-                     title=title,
-                     url=scrapedurl,
-                     thumbnail=scrapedthumbnail,
-                     fulltitle=title,
-                     show=title,
-                     plot=scrapedplot,
-                     contentType='episode',
-                     originalUrl=scrapedurl,
-                     folder=True))
+                item.clone(action="episodios",
+                           title=title,
+                           url=scrapedurl,
+                           thumbnail=scrapedthumbnail,
+                           fulltitle=title,
+                           show=title,
+                           plot=scrapedplot,
+                           contentType='episode',
+                           originalUrl=scrapedurl))
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     return itemlist
@@ -336,7 +325,7 @@ def list_az(item):
     itemlist = []
 
     alphabet = dict()
-    patron = '<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
+    patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
     matches = support.match(item, patron=patron, headers=headers).matches
     for i, (scrapedurl, scrapedtitle) in enumerate(matches):
         letter = scrapedtitle[0].upper()
@@ -346,11 +335,10 @@ def list_az(item):
 
     for letter in sorted(alphabet):
         itemlist.append(
-            Item(channel=item.channel,
-                 action="lista_serie",
-                 url='\n\n'.join(alphabet[letter]),
-                 title=letter,
-                 fulltitle=letter))
+            item.clone(action="lista_serie",
+                       url='\n\n'.join(alphabet[letter]),
+                       title=letter,
+                       fulltitle=letter))
 
     return itemlist
 

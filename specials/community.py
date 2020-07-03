@@ -174,7 +174,7 @@ def peliculas(item, json='', key='', itemlist=[]):
     infoLabels = item.infoLabels if item.infoLabels else {}
     contentType = 'tvshow' if 'tvshow' in key else 'movie'
     itlist = filterkey = []
-    action = 'show_menu'
+    action = 'findvideos'
 
     if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'search'] and not item.filterkey and not item.disable_pagination:
         Pagination = int(defp) if defp.isdigit() else ''
@@ -192,8 +192,8 @@ def peliculas(item, json='', key='', itemlist=[]):
 
         title = option['title'] if 'title' in option else ''
 
-        # if 'tvshows_list' in key and 'links' not in option:
-        #     action = 'episodios'
+        if 'tvshows_list' in key and 'links' not in option:
+            action = 'episodios'
 
         # filter elements
         if (not item.filter or item.filter.lower() in filterkey) and item.search.lower() in title.lower() and title:
@@ -236,8 +236,9 @@ def get_seasons(item):
     support.log()
     itemlist = []
     infoLabels = item.infoLabels
-    json = item.url['seasons_list'] if type(item.url) == dict else item.url
-
+    json = item.url if type(item.url) == dict else item.url
+    if 'seasons_list' in json: json = json['seasons_list']
+    elif 'tvshows_list' in json: return show_menu(item)
     for option in json:
         infoLabels['season'] = option['season']
         title = config.get_localized_string(60027) % option['season']
@@ -275,11 +276,20 @@ def episodios(item, json ='', key='', itemlist =[]):
     if type(item.url) == dict:
         if 'seasons_list' in item.url:
             return get_seasons(item)
+        elif 'tvshows_list' in item.url:
+            return peliculas(item, item.url, 'tvshows_list')
         else:
             json = {}
             json = item.url['episodes_list']
     else:
-        json = load_json(item)['episodes_list']
+        json = load_json(item)
+        if 'episodes_list' in json:
+            json = json['episodes_list']
+        elif 'seasons_list' in json:
+            item.url = json['episodes_list']
+            return get_seasons(item)
+        elif 'tvshows_list' in json:
+            return peliculas(item, json, 'tvshows_list')
 
     # set variable
     ep = 1

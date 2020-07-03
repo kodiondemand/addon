@@ -6,5 +6,5 @@
     "thumbnail": "ilgeniodellostreaming.png",
     "banner": "ilgeniodellostreaming.png",
     "categories": ["movie", "tvshow", "anime", "vos"],
-    "settings": []
+    "settings": ["include_in_newest_anime"]
 }

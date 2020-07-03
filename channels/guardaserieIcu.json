@@ -1,0 +1,11 @@
+{
+    "id": "guardaserieIcu",
+    "name": "Guarda Serie Icu",
+    "language": ["ita", "sub-ita"],
+    "active": false,
+    "thumbnail": "https://raw.githubusercontent.com/32Dexter/DexterRepo/master/media/guarda_serie.jpg",
+    "banner": "",
+    "categories": ["tvshow"],
+    "not_active": ["include_in_newest"],
+    "settings": []
+}

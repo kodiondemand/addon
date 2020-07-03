@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "uqload",
-  "name": "uqload",
+  "name": "UQLoad",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://uqload.com/img/logo.png?v=0"
+  ]
 }

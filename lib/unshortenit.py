@@ -577,6 +577,11 @@ class UnshortenIt(object):
             if not r:
                 r = httptools.downloadpage(uri, follow_redirect=True, timeout=self._timeout, cookies=False)
                 uri = r.url
+            if "4snip" in uri:
+                if 'out_generator' in uri:
+                    uri = re.findall('url=(.*)$', uri)[0]
+                elif '/decode/' in uri:
+                    uri = httptools.downloadpage(uri, follow_redirects=True).url
             return uri, r.code
 
         except Exception as e:

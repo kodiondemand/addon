@@ -11,8 +11,8 @@ __channel__ = "altadefinizione01_link"
 host = config.get_channel_url()
 headers = [['Referer', host]]
 
-list_servers = ['mixdrop', 'vup', 'supervideo']
-list_quality = ['default']
+
+
 
 # =========== home menu ===================
 @support.menu
@@ -102,4 +102,4 @@ def newest(categoria):
 
 def findvideos(item):
     support.log('findvideos', item)
-    return support.server(item, headers=headers)
+    return support.server(item, support.match(item, patron='<ul class="playernav">.*?</ul>', headers=headers).match)

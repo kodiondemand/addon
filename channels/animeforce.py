@@ -7,8 +7,8 @@ from core import support
 
 host = support.config.get_channel_url()
 
-list_servers = ['directo', 'vvvvid']
-list_quality = ['default']
+
+
 
 
 headers = [['Referer', host]]
@@ -142,10 +142,7 @@ def findvideos(item):
                     if 'https' not in item.url:
                         url = support.match(item, url='https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/playlist.m3u')[1]
                         url = url.split()[-1]
-                        itemlist.append(
-                            support.Item(action= 'play',
-                                         url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
-                                         server= 'directo'))
+                        itemlist.append(item.clone(action= 'play', url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url, server= 'directo'))
 
     elif 'adf.ly' in item.url:
         from servers.decrypters import adfly
@@ -170,11 +167,6 @@ def findvideos(item):
         elif url.startswith('/'): url = 'https:/' + url
 
 
-        itemlist.append(
-            support.Item(channel=item.channel,
-                        action="play",
-                        title='Diretto',
-                        url=url,
-                        server='directo'))
+        itemlist.append(item.clone(action="play", title='Diretto', url=url, server='directo'))
 
     return support.server(item, itemlist=itemlist)

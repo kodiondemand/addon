@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "upvid",
-  "name": "upvid",
+  "name": "Upvid",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s15.postimg.cc/gz0tee0gb/zt_Oi_E6_S-_400x400.jpg"
+  ]
 }

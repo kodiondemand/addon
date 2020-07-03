@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "jawcloud",
-  "name": "jawcloud",
+  "name": "JawCloud",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s8.postimg.cc/b64mzlgxh/jawcloud1.png"
+  ]
 }

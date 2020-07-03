@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "downace",
-  "name": "downace",
+  "name": "Downace",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://s12.postimg.cc/4n9fmdy7x/logo-downace.png"
+  ]
 }

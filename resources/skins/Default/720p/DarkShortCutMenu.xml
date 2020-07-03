@@ -12,8 +12,8 @@
 			<top>0</top>
 			<width>100%</width>
 			<height>100%</height>
-			<texturefocus colordiffuse="80DCDCDC">Shortcut/white.png</texturefocus>
-			<texturenofocus colordiffuse="80DCDCDC">Shortcut/white.png</texturenofocus>
+			<texturefocus colordiffuse="80DCDCDC">white.png</texturefocus>
+			<texturenofocus colordiffuse="80DCDCDC">white.png</texturenofocus>
 			<animation effect="fade" time="200">WindowOpen</animation>
 			<animation effect="fade" time="200">WindowClose</animation>
 			<onclick>Action(close)</onclick>
@@ -39,9 +39,9 @@
 				<top>219</top>
 				<width>1100</width>
 				<height>10</height>
-				<texturesliderbackground colordiffuse="FFDCDCDC">Shortcut/white.png</texturesliderbackground>
-				<texturesliderbar colordiffuse="FF1f1f1f">Shortcut/white.png</texturesliderbar>
-				<texturesliderbarfocus colordiffuse="FF0082C2">Shortcut/white.png</texturesliderbarfocus>
+				<texturesliderbackground colordiffuse="FFDCDCDC">white.png</texturesliderbackground>
+				<texturesliderbar colordiffuse="FF1f1f1f">white.png</texturesliderbar>
+				<texturesliderbarfocus colordiffuse="FF0082C2">white.png</texturesliderbarfocus>
 				<showonepage>false</showonepage>
 				<orientation>horizontal</orientation>
 				<ondown>32500</ondown>
@@ -50,7 +50,7 @@
 			<control type="image">
 				<width>1100</width>
 				<height>218</height>
-				<texture colordiffuse="FFDCDCDC">Shortcut/white.png</texture>
+				<texture colordiffuse="FFDCDCDC">white.png</texture>
 			</control>
 			<control type="list" id="32500">
 				<left>-130</left>
@@ -78,7 +78,7 @@
 						<top>1</top>
 						<width>220</width>
 						<height>218</height>
-						<texture colordiffuse="FF0082C2">Shortcut/white.png</texture>
+						<texture colordiffuse="FF0082C2">white.png</texture>
 					</control>
 					<control type="textbox">
 						<left>0</left>

@@ -15,7 +15,7 @@
   },
   "free": true,
   "id": "cinemaupload",
-  "name": "cinemaupload",
+  "name": "CinemaUpload",
   "settings": [
     {
       "default": false,
@@ -41,6 +41,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://cinemaupload.com/static/img/logo1.png"
+  ]
 }

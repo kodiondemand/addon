@@ -56,7 +56,7 @@
   },
   "free": true,
   "id": "torrent",
-  "name": "torrent",
+  "name": "Torrent",
   "settings": [
     {
       "default": false,

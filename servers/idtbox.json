@@ -11,7 +11,7 @@
   },
   "free": true,
   "id": "idtbox",
-  "name": "idtbox",
+  "name": "ID Tbox",
   "settings": [
     {
       "default": false,
@@ -37,6 +37,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "https://idtbox.com/img/idtbox.png"
+  ]
 }

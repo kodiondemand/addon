@@ -11,7 +11,7 @@
   },
   "free": false,
   "id": "hugefiles",
-  "name": "hugefiles",
+  "name": "Huge Files",
   "premium": [
     "realdebrid"
   ],
@@ -40,6 +40,5 @@
       "type": "list",
       "visible": false
     }
-  ],
-  "thumbnail": "server_hugefiles.png"
+  ]
 }

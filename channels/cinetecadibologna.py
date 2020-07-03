@@ -28,7 +28,7 @@ def menu(item):
     elif 'percorsi' in item.url:
         patron = r'<div class="cover_percorso">\s*<a href="(?P<url>[^"]+)">\s*<img src="(?P<thumb>[^"]+)"[^>]+>\s*[^>]+>(?P<title>.*?)<'
     else:
-        patron = r'<h2>\s*<a href="(?P<url>[^"]+)"\s*>(?P<title>[^<]+)<'
+        patron = r'<h2>\s*<a href="(?P<url>[^,"]+),[^"]+"\s*>(?P<title>[^<]+)<'
         patronNext = r'<div class="dx">\s*<a href="(.*?)">pagina suc'
     return locals()
 
@@ -68,14 +68,7 @@ def findvideos(item):
     matches = support.match(item, patron=r'filename: "(.*?)"').matches
 
     for url in matches:
-        itemlist.append(
-            Item(
-                channel=item.channel,
-                action="play",
-                title='Diretto',
-                server='directo',
-                url=host + url,
-                folder=False))
+        itemlist.append(item.clone(action="play", title='Diretto', server='directo', url=host + url))
 
     return support.server(item, itemlist=itemlist)
 

@@ -7,8 +7,8 @@ from core import support
 
 host = support.config.get_channel_url()
 
-list_servers = ['mixdrop', 'wstream', 'vupplayer', 'supervideo', 'cloudvideo', 'gounlimited']
-list_quality = ['default','1080p', '720p', '480p', '360p']
+
+
 
 headers = [['Referer', host]]
 
@@ -61,7 +61,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log({0}.format(line))
+            support.log(line)
         return []
 
     return itemlist
@@ -108,16 +108,5 @@ def findvideos(item):
         itemlist = []
         if item.contentType != 'episode': item.contentType = 'movie'
         video = support.match(html.data, patron=r'<source src="([^"]+)"').match
-        itemlist.append(
-            support.Item(
-                channel=item.channel,
-                action="play",
-                title='Diretto',
-                quality='',
-                url=video,
-                server='directo',
-                fulltitle=item.fulltitle,
-                show=item.show,
-                contentType=item.contentType,
-                folder=False))
+        itemlist.append(item.clone(action="play", title='Diretto', url=video, server='directo'))
     return support.server(item, itemlist=itemlist)

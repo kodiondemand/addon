@@ -13,8 +13,8 @@ headers = ""
 
 IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
-list_servers = ['verystream', 'openload', 'streamango', 'wstream']
-list_quality = ['HD', 'SD']
+
+
 
 #esclusione degli articoli 'di servizio'
 blacklist = ['CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ', 'AVVISO IMPORTANTE – CB01.UNO', 'GUIDA VEDOHD']
@@ -52,18 +52,7 @@ def findvideos(item):
                 title = server + " [COLOR blue][" + quality + "][/COLOR]"
             else:
                 title = server
-            itemlist.append(
-                Item(channel=item.channel,
-                     action="play",
-                     title=title,
-                     url=link['url'],
-                     server=server,
-                     fulltitle=item.fulltitle,
-                     thumbnail=item.thumbnail,
-                     show=item.show,
-                     quality=quality,
-                     contentType=item.contentType,
-                     folder=False))
+            itemlist.append(item.clone(action="play", title=title, url=link['url'], server=server, quality=quality,))
 
     autoplay.start(itemlist, item)
 
