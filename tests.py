@@ -155,7 +155,7 @@ class GenericChannelTest(unittest.TestCase):
             if self.ch in chNumRis:  # so a priori quanti risultati dovrebbe dare
                 for content in chNumRis[self.ch]:
                     if content in it.title:
-                        risNum = len(itemlist) - 1  # - nextpage
+                        risNum = len([it for it in itemlist if not it.nextPage])  # not count nextpage
                         self.assertEqual(chNumRis[self.ch][content], risNum,
                                          'channel ' + self.ch + ' -> ' + it.title + ' returned wrong number of results')
                         break

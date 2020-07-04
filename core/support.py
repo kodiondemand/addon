@@ -440,7 +440,7 @@ def scrape(func):
             log('PATRON= ', patron)
             if not data:
                 page = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True)
-                data = page.data.replace("'", '"')
+                data = re.sub("='([^']+)'", '="\\1"', page.data)
                 data = data.replace('\n', ' ')
                 data = data.replace('\t', ' ')
                 data = re.sub(r'>\s+<', '> <', data)
@@ -532,7 +532,7 @@ def scrape(func):
         if config.get_setting('trakt_sync'):
             from core import trakt_tools
             trakt_tools.trakt_check(itemlist)
-        log('scraping time: ' , time()-scrapingTime)
+        log('scraping time: ', time()-scrapingTime)
         return itemlist
 
     return wrapper
@@ -927,6 +927,7 @@ def match(item_url_string, **args):
     data = data.replace('\n', ' ')
     data = data.replace('\t', ' ')
     data = re.sub(r'>\s+<', '><', data)
+    data = re.sub(r'([a-zA-Z])"([a-zA-Z])', "\1'\2", data)
 
     # collect blocks of a page
     if patronBlock:
@@ -1122,6 +1123,7 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
                  title=typo(config.get_localized_string(30992), 'color kod bold'),
                  url=next_page,
                  args=item.args,
+                 nextPage=True,
                  thumbnail=thumb()))
 
     return itemlist

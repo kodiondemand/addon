@@ -8,11 +8,8 @@ from core import support
 from core.support import config, log
 
 host = config.get_channel_url()
-
-
-
-
 headers = [['Referer', host]]
+
 
 @support.menu
 def mainlist(item):

@@ -89,7 +89,7 @@ def peliculas(item):
             else:
                 patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> (?P<rating>[0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>(?P<year>[^<]+)(?:<.*?<div class="texto">(?P<plot>[^<]+))?'
 
-    patronNext = '<span class="current">[^<]+<[^>]+><a href="([^"]+)"'
+    patronNext = '<span class="current">[^<]+<[^>]+><a href=[\'"]([^\'"]+)[\'"]'
 
     #support.regexDbg(item, patron, headers)
     #debug = True

@@ -11,8 +11,6 @@ host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 
-
-
 @support.menu
 def mainlist(item):
     film = ['/category/film',
@@ -90,7 +88,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log('newest log: ', {0}.format(line))
+            support.log("%s" % line)
         return []
 
     return itemlist
@@ -98,6 +96,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
     if item.contentType == 'movie':
         action = 'findvideos'
     elif item.contentType == 'tvshow':

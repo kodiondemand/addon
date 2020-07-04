@@ -34,10 +34,11 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
     support.log('peliculas',item)
 
-    patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<div class="[^"]+" style="background-image:url\((?P<thumb>[^\)]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<year>\d{4})[^>]+>[^>]+> (?P<duration>\d+)[^>]+>[^>]+> (?P<quality>[a-zA-Z]+) [^>]+>[^>]+> (?P<lang>[^>]+) [^>]+>'
-    patronNext =  r'<span>\d</span> <a href="([^"]+)">'
+    patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<div class="[^"]+" style="background-image:url\((?P<thumb>[^\)]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<year>\d{4})[^>]+>[^>]+>(?:\s*(?P<duration>\d+)[^>]+>[^>]+>)?\s*(?P<quality>[a-zA-Z]+) [^>]+>[^>]+> (?P<lang>[^>]+) [^>]+>'
+    patronNext = r'<span>\d</span> <a href="([^"]+)">'
     # debug = True
     return locals()
 
