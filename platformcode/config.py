@@ -110,7 +110,7 @@ def get_channel_url(findhostMethod=None, name=None):
         name = os.path.basename(frame[0].f_code.co_filename).replace('.py', '')
     if findhostMethod:
         url = jsontools.get_node_from_file(name, 'url')
-        if not url:
+        if not url or 'web.archive.org' in url:  # per eliminare tutti i webarchive salvati causa bug httptools CF, eliminare in futuro
             url = findhostMethod()
             jsontools.update_node(url, name, 'url')
         return url

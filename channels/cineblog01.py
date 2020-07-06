@@ -22,12 +22,6 @@ host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 
-
-
-checklinks = config.get_setting('checklinks', 'cineblog01')
-checklinks_number = config.get_setting('checklinks_number', 'cineblog01')
-
-
 @support.menu
 def mainlist(item):
     film = [

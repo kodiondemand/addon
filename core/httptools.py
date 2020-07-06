@@ -49,15 +49,14 @@ HTTPTOOLS_DEFAULT_RANDOM_HEADERS = False
 #     domainCF.append(urlparse.urlparse(config.get_channel_url(name=ch)).hostname)
 # domainCF.extend(otherCF)
 
-global CF_LIST
-CF_LIST = list()
-CF_LIST_PATH = os.path.join(config.get_data_path(), "CF_Domains.txt")
+# CF_LIST = list()
+# CF_LIST_PATH = os.path.join(config.get_data_path(), "CF_Domains.txt")
+#
+# if os.path.exists(CF_LIST_PATH):
+#     with open(CF_LIST_PATH, "rb") as CF_File:
+#         CF_LIST = CF_File.read().splitlines()
 
-if os.path.exists(CF_LIST_PATH):
-    with open(CF_LIST_PATH, "rb") as CF_File:
-        CF_LIST = CF_File.read().splitlines()
-
-FORCE_CLOUDSCRAPER_LIST = ['akvideo.stream']
+FORCE_CLOUDSCRAPER_LIST = []
 
 def get_user_agent():
     # Returns the global user agent to be used when necessary for the url.
@@ -268,7 +267,7 @@ def downloadpage(url, **opt):
         """
     url = scrapertools.unescape(url)
     domain = urlparse.urlparse(url).netloc
-    global CF_LIST
+    # global CF_LIST
     CF = False
 
     if domain in FORCE_CLOUDSCRAPER_LIST:
@@ -279,7 +278,8 @@ def downloadpage(url, **opt):
         from lib import requests
         session = requests.session()
 
-        if domain in CF_LIST or opt.get('CF', False):
+        # if domain in CF_LIST or opt.get('CF', False):
+        if opt.get('CF', False):
             url = 'https://web.archive.org/save/' + url
             CF = True
 
@@ -359,17 +359,17 @@ def downloadpage(url, **opt):
                 if opt.get('only_headers', False):
                     # Makes the request with HEAD method
                     req = session.head(url, allow_redirects=opt.get('follow_redirects', True),
-                                      timeout=opt['timeout'])
+                                       timeout=opt['timeout'])
                 else:
                     # Makes the request with POST method
                     req = session.post(url, data=payload, allow_redirects=opt.get('follow_redirects', True),
-                                      files=files, timeout=opt['timeout'])
+                                       files=files, timeout=opt['timeout'])
 
             elif opt.get('only_headers', False):
                 info_dict = fill_fields_pre(url, opt, proxy_data, file_name)
                 # Makes the request with HEAD method
                 req = session.head(url, allow_redirects=opt.get('follow_redirects', True),
-                                  timeout=opt['timeout'])
+                                   timeout=opt['timeout'])
             else:
                 info_dict = fill_fields_pre(url, opt, proxy_data, file_name)
                 # Makes the request with GET method
@@ -398,20 +398,22 @@ def downloadpage(url, **opt):
         return type('HTTPResponse', (), response)
 
     response_code = req.status_code
-
-    if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403] and not opt.get('CF', False):
-        if domain not in CF_LIST:
-            opt["CF"] = True
-            with open(CF_LIST_PATH, "a") as CF_File:
-                CF_File.write("%s\n" % domain)
-            logger.debug("CF retry... for domain: %s" % domain)
-            return downloadpage(url, **opt)
-
     response['data'] = req.content if req.content else ''
+    response['url'] = req.url
+
+    if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
+            and not opt.get('CF', False) and 'Please turn JavaScript on and reload the page' in response['data']:
+        # if domain not in CF_LIST:
+        opt["CF"] = True
+        # with open(CF_LIST_PATH, "a") as CF_File:
+        #     CF_File.write("%s\n" % domain)
+        logger.debug("CF retry... for domain: %s" % domain)
+        return downloadpage(url, **opt)
+
     if CF:
         import re
         response['data'] = re.sub('["|\']/save/[^"]*(https?://[^"]+)', '"\\1', response['data'])
-    response['url'] = req.url
+        response['url'] = response['url'].replace('https://web.archive.org/save/', '')
 
     if type(response['data']) != str:
         response['data'] = response['data'].decode('UTF-8')
