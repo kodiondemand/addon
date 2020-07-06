@@ -101,7 +101,7 @@ def start(itemlist, item):
                 continue
 
             # If it does not have a defined quality, it assigns a 'default' quality.
-            if item.quality not in quality_list:
+            if item.quality.lower() not in quality_list:
                 item.quality = 'default'
             # The list for custom settings is created
 
