@@ -55,6 +55,6 @@ def search(item, text):
 
 
 def findvideos(item):
-    url = support.match(item, patron=r'<a class="bot1" href="([^"]+)"').match
+    url = support.match(item, patron=r'<a class=["]?bot1["]? href="([^"]+)"').match
     url = support.httptools.downloadpage(url, followredirect=True).url
     return support.server(item, url)
