@@ -4,6 +4,7 @@
 from core import httptools
 from core import scrapertools
 from platformcode import logger, config
+from lib import jsunpack
 
 
 def test_video_exists(page_url):
@@ -21,11 +22,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     global data
     # data = httptools.downloadpage(page_url).data
-    # enc_data = scrapertools.find_single_match(data, "text/javascript">(.+?)</script>")
-    # dec_data = jsunpack.unpack(enc_data)
-    sources = scrapertools.find_single_match(data, "<source(.*?)</source")
-    patron = 'src="([^"]+)'
-    matches = scrapertools.find_multiple_matches(sources, patron)
+    enc_data = scrapertools.find_single_match(data, r'text/javascript">(eval.+?)(?:\n|\s*</script>)')
+    if enc_data:
+        dec_data = jsunpack.unpack(enc_data)
+        matches = scrapertools.find_multiple_matches(dec_data, r'src:"([^"]+)"')
+    else:
+        sources = scrapertools.find_single_match(data, r"<source(.*?)</source")
+        patron = r'src="([^"]+)'
+        matches = scrapertools.find_multiple_matches(sources, patron)
     for url in matches:
         Type = 'm3u8'
         video_url = url
