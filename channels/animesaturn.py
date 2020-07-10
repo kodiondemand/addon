@@ -68,6 +68,7 @@ def peliculas(item):
 
     deflang= 'Sub-ITA'
     action = 'check'
+    # debug = True
 
     page = None
     post = "page=" + str(item.page if item.page else 1) if item.page > 1 else None
@@ -91,15 +92,15 @@ def peliculas(item):
             if item.args == 'incorso':
                 patron = r'<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-za-z-]+)\))?</a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<'
             else:
-                patron = r'href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)(?:\((?P<lang>ITA)\))?(?:(?P<year>\((\d+)\)))?</a>.*?<p[^>]+>(?P<plot>[^<]+).*?<img src="(?P<thumbnail>[^"]+)'
+                patron = r'<img src="(?P<thumb>[^"]+)" alt="(?P<title>[^"\(]+)(?:\((?P<lang>[Ii][Tt][Aa])\))?(?:\s*\((?P<year>\d+)\))?[^"]*"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a class="[^"]+" href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+><p[^>]+>(?:(?P<plot>[^<]+))?<'
 
     return locals()
 
 
 def check(item):
     movie = support.match(item, patron=r'Episodi:</b> (\d*) Movie')
-    anime_id = support.match(movie.data, patron=r'anime_id=(\d+)').match
-    item.url = host + "/loading_anime?anime_id=" + anime_id
+    # anime_id = support.match(movie.data, patron=r'anime_id=(\d+)').match
+    # item.url = host + "/loading_anime?anime_id=" + anime_id
     if movie.match:
         item.contentType = 'movie'
         episodes = episodios(item)
@@ -113,7 +114,7 @@ def check(item):
 @support.scrape
 def episodios(item):
     if item.contentType != 'movie': anime = True
-    patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
+    patron = r'episodi-link-button"> <a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
     return locals()
 
 
