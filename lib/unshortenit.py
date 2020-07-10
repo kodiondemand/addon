@@ -497,12 +497,13 @@ class UnshortenIt(object):
             if 'myfoldersakstream.php' in uri or '/verys/' in uri:
                 return uri, 0
             r = None
-            try:
-                from Cryptodome.Cipher import AES
-            except:
-                from Crypto.Cipher import AES
 
             def decrypt(str):
+                try:
+                    from Cryptodome.Cipher import AES
+                except:
+                    from Crypto.Cipher import AES
+
                 str = str.replace("_ppl_", "+").replace("_eqq_", "=").replace("_sll_", "/")
                 iv = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
                 key = "naphajU2usWUswec"
@@ -518,7 +519,7 @@ class UnshortenIt(object):
             else:
                 if 'sb/' in uri or 'akv/' in uri or 'wss/' in uri or 'wsd/' in uri:
                     import datetime, hashlib
-                    ip = urllib.urlopen('http://ip.42.pl/raw').read()
+                    ip = urllib.urlopen('https://api.ipify.org/').read()
                     day = datetime.date.today().strftime('%Y%m%d')
                     headers = {
                         "Cookie": hashlib.md5(ip+day).hexdigest() + "=1"
