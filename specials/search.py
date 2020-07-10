@@ -29,27 +29,20 @@ gc.disable()
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 
+
 def mainlist(item):
     logger.info()
 
     itemlist = [Item(channel=item.channel, title=config.get_localized_string(70276), action='new_search', mode='all', thumbnail=get_thumb("search.png")),
-
                 Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(30122), action='new_search', mode='movie', thumbnail=get_thumb("search_movie.png")),
-
                 Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(30123), action='new_search', mode='tvshow', thumbnail=get_thumb("search_tvshow.png")),
-
                 Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(70314), action='new_search', page=1, mode='person', thumbnail=get_thumb("search_star.png")),
-
                 Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=get_thumb('search.png')),
-
                 Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=get_thumb('search.png')),
-
-                Item(channel=item.channel, title=typo(config.get_localized_string(59994), 'color kod bold'), action='opciones', thumbnail=get_thumb('setting_0.png')),
-
+                Item(channel=item.channel, title=typo(config.get_localized_string(59994), 'color kod bold'), action='setting_channel_new', thumbnail=get_thumb('setting_0.png')),
                 Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, thumbnail=get_thumb('setting_0.png'))]
 
     itemlist = set_context(itemlist)
-
     return itemlist
 
 
@@ -57,30 +50,20 @@ def sub_menu(item):
     logger.info()
 
     itemlist = [Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70306), mode='movie', thumbnail=get_thumb("movie_genre.png")),
-
                 Item(channel=item.channel, action='years_menu', title=config.get_localized_string(70742), mode='movie', thumbnail=get_thumb("movie_year.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70307), search_type='list', list_type='movie/popular', mode='movie', thumbnail=get_thumb("movie_popular.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70308), search_type='list', list_type='movie/top_rated', mode='movie', thumbnail=get_thumb("movie_top.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70309), search_type='list', list_type='movie/now_playing', mode='movie', thumbnail=get_thumb("movie_now_playing.png")),
-
                 Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70310), mode='tvshow', thumbnail=get_thumb("tvshow_genre.png")),
-
                 Item(channel=item.channel, action='years_menu', title=config.get_localized_string(70743), mode='tvshow', thumbnail=get_thumb("tvshow_year.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70311), search_type='list', list_type='tv/popular', mode='tvshow', thumbnail=get_thumb("popular.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70312), search_type='list', list_type='tv/on_the_air', mode='tvshow', thumbnail=get_thumb("tvshow_on_the_air.png")),
-
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70313), search_type='list', list_type='tv/top_rated', mode='tvshow', thumbnail=get_thumb("tvshow_top.png")),
-
                 Item(channel="tvmoviedb", action="mainlist", title=config.get_localized_string(70274), thumbnail=get_thumb("search.png"))]
 
     itemlist = set_context(itemlist)
-
     return itemlist
+
 
 def saved_search(item):
     logger.info()
@@ -416,15 +399,14 @@ def get_channels(item):
     return channels_list, title_list
 
 
-def opciones(item):
-    return setting_channel_new(item)
-
 def settings(item):
     return platformtools.show_channel_settings(caption=config.get_localized_string(59993))
+
 
 def set_workers():
     workers = config.get_setting('thread_number') if config.get_setting('thread_number') > 0 else None
     return workers
+
 
 def setting_channel_new(item):
     import xbmcgui
@@ -521,8 +503,8 @@ def setting_channel_new(item):
 
     # Dialog to select
     ret = platformtools.dialog_multiselect(config.get_localized_string(59994), lista, preselect=preselect, useDetails=True)
-    if not ret:
-        return False  # order cancel
+
+    if ret == None: return False  # order cancel
     seleccionados = [ids[i] for i in ret]
 
     # Save changes to search channels
