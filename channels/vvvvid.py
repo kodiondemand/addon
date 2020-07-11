@@ -2,11 +2,9 @@
 # ------------------------------------------------------------
 # Canale per vvvvid
 # ----------------------------------------------------------
-import requests, re
+import requests, sys
 from core import  support, tmdb
-from core.item import Item
 from specials import autorenumber
-import sys
 if sys.version_info[0] >= 3:
     from concurrent import futures
 else:
@@ -30,7 +28,6 @@ except:
 
 main_host = host
 host += '/vvvvid/ondemand/'
-
 
 
 @support.menu
@@ -91,7 +88,7 @@ def search(item, text):
 
 
 def newest(categoria):
-    item = Item()
+    item = support.Item()
     item.args = 'channel/10007/last/'
     if categoria == 'peliculas':
         item.contentType = 'movie'
@@ -198,6 +195,17 @@ def findvideos(item):
                                url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
                                server= 'directo')
                 )
+            else:
+                key_url = 'https://www.vvvvid.it/kenc?action=kt&conn_id=' + conn_id + '&url=' + item.url.replace(':','%3A').replace('/','%2F')
+                key = vvvvid_decoder.dec_ei(current_session.get(key_url, headers=headers, params=payload).json()['message'])
+
+                itemlist.append(
+                    item.clone(action= 'play',
+                               title='direct',
+                               url= item.url + '?' + key,
+                               server= 'directo')
+                )
+
     return support.server(item, itemlist=itemlist, Download=False)
 
 def make_itemlist(itemlist, item, data):
