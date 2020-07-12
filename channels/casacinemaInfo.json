@@ -2,7 +2,7 @@
     "id": "casacinemaInfo",
     "name": "La Casa del Cinema",
     "language": ["ita", "sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "casacinemainfo.png",
     "banner": "casacinemainfo.png",
     "categories": ["movie", "vos"],

@@ -159,8 +159,13 @@ def get_lang(channel_name):
 
 def get_default_settings(channel_name):
     from core import filetools
+    import copy
+
     default_path = filetools.join(config.get_runtime_path(), 'default_channel_settings' + '.json')
-    global default_file
+    if channel_name not in ['trakt', 'autoplay']:
+        global default_file
+    else:
+        default_file = {}
     if not default_file:
         default_file = jsontools.load(filetools.read(default_path))
 
@@ -180,7 +185,7 @@ def get_default_settings(channel_name):
         default_off = channel_json['default_off'] if 'default_off' in channel_json else []
 
         # Apply default configurations if they do not exist
-        for control in default_controls:
+        for control in copy.deepcopy(default_controls):
             if control['id'] not in str(channel_controls):
                 if 'include_in_newest' in control['id'] and 'include_in_newest' not in not_active and control[
                     'id'] not in not_active:
@@ -256,7 +261,6 @@ def get_channel_setting(name, channel, default=None):
     file_settings = filetools.join(config.get_data_path(), "settings_channels", channel + "_data.json")
     dict_settings = {}
     dict_file = {}
-    if channel not in ['trakt', 'autoplay']: def_settings = get_default_settings(channel)
 
     if filetools.exists(file_settings):
         # We get saved configuration from ../settings/channel_data.json
