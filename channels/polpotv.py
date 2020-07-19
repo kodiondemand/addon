@@ -57,7 +57,7 @@ def peliculas(item):
             item.contentType='movie'
         else:
             item.contentType='tvshow'
-        itemlist.extend(get_itemlist_element(element,item))
+        itemlist.extend(get_itemlist_element(element, item))
 
     try:
         if support.inspect.stack()[1][3] not in ['newest']:
@@ -92,7 +92,7 @@ def get_season(item, seas_url, seasonNumber):
         itemlist.append(
             item.clone(action='findvideos',
                        contentType='episode',
-                       title=str(seasonNumber)+"x"+str("%02d"%episode['episodeNumber']),
+                       title=support.typo(str(seasonNumber)+"x"+str("%02d"%episode['episodeNumber']), 'bold'),
                        url=seas_url,
                        extra=str(len(json_object['hydra:member'])-episode['episodeNumber'])))
     return itemlist[::-1]
@@ -173,6 +173,8 @@ def findvideos(item):
 def get_itemlist_element(element,item):
     support.log()
     itemlist=[]
+    contentSerieName = ''
+    contentTitle =''
     try:
         if element['originalLanguage']['id']=='it':
             scrapedtitle=element['originalTitle']
@@ -197,11 +199,13 @@ def get_itemlist_element(element,item):
 
     infoLabels = {}
     if item.contentType=='movie':
+        contentTitle = scrapedtitle
         next_action='findvideos'
         quality=support.typo(element['lastQuality'].upper(), '_ [] color kod bold')
         url="%s%s/releases"
         infoLabels['tmdb_id']=element['tmdbId']
     else:
+        contentSerieName = scrapedtitle
         next_action='episodios'
         quality=''
         url="%s%s"
@@ -216,7 +220,9 @@ def get_itemlist_element(element,item):
                    plot=scrapedplot,
                    fanart=scrapedfanart,
                    thumbnail=scrapedthumbnail,
-                   contentTitle=scrapedtitle,
+                   contentTitle=contentTitle,
+                   contentSerieName=contentSerieName,
+                   contentType=item.contentType,
                    url=url % (host, element['@id']),
                    infoLabels=infoLabels))
 

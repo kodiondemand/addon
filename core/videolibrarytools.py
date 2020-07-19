@@ -435,7 +435,9 @@ def save_tvshow(item, episodelist, silent=False):
         logger.debug("NOT FOUND contentSerieName or code")
         return 0, 0, -1, path  # Salimos sin guardar
 
+    contentTypeBackup = item.contentType  # Fix errors in some channels
     scraper_return = scraper.find_and_set_infoLabels(item)
+    item.contentType = contentTypeBackup  # Fix errors in some channels
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the series
     #  scraper_return = False: An item without movie information (it has been canceled in the window)
@@ -574,19 +576,63 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
     # process local episodes
     local_episodes_path = ''
+    local_episodelist = []
+    update = False
     nfo_path = filetools.join(path, "tvshow.nfo")
     head_nfo, item_nfo = read_nfo(nfo_path)
+
     if item_nfo.update_last:
         local_episodes_path = item_nfo.local_episodes_path
     elif config.get_setting("local_episodes", "videolibrary"):
-        done, local_episodes_path = config_local_episodes_path(path, serie.show)
+        done, local_episodes_path = config_local_episodes_path(path, serie)
         if done < 0:
             logger.info("An issue has occurred while configuring local episodes, going out without creating strm")
             return 0, 0, done
         item_nfo.local_episodes_path = local_episodes_path
         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
+
     if local_episodes_path:
-        process_local_episodes(local_episodes_path, path)
+        from platformcode.xbmc_videolibrary import check_db, clean
+        # check if the local episodes are in the Kodi video library
+        if check_db(local_episodes_path):
+            local_episodelist += get_local_content(local_episodes_path)
+            clean_list = []
+            for f in filetools.listdir(path):
+                match = scrapertools.find_single_match(f, r'[S]?(\d+)(?:x|_|\.)?[E]?(\d+)')
+                if match:
+                    ep = '%dx%02d' % (int(match[0]), int(match[1]))
+                    if ep in local_episodelist:
+                        del_file = filetools.join(path, f)
+                        filetools.remove(del_file)
+                        if f.endswith('strm'):
+                            sep = '\\' if '\\' in path else '/'
+                            clean_path = path[:-len(sep)] if path.endswith(sep) else path
+                            clean_path = '%/' + clean_path.split(sep)[-1] + '/' + f
+                            clean_list.append(clean_path)
+                            clean_list.append(clean_path.replace('/','\\'))
+
+            if clean_list:
+                clean(clean_list)
+                update = True
+
+            if item_nfo.local_episodes_list:
+                difference = [x for x in item_nfo.local_episodes_list if (x not in local_episodelist)]
+                if len(difference) > 0:
+                    clean_list = []
+                    for f in difference:
+                        sep = '\\' if '\\' in local_episodes_path else '/'
+                        clean_path = local_episodes_path[:-len(sep)] if local_episodes_path.endswith(sep) else local_episodes_path
+                        clean_path = '%/' + clean_path.split(sep)[-1] + '/%' + f.replace('x','%') + '%'
+                        clean_list.append(clean_path)
+                        clean_list.append(clean_path.replace('/','\\'))
+                    clean(clean_list)
+                    update = True
+
+            item_nfo.local_episodes_list = sorted(local_episodelist)
+            filetools.write(nfo_path, head_nfo + item_nfo.tojson())
+        # the local episodes are not in the Kodi video library
+        else:
+            process_local_episodes(local_episodes_path, path)
 
     insertados = 0
     sobreescritos = 0
@@ -667,12 +713,13 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         logger.info("There is no episode list, we go out without creating strm")
         return 0, 0, 0
 
+    local_episodelist += get_local_content(path)
+
     # fix float because division is done poorly in python 2.x
     try:
         t = float(100) / len(new_episodelist)
     except:
         t = 0
-
     for i, e in enumerate(scraper.sort_episode_list(new_episodelist)):
         if not silent:
             p_dialog.update(int(math.ceil((i + 1) * t)), config.get_localized_string(60064), e.title)
@@ -693,6 +740,10 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         strm_path = filetools.join(path, "%s.strm" % season_episode)
         nfo_path = filetools.join(path, "%s.nfo" % season_episode)
         json_path = filetools.join(path, ("%s [%s].json" % (season_episode, e.channel)).lower())
+
+        if season_episode in local_episodelist:
+            logger.info('Skipped: Serie ' + serie.contentSerieName + ' ' + season_episode + ' available as local content')
+            continue
 
         # check if the episode has been downloaded
         if filetools.join(path, "%s [downloads].json" % season_episode) in ficheros:
@@ -817,14 +868,17 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
             filetools.write(tvshow_path, head_nfo + tvshow_item.tojson())
         except:
             logger.error("Error updating tvshow.nfo")
-            logger.error("Unable to save %s emergency urls in the video library" % tvshow_item.contentSerieName)
+            logger.error("Unable to save %s emergency urls in the video library" % serie.contentSerieName)
             logger.error(traceback.format_exc())
             fallidos = -1
         else:
             # ... if it was correct we update the Kodi video library
             if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:
-                from platformcode import xbmc_videolibrary
-                xbmc_videolibrary.update()
+                update = True
+
+    if update:
+        from platformcode import xbmc_videolibrary
+        xbmc_videolibrary.update()
 
     if fallidos == len(episodelist):
         fallidos = -1
@@ -833,23 +887,25 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
     return insertados, sobreescritos, fallidos
 
 
-def config_local_episodes_path(path, title, silent=False):
-    logger.info()
-
-    local_episodes_path = ''
-    if not silent:
-        silent = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % title)
-    if silent:
-        if config.is_xbmc() and not config.get_setting("videolibrary_kodi"):
-            platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80043))
-        local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
-        if local_episodes_path == '':
-            logger.info("User has canceled the dialog")
-            return -2, local_episodes_path
-        elif path in local_episodes_path:
-            platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80045))
-            logger.info("Selected folder is the same of the TV show one")
-            return -2, local_episodes_path
+def config_local_episodes_path(path, item, silent=False):
+    logger.info(item)
+    from platformcode.xbmc_videolibrary import search_local_path
+    local_episodes_path=search_local_path(item)
+    if not local_episodes_path:
+        title = item.contentSerieName if item.contentSerieName else item.show
+        if not silent:
+            silent = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % title)
+        if silent:
+            if config.is_xbmc() and not config.get_setting("videolibrary_kodi"):
+                platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80043))
+            local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
+            if local_episodes_path == '':
+                logger.info("User has canceled the dialog")
+                return -2, local_episodes_path
+            elif path in local_episodes_path:
+                platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80045))
+                logger.info("Selected folder is the same of the TV show one")
+                return -2, local_episodes_path
 
     if local_episodes_path:
         # import artwork
@@ -899,6 +955,21 @@ def process_local_episodes(local_episodes_path, path):
     item_nfo.local_episodes_list = sorted(set(local_episodes_list))
 
     filetools.write(nfo_path, head_nfo + item_nfo.tojson())
+
+
+def get_local_content(path):
+    logger.info()
+
+    local_episodelist = []
+    for root, folders, files in filetools.walk(path):
+        for file in files:
+            season_episode = scrapertools.get_season_and_episode(file)
+            if season_episode == "" or filetools.exists(filetools.join(path, "%s.strm" % season_episode)):
+                continue
+            local_episodelist.append(season_episode)
+    local_episodelist = sorted(set(local_episodelist))
+
+    return local_episodelist
 
 
 def add_movie(item):
@@ -969,7 +1040,7 @@ def add_tvshow(item, channel=None):
 
     else:
         # This mark is because the item has something else apart in the "extra" attribute
-        item.action = item.extra if item.extra else item.action
+        # item.action = item.extra if item.extra else item.action
         if isinstance(item.extra, str) and "###" in item.extra:
             item.action = item.extra.split("###")[0]
             item.extra = item.extra.split("###")[1]

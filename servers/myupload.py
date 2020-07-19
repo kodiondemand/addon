@@ -14,7 +14,7 @@ def test_video_exists(page_url):
 
     response = httptools.downloadpage(page_url)
 
-    if not response.sucess or \
+    if not response.success or \
        "Not Found" in response.data \
        or "File was deleted" in response.data \
        or "is no longer available" in response.data:

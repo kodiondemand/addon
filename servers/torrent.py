@@ -17,6 +17,9 @@ monitor = filetools.join(config.get_data_path(), 'elementum_monitor.json')
 extensions_list = ['.aaf', '.3gp', '.asf', '.avi', '.flv', '.mpeg', '.m1v', '.m2v', '.m4v', '.mkv', '.mov', '.mpg', '.mpe', '.mp4', '.ogg', '.wmv']
 
 
+def test_video_exists(page_url):
+    return True, ""
+
 
 # Returns an array of possible video url's from the page_url
 def get_video_url(page_url, premium=False, user='', password='', video_password=''):

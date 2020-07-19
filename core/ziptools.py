@@ -23,7 +23,7 @@ class ziptools(object):
         if not dir.endswith(':') and not filetools.exists(dir):
             filetools.mkdir(dir)
 
-        zf = zipfile.ZipFile(file)
+        zf = zipfile.ZipFile(filetools.file_open(file, vfs=False))
         if not folder_to_extract:
             self._createstructure(file, dir)
         num_files = len(zf.namelist())
@@ -93,7 +93,7 @@ class ziptools(object):
                 filetools.mkdir(curdir)
 
     def _listdirs(self, file):
-        zf = zipfile.ZipFile(file)
+        zf = zipfile.ZipFile(filetools.file_open(file, vfs=False))
         dirs = []
         for name in zf.namelist():
             if name.endswith('/'):
@@ -104,7 +104,7 @@ class ziptools(object):
 
     def zip(self, dir, file):
         import os
-        zf = zipfile.ZipFile(file, "w", zipfile.ZIP_DEFLATED)
+        zf = zipfile.ZipFile(filetools.file_open(file, "w", vfs=False), "w", zipfile.ZIP_DEFLATED)
         abs_src = os.path.abspath(dir)
         for dirname, subdirs, files in os.walk(dir):
             for filename in files:

@@ -6,20 +6,32 @@
 from core import support
 
 host = support.config.get_channel_url()
-
-
-
-
-
 headers = [['Referer', host]]
 
 
 @support.menu
 def mainlist(item):
     anime = ['/lista-anime/',
-             ('In Corso',['/lista-anime-in-corso/', 'peliculas', 'corso']),
+             ('In Corso',['/anime/anime-status/in-corso/', 'peliculas', 'status']),
+             ('Completi',['/anime/anime-status/completo/', 'peliculas', 'status']),
+             ('Genere',['/anime', 'submenu', 'genre']),
+             ('Anno',['/anime', 'submenu', 'anime-year']),
+             ('Tipologia',['/anime', 'submenu', 'anime-type']),
+             ('Stagione',['/anime', 'submenu', 'anime-season']),
              ('Ultime Serie',['/category/anime/articoli-principali/','peliculas','last'])
             ]
+    return locals()
+
+
+@support.scrape
+def submenu(item):
+    action = 'peliculas'
+    patronBlock = r'data-taxonomy="' + item.args + r'"(?P<block>.*?)</select'
+    patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<t>[^&]+)[^\(]+\((?P<num>\d+)'
+    def itemHook(item):
+        item.url += host + '/anime/' + item.args + '/' + item.u
+        item.title = support.typo(item.t, 'bold')
+        return item
     return locals()
 
 
@@ -60,13 +72,14 @@ def search(item, texto):
 @support.scrape
 def peliculas(item):
     anime = True
-    action = 'episodios'
+    if 'movie' in item.url:
+        action = 'findvideos'
+    else:
+        action = 'check'
+
     if not item.args:
         pagination = ''
         patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)">'
-    elif item.args == 'corso':
-        pagination = ''
-        patron = r'<strong><a href="(?P<url>[^"]+)">(?P<title>.*?) [Ss][Uu][Bb]'
     else:
         patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'
 
@@ -81,10 +94,21 @@ def peliculas(item):
     return locals()
 
 
+def check(item):
+    m = support.match(item, headers=headers, patron=r'Tipologia[^>]+><a href="([^"]+)"')
+    item.data = m.data
+    if 'movie' in m.match:
+        item.contentType = 'movie'
+        return findvideos(item)
+    else:
+        return episodios(item)
+
+
 @support.scrape
 def episodios(item):
     anime = True
-    data = support.match(item, headers=headers).data
+    data = item.data
+
     if '<h6>Streaming</h6>' in data:
         patron = r'<td style[^>]+>\s*.*?(?:<span[^>]+)?<strong>(?P<title>[^<]+)<\/strong>.*?<td style[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>'
     else:
@@ -100,51 +124,9 @@ def episodios(item):
 
 def findvideos(item):
     support.log(item)
-    # try:
-    #     from urlparse import urljoin
-    # except:
-    #     from urllib.parse import urljoin
-    # support.dbg()
     itemlist = []
-    if 'vvvvid' in item.url:
-        import requests
-        from lib import vvvvid_decoder
-        
-        if support.match(item.url, string=True, patron=r'(\d+/\d+)').match:
-            item.action = 'play'
-            itemlist.append(item)
-        else:
-            # VVVVID vars
-            vvvvid_host = 'https://www.vvvvid.it/vvvvid/ondemand/'
-            vvvvid_headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'}
 
-            # VVVVID session
-            current_session = requests.Session()
-            login_page = 'https://www.vvvvid.it/user/login'
-            conn_id = current_session.get(login_page, headers=vvvvid_headers).json()['data']['conn_id']
-            payload = {'conn_id': conn_id}
-
-
-            # collect parameters
-            show_id = support.match(item.url, string=True, patron=r'(\d+)').match
-            ep_number = support.match(item.title, patron=r'(\d+)').match
-            json_file = current_session.get(vvvvid_host + show_id + '/seasons/', headers=vvvvid_headers, params=payload).json()
-            season_id = str(json_file['data'][0]['season_id'])
-            json_file = current_session.get(vvvvid_host + show_id + '/season/' + season_id +'/', headers=vvvvid_headers, params=payload).json()
-
-            # select the correct episode
-            for episode in json_file['data']:
-                support.log('Number',int(episode['number']),int(ep_number))
-                if int(episode['number']) == int(ep_number):
-                    url = vvvvid_decoder.dec_ei(episode['embed_info'] or episode['embed_info'])
-                    if 'youtube' in url: item.url = url
-                    item.url = url.replace('manifest.f4m','master.m3u8').replace('http://','https://').replace('/z/','/i/')
-                    if 'https' not in item.url:
-                        url = support.match(item, url='https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/playlist.m3u')[1]
-                        url = url.split()[-1]
-                        itemlist.append(item.clone(action= 'play', url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url, server= 'directo'))
-
-    elif 'adf.ly' in item.url:
+    if 'adf.ly' in item.url:
         from servers.decrypters import adfly
         url = adfly.get_long_url(item.url)
 
@@ -154,7 +136,6 @@ def findvideos(item):
     else:
         url = host
         for u in item.url.split('/'):
-            # support.log(i)
             if u and 'animeforce' not in u and 'http' not in u:
                 url += '/' + u
 
@@ -162,11 +143,12 @@ def findvideos(item):
             url = support.httptools.downloadpage(url, only_headers=True, follow_redirects=False).headers.get("location")
             url = support.match(url, patron=r'class="button"><a href=(?:")?([^" ]+)', headers=headers).match
         else:
-            url = support.match(url, patron=[r'<source src=(?:")?([^" ]+)',r'name="_wp_http_referer" value="([^"]+)"']).match
+            if item.data: url = item.data
+            url = support.match(url, patron=r'data-href="([^"]+)" target').match
+            if not url: url = support.match(url, patron=[r'<source src=(?:")?([^" ]+)',r'name="_wp_http_referer" value="([^"]+)"']).match
         if url.startswith('//'): url = 'https:' + url
         elif url.startswith('/'): url = 'https:/' + url
-
-
-        itemlist.append(item.clone(action="play", title='Diretto', url=url, server='directo'))
+        if 'vvvvid' in url: itemlist.append(item.clone(action="play", title='VVVVID', url=url, server='vvvvid'))
+        else: itemlist.append(item.clone(action="play", title='Diretto', url=url, server='directo'))
 
     return support.server(item, itemlist=itemlist)

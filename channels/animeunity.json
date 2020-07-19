@@ -6,5 +6,15 @@
   "thumbnail": "animeunity.png",
   "banner": "animeunity.png",
   "categories": ["anime"],
-  "settings": []
+  "settings": [
+    {
+      "id": "order",
+      "type": "list",
+      "label": "Ordine di Visualizzazione",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [ "Standard", "Lista A-Z", "Lista Z-A", "Popolarità", "Valutazione" ]
+    }
+  ]
 }

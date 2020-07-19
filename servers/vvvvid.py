@@ -53,7 +53,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ep_title = '[B]' + episode['title'] + '[/B]'
             embed_info = vvvvid_decoder.dec_ei(episode['embed_info'])
             embed_info = embed_info.replace('manifest.f4m','master.m3u8').replace('http://','https://').replace('/z/','/i/')
+            key_url = 'https://www.vvvvid.it/kenc?action=kt&conn_id=' + conn_id + '&url=' + embed_info.replace(':','%3A').replace('/','%2F')
+            key = vvvvid_decoder.dec_ei(current_session.get(key_url, headers=headers, params=payload).json()['message'])
 
-    video_urls.append([ep_title, str(embed_info)])
+    video_urls.append([ep_title, str(embed_info) + '?' + key])
 
     return video_urls

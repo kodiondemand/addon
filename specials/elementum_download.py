@@ -37,13 +37,13 @@ def download(item=None):
 
 def extract():
     import zipfile
-    from platformcode.updater import fixZipGetHash, fOpen
+    from platformcode.updater import fixZipGetHash
     support.log('Estraggo Elementum in:', elementum_path)
     try:
         hash = fixZipGetHash(filename)
         support.log(hash)
 
-        with zipfile.ZipFile(fOpen(filename, 'rb')) as zip_ref:
+        with zipfile.ZipFile(filetools.file_open(filename, 'rb', vfs=False)) as zip_ref:
             zip_ref.extractall(xbmc.translatePath(addon_path))
 
     except Exception as e:

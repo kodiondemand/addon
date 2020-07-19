@@ -169,8 +169,13 @@ def channel_search(item):
     ch_list = dict()
     mode = item.mode
     max_results = 10
-    if item.infoLabels['title']:
+
+    if item.infoLabels['tvshowtitle']:
+        item.text = item.infoLabels['tvshowtitle']
+        item.title = item.text
+    elif item.infoLabels['title']:
         item.text = item.infoLabels['title']
+        item.title = item.text
 
     searched_id = item.infoLabels['tmdb_id']
 

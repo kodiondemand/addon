@@ -304,8 +304,8 @@ msgid "Documentaries"
 msgstr "Documentari"
 
 msgctxt "#30126"
-msgid ""
-msgstr ""
+msgid "This video needs inputstream.adaptive addon, but automatic install failed, install it manually"
+msgstr "Questo video necessita dell'addon inputstream.adaptive ma l'installazione automatica è fallita, installalo manualmente."
 
 msgctxt "#30130"
 msgid "News"
@@ -3800,8 +3800,8 @@ msgid "Reorder"
 msgstr "Riordina"
 
 msgctxt "#70246"
-msgid "  - Preferred language"
-msgstr "  - Lingua preferita"
+msgid "Preferred language"
+msgstr "Lingua preferita"
 
 msgctxt "#70247"
 msgid "Home page"
@@ -6030,6 +6030,46 @@ msgstr "Modificando questo parametro vengono sovrascritte permanentemente le imp
 msgctxt "#70807"
 msgid "Elementum does not support network folder downloads, do you want to change the download location?"
 msgstr "Elementum non supporta i download su cartella di rete, vuoi cambiare il percorso di download?"
+
+msgctxt "#70808"
+msgid "In order to view this content you need to install [B]Widevine CDM[/B]. Do you want to install it?"
+msgstr "Per poter visionare questo contenuto devi installare [B]Widevine CDM[/B]. Vuoi installarlo?"
+
+msgctxt "#70809"
+msgid "An update of [B]Widevine CDM[/B] is available. Do you want to install it?"
+msgstr "È disponibile un aggiornamento di [B]Widevine CDM[/B]. Vuoi installarlo?"
+
+msgctxt "#70810"
+msgid "Update available"
+msgstr "Aggiornamento disponibile"
+
+msgctxt "#70811"
+msgid "Extracting Widevine CDM"
+msgstr "Estrazione di Widevine CDM"
+
+msgctxt "#70812"
+msgid "Preparing downloaded image..."
+msgstr "Preparazione dell'immagine scaricata..."
+
+msgctxt "#70813"
+msgid "Identifying wanted partition..."
+msgstr "Identificazione della partizione desiderata..."
+
+msgctxt "#70814"
+msgid "Scanning the filesystem for the Widevine CDM..."
+msgstr "Scansione del filesystem per Widevine CDM..."
+
+msgctxt "#70815"
+msgid "Widevine CDM found, analyzing..."
+msgstr "Widevine CDM trovato, analisi..."
+
+msgctxt "#70816"
+msgid "Extracting Widevine CDM from image..."
+msgstr "Estrazione di Widevine CDM dall'immagine..."
+
+msgctxt "#70817"
+msgid "La Serie "%s" non è gestita da KoD, Vuoi cercarla?"
+msgstr "La Serie "%s" non è gestita da KoD, Vuoi cercarla?"
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

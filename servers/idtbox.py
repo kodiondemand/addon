@@ -14,7 +14,7 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url)
 
-    if not data.sucess or "Not Found" in data.data or "File was deleted" in data.data or "is no longer available" in data.data:
+    if not data.success or "Not Found" in data.data or "File was deleted" in data.data or "is no longer available" in data.data:
         return False,  config.get_localized_string(70449) % "Idtbox"
     
     data = data.data

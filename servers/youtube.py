@@ -92,7 +92,7 @@ def test_video_exists(page_url):
 
     data = httptools.downloadpage(page_url).data
 
-    if "File was deleted" in data:
+    if "File was deleted" in data or "Video non disponibile" in data:
         return False, config.get_localized_string(70449) % "Youtube"
     return True, ""
 
@@ -107,7 +107,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_id = scrapertools.find_single_match(page_url, '(?:v=|embed/)([A-z0-9_-]{11})')
     video_urls = extract_videos(video_id)
 
-    return video_urls
+    return sorted(video_urls, reverse=True)
 
 
 def remove_additional_ending_delimiter(data):
@@ -215,7 +215,7 @@ def extract_videos(video_id):
                         url = re.search('url=(.*)', opt["cipher"]).group(1)
                         s = cipher.get('s')
                         url = "%s&sig=%s" % (urllib.unquote(url), signature([s]))
-                        video_urls.append(["%s" % itag_list.get(opt["itag"], "audio"), url])
+                        video_urls.append(["%s" % itag_list.get(opt["itag"], "video"), url])
                     elif opt["itag"] in itag_list:
                         video_urls.append(["%s" % itag_list.get(opt["itag"], "video"), opt["url"]])
 

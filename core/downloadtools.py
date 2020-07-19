@@ -216,12 +216,14 @@ def downloadbest(video_urls, title, continuar=False):
     return -2
 
 
-def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False, resumir=True):
+def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False, resumir=True, header=''):
     logger.info("url= " + url)
     logger.info("filename= " + nombrefichero)
 
     if headers is None:
         headers = []
+    if not header:
+        header = "plugin"
 
     progreso = None
 
@@ -269,7 +271,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
 
         # Create the progress dialog
         if not silent:
-            progreso = platformtools.dialog_progress("plugin", "Downloading...", url, nombrefichero)
+            progreso = platformtools.dialog_progress(header, "Downloading...", url, nombrefichero)
 
         # If the platform does not return a valid dialog box, it assumes silent mode
         if progreso is None:

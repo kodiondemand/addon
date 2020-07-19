@@ -12,8 +12,8 @@ def test_video_exists(page_url):
     html = httptools.downloadpage(page_url)
     global data
     data = html.data
-    if html.code == 404:
-        return False, config.get_localized_string(70292) % "CloudVideo"
+    if html.code == 404 or 'No Signal 404 Error Page' in data:
+        return False, config.get_localized_string(70449) % "CloudVideo"
     return True, ""
 
 

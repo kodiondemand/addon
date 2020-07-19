@@ -21,10 +21,12 @@ from servers import torrent
 def update(path, p_dialog, i, t, serie, overwrite):
     logger.info("Updating " + path)
     insertados_total = 0
+    nfo_file = xbmc.translatePath(filetools.join(path, 'tvshow.nfo'))
 
-    head_nfo, it = videolibrarytools.read_nfo(path + '/tvshow.nfo')
-    # videolibrarytools.check_renumber_options(it)
+    head_nfo, it = videolibrarytools.read_nfo(nfo_file)
     videolibrarytools.update_renumber_options(it, head_nfo, path)
+
+    if not serie.library_url: serie = it
     category = serie.category
 
     # logger.debug("%s: %s" %(serie.contentSerieName,str(list_canales) ))
@@ -34,7 +36,7 @@ def update(path, p_dialog, i, t, serie, overwrite):
 
         ###### Redirección al canal NewPct1.py si es un clone, o a otro canal y url si ha intervención judicial
         try:
-            head_nfo, it = videolibrarytools.read_nfo(path + '/tvshow.nfo')         #Refresca el .nfo para recoger actualizaciones
+            head_nfo, it = videolibrarytools.read_nfo(nfo_file)         #Refresca el .nfo para recoger actualizaciones
             if it.emergency_urls:
                 serie.emergency_urls = it.emergency_urls
             serie.category = category
@@ -109,6 +111,7 @@ def check_for_update(overwrite=True):
     update_when_finished = False
     hoy = datetime.date.today()
     estado_verify_playcount_series = False
+    local_ended = True
 
     try:
         if config.get_setting("update", "videolibrary") != 0 or overwrite:
@@ -127,6 +130,11 @@ def check_for_update(overwrite=True):
 
             for i, tvshow_file in enumerate(show_list):
                 head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)
+                if serie.local_episodes_path:
+                    local_ended = True if serie.infoLabels['number_of_episodes'] == len(serie.local_episodes_list) else False
+                if serie.infoLabels['status'].lower() == 'ended' and local_ended:
+                    serie.active = 0
+                    filetools.write(tvshow_file, head_nfo + serie.tojson())
                 path = filetools.dirname(tvshow_file)
 
                 logger.info("serie=" + serie.contentSerieName)

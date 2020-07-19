@@ -304,7 +304,7 @@ msgid "Documentaries"
 msgstr ""
 
 msgctxt "#30126"
-msgid ""
+msgid "This video needs inputstream.adaptive addon, but automatic install failed, install it manually"
 msgstr ""
 
 msgctxt "#30130"
@@ -3801,7 +3801,7 @@ msgid "Reorder"
 msgstr ""
 
 msgctxt "#70246"
-msgid "  - Preferred language"
+msgid "Preferred language"
 msgstr ""
 
 msgctxt "#70247"
@@ -6029,7 +6029,47 @@ msgstr ""
 
 msgctxt "#70807"
 msgid "Elementum does not support network folder downloads, do you want to change the download location?"
-msgstr "Elementum non supporta i download su cartella di rete, vuoi cambiare il percorso di download?"
+msgstr ""
+
+msgctxt "#70808"
+msgid "In order to view this content you need to install [B]Widevine CDM[/B]. Do you want to install it?"
+msgstr ""
+
+msgctxt "#70809"
+msgid "An update of [B]Widevine CDM[/B] is available. Do you want to install it?"
+msgstr ""
+
+msgctxt "#70810"
+msgid "Update available"
+msgstr "Aggiornamento disponibile"
+
+msgctxt "#70811"
+msgid "Extracting Widevine CDM"
+msgstr ""
+
+msgctxt "#70812"
+msgid "Preparing downloaded image..."
+msgstr ""
+
+msgctxt "#70813"
+msgid "Identifying wanted partition..."
+msgstr ""
+
+msgctxt "#70814"
+msgid "Scanning the filesystem for the Widevine CDM..."
+msgstr "."
+
+msgctxt "#70815"
+msgid "Widevine CDM found, analyzing..."
+msgstr "W"
+
+msgctxt "#70816"
+msgid "Extracting Widevine CDM from image..."
+msgstr ""
+
+msgctxt "#70817"
+msgid "La Serie "%s" non è gestita da KoD, Vuoi cercarla?"
+msgstr ""
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

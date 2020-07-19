@@ -56,7 +56,7 @@ HTTPTOOLS_DEFAULT_RANDOM_HEADERS = False
 #     with open(CF_LIST_PATH, "rb") as CF_File:
 #         CF_LIST = CF_File.read().splitlines()
 
-FORCE_CLOUDSCRAPER_LIST = []
+FORCE_CLOUDSCRAPER_LIST = ['akvideo.stream']
 
 def get_user_agent():
     # Returns the global user agent to be used when necessary for the url.
@@ -256,7 +256,7 @@ def downloadpage(url, **opt):
 
                 Parameter Type Description
                 -------------------------------------------------- -------------------------------------------------- ------------
-                HTTPResponse.sucess: bool True: Request successful | False: Error when making the request
+                HTTPResponse.success: bool True: Request successful | False: Error when making the request
                 HTTPResponse.code: int Server response code or error code if an error occurs
                 HTTPResponse.error: str Description of the error in case of an error
                 HTTPResponse.headers: dict Dictionary with server response headers
@@ -270,7 +270,7 @@ def downloadpage(url, **opt):
     # global CF_LIST
     CF = False
 
-    if domain in FORCE_CLOUDSCRAPER_LIST:
+    if domain in FORCE_CLOUDSCRAPER_LIST or opt.get('cf', False):
         from lib import cloudscraper
         session = cloudscraper.create_scraper()
         CF = True
@@ -278,10 +278,10 @@ def downloadpage(url, **opt):
         from lib import requests
         session = requests.session()
 
-        # if domain in CF_LIST or opt.get('CF', False):
-        if opt.get('CF', False):
-            url = 'https://web.archive.org/save/' + url
-            CF = True
+    # if domain in CF_LIST or opt.get('CF', False):
+    if opt.get('CF', False):
+        url = 'https://web.archive.org/save/' + url
+        CF = True
 
     if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
         from specials import resolverdns
@@ -380,9 +380,10 @@ def downloadpage(url, **opt):
             req = requests.Response()
             if not opt.get('ignore_response_code', False) and not proxy_data.get('stat', ''):
                 response['data'] = ''
-                response['sucess'] = False
+                response['success'] = False
                 info_dict.append(('Success', 'False'))
-                response['code'] = str(e)
+                import traceback
+                response['code'] = traceback.format_exc()
                 info_dict.append(('Response code', str(e)))
                 info_dict.append(('Finished in', time.time() - inicio))
                 if not opt.get('alfa_s', False):
@@ -393,7 +394,7 @@ def downloadpage(url, **opt):
 
     else:
         response['data'] = ''
-        response['sucess'] = False
+        response['success'] = False
         response['code'] = ''
         return type('HTTPResponse', (), response)
 
@@ -476,10 +477,10 @@ def fill_fields_post(info_dict, req, response, req_headers, inicio):
 
         if response['code'] == 200:
             info_dict.append(('Success', 'True'))
-            response['sucess'] = True
+            response['success'] = True
         else:
             info_dict.append(('Success', 'False'))
-            response['sucess'] = False
+            response['success'] = False
 
         info_dict.append(('Response data length', len(response['data'])))
 

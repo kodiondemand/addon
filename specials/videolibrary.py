@@ -15,6 +15,10 @@ from core.item import Item
 from platformcode import config, logger, platformtools
 from lib import generictools
 from distutils import dir_util
+if PY3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 
 def mainlist(item):
@@ -25,11 +29,11 @@ def mainlist(item):
                      thumbnail=get_thumb("videolibrary_movie.png")),
                 Item(channel=item.channel, action="list_tvshows", title=config.get_localized_string(60600),
                      category=config.get_localized_string(70271),
-                     thumbnail=get_thumb("videolibrary_tvshow.png")),
+                     thumbnail=get_thumb("videolibrary_tvshow.png"),
+                     context=[{"channel":"videolibrary", "action":"update_videolibrary", "title":config.get_localized_string(70269)}]),
                 Item(channel='shortcuts', action="SettingOnPosition",
                      category=2, setting=1, title=typo(config.get_localized_string(70287),'bold color kod'),
                      thumbnail = get_thumb("setting_0.png"))]
-
     return itemlist
 
 
@@ -40,287 +44,191 @@ def channel_config(item):
 def list_movies(item, silent=False):
     logger.info()
     itemlist = []
-    dead_list = []
-    zombie_list = []
-    for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.MOVIES_PATH):
-        for s in subcarpetas:
-            nfo_path = filetools.join(raiz, s, s + ".nfo")
-            logger.debug(nfo_path)
-
-            local_movie = False
-            for f in filetools.listdir(filetools.join(raiz, s)):
+    movies_path = []
+    for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
+        for f in folders:
+            movies_path += [filetools.join(root, f, f + ".nfo")]
+            local = False
+            for f in filetools.listdir(filetools.join(root, f)):
                 if f.split('.')[-1] not in ['nfo','json','strm']:
-                    local_movie = True
+                    local= True
                     break
 
-            if filetools.exists(nfo_path):
-                # We synchronize the movies seen from the Kodi video library with that of KoD
-                try:
-                    # If it's Kodi, we do it
-                    if config.is_xbmc():
-                        from platformcode import xbmc_videolibrary
-                        xbmc_videolibrary.mark_content_as_watched_on_kod(nfo_path)
-                except:
-                    logger.error(traceback.format_exc())
+    with futures.ThreadPoolExecutor() as executor:
+        for movie_path in movies_path:
+            item_movie, value = executor.submit(get_results, movie_path, root, 'movie', local).result()
+            # verify the existence of the channels
+            if item_movie.library_urls and len(item_movie.library_urls) > 0:
+                itemlist += [item_movie]
 
-                head_nfo, new_item = videolibrarytools.read_nfo(nfo_path)
-
-                # If you have not read the .nfo well, we will proceed to the next
-                if not new_item:
-                    logger.error('.nfo erroneous in ' + str(nfo_path))
-                    continue
-
-                if len(new_item.library_urls) > 1:
-                    multicanal = True
-                else:
-                    multicanal = False
-
-                # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
-
-                for canal_org in new_item.library_urls:
-                    canal = canal_org
-                    try:
-                        if canal in ['community', 'downloads']:
-                            channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
-                        else:
-                            channel_verify = __import__('channels.%s' % canal, fromlist=["channels.%s" % canal])
-                        logger.debug('Channel %s seems correct' % channel_verify)
-                    except:
-                        dead_item = Item(multicanal=multicanal,
-                                         contentType='movie',
-                                         dead=canal,
-                                         path=filetools.join(raiz, s),
-                                         nfo=nfo_path,
-                                         library_urls=new_item.library_urls,
-                                         infoLabels={'title': new_item.contentTitle})
-                        if canal not in dead_list and canal not in zombie_list:
-                            confirm = platformtools.dialog_yesno(config.get_localized_string(30131),
-                                                                 config.get_localized_string(30132) % canal.upper(),
-                                                                 config.get_localized_string(30133))
-
-                        elif canal in zombie_list:
-                            confirm = False
-                        else:
-                            confirm = True
-
-                        if confirm:
-                            delete(dead_item)
-                            if canal not in dead_list:
-                                dead_list.append(canal)
-                            continue
-                        else:
-                            if canal not in zombie_list:
-                                zombie_list.append(canal)
-
-                if len(dead_list) > 0:
-                    for canal in dead_list:
-                        if canal in new_item.library_urls:
-                            del new_item.library_urls[canal]
-
-
-                new_item.nfo = nfo_path
-                new_item.path = filetools.join(raiz, s)
-                new_item.thumbnail = new_item.contentThumbnail
-                new_item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting("folder_movies"), s)
-                strm_path = new_item.strm_path.replace("\\", "/").rstrip("/")
-                if '/' in new_item.path:
-                    new_item.strm_path = strm_path
-                logger.info('EXIST'+ str(local_movie))
-                if not filetools.exists(filetools.join(new_item.path, filetools.basename(strm_path))) and local_movie == False:
-                    # If strm has been removed from kodi library, don't show it
-                    continue
-
-                # Contextual menu: Mark as seen / not seen
-                visto = new_item.library_playcounts.get(os.path.splitext(f)[0], 0)
-                new_item.infoLabels["playcount"] = visto
-                if visto > 0:
-                    texto_visto = config.get_localized_string(60016)
-                    contador = 0
-                else:
-                    texto_visto = config.get_localized_string(60017)
-                    contador = 1
-
-                # Context menu: Delete series / channel
-                num_canales = len(new_item.library_urls)
-                if "downloads" in new_item.library_urls:
-                    num_canales -= 1
-                if num_canales > 1:
-                    texto_eliminar = config.get_localized_string(60018)
-                else:
-                    texto_eliminar = config.get_localized_string(60019)
-
-                new_item.context = [{"title": texto_visto,
-                                     "action": "mark_content_as_watched",
-                                     "channel": "videolibrary",
-                                     "playcount": contador},
-                                    {"title": texto_eliminar,
-                                     "action": "delete",
-                                     "channel": "videolibrary",
-                                     "multicanal": multicanal}]
-                itemlist.append(new_item)
-
-    if silent == False:
-        return sorted(itemlist, key=lambda it: it.title.lower())
-    else:
-        return
+    if silent == False: return sorted(itemlist, key=lambda it: it.title.lower())
+    else: return
 
 
 def list_tvshows(item):
+    from time import time
+    start = time()
     logger.info()
     itemlist = []
-    dead_list = []
-    zombie_list = []
     lista = []
+    tvshows_path = []
+
     # We get all the tvshow.nfo from the SERIES video library recursively
-    for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.TVSHOWS_PATH):
-        for s in subcarpetas:
-            tvshow_path = filetools.join(raiz, s, "tvshow.nfo")
-            logger.debug(tvshow_path)
+    for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
+        for f in folders:
+            tvshows_path += [filetools.join(root, f, "tvshow.nfo")]
 
-            if filetools.exists(tvshow_path):
-                # We synchronize the episodes seen from the Kodi video library with that of KoD
-                try:
-                    # If it's Kodi, we do it
-                    if config.is_xbmc():
-                        from platformcode import xbmc_videolibrary
-                        xbmc_videolibrary.mark_content_as_watched_on_kod(tvshow_path)
-                except:
-                    logger.error(traceback.format_exc())
-
-                head_nfo, item_tvshow = videolibrarytools.read_nfo(tvshow_path)
-
-                # If you have not read the .nfo well, we will proceed to the next
-                if not item_tvshow:
-                    logger.error('.nfo erroneous in ' + str(tvshow_path))
-                    continue
-
-                if len(item_tvshow.library_urls) > 1:
-                    multicanal = True
-                else:
-                    multicanal = False
-
-                # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
-
-                for canal in item_tvshow.library_urls:
-                    try:
-                        if canal in ['community', 'downloads']:
-                            channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
-                        else:
-                            channel_verify = __import__('channels.%s' % canal, fromlist=["channels.%s" % canal])
-                        logger.debug('Channel %s seems correct' % channel_verify)
-                    except:
-                        dead_item = Item(multicanal=multicanal,
-                                         contentType='tvshow',
-                                         dead=canal,
-                                         path=filetools.join(raiz, s),
-                                         nfo=tvshow_path,
-                                         library_urls=item_tvshow.library_urls,
-                                         infoLabels={'title': item_tvshow.contentTitle})
-
-                        if canal not in dead_list and canal not in zombie_list:
-                            confirm = platformtools.dialog_yesno(config.get_localized_string(30131),
-                                                                 config.get_localized_string(30132) % canal.upper(),
-                                                                 config.get_localized_string(30133))
-
-                        elif canal in zombie_list:
-                            confirm = False
-                        else:
-                            confirm = True
-
-                        if confirm:
-                            delete(dead_item)
-                            if canal not in dead_list:
-                                dead_list.append(canal)
-                            continue
-                        else:
-                            if canal not in zombie_list:
-                                zombie_list.append(canal)
-
-                if len(dead_list) > 0:
-                    for canal in dead_list:
-                        if canal in item_tvshow.library_urls:
-                            del item_tvshow.library_urls[canal]
-
-                # continue loading the elements of the video library
-
-                # Sometimes it gives random errors, for not finding the .nfo. Probably timing issues
-                try:
-                    item_tvshow.title = item_tvshow.contentTitle
-                    item_tvshow.path = filetools.join(raiz, s)
-                    item_tvshow.nfo = tvshow_path
-                    item_tvshow.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting("folder_tvshows"), s)
-                    # Contextual menu: Mark as seen / not seen
-                    visto = item_tvshow.library_playcounts.get(item_tvshow.contentTitle, 0)
-                    item_tvshow.infoLabels["playcount"] = visto
-                    if visto > 0:
-                        texto_visto = config.get_localized_string(60020)
-                        contador = 0
-                    else:
-                        texto_visto = config.get_localized_string(60021)
-                        contador = 1
-
-                except:
-                    logger.error('Not find: ' + str(tvshow_path))
-                    logger.error(traceback.format_exc())
-                    continue
-
-                # Context menu: Automatically search for new episodes or not
-                if item_tvshow.active and int(item_tvshow.active) > 0:
-                    texto_update = config.get_localized_string(60022)
-                    value = 0
-                else:
-                    texto_update = config.get_localized_string(60023)
-                    value = 1
-                    item_tvshow.title += " [B]" + u"\u2022".encode('utf-8') + "[/B]"
-
-                # Context menu: Delete series / channel
-                num_canales = len(item_tvshow.library_urls)
-                if "downloads" in item_tvshow.library_urls:
-                    num_canales -= 1
-                if num_canales > 1:
-                    texto_eliminar = config.get_localized_string(60024)
-                else:
-                    texto_eliminar = config.get_localized_string(60025)
-
-                item_tvshow.context = [{"title": texto_visto,
-                                        "action": "mark_content_as_watched",
-                                        "channel": "videolibrary",
-                                        "playcount": contador},
-                                       {"title": texto_update,
-                                        "action": "mark_tvshow_as_updatable",
-                                        "channel": "videolibrary",
-                                        "active": value},
-                                       {"title": texto_eliminar,
-                                        "action": "delete",
-                                        "channel": "videolibrary",
-                                        "multicanal": multicanal},
-                                       {"title": config.get_localized_string(70269),
-                                        "action": "update_tvshow",
-                                        "channel": "videolibrary"}]
-                if item_tvshow.local_episodes_path == "":
-                    item_tvshow.context.append({"title": config.get_localized_string(80048),
-                                                "action": "add_local_episodes",
-                                                "channel": "videolibrary"})
-                else:
-                    item_tvshow.context.append({"title": config.get_localized_string(80049),
-                                                "action": "remove_local_episodes",
-                                                "channel": "videolibrary"})
-
-                # verify the existence of the channels
-                if len(item_tvshow.library_urls) > 0:
-                    itemlist.append(item_tvshow)
-                    lista.append({'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':tvshow_path})
+    with futures.ThreadPoolExecutor() as executor:
+        for tvshow_path in tvshows_path:
+            item_tvshow, value = executor.submit(get_results, tvshow_path, root, 'tvshow').result()
+            # verify the existence of the channels
+            if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
+                itemlist += [item_tvshow]
+                lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':tvshow_path}]
 
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
 
-        itemlist.append(Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
-                             title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False))
-
-        itemlist.append(Item(channel=item.channel, action="configure_update_videolibrary", thumbnail=item.thumbnail,
-                             title=typo(config.get_localized_string(60599), 'bold color kod'), lista=lista, folder=False))
-
+        itemlist += [Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
+                          title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False),
+                     Item(channel=item.channel, action="configure_update_videolibrary", thumbnail=item.thumbnail,
+                          title=typo(config.get_localized_string(60599), 'bold color kod'), lista=lista, folder=False)]
+    logger.info('TEMPO= ' + str(time() - start))
     return itemlist
+
+
+def get_results(nfo_path, root, Type, local=False):
+    dead_list = []
+    zombie_list = []
+    value = 0
+    if Type == 'movie': folder = "folder_movies"
+    else: folder = "folder_tvshows"
+
+    if filetools.exists(nfo_path):
+        # We synchronize the episodes seen from the Kodi video library with that of KoD
+        from platformcode import xbmc_videolibrary
+        xbmc_videolibrary.mark_content_as_watched_on_kod(nfo_path)
+        head_nfo, item = videolibrarytools.read_nfo(nfo_path)
+
+        # If you have not read the .nfo well, we will proceed to the next
+        if not item:
+            logger.error('.nfo erroneous in ' + str(nfo_path))
+            return Item(), 0
+
+        if len(item.library_urls) > 1: multichannel = True
+        else: multichannel = False
+
+        # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
+
+        for canal in item.library_urls:
+            try:
+                if canal in ['community', 'downloads']: channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
+                else: channel_verify = __import__('channels.%s' % canal, fromlist=["channels.%s" % canal])
+                logger.debug('Channel %s seems correct' % channel_verify)
+            except:
+                dead_item = Item(multichannel=multichannel,
+                                 contentType='tvshow',
+                                 dead=canal,
+                                 path=filetools.split(nfo_path)[0],
+                                 nfo=nfo_path,
+                                 library_urls=item.library_urls,
+                                 infoLabels={'title': item.contentTitle})
+
+                if canal not in dead_list and canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % canal.upper(), config.get_localized_string(30133))
+                elif canal in zombie_list: confirm = False
+                else: confirm = True
+
+                if confirm:
+                    delete(dead_item)
+                    if canal not in dead_list:
+                        dead_list.append(canal)
+                    continue
+                else:
+                    if canal not in zombie_list:
+                        zombie_list.append(canal)
+
+        if len(dead_list) > 0:
+            for canal in dead_list:
+                if canal in item.library_urls:
+                    del item.library_urls[canal]
+
+        # continue loading the elements of the video library
+        if Type == 'movie':
+            item.path = filetools.split(nfo_path)[0]
+            item.nfo = nfo_path
+            sep = '/' if '/' in nfo_path else '\\'
+            item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting(folder), item.path.split(sep)[-1])
+            strm_path = item.strm_path.replace("\\", "/").rstrip("/")
+            if '/' in item.path: item.strm_path = strm_path
+            # If strm has been removed from kodi library, don't show it
+            if not filetools.exists(filetools.join(item.path, filetools.basename(strm_path))) and not local: return Item(), 0
+
+            # Contextual menu: Mark as seen / not seen
+            visto = item.library_playcounts.get(item.path.split(sep)[0], 0)
+            item.infoLabels["playcount"] = visto
+            if visto > 0:
+                seen_text = config.get_localized_string(60016)
+                counter = 0
+            else:
+                seen_text = config.get_localized_string(60017)
+                counter = 1
+
+            # Context menu: Delete series / channel
+            channels_num = len(item.library_urls)
+            if "downloads" in item.library_urls: channels_num -= 1
+            if channels_num > 1: delete_text = config.get_localized_string(60018)
+            else: delete_text = config.get_localized_string(60019)
+
+            item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary",  "playcount": counter},
+                            {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel}]
+        else:
+            # Sometimes it gives random errors, for not finding the .nfo. Probably timing issues
+            try:
+                item.title = item.contentTitle
+                item.path = filetools.split(nfo_path)[0]
+                item.nfo = nfo_path
+                sep = '/' if '/' in nfo_path else '\\'
+                item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting(folder), item.path.split(sep)[-1])
+                # Contextual menu: Mark as seen / not seen
+                visto = item.library_playcounts.get(item.contentTitle, 0)
+                item.infoLabels["playcount"] = visto
+                logger.info('item\n' + str(item))
+                if visto > 0:
+                    seen_text = config.get_localized_string(60020)
+                    counter = 0
+                else:
+                    seen_text = config.get_localized_string(60021)
+                    counter = 1
+
+            except:
+                logger.error('Not find: ' + str(nfo_path))
+                logger.error(traceback.format_exc())
+                return Item(), 0
+
+            # Context menu: Automatically search for new episodes or not
+            if item.active and int(item.active) > 0:
+                update_text = config.get_localized_string(60022)
+                value = 0
+            else:
+                update_text = config.get_localized_string(60023)
+                value = 1
+                item.title += " [B]" + u"\u2022".encode('utf-8') + "[/B]"
+
+            # Context menu: Delete series / channel
+            channels_num = len(item.library_urls)
+            if "downloads" in item.library_urls: channels_num -= 1
+            if channels_num > 1: delete_text = config.get_localized_string(60024)
+            else: delete_text = config.get_localized_string(60025)
+
+            item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary", "playcount": counter},
+                            {"title": update_text, "action": "mark_tvshow_as_updatable", "channel": "videolibrary", "active": value},
+                            {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel},
+                            {"title": config.get_localized_string(70269), "action": "update_tvshow", "channel": "videolibrary"}]
+            if item.local_episodes_path == "": item.context.append({"title": config.get_localized_string(80048), "action": "add_local_episodes", "channel": "videolibrary"})
+            else: item.context.append({"title": config.get_localized_string(80049), "action": "remove_local_episodes", "channel": "videolibrary"})
+    else: item = Item()
+    return item, value
+
 
 def configure_update_videolibrary(item):
     import xbmcgui
@@ -353,7 +261,6 @@ def configure_update_videolibrary(item):
     platformtools.itemlist_refresh()
 
     return True
-
 
 
 def get_seasons(item):
@@ -810,9 +717,9 @@ def update_tvshow(item):
     nfo_path = filetools.join(item.path, "tvshow.nfo")
     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
     if item.active and not item_nfo.active:
-        if not platformtools.dialog_yesno(config.get_localized_string(60037).replace('...',''), config.get_localized_string(70268) % item.contentSerieName):
-            item_nfo.active = 1
-            filetools.write(nfo_path, head_nfo + item_nfo.tojson())
+        # if not platformtools.dialog_yesno(config.get_localized_string(60037).replace('...',''), config.get_localized_string(70268) % item.contentSerieName):
+        item_nfo.active = 1
+        filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
     platformtools.itemlist_refresh()
 
@@ -820,7 +727,7 @@ def update_tvshow(item):
 def add_local_episodes(item):
     logger.info()
 
-    done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item.contentSerieName, silent=True)
+    done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
     if done < 0:
         logger.info("An issue has occurred while configuring local episodes")
     elif local_episodes_path:
@@ -1090,7 +997,7 @@ def delete(item):
         heading = config.get_localized_string(70084)
     else:
         heading = config.get_localized_string(70085)
-    if item.multicanal:
+    if item.multichannel:
         # Get channel list
         if item.dead == '':
             opciones = []

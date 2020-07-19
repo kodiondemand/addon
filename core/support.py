@@ -352,7 +352,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 quality=quality,
                 url=scraped["url"],
                 infoLabels=infolabels,
-                thumbnail=item.thumbnail if function == 'episodios' or not scraped["thumb"] else scraped["thumb"],
+                thumbnail=item.thumbnail if not scraped["thumb"] else scraped["thumb"],
                 args=item.args,
                 contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
                 contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
@@ -429,6 +429,7 @@ def scrape(func):
         typeContentDict = args['typeContentDict'] if 'typeContentDict' in args else {}
         debug = args['debug'] if 'debug' in args else False
         debugBlock = args['debugBlock'] if 'debugBlock' in args else False
+        disabletmdb = args['disabletmdb'] if 'disabletmdb' in args else False
         if 'pagination' in args and inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']: pagination = args['pagination'] if args['pagination'] else 20
         else: pagination = ''
         lang = args['deflang'] if 'deflang' in args else ''
@@ -506,7 +507,7 @@ def scrape(func):
                          page=pag + 1,
                          thumbnail=thumb()))
 
-        if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode']:
+        if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode'] and not disabletmdb:
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if anime:
@@ -1095,6 +1096,7 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
                      contentSerieName=contentSerieName,
                      url=item.url,
                      action=action,
+                     from_action=item.action,
                      extra=extra,
                      path=item.path,
                      thumbnail=get_thumb('add_to_videolibrary.png')
@@ -1334,9 +1336,9 @@ def addQualityTag(item, itemlist, data, patron):
         else:
             log('nessun tag qualità trovato')
 
-def get_jwplayer_mediaurl(data, srvName):
+def get_jwplayer_mediaurl(data, srvName, onlyHttp=False):
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources: \[([^\]]+)\]')
+    block = scrapertools.find_single_match(data, r'sources:\s*\[([^\]]+)\]')
     if 'file:' in block:
         sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
     elif 'src:' in block:
@@ -1346,7 +1348,7 @@ def get_jwplayer_mediaurl(data, srvName):
     for url, quality in sources:
         quality = 'auto' if not quality else quality
         if url.split('.')[-1] != 'mpd':
-            video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url])
+            video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url if not onlyHttp else url.replace('https://', 'http://')])
 
     video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls

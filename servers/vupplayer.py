@@ -6,10 +6,10 @@ from platformcode import logger, config
 
 def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)
-    data = httptools.downloadpage(page_url)
+    page = httptools.downloadpage(page_url)
     global data
-    data = data.data
-    if data.code == 404:
+    data = page.data
+    if page.code == 404:
         return False, config.get_localized_string(70449)
     return True, ""
 

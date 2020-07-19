@@ -3,10 +3,12 @@
 # Canale film in tv
 # ------------------------------------------------------------
 from datetime import datetime
-import glob, time, gzip, xbmc
+import glob, time, gzip, xbmc, sys
 from core import filetools, downloadtools, support, scrapertools
 from core.item import Item
-from platformcode import logger
+
+if sys.version_info[0] >= 3:  from concurrent import futures
+else: from concurrent_py2 import futures
 
 host = "http://epg-guide.com/kltv.gz"
 blacklisted_genres = ['attualita', 'scienza', 'religione', 'cucina', 'notiziario', 'altro', 'soap opera', 'viaggi',  'economia', 'tecnologia', 'magazine', 'show', 'reality show', 'lifestyle', 'societa', 'wrestling', 'azione', 'Musica', 'real life', 'real adventure', 'dplay original', 'natura', 'news', 'food', 'sport', 'moda', 'arte e cultura', 'crime', 'box set e serie tv', 'casa', 'storia', 'talk show', 'motori', 'attualit\xc3\xa0 e inchiesta', 'documentari', 'musica', 'spettacolo', 'medical', 'talent show', 'sex and love', 'beauty and style', 'news/current affairs', "children's/youth programmes", 'leisure hobbies', 'social/political issues/economics', 'education/science/factual topics', 'undefined content', 'show/game show', 'music/ballet/dance', 'sports', 'arts/culture', 'biografico', 'informazione', 'documentario']
@@ -28,7 +30,7 @@ def getEpg():
     fileName = support.config.get_temp_file('guidatv-') + now.strftime('%Y %m %d')
     archiveName = fileName + '.gz'
     xmlName = fileName + '.xml'
-    if not filetools.exists(archiveName):
+    if not filetools.exists(xmlName):
         support.log('downloading epg')
         # cancello quelli vecchi
         for f in glob.glob(support.config.get_temp_file('guidatv-') + '*'):
@@ -36,12 +38,12 @@ def getEpg():
         # inmemory = io.BytesIO(httptools.downloadpage(host).data)
         downloadtools.downloadfile(host, archiveName)
         support.log('opening gzip and writing xml')
-        fStream = gzip.GzipFile(archiveName, mode='rb')
-        guide = fStream.read().replace('\n', ' ').replace('><', '>\n<')
+        with gzip.GzipFile(fileobj=filetools.file_open(archiveName, mode='rb', vfs=False)) as f:
+            guide = f.read().replace('\n', ' ').replace('><', '>\n<')
         with open(xmlName, 'w') as f:
             f.write(guide)
     # else:
-    guide = open(xmlName)
+    guide = filetools.file_open(xmlName, vfs=False)
     return guide
 
 
@@ -309,7 +311,22 @@ def new_search(item):
 
 def live(item):
     itemlist = []
-    from channels import raiplay#, mediasetplay
-    itemlist += raiplay.live(raiplay.mainlist(Item())[0])
-    # itemlist += mediasetplay.live(mediasetplay.mainlist(Item())[0])
+    channels_dict = {}
+    channels = ['raiplay', 'mediasetplay', 'la7']
+
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(load_live, channel) for channel in channels]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                channel_name, itlist = res.result()
+                channels_dict[channel_name] = itlist
+
+    for channel in channels:
+        itemlist += channels_dict[channel]
     return itemlist
+
+
+def load_live(channel_name):
+    channel = __import__('%s.%s' % ('channels', channel_name), None, None, ['%s.%s' % ('channels', channel_name)])
+    itemlist = channel.live(channel.mainlist(Item())[0])
+    return channel_name, itemlist

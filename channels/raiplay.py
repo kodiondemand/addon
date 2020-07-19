@@ -155,12 +155,21 @@ def Type(item):
 def live(item):
     support.log()
     itemlist =[]
+    info={}
     json = current_session.get(item.url).json()['dirette']
     onAir = current_session.get(onair).json()['on_air']
+    support.log(onAir)
+    for key in onAir:
+        channel = key['channel']
+        info[channel] = {}
+        info[channel]['fanart'] = getUrl(key['currentItem']['image'])
+        info[channel]['plot'] = support.typo(key['currentItem']['name'],'bold')+ '\n\n' + key['currentItem']['description']
+
     for i, key in enumerate(json):
-        itemlist.append(item.clone(title = support.typo(key['channel'], 'bold'), fulltitle = key['channel'], show = key['channel'], url = key['video']['contentUrl'],
-                                   thumbnail = key['transparent-icon'].replace("[RESOLUTION]", "256x-"), forcethumb = True , fanart = getUrl(onAir[i]['currentItem']['image']),
-                                   plot = support.typo(onAir[i]['currentItem']['name'],'bold')+ '\n\n' + onAir[i]['currentItem']['description'], action = 'play'))
+        channel = key['channel']
+        itemlist.append(item.clone(title = support.typo(channel, 'bold'), fulltitle = channel, show = channel, url = key['video']['contentUrl'],
+                                   thumbnail = key['transparent-icon'].replace("[RESOLUTION]", "256x-"), forcethumb = True , fanart = info[channel]['fanart'],
+                                   plot = info[channel]['plot'], action = 'play'))
     return itemlist
 
 

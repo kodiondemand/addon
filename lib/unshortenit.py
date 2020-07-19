@@ -127,7 +127,7 @@ class UnshortenIt(object):
                         timeout=self._timeout,
                         cookies=False,
                         follow_redirects=False)
-                    if not r.sucess:
+                    if not r.success:
                         return uri, -1
 
                     if '4snip' not in r.url and 'location' in r.headers and retries < self._maxretries:

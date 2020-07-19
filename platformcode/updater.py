@@ -326,7 +326,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
         hash = fixZipGetHash(localfilename)
         logger.info(hash)
 
-        with zipfile.ZipFile(fOpen(localfilename, 'rb')) as zip:
+        with zipfile.ZipFile(filetools.file_open(localfilename, 'rb', vfs=False)) as zip:
             size = sum([zinfo.file_size for zinfo in zip.filelist])
             cur_size = 0
             for member in zip.infolist():
@@ -425,7 +425,7 @@ def rename(dir1, dir2):
 # https://stackoverflow.com/questions/3083235/unzipping-file-results-in-badzipfile-file-is-not-a-zip-file
 def fixZipGetHash(zipFile):
     hash = ''
-    with fOpen(zipFile, 'r+b') as f:
+    with filetools.file_open(zipFile, 'r+b', vfs=False) as f:
         data = f.read()
         pos = data.find(b'\x50\x4b\x05\x06')  # End of central directory signature
         if pos > 0:
@@ -437,17 +437,6 @@ def fixZipGetHash(zipFile):
                 b'\x00\x00')  # Zip file comment length: 0 byte length; tell zip applications to stop reading.
 
     return str(hash)
-
-def fOpen(file, mode = 'r'):
-    # per android è necessario, su kodi 18, usare FileIO
-    # https://forum.kodi.tv/showthread.php?tid=330124
-    # per xbox invece, è necessario usare open perchè _io è rotto :(
-    # https://github.com/jellyfin/jellyfin-kodi/issues/115#issuecomment-538811017
-    if xbmc.getCondVisibility('system.platform.linux') and xbmc.getCondVisibility('system.platform.android'):
-        logger.info('android, uso FileIO per leggere')
-        return io.FileIO(file, mode)
-    else:
-        return io.open(file, mode)
 
 
 def _pbhook(numblocks, blocksize, filesize, url, dp):

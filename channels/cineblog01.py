@@ -168,7 +168,7 @@ def findvideos(item):
     if item.contentType == "episode":
         return findvid_serie(item)
 
-    def load_links(itemlist, re_txt, color, desc_txt, quality=""):
+    def load_links(itemlist, re_txt, desc_txt, quality=""):
         streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
         support.log('STREAMING', streaming)
         support.log('STREAMING=', streaming)
@@ -186,13 +186,13 @@ def findvideos(item):
     data = re.sub('\n|\t', '', data)
 
     # Estrae i contenuti - Streaming
-    load_links(itemlist, '<strong>Streamin?g:</strong>(.*?)cbtable', "orange", "Streaming", "SD")
+    load_links(itemlist, '<strong>Streamin?g:</strong>(.*?)cbtable', "Streaming", "SD")
 
     # Estrae i contenuti - Streaming HD
-    load_links(itemlist, '<strong>Streamin?g HD[^<]+</strong>(.*?)cbtable', "yellow", "Streaming HD", "HD")
+    load_links(itemlist, '<strong>Streamin?g HD[^<]+</strong>(.*?)cbtable', "Streaming HD", "HD")
 
     # Estrae i contenuti - Streaming 3D
-    load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "pink", "Streaming 3D")
+    load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "Streaming 3D")
 
     itemlist = support.server(item, itemlist=itemlist)
     # Extract the quality format

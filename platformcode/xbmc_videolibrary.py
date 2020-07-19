@@ -525,6 +525,21 @@ def search_library_path():
     return None
 
 
+def search_local_path(item):
+    ids = [item.infoLabels['imdb_id'], item.infoLabels['tmdb_id'], item.infoLabels['tvdb_id']]
+    for Id in ids:
+        nun_ids, ids = execute_sql_kodi('SELECT idShow FROM tvshow_view WHERE uniqueid_value LIKE "%s"' % Id)
+        if nun_ids >= 1:
+            nun_records, records = execute_sql_kodi('SELECT idPath FROM tvshowlinkpath WHERE idShow LIKE "%s"' % ids[0][0])
+            if nun_records >= 1:
+                for record in records:
+                    num_path, path_records = execute_sql_kodi('SELECT strPath FROM path WHERE idPath LIKE "%s"' % record[0])
+                    for path in path_records:
+                        if config.get_setting('videolibrarypath') not in path[0]:
+                            return path[0]
+    return ''
+
+
 def set_content(content_type, silent=False, custom=False):
     """
     Procedure to auto-configure the kodi video library with the default values
@@ -904,7 +919,7 @@ def clean(path_list=[]):
         if path.startswith("special://"):
             path = path.replace('/profile/', '/%/').replace('/home/userdata/', '/%/')
             sep = '/'
-        elif '://' in path:
+        elif '://' in path or path.startswith('/') or path.startswith('%/'):
             sep = '/'
         else: sep = os.sep
 
@@ -999,6 +1014,20 @@ def clean(path_list=[]):
     progress.update(100)
     xbmc.sleep(1000)
     progress.close()
+
+
+def check_db(path):
+    if '\\' in path: sep = '\\'
+    else: sep = '/'
+    if path.endswith(sep): path = path[:-len(sep)]
+    ret = False
+    sql_path = '%' + sep + path.split(sep)[-1] + sep + '%'
+    sql = 'SELECT idShow FROM tvshow_view where strPath LIKE "%s"' % sql_path
+    logger.info('sql: ' + sql)
+    nun_records, records = execute_sql_kodi(sql)
+    if records:
+        ret = True
+    return ret
 
 
 def execute_sql_kodi(sql):

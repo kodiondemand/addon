@@ -106,7 +106,8 @@
         <setting id="library_move" type="bool" label="70231" visible="eq(-3,true)" default="true"/>
         <setting id="browser" type="bool" label="70232" visible="eq(-4,true)" default="true"/>
         <setting id="server_speed" type="bool" label="70242" visible="eq(-5,true)" default="true"/>
-        <setting id="quality" type="select" label="70240" lvalues="70241|70763|70764|70765" visible="eq(-6,true)" default="0"/>
+        <setting id="language" type="select" label="70246" values="ITA|Sub-ITA" visible="eq(-6,true)" default="0"/>
+        <setting id="quality" type="select" label="70240" lvalues="70241|70763|70764|70765" visible="eq(-7,true)" default="0"/>
         <setting id="download_adv" type="action" label="30030" visible="eq(-7,true)" action="RunPlugin(plugin://plugin.video.kod/?ew0KCSJhY3Rpb24iOiJjaGFubmVsX2NvbmZpZyIsDQoJImNvbmZpZyI6ImRvd25sb2FkcyIsDQogICAgImNoYW5uZWwiOiJzZXR0aW5nIg0KfQ==)"/>
     </category>
 

@@ -53,7 +53,7 @@ def export_videolibrary(item):
 def import_videolibrary(item):
     logger.info()
 
-    zip_file = u'' + platformtools.dialog_browse(1, config.get_localized_string(80005))
+    zip_file = u'' + platformtools.dialog_browse(1, config.get_localized_string(80005), mask=".zip")
     if zip_file == "":
         return
     if not platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80006)):

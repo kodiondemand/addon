@@ -148,8 +148,10 @@ def episodios(item):
     for episode in episodes:
         for key in episode:
             if 'stagione' in encode(key['title']).lower():
-                match = support.match(encode(key['title']), patron=r'[Ss]tagione\s*(\d+) - [Ee]pisodio\s*(\d+)').match
-                title = match[0]+'x'+match[1] + ' - ' + item.fulltitle
+                season = support.match(encode(key['title']), patron=r'[Ss]tagione\s*(\d+)').match
+                episode = support.match(encode(key['title']), patron=r'[Ee]pisodio\s*(\d+)').match
+                if season and episode:
+                    title = season + 'x' + episode + ' - ' + item.fulltitle
                 make_item = True
             elif int(key['season_id']) == int(season_id):
                 try:

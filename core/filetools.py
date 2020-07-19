@@ -6,6 +6,8 @@
 
 from __future__ import division
 # from builtins import str
+import io
+
 from future.builtins import range
 from past.utils import old_div
 import sys
@@ -43,6 +45,11 @@ if os.name == "nt":
 else:
     fs_encoding = "utf8"
 
+# per android è necessario, su kodi 18, usare FileIO
+# https://forum.kodi.tv/showthread.php?tid=330124
+# per xbox invece, è necessario usare open perchè _io è rotto :(
+# https://github.com/jellyfin/jellyfin-kodi/issues/115#issuecomment-538811017
+fileIo = platformtools.xbmc.getCondVisibility('system.platform.linux') and platformtools.xbmc.getCondVisibility('system.platform.android')
 
 
 def validate_path(path):
@@ -142,19 +149,20 @@ def read(path, linea_inicio=0, total_lineas=None, whence=0, silent=False, vfs=Tr
                 total_lineas = None
         if xbmc_vfs and vfs:
             if not exists(path): return False
-            f = xbmcvfs.File(path, "rb")
+            f = xbmcvfs.File(path, "r")
+            data = f.read()
+
+            if total_lineas == None:
+                total_lineas = 9999999999
             if linea_inicio > 0:
                 if not isinstance(whence, int):
                     try:
                         whence = int(whence)
                     except:
                         return False
-                f.seek(linea_inicio, whence)
-                logger.debug('POSITION of beginning of reading,, tell(): %s' % f.seek(0, 1))
-            if total_lineas == None:
-                total_lineas = 0
-            data = f.read(total_lineas)
-            return "".join(data)
+                data = '\n'.join(data.split('\n')[linea_inicio:total_lineas])
+
+            return data
         elif path.lower().startswith("smb://"):
             f = samba.smb_open(path, "rb")
         else:
@@ -179,7 +187,7 @@ def read(path, linea_inicio=0, total_lineas=None, whence=0, silent=False, vfs=Tr
             return unicode(b"".join(data))
 
 
-def write(path, data, mode="wb", silent=False, vfs=True):
+def write(path, data, mode="w", silent=False, vfs=True):
     """
     Save the data to a file
     @param path: file path to save
@@ -233,7 +241,11 @@ def file_open(path, mode="r", silent=False, vfs=True):
         elif path.lower().startswith("smb://"):
             return samba.smb_open(path, mode)
         else:
-            return open(path, mode)
+            if fileIo:
+                return io.FileIO(path, mode)
+            else:
+                # return io.open(path, mode, decode='utf-8')
+                return open(path, mode)
     except:
         logger.error("ERROR when opening file: %s, %s" % (path, mode))
         if not silent:

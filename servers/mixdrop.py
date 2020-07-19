@@ -3,7 +3,7 @@
 # Conector Mixdrop By Alfa development Group
 # --------------------------------------------------------
 
-from core import httptools
+from core import httptools, servertools
 from core import scrapertools
 from lib import jsunpack
 from platformcode import logger, config
@@ -13,6 +13,12 @@ def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url).data
+
+    if 'window.location' in data:
+        domain = 'https://' + servertools.get_server_host('mixdrop')[0]
+        url = domain + scrapertools.find_single_match(data, "window\.location\s*=\s*[\"']([^\"']+)")
+        data = httptools.downloadpage(url).data
+
     if "<h2>WE ARE SORRY</h2>" in data or '<title>404 Not Found</title>' in data:
         return False, config.get_localized_string(70449) % "MixDrop"
     return True, ""
@@ -23,6 +29,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     ext = '.mp4'
 
+    global data
     packed = scrapertools.find_single_match(data, r'(eval.*?)</script>')
     unpacked = jsunpack.unpack(packed)
 

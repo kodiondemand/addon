@@ -15,7 +15,7 @@ def test_video_exists(page_url):
     response = httptools.downloadpage(page_url)
     global data
     data = response.data
-    if not response.sucess or "Not Found" in data or "File was deleted" in data or "is no longer available" in data:
+    if not response.success or "Not Found" in data or "File was deleted" in data or "is no longer available" in data:
         return False,  config.get_localized_string(70449) % "jetload"
     return True, ""
 

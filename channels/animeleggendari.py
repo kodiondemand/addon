@@ -19,7 +19,7 @@ headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/
 def mainlist(item):
 
     anime = [
-        ('Leggendari', ['/category/anime-leggendari/', 'peliculas']),
+        # ('Leggendari', ['/category/anime-leggendari/', 'peliculas']),
         ('ITA', ['/category/anime-ita/', 'peliculas']),
         ('SUB-ITA', ['/category/anime-sub-ita/', 'peliculas']),
         ('Conclusi', ['/category/serie-anime-concluse/', 'peliculas']),
@@ -59,7 +59,7 @@ def peliculas(item):
     anime = True
     blacklist = ['top 10 anime da vedere']
     if item.url != host: patronBlock = r'<div id="main-content(?P<block>.*?)<aside'
-    patron = r'<figure class="(?:mh-carousel-thumb|mh-posts-grid-thumb)"> <a class="[^"]+" href="(?P<url>[^"]+)" title="(?P<title>.*?)(?: \((?P<year>\d+)\))? (?:(?P<lang>SUB ITA|ITA))(?: (?P<title2>[Mm][Oo][Vv][Ii][Ee]))?[^"]*"><img[^s]+src="(?P<thumb>[^"]+)"[^>]+'
+    patron = r'<figure class="(?:mh-carousel-thumb|mh-posts-grid-thumb)"> <a (?:class="[^"]+" )?href="(?P<url>[^"]+)" title="(?P<title>.*?)(?: \((?P<year>\d+)\))? (?:(?P<lang>SUB ITA|ITA))(?: (?P<title2>[Mm][Oo][Vv][Ii][Ee]))?[^"]*"><img (?:class="[^"]+"|width="[^"]+" height="[^"]+") src="(?P<thumb>[^"]+)"[^>]+'
     def itemHook(item):
         if 'movie' in item.title.lower():
             item.title = support.re.sub(' - [Mm][Oo][Vv][Ii][Ee]|[Mm][Oo][Vv][Ii][Ee]','',item.title)
@@ -67,6 +67,13 @@ def peliculas(item):
             item.contentType = 'movie'
             item.action = 'findvideos'
         return item
+    def itemlistHook(itemlist):
+        itlist = []
+        for item in itemlist:
+            if 'nuovo episodio:' not in item.title.lower():
+                itlist += [item]
+        return itlist
+
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
     action = 'episodios'
     return locals()
@@ -80,15 +87,16 @@ def episodios(item):
         patron = r'<iframe.*?src="(?P<url>[^"]+)"'
         title = item.title
         def fullItemlistHook(itemlist):
-            url = ''
-            for item in itemlist:
-                url += item.url +'\n'
-            item = itemlist[0]
-            item.data = url
-            item.title = title
-            item.contentType = 'movie'
-            itemlist = []
-            itemlist.append(item)
+            if len(itemlist) > 0:
+                url = ''
+                for item in itemlist:
+                    url += item.url +'\n'
+                item = itemlist[0]
+                item.data = url
+                item.title = title
+                item.contentType = 'movie'
+                itemlist = []
+                itemlist.append(item)
             return itemlist
     else:
         url = item.url

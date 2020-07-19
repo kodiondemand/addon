@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-# by DrZ3r0
 
 import urllib
 
-from core import httptools
+from core import httptools, support
 from core import scrapertools
 from platformcode import logger, config
 
@@ -54,28 +53,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         from lib import jsunpack
         data = jsunpack.unpack(data_pack)
 
-    block = scrapertools.find_single_match(data, "sources:\s\[([^\]]+)\]")
-    data = block if block else data
-    # URL
-    # logger.info(data)
-    if vres:
-        matches = scrapertools.find_multiple_matches(data, '''src:\s*["']?(http.*?\.mp4)''')
-    else:
-        matches = scrapertools.find_multiple_matches(data, '''src:\s*["']?(http.*?\.mp4)(?:[^,]+,[^,]+,res:([^,]+))?''')
-        if matches:
-            if len(matches[0])==2:
-                i=0
-                for m in matches:
-                    vres.append("%sx" % m[1])
-                    matches[i]=m[0]
-                    i+=1
-
     _headers = urllib.urlencode(httptools.default_headers)
+    video_urls = support.get_jwplayer_mediaurl(data, 'akvideo', onlyHttp=True)
 
-    i = 0
-    for media_url in matches:
-        # URL del vídeo
-        video_urls.append([vres[i] if i<len(vres) else "" + " mp4 [Akvideo] ", media_url.replace('https://', 'http://') + '|' + _headers])
-        i = i + 1
 
     return sorted(video_urls, key=lambda x: int(x[0].split('x')[0])) if vres else video_urls

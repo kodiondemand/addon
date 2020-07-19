@@ -122,7 +122,7 @@ def findvideos(item):
         itemlist = support.server(item, data=urls_video)
 
         itemlist.append(
-            item.colone(title=support.typo("Vai alla Serie Completa: " + item.fulltitle, ' bold'),
+            item.clone(title=support.typo("Vai alla Serie Completa: " + item.fulltitle, ' bold'),
                         contentType='tvshow',
                         url=url_serie,
                         action='episodios',

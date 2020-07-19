@@ -1,10 +1,18 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.2" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.3" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
     <import addon="metadata.tvdb.com"/>
     
   </requires>
+  <extension point="kodi.context.item">
+    <menu id="kodi.core.main">
+      <item library="updatetvshow.py">
+        <label>70269</label>
+        <visible>String.IsEqual(ListItem.dbtype,tvshow)</visible>
+      </item>
+    </menu>
+  </extension>
   <extension point="xbmc.python.pluginsource" library="default.py">
     <provides>video</provides>
   </extension>
@@ -18,11 +26,12 @@
       <screenshot>resources/media/themes/ss/2.png</screenshot>
       <screenshot>resources/media/themes/ss/3.png</screenshot>
     </assets>
-      <news> - aggiunto nuovo canale: guardaserie.cam
-- autoplay migliorato, ora i settaggi sono globali e non più per canale
-- adesso in onda riscritto, ora usa EPG (ringraziamo epg-guide.com)
-- Riprendi la visione di un film o episodio da server diversi (solo videoteca)
-- fix e ottimizzazioni varie</news>
+      <news>- Aggiunti i canali Mediaset Play e La 7.
+- Riscritto Animeunity.
+- Le stagioni concluse vengono ora escluse dall'aggiornamento della videoteca.
+- Ora è possibile aggiornare gli episodi di Kod dal menu contestuale della Libreria di Kod (se non gestite da Kod verranno cercate)
+- Fix Adesso in Onda su ATV
+- Fix Vari</news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]
     [COLOR yellow]Kodi © is a registered trademark of the XBMC Foundation. We are not connected to or in any other way affiliated with Kodi, Team Kodi, or the XBMC Foundation. Furthermore, any software, addons, or products offered by us will receive no support in official Kodi channels, including the Kodi forums and various social networks.[/COLOR]</disclaimer>
