@@ -102,7 +102,7 @@ def peliculas(item):
                     for key in it['media']:
                         urls.append(key['publicUrl'])
             elif item.contentType == 'tvshow':
-                action = 'episodios'
+                action = 'epmenu'
                 urls = it['mediasetprogram$brandId']
             else:
                 if 'media' in it:
@@ -112,7 +112,7 @@ def peliculas(item):
                     for key in it['media']:
                         urls.append(key['publicUrl'])
                 else:
-                    action = 'episodios'
+                    action = 'epmenu'
                     contentType = 'tvshow'
                     urls = it['mediasetprogram$brandId']
             if urls:
@@ -132,15 +132,34 @@ def peliculas(item):
                                url=it['mediasetprogram$pageUrl']))
     return itemlist
 
+def epmenu(item):
+    support.log()
+    itemlist = []
+    entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
+    for entry in entries:
+        if 'mediasetprogram$subBrandId' in entry:
+            itemlist.append(
+                item.clone(action='episodios',
+                            title=support.typo(entry['description'], 'bold'),
+                            subBrandId=entry['mediasetprogram$subBrandId']))
+    if len(itemlist) == 1: return episodios(itemlist[0])
+    return itemlist
+
+
+
 def episodios(item):
     support.log()
     itemlist = []
-    subBrandId = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()
-    for entry in subBrandId['entries']:
-        if 'mediasetprogram$subBrandId' in entry and entry['description'] == 'Episodi':
-            subBrandId = entry['mediasetprogram$subBrandId']
-            break
-    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + subBrandId + '}').json()['entries']
+    episode = ''
+    # entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
+
+    # for entry in entries:
+    #     support.log(entry)
+    #     if 'mediasetprogram$subBrandId' in entry and entry['description'].lower() not in ['Prossimi appuntamenti tv', 'clip']:
+    #         subBrandId = entry['mediasetprogram$subBrandId']
+    #         break
+
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.subBrandId + '}').json()['entries']
     for it in json:
         urls = []
         if 'media' in it:
@@ -152,20 +171,16 @@ def episodios(item):
                 item.infoLabels['season'] = it['tvSeasonNumber']
                 item.infoLabels['episode'] = it['tvSeasonEpisodeNumber']
                 episode = '%dx%02d - ' % (it['tvSeasonNumber'], it['tvSeasonEpisodeNumber'])
-            else: episode = ''
             itemlist.append(
                 item.clone(action='findvideos',
                            title=support.typo(episode + title, 'bold'),
-                           fulltitle=title,
-                           show=title,
                            contentType='episode',
-                           contentSerieName = title,
                            thumbnail=it['thumbnails']['image_vertical-264x396']['url'] if 'image_vertical-264x396' in it['thumbnails'] else '',
                            fanart=it['thumbnails']['image_keyframe_poster-1280x720']['url'] if 'image_keyframe_poster-1280x720' in it['thumbnails'] else '',
                            plot=it['longDescription'] if 'longDescription' in it else it['description'],
                            urls=urls,
                            url=it['mediasetprogram$pageUrl']))
-    support.videolibrary(itemlist, item)
+    if episode: support.videolibrary(itemlist, item)
     return sorted(itemlist, key=lambda it: it.title)
 
 def findvideos(item):
