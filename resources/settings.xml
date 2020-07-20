@@ -85,7 +85,7 @@
         <setting id="saved_searches_limit" type="slider" option="int" range="10,10,40" label="60677" default="10" visible="eq(-1,0)" subsetting="true"/>
         <setting id="result_mode" type="select" label="60657" lvalues="60675|60676" default="0"/>
         <setting id="thread_number" type="slider" label="60673" option="int" range="0,1,64" default="0"/>
-        <setting id="search_channels" type="action" label="59994" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJvcGNpb25lcyIsDQogICAgImNoYW5uZWwiOiJzZWFyY2giDQp9)"/>
+        <setting id="search_channels" type="action" label="59994" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWxfbmV3IiwNCiAgICAiY2hhbm5lbCI6InNlYXJjaCINCn0=)"/>
         <setting label="70154" type="lsep"/>
         <setting id="tmdb_active" default="true" visible="false"/>
         <setting id="tmdb_threads" type="slider" option="int" range="5,5,30" label="70155" default="20"/>
