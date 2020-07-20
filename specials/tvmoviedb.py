@@ -270,7 +270,7 @@ def trakt(item):
         item.extra = "movie"
         # A saved token is checked and the authentication process is executed
         if not token_auth:
-            # folder = (config.get_platform() == "plex")
+            folder = (config.get_platform() == "plex")
             itemlist.append(item.clone(title=config.get_localized_string(70054), action="auth_trakt", folder=folder))
         else:
             itemlist.append(item.clone(title=config.get_localized_string(70055), action="", ))
@@ -2074,8 +2074,10 @@ def acciones_trakt(item):
     token_auth = config.get_setting("token_trakt", "trakt")
     itemlist = []
     item.contentType = item.extra.replace("show", "tvshow")
+    client_id = "502bd1660b833c1ae69828163c0848e84e9850061e5529f30930e7356cae73b1"
+# client_secret = "1d30d5b24acf223a5e1ab6c61d08b69992d98ed5b0c7e26b052b5e6a592035a4"
 
-    client_id = "c40ba210716aee87f6a9ddcafafc56246909e5377b623b72c15909024448e89d"
+    # client_id = "c40ba210716aee87f6a9ddcafafc56246909e5377b623b72c15909024448e89d"
     headers = [['Content-Type', 'application/json'], ['trakt-api-key', client_id],
                ['trakt-api-version', '2']]
     if token_auth:
