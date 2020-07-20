@@ -5,32 +5,33 @@
 import json
 import re
 
-try:
-    import urllib.parse as urllib
-    # unichr = chr
-except ImportError:
-    import urllib
+try: import urllib.parse as urllib
+except ImportError: import urllib
 
 from core import httptools, scrapertools
 from platformcode import logger, config, platformtools
 
+# real_host = 'wstream.video'
 
 def test_video_exists(page_url):
     global headers
+    real_host = '116.202.226.34'
     headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],
                ['Host', scrapertools.get_domain_from_url(page_url)]]
 
+    if 'nored.icu' in str(headers): real_host = 'wstream.video'
+
     logger.info("(page_url='%s')" % page_url)
-    resp = httptools.downloadpage(page_url.replace(headers[1][1], '116.202.226.34'), headers=headers, verify=False)
+    resp = httptools.downloadpage(page_url, headers=headers, verify=False)
 
     global data, real_url
     data = resp.data
 
-    page_url = resp.url.replace(headers[1][1], '116.202.226.34')
+    page_url = resp.url.replace(headers[1][1], real_host)
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, headers=headers, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
         # logger.info('WCODE=' + code)
-        page_url = 'https://116.202.226.34/video.php?file_code=' + code
+        page_url = 'https://' + real_host + '/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
     if 'nored.icu' in str(headers):
@@ -40,7 +41,7 @@ def test_video_exists(page_url):
             dec = ''
             for v in var.split(','):
                 dec += chr(int(v) - int(value))
-            page_url = 'https://116.202.226.34/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
+            page_url = 'https://' + real_host + '/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
             headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],['Host', 'wstream.video']]
             # from core.support import dbg;dbg()
             new_data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data

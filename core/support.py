@@ -77,7 +77,7 @@ def hdpass_get_servers(item):
         for res in futures.as_completed(thL):
             if res.result():
                 itemlist.extend(res.result())
-    return server(item, itemlist=itemlist)
+    return server(item, itemlist=itemlist) 
 
 def hdpass_get_url(item):
     data = httptools.downloadpage(item.url, CF=False).data
@@ -86,6 +86,8 @@ def hdpass_get_url(item):
         item.url = base64.b64decode(src)
     else:
         item.url = scrapertools.find_single_match(data, r'<iframe allowfullscreen src="([^"]+)')
+    item.url, c = unshortenit.unshorten_only(item.url)
+
     return [item]
 
 def color(text, color):
