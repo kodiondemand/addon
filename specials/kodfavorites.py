@@ -257,9 +257,9 @@ def mostrar_perfil(item):
 # Shared internal routines
 
 # Dialog to select / create a folder. Returns index of folder on user_favorites (-1 if cancel)
-def _selecciona_perfil(alfav, titulo='Seleccionar carpeta', i_actual=-1):
+def _selecciona_perfil(alfav, titulo=config.get_localized_string(70549), i_actual=-1):
     acciones = [(perfil['title'] if i_p != i_actual else '[I][COLOR pink]%s[/COLOR][/I]' % perfil['title']) for i_p, perfil in enumerate(alfav.user_favorites)]
-    acciones.append('Crear nueva carpeta')
+    acciones.append(config.get_localized_string(70542))
 
     i_perfil = -1
     while i_perfil == -1: # repeat until a folder is selected or cancel
@@ -372,7 +372,7 @@ def editar_enlace_titulo(item):
 
     it = Item().fromurl(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
 
-    titulo = platformtools.dialog_input(default=it.title, heading='Change link title')
+    titulo = platformtools.dialog_input(default=it.title, heading=config.get_localized_string(70553))
     if titulo is None or titulo == '' or titulo == it.title:
         return False
 
@@ -397,7 +397,7 @@ def editar_enlace_color(item):
     colores = ['green','yellow','red','blue','white','orange','lime','aqua','pink','violet','purple','tomato','olive','antiquewhite','gold']
     opciones = ['[COLOR %s]%s[/COLOR]' % (col, col) for col in colores]
 
-    ret = platformtools.dialog_select('Select color:', opciones)
+    ret = platformtools.dialog_select(config.get_localized_string(70558), opciones)
 
     if ret == -1: return False # order cancel
     it.text_color = colores[ret]
@@ -454,9 +454,9 @@ def editar_enlace_thumbnail(item):
             ids.append(os.path.join(resource_path, f))
 
     if is_kodi17:
-        ret = xbmcgui.Dialog().select('Select thumbnail:', opciones, useDetails=True)
+        ret = xbmcgui.Dialog().select(config.get_localized_string(70554), opciones, useDetails=True)
     else:
-        ret = platformtools.dialog_select('Select thumbnail:', opciones)
+        ret = platformtools.dialog_select(config.get_localized_string(70554), opciones)
 
     if ret == -1: return False # order cancel
 
@@ -477,7 +477,7 @@ def editar_enlace_carpeta(item):
     if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
     # Dialog to choose / create folder
-    i_perfil = _selecciona_perfil(alfav, 'Move link to:', item.i_perfil)
+    i_perfil = _selecciona_perfil(alfav, config.get_localized_string(70555), item.i_perfil)
     if i_perfil == -1 or i_perfil == item.i_perfil: return False
 
     alfav.user_favorites[i_perfil]['items'].append(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
