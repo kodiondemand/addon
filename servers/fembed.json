@@ -1,42 +1,39 @@
 {
-  "active": true,
-  "find_videos": {
-    "ignore_urls": [],
-    "patterns": [
-      {
-        "pattern": "(?:fembed|divload|cercafilm|sonline|verystream|).(?:com|net|pro|info)/((?:f|v)/[A-z0-9_-]+)",
-        "url": "https://www.feurl.com/\\1"
-      }
-    ]
-  },
-  "free": true,
-  "id": "fembed",
-  "name": "Fembed",
-  "settings": [
-    {
-      "default": false,
-      "enabled": true,
-      "id": "black_list",
-      "label": "@60654",
-      "type": "bool",
-      "visible": true
+    "active": true,
+    "find_videos": {
+        "ignore_urls": [],
+        "patterns": [{
+            "pattern": "(?:fembed|divload|cercafilm|sonline|verystream).(?:com|net|pro|info)/((?:f|v)/[A-z0-9_-]+)",
+            "url": "https://www.feurl.com/\\1"
+        }]
     },
-    {
-      "default": 0,
-      "enabled": true,
-      "id": "favorites_servers_list",
-      "label": "@60655",
-      "lvalues": [
-        "No",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5"
-      ],
-      "type": "list",
-      "visible": false
-    }
-  ],
-  "version": 1
+    "free": true,
+    "id": "fembed",
+    "name": "Fembed",
+    "settings": [{
+            "default": false,
+            "enabled": true,
+            "id": "black_list",
+            "label": "@60654",
+            "type": "bool",
+            "visible": true
+        },
+        {
+            "default": 0,
+            "enabled": true,
+            "id": "favorites_servers_list",
+            "label": "@60655",
+            "lvalues": [
+                "No",
+                "1",
+                "2",
+                "3",
+                "4",
+                "5"
+            ],
+            "type": "list",
+            "visible": false
+        }
+    ],
+    "version": 1
 }
