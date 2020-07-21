@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
 # Canale per animeworld
+# thanks to fatshotty
 # ----------------------------------------------------------
 
 from core import support, jsontools
+from platformcode import config
+from lib import js2py
 
 host = support.config.get_channel_url()
-headers = [['Referer', host]]
+headers = {}
 
 __channel__ = 'animeworld'
 
@@ -14,6 +17,38 @@ __channel__ = 'animeworld'
 def order():
     # Seleziona l'ordinamento dei risultati
     return str(support.config.get_setting("order", __channel__))
+
+def get_data(item, head=[]):
+    global headers
+    for h in head:
+        headers[h[0]] = h[1]
+    if not item.count: item.count = 0
+    if not config.get_setting('KTVSecurity', item.channel):
+        # resolve js for key
+        jshe = 'var document = {}, location = {}'
+        aesjs = str(support.match(host + '/aes.min.js').data)
+        jstr = support.match(item.url, patron=r'<script>(.*?)</').match
+        jsret =  'return { key: toHex(slowAES.decrypt(c,2,a,b)), loc: location.href}'
+        key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + jstr + '\n' + jsret + '}' )
+        key = key_data()['key']
+
+        # save Key in settings
+        config.set_setting('KTVSecurity', key, item.channel)
+
+    # set cookie
+    headers['cookie'] = 'KTVSecurity=' + config.get_setting('KTVSecurity', item.channel)
+    res = support.match(item, headers=headers, patron=r'location.href="([^"]+)')
+    if res.match: data = support.match(res.match.replace('http://','https://'), headers=headers).data
+    else: data = res.data
+
+    #check that the key is still valid
+    if 'toHex(slowAES.decrypt(c,2,a,b))' in data and item.count < 3:
+        item.count += 1
+        config.set_setting('KTVSecurity', '', item.channel)
+        return get_data(item)
+    return data
+
+
 
 
 @support.menu
@@ -24,12 +59,13 @@ def mainlist(item):
            ('In Corso', ['/ongoing', 'peliculas','noorder']),
            ('Ultimi Episodi', ['/updated', 'peliculas', 'updated']),
            ('Nuove Aggiunte',['/newest', 'peliculas','noorder' ]),
-           ('Generi',['','genres',])]
+           ('Generi',['/?d=1','genres',])]
     return locals()
 
 @support.scrape
 def genres(item):
     action = 'peliculas'
+    data = get_data(item)
     patronBlock = r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> Generi <span.[^>]+>(?P<block>.*?)</ul>'
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
 
@@ -42,6 +78,7 @@ def genres(item):
 @support.scrape
 def menu(item):
     action = 'submenu'
+    data = get_data(item)
     patronBlock=r'<form class="filters.*?>(?P<block>.*?)</form>'
     patronMenu=r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> (?P<title>.*?) <span.[^>]+>(?P<other>.*?)</ul>'
 
@@ -97,6 +134,7 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
+    data = get_data(item)
     anime=True
     if item.args == 'updated':
         item.contentType='episode'
@@ -128,7 +166,9 @@ def peliculas(item):
 def episodios(item):
     anime=True
     pagination = 50
-    data = support.match(item, headers=headers).data
+    item.url += '?d=1'
+    data = get_data(item)
+    support.log(data)
     if 'VVVVID' in data: patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)</ul>'
     else: patronBlock= r'server  active(?P<block>.*?)server  hidden '
     patron = r'<li><a [^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+"[^=]+="[^"]+" href="(?P<url>[^"]+)"[^>]+>(?P<episode>[^<]+)<'
@@ -144,33 +184,39 @@ def findvideos(item):
     import time
     support.log(item)
     itemlist = []
-    matches = support.match(item, patron=r'data-name="([0-9]+)">', headers=headers)
+    # support.dbg()
+    matches = support.match(get_data(item), patron=r'data-name="([0-9]+)">', headers=headers)
     data = matches.data
     matches = matches.matches
     videoData = []
-
     for serverid in matches:
         if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
-        block = support.match(data, patron=r'data-id="' + serverid + r'">(.*?)<div class="server').match
-        ID = support.match(block, patron=r'<a data-id="([^"]+)" data-base="' + (item.number if item.number else '1') + '"').match
+        block = support.match(data, patron=r'data-name="' + serverid + r'"[^>]+>(.*?)<div class="server').match
+        match = support.match(block, patron=r'<a data-id="([^"]+)" data-base="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
+        if match:
+            ID, url = match
 
-        if serverid == '18':
-            url = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, ID), patron=r'source src="([^"]+)"', debug=False).match
-            itemlist.append(item.clone(action="play", title='diretto', url=url, server='directo'))
+            if serverid == '18':
+                url = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, ID), patron=r'source src="([^"]+)"', headers=headers).match
+                itemlist.append(item.clone(action="play", title='Diretto', url=url, server='directo'))
 
-        elif serverid == '26':
-            matches = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, item.url.split('/')[-1]), patron=r'<a href="([^"]+)"', ).matches
-            for url in matches:
-                videoData.append(url)
-        else:
-            try:
-                dataJson = support.match('%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, ID, serverid, int(time.time())), headers=[['x-requested-with', 'XMLHttpRequest']]).data
-                json = jsontools.load(dataJson)
-                support.log(json)
-                videoData.append(json['grabber'])
-            except:
-                pass
-
-
+            elif serverid == '26':
+                matches = support.match('%s/ajax/episode/serverPlayer?id=%s' % (host, item.url.split('/')[-1]), patron=r'<a href="([^"]+)"', ).matches
+                for url in matches:
+                    videoData.append(url)
+            elif serverid == '39':
+                videoData.append(support.match(get_data(item.clone(url=host + url)), patron=r'href="([^"]+)" id="downloadLink"').match)
+            else:
+                try:
+                    dataJson=get_data(item.clone(url='%s/ajax/episode/info?id=%s&server=%s&ts=%s' % (host, ID, serverid, int(time.time()))), head=[['x-requested-with', 'XMLHttpRequest']])
+                    json = jsontools.load(dataJson)
+                    support.log(json)
+                    url = json['grabber']
+                    if 'server2' in url:
+                        itemlist.append(item.clone(action="play", title='AnimeWorld 2', url=url.split('=')[-1], server='directo'))
+                    else:
+                        videoData.append(url)
+                except:
+                    pass
     return support.server(item, videoData, itemlist)
 
