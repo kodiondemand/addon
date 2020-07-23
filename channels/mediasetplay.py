@@ -3,23 +3,30 @@
 # Canale per Mediaset Play
 # ------------------------------------------------------------
 
-import requests
+import requests, sys
 from core import support
-import sys
-if sys.version_info[0] >= 3:
-    from urllib.parse import urlencode, quote
-else:
-    from urllib import urlencode, quote
+if sys.version_info[0] >= 3: from urllib.parse import urlencode, quote
+else: from urllib import urlencode, quote
+
+DRM = 'com.widevine.alpha'
+post_url = '?assetTypes=HD,browser,widevine:HD,browser:SD,browser,widevine:SD,browser:SD&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
 
 current_session = requests.Session()
+
 data = {"cid": "dc4e7d82-89a5-4a96-acac-d3c7f2ca6d67", "platform": "pc", "appName": "web/mediasetplay-web/576ea90"}
 res = current_session.post("https://api-ott-prod-fe.mediaset.net/PROD/play/idm/anonymous/login/v1.0", json=data, verify=False)
+
 current_session.headers.update({'t-apigw': res.headers['t-apigw']})
 current_session.headers.update({'t-cts': res.headers['t-cts']})
+
+lic_url = 'https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid=%s&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token=' + res.headers['t-cts'] + '|Accept=*/*&Content-Type=&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36|R{SSM}|'
+
 tracecid=res.json()['response']['traceCid']
 cwid=res.json()['response']['cwId']
+
 res = current_session.get("https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid=sdd",verify=False)
 current_session.headers.update({'x-session': res.json()['sessionKey']})
+
 host = ''
 entry = 'https://api.one.accedo.tv/content/entry/{id}?locale=it'
 entries = 'https://api.one.accedo.tv/content/entries?id={id}&locale=it'
@@ -185,8 +192,7 @@ def episodios(item):
 
 def findvideos(item):
     support.log()
-    itemlist = []
-    itemlist.append(support.Item(server = 'directo', title = 'Direct', url = item.urls, action = 'play'))
+    itemlist = [support.Item(server = 'directo', title = 'Direct', url = item.urls, action = 'play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 def play(item):
@@ -194,8 +200,16 @@ def play(item):
     if not item.urls: urls = item.url
     else: urls = item.urls
     for url in urls:
-        url = support.httptools.downloadpage(url, allow_redirects=True).url
-        if '.mpd' in url: data = url
+        new_url = support.httptools.downloadpage(url, allow_redirects=True).url
+        if '.mpd' in new_url:
+            data = new_url
+            sec_data = support.match(url + post_url).data
+            if support.match(sec_data, patron=r'(security)').match:
+                item.drm = DRM
+                item.license = lic_url % support.match(sec_data, patron=r'pid=([^|]+)').match
+                data = support.match(sec_data, patron=r'<video src="([^"]+)').match
+
+    support.log('LICENSE:',item.license)
     return support.servertools.find_video_items(item, data=data)
 
 def subBrand(json):
