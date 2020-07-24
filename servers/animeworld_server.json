@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(https://animeworld.biz/v/[a-zA-Z0-9/-]+)",
+        "pattern": "(https://animeworld.biz/[vf]/[a-zA-Z0-9/-]+)",
         "url": "\\1"
       }
     ]

@@ -3,32 +3,72 @@
 # Canale per AnimeSaturn
 # ----------------------------------------------------------
 
+from lib import js2py
 from core import support
+from platformcode import config
 
 host = support.config.get_channel_url()
 headers={'X-Requested-With': 'XMLHttpRequest'}
+
+def get_data(item, head=[]):
+    global headers
+    for h in head:
+        headers[h[0]] = h[1]
+    if not item.count: item.count = 0
+    jstr, location = support.match(item, patron=r'<script>(.*?location.href="([^"]+)";)</').match
+    item.url=location.replace('http://','https://')
+    if not config.get_setting('key', item.channel) and jstr:
+        jshe = 'var document = {}, location = {}'
+        aesjs = str(support.match(host + '/aes.min.js').data)
+        js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
+        jsret =  'return document.cookie'
+        key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
+        key = key_data.split(';')[0]
+
+        # save Key in settings
+        config.set_setting('key', key, item.channel)
+
+    # set cookie
+    headers['cookie'] = config.get_setting('key', item.channel)
+    res = support.match(item, headers=headers, patron=r';\s*location.href="([^"]+)"')
+    if res.match:
+        item.url= res.match.replace('http://','https://')
+        data = support.match(item, headers=headers).data
+    else:
+        data = res.data
+
+
+    #check that the key is still valid
+    if 'document.cookie=' in data and item.count < 3:
+        item.count += 1
+        config.set_setting('key', '', item.channel)
+        return get_data(item)
+    return data
 
 
 @support.menu
 def mainlist(item):
 
-    anime = ['/animelist?load_all=1',
+    anime = ['/animelist?load_all=1&d=1',
              ('Più Votati',['/toplist','menu', 'top']),
              ('In Corso',['/animeincorso','peliculas','incorso']),
-             ('Ultimi Episodi',['/fetch_pages.php?request=episodes','peliculas','updated'])]
+             ('Ultimi Episodi',['/fetch_pages.php?request=episodes&d=1','peliculas','updated'])]
 
     return locals()
 
 
-@support.scrape
 def search(item, texto):
-    search = texto
-    # debug = True
+    support.log(texto)
+    item.url = host + '/animelist?search=' + texto
     item.contentType = 'tvshow'
-    anime = True
-    patron = r'href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)(?:\((?P<lang>ITA)\))?(?:(?P<year>\((\d+)\)))?</a>.*?<p[^>]+>(?P<plot>[^<]+).*?<img src="(?P<thumbnail>[^"]+)'
-    action = 'check'
-    return locals()
+    try:
+        return peliculas(item)
+    # Continua la ricerca in caso di errore
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.logger.error("%s" % line)
+        return []
 
 
 def newest(categoria):
@@ -37,7 +77,7 @@ def newest(categoria):
     item = support.Item()
     try:
         if categoria == "anime":
-            item.url = host + '/fetch_pages.php?request=episodes'
+            item.url = host + '/fetch_pages.php?request=episodes&d=1'
             item.args = "updated"
             return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -49,8 +89,10 @@ def newest(categoria):
 
     return itemlist
 
+
 @support.scrape
 def menu(item):
+    data=get_data(item)
     patronMenu = r'<div class="col-md-13 bg-dark-as-box-shadow p-2 text-white text-center">(?P<title>[^"<]+)<(?P<other>.*?)(?:"lista-top"|"clearfix")'
     action = 'peliculas'
     item.args = 'top'
@@ -63,19 +105,18 @@ def menu(item):
 
 @support.scrape
 def peliculas(item):
+    data = get_data(item)
     anime = True
-    # debug = True
 
     deflang= 'Sub-ITA'
     action = 'check'
-    # debug = True
 
     page = None
     post = "page=" + str(item.page if item.page else 1) if item.page > 1 else None
 
     if item.args == 'top':
         data = item.other
-        patron = r'light">(?P<title2>[^<]+)</div>\s(?P<title>[^<]+)[^>]+>[^>]+>\s<a href="(?P<url>[^"]+)">(?:<a[^>]+>|\s*)<img.*?src="(?P<thumb>[^"]+)"'
+        patron = r'light">(?P<title2>[^<]+)</div>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)">(?:<a[^>]+>|\s*)<img.*?src="(?P<thumb>[^"]+)"'
     else:
         data = support.match(item, post=post, headers=headers).data
         if item.args == 'updated':
@@ -98,14 +139,12 @@ def peliculas(item):
 
 
 def check(item):
-    movie = support.match(item, patron=r'Episodi:</b> (\d*) Movie')
-    # anime_id = support.match(movie.data, patron=r'anime_id=(\d+)').match
-    # item.url = host + "/loading_anime?anime_id=" + anime_id
+    movie = support.match(get_data(item), patron=r'Episodi:</b> (\d*) Movie')
     if movie.match:
-        item.contentType = 'movie'
         episodes = episodios(item)
-        if len(episodes) > 0: item.url = episodes[0].url
-        return findvideos(item)
+        if len(episodes) > 0:
+            it = episodes[0].clone(contentType = 'movie', contentTitle=item.fulltitle, contentSerieName='')
+        return findvideos(it)
     else:
         item.contentType = 'tvshow'
         return episodios(item)
@@ -113,21 +152,32 @@ def check(item):
 
 @support.scrape
 def episodios(item):
+    data = get_data(item)
     if item.contentType != 'movie': anime = True
-    patron = r'episodi-link-button"> <a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
+    patron = r'episodi-link-button">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
     return locals()
 
 
 def findvideos(item):
     support.log()
     itemlist = []
-    url = support.match(item, patron=r'<a href="([^"]+)">[^>]+>[^>]+>G', headers=headers, debug=False).match
-    support.log(url)
-    if url:
-        links = support.match(url, patron=r'(?:<source type="[^"]+"\s*src=|file:\s*)"([^"]+)"', headers=headers, debug=False).matches
-        for link in links:
-            itemlist.append(item.clone(action="play", title='Diretto', url=link, server='directo'))
-    return support.server(item, itemlist=itemlist)
+    page_data = ''
+    titles =['Primario', 'Secondario', 'Alternativo Primario', 'Alternativo Secondario']
+    url = support.match(get_data(item), patron=r'<a href="([^"]+)">[^>]+>[^>]+>G', headers=headers).match
+    urls = [url, url+'&extra=1', url+'&s=alt', url+'&s=alt&extra=1']
+    links = []
+    for i, url in enumerate(urls):
+        data = support.match(url, headers=headers).data
+        if not '&s' in url:
+            link = support.match(data, patron=r'(?:<source type="[^"]+"\s*src=|file:\s*)"([^"]+)"', headers=headers).match
+        else:
+            link = support.match(data, headers=headers, patron=r'file:\s*"([^"]+)"').match
+        if not link:
+            page_data += data
+        if link not in links:
+            links.append(link)
+            itemlist.append(item.clone(action="play", title=titles[i], url=link, server='directo'))
+    return support.server(item, data=data, itemlist=itemlist)
 
 
 
