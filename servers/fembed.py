@@ -18,16 +18,17 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url, post={}).json
     logger.info(data)
     if "Video not found or" in data or "We are encoding this video" in data:
-        return False, config.get_localized_string(70449) % "fembed"
+        return False, config.get_localized_string(70449) % "Fembed"
     return True, ""
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
     logger.info("(page_url='%s')" % page_url)
     video_urls = []
-    for videos in data["data"]:
-        v = videos["file"]
-        if not v.startswith("http"): v = "https://www.fembed.com" + videos["file"]
-        video_urls.append([videos["label"] + " [Fembed]", v])
+    for file in data['data']:
+            media_url = file['file']
+            label = file['label']
+            extension = file['type']
+            video_urls.append([ extension + ' ' + label + ' [Fembed]', media_url])
     video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls

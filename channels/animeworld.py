@@ -189,17 +189,23 @@ def findvideos(item):
     resp = support.match(get_data(item), headers=headers, patron=r'data-name="(\d+)">([^<]+)<')
     data = resp.data
     for ID, name in resp.matches:
-        if 'vvvvid' in name.lower():
-            urls.append(support.match(host + '/api/episode/serverPlayer?id=' + item.url.split('/')[-1].split('?')[0], headers=headers, patron=r'<a.*?href="([^"]+)"').match)
-        elif 'streamtape' in name.lower():
-            urls.append(support.match(data, patron=r'<a href="(https://streamtape[^"]+)"').match)
-        elif 'beta' in name.lower():
-            urls.append(support.match(data, patron=r'<a href="(https://animeworld[^"]+)"').match)
-        elif 'server 2' in name.lower():
-            dataJson = support.match(host + '/api/episode/info?id=' + item.url.split('/')[-1].split('?')[0] +'&alt=0', headers=headers).data
-            json = jsontools.load(dataJson)
-            itemlist.append(item.clone(action="play", title=name, url=json['grabber'], server='directo'))
-        elif 'animeworld' in name.lower():
-            url = support.match(resp.data, patron=r'href="([^"]+)"\s*id="alternativeDownloadLink"', headers=headers).match
-            itemlist.append(item.clone(action="play", title=name, url=url, server='directo'))
+        if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
+        match = support.match(data, patronBlock=r'data-name="' + ID + r'"[^>]+>(.*?)<div class="(?:server|download)', patron=r'data-id="([^"]+)" data-episode-num="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
+        if match:
+            epID, epurl = match
+            if 'vvvvid' in name.lower():
+                urls.append(support.match(host + '/api/episode/serverPlayer?id=' + epID, headers=headers, patron=r'<a.*?href="([^"]+)"').match)
+            elif 'streamtape' in name.lower():
+                urls.append(support.match(data, patron=r'<a href="(https://streamtape[^"]+)"').match)
+            elif 'beta' in name.lower():
+                urls.append(support.match(data, patron=r'<a href="(https://animeworld[^"]+)"').match)
+            elif 'server 2' in name.lower():
+                dataJson = support.match(host + '/api/episode/info?id=' + epID + '&alt=0', headers=headers).data
+                json = jsontools.load(dataJson)
+                title = support.match(json['grabber'], patron=r'server2.([^.]+)', string=True).match
+                itemlist.append(item.clone(action="play", title=title, url=json['grabber'], server='directo'))
+            elif 'animeworld' in name.lower():
+                url = support.match(data, patron=r'href="([^"]+)"\s*id="alternativeDownloadLink"', headers=headers).match
+                title = support.match(url, patron=r'http[s]?://(?:www.)?([^.]+)', string=True).match
+                itemlist.append(item.clone(action="play", title=title, url=url, server='directo'))
     return support.server(item, urls, itemlist)
