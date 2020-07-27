@@ -57,7 +57,7 @@ def findvideos(item):
 
 def search(item, text):
     support.log(text)
-    url = host + '/search.php?keywords=' + text + '&video-id='
+    item.url = host + '/search.php?keywords=' + text + '&video-id='
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
