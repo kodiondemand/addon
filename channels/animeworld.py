@@ -47,13 +47,11 @@ def get_data(item, head=[]):
 
 
     #check that the key is still valid
-    if 'toHex(slowAES.decrypt(c,2,a,b))' in data and item.count < 3:
+    if 'document.cookie=' in data and item.count < 3:
         item.count += 1
-        config.set_setting('KTVSecurity', '', item.channel)
+        config.set_setting('key', '', item.channel)
         return get_data(item)
     return data
-
-
 
 
 @support.menu
@@ -66,6 +64,7 @@ def mainlist(item):
            ('Nuove Aggiunte',['/newest', 'peliculas','noorder' ]),
            ('Generi',['/?d=1','genres',])]
     return locals()
+
 
 @support.scrape
 def genres(item):
