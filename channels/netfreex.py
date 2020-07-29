@@ -54,12 +54,14 @@ def episodios(item):
 
 
 def findvideos(item):
+    from core import jsontools
     itemlist = []
-    for link in support.dooplay_get_links(item, host):
-        if link['title'] != 'Guarda il trailer':
-            logger.info(link['title'])
-            itemlist.append(
-                item.clone(action="play", url=link['url'], quality=link['title']))
+    matches = support.match(item, patron=r'<li id="player-option-[0-9]".*?data-type="([^"]+)" data-post="([^"]+)" data-nume="([^"]+)".*?<span class="title".*?>([^<>]+)</span>(?:<span class="server">([^<>]+))?').matches
+    for Type, Post, Nume, Quality, Server in matches:
+        dataAdmin = support.match(host + '/wp-json/dooplayer/v1/post/%s?type=%s&source=%s' %(Post, Type, Nume)).data
+        js = jsontools.load(dataAdmin)
+        link = js['embed_url'] if 'embed_url' in js else ''
+        itemlist.append( item.clone(server=Server, quality=Quality, url=link, action='play'))
     return support.server(item, itemlist=itemlist)
 
 
