@@ -130,7 +130,7 @@ def search(item, text):
     log(text)
     itemlist = []
     text = text.replace(' ', '+')
-    item.url = host + "/?s=" + text
+    item.url = host + "/search/" + text
     try:
         item.args = 'search'
         return peliculas(item)
