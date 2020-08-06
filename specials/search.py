@@ -95,6 +95,10 @@ def saved_search(item):
 def new_search(item):
     logger.info()
 
+    temp_search_file = config.get_temp_file('temp-search')
+    if filetools.isfile(temp_search_file):
+        filetools.remove(temp_search_file)
+
     itemlist = []
     if config.get_setting('last_search'):
         last_search = channeltools.get_channel_setting('Last_searched', 'search', '')
@@ -149,11 +153,11 @@ def new_search(item):
             itemlist.append(new_item)
 
     if item.mode == 'all' or not itemlist:
-        itemlist = channel_search(Item(channel=item.channel,
-                                       title=searched_text,
-                                       text=searched_text,
-                                       mode='all',
-                                       infoLabels={}))
+        return channel_search(Item(channel=item.channel,
+                                   title=searched_text,
+                                   text=searched_text,
+                                   mode='all',
+                                   infoLabels={}))
 
     return itemlist
 
@@ -177,6 +181,18 @@ def channel_search(item):
         item.text = item.infoLabels['title']
         item.title = item.text
 
+    temp_search_file = config.get_temp_file('temp-search')
+    if filetools.isfile(temp_search_file):
+        itemlist = []
+        f = filetools.read(temp_search_file)
+        if f.startswith(item.text):
+            for it in f.split(','):
+                if it and it != item.text:
+                    itemlist.append(Item().fromurl(it))
+            return itemlist
+        else:
+            filetools.remove(temp_search_file)
+
     searched_id = item.infoLabels['tmdb_id']
 
     channel_list, channel_titles = get_channels(item)
@@ -185,8 +201,7 @@ def channel_search(item):
     searching_titles += channel_titles
     cnt = 0
 
-    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list),
-                                             ', '.join(searching_titles))
+    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list), ', '.join(searching_titles))
     config.set_setting('tmdb_active', False)
 
     search_action_list = []
@@ -234,14 +249,12 @@ def channel_search(item):
                 cnt += 1
                 searching_titles.remove(searching_titles[searching.index(channel)])
                 searching.remove(channel)
-                progress.update(old_div(((total_search_actions - len(search_action_list)) * 100), total_search_actions), config.get_localized_string(70744) % str(len(channel_list) - cnt),
-                                ', '.join(searching_titles))
+                progress.update(old_div(((total_search_actions - len(search_action_list)) * 100), total_search_actions), config.get_localized_string(70744) % str(len(channel_list) - cnt), ', '.join(searching_titles))
 
     progress.close()
 
     cnt = 0
-    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(60295),
-                                             config.get_localized_string(60293))
+    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(60295), config.get_localized_string(60293))
 
     config.set_setting('tmdb_active', True)
     # res_count = 0
@@ -330,7 +343,14 @@ def channel_search(item):
         if results:
             results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=get_thumb('search.png')))
     # logger.debug(results_statistic)
-    return valid + results
+
+    itlist = valid + results
+    writelist = item.text
+    for it in itlist:
+        writelist += ',' + it.tourl()
+    filetools.write(temp_search_file, writelist)
+
+    return itlist
 
 
 def get_channel_results(item, module_dict, search_action):

@@ -81,8 +81,12 @@ def live(item):
         urls = []
         if it['tuningInstruction'] and not it['mediasetstation$digitalOnly']:
             guide=current_session.get('https://static3.mediasetplay.mediaset.it/apigw/nownext/' + it['callSign'] + '.json').json()['response']
+            if 'restartUrl' in guide['currentListing']:
+                urls = [guide['currentListing']['restartUrl']]
+            else:
+                for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
+                    urls += key['publicUrls']
             plot = support.typo(guide['currentListing']['mediasetlisting$epgTitle'],'bold') + '\n' + guide['currentListing']['mediasetlisting$shortDescription'] + '\n' + guide['currentListing']['description'] + '\n\n' + support.typo('A Seguire:' + guide['nextListing']['mediasetlisting$epgTitle'], 'bold')
-            for key in it['tuningInstruction']['urn:theplatform:tv:location:any']: urls += key['publicUrls']
             itemlist.append(item.clone(title=support.typo(it['title'], 'bold'),
                                        fulltitle=it['title'],
                                        show=it['title'],
@@ -209,7 +213,6 @@ def play(item):
                 item.license = lic_url % support.match(sec_data, patron=r'pid=([^|]+)').match
                 data = support.match(sec_data, patron=r'<video src="([^"]+)').match
 
-    support.log('LICENSE:',item.license)
     return support.servertools.find_video_items(item, data=data)
 
 def subBrand(json):

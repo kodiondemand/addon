@@ -31,7 +31,8 @@ def mainlist(item):
 def peliculas(item):
     action = 'episodios'
     if item.args == 'newest':
-        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+)–\s*<a href="(?P<url>[^"]+)"[^>]*>\s?(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
+        item.contentType = 'episode'
+        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+) –\s*<a href="(?P<url>[^"]+)"[^>]*>\s?(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<\(]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
         pagination = ''
     else:
         patron = r'<div class="post-thumb">.*?\s<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)\s?(?: Serie Tv)?\s?\(?(?P<year>\d{4})?\)?<\/a><\/h2>'

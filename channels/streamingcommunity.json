@@ -1,0 +1,10 @@
+{
+  "id": "streamingcommunity",
+  "name": "Streaming Community",
+  "active": true,
+  "language": ["ita"],
+  "thumbnail": "streamingcommunity.png",
+  "banner": "streamingcommunity.png",
+  "categories": ["movie","tvshow"],
+  "settings": []
+}

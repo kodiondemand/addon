@@ -16,20 +16,21 @@ def get_data(item, head=[]):
     for h in head:
         headers[h[0]] = h[1]
     if not item.count: item.count = 0
-    matches = support.match(item, patron=r'<script>(.*?location.href=".*?(http[^"]+)";)</').match
-    if matches:
-        jstr, location = matches
-        item.url=support.re.sub(r':\d+', '', location).replace('http://','https://')
-    if not config.get_setting('key', item.channel) and jstr:
-        jshe = 'var document = {}, location = {}'
-        aesjs = str(support.match(host + '/aes.min.js').data)
-        js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
-        jsret =  'return document.cookie'
-        key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
-        key = key_data.split(';')[0]
+    if not config.get_setting('key', item.channel):
+        matches = support.match(item, patron=r'<script>(.*?location.href=".*?(http[^"]+)";)</').match
+        if matches:
+            jstr, location = matches
+            item.url=support.re.sub(r':\d+', '', location).replace('http://','https://')
+        if jstr:
+            jshe = 'var document = {}, location = {}'
+            aesjs = str(support.match(host + '/aes.min.js').data)
+            js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
+            jsret =  'return document.cookie'
+            key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
+            key = key_data.split(';')[0]
 
-        # save Key in settings
-        config.set_setting('key', key, item.channel)
+            # save Key in settings
+            config.set_setting('key', key, item.channel)
 
     # set cookie
     headers['cookie'] = config.get_setting('key', item.channel)

@@ -308,7 +308,7 @@ def thumb(item_or_itemlist=None, genre=False, thumb=''):
                  'noir':['noir'],
                  'popular' : ['popolari','popolare', 'più visti'],
                  'thriller':['thriller'],
-                 'top_rated' : ['fortunato', 'votati', 'lucky'],
+                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
                  'on_the_air' : ['corso', 'onda', 'diretta', 'dirette'],
                  'western':['western'],
                  'vos':['sub','sub-ita'],

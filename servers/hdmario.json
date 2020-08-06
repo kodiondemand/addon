@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https?://hdmario.live/embed/([0-9]+)",
+        "pattern": "https?://hdmario.live/\\w+/([0-9]+)",
         "url": "https://hdmario.live/embed/\\1"
       }
     ]
@@ -36,6 +36,22 @@
       ],
       "type": "list",
       "visible": false
+    },
+    {
+      "default": "",
+      "enabled": true,
+      "id": "username",
+      "label": "username",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "default": "",
+      "enabled": true,
+      "id": "password",
+      "label": "password",
+      "type": "text",
+      "visible": true
     }
   ]
 }

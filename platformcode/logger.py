@@ -13,7 +13,12 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 loggeractive = (config.get_setting("debug") == True)
-
+try:
+    xbmc.KodiStub()
+    testMode = True
+    import cgi
+except:
+    testMode = False
 
 def log_enable(active):
     global loggeractive
@@ -38,6 +43,9 @@ def encode_log(message=""):
     # Objects to string
     else:
         message = str(message)
+
+    if testMode:
+        message = cgi.escape(message).replace('\n', '<br>')
 
     return message
 

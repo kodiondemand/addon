@@ -22,13 +22,12 @@ from core.item import Item
 from platformcode import config
 
 def findhost():
-    data = support.httptools.downloadpage('https://altadefinizione-nuovo.link/').data
+    data = support.httptools.downloadpage('https://altadefinizione-nuovo.me/').data
     host = support.scrapertools.find_single_match(data, '<div class="elementor-button-wrapper"> <a href="([^"]+)"')
     return host
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
-
 
 
 @support.menu
@@ -117,6 +116,7 @@ def newest(categoria):
     try:
         if categoria == "peliculas":
             item.args = 'news'
+            item.contentType = 'movie'
             item.url = host + "/nuove-uscite/"
             item.action = "peliculas"
             itemlist = peliculas(item)

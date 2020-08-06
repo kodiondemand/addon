@@ -276,6 +276,8 @@ def newest(categoria):
     try:
         if categoria == "series":
             itemlist = peliculas_tv(item)
+            if itemlist[-1].action == 'peliculas_tv':
+                itemlist.pop(-1)
 
     except:
         import sys

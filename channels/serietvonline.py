@@ -72,7 +72,7 @@ def peliculas(item):
     elif item.contentType == 'episode':
         pagination = 35
         action = 'findvideos'
-        patron = r'<td><a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>[^<]+)(?P<episode>[\d\-x]+)?(?P<title2>[^<]+)?<'
+        patron = r'<td><a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>.*?)(?P<episode>\d+x\d+)[ ]?(?P<title2>[^<]+)?<'
 
     elif item.contentType == 'tvshow':
         # SEZIONE Serie TV- Anime - Documentari
@@ -109,10 +109,9 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     support.log()
-
     action = 'findvideos'
     patronBlock = r'<table>(?P<block>.*?)<\/table>'
-    patron = r'<tr><td>(?:[^<]+)[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<url>.*?)</td><tr>'
+    patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<url>.*?)</td><tr>'
     def itemlistHook(itemlist):
         for i, item in enumerate(itemlist):
             ep = support.match(item.title, patron=r'\d+x(\d+)').match

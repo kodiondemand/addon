@@ -15,7 +15,7 @@ else:
 import os, xbmc, xbmcgui, xbmcplugin
 from past.utils import old_div
 from channelselector import get_thumb
-from core import trakt_tools, scrapertools
+from core import scrapertools
 from core.item import Item
 from platformcode import logger, config
 
@@ -920,6 +920,7 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
             # Reproduce
             xbmc_player.play(playlist, xlistitem)
             if config.get_setting('trakt_sync'):
+                from core import trakt_tools
                 trakt_tools.wait_for_update_trakt()
 
         elif player_mode == 1:

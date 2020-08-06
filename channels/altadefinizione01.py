@@ -130,6 +130,7 @@ def newest(categoria):
         if categoria == "peliculas":
             item.url = host
             item.action = "peliculas"
+            item.contentType = 'movie'
             itemlist = peliculas(item)
             if itemlist[-1].action == "peliculas":
                 itemlist.pop()

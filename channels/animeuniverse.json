@@ -1,0 +1,21 @@
+{
+    "id": "animeuniverse",
+    "name": "AnimeUniverse",
+    "active": true,
+    "language": ["ita", "sub-ita"],
+    "thumbnail": "animeuniverse.png",
+    "banner": "animeuniverse.png",
+    "categories": ["anime", "sub-ita"],
+    "default_off": ["include_in_newest"],
+    "settings": [
+        {
+            "id": "perpage",
+            "type": "list",
+            "label": "Elementi per pagina",
+            "default": 3,
+            "enabled": true,
+            "visible": true,
+            "lvalues": ["20","30","40","50","60","70","80","90","100"]
+        }
+    ]
+}

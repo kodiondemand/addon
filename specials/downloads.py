@@ -840,7 +840,7 @@ def start_download(item):
 
 def get_episodes(item):
     log("contentAction: %s | contentChannel: %s | contentType: %s" % (item.contentAction, item.contentChannel, item.contentType))
-    
+
     if 'dlseason' in item:
         season = True
         season_number = item.dlseason
@@ -864,8 +864,9 @@ def get_episodes(item):
             episodes = getattr(channel, item.contentAction)(item)
 
     itemlist = []
-    if episodes and not scrapertools.find_single_match(episodes[0].title, r'(\d+.\d+)') and item.channel not in ['videolibrary']:
+    if episodes and not scrapertools.find_single_match(episodes[0].title, r'(\d+.\d+)') and item.channel not in ['videolibrary'] and item.action != 'season':
         from specials.autorenumber import select_type, renumber, check
+        # support.dbg()
         if not check(item):
             select_type(item)
             return get_episodes(item)

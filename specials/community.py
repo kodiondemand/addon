@@ -255,7 +255,7 @@ def get_seasons(item):
                              action='episodios',
                              contentSeason=option['season'],
                              infoLabels=infoLabels,
-                             contentType='season',
+                             contentType='season' if show_seasons else 'tvshow',
                              path=extra.path))
 
     if inspect.stack()[2][3] in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'get_newest'] or show_seasons == False:
@@ -265,6 +265,10 @@ def get_seasons(item):
         itemlist = itlist
         if inspect.stack()[2][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'get_newest'] and defp and not item.disable_pagination:
             itemlist = pagination(item, itemlist)
+
+    if show_seasons:
+        support.videolibrary(itemlist, item)
+        support.download(itemlist, item)
     return itemlist
 
 
@@ -353,16 +357,17 @@ def episodios(item, json ='', key='', itemlist =[]):
             itemlist = []
             for season in season_list:
                 itemlist.append(Item(channel=item.channel,
-                                    title=set_title(config.get_localized_string(60027) % season),
-                                    fulltitle=itm.fulltitle,
-                                    show=itm.show,
-                                    thumbnails=itm.thumbnails,
-                                    url=itm.url,
-                                    action='episodios',
-                                    contentSeason=season,
-                                    infoLabels=infoLabels,
-                                    filterseason=str(season),
-                                    path=item.path))
+                                     title=set_title(config.get_localized_string(60027) % season),
+                                     fulltitle=itm.fulltitle,
+                                     show=itm.show,
+                                     thumbnails=itm.thumbnails,
+                                     url=itm.url,
+                                     action='episodios',
+                                     contentSeason=season,
+                                     contentType = 'episode',
+                                     infoLabels=infoLabels,
+                                     filterseason=str(season),
+                                     path=item.path))
 
         elif defp and inspect.stack()[1][3] not in ['get_seasons'] and not item.disable_pagination:
             if Pagination and len(itemlist) >= Pagination:
@@ -371,6 +376,9 @@ def episodios(item, json ='', key='', itemlist =[]):
                     item.page = pag + 1
                     item.thumbnail = support.thumb()
                     itemlist.append(item)
+        if not show_seasons:
+            support.videolibrary(itemlist, item)
+        support.download(itemlist, item)
     return itemlist
 
 

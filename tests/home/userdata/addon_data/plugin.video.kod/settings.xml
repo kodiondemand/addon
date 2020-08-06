@@ -1,0 +1,113 @@
+<settings version="2">
+    <setting id="addon_update_enabled">true</setting>
+    <setting id="addon_update_message">true</setting>
+    <setting id="addon_update_timer">1</setting>
+    <setting id="autoplay" default="true">false</setting>
+    <setting id="autostart" default="true">Off</setting>
+    <setting id="browser">true</setting>
+    <setting id="category" default="true"></setting>
+    <setting id="channel_language" default="true">all</setting>
+    <setting id="channels_check" default="true"></setting>
+    <setting id="channels_config" default="true"></setting>
+    <setting id="channels_onoff" default="true"></setting>
+    <setting id="checkdns">true</setting>
+    <setting id="checklinks" default="true">false</setting>
+    <setting id="checklinks_number">5</setting>
+    <setting id="custom_start" default="true">false</setting>
+    <setting id="custom_theme" default="true"></setting>
+    <setting id="debriders_config" default="true"></setting>
+    <setting id="debug">true</setting>
+    <setting id="default_action" default="true">0</setting>
+    <setting id="delete_key" default="true"></setting>
+    <setting id="download_adv" default="true"></setting>
+    <setting id="downloadenabled" default="true">false</setting>
+    <setting id="downloadlistpath" default="true">special://profile/addon_data/plugin.video.kod/downloads/list/</setting>
+    <setting id="downloadpath" default="true">special://profile/addon_data/plugin.video.kod/downloads/</setting>
+    <setting id="elementum_install" default="true"></setting>
+    <setting id="elementum_on_seed" default="true">false</setting>
+    <setting id="enable_channels_menu">true</setting>
+    <setting id="enable_custom_theme" default="true">false</setting>
+    <setting id="enable_fav_menu">true</setting>
+    <setting id="enable_library_menu">true</setting>
+    <setting id="enable_link_menu">true</setting>
+    <setting id="enable_news_menu">true</setting>
+    <setting id="enable_onair_menu">true</setting>
+    <setting id="enable_search_menu">true</setting>
+    <setting id="extended_info" default="true">false</setting>
+    <setting id="favorites_servers" default="true">false</setting>
+    <setting id="filter_servers" default="true">true</setting>
+    <setting id="folder_movies" default="true">Film</setting>
+    <setting id="folder_tvshows" default="true">Serie TV</setting>
+    <setting id="hide_servers" default="true">false</setting>
+    <setting id="hidepremium" default="true">false</setting>
+    <setting id="httptools_timeout">15</setting>
+    <setting id="icon_set" default="true">default</setting>
+    <setting id="infoplus" default="true">false</setting>
+    <setting id="infoplus_set" default="true">false</setting>
+    <setting id="install_trakt" default="true">true</setting>
+    <setting id="kod_menu">true</setting>
+    <setting id="language" default="true">ITA</setting>
+    <setting id="last_search">true</setting>
+    <setting id="library_move">true</setting>
+    <setting id="lista_activa" default="true">kodfavorites-default.json</setting>
+    <setting id="news_anime" default="true"></setting>
+    <setting id="news_documentaries" default="true"></setting>
+    <setting id="news_films" default="true"></setting>
+    <setting id="news_options" default="true"></setting>
+    <setting id="news_series" default="true"></setting>
+    <setting id="news_start" default="true">false</setting>
+    <setting id="next_ep">true</setting>
+    <setting id="next_ep_seconds">40</setting>
+    <setting id="next_ep_type" default="true">0</setting>
+    <setting id="only_channel_icons" default="true">false</setting>
+    <setting id="player_mode">0</setting>
+    <setting id="quality" default="true">0</setting>
+    <setting id="quality_priority" default="true">false</setting>
+    <setting id="quick_menu">true</setting>
+    <setting id="resolve_priority" default="true">0</setting>
+    <setting id="resolve_stop">true</setting>
+    <setting id="resolver_dns">true</setting>
+    <setting id="result_mode" default="true">0</setting>
+    <setting id="saved_searches_limit">10</setting>
+    <setting id="search_channels" default="true"></setting>
+    <setting id="server_speed">true</setting>
+    <setting id="servers_blacklist" default="true"></setting>
+    <setting id="servers_config" default="true"></setting>
+    <setting id="servers_favorites" default="true"></setting>
+    <setting id="settings_path" default="true">special://profile/addon_data/plugin.video.kod/settings_channels</setting>
+    <setting id="shortcut_key" default="true"></setting>
+    <setting id="show_once" default="true">true</setting>
+    <setting id="side_menu" default="true">false</setting>
+    <setting id="skin_name" default="true">skin.estuary</setting>
+    <setting id="start_page" default="true">false</setting>
+    <setting id="subtitle_name" default="true">[B]4[B] - [B]Tamako Market[B]</setting>
+    <setting id="thread_number" default="true">0</setting>
+    <setting id="tmdb_active" default="true">true</setting>
+    <setting id="tmdb_cache">true</setting>
+    <setting id="tmdb_cache_expire">4</setting>
+    <setting id="tmdb_clean_db_cache" default="true"></setting>
+    <setting id="tmdb_plus_info" default="true">false</setting>
+    <setting id="tmdb_threads">20</setting>
+    <setting id="touch_view" default="true">false</setting>
+    <setting id="trakt_sync" default="true">false</setting>
+    <setting id="tvdb_token" default="true">eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1OTQwMjkyNzYsImlkIjoicGVsaXNhbGFjYXJ0YSIsIm9yaWdfaWF0IjoxNTkzNDI0NDMyfQ.Op5vL2VNz_YJvnpX0fgz_3FVuOG9c1MT084jYdf-EcBuotgMoQ6-6TtKAAb_x8C-_AMEv1Io5DUpbjxIViSZEaI0wypfkWJEuSIHfTHqOaD80Pdf0hcK9pliSUTPQMPyHaacP-VaVubydMzq-n-5AORpYXuFE1w60KWuTZT4MbPA4F9SAENB4_q3VL-1heqnyrx7iEA5smQVO-LGCKMEgy9rnnCdtUWUP19WXqiaxCgng7Nmx8kICa5zV9I6ov_2XYzikJDF7txEoVdVVotQ1THUkAQfCmQOGb0pPIbFOpjXayNiPzmwj_yCLCakdO82cw0M7cJ2fOERfFKLmVn39w</setting>
+    <setting id="tvdb_token_date" default="true">2020-06-29</setting>
+    <setting id="video_thumbnail_type">1</setting>
+    <setting id="videolibrary_kodi">true</setting>
+    <setting id="videolibrary_max_quality" default="true">false</setting>
+    <setting id="videolibrarypath" default="true">special://profile/addon_data/plugin.video.kod/videolibrary/</setting>
+    <setting id="vidolibrary_delete" default="true"></setting>
+    <setting id="vidolibrary_export" default="true"></setting>
+    <setting id="vidolibrary_import" default="true"></setting>
+    <setting id="vidolibrary_preferences" default="true"></setting>
+    <setting id="vidolibrary_restore" default="true"></setting>
+    <setting id="vidolibrary_update" default="true"></setting>
+    <setting id="view_mode_addon">Muro di Icone, 52</setting>
+    <setting id="view_mode_channel">Lista Larga, 55</setting>
+    <setting id="view_mode_episode">Lista, 50</setting>
+    <setting id="view_mode_movie">Lista, 50</setting>
+    <setting id="view_mode_season">Predefinito , 0</setting>
+    <setting id="view_mode_server">Lista Larga, 55</setting>
+    <setting id="view_mode_tvshow">Lista, 50</setting>
+    <setting id="watched_setting">80</setting>
+</settings>

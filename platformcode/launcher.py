@@ -8,8 +8,10 @@ PY3 = False
 if sys.version_info[0] >= 3:PY3 = True; unicode = str; unichr = chr; long = int
 
 from core.item import Item
+from core import filetools
 from platformcode import config, logger, platformtools
 from platformcode.logger import WebErrorException
+temp_search_file = config.get_temp_file('temp-search')
 
 
 def start():
@@ -242,6 +244,20 @@ def run(item=None):
 
             # Special action for searching, first asks for the words then call the "search" function
             elif item.action == "search":
+                # from core.support import dbg;dbg()
+                if filetools.isfile(temp_search_file) and config.get_setting('videolibrary_kodi'):
+                    itemlist = []
+                    f = filetools.read(temp_search_file)
+                    strList = f.split(',')
+                    if strList[0] == '[V]' and strList[1] == item.channel:
+                        for it in strList:
+                            if it and it not in ['[V]', item.channel]:
+                                itemlist.append(Item().fromurl(it))
+                        filetools.write(temp_search_file, f[4:])
+                        return platformtools.render_items(itemlist, item)
+                    else:
+                        filetools.remove(temp_search_file)
+
                 logger.info("item.action=%s" % item.action.upper())
                 from core import channeltools
 
@@ -250,15 +266,11 @@ def run(item=None):
                 else:
                     last_search = ''
 
-                tecleado = platformtools.dialog_input(last_search)
+                search_text = platformtools.dialog_input(last_search)
 
-                if tecleado is not None:
-                    channeltools.set_channel_setting('Last_searched', tecleado, 'search')
-                    if 'search' in dir(channel):
-                        itemlist = channel.search(item, tecleado)
-                    else:
-                        from core import support
-                        itemlist = support.search(channel, item, tecleado)
+                if search_text is not None:
+                    channeltools.set_channel_setting('Last_searched', search_text, 'search')
+                    itemlist = new_search(item.clone(text=search_text), channel)
                 else:
                     return
 
@@ -276,8 +288,7 @@ def run(item=None):
                         trakt_tools.auth_trakt()
                     else:
                         import xbmc
-                        if not xbmc.getCondVisibility('System.HasAddon(script.trakt)') and config.get_setting(
-                                'install_trakt'):
+                        if not xbmc.getCondVisibility('System.HasAddon(script.trakt)') and config.get_setting('install_trakt'):
                             trakt_tools.ask_install_script()
                     itemlist = trakt_tools.trakt_check(itemlist)
                 else:
@@ -330,6 +341,24 @@ def run(item=None):
                 log_message)
 
 
+def new_search(item, channel=None):
+    itemlist=[]
+    if 'search' in dir(channel):
+        itemlist = channel.search(item, item.text)
+    else:
+        from core import support
+        itemlist = support.search(channel, item, item.text)
+
+    writelist = item.channel
+    for it in itemlist:
+        writelist += ',' + it.tourl()
+    filetools.write(temp_search_file, writelist)
+    return itemlist
+
+def set_search_temp(item):
+    if filetools.isfile(temp_search_file) and config.get_setting('videolibrary_kodi'):
+        f = '[V],' + filetools.read(temp_search_file)
+        filetools.write(temp_search_file, f)
 
 def reorder_itemlist(itemlist):
     logger.info()

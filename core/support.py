@@ -64,10 +64,11 @@ def hdpass_get_servers(item):
 
     data = httptools.downloadpage(url, CF=False).data
     patron_res = '<div class="buttons-bar resolutions-bar">(.*?)<div class="buttons-bar'
-    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)<div id="fake'
-    patron_option = r'<a href="([^"]+?)".*?>([^<]+?)</a>'
+    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)<div id="main-player'
+    patron_option = r'<a href="([^"]+?)"[^>]+>([^<]+?)</a'
 
     res = scrapertools.find_single_match(data, patron_res)
+    # dbg()
 
     with futures.ThreadPoolExecutor() as executor:
         thL = []
@@ -284,8 +285,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
 
         # make formatted Title [longtitle]
         s = ' - '
-        title = episode + (s if episode and title else '') + title
-        longtitle = title + (s if title and title2 else '') + title2 + '\n'
+        # title = episode + (s if episode and title else '') + title
+        longtitle = episode + (s if episode and (title or title2) else '') + title + (s if title and title2 else '') + title2
 
         if sceneTitle:
             from lib.guessit import guessit
@@ -475,6 +476,9 @@ def scrape(func):
             if 'itemlistHook' in args:
                 itemlist = args['itemlistHook'](itemlist)
 
+            if 'ItemItemlistHook' in args:
+                itemlist = args['ItemItemlistHook'](item, itemlist)
+
             # if url may be changed and channel has findhost to update
             if 'findhost' in func.__globals__ and not itemlist:
                 logger.info('running findhost ' + func.__module__)
@@ -541,14 +545,15 @@ def scrape(func):
     return wrapper
 
 
-def dooplay_get_links(item, host):
+def dooplay_get_links(item, host, paramList=[]):
     # get links from websites using dooplay theme and dooplay_player
     # return a list of dict containing these values: url, title and server
-
-    data = httptools.downloadpage(item.url).data.replace("'", '"')
-    patron = r'<li id="player-option-[0-9]".*?data-type="([^"]+)" data-post="([^"]+)" data-nume="([^"]+)".*?<span class="title".*?>([^<>]+)</span>(?:<span class="server">([^<>]+))?'
-    matches = scrapertools.find_multiple_matches(data, patron)
-
+    if not paramList:
+        data = httptools.downloadpage(item.url).data.replace("'", '"')
+        patron = r'<li id="player-option-[0-9]".*?data-type="([^"]+)" data-post="([^"]+)" data-nume="([^"]+)".*?<span class="title".*?>([^<>]+)</span>(?:<span class="server">([^<>]+))?'
+        matches = scrapertools.find_multiple_matches(data, patron)
+    else:
+        matches = paramList
     ret = []
 
     for type, post, nume, title, server in matches:
@@ -987,6 +992,7 @@ def match_dbg(data, patron):
 
 def download(itemlist, item, typography='', function_level=1, function=''):
     if config.get_setting('downloadenabled'):
+
         if not typography: typography = 'color kod bold'
 
         if item.contentType == 'movie':
@@ -995,9 +1001,14 @@ def download(itemlist, item, typography='', function_level=1, function=''):
         elif item.contentType == 'episode':
             from_action = 'findvideos'
             title = typo(config.get_localized_string(60356), typography) + ' - ' + item.title
-        elif item.contentType == 'tvshow':
-            from_action = 'episodios'
+        elif item.contentType in 'tvshow':
+            if item.channel == 'community' and config.get_setting('show_seasons', item.channel):
+                from_action = 'season'
+            else:
+                from_action = 'episodios'
             title = typo(config.get_localized_string(60355), typography)
+        elif item.contentType in 'season':
+            from_action = 'get_seasons'
         else:  # content type does not support download
             return itemlist
 
@@ -1016,7 +1027,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
                         break
                 else:
                     show = False
-            if show:
+            if show and item.contentType != 'season':
                 itemlist.append(
                     Item(channel='downloads',
                          from_channel=item.channel,
@@ -1207,8 +1218,13 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             checklinks_number = config.get_setting('checklinks_number')
         verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
 
-    if AutoPlay and not 'downloads' in inspect.stack()[3][1] or not 'downloads' in inspect.stack()[3][1] or not inspect.stack()[4][1]:
-        autoplay.start(verifiedItemlist, item)
+    try:
+        if AutoPlay and not 'downloads' in inspect.stack()[3][1] or not 'downloads' in inspect.stack()[3][1] or not inspect.stack()[4][1]:
+            autoplay.start(verifiedItemlist, item)
+    except:
+        import traceback
+        logger.error(traceback.format_exc())
+        pass
 
     if Videolibrary and item.contentChannel != 'videolibrary':
         videolibrary(verifiedItemlist, item)
@@ -1247,7 +1263,7 @@ def log(*args):
 
 
 def channel_config(item, itemlist):
-    from  channelselector import get_thumb
+    from channelselector import get_thumb
     itemlist.append(
         Item(channel='setting',
              action="channel_config",

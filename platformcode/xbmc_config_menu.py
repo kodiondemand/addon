@@ -171,7 +171,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
         if not self.list_controls:
 
             # If the channel path is in the "channels" folder, we get the controls and values using chaneltools
-            if os.path.join(config.get_runtime_path(), "channels") or os.path.join(config.get_runtime_path(), "specials") in channelpath:
+            if os.path.join(config.get_runtime_path(), "channels") in channelpath or os.path.join(config.get_runtime_path(), "specials") in channelpath:
 
                 # The call is made from a channel
                 self.list_controls, default_values = channeltools.get_channel_controls_settings(self.channel)

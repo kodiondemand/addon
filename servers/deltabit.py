@@ -25,7 +25,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
 
     post = urllib.urlencode({k: v for k, v in scrapertools.find_multiple_matches(data, "name='([^']+)' value='([^']*)'")})
-    time.sleep(2.1)
+    time.sleep(2.5)
     data = httptools.downloadpage(page_url, post=post).data
 
     videos_packed = scrapertools.find_single_match(data, r"</div>\s*<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")

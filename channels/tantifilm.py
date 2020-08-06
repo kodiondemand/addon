@@ -21,8 +21,6 @@ host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 
-
-
 @support.menu
 def mainlist(item):
     log()
@@ -147,13 +145,10 @@ def search(item, texto):
 def newest(categoria):
     if categoria == 'series':
         item = Item(url=host + '/aggiornamenti-giornalieri-serie-tv-2')
-        item.contentType = 'tvshow'
-        patronBlock = 'Aggiornamenti Giornalieri Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'
-        patron = '<p>(?P<title>.*?)\((?P<year>[0-9]{4})-?\)\s*streaming.*?href="(?P<url>[^"]+)'
-
-        def itemHook(item):
-            item.title = item.contentTitle = item.fulltitle = item.contentSerieName = item.contentTitle = scrapertools.htmlclean(item.title)
-            return item
+        data = support.match(item).data.replace('<u>','').replace('</u>','')
+        item.contentType = 'episode'
+        patronBlock = r'Aggiornamenti Giornalieri Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'
+        patron = r'<p>(?P<title>.*?)\((?P<year>[0-9]{4})[^\)]*\)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+) (?P<lang>[Ss][Uu][Bb].[Ii][Tt][Aa])?(?P<title2>[^<]+)?'
 
     return locals()
 

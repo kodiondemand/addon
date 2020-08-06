@@ -6,6 +6,7 @@ from core import httptools
 from core import scrapertools
 from lib import js2py
 from platformcode import logger, config
+import re
 
 
 def test_video_exists(page_url):
@@ -23,12 +24,47 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.info("(page_url='%s')" % page_url)
     video_urls = []
     global page_data
-    dec = scrapertools.find_single_match(page_data, '(\$=~\[\];.*?\(\)\))\(\);')
-    # needed to increase recursion
-    import sys
-    sys.setrecursionlimit(10000)
-
-    deObfCode = js2py.eval_js(dec)
-
-    video_urls.append(['mp4 [mystream]', scrapertools.find_single_match(str(deObfCode), "'src',\s*'([^']+)")])
+    video_url = scrapertools.find_single_match(decode(page_data), r"'src',\s*'([^']+)")
+    video_urls.append([video_url.split('.')[-1] + ' [MyStream]', video_url])
     return video_urls
+
+def decode(data):
+    # adapted from ResolveURL code - https://github.com/jsergio123/script.module.resolveurl
+
+    first_group = scrapertools.find_single_match(data, r'"\\"("\+.*?)"\\""\)\(\)\)\(\)')
+    match = scrapertools.find_single_match(first_group, r"(\(!\[\]\+\"\"\)\[.+?\]\+)")
+    if match:
+        first_group = first_group.replace(match, 'l').replace('$.__+', 't').replace('$._+', 'u').replace('$._$+', 'o')
+
+        tmplist = []
+        js = scrapertools.find_single_match(data, r'(\$={.+?});')
+        if js:
+            js_group = js[3:][:-1]
+            second_group = js_group.split(',')
+
+            i = -1
+            for x in second_group:
+                a, b = x.split(':')
+
+                if b == '++$':
+                    i += 1
+                    tmplist.append(("$.{}+".format(a), i))
+
+                elif b == '(![]+"")[$]':
+                    tmplist.append(("$.{}+".format(a), 'false'[i]))
+
+                elif b == '({}+"")[$]':
+                    tmplist.append(("$.{}+".format(a), '[object Object]'[i]))
+
+                elif b == '($[$]+"")[$]':
+                    tmplist.append(("$.{}+".format(a), 'undefined'[i]))
+
+                elif b == '(!""+"")[$]':
+                    tmplist.append(("$.{}+".format(a), 'true'[i]))
+
+            tmplist = sorted(tmplist, key=lambda z: str(z[1]))
+            for x in tmplist:
+                first_group = first_group.replace(x[0], str(x[1]))
+
+            first_group = first_group.replace('\\"', '\\').replace("\"\\\\\\\\\"", "\\\\").replace('\\"', '\\').replace('"', '').replace("+", "")
+    return first_group.encode('ascii').decode('unicode-escape').encode('ascii').decode('unicode-escape')

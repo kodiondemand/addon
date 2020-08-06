@@ -24,24 +24,25 @@ def get_data(item, head=[]):
     for h in head:
         headers[h[0]] = h[1]
     if not item.count: item.count = 0
-    matches = support.match(item, patron=r'<script>(.*?location.href=".*?(http[^"]+)";)</').match
-    if matches:
-        jstr, location = matches
-        item.url=support.re.sub(r':\d+', '', location).replace('http://','https://')
-    if not config.get_setting('key', item.channel) and jstr:
-        jshe = 'var document = {}, location = {}'
-        aesjs = str(support.match(host + '/aes.min.js').data)
-        js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
-        jsret =  'return document.cookie'
-        key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
-        key = key_data.split(';')[0]
+    if not config.get_setting('key', item.channel):
+        matches = support.match(item, patron=r'<script>(.*?location.href=".*?(http[^"]+)";)</').match
+        if matches:
+            jstr, location = matches
+            item.url=support.re.sub(r':\d+', '', location).replace('http://','https://')
+        if jstr:
+            jshe = 'var document = {}, location = {}'
+            aesjs = str(support.match(host + '/aes.min.js').data)
+            js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
+            jsret =  'return document.cookie'
+            key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
+            key = key_data.split(';')[0]
 
-        # save Key in settings
-        config.set_setting('key', key, item.channel)
+            # save Key in settings
+            config.set_setting('key', key, item.channel)
 
     # set cookie
     headers['cookie'] = config.get_setting('key', item.channel)
-    res = support.match(item, headers=headers, patron=r';\s*location.href="([^"]+)"')
+    res = support.match(item, headers=headers, patron=r';\s*location.href=".*?(http[^"]+)"')
     if res.match:
         item.url= res.match.replace('http://','https://')
         data = support.match(item, headers=headers).data
@@ -73,8 +74,8 @@ def mainlist(item):
 def genres(item):
     action = 'peliculas'
     data = get_data(item)
-    patronBlock = r'<button class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown"> Generi <span.[^>]+>(?P<block>.*?)</ul>'
-    patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
+    patronBlock = r'dropdown[^>]*>\s*Generi\s*<span.[^>]+>(?P<block>.*?)</ul>'
+    patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
 
     def itemHook(item):
         item.url = host + '/filter?' + item.name + '=' + item.value + '&sort='
@@ -152,7 +153,7 @@ def peliculas(item):
         action='episodios'
 
     # Controlla la lingua se assente
-    patronNext=r'href="([^"]+)" rel="next"'
+    patronNext=r'</span></a><a href="([^"]+)"'
     typeContentDict={'movie':['movie', 'special']}
     typeActionDict={'findvideos':['movie', 'special']}
     def itemHook(item):
@@ -172,8 +173,7 @@ def episodios(item):
     anime=True
     pagination = 50
     data = get_data(item)
-    support.log(data)
-    patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)<div class="server'
+    patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^<]+)<'
     def itemHook(item):
         item.number = support.re.sub(r'\[[^\]]+\]', '', item.title)
@@ -192,7 +192,7 @@ def findvideos(item):
     data = resp.data
     for ID, name in resp.matches:
         if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
-        match = support.match(data, patronBlock=r'data-name="' + ID + r'"[^>]+>(.*?)<div class="(?:server|download)', patron=r'data-id="([^"]+)" data-episode-num="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
+        match = support.match(data, patronBlock=r'data-name="' + ID + r'"[^>]+>(.*?)(?:<div class="(?:server|download)|link)', patron=r'data-id="([^"]+)" data-episode-num="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
         if match:
             epID, epurl = match
             if 'vvvvid' in name.lower():

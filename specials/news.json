@@ -29,18 +29,15 @@
       ]
     },
     {
-      "id": "perfil",
+      "id": "order",
       "type": "list",
-      "label": "@60666",
+      "label": "Ordinamento",
       "default": 0,
       "enabled": true,
       "visible": true,
       "lvalues": [
-        "@60667",
-        "@60668",
-        "@60669",
-        "@60670",
-        "@60671"
+        "Default",
+        "Alfabetico"
       ]
     }
   ]
