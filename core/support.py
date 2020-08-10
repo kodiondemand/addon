@@ -218,7 +218,12 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             val = match[kk] if kk in match else ''
             # val = match[listGroups.index(kk)] if kk in listGroups else ''
             if val and (kk == "url" or kk == 'thumb') and 'http' not in val:
-                val = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (val if val.startswith('/') else '/' + val)
+                domain = ''
+                if val.startswith('//'):
+                    domain = scrapertools.find_single_match(item.url, 'https?:')
+                elif val.startswith('/'):
+                    domain = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+')
+                val = domain + val
             scraped[kk] = val
 
         if scraped['season']:
@@ -929,9 +934,10 @@ def match(item_url_string, **args):
     if url:
         if args.get('ignore_response_code', None) is None:
             args['ignore_response_code'] = True
-        data = httptools.downloadpage(url, **args).data.replace("'", '"')
+        data = httptools.downloadpage(url, **args).data
 
     # format page data
+    data = re.sub("='([^']+)'", '="\\1"', data)
     data = data.replace('\n', ' ')
     data = data.replace('\t', ' ')
     data = re.sub(r'>\s+<', '><', data)
