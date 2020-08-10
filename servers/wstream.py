@@ -101,7 +101,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
-    captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', headers[1][1])) if sitekey else ''
+    captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', headers[1][1]).replace('nored.icu', headers[1][1])) if sitekey else ''
 
     possibleParam = scrapertools.find_multiple_matches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
     if possibleParam[0][0]:
@@ -117,7 +117,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
         return []
 
-    headers.append(['Referer', real_url.replace('116.202.226.34', headers[1][1])])
+    headers.append(['Referer', real_url.replace('116.202.226.34', headers[1][1]).replace('nored.icu', headers[1][1])])
     _headers = urllib.urlencode(dict(headers))
 
     post_data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
