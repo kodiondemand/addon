@@ -21,11 +21,6 @@ headers = {
     'referer': 'https://www.la7.it/',
 }
 
-icons = {'la7':'https://upload.wikimedia.org/wikipedia/commons/thumb/0/02/LA7_-_Logo_2011.svg/512px-LA7_-_Logo_2011.svg.png',
-         'la7d': 'https://upload.wikimedia.org/wikipedia/it/e/ea/LA7d_LOGO_.png' }
-
-titles = {'la7': support.typo('La7', 'bold'), 'la7d': support.typo('La7d', 'bold')}
-
 @support.menu
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live']),
@@ -39,15 +34,15 @@ def mainlist(item):
 
 
 def live(item):
-    itemlist = [item.clone(title=titles['la7'], url= host + '/dirette-tv', action='play', forcethumb = True,  thumbnail= icons['la7']),
-                item.clone(title=titles['la7d'], url= host + '/live-la7d', action='play', forcethumb = True, thumbnail= icons['la7d'])]
-    return itemlist
+    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True),
+                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True)]
+    return support.thumb(itemlist, live=True)
 
 
 def replay_channels(item):
-    itemlist = [item.clone(title=titles['la7'], url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True,  thumbnail= icons['la7']),
-                item.clone(title=titles['la7d'], url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True, thumbnail= icons['la7d'])]
-    return itemlist
+    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True),
+                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True)]
+    return support.thumb(itemlist, live=True)
 
 
 @support.scrape
