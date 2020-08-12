@@ -1177,7 +1177,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             log(findS)
             if not findS:
                 if item.channel == 'community':
-                    findS= ('Diretto', videoitem.url, 'directo')
+                    findS= (support.config.get_localized_string(30137), videoitem.url, 'directo')
                 else:
                     videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
                     findS = servertools.get_server_from_url(videoitem.url)

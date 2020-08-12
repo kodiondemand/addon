@@ -111,7 +111,7 @@ def findvideos(item):
         for title, url in matches:
             get_video_list(url, title, itemlist)
     else:
-        get_video_list(item.url, 'Diretto', itemlist)
+        get_video_list(item.url, support.config.get_localized_string(30137), itemlist)
     return support.server(item, itemlist=itemlist)
 
 

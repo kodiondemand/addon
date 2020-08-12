@@ -219,4 +219,4 @@ def episodios(item):
 
 def findvideos(item):
     support.log()
-    return support.server(item,itemlist=[item.clone(title='Diretto', server='directo', action='play')])
+    return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', action='play')])

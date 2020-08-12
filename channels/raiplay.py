@@ -288,7 +288,7 @@ def findvideos(item):
     else:
         url = item.url
 
-    itemlist.append(item.clone(server = 'directo', title = 'Diretto', fanart = item.json, url = getUrl(url), action = 'play' ))
+    itemlist.append(item.clone(server = 'directo', title = support.config.get_localized_string(30137), fanart = item.json, url = getUrl(url), action = 'play' ))
     return support.server(item, itemlist=itemlist, Download=False)
 
 

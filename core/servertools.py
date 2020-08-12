@@ -191,7 +191,7 @@ def findvideosbyserver(data, serverid):
                 for x in range(len(match.groups())):
                     url = url.replace("\\%s" % (x + 1), match.groups()[x])
                 msg += "\nfound url: %s" % url
-                value = server_parameters["name"], url, serverid, server_parameters.get("thumbnail", "")
+                value = translate_server_name(server_parameters["name"]) , url, serverid, server_parameters.get("thumbnail", "")
                 if value not in devuelve and url not in server_parameters["find_videos"].get("ignore_urls", []):
                     devuelve.append(value)
                 logger.info(msg)
@@ -235,7 +235,7 @@ def get_server_from_url(url):
                     for x in range(len(match.groups())):
                         url = url.replace("\\%s" % (x + 1), match.groups()[x])
                     msg += "\nurl encontrada: %s" % url
-                    value = server_parameters["name"], url, serverid, server_parameters.get("thumbnail", "")
+                    value = translate_server_name(server_parameters["name"]), url, serverid, server_parameters.get("thumbnail", "")
                     if url not in server_parameters["find_videos"].get("ignore_urls", []):
                         logger.info(msg)
                         return value
@@ -274,7 +274,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if isinstance(video_password, list):
             return video_password, len(video_password) > 0, "<br/>".join(error_messages)
         logger.info("Server: %s, url is good" % server)
-        video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2][-4:], server), url])
+        video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2][-4:], config.get_localized_string(30137)), url])
 
     # Find out the video URL
     else:
@@ -286,7 +286,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if server_parameters:
             # Show a progress dialog
             if muestra_dialogo:
-                progreso = (platformtools.dialog_progress_bg if background_dialog else platformtools.dialog_progress)(config.get_localized_string(20000), config.get_localized_string(70180) % server_parameters["name"])
+                progreso = (platformtools.dialog_progress_bg if background_dialog else platformtools.dialog_progress)(config.get_localized_string(20000), config.get_localized_string(70180) % translate_server_name(server_parameters["name"]))
 
             # Count the available options, to calculate the percentage
 
@@ -346,7 +346,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
                 # Own free and premium option uses the same server
                 if opcion == "free" or opcion == server:
                     serverid = server_module
-                    server_name = server_parameters["name"]
+                    server_name = translate_server_name(server_parameters["name"])
 
                 # Rest of premium options use a debrider
                 else:
@@ -788,3 +788,9 @@ def check_video_link(item, timeout=3):
 
     logger.info("[check_video_link] There is no test_video_exists for server: %s" % server)
     return item, NK
+
+def translate_server_name(name):
+    if '@' in name:
+        return config.get_localized_string(int(name.replace('@','')))
+    else:
+        return name
