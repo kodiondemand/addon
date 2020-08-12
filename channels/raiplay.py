@@ -170,7 +170,7 @@ def live(item):
         itemlist.append(item.clone(title = support.typo(channel, 'bold'), fulltitle = channel, show = channel, url = key['video']['contentUrl'],
                                    thumbnail = key['transparent-icon'].replace("[RESOLUTION]", "256x-"), forcethumb = True , fanart = info[channel]['fanart'],
                                    plot = info[channel]['plot'], action = 'play'))
-    return itemlist
+    return support.thumb(itemlist, live=True)
 
 
 def peliculas(item):

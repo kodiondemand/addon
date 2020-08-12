@@ -277,7 +277,15 @@ def auto_filter(auto_lang=False):
     return lang
 
 
-def thumb(item_or_itemlist=None, genre=False, thumb=''):
+def thumb(item_or_itemlist=None, genre=False, live=False, thumb=''):
+    if live:
+        if type(item_or_itemlist) == list:
+            for item in item_or_itemlist:
+                item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
+        else:
+            item_or_itemlist.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
+        return item_or_itemlist
+
     import re
     icon_dict = {'movie':['film', 'movie'],
                  'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],

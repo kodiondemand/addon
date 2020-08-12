@@ -96,7 +96,7 @@ def live(item):
                                        urls=urls,
                                        plot=plot,
                                        action='play'))
-    return itemlist
+    return support.thumb(itemlist, live=True)
 
 def peliculas(item):
     support.log()
@@ -152,7 +152,7 @@ def epmenu(item):
             itemlist.append(
                 item.clone(action='episodios',
                             title=support.typo(entry['description'], 'bold'),
-                            subBrandId=entry['mediasetprogram$subBrandId']))
+                            url=entry['mediasetprogram$subBrandId']))
     if len(itemlist) == 1: return episodios(itemlist[0])
     return itemlist
 
@@ -162,15 +162,8 @@ def episodios(item):
     support.log()
     itemlist = []
     episode = ''
-    # entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
 
-    # for entry in entries:
-    #     support.log(entry)
-    #     if 'mediasetprogram$subBrandId' in entry and entry['description'].lower() not in ['Prossimi appuntamenti tv', 'clip']:
-    #         subBrandId = entry['mediasetprogram$subBrandId']
-    #         break
-
-    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.subBrandId + '}').json()['entries']
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.url + '}').json()['entries']
     for it in json:
         urls = []
         if 'media' in it:
