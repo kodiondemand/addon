@@ -1113,7 +1113,7 @@ def install_widevine():
         path = xbmc.translatePath(Addon('inputstream.adaptive').getSetting('DECRYPTERPATH'))
 
         # if Widevine CDM is not installed
-        if not os.path.exists(path) or not os.path.listdir(path):
+        if not os.path.exists(path) or not os.listdir(path):
             select = dialog_yesno('Widevine CDM', config.get_localized_string(70808))
             if select > 0:
                 if not 'arm' in platform['arch']:

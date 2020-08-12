@@ -125,7 +125,7 @@ def play(item):
         item = item.clone(title='Direct', url=url, server='directo', action='play')
     else:
         preurl = support.match(data, patron=r'preTokenUrl = "(.+?)"').match
-        url = support.match(data, patron=r'["]?dash["]?\s*:\s*"([^"]+)"').match
+        url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
         tokenHeader = {
             'host': headers['host_token'],
             'user-agent': headers['user-agent'],
