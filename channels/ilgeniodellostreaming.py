@@ -5,8 +5,6 @@
 # ------------------------------------------------------------
 
 
-import re
-
 from core import support
 from core.support import log
 from core.item import Item

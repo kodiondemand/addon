@@ -18,9 +18,6 @@ host = config.get_channel_url()
 headers = [['Referer', host]]
 
 
-
-
-
 @support.menu
 def mainlist(item):
     tvshow = ['/serietv-streaming',
