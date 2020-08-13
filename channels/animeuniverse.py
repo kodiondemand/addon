@@ -63,6 +63,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    query = ''
     if '/mos/' in item.url:
         item.contentType = 'movie'
         action='findvideos'
