@@ -103,7 +103,7 @@ def submenu(item):
     data = item.other
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
     def itemHook(item):
-        item.url = host + '/filter?' + item.name + '=' + item.value + '&dub=' + item.args + '&sort='
+        item.url = host + '/filter?' + item.name + '=' + item.value + '&dub=' + item.args + ('&sort=' if item.name != 'sort' else '')
         return item
     return locals()
 
@@ -141,14 +141,15 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
-    data = get_data(item)
     anime=True
+    if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
+    data = get_data(item)
     if item.args == 'updated':
+        data = get_data(item)
         item.contentType='episode'
         patron=r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<lang>[^\)]+)\))?"[^>]+>[^>]+>\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?[^>]+>[^>]+>\s*<div class="ep">[^\d]+(?P<episode>\d+)[^<]*</div>'
         action='findvideos'
     else:
-        if item.args != 'noorder' and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
         patron= r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<year>\d+)\) )?(?:\((?P<lang>[^\)]+)\))?"[^>]+>[^>]+>(?:\s*<div class="(?P<l>[^"]+)">[^>]+>)?\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?'
         action='episodios'
 

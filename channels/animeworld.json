@@ -14,7 +14,7 @@
             "default": 0,
             "enabled": true,
             "visible": true,
-            "lvalues": [ "Standard", "Ultime Aggiunte", "Lista A-Z", "Data di Uscita" ]
+            "lvalues": [ "Standard", "Ultime Aggiunte", "Lista A-Z", "Lista A-Z", "Più Vecchi", "Più Recenti", "Più Visti" ]
         }
     ]
 }
