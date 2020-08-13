@@ -209,10 +209,10 @@ def extract_videos(video_id):
                     opt = dict(opt)
                     if "audioQuality" not in opt:
                         continue
-                    if "cipher" in opt:
+                    if "signatureCipher" in opt and opt['mimeType'].startswith('video'):
                         signature = get_signature(youtube_page_data)
-                        cipher = dict(urlparse.parse_qsl(urllib.unquote(opt["cipher"])))
-                        url = re.search('url=(.*)', opt["cipher"]).group(1)
+                        cipher = dict(urlparse.parse_qsl(urllib.unquote(opt["signatureCipher"])))
+                        url = re.search('url=(.*)', opt["signatureCipher"]).group(1)
                         s = cipher.get('s')
                         url = "%s&sig=%s" % (urllib.unquote(url), signature([s]))
                         video_urls.append(["%s" % itag_list.get(opt["itag"], "video"), url])
