@@ -29,9 +29,6 @@ host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 
-
-
-
 @support.menu
 def mainlist(item):
     support.log()
@@ -76,7 +73,7 @@ def peliculas(item):
 
     elif item.contentType == 'tvshow':
         # SEZIONE Serie TV- Anime - Documentari
-        # pagination = 35
+        pagination = 35
 
         if not item.args and 'anime' not in item.url:
             patron = r'<div class="movie">[^>]+>.+?src="(?P<thumb>[^"]+)" alt="[^"]+".+?href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[ ](?P<rating>\d+.\d+|\d+)<[^>]+>[^>]+><h2>(?P<title>[^"]+)</h2>[ ]?(?:<span class="year">(?P<year>\d+|\-\d+))?<'

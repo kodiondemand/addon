@@ -18,7 +18,6 @@ host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 
-
 @support.menu
 def mainlist(item):
 

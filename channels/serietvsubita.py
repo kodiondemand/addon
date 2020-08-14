@@ -19,7 +19,6 @@ IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 
 
-
 @support.menu
 def mainlist(item):
     log()
@@ -100,8 +99,8 @@ def lista_serie(item):
         item.url, p = item.url.split('{}')
         p = int(p)
 
-    if '||' in item.url:
-        series = item.url.split('\n\n')
+    if '||' in item.data:
+        series = item.data.split('\n\n')
         matches = []
         for i, serie in enumerate(series):
             matches.append(serie.split('||'))
@@ -338,7 +337,7 @@ def list_az(item):
     for letter in sorted(alphabet):
         itemlist.append(
             item.clone(action="lista_serie",
-                       url='\n\n'.join(alphabet[letter]),
+                       data='\n\n'.join(alphabet[letter]),
                        title=letter,
                        fulltitle=letter))
 

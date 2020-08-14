@@ -2,7 +2,7 @@
     "id": "streamingaltadefinizione",
     "name": "Popcorn Stream",
     "language": ["ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "popcornstream.png",
     "banner": "popcornstream.png",
     "categories": ["movie","tvshow","anime"],

@@ -52,10 +52,7 @@ def peliculas(item):
 ##    deflang = 'ITA'
     action="findvideos"
 
-    patron = r'<div class="cover boxcaption"> <h2>.<a href="(?P<url>[^"]+)">.*?<.*?src="(?P<thumb>[^"]+)"'\
-         '.+?[^>]+>[^>]+<div class="trdublaj"> (?P<quality>[A-Z/]+)<[^>]+>(?:.[^>]+>(?P<lang>.*?)<[^>]+>).*?'\
-         '<p class="h4">(?P<title>.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> '\
-         '[^>]+>[^>]+>(?P<year>\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(?P<duration>\d+).+?>.*?<p>(?P<plot>[^<]+)<'
+    patron = r'<div class="cover boxcaption"> <h2>\s*<a href="(?P<url>[^"]+)">(?P<title>[^<]+).*?src="(?P<thumb>[^"]+).*?<div class="trdublaj">(?P<quality>[^<]+).*?<span class="ml-label">(?P<year>[0-9]+).*?<span class="ml-label">(?P<duration>[^<]+).*?<p>(?P<plot>[^<]+)'
 
     if item.args == "search":
         patronBlock = r'</script> <div class="boxgrid caption">(?P<block>.*)<div id="right_bar">'
@@ -67,7 +64,7 @@ def peliculas(item):
         patronBlock = r'<div class="cover_kapsul ml-mask">(?P<block>.*)<div class="page_nav">'
 
     patronNext =  '<span>\d</span> <a href="([^"]+)">'
-##    debug = True
+    # debug = True
     return locals()
 
 @support.scrape

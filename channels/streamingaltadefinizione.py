@@ -13,9 +13,6 @@ else:
     from urllib import unquote
 
 
-
-
-
 def findhost():
     data = httptools.downloadpage('https://www.popcornstream-nuovo-indirizzo.online/').data
     return support.scrapertools.find_single_match(data, '<a href="([^"]+)')
