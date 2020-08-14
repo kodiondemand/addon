@@ -152,11 +152,11 @@ def peliculas(item):
 
     payload = json.dumps(item.args)
     records = requests.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
-    js = []
-    for record in records:
-        js += record
-
-    for it in js:
+    # js = []
+    # support.log(records)
+    # for record in records:
+    #     js += record
+    for it in records:
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
 
