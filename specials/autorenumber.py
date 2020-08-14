@@ -53,15 +53,19 @@ def renumber(itemlist, item='', typography=''):
     dict_series = load(itemlist[0]) if len(itemlist) > 0 else {}
 
     if item:
+        # from core.support import dbg;dbg()
         item.channel = item.from_channel if item.from_channel else item.channel
         title = item.fulltitle.rstrip()
-        if item.channel in item.channel_prefs and TAG_TVSHOW_RENUMERATE in item.channel_prefs[item.channel] and title not in dict_series:
+        already_renumbered = scrapertools.find_single_match(itemlist[0].title, r'(\d+\D\d+)')
+        if already_renumbered :
+            return itemlist
+        elif item.channel in item.channel_prefs and TAG_TVSHOW_RENUMERATE in item.channel_prefs[item.channel] and title not in dict_series:
             from core.videolibrarytools import check_renumber_options
             from specials.videolibrary import update_videolibrary
             check_renumber_options(item)
             update_videolibrary(item)
 
-        if inspect.stack()[2][3] == 'find_episodes':
+        elif inspect.stack()[2][3] == 'find_episodes':
             return itemlist
 
         elif title in dict_series and TAG_ID in dict_series[title]:
@@ -337,6 +341,16 @@ def manual_renumeration(item, modify=False):
         return json.loads(base64.b64decode(EpisodeDict))
 
 
+def delete_renumeration(item):
+    log()
+    if item.from_channel: item.channel = item.from_channel
+    title = item.fulltitle.rstrip()
+
+    dict_series = load(item)
+    if title in dict_series: del dict_series[title]
+    write(item, dict_series)
+
+
 def make_list(itemlist, item, typography, dict_series, ID, Season, Episode, Mode, title):
     log()
     exist = True
@@ -515,9 +529,11 @@ def context(exist):
 
 
 def select_type(item):
-    select = platformtools.dialog_select(config.get_localized_string(70730),[typo(config.get_localized_string(70731),'bold'), typo(config.get_localized_string(70732),'bold')])
+    select = platformtools.dialog_select(config.get_localized_string(70730),[typo(config.get_localized_string(70731),'bold'), typo(config.get_localized_string(70732),'bold'), typo(config.get_localized_string(707433),'bold')])
     if select == 0: semiautomatic_config_item(item)
-    else: manual_renumeration(item)
+    elif select == 1: manual_renumeration(item)
+    elif select == 2: return delete_renumeration(item)
+    else: return
 
 
 def filename(item):
