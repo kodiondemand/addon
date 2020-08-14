@@ -103,11 +103,12 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime = True
+    # debug=True
     data = support.match(item, headers=headers).data
     if 'https://vcrypt.net' in data:
-        patron = r'(?: /> |<p>)(?P<title>[^<]+)<a (?P<url>.*?)(?:<br|</p)'
+        patron = r'(?: /> |<p>)(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)<a (?P<url>.*?)(?:<br|</p)'
     else:
-        patron = r'<br />\s*<a href="(?P<url>[^"]+)" target="_blank" rel="noopener[^>]+>(?P<title>[^<]+)</a>'
+        patron = r'<br />\s*<a href="(?P<url>[^"]+)" target="_blank" rel="noopener[^>]+>(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)</a>'
 
     def itemHook(item):
         item.title = support.re.sub(r'\[B\]|\[/B\]', '', item.title)
