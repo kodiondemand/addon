@@ -88,11 +88,9 @@ def menu(item):
     action = 'submenu'
     data = get_data(item)
     patronMenu=r'<button[^>]+>\s*(?P<title>[A-Za-z0-9]+)\s*<span.[^>]+>(?P<other>.*?)</ul>'
-
-    def itemlistHook(itemlist):
-        item.title = support.typo('Tutti','bold')
-        item.action = 'peliculas'
-        itemlist.insert(0, item)
+    def ItemItemlistHook(item, itemlist):
+        itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), action='peliculas'))
+        itemlist.append(item.clone(title=support.typo('Cerca...','bold'), action='search', search=True, thumbnail=support.thumb(thumb='search.png')))
         return itemlist
     return locals()
 
@@ -126,8 +124,11 @@ def newest(categoria):
 
 def search(item, texto):
     support.log(texto)
-    item.args = 'noorder'
-    item.url = host + '/search?keyword=' + texto
+    if item.search:
+        item.url = host + '/filter?dub=' + item.args + '&keyword=' + texto + '&sort='
+    else:
+        item.args = 'noorder'
+        item.url = host + '/search?keyword=' + texto
     item.contentType = 'tvshow'
     try:
         return peliculas(item)
