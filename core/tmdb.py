@@ -287,154 +287,180 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
             item.fanart = item.infoLabels['fanart']
 
     if seekTmdb:
+        def search(otmdb_global, tipo_busqueda):
+            if item.infoLabels['season']:
+                try:
+                    numtemporada = int(item.infoLabels['season'])
+                except ValueError:
+                    logger.debug("The season number is not valid.")
+                    return -1 * len(item.infoLabels)
+
+                if lock:
+                    lock.acquire()
+
+                if not otmdb_global or (
+                        item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
+                        or (
+                        otmdb_global.texto_buscado and otmdb_global.texto_buscado != item.infoLabels['tvshowtitle']):
+                    if item.infoLabels['tmdb_id']:
+                        otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
+                                            idioma_busqueda=idioma_busqueda)
+                    else:
+                        otmdb_global = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
+                                            idioma_busqueda=idioma_busqueda, year=item.infoLabels['year'])
+
+                    __leer_datos(otmdb_global)
+
+                # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                # if lock and lock.locked():
+                #     lock.release()
+
+                if item.infoLabels['episode']:
+                    try:
+                        episode = int(item.infoLabels['episode'])
+                    except ValueError:
+                        logger.debug("The episode number (%s) is not valid" % repr(item.infoLabels['episode']))
+                        return -1 * len(item.infoLabels)
+
+                    # We have valid season number and episode number...
+                    # ... search episode data
+                    item.infoLabels['mediatype'] = 'episode'
+                    episodio = otmdb_global.get_episodio(numtemporada, episode)
+
+                    if episodio:
+                        # Update data
+                        __leer_datos(otmdb_global)
+                        item.infoLabels['title'] = episodio['episodio_titulo']
+                        if episodio['episodio_sinopsis']:
+                            item.infoLabels['plot'] = episodio['episodio_sinopsis']
+                        if episodio['episodio_imagen']:
+                            item.infoLabels['poster_path'] = episodio['episodio_imagen']
+                            item.thumbnail = item.infoLabels['poster_path']
+                        if episodio['episodio_air_date']:
+                            item.infoLabels['aired'] = episodio['episodio_air_date']
+                        if episodio['episodio_vote_average']:
+                            item.infoLabels['rating'] = episodio['episodio_vote_average']
+                            item.infoLabels['votes'] = episodio['episodio_vote_count']
+
+                        # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                        if lock and lock.locked():
+                            lock.release()
+
+                        return len(item.infoLabels)
+
+                else:
+                    # We have a valid season number but no episode number...
+                    # ... search season data
+                    item.infoLabels['mediatype'] = 'season'
+                    temporada = otmdb_global.get_temporada(numtemporada)
+                    if not isinstance(temporada, dict):
+                        temporada = ast.literal_eval(temporada.decode('utf-8'))
+
+                    if temporada:
+                        # Update data
+                        __leer_datos(otmdb_global)
+                        item.infoLabels['title'] = temporada['name'] if 'name' in temporada else ''
+                        if 'overview' in temporada and temporada['overview']:
+                            item.infoLabels['plot'] = temporada['overview']
+                        if 'air_date' in temporada and temporada['air_date']:
+                            date = temporada['air_date'].split('-')
+                            item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
+                        if 'poster_path' in temporada and temporada['poster_path']:
+                            item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada[
+                                'poster_path']
+                            item.thumbnail = item.infoLabels['poster_path']
+
+                        # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                        if lock and lock.locked():
+                            lock.release()
+
+                        return len(item.infoLabels)
+
+                # 4l3x87 - fix for overlap infoLabels if there is episode or season
+                if lock and lock.locked():
+                    lock.release()
+
+            # Search...
+            else:
+                otmdb = copy.copy(otmdb_global)
+                # Search by ID...
+                if item.infoLabels['tmdb_id']:
+                    # ...Search for tmdb_id
+                    otmdb = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
+                                 idioma_busqueda=idioma_busqueda)
+
+                elif item.infoLabels['imdb_id']:
+                    # ...Search by imdb code
+                    otmdb = Tmdb(external_id=item.infoLabels['imdb_id'], external_source="imdb_id", tipo=tipo_busqueda,
+                                 idioma_busqueda=idioma_busqueda)
+
+                elif tipo_busqueda == 'tv':  # bsearch with other codes
+                    if item.infoLabels['tvdb_id']:
+                        # ...Search for tvdb_id
+                        otmdb = Tmdb(external_id=item.infoLabels['tvdb_id'], external_source="tvdb_id",
+                                     tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    elif item.infoLabels['freebase_mid']:
+                        # ...Search for freebase_mid
+                        otmdb = Tmdb(external_id=item.infoLabels['freebase_mid'], external_source="freebase_mid",
+                                     tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    elif item.infoLabels['freebase_id']:
+                        # ...Search by freebase_id
+                        otmdb = Tmdb(external_id=item.infoLabels['freebase_id'], external_source="freebase_id",
+                                     tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+                    elif item.infoLabels['tvrage_id']:
+                        # ...Search by tvrage_id
+                        otmdb = Tmdb(external_id=item.infoLabels['tvrage_id'], external_source="tvrage_id",
+                                     tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
+
+                # if otmdb is None:
+                if not item.infoLabels['tmdb_id'] and not item.infoLabels['imdb_id'] and not item.infoLabels[
+                    'tvdb_id'] and not item.infoLabels['freebase_mid'] and not item.infoLabels['freebase_id'] and not \
+                item.infoLabels['tvrage_id']:
+                    # Could not search by ID ...
+                    # do it by title
+                    if tipo_busqueda == 'tv':
+                        # Serial search by title and filtering your results if necessary
+                        otmdb = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
+                                     idioma_busqueda=idioma_busqueda, filtro=item.infoLabels.get('filtro', {}),
+                                     year=item.infoLabels['year'])
+                    else:
+                        # Movie search by title ...
+                        # if item.infoLabels['year'] or item.infoLabels['filtro']:
+                        # ...and year or filter
+                        searched_title = item.contentTitle if item.contentTitle else item.fulltitle
+                        otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
+                                     filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
+                    if otmdb is not None:
+                        if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
+                            # If the search has been successful and you are not looking for a list of items,
+                            # carry out another search to expand the information
+                            otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), tipo=tipo_busqueda,
+                                         idioma_busqueda=idioma_busqueda)
+
+                if lock and lock.locked():
+                    lock.release()
+
+                if otmdb is not None and otmdb.get_id():
+                    # The search has found a valid result
+                    __leer_datos(otmdb)
+                    return len(item.infoLabels)
         # We check what type of content it is...
         if item.contentType == 'movie':
             tipo_busqueda = 'movie'
+        elif item.contentType == 'undefined': # don't know
+            results = search(otmdb_global, 'movie')
+            if results:
+                item.contentType = 'movie'
+            else:
+                results = search(otmdb_global, 'tv')
+                if results:
+                    item.contentType = 'tvshow'
+            return results
         else:
             tipo_busqueda = 'tv'
 
-        if item.infoLabels['season']:
-            try:
-                numtemporada = int(item.infoLabels['season'])
-            except ValueError:
-                logger.debug("The season number is not valid.")
-                return -1 * len(item.infoLabels)
+        return search(otmdb_global, tipo_busqueda)
 
-            if lock:
-                lock.acquire()
-
-            if not otmdb_global or (item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
-                    or (otmdb_global.texto_buscado and otmdb_global.texto_buscado != item.infoLabels['tvshowtitle']):
-                if item.infoLabels['tmdb_id']:
-                    otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-                else:
-                    otmdb_global = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda, year=item.infoLabels['year'])
-
-                __leer_datos(otmdb_global)
-
-            # 4l3x87 - fix for overlap infoLabels if there is episode or season
-            # if lock and lock.locked():
-            #     lock.release()
-
-            if item.infoLabels['episode']:
-                try:
-                    episode = int(item.infoLabels['episode'])
-                except ValueError:
-                    logger.debug("The episode number (%s) is not valid" % repr(item.infoLabels['episode']))
-                    return -1 * len(item.infoLabels)
-
-                # We have valid season number and episode number...
-                # ... search episode data
-                item.infoLabels['mediatype'] = 'episode'
-                episodio = otmdb_global.get_episodio(numtemporada, episode)
-
-                if episodio:
-                    # Update data
-                    __leer_datos(otmdb_global)
-                    item.infoLabels['title'] = episodio['episodio_titulo']
-                    if episodio['episodio_sinopsis']:
-                        item.infoLabels['plot'] = episodio['episodio_sinopsis']
-                    if episodio['episodio_imagen']:
-                        item.infoLabels['poster_path'] = episodio['episodio_imagen']
-                        item.thumbnail = item.infoLabels['poster_path']
-                    if episodio['episodio_air_date']:
-                        item.infoLabels['aired'] = episodio['episodio_air_date']
-                    if episodio['episodio_vote_average']:
-                        item.infoLabels['rating'] = episodio['episodio_vote_average']
-                        item.infoLabels['votes'] = episodio['episodio_vote_count']
-
-                    # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                    if lock and lock.locked():
-                        lock.release()
-
-                    return len(item.infoLabels)
-
-            else:
-                # We have a valid season number but no episode number...
-                # ... search season data
-                item.infoLabels['mediatype'] = 'season'
-                temporada = otmdb_global.get_temporada(numtemporada)
-                if not isinstance(temporada, dict):
-                    temporada = ast.literal_eval(temporada.decode('utf-8'))
-
-                if temporada:
-                    # Update data
-                    __leer_datos(otmdb_global)
-                    item.infoLabels['title'] = temporada['name'] if 'name' in temporada else ''
-                    if 'overview' in  temporada and temporada['overview']:
-                        item.infoLabels['plot'] = temporada['overview']
-                    if 'air_date' in temporada and temporada['air_date']:
-                        date = temporada['air_date'].split('-')
-                        item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
-                    if 'poster_path' in temporada and temporada['poster_path']:
-                        item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada['poster_path']
-                        item.thumbnail = item.infoLabels['poster_path']
-
-                    # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                    if lock and lock.locked():
-                        lock.release()
-
-                    return len(item.infoLabels)
-
-            # 4l3x87 - fix for overlap infoLabels if there is episode or season
-            if lock and lock.locked():
-                lock.release()
-
-        # Search...
-        else:
-            otmdb = copy.copy(otmdb_global)
-            # Search by ID...
-            if item.infoLabels['tmdb_id']:
-                # ...Search for tmdb_id
-                otmdb = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-
-            elif item.infoLabels['imdb_id']:
-                # ...Search by imdb code
-                otmdb = Tmdb(external_id=item.infoLabels['imdb_id'], external_source="imdb_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-
-            elif tipo_busqueda == 'tv':  # bsearch with other codes
-                if item.infoLabels['tvdb_id']:
-                    # ...Search for tvdb_id
-                    otmdb = Tmdb(external_id=item.infoLabels['tvdb_id'], external_source="tvdb_id", tipo=tipo_busqueda,  idioma_busqueda=idioma_busqueda)
-                elif item.infoLabels['freebase_mid']:
-                    # ...Search for freebase_mid
-                    otmdb = Tmdb(external_id=item.infoLabels['freebase_mid'], external_source="freebase_mid", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-                elif item.infoLabels['freebase_id']:
-                    # ...Search by freebase_id
-                    otmdb = Tmdb(external_id=item.infoLabels['freebase_id'], external_source="freebase_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-                elif item.infoLabels['tvrage_id']:
-                    # ...Search by tvrage_id
-                    otmdb = Tmdb(external_id=item.infoLabels['tvrage_id'], external_source="tvrage_id", tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-
-            # if otmdb is None:
-            if not item.infoLabels['tmdb_id'] and not item.infoLabels['imdb_id'] and not item.infoLabels['tvdb_id'] and not item.infoLabels['freebase_mid'] and not item.infoLabels['freebase_id'] and not item.infoLabels['tvrage_id']:
-                # Could not search by ID ...
-                # do it by title
-                if tipo_busqueda == 'tv':
-                    # Serial search by title and filtering your results if necessary
-                    otmdb = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
-                                 idioma_busqueda=idioma_busqueda, filtro=item.infoLabels.get('filtro', {}),
-                                 year=item.infoLabels['year'])
-                else:
-                    # Movie search by title ...
-                    # if item.infoLabels['year'] or item.infoLabels['filtro']:
-                    # ...and year or filter
-                    searched_title = item.contentTitle if item.contentTitle else item.fulltitle
-                    otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
-                                    filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
-                if otmdb is not None:
-                    if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
-                        # If the search has been successful and you are not looking for a list of items,
-                        # carry out another search to expand the information
-                        otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
-
-            if lock and lock.locked():
-                lock.release()
-
-            if otmdb is not None and otmdb.get_id():
-                # The search has found a valid result
-                __leer_datos(otmdb)
-                return len(item.infoLabels)
     # Search in tmdb is deactivated or has not given result
     # item.contentType = item.infoLabels['mediatype']
     return -1 * len(item.infoLabels)

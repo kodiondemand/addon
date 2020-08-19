@@ -175,10 +175,10 @@ def channel_search(item):
     max_results = 10
 
     if item.infoLabels['tvshowtitle']:
-        item.text = item.infoLabels['tvshowtitle']
+        item.text = item.infoLabels['tvshowtitle'].split('-')[0]
         item.title = item.text
     elif item.infoLabels['title']:
-        item.text = item.infoLabels['title']
+        item.text = item.infoLabels['title'].split('-')[0]
         item.title = item.text
 
     temp_search_file = config.get_temp_file('temp-search')
@@ -213,7 +213,7 @@ def channel_search(item):
 
             module_dict[ch] = module
             search_action_list.extend([elem for elem in mainlist if
-                             elem.action == "search" and (mode == 'all' or elem.contentType == mode)])
+                             elem.action == "search" and (mode == 'all' or elem.contentType in [mode, 'undefined'])])
             if progress.iscanceled():
                 return []
         except:
@@ -338,10 +338,11 @@ def channel_search(item):
     if mode == 'all':
         results.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
     else:
-        valid.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
+        if not valid:
+            valid.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
 
-        if results:
-            results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=get_thumb('search.png')))
+        valid.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
+        results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=get_thumb('search.png')))
     # logger.debug(results_statistic)
 
     itlist = valid + results

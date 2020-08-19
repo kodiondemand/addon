@@ -50,8 +50,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     if item.args == 'search':
-        patron = r'<a href="(?P<url>[^"]+)" title="Permalink to\s*(?P<title>[^"]+) \((?P<year>[^<]+)\)[^"]*"[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)".*?<div class="calitate">\s*<p>(?P<quality>[^<]+)<\/p>'
-        # support.regexDbg(item, patron, headers)
+        patron = r'<a href="(?P<url>[^"]+)" title="Permalink to\s*(?P<title>[^"]+) \((?P<year>[0-9]+)[^<]*\)[^"]*"[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)".*?<div class="calitate">\s*<p>(?P<quality>[^<]+)<\/p>'
     else:
         patronNext = r'<a class="nextpostslink" rel="next" href="([^"]+)">'
         patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*<img[^s]+src="([^"]+)"[^>]+>\s*<\/a>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?P<lang>[sSuUbB\-iItTaA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?)\).[^<]+[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z-0-9\.]+)'

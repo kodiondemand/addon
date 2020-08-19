@@ -41,7 +41,7 @@ class InfoLabels(dict):
             # super(InfoLabels, self).__setitem__('code', value)
             super(InfoLabels, self).__setitem__('imdb_id', str(value))
 
-        elif name == "mediatype" and value not in ["list", "movie", "tvshow", "season", "episode", "music"]:
+        elif name == "mediatype" and value not in ["list", "movie", "tvshow", "season", "episode", "music", "undefined"]:
             super(InfoLabels, self).__setitem__('mediatype', 'list')
 
         elif name in ['tmdb_id', 'tvdb_id', 'noscrap_id']:
