@@ -54,7 +54,6 @@ def search(item, text):
     item.url = host + '/?s=' + text
     item.args = 'search'
     try:
-        item.contentType = '' # non fa uscire le voci nel context menu
         return peliculas(item)
 
     except:

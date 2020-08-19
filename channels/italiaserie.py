@@ -88,7 +88,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("%s" % line)
+            support.log("%s" % line)
         return []
 
 
@@ -111,7 +111,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("{0}".format(line))
+            support.log("{0}".format(line))
         return []
 
     return itemlist
