@@ -788,19 +788,18 @@ def menu(func):
                 if 'search' not in args: menuItem(itemlist, filename, config.get_localized_string(70741) % title + '… {submenu bold}', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow', style=not global_search)
 
         # Make EXTRA MENU (on bottom)
-        if not global_search:
-            for name, var in args.items():
-                if name not in listUrls and name != 'item':
-                   listUrls_extra.append(name)
-            for name in listUrls_extra:
-                dictUrl[name] = args[name] if name in args else None
-                for sub, var in dictUrl[name]:
-                    menuItem(itemlist, filename,
-                                 title = sub + ' ',
-                                 url = host + var[0] if len(var) > 0 else '',
-                                 action = var[1] if len(var) > 1 else 'peliculas',
-                                 args=var[2] if len(var) > 2 else '',
-                                 contentType= var[3] if len(var) > 3 else 'movie',)
+        for name, var in args.items():
+            if name not in listUrls and name != 'item':
+               listUrls_extra.append(name)
+        for name in listUrls_extra:
+            dictUrl[name] = args[name] if name in args else None
+            for sub, var in dictUrl[name]:
+                menuItem(itemlist, filename,
+                             title = sub + ' ',
+                             url = host + var[0] if len(var) > 0 else '',
+                             action = var[1] if len(var) > 1 else 'peliculas',
+                             args=var[2] if len(var) > 2 else '',
+                             contentType= var[3] if len(var) > 3 else 'movie',)
 
         if single_search:
             menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)

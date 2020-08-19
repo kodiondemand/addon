@@ -16,8 +16,6 @@ support.log('HOST',host)
 headers = [['Referer', host]]
 
 
-
-
 @support.menu
 def mainlist(item):
 
