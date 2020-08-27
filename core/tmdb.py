@@ -444,23 +444,54 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     # The search has found a valid result
                     __leer_datos(otmdb)
                     return len(item.infoLabels)
+
+        # title might contain - or : --> try to search only second title
+        def splitTitle():
+            if '-' in item.fulltitle:
+                item.infoLabels['tvshowtitle'] = item.fulltitle.split('-')[1]
+                item.infoLabels['title'] = item.infoLabels['tvshowtitle']
+            elif ':' in item.fulltitle:
+                item.infoLabels['tvshowtitle'] = item.fulltitle.split(':')[1]
+                item.infoLabels['title'] = item.infoLabels['tvshowtitle']
+            else:
+                return False
+            return True
         # We check what type of content it is...
         if item.contentType == 'movie':
             tipo_busqueda = 'movie'
-        elif item.contentType == 'undefined': # don't know
-            results = search(otmdb_global, 'movie')
-            if results:
-                item.contentType = 'movie'
-            else:
+        elif item.contentType == 'undefined':  # don't know
+            def detect():
+                # try movie first
+                results = search(otmdb_global, 'movie')
+                if results:
+                    item.contentType = 'movie'
+                infoMovie = item.infoLabels
+                if infoMovie['title'] == item.fulltitle:  # exact match -> it's probably correct
+                    return results
+
+                # try tvshow then
+                item.infoLabels = {'tvshowtitle': item.infoLabels['tvshowtitle']}  # reset infolabels
                 results = search(otmdb_global, 'tv')
                 if results:
                     item.contentType = 'tvshow'
+                else:
+                    item.infoLabels = infoMovie
+
+                return results
+
+            results = detect()
+            if not results:
+                if splitTitle():
+                    results = detect()
             return results
         else:
             tipo_busqueda = 'tv'
 
-        return search(otmdb_global, tipo_busqueda)
-
+        ret = search(otmdb_global, tipo_busqueda)
+        if not ret:
+            if splitTitle():
+                ret = search(otmdb_global, tipo_busqueda)
+        return ret
     # Search in tmdb is deactivated or has not given result
     # item.contentType = item.infoLabels['mediatype']
     return -1 * len(item.infoLabels)

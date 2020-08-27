@@ -110,6 +110,7 @@ def peliculas(item):
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div> <div[^>]+>(?P<title>[^\(\[<]+)(?:\[(?P<quality1>HD)\])?[ ]?(?:\(|\[)?(?P<lang>Sub-ITA)?(?:\)|\])?[ ]?(?:\[(?P<quality>.+?)\])?[ ]?(?:\((?P<year>\d+)\))?<'
 
     patronNext = r'<a href="([^"]+)" >Pagina'
+    # debug = True
 
     def itemHook(item):
         if item.quality1:
@@ -120,6 +121,8 @@ def peliculas(item):
             item.title += support.typo(item.lang2, '_ [] color kod')
         if item.args == 'novita':
             item.title = item.title
+        if 'wp-content' in item.thumbnail and not item.infoLabels['year']:
+            item.infoLabels['year'] = item.thumbnail.split('/')[5]
         return item
     return locals()
 

@@ -10,8 +10,6 @@ from core.item import Item
 from platformcode import config
 
 
-
-
 # rimanda a .today che contiene tutti link a .plus
 # def findhost():
 #     permUrl = httptools.downloadpage('https://www.cinemalibero.online/', follow_redirects=False).headers
@@ -121,9 +119,9 @@ def genres(item):
 
 def search(item, texto):
     support.log(item.url,texto)
-    text = texto.replace(' ', '+')
+    texto = texto.replace(' ', '+')
     item.url = host + "/?s=" + texto
-    item.contentType = 'tv'
+    # item.contentType = 'tv'
     item.args = 'search'
     try:
         return peliculas(item)
