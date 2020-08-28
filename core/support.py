@@ -1165,6 +1165,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
                  thumbnail=thumb()))
     return itemlist
 
+
 def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
     log()
     if not data and not itemlist:
@@ -1221,15 +1222,12 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
     # Check Links
-    if not item.global_search and (config.get_setting('checklinks') or config.get_setting('checklinks', item.channel)):
-        if config.get_setting('checklinks', item.channel):
-            checklinks_number = config.get_setting('checklinks_number', item.channel)
-        elif config.get_setting('checklinks'):
-            checklinks_number = config.get_setting('checklinks_number')
+    if not item.global_search and config.get_setting('checklinks') and CheckLinks and not config.get_setting('autoplay'):
+        checklinks_number = config.get_setting('checklinks_number')
         verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
 
     try:
-        if AutoPlay and not 'downloads' in inspect.stack()[3][1] or not 'downloads' in inspect.stack()[3][1] or not inspect.stack()[4][1]:
+        if AutoPlay and item.contentChannel not in ['downloads', 'videolibrary']:
             autoplay.start(verifiedItemlist, item)
     except:
         import traceback

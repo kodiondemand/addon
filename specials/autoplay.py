@@ -39,22 +39,25 @@ def start(itemlist, item):
     if not config.is_xbmc():
         return itemlist
 
-    channel_id = item.channel
-    if item.channel == 'videolibrary':
-        channel_id = item.contentChannel
-
-
     if config.get_setting('autoplay'):
         url_list_valid = []
         autoplay_list = []
         autoplay_b = []
         favorite_quality = []
+        blacklisted_servers = []
+        favorite_servers = []
 
-        blacklisted_servers = config.get_setting('black_list', server='servers')
+        from core import servertools
+        servers_list = list(servertools.get_servers_list().items())
+        for server, server_parameters in servers_list:
+            if config.get_setting('black_list', server=server):
+                blacklisted_servers.append(server.lower())
+            if config.get_setting('favorites_servers_list', server=server):
+                favorite_servers.append(server.lower())
+
         if not blacklisted_servers:
             config.set_setting('black_list', [], server='servers')
             blacklisted_servers = []
-        favorite_servers = config.get_setting('favorites_servers_list', server='servers')
         if not favorite_servers:
             config.set_setting('favorites_servers_list', [], server='servers')
             favorite_servers = []
@@ -200,6 +203,9 @@ def start(itemlist, item):
 
             for autoplay_elem in autoplay_list:
                 play_item = Item
+                channel_id = autoplay_elem['videoitem'].channel
+                if autoplay_elem['videoitem'].channel == 'videolibrary':
+                    channel_id = autoplay_elem['videoitem'].contentChannel
 
                 # If it is not a favorite element if you add the text plan b
                 if autoplay_elem['videoitem'].type_b:
@@ -272,23 +278,9 @@ def start(itemlist, item):
 
 
 def play_multi_channel(item, itemlist):
-    logger.info()
-    global PLAYED
-    video_dict = dict()
+    logger.log()
+    start(itemlist, item)
 
-    for video_item in itemlist:
-        if config.get_setting('autoplay'):
-            if video_item.contentChannel not in video_dict.keys():
-                video_dict[video_item.contentChannel] = [video_item]
-            else:
-                video_dict[video_item.contentChannel].append(video_item)
-
-    for channel, videos in video_dict.items():
-        item.contentChannel = channel
-        if not PLAYED:
-            start(videos, item)
-        else:
-            break
 
 def servername(server):
     path = filetools.join(config.get_runtime_path(), 'servers', server.lower() + '.json')
