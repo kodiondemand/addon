@@ -278,7 +278,7 @@ def start(itemlist, item):
 
 
 def play_multi_channel(item, itemlist):
-    logger.log()
+    logger.info()
     start(itemlist, item)
 
 
