@@ -3,18 +3,16 @@
 # Canale per filmpertutti.py
 # ------------------------------------------------------------
 
-import re
-
-from core import scrapertools, httptools, support
+from core import httptools, support
 from core.item import Item
 from platformcode import config
 
-def findhost():
-    page = httptools.downloadpage("https://filmpertutti.nuovo.live/").data
-    url = scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è <a href="([^"]+)')
-    return url
+# def findhost():
+#     page = httptools.downloadpage("https://filmpertutti.nuovo.live/").data
+#     url = scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è <a href="([^"]+)')
+#     return url
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = [['Referer', host]]
 
 

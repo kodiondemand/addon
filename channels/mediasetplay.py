@@ -27,7 +27,7 @@ cwid=res.json()['response']['cwId']
 res = current_session.get("https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid=sdd",verify=False)
 current_session.headers.update({'x-session': res.json()['sessionKey']})
 
-host = ''
+host = 'https://www.mediasetplay.mediaset.it/'
 entry = 'https://api.one.accedo.tv/content/entry/{id}?locale=it'
 entries = 'https://api.one.accedo.tv/content/entries?id={id}&locale=it'
 

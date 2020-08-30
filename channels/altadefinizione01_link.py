@@ -12,8 +12,6 @@ host = config.get_channel_url()
 headers = [['Referer', host]]
 
 
-
-
 # =========== home menu ===================
 @support.menu
 def mainlist(item):
