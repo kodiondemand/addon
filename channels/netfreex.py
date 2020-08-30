@@ -17,8 +17,6 @@ IDIOMAS = {'Italiano': 'IT'}
 list_language = IDIOMAS.values()
 
 
-
-
 @support.menu
 def mainlist(item):
 
