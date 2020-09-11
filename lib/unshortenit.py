@@ -519,15 +519,17 @@ class UnshortenIt(object):
             else:
                 if 'sb/' in uri or 'akv/' in uri or 'wss/' in uri or 'wsd/' in uri:
                     import datetime, hashlib
+                    from base64 import b64encode
                     ip = urllib.urlopen('https://api.ipify.org/').read()
                     day = datetime.date.today().strftime('%Y%m%d')
                     headers = {
                         "Cookie": hashlib.md5(ip+day).hexdigest() + "=1"
                     }
-                    uri = uri.replace('sb/', 'sb1/')
-                    uri = uri.replace('akv/', 'akv1/')
-                    uri = uri.replace('wss/', 'wss1/')
-                    uri = uri.replace('wsd/', 'wsd1/')
+                    spl = uri.split('/')
+                    spl[3] += '1'
+                    if spl[3] == 'wss1':
+                        spl[4] = b64encode(spl[4])
+                        uri = '/'.join(spl)
                 r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False)
                 if 'Wait 1 hour' in r.data:
                     uri = ''
