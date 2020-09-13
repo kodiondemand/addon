@@ -23,16 +23,16 @@ def mainlist(item):
     top =  [('Ultimi Episodi', ['', 'news'])]
 
     menu = [('Anime {bullet bold}',['', 'menu', {}, 'tvshow']),
-            ('Film {submenu}',['', 'menu', {'type':'Movie'}]),
-            ('TV {submenu}',['', 'menu', {'type':'TV'}, 'tvshow']),
-            ('OVA {submenu} {tv}',['', 'menu', ['type','OVA'], 'tvshow']),
-            ('ONA {submenu} {tv}',['', 'menu', ['type','ONA'], 'tvshow']),
-            ('Special {submenu} {tv}',['', 'menu', ['type','Special'], 'tvshow'])]
+            ('Film {submenu}',['', 'menu', {'type': 'Movie'}]),
+            ('TV {submenu}',['', 'menu', {'type': 'TV'}, 'tvshow']),
+            ('OVA {submenu} {tv}',['', 'menu', {'type': 'OVA'}, 'tvshow']),
+            ('ONA {submenu} {tv}',['', 'menu', {'type': 'ONA'}, 'tvshow']),
+            ('Special {submenu} {tv}',['', 'menu', {'type': 'Special'}, 'tvshow'])]
     search =''
     return locals()
 
 def menu(item):
-    item.action='peliculas'
+    item.action = 'peliculas'
     ITA = copy.copy(item.args)
     ITA['title'] = '(ita)'
     InCorso = copy.copy(item.args)
@@ -52,13 +52,14 @@ def menu(item):
 
 def genres(item):
     support.log()
+    # support.dbg()
     itemlist = []
 
     genres = json.loads(support.match(response.text, patron='genres="([^"]+)').match.replace('&quot;','"'))
 
     for genre in genres:
         item.args['genres'] = [genre]
-        itemlist.append(item.clone(title=support.typo(genre,'bold'), action='peliculas'))
+        itemlist.append(item.clone(title=support.typo(genre['name'],'bold'), action='peliculas'))
     return support.thumb(itemlist)
 
 def years(item):
