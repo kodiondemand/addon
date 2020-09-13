@@ -491,7 +491,7 @@ class UnshortenIt(object):
 
 
     def _unshorten_vcrypt(self, uri):
-        uri = uri.replace('.net','.pw')
+        uri = uri.replace('.net', '.pw')
         try:
             headers = {}
             if 'myfoldersakstream.php' in uri or '/verys/' in uri:
@@ -566,7 +566,7 @@ class UnshortenIt(object):
             elif '/speedx/' in uri:
                 uri = uri.replace('http://linkup.pro/speedx', 'http://speedvideo.net')
             else:
-                r = httptools.downloadpage(uri, follow_redirect=True, timeout=self._timeout, cookies=False)
+                r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
                 uri = r.url
                 link = re.findall("<iframe[^<>]*src=\\'([^'>]*)\\'[^<>]*>", r.data)
                 # fix by greko inizio
@@ -578,8 +578,8 @@ class UnshortenIt(object):
             if short:
                 uri = short[0]
             if not r:
-                r = httptools.downloadpage(uri, follow_redirect=True, timeout=self._timeout, cookies=False)
-                uri = r.url
+                r = httptools.downloadpage(uri, follow_redirects=False, timeout=self._timeout, cookies=False)
+                uri = r.headers['location']
             if "4snip" in uri:
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
@@ -670,7 +670,7 @@ def unshorten_only(uri, type=None, timeout=10):
 
 def unshorten(uri, type=None, timeout=10):
     unshortener = UnshortenIt()
-    uri, status = unshortener.unwrap_30x(uri, timeout=timeout)
+    # uri, status = unshortener.unwrap_30x(uri, timeout=timeout)
     uri, status = unshortener.unshorten(uri, type=type)
     if status == 200:
         uri, status = unshortener.unwrap_30x(uri, timeout=timeout)
@@ -690,22 +690,22 @@ def findlinks(text):
         text += '\n' + unshorten(matches[0])[0]
     elif matches:
         # non threaded for webpdb
-        # for match in matches:
-        #     sh = unshorten(match)[0]
-        #     text += '\n' + sh
-        import sys
-        if sys.version_info[0] >= 3:
-            from concurrent import futures
-        else:
-            from concurrent_py2 import futures
-        with futures.ThreadPoolExecutor() as executor:
-            unshList = [executor.submit(unshorten, match) for match in matches]
-            for link in futures.as_completed(unshList):
-                if link.result()[0] not in matches:
-                    links = link.result()[0]
-                    if type(links) == list:
-                        for l in links:
-                            text += '\n' + l
-                    else:
-                        text += '\n' + str(link.result()[0])
+        for match in matches:
+            sh = unshorten(match)[0]
+            text += '\n' + sh
+        # import sys
+        # if sys.version_info[0] >= 3:
+        #     from concurrent import futures
+        # else:
+        #     from concurrent_py2 import futures
+        # with futures.ThreadPoolExecutor() as executor:
+        #     unshList = [executor.submit(unshorten, match) for match in matches]
+        #     for link in futures.as_completed(unshList):
+        #         if link.result()[0] not in matches:
+        #             links = link.result()[0]
+        #             if type(links) == list:
+        #                 for l in links:
+        #                     text += '\n' + l
+        #             else:
+        #                 text += '\n' + str(link.result()[0])
     return text

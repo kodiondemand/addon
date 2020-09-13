@@ -4,16 +4,12 @@
     "ignore_urls": ["http://akvideo.stream/video", "http://akvideo.stream/video/api"],
     "patterns": [
       {
-          "pattern": "akvideo\\.stream/((?:api/vcmod/fastredirect/streaming\\.php\\?id=|swembedid/)[$0-9]+)",
-          "url": "http://akvideo.stream/\\1"
+          "pattern": "https?://(?:akvideo\\.stream|akvi\\.club)/[^\\s]+[/=]([$0-9]+)(?:[\\s<]|$|\\.html)",
+          "url": "http://akvideo.stream/swembedid/\\1"
       },
       {
-        "pattern": "(https://akvideo\\.stream/api/vcmod/fastredirect/embed_ak\\.php\\?id=[0-9]+)",
-        "url": "\\1"
-      },
-      {
-        "pattern": "akvideo.stream/(?:video/|video\\.php\\?file_code=)?(?:embed-)?([a-zA-Z0-9]+)",
-        "url": "http://akvideo.stream/video/\\1"
+        "pattern": "https?://(?:akvideo\\.stream|akvi\\.club)/(?:embed-|video\\.php\\?file_code=)?([a-z0-9]+)(?:[\\s<]|$|\\.html)",
+        "url": "http://akvi.club/embed-\\1.html"
       }
     ]
   },
