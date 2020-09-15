@@ -26,6 +26,9 @@ def test_video_exists(page_url):
 
     global data, real_url
     data = resp.data
+    if not data:
+        resp = httptools.downloadpage(page_url.replace(headers[1][1], real_host), headers=headers, verify=False)
+        data = resp.data
 
     page_url = resp.url.replace(headers[1][1], real_host)
     if '/streaming.php' in page_url in page_url:
