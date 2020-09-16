@@ -2,7 +2,7 @@
 	"id": "netfreex",
 	"name": "Netfreex",
 	"language": ["ita"],
-	"active": true,
+	"active": false,
 	"thumbnail": "netfreex.png",
 	"banner": "netfreex.png",
 	"categories": ["tvshow", "movie", "anime"],
