@@ -19,7 +19,7 @@ def test_video_exists(page_url):
     headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],
                ['Host', scrapertools.get_domain_from_url(page_url)]]
 
-    logger.log("(page_url='%s')" % page_url)
+    logger.info("(page_url='%s')" % page_url)
     if 'wstream' in page_url:
         resp = httptools.downloadpage(page_url.replace(headers[1][1], real_host), headers=headers, verify=False)
     else:
@@ -31,7 +31,7 @@ def test_video_exists(page_url):
     page_url = resp.url.replace(headers[1][1], real_host)
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, headers=headers, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
-        # logger.log('WCODE=' + code)
+        # logger.info('WCODE=' + code)
         page_url = 'https://' + real_host + '/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
@@ -45,7 +45,7 @@ def test_video_exists(page_url):
             page_url = 'https://' + real_host + '/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
             headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],['Host', 'wstream.video']]
             new_data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
-            logger.log('NEW DATA: \n' + new_data)
+            logger.info('NEW DATA: \n' + new_data)
             if new_data:
                 data = new_data
 
@@ -93,7 +93,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             except:
                 pass
 
-    logger.log("[Wstream] url=" + page_url)
+    logger.info("[Wstream] url=" + page_url)
     video_urls = []
     global data, real_url, headers
 
