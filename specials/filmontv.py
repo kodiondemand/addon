@@ -22,6 +22,10 @@ def mainlist(item):
                #          thumbnail=get_thumb("now_playing.png")),
                #Item(channel="search", action='discover_list', title=config.get_localized_string(70312),
                #          search_type='list', list_type='tv/on_the_air', thumbnail=get_thumb("on_the_air.png")),
+            Item(title=support.typo('Canali live', 'bold'),
+                 channel=item.channel,
+                 action='live',
+                 thumbnail=support.thumb('tvshow_on_the_air')),
             Item(channel=item.channel,
                      title=config.get_setting("film1", channel="filmontv"),
                      action="now_on_tv",
@@ -225,3 +229,31 @@ def primafila(item):
 def new_search(item):
     from specials import search
     return search.new_search(item)
+
+
+def live(item):
+    import sys
+    if sys.version_info[0] >= 3:
+        from concurrent import futures
+    else:
+        from concurrent_py2 import futures
+    itemlist = []
+    channels_dict = {}
+    channels = ['raiplay', 'mediasetplay', 'la7']
+
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(load_live, channel) for channel in channels]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                channel_name, itlist = res.result()
+                channels_dict[channel_name] = itlist
+
+    for channel in channels:
+        itemlist += channels_dict[channel]
+    return itemlist
+
+
+def load_live(channel_name):
+    channel = __import__('%s.%s' % ('channels', channel_name), None, None, ['%s.%s' % ('channels', channel_name)])
+    itemlist = channel.live(channel.mainlist(Item())[0])
+    return channel_name, itemlist
