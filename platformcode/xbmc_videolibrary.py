@@ -2,12 +2,17 @@
 # ------------------------------------------------------------
 # XBMC Library Tools
 # ------------------------------------------------------------
-from future import standard_library
-standard_library.install_aliases()
+# from future import standard_library
+# standard_library.install_aliases()
 #from builtins import str
 import sys, os, threading, time, re, math, xbmc, xbmcgui
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
+
+if PY3:
+    import urllib.request as urllib2                                # Es muy lento en PY2.  En PY3 es nativo
+else:
+    import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
 from core import filetools, jsontools
 from platformcode import config, logger, platformtools
@@ -71,7 +76,7 @@ def mark_auto_as_watched(item, nfo_path=None, head_nfo=None, item_nfo=None):
             xbmc.sleep(1000)
 
         # Set played time
-        item_nfo.played_time = int(actual_time) if not marked and actual_time > 120 else 0
+        item_nfo.played_time = int(actual_time) if not marked else 0
         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
         # Silent sync with Trakt
@@ -84,8 +89,8 @@ def mark_auto_as_watched(item, nfo_path=None, head_nfo=None, item_nfo=None):
             xbmc.executebuiltin('Action(Back)')
             xbmc.sleep(500)
         if next_episode and next_episode.next_ep:
-                from platformcode.launcher import play_from_library
-                return play_from_library(next_episode)
+            from platformcode.launcher import play_from_library
+            return play_from_library(next_episode)
 
     # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
@@ -434,7 +439,10 @@ def get_data(payload):
     @param payload: data
     :return:
     """
-    import urllib.request, urllib.error
+    try:
+        import urllib.request as urllib
+    except ImportError:
+        import urllib
     logger.info("payload: %s" % payload)
     # Required header for XBMC JSON-RPC calls, otherwise you'll get a 415 HTTP response code - Unsupported media type
     headers = {'content-type': 'application/json'}
@@ -447,8 +455,8 @@ def get_data(payload):
                 xbmc_port = 0
 
             xbmc_json_rpc_url = "http://" + config.get_setting("xbmc_host", "videolibrary") + ":" + str(xbmc_port) + "/jsonrpc"
-            req = urllib.request.Request(xbmc_json_rpc_url, data=jsontools.dump(payload), headers=headers)
-            f = urllib.request.urlopen(req)
+            req = urllib2.Request(xbmc_json_rpc_url, data=jsontools.dump(payload), headers=headers)
+            f = urllib.urlopen(req)
             response = f.read()
             f.close()
 
@@ -571,7 +579,7 @@ def set_content(content_type, silent=False, custom=False):
                 if install:
                     try:
                         # Install metadata.themoviedb.org
-                        xbmc.executebuiltin('xbmc.installaddon(metadata.themoviedb.org)', True)
+                        xbmc.executebuiltin('InstallAddon(metadata.themoviedb.org)', True)
                         logger.info("Instalado el Scraper de películas de TheMovieDB")
                     except:
                         pass
@@ -594,7 +602,7 @@ def set_content(content_type, silent=False, custom=False):
 
                 if install:
                     try:
-                        xbmc.executebuiltin('xbmc.installaddon(metadata.universal)', True)
+                        xbmc.executebuiltin('InstallAddon(metadata.universal)', True)
                         if xbmc.getCondVisibility('System.HasAddon(metadata.universal)'):
                             continuar = True
                     except:
@@ -625,7 +633,7 @@ def set_content(content_type, silent=False, custom=False):
                 if install:
                     try:
                         # Install metadata.tvdb.com
-                        xbmc.executebuiltin('xbmc.installaddon(metadata.tvdb.com)', True)
+                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
                         logger.info("The TVDB series Scraper installed ")
                     except:
                         pass
@@ -649,7 +657,7 @@ def set_content(content_type, silent=False, custom=False):
                 if install:
                     try:
                         # Install metadata.tvshows.themoviedb.org
-                        xbmc.executebuiltin('xbmc.installaddon(metadata.tvshows.themoviedb.org)', True)
+                        xbmc.executebuiltin('InstallAddon(metadata.tvshows.themoviedb.org)', True)
                         if xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
                             continuar = True
                     except:
@@ -843,7 +851,7 @@ def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvsh
         return
 
     p = 80
-    progress.update(p, config.get_localized_string(20000), config.get_localized_string(80013))
+    progress.update(p, config.get_localized_string(20000) + '\n' + config.get_localized_string(80013))
 
     for OldFolder, NewFolder in [[old_movies_folder, new_movies_folder], [old_tvshows_folder, new_tvshows_folder]]:
         sql_old_folder = sql_old_path + OldFolder
@@ -906,12 +914,12 @@ def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvsh
                     logger.info('sql: ' + sql)
                     nun_records, records = execute_sql_kodi(sql)
         p += 5
-        progress.update(p, config.get_localized_string(20000), config.get_localized_string(80013))
+        progress.update(p, config.get_localized_string(20000) + '\n' + config.get_localized_string(80013))
 
     progress.update(100)
     xbmc.sleep(1000)
     progress.close()
-    xbmc.executebuiltin('XBMC.ReloadSkin()')
+    xbmc.executebuiltin('ReloadSkin()')
 
 
 def clean(path_list=[]):
@@ -1234,7 +1242,7 @@ def ask_set_content(silent=False):
         # ask to configure Kodi video library
         if platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80015)):
             # ask for custom or default settings
-            if not platformtools.dialog_yesno(config.get_localized_string(80026), config.get_localized_string(80016), "", "", config.get_localized_string(80017), config.get_localized_string(80018)):
+            if not platformtools.dialog_yesno(config.get_localized_string(80026), config.get_localized_string(80016), config.get_localized_string(80017), config.get_localized_string(80018)):
                 # input path and folders
                 path = platformtools.dialog_browse(3, config.get_localized_string(80019), config.get_setting("videolibrarypath"))
                 movies_folder = platformtools.dialog_input(config.get_setting("folder_movies"), config.get_localized_string(80020))

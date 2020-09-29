@@ -34,7 +34,7 @@ def menu(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     item.args = 'noorder'
     item.url = host + '/ricerca/type_ALL/ricerca_' + text
     item.contentType = 'movie'
@@ -62,7 +62,7 @@ def peliculas(item):
 
 
 def findvideos(item):
-    support.log()
+    support.info()
     itemlist = []
 
     matches = support.match(item, patron=r'filename: "(.*?)"').matches

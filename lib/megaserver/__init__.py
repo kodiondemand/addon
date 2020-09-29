@@ -1,3 +1,3 @@
-from client import Client
-from server import Server
+from lib.megaserver.client import Client
+from lib.megaserver.server import Server
 __all__ = ['Client', 'Server']

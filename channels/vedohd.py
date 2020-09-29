@@ -3,10 +3,8 @@
 # Canale per vedohd
 # ------------------------------------------------------------
 
-from core import scrapertools, httptools, support
-from core.item import Item
+from core import scrapertools, support, autoplay
 from platformcode import logger, config
-from specials import autoplay
 
 host = config.get_channel_url()
 headers = ""

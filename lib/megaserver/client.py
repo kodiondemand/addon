@@ -1,17 +1,19 @@
 import base64, json, random, struct, time, sys, traceback
 if sys.version_info[0] >= 3:
+    PY3 = True
     import urllib.request as urllib
     xrange = range
 else:
+    PY3 = False
     import urllib
 
 from core import httptools
 from threading import Thread
 
-from file import File
-from handler import Handler
+from lib.megaserver.file import File
+from lib.megaserver.handler import Handler
 from platformcode import logger
-from server import Server
+from lib.megaserver.server import Server
 
 
 class Client(object):
@@ -184,7 +186,7 @@ class Client(object):
             from Cryptodome.Cipher import AES
         except:
             from Crypto.Cipher import AES
-        decryptor = AES.new(key, AES.MODE_CBC, '\0' * 16)
+        decryptor = AES.new(key, AES.MODE_CBC, b'\0' * 16)
         return decryptor.decrypt(data)
 
     def aes_cbc_decrypt_a32(self,data, key):
@@ -194,7 +196,7 @@ class Client(object):
       return sum((self.aes_cbc_decrypt_a32(a[i:i+4], key) for i in xrange(0, len(a), 4)), ())
 
     def dec_attr(self, attr, key):
-      attr = self.aes_cbc_decrypt(attr, self.a32_to_str(key)).rstrip('\0')
-      if not attr.endswith("}"):
-        attr = attr.rsplit("}", 1)[0] + "}"
-      return json.loads(attr[4:]) if attr[:6] == 'MEGA{"' else False
+      attr = self.aes_cbc_decrypt(attr, self.a32_to_str(key)).rstrip(b'\0')
+      if not attr.endswith(b"}"):
+        attr = attr.rsplit(b"}", 1)[0] + b"}"
+      return json.loads(attr[4:]) if attr[:6] == b'MEGA{"' else False

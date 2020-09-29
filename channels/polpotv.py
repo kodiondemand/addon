@@ -36,7 +36,7 @@ def mainlist(item):
     return locals()
 
 def newest(categoria):
-    support.log()
+    support.info()
     item = Item()
     if categoria == 'peliculas':
         item.contentType = 'movie'
@@ -47,7 +47,7 @@ def newest(categoria):
     return peliculas(item)
 
 def peliculas(item):
-    support.log()
+    support.info()
     itemlist = []
 
     data = support.match(item.url, headers=headers).data
@@ -68,7 +68,7 @@ def peliculas(item):
     return itemlist
 
 def episodios(item):
-    support.log()
+    support.info()
     itemlist = []
     data = support.match(item.url, headers=headers).data
     json_object = jsontools.load(data)
@@ -84,7 +84,7 @@ def episodios(item):
     return itemlist
 
 def get_season(item, seas_url, seasonNumber):
-    support.log()
+    support.info()
     itemlist = []
     data = support.match(seas_url, headers=headers).data
     json_object = jsontools.load(data)
@@ -98,7 +98,7 @@ def get_season(item, seas_url, seasonNumber):
     return itemlist[::-1]
 
 def search(item, texto):
-    support.log(item.url, "search", texto)
+    support.info(item.url, "search", texto)
     itemlist=[]
     try:
         item.url = host + "/api/movies?originalTitle="+texto+"&translations.name=" +texto
@@ -122,7 +122,7 @@ def search(item, texto):
         return []
 
 def search_movie_by_genre(item):
-    support.log()
+    support.info()
     itemlist = []
     data = support.match(item.url, headers=headers).data
     json_object = jsontools.load(data)
@@ -135,7 +135,7 @@ def search_movie_by_genre(item):
     return support.thumb(itemlist, True)
 
 def search_movie_by_year(item):
-    support.log()
+    support.info()
     now = datetime.datetime.now()
     year = int(now.year)
     itemlist = []
@@ -150,7 +150,7 @@ def search_movie_by_year(item):
     return itemlist
 
 def findvideos(item):
-    support.log()
+    support.info()
     itemlist = []
     try:
         data = support.match(item.url, headers=headers).data
@@ -171,7 +171,7 @@ def findvideos(item):
     return support.server(item, itemlist=itemlist)
 
 def get_itemlist_element(element,item):
-    support.log()
+    support.info()
     itemlist=[]
     contentSerieName = ''
     contentTitle =''

@@ -6,7 +6,7 @@
 
 
 from core import support
-from core.support import log
+from core.support import info
 from core.item import Item
 from platformcode import config
 
@@ -15,7 +15,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.log(item)
+    support.info(item)
 
     film = ['/film/',
         ('Generi',['', 'genres', 'genres']),
@@ -46,7 +46,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    log()
+    info()
     # debug = True
 
     if item.args == 'search':
@@ -96,7 +96,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    log()
+    info()
 
     patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" '\
                   'style="display:block"><ul class="episodios">(?P<block>.*?)</ul>'\
@@ -109,7 +109,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    log(item)
+    info(item)
 
     action='peliculas'
     if item.args == 'genres':
@@ -125,7 +125,7 @@ def genres(item):
     return locals()
 
 def search(item, text):
-    log(text)
+    info(text)
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + "/search/" + text
@@ -135,12 +135,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            log("%s" % line)
+            info("%s" % line)
 
     return []
 
 def newest(categoria):
-    log(categoria)
+    info(categoria)
     itemlist = []
     item = Item()
 
@@ -161,14 +161,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            log("{0}".format(line))
+            info("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    log()
+    info()
     matches = support.match(item, patron=[r'class="metaframe rptss" src="([^"]+)"',r' href="#option-\d">([^\s]+)\s*([^\s]+)']).matches
     itemlist = []
     list_url = []

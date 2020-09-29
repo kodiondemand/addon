@@ -67,69 +67,6 @@
       ]
     },
     {
-      "id": "label1",
-      "type": "label",
-      "label": "",
-      "enabled": false,
-      "visible": true
-    },
-    {
-      "id": "filmaff",
-      "type": "list",
-      "label": "@70428",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "auto",
-        "@70429",
-        "@70430",
-        "@70431",
-        "@70432",
-        "@70433",
-        "@70434"
-      ]
-    },
-    {
-      "id": "usuariofa",
-      "type": "text",
-      "label": "@70435",
-      "default": "",
-      "enabled": true,
-      "visible": true
-    },
-    {
-      "id": "passfa",
-      "type": "text",
-      "label": "@70436",
-      "default": "",
-      "enabled": "!eq(-1,'')",
-      "hidden": true,
-      "visible": true
-    },
-    {
-      "id": "orderfa",
-      "type": "list",
-      "label": "@70437",
-      "default": 0,
-      "enabled": "!eq(-1,'')",
-      "visible": true,
-      "lvalues": [
-        "@70438",
-        "@60230",
-        "@70042",
-        "@70439",
-        "@70440"
-      ]
-    },
-    {
-      "id": "label2",
-      "type": "label",
-      "label": "",
-      "enabled": false,
-      "visible": true
-    },
-    {
       "id": "usuariomal",
       "type": "text",
       "label": "@70441",
@@ -142,7 +79,7 @@
       "type": "text",
       "label": "@70442",
       "default": "",
-      "enabled": "!eq(-1,'')",
+      "enabled": true,
       "hidden": true,
       "visible": true
     },

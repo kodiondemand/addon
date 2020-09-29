@@ -118,7 +118,7 @@ class KodfavouritesData(object):
         jsondata['user_favorites'] = self.user_favorites
         jsondata['info_lista'] = self.info_lista
         if not filetools.write(self.user_favorites_file, jsontools.dump(jsondata)):
-            platformtools.dialog_ok('KoD', config.get_localized_string(70614), os.path.basename(self.user_favorites_file))
+            platformtools.dialog_ok('KoD', config.get_localized_string(70614) + '\n' + os.path.basename(self.user_favorites_file))
 
 
 # ============================
@@ -503,7 +503,7 @@ def editar_enlace_lista(item):
             opciones.append(it.lista)
 
     if len(opciones) == 0:
-        platformtools.dialog_ok('KoD', 'There are no other lists where to move the link.', 'You can create them from the Manage link lists menu')
+        platformtools.dialog_ok('KoD', 'There are no other lists where to move the link.\nYou can create them from the Manage link lists menu')
         return False
 
     ret = platformtools.dialog_select('Select destination list', opciones)
@@ -645,7 +645,7 @@ def activar_lista(item):
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630), item.lista)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
         return False
 
     config.set_setting('lista_activa', item.lista)
@@ -663,7 +663,7 @@ def renombrar_lista(item):
 
     fullfilename_current = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename_current):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630), fullfilename_current)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + fullfilename_current)
         return False
 
     nombre = get_name_from_filename(item.lista)
@@ -677,12 +677,12 @@ def renombrar_lista(item):
 
     # Check that the new name does not exist
     if os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70613), fullfilename)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70613) + '\n' + fullfilename)
         return False
 
     # Rename the file
     if not filetools.rename(fullfilename_current, filename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70631), fullfilename)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70631) + '\n' + fullfilename)
         return False
 
     # Update settings if it is the active list
@@ -699,11 +699,11 @@ def eliminar_lista(item):
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630), item.lista)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
         return False
 
     if item.lista == get_lista_activa():
-        platformtools.dialog_ok('KoD', config.get_localized_string(70632), item.lista)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70632) + '\n' + item.lista)
         return False
 
     if not platformtools.dialog_yesno(config.get_localized_string(70606), config.get_localized_string(70633) + ' %s ?' % item.lista): return False
@@ -718,7 +718,7 @@ def informacion_lista(item):
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630), item.lista)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
         return False
 
     alfav = KodfavouritesData(item.lista)
@@ -745,7 +745,7 @@ def compartir_lista(item):
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630), fullfilename)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + fullfilename)
         return False
 
     try:
@@ -757,7 +757,7 @@ def compartir_lista(item):
         upload_url = scrapertools.find_single_match(data, 'form action="([^"]+)')
         sessionid = scrapertools.find_single_match(upload_url, 'sid=(.+)')
 
-        progreso.update(10, config.get_localized_string(70645), config.get_localized_string(70646))
+        progreso.update(10, config.get_localized_string(70645) + '\n' + config.get_localized_string(70646))
 
         # Sending the file to tinyupload using multipart / form-data
         from future import standard_library
@@ -779,7 +779,7 @@ def compartir_lista(item):
         codigo = scrapertools.find_single_match(data, 'href="index\.php\?file_id=([^"]+)')
 
     except:
-        platformtools.dialog_ok('KoD', config.get_localized_string(70647), item.lista)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70647) + '\n' + item.lista)
         return False
 
     # Point code in log file and inside the list
@@ -790,7 +790,7 @@ def compartir_lista(item):
     alfav.info_lista['tinyupload_code'] = codigo
     alfav.save()
 
-    platformtools.dialog_ok('KoD', config.get_localized_string(70650), codigo)
+    platformtools.dialog_ok('KoD', config.get_localized_string(70650) + '\n' + codigo)
     return True
 
 
@@ -842,7 +842,7 @@ def crear_lista(item):
 
     # Check that the file does not already exist
     if os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70613), fullfilename)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70613) + '\n' + fullfilename)
         return False
 
     # Cause it to be saved with empty folders by default
@@ -864,7 +864,7 @@ def descargar_lista(item, url):
             down_url, url_name = scrapertools.find_single_match(data, ' href="(download\.php[^"]*)"><b>([^<]*)')
             url_json = '{uri.scheme}://{uri.netloc}/'.format(uri=urlparse(url)) + down_url
         except:
-            platformtools.dialog_ok('KoD', config.get_localized_string(70655), url)
+            platformtools.dialog_ok('KoD', config.get_localized_string(70655) + '\n' + url)
             return False
 
     elif 'zippyshare.com/' in url:
@@ -872,7 +872,7 @@ def descargar_lista(item, url):
         video_urls, puedes, motivo = servertools.resolve_video_urls_for_playing('zippyshare', url)
 
         if not puedes:
-            platformtools.dialog_ok('KoD', config.get_localized_string(70655), motivo)
+            platformtools.dialog_ok('KoD', config.get_localized_string(70655) + '\n' + motivo)
             return False
         url_json = video_urls[0][1] # https://www58.zippyshare.com/d/qPzzQ0UM/25460/kodfavourites-testeanding.json
         url_name = url_json[url_json.rfind('/')+1:]
@@ -916,8 +916,8 @@ def descargar_lista(item, url):
             return False
 
     if not filetools.write(fullfilename, data):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70659), filename)
+        platformtools.dialog_ok('KoD', config.get_localized_string(70659) + '\n' + filename)
 
-    platformtools.dialog_ok('KoD', config.get_localized_string(70660), filename)
+    platformtools.dialog_ok('KoD', config.get_localized_string(70660) + '\n' + filename)
     platformtools.itemlist_refresh()
     return True

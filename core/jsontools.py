@@ -90,7 +90,7 @@ def get_node_from_file(name_file, node, path=None):
     @return: dict with the node to return
     @rtype: dict
     """
-    logger.info()
+    logger.debug()
     from platformcode import config
     from core import filetools
 
@@ -129,7 +129,7 @@ def check_to_backup(data, fname, dict_data):
     @param dict_data: dictionary name
     @type dict_data: dict
     """
-    logger.info()
+    logger.debug()
 
     if not dict_data:
         logger.error("Error loading json from file %s" % fname)

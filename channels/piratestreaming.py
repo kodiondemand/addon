@@ -5,7 +5,7 @@
 
 
 from core import support
-from core.support import config, log
+from core.support import config, info
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -23,7 +23,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    log(texto)
+    info(texto)
     item.url = host + "/?s=" + texto
     try:
         return peliculas(item)
@@ -36,7 +36,7 @@ def search(item, texto):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     itemlist = []
     item = support.Item()
     try:

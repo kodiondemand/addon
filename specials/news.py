@@ -235,8 +235,8 @@ def novedades(item):
 
     if not multithread:
         if platformtools.dialog_yesno(config.get_localized_string(60515),
-                                      config.get_localized_string(60516),
-                                      config.get_localized_string(60517),
+                                      config.get_localized_string(60516) + '\n' +
+                                      config.get_localized_string(60517) + '\n' +
                                       config.get_localized_string(60518)):
             if config.set_setting("multithread", True, "news"):
                 multithread = True
@@ -247,7 +247,7 @@ def novedades(item):
     list_canales, any_active = get_channels_list()
 
     if config.is_xbmc():
-        from specials import side_menu
+        from platformcode import side_menu
         if mode=='silent' and any_active and len(list_canales[item.extra]) > 0:
             side_menu.set_menu_settings(item)
             aux_list=[]
@@ -279,7 +279,7 @@ def novedades(item):
                 t.start()
                 threads.append(t)
                 if mode == 'normal':
-                    progreso.update(percentage, "", config.get_localized_string(60520) % channel_title)
+                    progreso.update(percentage, config.get_localized_string(60520) % channel_title)
 
             # Modo single Thread
             else:
@@ -299,7 +299,7 @@ def novedades(item):
                 list_pendent_names = [a.getName() for a in pendent]
                 if mode == 'normal':
                     mensaje = config.get_localized_string(30994) % (", ".join(list_pendent_names))
-                    progreso.update(percentage, config.get_localized_string(60521) % (len(threads) - len(pendent), len(threads)),
+                    progreso.update(percentage, config.get_localized_string(60521) % (len(threads) - len(pendent), len(threads)) + '\n' +
                                 mensaje)
                     logger.debug(mensaje)
 
@@ -311,7 +311,7 @@ def novedades(item):
                 pendent = [a for a in threads if a.isAlive()]
         if mode == 'normal':
             mensaje = config.get_localized_string(60522) % (len(list_newest), time.time() - start_time)
-            progreso.update(100, mensaje, " ", " ")
+            progreso.update(100, mensaje)
             logger.info(mensaje)
             start_time = time.time()
             # logger.debug(start_time)
@@ -340,7 +340,7 @@ def novedades(item):
             return ret
     else:
         if mode != 'set_cache':
-            no_channels = platformtools.dialog_ok(config.get_localized_string(30130) + ' - ' + item.extra, config.get_localized_string(70661), config.get_localized_string(70662))
+            no_channels = platformtools.dialog_ok(config.get_localized_string(30130) + ' - ' + item.extra + '\n' + config.get_localized_string(70661) + '\n' + config.get_localized_string(70662))
         return
 
 
@@ -393,7 +393,7 @@ def get_newest(channel_id, categoria):
 
 
 def get_title(item):
-    # support.log("ITEM NEWEST ->", item)
+    # support.info("ITEM NEWEST ->", item)
     # item.contentSerieName c'è anche se è un film
     if item.contentSerieName and item.contentType != 'movie':  # Si es una serie
         title = item.contentSerieName
@@ -446,7 +446,7 @@ def no_group(list_result_canal):
     global channels_id_name
 
     for i in list_result_canal:
-        # support.log("NO GROUP i -> ", i)
+        # support.info("NO GROUP i -> ", i)
         canale = channels_id_name[i.channel]
         canale = canale # to differentiate it from the color of the other items
         i.title = get_title(i) + " [" + canale + "]"

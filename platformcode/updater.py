@@ -92,7 +92,6 @@ def check(background=False):
                 if 'Merge' in commitJson['commit']['message']:
                     continue
                 logger.info('aggiornando a ' + commitJson['sha'])
-                alreadyApplied = True
 
                 # major update
                 if len(commitJson['files']) > 50:
@@ -104,6 +103,11 @@ def check(background=False):
                     serviceChanged = True
                     break
 
+                patch_url = commitJson['html_url'] + '.patch'
+                logger.info('applicando ' + patch_url)
+                from lib import patch
+                patch.fromurl(patch_url).apply(root=addonDir)
+
                 for file in commitJson['files']:
                     if file["filename"] == trackingFile:  # il file di tracking non si modifica
                         continue
@@ -113,46 +117,18 @@ def check(background=False):
                             poFilesChanged = True
                         if 'service.py' in file["filename"]:
                             serviceChanged = True
-                        if file['status'] == 'modified' or file['status'] == 'added':
-                            if 'patch' in file:
-                                text = ""
-                                try:
-                                    localFile = io.open(os.path.join(addonDir, file["filename"]), 'r+', encoding="utf8")
-                                    text = localFile.read()
-                                    if not PY3:
-                                        text = text.decode('utf-8')
-                                except IOError: # nuovo file
-                                    # crea le cartelle se non esistono
-                                    dirname = os.path.dirname(os.path.join(addonDir, file["filename"]))
-                                    if not os.path.exists(dirname):
-                                        os.makedirs(dirname)
-
-                                    localFile = io.open(os.path.join(addonDir, file["filename"]), 'w', encoding="utf8")
-
-                                patched = apply_patch(text, (file['patch']+'\n').encode('utf-8'))
-                                if patched != text:  # non eseguo se già applicata (es. scaricato zip da github)
-                                    alreadyApplied = False
-                                    if getShaStr(patched) == file['sha']:
-                                        localFile.seek(0)
-                                        localFile.truncate()
-                                        localFile.writelines(patched)
-                                        localFile.close()
-                                    else:  # nel caso ci siano stati problemi
-                                        logger.info('lo sha non corrisponde, scarico il file')
-                                        localFile.close()
-                                        urllib.urlretrieve(file['raw_url'], os.path.join(addonDir, file['filename']))
-                            else:  # è un file NON testuale, lo devo scaricare
-                                # se non è già applicato
-                                filename = os.path.join(addonDir, file['filename'])
-                                dirname = os.path.dirname(filename)
-                                if not (filetools.isfile(os.path.join(addonDir, file['filename'])) and getSha(filename) == file['sha']):
-                                    if not os.path.exists(dirname):
-                                        os.makedirs(dirname)
-                                    urllib.urlretrieve(file['raw_url'], filename)
-                                    alreadyApplied = False
+                        if (file['status'] == 'modified' and 'patch' not in file) or file['status'] == 'added':
+                            # è un file NON testuale che è stato modificato, oppure è un file nuovo (la libreria non supporta la creazione di un nuovo file)
+                            # lo devo scaricare
+                            filename = os.path.join(addonDir, file['filename'])
+                            dirname = os.path.dirname(filename)
+                            if not (filetools.isfile(os.path.join(addonDir, file['filename'])) and getSha(filename) == file['sha']):
+                                logger.info('scaricando ' + file['raw_url'])
+                                if not os.path.exists(dirname):
+                                    os.makedirs(dirname)
+                                urllib.urlretrieve(file['raw_url'], filename)
                         elif file['status'] == 'removed':
                             remove(os.path.join(addonDir, file["filename"]))
-                            alreadyApplied = False
                         elif file['status'] == 'renamed':
                             # se non è già applicato
                             if not (filetools.isfile(os.path.join(addonDir, file['filename'])) and getSha(os.path.join(addonDir, file['filename'])) == file['sha']):
@@ -161,9 +137,7 @@ def check(background=False):
                                     if not filetools.isdir(os.path.join(addonDir, d)):
                                         filetools.mkdir(os.path.join(addonDir, d))
                                 filetools.move(os.path.join(addonDir, file['previous_filename']), os.path.join(addonDir, file['filename']))
-                                alreadyApplied = False
-                if not alreadyApplied:  # non mando notifica se già applicata (es. scaricato zip da github)
-                    changelog += commitJson['commit']['message'] + "\n"
+                changelog += commitJson['commit']['message'] + "\n"
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -181,6 +155,7 @@ def check(background=False):
         xbmc.executebuiltin("UpdateLocalAddons")
         if poFilesChanged:
             refreshLang()
+            xbmc.sleep(1000)
         updated = True
 
         if addon.getSetting("addon_update_message"):
@@ -204,6 +179,7 @@ def showSavedChangelog():
         os.remove(xbmc.translatePath(changelogFile))
     except:
         pass
+
 
 def calcCurrHash():
     treeHash = githash.tree_hash(addonDir).hexdigest()
@@ -233,38 +209,6 @@ def calcCurrHash():
         localCommitFile = open(os.path.join(xbmc.translatePath("special://home/addons/"), 'plugin.video.kod', trackingFile), 'w')
         localCommitFile.write(hash if hash else lastCommitSha)
         localCommitFile.close()
-
-
-# https://gist.github.com/noporpoise/16e731849eb1231e86d78f9dfeca3abc  Grazie!
-
-def apply_patch(s,patch,revert=False):
-  """
-  Apply unified diff patch to string s to recover newer string.
-  If revert is True, treat s as the newer string, recover older string.
-  """
-  s = s.splitlines(True)
-  p = patch.splitlines(True)
-  t = ''
-  i = sl = 0
-  (midx,sign) = (1,'+') if not revert else (3,'-')
-  while i < len(p) and p[i].startswith(("---","+++")): i += 1 # skip header lines
-  while i < len(p):
-    m = _hdr_pat.match(p[i])
-    if not m: raise Exception("Cannot process diff")
-    i += 1
-    l = int(m.group(midx))-1 + (m.group(midx+1) == '0')
-    t += ''.join(s[sl:l])
-    sl = l
-    while i < len(p) and p[i][0] != '@':
-      if i+1 < len(p) and p[i+1][0] == '\\': line = p[i][:-1]; i += 2
-      else: line = p[i]; i += 1
-      if len(line) > 0:
-        if line[0] == sign or line[0] == ' ': t += line[1:]
-        sl += (line[0] != sign)
-  t += ''.join(s[sl:])
-  if not PY3:
-      t = t.decode('utf-8')
-  return t
 
 
 def getSha(path):
@@ -319,7 +263,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
     if os.path.isfile(localfilename):
         logger.info('il file esiste')
 
-    dp.update(80, config.get_localized_string(20000), config.get_localized_string(80032))
+    dp.update(80, config.get_localized_string(20000) + '\n' + config.get_localized_string(80032))
 
     import zipfile
     try:
@@ -436,7 +380,7 @@ def fixZipGetHash(zipFile):
             f.write(
                 b'\x00\x00')  # Zip file comment length: 0 byte length; tell zip applications to stop reading.
 
-    return str(hash)
+    return hash.decode('utf-8')
 
 
 def _pbhook(numblocks, blocksize, filesize, url, dp):

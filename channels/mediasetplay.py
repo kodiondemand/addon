@@ -49,7 +49,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     item.search = text
     if not item.args:
         item.contentType = 'undefined'
@@ -64,7 +64,7 @@ def search(item, text):
     return itemlist
 
 def menu(item):
-    support.log()
+    support.info()
     itemlist = [item.clone(title=support.typo(item.args[0],'bullet bold'), url='', action='peliculas')]
     if item.url:
         json = get_from_id(item)
@@ -74,7 +74,7 @@ def menu(item):
     return itemlist
 
 def live(item):
-    support.log()
+    support.info()
     itemlist = []
     json = current_session.get(item.url).json()['entries']
     for it in json:
@@ -99,7 +99,7 @@ def live(item):
     return support.thumb(itemlist, live=True)
 
 def peliculas(item):
-    support.log()
+    support.info()
     itemlist = []
     contentType = ''
     json = get_programs(item)
@@ -144,7 +144,7 @@ def peliculas(item):
     return itemlist
 
 def epmenu(item):
-    support.log()
+    support.info()
     itemlist = []
     entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
     for entry in entries:
@@ -159,7 +159,7 @@ def epmenu(item):
 
 
 def episodios(item):
-    support.log()
+    support.info()
     itemlist = []
     episode = ''
 
@@ -188,12 +188,12 @@ def episodios(item):
     return sorted(itemlist, key=lambda it: it.title)
 
 def findvideos(item):
-    support.log()
+    support.info()
     itemlist = [support.Item(server = 'directo', title = 'Direct', url = item.urls, action = 'play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 def play(item):
-    support.log()
+    support.info()
     if not item.urls: urls = item.url
     else: urls = item.urls
     for url in urls:
@@ -209,13 +209,13 @@ def play(item):
     return support.servertools.find_video_items(item, data=data)
 
 def subBrand(json):
-    support.log()
+    support.info()
     subBrandId = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + json + '}').json()['entries'][-1]['mediasetprogram$subBrandId']
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + subBrandId + '}').json()['entries']
     return json
 
 def get_from_id(item):
-    support.log()
+    support.info()
     json = current_session.get(entry.format(id=item.url)).json()
     if 'components' in json:
         id = quote(",".join(json["components"]))
@@ -225,7 +225,7 @@ def get_from_id(item):
     return {}
 
 def get_programs(item, ret=[], args={}):
-    support.log()
+    support.info()
     hasMore = False
     if not args:
         if item.url:

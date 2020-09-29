@@ -31,7 +31,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
 
     item.url = host + "/?s=" + texto
     try:
@@ -83,7 +83,7 @@ def peliculas(item):
 def episodios(item):
     data = support.match(item, headers=headers, patronBlock=r'entry-content clearfix">(.*?)class="mh-widget mh-posts-2 widget_text').block
     if not 'pagination clearfix' in data:
-        support.log('NOT IN DATA')
+        support.info('NOT IN DATA')
         patron = r'<iframe.*?src="(?P<url>[^"]+)"'
         title = item.title
         def fullItemlistHook(itemlist):
@@ -124,7 +124,7 @@ def check(item):
     return data
 
 def findvideos(item):
-    support.log()
+    support.info()
     if item.data:
         data = item.data
     else:

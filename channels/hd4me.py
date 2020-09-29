@@ -42,7 +42,7 @@ def genre(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     item.url = host + '/?s=' + text
     try:
         return peliculas(item)

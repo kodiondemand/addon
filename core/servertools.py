@@ -148,26 +148,13 @@ def findvideos(data, skip=False):
     devuelve = []
     skip = int(skip)
     servers_list = list(get_servers_list().keys())
-
-
-    # is_filter_servers = False
-
     # Run findvideos on each active server
     for serverid in servers_list:
-        '''if not is_server_enabled(serverid):
-            continue'''
-        if config.get_setting('servers_blacklist') and serverid not in config.get_setting("black_list", server='servers'):
-        # if config.get_setting("filter_servers") == True and config.get_setting("black_list", server=serverid):
-        #     is_filter_servers = True
-            continue
-        devuelve.extend(findvideosbyserver(data, serverid))
-        if skip and len(devuelve) >= skip:
-            devuelve = devuelve[:skip]
-            break
-    # if config.get_setting("filter_servers") == False:  is_filter_servers = False
-    # logger.info('DEVUELVE: ' + str(devuelve))
-    # if not devuelve and is_filter_servers:
-    #     platformtools.dialog_ok(config.get_localized_string(60000), config.get_localized_string(60001))
+        if is_server_enabled(serverid) :
+            devuelve.extend(findvideosbyserver(data, serverid))
+            if skip and len(devuelve) >= skip:
+                devuelve = devuelve[:skip]
+                break
     return devuelve
 
 
@@ -710,9 +697,9 @@ def sort_servers(servers_list):
     """
     if servers_list and config.get_setting('favorites_servers'):
         if isinstance(servers_list[0], Item):
-            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x.server) or 100)
+            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x.server))
         else:
-            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x) or 100)
+            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x))
 
     return servers_list
 

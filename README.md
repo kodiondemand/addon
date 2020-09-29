@@ -8,8 +8,6 @@ KoD, come Alfa, è sotto licenza GPL v3, pertanto siete liberi di utilizzare par
 - Il tuo addon deve essere rilasciando secondo la stessa licenza, ovvero essere open source (il fatto che lo zip sia visibile da chiunque non ha importanza, è necessario avere un repository git come questo) 
 - Aggiungere i crediti a tutto ciò che copiate/modificate, ad esempio aggiungendo un commento nel file in questione o, meglio, facendo un cherry-pick (in modo da preservarnee lo storico)
 
-Nota: KoD attualmente funziona con Kodi fino alla versione 18 (Python 2).
-
 ### Come contribuire o fare segnalazioni?
 Ti piace il progetto e vuoi dare una mano? Leggi [qui](https://github.com/kodiondemand/addon/blob/master/CONTRIBUTING.md)
 

@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
 # from pkg_resources import resource_stream  # @UnresolvedImport
-import os
+import os, io
 from .converters import ConverterManager
 from . import basestr
 
@@ -19,10 +19,10 @@ COUNTRY_MATRIX = []
 #: The namedtuple used in the :data:`COUNTRY_MATRIX`
 IsoCountry = namedtuple('IsoCountry', ['name', 'alpha2'])
 
-f = open(os.path.join(os.path.dirname(__file__), 'data/iso-3166-1.txt'))
+f = io.open(os.path.join(os.path.dirname(__file__), 'data/iso-3166-1.txt'), encoding='utf-8')
 f.readline()
 for l in f:
-    iso_country = IsoCountry(*l.decode('utf-8').strip().split(';'))
+    iso_country = IsoCountry(*l.strip().split(';'))
     COUNTRIES[iso_country.alpha2] = iso_country.name
     COUNTRY_MATRIX.append(iso_country)
 f.close()

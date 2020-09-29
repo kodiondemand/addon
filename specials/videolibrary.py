@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
-import sys, xbmc, os, traceback
+import sys
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 import xbmc, os, traceback
 
-from channelselector import get_thumb, thumb
 from core import filetools, scrapertools, videolibrarytools
-from core.support import typo
+from core.support import typo, thumb
 from core.item import Item
 from platformcode import config, logger, platformtools
-from lib import generictools
 from distutils import dir_util
 if PY3:
     from concurrent import futures
@@ -25,15 +23,12 @@ def mainlist(item):
     logger.info()
 
     itemlist = [Item(channel=item.channel, action="list_movies", title=config.get_localized_string(60509),
-                     category=config.get_localized_string(70270),
-                     thumbnail=get_thumb("videolibrary_movie.png")),
-                Item(channel=item.channel, action="list_tvshows", title=config.get_localized_string(60600),
-                     category=config.get_localized_string(70271),
-                     thumbnail=get_thumb("videolibrary_tvshow.png"),
+                     category=config.get_localized_string(70270), thumbnail=thumb("videolibrary_movie")),
+                Item(channel=item.channel, action="list_tvshows",title=config.get_localized_string(60600),
+                     category=config.get_localized_string(70271), thumbnail=thumb("videolibrary_tvshow"),
                      context=[{"channel":"videolibrary", "action":"update_videolibrary", "title":config.get_localized_string(70269)}]),
-                Item(channel='shortcuts', action="SettingOnPosition",
-                     category=2, setting=1, title=typo(config.get_localized_string(70287),'bold color kod'),
-                     thumbnail = get_thumb("setting_0.png"))]
+                Item(channel='shortcuts', action="SettingOnPosition", title=typo(config.get_localized_string(70287),'bold color kod'),
+                     category=2, setting=1, thumbnail = thumb("setting_0"))]
     return itemlist
 
 
@@ -134,7 +129,7 @@ def get_results(nfo_path, root, Type, local=False):
                                  library_urls=item.library_urls,
                                  infoLabels={'title': item.contentTitle})
 
-                if canal not in dead_list and canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % canal.upper(), config.get_localized_string(30133))
+                if canal not in dead_list and canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % canal.upper() + '\n' + config.get_localized_string(30133))
                 elif canal in zombie_list: confirm = False
                 else: confirm = True
 
@@ -159,8 +154,8 @@ def get_results(nfo_path, root, Type, local=False):
             sep = '/' if '/' in nfo_path else '\\'
             item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting(folder), item.path.split(sep)[-1])
             strm_path = item.strm_path.replace("\\", "/").rstrip("/")
-            if '/' in item.path: item.strm_path = strm_path
             if not item.thumbnail: item.thumbnail = item.infoLabels['thumbnail']
+            if '/' in item.path: item.strm_path = strm_path
             # If strm has been removed from kodi library, don't show it
             if not filetools.exists(filetools.join(item.path, filetools.basename(strm_path))) and not local: return Item(), 0
 
@@ -213,7 +208,7 @@ def get_results(nfo_path, root, Type, local=False):
             else:
                 update_text = config.get_localized_string(60023)
                 value = 1
-                item.title += " [B]" + u"\u2022".encode('utf-8') + "[/B]"
+                item.title += " [B]" + u"\u2022" + "[/B]"
 
             # Context menu: Delete series / channel
             channels_num = len(item.library_urls)
@@ -387,7 +382,7 @@ def get_episodes(item):
 
 
 def findvideos(item):
-    from specials import autoplay
+    from core import autoplay
     logger.info()
     # logger.debug("item:\n" + item.tostring('\n'))
     videolibrarytools.check_renumber_options(item)
@@ -474,7 +469,6 @@ def findvideos(item):
 
         item_json = Item().fromjson(filetools.read(json_path))
         list_servers = []
-        # from core.support import dbg;dbg()
 
         try:
             # FILTERTOOLS
@@ -646,7 +640,7 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
         return
 
     config.verify_directories_created()
-    progress.update(10, config.get_localized_string(20000), config.get_localized_string(80012))
+    progress.update(10, config.get_localized_string(20000) + '\n' + config.get_localized_string(80012))
     if current_movies_path != new_movies_path:
         if filetools.listdir(current_movies_path):
             dir_util.copy_tree(current_movies_path, new_movies_path)
@@ -1000,13 +994,13 @@ def delete(item):
         heading = config.get_localized_string(70085)
     if item.multichannel:
         # Get channel list
+        channels = []
+        opciones = []
+        for k in list(item.library_urls.keys()):
+            if k != "downloads":
+                opciones.append(config.get_localized_string(70086) % k.capitalize())
+                channels.append(k)
         if item.dead == '':
-            opciones = []
-            channels = []
-            for k in list(item.library_urls.keys()):
-                if k != "downloads":
-                    opciones.append(config.get_localized_string(70086) % k.capitalize())
-                    channels.append(k)
             opciones.insert(0, heading)
 
             index = platformtools.dialog_select(config.get_localized_string(30163), opciones)
@@ -1133,7 +1127,7 @@ def add_download_items(item, itemlist):
                                 from_action="findvideos",
                                 contentTitle=item.contentTitle,
                                 path=item.path,
-                                thumbnail=thumb(thumb='downloads.png'),
+                                thumbnail=thumb('downloads'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
                 if item.contentType == 'episode':

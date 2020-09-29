@@ -3,13 +3,8 @@
 # Canale per vvvvid
 # ----------------------------------------------------------
 import requests, sys
-from core import  support, tmdb
-from specials import autorenumber
-if sys.version_info[0] >= 3:
-    from concurrent import futures
-else:
-    from concurrent_py2 import futures
-
+from core import support, tmdb
+from platformcode import autorenumber
 
 host = support.config.get_channel_url()
 
@@ -71,7 +66,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     itemlist = []
     if conn_id:
         if 'film' in item.url: item.contentType = 'movie'
@@ -106,7 +101,7 @@ def peliculas(item):
     itemlist = []
     if not item.args:
         json_file =loadjs(item.url + 'channel/10005/last/')
-        support.log(json_file)
+        support.logger.debug(json_file)
         make_itemlist(itemlist, item, json_file)
 
     elif ('=' not in item.args) and ('=' not in item.url):
@@ -142,7 +137,7 @@ def episodios(item):
     show_id = str(json_file['data'][0]['show_id'])
     season_id = str(json_file['data'][0]['season_id'])
     episodes = []
-    support.log('SEASON ID= ',season_id)
+    support.info('SEASON ID= ',season_id)
     for episode in json_file['data']:
         episodes.append(episode['episodes'])
     for episode in episodes:
@@ -233,7 +228,7 @@ def make_itemlist(itemlist, item, data):
 def loadjs(url):
     if '?category' not in url:
         url += '?full=true'
-    support.log('Json URL;',url)
+    support.info('Json URL;',url)
     json = current_session.get(url, headers=headers, params=payload).json()
     return json
 

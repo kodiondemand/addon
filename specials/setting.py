@@ -405,7 +405,8 @@ def cb_servers_favorites(server_names, dict_values):
         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % server_parameters['name'])
         i += 1
 
-    c = 2
+    c = 1
+    logger.info(dict_favorites)
     favorites_servers_list = []
     while c in dict_favorites:
         favorites_servers_list.append(dict_favorites[c])
@@ -806,7 +807,7 @@ def restore_tools(item):
     import os
 
     seleccion = platformtools.dialog_yesno(config.get_localized_string(60581),
-                                           config.get_localized_string(60582),
+                                           config.get_localized_string(60582) + '\n' +
                                            config.get_localized_string(60583))
     if seleccion == 1:
         # tvshows

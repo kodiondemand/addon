@@ -96,7 +96,7 @@ def addFavourite(item):
     favourites_list.append((titulo, item.thumbnail, data))
 
     if save_favourites(favourites_list):
-        platformtools.dialog_ok(config.get_localized_string(30102), titulo, config.get_localized_string(30108))  # 'added to favorites'
+        platformtools.dialog_ok(config.get_localized_string(30102), titulo + '\n' + config.get_localized_string(30108))  # 'added to favorites'
 
 
 def delFavourite(item):
@@ -112,7 +112,7 @@ def delFavourite(item):
             favourites_list.remove(fav)
 
             if save_favourites(favourites_list):
-                platformtools.dialog_ok(config.get_localized_string(30102), item.title, config.get_localized_string(30105).lower())  # 'Removed from favorites'
+                platformtools.dialog_ok(config.get_localized_string(30102), item.title + '\n' + config.get_localized_string(30105).lower())  # 'Removed from favorites'
                 platformtools.itemlist_refresh()
             break
 
@@ -130,7 +130,7 @@ def renameFavourite(item):
             if new_title:
                 favourites_list[i] = (new_title, fav[1], fav[2])
                 if save_favourites(favourites_list):
-                    platformtools.dialog_ok(config.get_localized_string(30102), item.from_title, config.get_localized_string(60086) + ' ', new_title)  # 'Removed from favorites'
+                    platformtools.dialog_ok(config.get_localized_string(30102), item.from_title + '\n' + config.get_localized_string(60086) + '\n' + new_title)  # 'Removed from favorites'
                     platformtools.itemlist_refresh()
 
 

@@ -32,7 +32,7 @@ def menu(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
     item.search = texto
     try:
         return peliculas(item)
@@ -45,7 +45,7 @@ def search(item, texto):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -78,11 +78,10 @@ def peliculas(item):
         query='category_name'
         searchtext = item.url.split('/')[-2]
     if not item.pag: item.pag = 1
-
-    anime=True
+    # debug = True
+    anime = True
     data = support.match(host + '/wp-admin/admin-ajax.php', post='action=itajax-sort&loop=main+loop&location=&thumbnail=1&rating=1sorter=recent&columns=4&numarticles='+perpage+'&paginated='+str(item.pag)+'&currentquery%5B'+query+'%5D='+searchtext).data.replace('\\','')
-    patron=r'<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>.*?)\s+(?P<type>Movie)?\s*(?P<lang>Sub Ita|Ita)'
-
+    patron = '<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>.*?)\s+(?P<type>Movie)?\s*(?P<lang>Sub Ita|Ita)?\s*[sS]treaming'
     typeContentDict = {'movie':['movie']}
     typeActionDict = {'findvideos':['movie']}
 

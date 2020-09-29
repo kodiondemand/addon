@@ -35,7 +35,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     if item.contentType == 'movie' or item.extra == 'movie':
         action = 'findvideos'
     else:
@@ -53,7 +53,7 @@ def search(item, text):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     item = support.Item()
     try:
         if categoria == "series":

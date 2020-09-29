@@ -112,8 +112,8 @@ def authentication():
         intervalo = data["interval"]
 
         dialog_auth = platformtools.dialog_progress(config.get_localized_string(70414),
-                                                    config.get_localized_string(60252) % verify_url,
-                                                    config.get_localized_string(70413) % user_code,
+                                                    config.get_localized_string(60252) % verify_url + '\n' +
+                                                    config.get_localized_string(70413) % user_code + '\n' +
                                                     config.get_localized_string(60254))
 
         # Generalmente cada 5 segundos se intenta comprobar si el usuario ha introducido el código

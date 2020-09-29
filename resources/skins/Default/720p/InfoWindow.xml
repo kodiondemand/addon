@@ -71,9 +71,9 @@
         <control type="label" id="10006">
           <top>100</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>FFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -82,10 +82,10 @@
         </control>
         <control type="label" id="10007">
           <top>100</top>
-          <left>200</left>
-          <height>40</height>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>FFFFFFFF</textcolor>
@@ -95,11 +95,11 @@
           <label></label>
         </control>
         <control type="label" id="10008"> <!-- Lingua Originale -->
-          <top>125</top>
+          <top>130</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -107,11 +107,11 @@
           <label></label>
         </control>
         <control type="label" id="10009">
-          <top>125</top>
-          <left>200</left>
-          <height>40</height>
+          <top>130</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -121,11 +121,11 @@
           <label></label>
         </control>
         <control type="label" id="100010"> <!-- Punteggio -->
-          <top>150</top>
+          <top>160</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -133,11 +133,11 @@
           <label></label>
         </control>
         <control type="label" id="100011">
-          <top>150</top>
-          <left>200</left>
-          <height>40</height>
+          <top>160</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -147,11 +147,11 @@
           <label></label>
         </control>
         <control type="label" id="100012"> <!-- Generi -->
-          <top>175</top>
+          <top>190</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -159,11 +159,11 @@
           <label></label>
         </control>
         <control type="label" id="100013">
-          <top>175</top>
-          <left>200</left>
-          <height>40</height>
+          <top>190</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -173,11 +173,11 @@
           <label></label>
         </control>
         <control type="label" id="100014">
-          <top>200</top>
+          <top>220</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -185,11 +185,11 @@
           <label></label>
         </control>
         <control type="label" id="100015">
-          <top>200</top>
-          <left>200</left>
-          <height>40</height>
+          <top>220</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -199,11 +199,11 @@
           <label></label>
         </control>
         <control type="label" id="100016">
-          <top>225</top>
+          <top>250</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -211,11 +211,11 @@
           <label></label>
         </control>
         <control type="label" id="100017">
-          <top>225</top>
-          <left>200</left>
-          <height>40</height>
+          <top>250</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -225,11 +225,11 @@
           <label></label>
         </control>
         <control type="label" id="100018">
-          <top>250</top>
+          <top>280</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -237,11 +237,11 @@
           <label></label>
         </control>
         <control type="label" id="100019">
-          <top>250</top>
-          <left>200</left>
-          <height>40</height>
+          <top>280</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -251,11 +251,11 @@
           <label></label>
         </control>
         <control type="label" id="100020">
-          <top>275</top>
+          <top>310</top>
           <left>60</left>
-          <height>40</height>
-          <width>100</width>
-          <font>font10</font>
+          <height>30</height>
+          <width>200</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -263,11 +263,11 @@
           <label></label>
         </control>
         <control type="label" id="100021">
-          <top>275</top>
-          <left>200</left>
-          <height>40</height>
+          <top>310</top>
+          <left>250</left>
+          <height>30</height>
           <width>365</width>
-          <font>font10</font>
+          <font>font13</font>
           <scrollsuffix> | </scrollsuffix>
           <scroll>true</scroll>
           <textcolor>0xFFFFFFFF</textcolor>
@@ -277,11 +277,11 @@
           <label></label>
         </control>
         <control type="label" id="100022"> <!-- Trama -->
-          <top>300</top>
+          <top>330</top>
           <left>60</left>
-          <height>40</height>
+          <height>30</height>
           <width>505</width>
-          <font>font10</font>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <align>left</align>
@@ -289,11 +289,11 @@
           <label></label>
         </control>
         <control type="textbox" id="100023">
-          <top>300</top>
-          <left>200</left>
-          <height>294</height>
-          <width>500</width>
-          <font>font10</font>
+          <top>330</top>
+          <left>250</left>
+          <height>250</height>
+          <width>550</width>
+          <font>font13</font>
           <textcolor>0xFFFFFFFF</textcolor>
           <shadowcolor>black</shadowcolor>
           <wrapmultiline>true</wrapmultiline>
@@ -362,7 +362,7 @@
             <left>1080</left>
             <height>30</height>
             <width>110</width>
-            <font>font10</font>
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>black</shadowcolor>
             <align>right</align>

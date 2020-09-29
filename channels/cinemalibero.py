@@ -89,13 +89,13 @@ def episodios(item):
     data=item.data
     # debugBlock=True
     if item.args == 'anime':
-        support.log("Anime :", item)
+        support.info("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
     else:# item.extra == 'serie':
-        support.log("Serie :", item)
+        support.info("Serie :", item)
         patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<url>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         item.contentType = 'tvshow'
@@ -118,7 +118,7 @@ def genres(item):
 
 
 def search(item, texto):
-    support.log(item.url,texto)
+    support.info(item.url,texto)
     texto = texto.replace(' ', '+')
     item.url = host + "/?s=" + texto
     # item.contentType = 'tv'
@@ -129,11 +129,11 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("%s" % line)
+            support.info("%s" % line)
     return []
 
 def newest(categoria):
-    support.log('newest ->', categoria)
+    support.info('newest ->', categoria)
     itemlist = []
     item = Item()
     item.args = 'newest'
@@ -147,13 +147,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log('newest log: ', (line))
+            support.info('newest log: ', (line))
         return []
 
     return itemlist
 
 def check(item):
-    support.log()
+    support.info()
     data = support.match(item.url, headers=headers).data
     if data:
         blockAnime = support.match(data, patron=r'<div id="container" class="container">(.+?<div style="margin-left)').match
@@ -175,6 +175,6 @@ def check(item):
             return findvideos(item)
 
 def findvideos(item):
-    support.log()
+    support.info()
     item.url = item.url.replace('http://rapidcrypt.net/verys/', '').replace('http://rapidcrypt.net/open/', '') #blocca la ricerca
     return support.server(item, data= item.url)

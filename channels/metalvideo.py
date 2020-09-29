@@ -24,7 +24,7 @@ def mainlist(item):
     patronBlock = r'<ul class="dropdown-menu(?P<block>.*?)</ul> </div'
     patron = r'<a href="(?P<url>[^"]+)"(?: class="")?>(?P<title>[^<]+)<'
     def itemHook(item):
-        item.thumbnail = support.thumb(thumb='music.png')
+        item.thumbnail = support.thumb('music')
         item.contentType = 'music'
         return item
     def itemlistHook(itemlist):
@@ -36,7 +36,7 @@ def mainlist(item):
                 contentType='music',
                 url=item.url,
                 action='search',
-                thumbnail=support.thumb(thumb='search.png')))
+                thumbnail=support.thumb('search')))
 
         support.channel_config(item, itemlist)
         return itemlist
@@ -56,7 +56,7 @@ def findvideos(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     item.url = host + '/search.php?keywords=' + text + '&video-id='
     try:
         return peliculas(item)

@@ -950,7 +950,10 @@ class Tmdb(object):
                     if self.busqueda_tipo == "movie":
                         resultado = resultado["movie_results"][0]
                     else:
-                        resultado = resultado["tv_results"][0]
+                        if resultado["tv_results"]:
+                            resultado = resultado["tv_results"][0]
+                        else:
+                            resultado = resultado['tv_episode_results'][0]
 
                 self.results = [resultado]
                 self.total_results = 1

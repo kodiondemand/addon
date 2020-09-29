@@ -6,7 +6,7 @@
 #
 from __future__ import unicode_literals
 
-import os
+import os, io
 from collections import namedtuple
 # from pkg_resources import resource_stream  # @UnresolvedImport
 from . import basestr
@@ -20,10 +20,10 @@ SCRIPT_MATRIX = []
 #: The namedtuple used in the :data:`SCRIPT_MATRIX`
 IsoScript = namedtuple('IsoScript', ['code', 'number', 'name', 'french_name', 'pva', 'date'])
 
-f = open(os.path.join(os.path.dirname(__file__), 'data/iso15924-utf8-20131012.txt'))
+f = io.open(os.path.join(os.path.dirname(__file__), 'data/iso15924-utf8-20131012.txt'), encoding='utf-8')
 f.readline()
 for l in f:
-    l = l.decode('utf-8').strip()
+    l = l.strip()
     if not l or l.startswith('#'):
         continue
     script = IsoScript._make(l.split(';'))

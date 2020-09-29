@@ -1,4 +1,4 @@
-from cursor import Cursor
+from lib.megaserver.cursor import Cursor
 
 
 class File(object):

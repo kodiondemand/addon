@@ -245,7 +245,6 @@ class ConverterManager(object):
         def parse(str):
             import re
             match = re.match('(?P<name>\w+) = (?P<module>[a-z0-9.]+):(?P<class>\w+)', str)
-            print match.groupdict()
             return match.groupdict()
         for ep in (parse(c) for c in self.registered_converters + self.internal_converters):
             if ep.get('name') == name:

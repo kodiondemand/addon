@@ -1,9 +1,11 @@
 import sys, traceback
 if sys.version_info[0] >= 3:
     from http.server import HTTPServer
+    from socketserver import ThreadingMixIn
 else:
     from BaseHTTPServer import HTTPServer
-from SocketServer import ThreadingMixIn
+    from SocketServer import ThreadingMixIn
+
 from threading import Thread
 from platformcode import logger
 

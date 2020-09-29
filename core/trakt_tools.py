@@ -71,9 +71,8 @@ def token_trakt(item):
         else:
             import time
             dialog_auth = platformtools.dialog_progress(config.get_localized_string(60251),
-                                                        config.get_localized_string(60252) % item.verify_url,
-                                                        config.get_localized_string(60253)
-                                                        % item.user_code,
+                                                        config.get_localized_string(60252) % item.verify_url + '\n' +
+                                                        config.get_localized_string(60253) % item.user_code + '\n' +
                                                         config.get_localized_string(60254))
 
             # Generalmente cada 5 segundos se intenta comprobar si el usuario ha introducido el código
@@ -199,6 +198,8 @@ def get_trakt_watched(id_type, mediatype, update=False):
 
 
 def trakt_check(itemlist):
+    if type(itemlist) != list:
+        return
     def sync(item, id_result):
         info = item.infoLabels
         try:

@@ -17,7 +17,7 @@
 from core import support
 from core.item import Item
 from platformcode import config
-from core.support import log
+from core.support import info
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -40,7 +40,7 @@ def mainlist(item):
 ##@support.scrape
 ##def peliculas(item):
 ####    import web_pdb; web_pdb.set_trace()
-##    log('peliculas ->\n', item)
+##    info('peliculas ->\n', item)
 ##
 ##    action = 'episodios'
 ##    block = r'(?P<block>.*?)<div\s+class="btn btn-lg btn-default btn-load-other-series">'
@@ -77,7 +77,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
 ##    import web_pdb; web_pdb.set_trace()
-    log('peliculas ->\n', item)
+    info('peliculas ->\n', item)
 
     action = 'episodios'
     blacklist = ['DMCA']
@@ -122,7 +122,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    log()
+    info()
 
     action = 'findvideos'
     patron = r'<div class="number-episodes-on-img">\s?\d+.\d+\s?(?:\((?P<lang>[a-zA-Z\-]+)\))?</div>.+?(?:<span class="pull-left bottom-year">(?P<title2>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<[^>]+>[^>]+>[^>]+>\s?)?<span(?: meta-nextep="[^"]+")? class="[^"]+" meta-serie="(?P<title>[^"]+)" meta-stag="(?P<season>\d+)" meta-ep="(?P<episode>\d+)" meta-embed="(?P<url>[^>]+)">'
@@ -137,7 +137,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    log()
+    info()
 
     action = 'peliculas'
     patron = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
@@ -148,7 +148,7 @@ def genres(item):
 
 
 def search(item, text):
-    log(text)
+    info(text)
     item.url = host + "/?s=" + text
     item.contentType = 'tvshow'
     item.args = 'search'
@@ -158,11 +158,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            log("%s" % line)
+            info("%s" % line)
         return []
 
 def newest(categoria):
-    log()
+    info()
     itemlist = []
     item = Item()
     item.contentType= 'tvshow'
@@ -177,12 +177,12 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            log("{0}".format(line))
+            info("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    log('--->', item)
+    info('--->', item)
     return support.server(item, item.url)

@@ -85,11 +85,12 @@ def decodeHtmlentities(data):
 
         if match.group(1) == "#" and ent.replace(";", "").isdigit():
             ent = unichr(int(ent.replace(";", "")))
-            return ent.encode('utf-8')
+            return ent if PY3 else ent.encode('utf-8')
         else:
             cp = html5.get(ent)
             if cp:
-                return cp.decode("unicode-escape").encode('utf-8') + res
+                if PY3: return cp + res
+                else: return cp.decode("unicode-escape").encode('utf-8') + res
             else:
                 return match.group()
 
@@ -112,9 +113,11 @@ def unescape(text):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16)).encode("utf-8")
+                    ret = unichr(int(text[3:-1], 16))
+                    return ret if PY3 else ret.encode("utf-8")
                 else:
-                    return unichr(int(text[2:-1])).encode("utf-8")
+                    ret = unichr(int(text[2:-1]))
+                    return ret if PY3 else ret.encode("utf-8")
 
             except ValueError:
                 logger.error("error de valor")

@@ -137,7 +137,7 @@ load_cookies()
 
 def save_cookies(alfa_s=False):
     cookies_lock.acquire()
-    if not alfa_s: logger.info("Saving cookies...")
+    if not alfa_s: logger.debug("Saving cookies...")
     cj.save(cookies_file, ignore_discard=True)
     cookies_lock.release()
 
@@ -161,7 +161,7 @@ def random_useragent():
 
 
 def show_infobox(info_dict):
-    logger.info()
+    logger.debug()
     from textwrap import wrap
 
     box_items_kodi = {'r_up_corner': u'\u250c',
@@ -186,16 +186,16 @@ def show_infobox(info_dict):
 
 
 
-    width = 60
+    width = 100
     version = '%s: %s' % (config.get_localized_string(20000), __version)
     if config.is_xbmc():
         box = box_items_kodi
     else:
         box = box_items
 
-    logger.info('%s%s%s' % (box['r_up_corner'], box['fill'] * width, box['l_up_corner']))
-    logger.info('%s%s%s' % (box['center'], version.center(width), box['center']))
-    logger.info('%s%s%s' % (box['r_center'], box['fill'] * width, box['l_center']))
+    logger.debug('%s%s%s' % (box['r_up_corner'], box['fill'] * width, box['l_up_corner']))
+    logger.debug('%s%s%s' % (box['center'], version.center(width), box['center']))
+    logger.debug('%s%s%s' % (box['r_center'], box['fill'] * width, box['l_center']))
 
     count = 0
     for key, value in info_dict:
@@ -210,13 +210,13 @@ def show_infobox(info_dict):
             for line in text:
                 if len(line) < width:
                     line = line.ljust(width, ' ')
-                logger.info('%s%s%s' % (box['center'], line, box['center']))
+                logger.debug('%s%s%s' % (box['center'], line, box['center']))
         else:
-            logger.info('%s%s%s' % (box['center'], text, box['center']))
+            logger.debug('%s%s%s' % (box['center'], text, box['center']))
         if count < len(info_dict):
-            logger.info('%s%s%s' % (box['r_center'], box['fill'] * width, box['l_center']))
+            logger.debug('%s%s%s' % (box['r_center'], box['fill'] * width, box['l_center']))
         else:
-            logger.info('%s%s%s' % (box['r_dn_corner'], box['fill'] * width, box['l_dn_corner']))
+            logger.debug('%s%s%s' % (box['r_dn_corner'], box['fill'] * width, box['l_dn_corner']))
     return
 
 
@@ -284,7 +284,7 @@ def downloadpage(url, **opt):
         CF = True
 
     if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
-        from specials import resolverdns
+        from core import resolverdns
         session.mount('https://', resolverdns.CipherSuiteAdapter(domain, CF))
 
     req_headers = default_headers.copy()
@@ -402,6 +402,13 @@ def downloadpage(url, **opt):
     response['data'] = req.content if req.content else ''
     response['url'] = req.url
 
+    if type(response['data']) != str:
+        try: response['data'] = response['data'].decode('utf-8')
+        except: response['data'] = response['data'].decode('ISO-8859-1')
+
+    if not response['data']:
+        response['data'] = ''
+
     if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
             and not opt.get('CF', False) and 'Please turn JavaScript on and reload the page' in response['data']:
         # if domain not in CF_LIST:
@@ -416,15 +423,11 @@ def downloadpage(url, **opt):
         response['data'] = re.sub('["|\']/save/[^"]*(https?://[^"]+)', '"\\1', response['data'])
         response['url'] = response['url'].replace('https://web.archive.org/save/', '')
 
-    if type(response['data']) != str:
-        response['data'] = response['data'].decode('UTF-8')
-
-    if not response['data']:
-        response['data'] = ''
     try:
         response['json'] = to_utf8(req.json())
     except:
         response['json'] = dict()
+
     response['code'] = response_code
     response['headers'] = req.headers
     response['cookies'] = req.cookies

@@ -18,7 +18,7 @@
 """
 from core import support, httptools, scrapertools
 from core.item import Item
-from core.support import log
+from core.support import info
 from platformcode import config
 
 host = config.get_channel_url()
@@ -42,7 +42,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log(item)
+    support.info(item)
     # support.dbg()
     deflang = 'Sub-ITA'
 
@@ -67,7 +67,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.log(item)
+    support.info(item)
     #support.dbg()
 
     deflang = 'Sub-ITA'
@@ -82,7 +82,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    support.log()
+    support.info()
     #support.dbg()
 
     action = 'peliculas'
@@ -99,7 +99,7 @@ def genres(item):
 
 
 def search(item, text):
-    support.log('search', item)
+    support.info('search', item)
     text = text.replace(' ', '+')
     item.url = host + '?s=' + text
     try:
@@ -110,12 +110,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            log('search log:', line)
+            info('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.log('newest ->', categoria)
+    support.info('newest ->', categoria)
     itemlist = []
     item = Item()
     if categoria == 'series':
@@ -132,14 +132,14 @@ def newest(categoria):
         except:
             import sys
             for line in sys.exc_info():
-                support.log('newest log: ', line)
+                support.info('newest log: ', line)
             return []
 
     return itemlist
 
 
 def findvideos(item):
-    support.log('findvideos ->', item)
+    support.info('findvideos ->', item)
     itemlist = []
     patronBlock = '<div class="entry-content">(?P<block>.*)<footer class="entry-footer">'
     patron = r'<a href="([^"]+)">'

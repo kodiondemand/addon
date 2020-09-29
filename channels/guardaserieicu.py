@@ -10,7 +10,7 @@
 
 # possibilità di miglioramento: gestire le novità (sezione Ultimi episodi sul sito)
 
-from core.support import log
+from core.support import info
 from core import support
 from platformcode import config
 
@@ -40,7 +40,7 @@ def episodios(item):
     return locals()
 
 def search(item, text):
-    log(text)
+    info(text)
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + "/?s=" + text
@@ -50,10 +50,10 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            log("%s" % line)
+            info("%s" % line)
 
     return []
 
 def findvideos(item):
-    support.log('findvideos', item)
+    support.info('findvideos', item)
     return support.server(item, headers=headers)

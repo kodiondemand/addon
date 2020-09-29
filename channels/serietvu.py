@@ -10,7 +10,7 @@ import re
 
 from core import support, httptools, scrapertools
 from core.item import Item
-from core.support import log
+from core.support import info
 from platformcode import config
 
 host = config.get_channel_url()
@@ -54,8 +54,8 @@ def episodios(item):
     patron = r'(?:<div class="list (?:active)?")?\s*<a data-id="\d+(?:[ ](?P<lang>[SuUbBiItTaA\-]+))?"(?P<other>[^>]+)>.*?Episodio [0-9]+\s?(?:<br>(?P<title>[^<]+))?.*?Stagione (?P<season>[0-9]+) , Episodio - (?P<episode>[0-9]+).*?<(?P<url>.*?<iframe)'
     def itemHook(item):
         for value, season in seasons:
-            log(value)
-            log(season)
+            info(value)
+            info(season)
             item.title = item.title.replace(value+'x',season+'x')
         item.url += '\n' + item.other
         return item
@@ -72,7 +72,7 @@ def genres(item):
 
 
 def search(item, text):
-    log(text)
+    info(text)
     item.url = host + "/?s=" + text
     try:
         item.contentType = 'tvshow'
@@ -81,12 +81,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            log("%s" % line)
+            info("%s" % line)
         return []
 
 
 def newest(categoria):
-    log(categoria)
+    info(categoria)
     itemlist = []
     item = Item()
     try:
@@ -101,14 +101,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            log("{0}".format(line))
+            info("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    log(item)
+    info(item)
     if item.args != 'update':
         return support.server(item, data=item.url)
     else:
@@ -126,6 +126,6 @@ def findvideos(item):
                         contentType='tvshow',
                         url=url_serie,
                         action='episodios',
-                        thumbnail = support.thumb(thumb='tvshow.png')))
+                        thumbnail = support.thumb('tvshow')))
 
         return itemlist

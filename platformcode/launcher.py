@@ -28,7 +28,7 @@ def start():
     # if it has DNS problems start but let in
     # if everything is ok: enter the addon
 
-    from specials.checkhost import test_conn
+    from platformcode.checkhost import test_conn
     import threading
     threading.Thread(target=test_conn, args=(True, not config.get_setting('resolver_dns'), True, [], [], True)).start()
 
@@ -65,7 +65,7 @@ def run(item=None):
                     category = dictCategory[config.get_setting("category")]
                     item = Item(channel="news", action="novedades", extra=category, mode = 'silent')
                 else:
-                    from specials import side_menu
+                    from platformcode import side_menu
                     item= Item()
                     item = side_menu.check_user_home(item)
                     item.start = True
@@ -121,6 +121,18 @@ def run(item=None):
             else:
                 return keymaptools.set_key()
 
+        elif item.channel == "infoplus":
+            from platformcode import infoplus
+            return infoplus.Main(item)
+
+        elif item.channel == "shortcuts":
+            from platformcode import shortcuts
+            return getattr(shortcuts, item.action)(item)
+
+        elif item.channel == "autorenumber":
+            from platformcode import autorenumber
+            return getattr(autorenumber, item.action)(item)
+
         elif item.action == "delete_key":
             from platformcode import keymaptools
             return keymaptools.delete_key()
@@ -145,6 +157,9 @@ def run(item=None):
                     short = urllib.urlopen('https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read().decode('utf-8')
                     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % short)
         # Action in certain channel specified in "action" and "channel" parameters
+        elif item.action == "check_channels":
+            from platformcode import checkhost
+            checkhost.check_channels()
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
@@ -330,15 +345,14 @@ def run(item=None):
 
         if Channel:
             if item.url:
-                if platformtools.dialog_yesno(config.get_localized_string(60087) % Channel, config.get_localized_string(60014), log_message, nolabel='ok', yeslabel=config.get_localized_string(70739)):
+                if platformtools.dialog_yesno(config.get_localized_string(60087) % Channel, config.get_localized_string(60014) + '\n' + log_message, nolabel='ok', yeslabel=config.get_localized_string(70739)):
                     run(Item(action="open_browser", url=item.url))
             else:
-                platformtools.dialog_ok(config.get_localized_string(60087) % Channel, config.get_localized_string(60014), log_message)
+                platformtools.dialog_ok(config.get_localized_string(60087) % Channel, config.get_localized_string(60014) + '\n' + log_message)
         else:
             platformtools.dialog_ok(
                 config.get_localized_string(60038),
-                config.get_localized_string(60015),
-                log_message)
+                config.get_localized_string(60015) + '\n' + log_message)
 
 
 def new_search(item, channel=None):

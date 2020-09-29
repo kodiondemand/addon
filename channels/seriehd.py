@@ -5,12 +5,11 @@
 
 
 from core import support
+def findhost():
+    return support.match('https://nuovoindirizzo.info/seriehd/', patron=r'<h2[^>]+><a href="([^"]+)"').match
 
-host = support.config.get_channel_url()
+host = support.config.get_channel_url(findhost)
 headers = [['Referer', host]]
-
-
-
 
 
 @support.menu
@@ -28,7 +27,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
 
 
     item.contentType = 'tvshow'
@@ -44,7 +43,7 @@ def search(item, texto):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
 
     itemlist = []
     item = support.Item()
@@ -137,7 +136,7 @@ def menu(item):
 
 def findvideos(item):
     item.url = item.url.replace('&amp;', '&')
-    support.log(item)
+    support.info(item)
     if item.args == 'last':
         url = support.match(item, patron = r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
         matches = support.match(url,patron=r'<a href="([^"]+)">(\d+)<', patronBlock=r'<h3>EPISODIO</h3><ul>(.*?)</ul>').matches

@@ -117,7 +117,7 @@ def episodios(item):
 
 
 def play(item):
-    support.log()
+    support.info()
     data = support.match(item).data
     match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
     if match:

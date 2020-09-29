@@ -5,7 +5,7 @@
 
 import requests, json, copy
 from core import support
-from specials import autorenumber
+from platformcode import autorenumber
 
 try: from lib import cloudscraper
 except: from lib import cloudscraper
@@ -46,12 +46,12 @@ def menu(item):
     if item.contentType == 'tvshow':
         itemlist += [item.clone(title=support.typo('In Corso','bold'), args=InCorso),
                      item.clone(title=support.typo('Terminato','bold'), args=Terminato)]
-    itemlist +=[item.clone(title=support.typo('Cerca...','bold'), action='search', thumbnail=support.thumb(thumb='search.png'))]
+    itemlist +=[item.clone(title=support.typo('Cerca...','bold'), action='search', thumbnail=support.thumb('search'))]
     return itemlist
 
 
 def genres(item):
-    support.log()
+    support.info()
     # support.dbg()
     itemlist = []
 
@@ -63,7 +63,7 @@ def genres(item):
     return support.thumb(itemlist)
 
 def years(item):
-    support.log()
+    support.info()
     itemlist = []
 
     from datetime import datetime
@@ -77,7 +77,7 @@ def years(item):
 
 
 def search(item, text):
-    support.log('search', item)
+    support.info('search', item)
     if not item.args:
         item.args = {'title':text}
     else:
@@ -90,12 +90,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.log('search log:', line)
+            support.info('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     itemlist = []
     item = support.Item()
     item.url = host
@@ -109,13 +109,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log(line)
+            support.info(line)
         return []
 
     return itemlist
 
 def news(item):
-    support.log()
+    support.info()
     item.contentType = 'tvshow'
     itemlist = []
 
@@ -140,7 +140,7 @@ def news(item):
 
 
 def peliculas(item):
-    support.log()
+    support.info()
     itemlist = []
 
     page = item.page if item.page else 0
@@ -154,7 +154,7 @@ def peliculas(item):
     payload = json.dumps(item.args)
     records = requests.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
     # js = []
-    # support.log(records)
+    # support.info(records)
     # for record in records:
     #     js += record
     for it in records:
@@ -194,7 +194,7 @@ def peliculas(item):
     return itemlist
 
 def episodios(item):
-    support.log()
+    support.info()
     itemlist = []
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
     for it in item.episodes:
@@ -219,5 +219,5 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.log()
+    support.info()
     return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', action='play')])

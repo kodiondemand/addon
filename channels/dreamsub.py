@@ -10,7 +10,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.log(item)
+    support.info(item)
 
     anime = ['/search?typeY=tv',
             ('Movie', ['/search?typeY=movie', 'peliculas', '', 'movie']),
@@ -34,7 +34,7 @@ def menu(item):
     patronMenu = r'<a class="[^"]+" data-state="[^"]+" (?P<other>[^>]+)>[^>]+></i>[^>]+></i>[^>]+></i>(?P<title>[^>]+)</a>'
 
     def itemHook(item):
-        support.log(item.type)
+        support.info(item.type)
         for Type, ID in support.match(item.other, patron=r'data-type="([^"]+)" data-id="([^"]+)"').matches:
             item.url = host + '/search?' + Type + 'Y=' + ID
         return item
@@ -42,7 +42,7 @@ def menu(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
 
     text = text.replace(' ', '+')
     item.url = host + '/search/' + text
@@ -53,12 +53,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.log('search log:', line)
+            support.info('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -110,7 +110,7 @@ def episodios(item):
 
 def findvideos(item):
     itemlist = []
-    support.log()
+    support.info()
     # support.dbg()
 
     matches = support.match(item, patron=r'href="([^"]+)"', patronBlock=r'<div style="white-space: (.*?)<div id="main-content"')
@@ -124,7 +124,7 @@ def findvideos(item):
         itemlist.append(item.clone(action="play", title='VVVVID', url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match, server='vvvvid'))
     else:
     # matches.matches.sort()
-        support.log('VIDEO')
+        support.info('VIDEO')
         for url in matches.matches:
             lang = url.split('/')[-2]
             if 'ita' in lang.lower():

@@ -271,7 +271,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
 
         # Create the progress dialog
         if not silent:
-            progreso = platformtools.dialog_progress(header, "Downloading...", url, nombrefichero)
+            progreso = platformtools.dialog_progress(header, "Downloading..." + '\n' + url + '\n' + nombrefichero)
 
         # If the platform does not return a valid dialog box, it assumes silent mode
         if progreso is None:
@@ -408,7 +408,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
             error = downloadfileRTMP(url, nombrefichero, silent)
             if error and not silent:
                 from platformcode import platformtools
-            platformtools.dialog_ok("You cannot download that video "," RTMP downloads not yet "," are supported")
+            platformtools.dialog_ok("You cannot download that video "," RTMP downloads not yet supported")
         else:
             import traceback
             from pprint import pprint
@@ -480,7 +480,7 @@ def downloadfileRTMP(url, nombrefichero, silent):
         rtmpdump_exit = spawnv(P_NOWAIT, rtmpdump_cmd, rtmpdump_args)
         if not silent:
             from platformcode import platformtools
-            advertencia = platformtools.dialog_ok("RTMP download option is experimental", "and the video will download in the background.", "No progress bar will be displayed.")
+            advertencia = platformtools.dialog_ok("RTMP download option is experimental", "and the video will download in the background. \n No progress bar will be displayed.")
     except:
         return True
 
@@ -520,7 +520,7 @@ def downloadfileGzipped(url, pathfichero):
 
     # Create the progress dialog
     from platformcode import platformtools
-    progreso = platformtools.dialog_progress("addon", config.get_localized_string(60200), url.split("|")[0], nombrefichero)
+    progreso = platformtools.dialog_progress("addon", config.get_localized_string(60200) + '\n' + url.split("|")[0] + '\n' + nombrefichero)
 
     # Socket timeout at 60 seconds
     socket.setdefaulttimeout(10)

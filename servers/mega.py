@@ -12,6 +12,7 @@ from platformcode import platformtools, logger
 files = None
 
 def test_video_exists(page_url):
+    # from core .support import dbg;dbg()
     types= "File"
     msg = "The link has a problem."
     id_video = None

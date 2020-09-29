@@ -12,7 +12,7 @@ from past.utils import old_div
 
 from core import channeltools, servertools, scrapertools
 from platformcode import config, logger, platformtools
-from core.support import log, dbg, match
+from core.support import info, dbg, match
 
 
 class SettingsWindow(xbmcgui.WindowXMLDialog):
@@ -141,7 +141,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
     """
 
     def start(self, list_controls=None, dict_values=None, caption="", callback=None, item=None, custom_button=None, channelpath=None):
-        log()
+        info()
 
         # Media Path
         self.mediapath = os.path.join(config.get_runtime_path(), 'resources', 'skins', 'Default', 'media')
@@ -371,32 +371,30 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
 
 
     def add_control_text(self, c):
-        if xbmcgui.ControlEdit == ControlEdit:
-            control = xbmcgui.ControlEdit(0, -100, self.controls_width, self.height_control, c["label"],
-                                         os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
-                                         os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'), 0,
-                                         textColor=c["color"], font=self.font, isPassword=c["hidden"], window=self)
+        control = xbmcgui.ControlEdit(0, -100, self.controls_width, self.height_control,
+                                    c["label"], self.font, c["color"], '', 1 | 4,
+                                    focusTexture='',
+                                    noFocusTexture='')
 
-        else:
-            control = xbmcgui.ControlEdit(0, -100, self.controls_width, self.height_control,
-                                          c["label"], self.font, c["color"], '', 1 | 4, isPassword=c["hidden"],
-                                          focusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
-                                          noFocusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'))
+        image = xbmcgui.ControlImage(0, -100, self.controls_width + 10, self.height_control, os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'))
 
+        self.addControl(image)
         self.addControl(control)
+        image.setVisibleCondition('Control.HasFocus(%s)' % control.getId(), True) 
 
         control.setVisible(False)
         control.setLabel(c["label"])
+        if c['hidden']: control.setType(xbmcgui.INPUT_TYPE_PASSWORD, c["label"])
         # frodo fix
         s = self.values[c["id"]]
-        if s is None:
-            s = ''
+        if s is None: s = c['default'] if 'default' in c else ''
+
         control.setText(s)
-        # control.setText(self.values[c["id"]])
-        control.setWidth(self.controls_width + 10)
+        control.setWidth(self.controls_width-10)
         control.setHeight(self.height_control)
 
         c["control"] = control
+        c['image'] = image
 
     def add_control_bool(self, c):
         # Old versions do not support some textures
@@ -405,24 +403,34 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                                  label=c["label"], font=self.font, textColor=c["color"],
                                                  focusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
                                                  noFocusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'))
-        else:
+        elif xbmcgui.__version__ in ["3.0", "3.0.0"]:
             control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20,
                                                  self.height_control, label=c["label"], font=self.font,
                                                  textColor=c["color"],
-                                                 focusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
-                                                 noFocusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'),
                                                  focusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
                                                  noFocusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
                                                  focusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'),
                                                  noFocusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'))
-
+        else:
+            control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20,
+                                                 self.height_control, label=c["label"], font=self.font,
+                                                 textColor=c["color"],
+                                                 focusTexture='',
+                                                 noFocusTexture='',
+                                                 focusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
+                                                 noFocusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
+                                                 focusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'),
+                                                 noFocusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'))
+        image = xbmcgui.ControlImage(0, -100, self.controls_width + 10, self.height_control, os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'))
+        self.addControl(image)
         self.addControl(control)
-
+        image.setVisibleCondition('Control.HasFocus(%s)' % control.getId(), True) 
         control.setVisible(False)
         control.setRadioDimension(x=self.controls_width - (self.height_control - 5), y=0, width=self.height_control - 5, height=self.height_control - 5)
         control.setSelected(self.values[c["id"]])
 
         c["control"] = control
+        c['image'] = image
 
     def onInit(self):
         self.getControl(10004).setEnabled(False)
@@ -446,8 +454,6 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                 self.getControl(10006).setLabel(self.custom_button['label'])
             else:
                 self.getControl(10006).setVisible(False)
-                # self.getControl(10004).setPosition(self.getControl(10004).getPosition()[0], self.getControl(10004).getPosition()[1])
-                # self.getControl(10005).setPosition(self.getControl(10005).getPosition()[0], self.getControl(10005).getPosition()[1])
 
         # Control Area Dimensions
         self.controls_width = self.getControl(10007).getWidth() - 30
@@ -543,14 +549,16 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                     c["y"] = self.controls_pos_y + visible_count * self.height_control
                     visible_count += 1
 
-                    if c["type"] != "list":
-                        if c["type"] == "bool": c["control"].setPosition(self.controls_pos_x, c["y"])
-                        else: c["control"].setPosition(self.controls_pos_x, c["y"])
-
-                    else:
+                    if c["type"] == "list":
                         c["control"].setPosition(self.controls_pos_x, c["y"])
                         if xbmcgui.__version__ == "1.2": c["label"].setPosition(self.controls_pos_x + self.controls_width - 30, c["y"])
                         else: c["label"].setPosition(self.controls_pos_x, c["y"])
+
+                    else:
+                        if c["type"] == "bool": c["control"].setPosition(self.controls_pos_x, c["y"])
+                        elif c['type'] == 'text': c["control"].setPosition(self.controls_pos_x +10, c["y"])
+                        else: c["control"].setPosition(self.controls_pos_x, c["y"])
+                        if c['type'] in ['bool', 'text']:c['image'].setPosition(self.controls_pos_x, c["y"])
 
                     self.set_visible(c, True)
 

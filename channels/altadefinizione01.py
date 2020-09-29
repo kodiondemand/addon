@@ -47,7 +47,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log('peliculas',item)
+    support.info('peliculas', item)
 
 ##    deflang = 'ITA'
     action="findvideos"
@@ -69,7 +69,7 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    support.log('genres',item)
+    support.info('genres',item)
     
     if item.args != 'orderalf': action = "peliculas"
     else: action = 'orderalf'
@@ -90,7 +90,7 @@ def genres(item):
 
 @support.scrape
 def orderalf(item):
-    support.log('orderalf',item)
+    support.info('orderalf',item)
     
     action= 'findvideos'
     patron = r'<td class="mlnh-thumb"><a href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
@@ -102,7 +102,7 @@ def orderalf(item):
 
 
 def search(item, text):
-    support.log(item, text)
+    support.info(item, text)
 
     
     itemlist = []
@@ -119,7 +119,7 @@ def search(item, text):
         return []
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
 
     itemlist = []
     item = Item()
@@ -141,5 +141,5 @@ def newest(categoria):
     return itemlist
 
 def findvideos(item):
-    support.log('findvideos', item)
+    support.info('findvideos', item)
     return support.server(item, headers=headers)

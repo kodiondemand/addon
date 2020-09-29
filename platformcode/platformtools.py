@@ -8,8 +8,10 @@
 
 import sys
 if sys.version_info[0] >= 3:
+    PY3 = True
     import urllib.parse as urllib
 else:
+    PY3 = False
     import urllib
 
 import os, xbmc, xbmcgui, xbmcplugin
@@ -30,17 +32,10 @@ class XBMCPlayer(xbmc.Player):
 
 xbmc_player = XBMCPlayer()
 
-def makeMessage(line1, line2, line3):
-    message = line1
-    if line2:
-        message += '\n' + line2
-    if line3:
-        message += '\n' + line3
-    return message
 
-def dialog_ok(heading, line1, line2="", line3=""):
+def dialog_ok(heading, message):
     dialog = xbmcgui.Dialog()
-    return dialog.ok(heading, makeMessage(line1, line2, line3))
+    return dialog.ok(heading, message)
 
 
 def dialog_notification(heading, message, icon=3, time=5000, sound=True):
@@ -52,19 +47,19 @@ def dialog_notification(heading, message, icon=3, time=5000, sound=True):
         dialog_ok(heading, message)
 
 
-def dialog_yesno(heading, line1, line2="", line3="", nolabel=config.get_localized_string(70170), yeslabel=config.get_localized_string(30022), autoclose=0, customlabel=None):
+def dialog_yesno(heading, message, nolabel=config.get_localized_string(70170), yeslabel=config.get_localized_string(30022), autoclose=0, customlabel=None):
     # customlabel only on kodi 19
     dialog = xbmcgui.Dialog()
-    if config.get_platform() == 'kodi-matrix':
+    if PY3:
         if autoclose:
-            return dialog.yesno(heading, makeMessage(line1, line2, line3), nolabel=nolabel, yeslabel=yeslabel, customlabel=customlabel, autoclose=autoclose)
+            return dialog.yesno(heading, message, nolabel=nolabel, yeslabel=yeslabel, customlabel=customlabel, autoclose=autoclose)
         else:
-            return dialog.yesno(heading, makeMessage(line1, line2, line3), nolabel=nolabel, yeslabel=yeslabel, customlabel=customlabel)
+            return dialog.yesno(heading, message, nolabel=nolabel, yeslabel=yeslabel, customlabel=customlabel)
     else:
         if autoclose:
-            return dialog.yesno(heading, makeMessage(line1, line2, line3), nolabel=nolabel, yeslabel=yeslabel, autoclose=autoclose)
+            return dialog.yesno(heading, message, nolabel=nolabel, yeslabel=yeslabel, autoclose=autoclose)
         else:
-            return dialog.yesno(heading, makeMessage(line1, line2, line3), nolabel=nolabel, yeslabel=yeslabel)
+            return dialog.yesno(heading, message, nolabel=nolabel, yeslabel=yeslabel)
 
 
 def dialog_select(heading, _list, preselect=0, useDetails=False):
@@ -75,9 +70,9 @@ def dialog_multiselect(heading, _list, autoclose=0, preselect=[], useDetails=Fal
     return xbmcgui.Dialog().multiselect(heading, _list, autoclose=autoclose, preselect=preselect, useDetails=useDetails)
 
 
-def dialog_progress(heading, line1, line2=" ", line3=" "):
+def dialog_progress(heading, message):
     dialog = xbmcgui.DialogProgress()
-    dialog.create(heading, makeMessage(line1, line2, line3))
+    dialog.create(heading, message)
     return dialog
 
 
@@ -140,7 +135,7 @@ def render_items(itemlist, parent_item):
     """
     logger.info('START render_items')
     thumb_type = config.get_setting('video_thumbnail_type')
-    from specials import shortcuts
+    from platformcode import shortcuts
     from core import httptools
     _handle = int(sys.argv[1])
     default_fanart = config.get_fanart()
@@ -390,9 +385,9 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 continue
 
             if "goto" in command:
-                context_commands.append((command["title"], "XBMC.Container.Refresh (%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
+                context_commands.append((command["title"], "Container.Refresh (%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
             else:
-                context_commands.append((command["title"], "XBMC.RunPlugin(%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
+                context_commands.append((command["title"], "RunPlugin(%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
     # Do not add more predefined options if you are inside kodfavoritos
     if parent_item.channel == 'kodfavorites':
         return context_commands
@@ -400,43 +395,43 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
     if item.action and item.action not in ["add_pelicula_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
-        #     context_commands.append((config.get_localized_string(60348), "XBMC.Action(Info)"))
+        #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
         # ExtendedInfo: If the addon is installed and a series of conditions are met
         if kwargs.get('has_extendedinfo') \
                 and config.get_setting("extended_info") == True:
             if item.contentType == "episode" and item.contentEpisodeNumber and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
                 param = "tvshow_id =%s, tvshow=%s, season=%s, episode=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason, item.contentEpisodeNumber)
-                context_commands.append(("ExtendedInfo", "XBMC.RunScript(script.extendedinfo,info=extendedepisodeinfo,%s)" % param))
+                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedepisodeinfo,%s)" % param))
 
             elif item.contentType == "season" and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
                 param = "tvshow_id =%s,tvshow=%s, season=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason)
-                context_commands.append(("ExtendedInfo", "XBMC.RunScript(script.extendedinfo,info=seasoninfo,%s)" % param))
+                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=seasoninfo,%s)" % param))
 
             elif item.contentType == "tvshow" and (item.infoLabels['tmdb_id'] or item.infoLabels['tvdb_id'] or item.infoLabels['imdb_id'] or item.contentSerieName):
                 param = "id =%s,tvdb_id=%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['tvdb_id'], item.infoLabels['imdb_id'], item.contentSerieName)
-                context_commands.append(("ExtendedInfo", "XBMC.RunScript(script.extendedinfo,info=extendedtvinfo,%s)" % param))
+                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedtvinfo,%s)" % param))
 
             elif item.contentType == "movie" and (item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.contentTitle):
                 param = "id =%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['imdb_id'], item.contentTitle)
-                context_commands.append(("ExtendedInfo", "XBMC.RunScript(script.extendedinfo,info=extendedinfo,%s)" % param))
+                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedinfo,%s)" % param))
 
         # InfoPlus
         if config.get_setting("infoplus"):
             #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
             #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
             if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
-                context_commands.append(("InfoPlus", "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=start&from_channel=' + item.channel)))
+                context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
 
         # Go to the Main Menu (channel.mainlist)
         if parent_item.channel not in ["news", "channelselector", "downloads"] and item.action != "mainlist":
             if parent_item.action != "mainlist":
-                context_commands.insert(0, (config.get_localized_string(60349), "XBMC.Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
-            context_commands.insert(1, (config.get_localized_string(70739), "XBMC.Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
+                context_commands.insert(0, (config.get_localized_string(60349), "Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
+            context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         # Add to kodfavoritos (My links)
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
-            context_commands.append( (config.get_localized_string(70557), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
+            context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Search in other channels
         if item.contentType in ['movie', 'tvshow'] and item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
 
@@ -451,51 +446,51 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             else:
                 mediatype = item.contentType
 
-            context_commands.append((config.get_localized_string(60350), "XBMC.Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
+            context_commands.append((config.get_localized_string(60350), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
 
-            context_commands.append( (config.get_localized_string(70561), "XBMC.Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
+            context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
         # Set as Home Page
         if config.get_setting('start_page'):
             if item.action not in ['episodios', 'seasons', 'findvideos', 'play']:
-                context_commands.insert(0, (config.get_localized_string(60351), "XBMC.RunPlugin(%s?%s)" % (sys.argv[0], Item(channel='side_menu', action="set_custom_start", parent=item.tourl()).tourl())))
+                context_commands.insert(0, (config.get_localized_string(60351), "RunPlugin(%s?%s)" % (sys.argv[0], Item(channel='side_menu', action="set_custom_start", parent=item.tourl()).tourl())))
 
         if item.channel != "videolibrary":
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
-                context_commands.append((config.get_localized_string(60352), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
             # Add Movie to Video Library
             elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
 
         if not item.local and item.channel not in ["downloads", "filmontv"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
             # Download movie
             if item.contentType == "movie":
-                context_commands.append((config.get_localized_string(60354), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60354), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
 
             elif item.contentSerieName:
                 # Descargar series
                 if item.contentType == "tvshow" and item.action not in ['findvideos']:
                     if item.channel == 'videolibrary':
-                        context_commands.append((config.get_localized_string(60003), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&unseen=true&from_channel=' + item.channel + '&from_action=' + item.action)))
-                    context_commands.append((config.get_localized_string(60355), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
-                    context_commands.append((config.get_localized_string(60357), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
+                        context_commands.append((config.get_localized_string(60003), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&unseen=true&from_channel=' + item.channel + '&from_action=' + item.action)))
+                    context_commands.append((config.get_localized_string(60355), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
+                    context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
                 # Download episode
                 elif item.contentType == "episode" or item.action in ['findvideos']:
-                    context_commands.append((config.get_localized_string(60356), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
+                    context_commands.append((config.get_localized_string(60356), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
                 # Download season
                 elif item.contentType == "season":
-                    context_commands.append((config.get_localized_string(60357), "XBMC.RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
+                    context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
 
         # Open settings...
         if item.action in ["findvideos", 'episodios', 'check', 'new_search'] or "buscar_trailer" in context:
-            context_commands.append((config.get_localized_string(60359), "XBMC.RunPlugin(%s?%s)" % (sys.argv[0], urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
+            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s)" % (sys.argv[0], urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         if kwargs.get('superfavourites'):
-            context_commands.append((config.get_localized_string(60361), "XBMC.RunScript(special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py)"))
+            context_commands.append((config.get_localized_string(60361), "RunScript(special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py)"))
 
     if config.dev_mode():
-        context_commands.insert(0, ("item info", "XBMC.Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
+        context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
     return context_commands
 
 
@@ -678,7 +673,7 @@ def show_recaptcha(key, referer):
 
 def alert_no_disponible_server(server):
     # 'The video is no longer in %s', 'Try another server or another channel'
-    dialog_ok(config.get_localized_string(30055), (config.get_localized_string(30057) % server), config.get_localized_string(30058))
+    dialog_ok(config.get_localized_string(30055), (config.get_localized_string(30057) % server) + '\n' + config.get_localized_string(30058))
 
 
 def alert_unsopported_server():
@@ -780,13 +775,13 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
         if not autoplay:
             if item.server != "":
                 if "<br/>" in motivo:
-                    ret = dialog_yesno(config.get_localized_string(60362), motivo.split("<br/>")[0], motivo.split("<br/>")[1], item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                    ret = dialog_yesno(config.get_localized_string(60362), motivo.split("<br/>")[0] + '\n' + motivo.split("<br/>")[1] + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
                 else:
-                    ret = dialog_yesno(config.get_localized_string(60362), motivo, item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                    ret = dialog_yesno(config.get_localized_string(60362), motivo + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
             else:
-                ret = dialog_yesno(config.get_localized_string(60362), config.get_localized_string(60363), config.get_localized_string(60364), item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                ret = dialog_yesno(config.get_localized_string(60362), config.get_localized_string(60363) + '\n' + config.get_localized_string(60364) + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
             if ret:
-                xbmc.executebuiltin("XBMC.Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl()))
+                xbmc.executebuiltin("Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl()))
             if item.channel == "favorites":
                 # "Remove from favorites"
                 opciones.append(config.get_localized_string(30154))
@@ -841,7 +836,7 @@ def set_opcion(item, seleccion, opciones, video_urls):
     # "Search Trailer":
     elif opciones[seleccion] == config.get_localized_string(30162):
         config.set_setting("subtitulo", False)
-        xbmc.executebuiltin("XBMC.RunPlugin(%s?%s)" % (sys.argv[0], item.clone(channel="trailertools", action="buscartrailer", contextual=True).tourl()))
+        xbmc.executebuiltin("RunPlugin(%s?%s)" % (sys.argv[0], item.clone(channel="trailertools", action="buscartrailer", contextual=True).tourl()))
         salir = True
 
     return salir
@@ -973,7 +968,7 @@ def play_torrent(item, xlistitem, mediaurl):
 
     torrent_options = torrent_client_installed(show_tuple=True)
     if len(torrent_options) == 0:
-        from specials import elementum_download
+        from platformcode import elementum_download
         elementum_download.download()
         return play_torrent(item, xlistitem, mediaurl)
     elif len(torrent_options) > 1:
@@ -1006,9 +1001,6 @@ def play_torrent(item, xlistitem, mediaurl):
             while is_playing() and not xbmc.abortRequested:
                 time.sleep(3)
 
-
-def log(texto):
-    xbmc.log(texto, xbmc.LOGNOTICE)
 
 def resume_playback(item, return_played_time=False):
     class ResumePlayback(xbmcgui.WindowXMLDialog):
@@ -1058,7 +1050,7 @@ def resume_playback(item, return_played_time=False):
         if return_played_time:
             return item_nfo.played_time
         # Show Window
-        elif (config.get_setting("player_mode") not in [3] or item.play_from == 'window') and item_nfo.played_time:
+        elif (config.get_setting("player_mode") not in [3] or item.play_from == 'window') and item_nfo.played_time and item_nfo.played_time >= 120:
             Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), item=item_nfo)
             Dialog.show()
             t = 0
@@ -1144,7 +1136,6 @@ def install_widevine():
 def download_widevine(version, platform, path):
     # for x86 architectures
     from zipfile import ZipFile
-    from xbmcaddon import Addon
     from core import downloadtools
     archiveName = 'https://dl.google.com/widevine-cdm/' + version + '-' + platform['os'] + '-' + platform['arch'] + '.zip'
     fileName = config.get_temp_file('widevine.zip')
@@ -1161,7 +1152,6 @@ def download_widevine(version, platform, path):
 def download_chromeos_image(devices, platform, path):
     # for arm architectures
     from core import downloadtools
-    from zipfile import ZipFile
     from core import jsontools
     best = best_chromeos_image(devices)
     archiveName = best['url']

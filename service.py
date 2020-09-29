@@ -48,8 +48,7 @@ def update(path, p_dialog, i, t, serie, overwrite):
         if channel_enabled:
 
             heading = config.get_localized_string(20000)
-            p_dialog.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (serie.contentSerieName,
-                                                                              serie.channel.capitalize()))
+            p_dialog.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (serie.contentSerieName, serie.channel.capitalize()))
             try:
                 pathchannels = filetools.join(config.get_runtime_path(), "channels", serie.channel + '.py')
                 logger.info("loading channel: " + pathchannels + " " +
@@ -319,7 +318,7 @@ class AddonMonitor(xbmc.Monitor):
         super(AddonMonitor, self).__init__()
 
     def onSettingsChanged(self):
-        logger.info('settings changed')
+        logger.debug('settings changed')
         settings_post = config.get_all_settings_addon()
         from platformcode import xbmc_videolibrary
 
@@ -332,12 +331,12 @@ class AddonMonitor(xbmc.Monitor):
         if self.settings_pre.get("videolibrarypath", None) != settings_post.get("videolibrarypath", None) or \
                 self.settings_pre.get("folder_movies", None) != settings_post.get("folder_movies", None) or \
                 self.settings_pre.get("folder_tvshows", None) != settings_post.get("folder_tvshows", None):
-            videolibrary.move_videolibrary(self.settings_pre.get("videolibrarypath", None),
-                                           settings_post.get("videolibrarypath", None),
-                                           self.settings_pre.get("folder_movies", None),
-                                           settings_post.get("folder_movies", None),
-                                           self.settings_pre.get("folder_tvshows", None),
-                                           settings_post.get("folder_tvshows", None))
+            videolibrary.move_videolibrary(self.settings_pre.get("videolibrarypath", ''),
+                                           settings_post.get("videolibrarypath", ''),
+                                           self.settings_pre.get("folder_movies", ''),
+                                           settings_post.get("folder_movies", ''),
+                                           self.settings_pre.get("folder_tvshows", ''),
+                                           settings_post.get("folder_tvshows", ''))
 
         # si se ha puesto que se quiere autoconfigurar y se había creado el directorio de la videoteca
         if not self.settings_pre.get("videolibrary_kodi", None) and settings_post.get("videolibrary_kodi", None):

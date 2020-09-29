@@ -33,7 +33,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log()
+    support.info()
 
     if item.args != 'newest':
         patronBlock = r'<ul class="posts">(?P<block>.*)<\/ul>'
@@ -94,21 +94,21 @@ def genres(item):
 
 
 def select(item):
-    support.log()
+    support.info()
     patron=r'class="taxonomy category" ><span property="name">([^>]+)</span></a><meta property="position" content="2">'
     block = support.match(item.url, patron=patron,headers=headers).match
     if block.lower() != 'film':
-        support.log('select = ### è una serie ###')
+        support.info('select = ### è una serie ###')
         item.contentType='tvshow'
         return episodios(item)
     else:
-        support.log('select = ### è un movie ###')
+        support.info('select = ### è un movie ###')
         item.contentType='movie'
         return findvideos(item)
 
 
 def search(item, texto):
-    support.log()
+    support.info()
     item.url = host + "/?s=" + texto
     item.contentType = 'episode'
     item.args = 'search'
@@ -118,12 +118,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("%s" % line)
+            support.info("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.log()
+    support.info()
     itemlist = []
     item = Item()
     try:
@@ -144,7 +144,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("{0}".format(line))
+            support.info("{0}".format(line))
         return []
 
     return itemlist

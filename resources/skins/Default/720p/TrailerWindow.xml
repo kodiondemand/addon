@@ -1,80 +1,115 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <window>
-    <allowoverlays>false</allowoverlays>
+    <depth>0.52</depth>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
     <controls>
-        <control type="image" id="10">
-            <posx>0</posx>
-            <posy>0</posy>
-            <width>1920</width>
-            <height>1080</height>
-            <texture>Infoplus/fondo.png</texture>
-            <visible>Player.HasVideo</visible>
-            <animation effect="slide" start="0,-2000" time="900">VisibleChange</animation>
+        <!-- CLOSE BUTTON / BACKGROUND -->
+        <control type="button">
+            <left>0</left>
+            <top>0</top>
+            <width>100%</width>
+            <height>100%</height>
+            <texturefocus colordiffuse="FF232323">white.png</texturefocus>
+            <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+            <animation effect="fade" time="200">WindowOpen</animation>
+            <animation effect="fade" time="200">WindowClose</animation>
+            <onclick>Action(close)</onclick>
         </control>
-        <control type="image" id="10">
-            <posx>420</posx>
-            <posy>90</posy>
-            <width>1100</width>
-            <height>600</height>
-            <texture>Infoplus/count.gif</texture>
-            <visible>Player.HasVideo</visible>
-            <animation effect="fade" start="0%" end="100%" time="2000" delay="800">VisibleChange</animation>
-            <animation effect="zoom" start="100%" end="0%" delay="1500" time="2" condition="Player.Playing">Conditional</animation>
-            <animation effect="zoom" start="100%" end="0%" time="2" condition="!Player.Playing">Conditional</animation>
-            
+        <!-- GROUP CONTROLS -->
+        <control type="group">
+            <left>0</left>
+            <top>0</top>
+            <animation type="WindowOpen" reversible="false">
+                <effect type="slide" start="0,100" end="0,0" delay="160" time="160" />
+                <effect type="fade" delay="160" end="100" time="100" />
+            </animation>
+            <animation type="WindowClose" reversible="false">
+                <effect type="slide" start="0,0" end="0,100" delay="160" time="160" />
+                <effect type="fade" delay="160" start="100" end="0" time="100" />
+            </animation>
+
+            <!-- BACKGROUND -->
+            <control type="image" id='30000'>
+                <width>1280</width>
+                <height>720</height>
+                <texture colordiffuse="FF888888"/>
+            </control>
+            <!-- COUNT -->
+            <control type="textbox" id='30001'>
+                <right>40</right>
+                <bottom>40</bottom>
+                <width>50</width>
+                <height>30</height>
+                <font>font30_title</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <shadowcolor>00000000</shadowcolor>
+                <label></label>
+                <align>right</align>
+                <aligny>center</aligny>
+            </control>
+
+            <!-- TRAILERS -->
+            <control type="wraplist" id="30500">
+                <top>-177</top>
+                <width>1280</width>
+                <height>897</height>
+                <viewtype>wrap</viewtype>
+                <orientation>vertical</orientation>
+                <focusposition>1</focusposition>
+                <scrolltime tween="sine" easing="out">300</scrolltime>
+                <itemlayout height="358" width="600">
+                    <!-- Poster -->
+                    <control type="image">
+                        <top>10</top>
+                        <left>0</left>
+                        <width>600</width>
+                        <height>338</height>
+                        <texture colordiffuse="FF888888">$INFO[ListItem.Property(thumbnail)]</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                </itemlayout>
+                <focusedlayout height="358" width="600">
+                    <!-- Title -->
+                    <control type="textbox">
+                        <left>640</left>
+                        <top>164</top>
+                        <width>600</width>
+                        <height>30</height>
+                        <font>font30_title</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>[B]$INFO[ListItem.Label][/B]</label>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                    </control>
+                    <!-- Poster -->
+                    <control type="image">
+                        <top>10</top>
+                        <left>0</left>
+                        <width>600</width>
+                        <height>338</height>
+                        <texture>$INFO[ListItem.Property(thumbnail)]</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                </focusedlayout>
+            </control>
+
+            <!-- <control type="button" id="30008">
+                <top>15</top>
+                <right>15</right>
+                <height>50</height>
+                <texturenofocus colordiffuse="AAFFFFFF">Infoplus/search.png</texturenofocus>
+                <texturefocus colordiffuse="FFFFFFFF">Infoplus/search.png</texturefocus>
+                <onup>30501</onup>
+                <ondown>30500</ondown>
+                <onleft>30007</onleft>
+                <onright>30007</onright>
+            </control> -->
+
         </control>
-        <control type="videowindow" id="2">
-            <posx>410</posx>
-            <posy>-13</posy>
-            <width>1110</width>
-            <height>805</height>
-            <visible>Player.HasVideo</visible>
-            <animation effect="fade" start="0%" end="100%" time="900" delay="1500">VisibleChange</animation>
-        </control>
-        <control type="image" id="10">
-            <posx>870</posx>
-            <posy>300</posy>
-            <width>200</width>
-            <height>200</height>
-            <texture>Infoplus/pause.png</texture>
-            <visible>Player.Paused</visible>
-            <animation effect="zoom" start="0" end="100" center="auto" time="500" >VisibleChange</animation>
-        </control>
-        <control type="image" id="10">
-            <posx>870</posx>
-            <posy>300</posy>
-            <width>200</width>
-            <height>200</height>
-            <texture>Infoplus/rewind.png</texture>
-            <visible>Player.Rewinding</visible>
-            <animation effect="zoom" start="0" end="100" center="auto" time="500">VisibleChange</animation>
-        </control>
-        <control type="image" id="10">
-            <posx>870</posx>
-            <posy>300</posy>
-            <width>200</width>
-            <height>200</height>
-            <texture>Infoplus/forward.png</texture>
-            <visible>Player.Forwarding</visible>
-            <animation effect="zoom" start="0" end="100" center="auto" time="500">VisibleChange</animation>
-        </control>
-        <control type="image" id="10">
-            <posx>870</posx>
-            <posy>300</posy>
-            <width>200</width>
-            <height>200</height>
-            <texture>Infoplus/play.png</texture>
-            <visible>Player.Play</visible>
-            <animation effect="zoom" start="0" end="100" center="auto" time="500">VisibleChange</animation>
-        </control>
-        <control type="button" id="4">
-            <posx>405</posx>
-            <posy>-20</posy>
-            <width>1130</width>
-            <height>850</height>
-            <visible>Player.HasVideo</visible>
-            <texturefocus></texturefocus>
-            <texturenofocus></texturenofocus>
-        </control>
+        <!-- GROUP CONTROLS END -->
     </controls>
 </window>

@@ -31,7 +31,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.log()
+    support.info()
 
 
     film = ['/ultimi-film-aggiunti/',
@@ -56,7 +56,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log()
+    support.info()
 
     blacklist = ['DMCA', 'Contatti', 'Attenzione NON FARTI OSCURARE', 'Lista Cartoni Animati e Anime']
     patronBlock = r'<h1>.+?</h1>(?P<block>.*?)<div class="footer_c">'
@@ -76,13 +76,13 @@ def peliculas(item):
         pagination = 35
 
         if not item.args and 'anime' not in item.url:
-            patron = r'<div class="movie">[^>]+>.+?src="(?P<thumb>[^"]+)" alt="[^"]+".+?href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[ ](?P<rating>\d+.\d+|\d+)<[^>]+>[^>]+><h2>(?P<title>[^"]+)</h2>[ ]?(?:<span class="year">(?P<year>\d+|\-\d+))?<'
+            patron = r'<div class="movie">[^>]+>.+?src="(?P<thumb>[^"]+)" alt="[^"]+".+? href="(?P<url>[^"]+)">.*?<h2>(?P<title>[^"]+)</h2>\s?(?:<span class="year">(?P<year>\d+|\-\d+))?<'
         else:
             anime = True
             patron = r'(?:<td>)?<a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>[^<]+)(?P<episode>[\d\-x]+)?(?P<title2>[^<]+)?<'
     else:
         # SEZIONE FILM
-        # pagination = 25
+        pagination = 25
 
         if item.args == 'lista':
             patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.*?)(?P<year>\d{4})?<'
@@ -105,7 +105,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.log()
+    support.info()
     action = 'findvideos'
     patronBlock = r'<table>(?P<block>.*?)<\/table>'
     patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<url>.*?)</td><tr>'
@@ -119,7 +119,7 @@ def episodios(item):
 
 
 def search(item, text):
-    support.log("CERCA :" ,text, item)
+    support.info("CERCA :" ,text, item)
 
     item.url = "%s/?s=%s" % (host, text)
 
@@ -130,11 +130,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("%s" % line)
+            support.info("%s" % line)
         return []
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
 
     itemlist = []
     item = Item()
@@ -153,13 +153,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("{0}".format(line))
+            support.info("{0}".format(line))
         return []
 
     return itemlist
 
 def findvideos(item):
-    support.log()
+    support.info()
     if item.contentType == 'movie':
         return support.server(item, headers=headers)
     else:
@@ -173,7 +173,7 @@ def findvideos(item):
             data = httptools.downloadpage(item.url, headers=headers).data
             data = re.sub('\n|\t', ' ', data)
             data = re.sub(r'>\s+<', '> <', data)
-            #support.log("DATA - HTML:\n", data)
+            #support.info("DATA - HTML:\n", data)
             url_video = scrapertools.find_single_match(data, r'<tr><td>(.+?)</td><tr>', -1)
             url_serie = scrapertools.find_single_match(data, r'<link rel="canonical" href="([^"]+)"\s?/>')
             goseries = support.typo("Vai alla Serie:", ' bold')

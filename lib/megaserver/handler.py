@@ -1,10 +1,12 @@
 import time, os, re, sys
 
 if sys.version_info[0] >= 3:
+    PY3 = True
     from http.server import BaseHTTPRequestHandler
     import urllib.request as urllib
     import urllib.parse as urlparse
 else:
+    PY3 = False
     from BaseHTTPServer import BaseHTTPRequestHandler
     import urlparse
     import urllib
@@ -61,15 +63,17 @@ class Handler(BaseHTTPRequestHandler):
             self.send_pls(self.server._client.files)
             return False
 
+        if PY3: filename = urllib.unquote(url)[1:]
+        else: filename = urllib.unquote(url)[1:].decode("utf-8")
 
         if not self.server._client.file or urllib.unquote(url)[1:] != self.server._client.file.name:
             for f in self.server._client.files:
-                if f.name == urllib.unquote(url)[1:].decode("utf-8"):
+                if f.name == filename:
                     self.server._client.file = f
                     break
 
 
-        if self.server._client.file and urllib.unquote(url)[1:].decode("utf-8") == self.server._client.file.name:
+        if self.server._client.file and filename == self.server._client.file.name:
             range = False
             self.offset = 0
             size, mime = self._file_info()

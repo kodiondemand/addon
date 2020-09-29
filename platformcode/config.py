@@ -76,7 +76,7 @@ def get_platform(full_version=False):
     code_db = {'10': 'MyVideos37.db', '11': 'MyVideos60.db', '12': 'MyVideos75.db',
                '13': 'MyVideos78.db', '14': 'MyVideos90.db', '15': 'MyVideos93.db',
                '16': 'MyVideos99.db', '17': 'MyVideos107.db', '18': 'MyVideos116.db', 
-               '19': 'MyVideos116.db'}
+               '19': 'MyVideos119.db'}
 
     num_version = xbmc.getInfoLabel('System.BuildVersion')
     num_version = re.match("\d+\.\d+", num_version).group(0)
@@ -134,9 +134,10 @@ def get_system_platform():
         platform = "osx"
     return platform
 
+
 def is_autorun_enabled():
     try:
-        if "xbmc.executebuiltin('XBMC.RunAddon(plugin.video.kod)')" in open(os.path.join(xbmc.translatePath('special://userdata'),'autoexec.py')).read():
+        if "xbmc.executebuiltin('RunAddon(plugin.video.kod)')" in open(os.path.join(xbmc.translatePath('special://userdata'),'autoexec.py')).read():
             return True
         else:
             return False
@@ -153,12 +154,12 @@ def enable_disable_autorun(is_enabled):
 
     if is_enabled is False:
         with open(path, append_write) as file: 
-            file.write("import xbmc\nxbmc.executebuiltin('XBMC.RunAddon(plugin.video.kod)')")
+            file.write("import xbmc\nxbmc.executebuiltin('RunAddon(plugin.video.kod)')")
         set_setting('autostart', 'On')
     else:
         file = open(path, "r")
         old_content = file.read() 
-        new_content = old_content.replace("xbmc.executebuiltin('XBMC.RunAddon(plugin.video.kod)')", "")
+        new_content = old_content.replace("xbmc.executebuiltin('RunAddon(plugin.video.kod)')", "")
         file.close()
         with open(path, "w") as file:
             file.write(new_content)

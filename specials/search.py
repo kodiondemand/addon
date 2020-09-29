@@ -39,6 +39,7 @@ def mainlist(item):
                 Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(70314), action='new_search', page=1, mode='person', thumbnail=get_thumb("search_star.png")),
                 Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=get_thumb('search.png')),
                 Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=get_thumb('search.png')),
+                Item(channel="tvmoviedb", title=config.get_localized_string(70274), action="mainlist", thumbnail=get_thumb("search.png")),
                 Item(channel=item.channel, title=typo(config.get_localized_string(59994), 'color kod bold'), action='setting_channel_new', thumbnail=get_thumb('setting_0.png')),
                 Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, thumbnail=get_thumb('setting_0.png'))]
 
@@ -58,8 +59,7 @@ def sub_menu(item):
                 Item(channel=item.channel, action='years_menu', title=config.get_localized_string(70743), mode='tvshow', thumbnail=get_thumb("tvshow_year.png")),
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70311), search_type='list', list_type='tv/popular', mode='tvshow', thumbnail=get_thumb("popular.png")),
                 Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70312), search_type='list', list_type='tv/on_the_air', mode='tvshow', thumbnail=get_thumb("tvshow_on_the_air.png")),
-                Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70313), search_type='list', list_type='tv/top_rated', mode='tvshow', thumbnail=get_thumb("tvshow_top.png")),
-                Item(channel="tvmoviedb", action="mainlist", title=config.get_localized_string(70274), thumbnail=get_thumb("search.png"))]
+                Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70313), search_type='list', list_type='tv/top_rated', mode='tvshow', thumbnail=get_thumb("tvshow_top.png")),]
 
     itemlist = set_context(itemlist)
     return itemlist
@@ -163,7 +163,7 @@ def new_search(item):
 
 
 def channel_search(item):
-    logger.info(item)
+    logger.debug(item)
 
     start = time.time()
     searching = list()
@@ -200,7 +200,7 @@ def channel_search(item):
     searching_titles += channel_titles
     cnt = 0
 
-    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list), ', '.join(searching_titles))
+    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list) + '\n' + ', '.join(searching_titles))
     config.set_setting('tmdb_active', False)
 
     search_action_list = []
@@ -248,12 +248,12 @@ def channel_search(item):
                 cnt += 1
                 searching_titles.remove(searching_titles[searching.index(channel)])
                 searching.remove(channel)
-                progress.update(old_div(((total_search_actions - len(search_action_list)) * 100), total_search_actions), config.get_localized_string(70744) % str(len(channel_list) - cnt), ', '.join(searching_titles))
+                progress.update(old_div(((total_search_actions - len(search_action_list)) * 100), total_search_actions), config.get_localized_string(70744) % str(len(channel_list) - cnt) + '\n' + ', '.join(searching_titles))
 
     progress.close()
 
     cnt = 0
-    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(60295), config.get_localized_string(60293))
+    progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(60295) + '\n' + config.get_localized_string(60293))
 
     config.set_setting('tmdb_active', True)
     # res_count = 0
@@ -558,7 +558,8 @@ def genres_menu(item):
         itemlist.append(Item(channel=item.channel, title=typo(value, 'bold'), page=1,
                              action='discover_list', discovery=discovery,
                              mode=item.mode))
-    channelselector.thumb(itemlist)
+    from core import support
+    support.thumb(itemlist)
     return sorted(itemlist, key=lambda it: it.title)
 
 

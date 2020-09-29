@@ -55,7 +55,7 @@ def menu(item):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
 
     item = support.Item()
     try:
@@ -71,15 +71,16 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
 def search(item, text):
-    support.log(item.url, "search", text)
-
+    logger.info(item, "search", text)
+    if item.contentType == 'tvshow': item.url = host + '/serietv/'
+    else: item.url = host
     try:
-        item.url = item.url + "/?s=" + text.replace(' ', '+')
+        item.url = item.url + "?s=" + text.replace(' ', '+')
         return peliculas(item)
 
     # Continua la ricerca in caso di errore
@@ -100,6 +101,7 @@ def peliculas(item):
     # debug= True
     if 'newest' in item.args:
         if '/serietv/' not in item.url:
+            # debug = True
             pagination = ''
             patronBlock = r'Ultimi 100 film [^:]+:(?P<block>.*?)<\/td>'
             patron = r'<a href="?(?P<url>[^">]+)"?>(?P<title>[^<([]+)(?:\[(?P<lang>Sub-ITA|B/N|SUB-ITA)\])?\s*(?:\[(?P<quality>HD|SD|HD/3D)\])?\s*\((?P<year>[0-9]{4})\)<\/a>'
@@ -127,7 +129,7 @@ def peliculas(item):
 def episodios(item):
     # support.dbg()
     data = support.match(item.url, headers=headers).data
-    support.log(data)
+    support.info(data)
     if 'TUTTA LA ' in data:
         folderUrl = scrapertools.find_single_match(data, r'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl).data
@@ -170,14 +172,14 @@ def findvideos(item):
 
     def load_links(itemlist, re_txt, desc_txt, quality=""):
         streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
-        support.log('STREAMING', streaming)
-        support.log('STREAMING=', streaming)
+        support.info('STREAMING', streaming)
+        support.info('STREAMING=', streaming)
         matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
         for scrapedurl, scrapedtitle in matches:
             logger.debug("##### findvideos %s ## %s ## %s ##" % (desc_txt, scrapedurl, scrapedtitle))
             itemlist.append(item.clone(action="play", title=scrapedtitle, url=scrapedurl, server=scrapedtitle, quality=quality))
 
-    support.log()
+    support.info()
 
     itemlist = []
 
@@ -210,7 +212,7 @@ def findvideos(item):
 
 def findvid_serie(item):
     def load_vid_series(html, item, itemlist, blktxt):
-        support.log('HTML',html)
+        support.info('HTML',html)
         # Estrae i contenuti
         matches = support.match(html, patron=r'<a href=(?:")?([^ "]+)[^>]+>(?!<!--)(.*?)(?:</a>|<img)').matches
         for url, server in matches:
@@ -218,7 +220,7 @@ def findvid_serie(item):
             if 'swzz' in item.url: item.url = support.swzz_get_url(item)
             itemlist.append(item)
 
-    support.log()
+    support.info()
 
     itemlist = []
 
@@ -238,5 +240,5 @@ def findvid_serie(item):
 
 
 def play(item):
-    support.log()
+    support.info()
     return servertools.find_video_items(item, data=item.url)

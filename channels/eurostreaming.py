@@ -17,7 +17,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.log()
+    support.info()
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
     mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
@@ -57,7 +57,7 @@ def episodios(item):
 
 
 def search(item, texto):
-    support.log()
+    support.info()
 
     item.url = "%s/?s=%s" % (host, texto)
     item.contentType = 'tvshow'
@@ -69,12 +69,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.log(line)
+            support.info(line)
         return []
 
 
 def newest(categoria):
-    support.log()
+    support.info()
 
     itemlist = []
     item = Item()
@@ -88,12 +88,12 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("{0}".format(line))
+            support.info("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    support.log()
+    support.info()
     return support.server(item, item.url)

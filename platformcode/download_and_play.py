@@ -41,7 +41,7 @@ def download_and_play(url, file_name, download_path):
         dialog.update(0)
 
         while not cancelled and download_thread.isAlive():
-            dialog.update(download_thread.get_progress(), config.get_localized_string(60313),
+            dialog.update(download_thread.get_progress(), config.get_localized_string(60313) + '\n' +
                           config.get_localized_string(60314) + str(int(old_div(download_thread.get_speed(), 1024))) + " KB/s " + str(
                               download_thread.get_actual_size()) + config.get_localized_string(60316) + str( download_thread.get_total_size()) + "MB",
                           config.get_localized_string(60202) % (str(downloadtools.sec_to_hms(download_thread.get_remaining_time()))))
@@ -286,7 +286,7 @@ class DownloadThread(threading.Thread):
                     logger.info("Force_stop file detected, download is interrupted")
                     f.close()
 
-                    xbmc.executebuiltin("XBMC.Notification(%s,%s,300)" % (config.get_localized_string(60319),config.get_localized_string(60320)))
+                    xbmc.executebuiltin("Notification(%s,%s,300)" % (config.get_localized_string(60319),config.get_localized_string(60320)))
 
                     return
 

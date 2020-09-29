@@ -1,0 +1,10 @@
+{
+    "id": "ilgeniodellostreaming_cam",
+    "name": "IlGenioDelloStreaming CAM",
+    "active": true,
+    "language": ["ita"],
+    "thumbnail": "ilgeniodellostreaming.png",
+    "banner": "ilgeniodellostreaming.png",
+    "categories": ["movie"],
+    "settings": []
+}

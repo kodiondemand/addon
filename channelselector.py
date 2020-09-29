@@ -2,73 +2,62 @@
 
 import glob, os
 
-from core import channeltools
 from core.item import Item
-from platformcode.unify import thumb_dict
-from platformcode import config, logger, unify
+from platformcode import config, logger
 addon = config.__settings__
 downloadenabled = addon.getSetting('downloadenabled')
+
 
 def getmainlist(view="thumb_"):
     logger.info()
     itemlist = list()
 
     if config.dev_mode():
-        itemlist.append(Item(title="Redirect", channel="checkhost", action="check_channels",
-                            thumbnail='',
-                            category=config.get_localized_string(30119), viewmode="thumbnails"))
+        itemlist.append(Item(title="Redirect", action="check_channels", thumbnail='',
+                             category=config.get_localized_string(30119), viewmode="thumbnails"))
     # Main Menu Channels
     if addon.getSetting('enable_news_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30130), channel="news", action="mainlist",
-                            thumbnail=get_thumb("news.png", view),
-                            category=config.get_localized_string(30119), viewmode="thumbnails",
-                            context=[{"title": config.get_localized_string(70285), "channel": "shortcuts", "action": "SettingOnPosition", "category":7, "setting":1}]))
+                             thumbnail=get_thumb("news.png", view), category=config.get_localized_string(30119), viewmode="thumbnails",
+                             context=[{"title": config.get_localized_string(70285), "channel": "shortcuts", "action": "SettingOnPosition", "category":7, "setting":1}]))
 
     if addon.getSetting('enable_channels_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30118), channel="channelselector", action="getchanneltypes",
-                            thumbnail=get_thumb("channels.png", view), view=view,
-                            category=config.get_localized_string(30119), viewmode="thumbnails"))
+                             thumbnail=get_thumb("channels.png", view), view=view, category=config.get_localized_string(30119), viewmode="thumbnails"))
 
     if addon.getSetting('enable_search_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
-                            thumbnail=get_thumb("search.png", view),
-                            category=config.get_localized_string(30119), viewmode="list",
-                            context = [{"title": config.get_localized_string(60412), "action": "setting_channel_new", "channel": "search"},
-                                                 {"title": config.get_localized_string(70286), "channel": "shortcuts", "action": "SettingOnPosition", "category":5 , "setting":1}]))
+                             thumbnail=get_thumb("search.png", view), category=config.get_localized_string(30119), viewmode="list",
+                             context = [{"title": config.get_localized_string(60412), "action": "setting_channel_new", "channel": "search"},
+                                       {"title": config.get_localized_string(70286), "channel": "shortcuts", "action": "SettingOnPosition", "category":5 , "setting":1}]))
 
     if addon.getSetting('enable_onair_menu') == "true":
         itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
-                            thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails"))
+                             thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails"))
 
     if addon.getSetting('enable_link_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
-                            thumbnail=get_thumb("mylink.png", view), view=view,
-                            category=config.get_localized_string(70527), viewmode="thumbnails"))
+        itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist", thumbnail=get_thumb("mylink.png", view),
+                             view=view, category=config.get_localized_string(70527), viewmode="thumbnails"))
 
     if addon.getSetting('enable_fav_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30102), channel="favorites", action="mainlist",
-                            thumbnail=get_thumb("favorites.png", view),
-                            category=config.get_localized_string(30102), viewmode="thumbnails"))
+                            thumbnail=get_thumb("favorites.png", view), category=config.get_localized_string(30102), viewmode="thumbnails"))
 
     if config.get_videolibrary_support() and addon.getSetting('enable_library_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30131), channel="videolibrary", action="mainlist",
-                             thumbnail=get_thumb("videolibrary.png", view),
-                             category=config.get_localized_string(30119), viewmode="thumbnails",
+                             thumbnail=get_thumb("videolibrary.png", view), category=config.get_localized_string(30119), viewmode="thumbnails",
                              context=[{"title": config.get_localized_string(70287), "channel": "shortcuts", "action": "SettingOnPosition", "category":2, "setting":1},
-                                                {"title": config.get_localized_string(60568), "channel": "videolibrary", "action": "update_videolibrary"}]))
+                                      {"title": config.get_localized_string(60568), "channel": "videolibrary", "action": "update_videolibrary"}]))
     if downloadenabled != "false":
-        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist",
-                            thumbnail=get_thumb("downloads.png", view), viewmode="list",
-                            context=[{"title": config.get_localized_string(70288), "channel": "shortcuts", "action": "SettingOnPosition", "category":6}]))
+        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist", thumbnail=get_thumb("downloads.png", view), viewmode="list",
+                             context=[{"title": config.get_localized_string(70288), "channel": "shortcuts", "action": "SettingOnPosition", "category":6}]))
 
     thumb_setting = "setting_%s.png" % 0  # config.get_setting("plugin_updates_available")
 
     itemlist.append(Item(title=config.get_localized_string(30100), channel="setting", action="settings",
-                         thumbnail=get_thumb(thumb_setting, view),
-                         category=config.get_localized_string(30100), viewmode="list"))
+                         thumbnail=get_thumb(thumb_setting, view), category=config.get_localized_string(30100), viewmode="list"))
     itemlist.append(Item(title=config.get_localized_string(30104) + " (v" + config.get_addon_version(with_fix=True) + ")", channel="help", action="mainlist",
-                         thumbnail=get_thumb("help.png", view),
-                         category=config.get_localized_string(30104), viewmode="list"))
+                         thumbnail=get_thumb("help.png", view), category=config.get_localized_string(30104), viewmode="list"))
     return itemlist
 
 
@@ -102,6 +91,7 @@ def getchanneltypes(view="thumb_"):
 
 
 def filterchannels(category, view="thumb_"):
+    from core import channeltools
     logger.info('Filter Channels ' + category)
 
     channelslist = []
@@ -123,7 +113,7 @@ def filterchannels(category, view="thumb_"):
     logger.info("channel_language=%s" % channel_language)
 
     for channel_path in channel_files:
-        logger.info("channel in for = %s" % channel_path)
+        logger.debug("channel in for = %s" % channel_path)
 
         channel = os.path.basename(channel_path).replace(".json", "")
 
@@ -136,7 +126,7 @@ def filterchannels(category, view="thumb_"):
             # If it's not a channel we skip it
             if not channel_parameters["channel"]:
                 continue
-            logger.info("channel_parameters=%s" % repr(channel_parameters))
+            logger.debug("channel_parameters=%s" % repr(channel_parameters))
 
             # If you prefer the banner and the channel has it, now change your mind
             if view == "banner_" and "banner" in channel_parameters:
@@ -275,110 +265,3 @@ def auto_filter(auto_lang=False):
         lang = 'all'
 
     return lang
-
-
-def thumb(item_or_itemlist=None, genre=False, live=False, thumb=''):
-    if live:
-        if type(item_or_itemlist) == list:
-            for item in item_or_itemlist:
-                item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
-        else:
-            item_or_itemlist.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
-        return item_or_itemlist
-
-    import re
-    icon_dict = {'movie':['film', 'movie'],
-                 'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
-                 'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                 'teenager':['ragazzi','teenager', 'teen'],
-                 'learning':['learning'],
-                 'all':['tutti', 'all'],
-                 'news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi'],
-                 'now_playing':['cinema', 'in sala'],
-                 'anime':['anime'],
-                 'genres':['genere', 'generi', 'categorie', 'categoria', 'category'],
-                 'animation': ['animazione', 'cartoni', 'cartoon', 'animation'],
-                 'action':['azione', 'arti marziali', 'action'],
-                 'adventure': ['avventura', 'adventure'],
-                 'biographical':['biografico', 'biographical'],
-                 'comedy':['comico', 'commedia', 'demenziale', 'comedy', 'brillante'],
-                 'adult':['erotico', 'hentai', 'harem', 'ecchi', 'adult'],
-                 'drama':['drammatico', 'drama', 'dramma'],
-                 'syfy':['fantascienza', 'science fiction', 'syfy', 'sci'],
-                 'fantasy':['fantasy', 'magia', 'magic', 'fantastico'],
-                 'crime':['gangster','poliziesco', 'crime', 'crimine'],
-                 'grotesque':['grottesco', 'grotesque'],
-                 'war':['guerra', 'war'],
-                 'children':['bambini', 'kids'],
-                 'horror':['horror'],
-                 'music':['musical', 'musica', 'music', 'musicale'],
-                 'mistery':['mistero', 'giallo', 'mystery'],
-                 'noir':['noir'],
-                 'popular' : ['popolari','popolare', 'più visti'],
-                 'thriller':['thriller'],
-                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
-                 'on_the_air' : ['corso', 'onda', 'diretta', 'dirette'],
-                 'western':['western'],
-                 'vos':['sub','sub-ita'],
-                 'romance':['romantico','sentimentale', 'romance', 'soap'],
-                 'family':['famiglia','famiglie', 'family', 'historical'],
-                 'historical':['storico', 'history', 'storia'],
-                 'az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
-                 'year':['anno', 'anni', 'year'],
-                 'update':['replay', 'update'],
-                 'videolibrary':['teche'],
-                 'autoplay':[config.get_localized_string(60071)]
-                }
-
-    suffix_dict = {'_hd':['hd','altadefinizione','alta definizione'],
-                '_4k':['4K'],
-                '_az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
-                '_year':['anno', 'anni', 'year'],
-                '_genre':['genere', 'generi', 'categorie', 'categoria']}
-
-    search = ['cerca', 'search']
-
-    search_suffix ={'_movie':['film', 'movie'],
-                    '_tvshow':['serie','tv', 'fiction']}
-
-    def autoselect_thumb(item, genre):
-        if genre == False:
-            for thumb, titles in icon_dict.items():
-                if any( word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in search):
-                    thumb = 'search'
-                    for suffix, titles in search_suffix.items():
-                        if any( word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
-                            thumb = thumb + suffix
-                    item.thumbnail = get_thumb(thumb + '.png')
-                elif any( word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
-                    if thumb == 'movie' or thumb == 'tvshow':
-                        for suffix, titles in suffix_dict.items():
-                            if any( word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
-                                thumb = thumb + suffix
-                        item.thumbnail = get_thumb(thumb + '.png')
-                    else: item.thumbnail = get_thumb(thumb + '.png')
-                else:
-                    thumb = item.thumbnail
-
-        else:
-            for thumb, titles in icon_dict.items():
-                if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
-                    item.thumbnail = get_thumb(thumb + '.png')
-                else:
-                    thumb = item.thumbnail
-
-        item.title = re.sub(r'\s*\{[^\}]+\}','',item.title)
-        return item
-    if item_or_itemlist:
-        if type(item_or_itemlist) == list:
-            for item in item_or_itemlist:
-                autoselect_thumb(item, genre)
-            return item_or_itemlist
-
-        else:
-            return autoselect_thumb(item_or_itemlist, genre)
-
-    elif thumb:
-        return get_thumb(thumb)
-    else:
-        return get_thumb('next.png')

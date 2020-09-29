@@ -6,13 +6,17 @@
 # Used to obtain series data for the video library
 # ------------------------------------------------------------
 
+import sys
+if sys.version_info[0] >= 3: PY3 = True
+else: PY3 = False
+
 from future import standard_library
 standard_library.install_aliases()
 from future.builtins import object
 
 import urllib.request, urllib.error, urllib.parse
 
-import re
+import re, requests
 
 from core import jsontools
 from core import scrapertools
@@ -100,12 +104,12 @@ def find_and_set_infoLabels(item):
         otvdb_global = Tvdb(tvdb_id=item.infoLabels['tvdb_id'])
 
     if not item.contentSeason:
-        p_dialog.update(50, config.get_localized_string(60296), config.get_localized_string(60295))
+        p_dialog.update(50, config.get_localized_string(60296) + '\n' + config.get_localized_string(60295))
     results, info_load = otvdb_global.get_list_results()
     logger.debug("results: %s" % results)
 
     if not item.contentSeason:
-        p_dialog.update(100, config.get_localized_string(60296), config.get_localized_string(60297) % len(results))
+        p_dialog.update(100, config.get_localized_string(60296) + '\n' + config.get_localized_string(60297) % len(results))
         p_dialog.close()
 
     if len(results) > 1:
@@ -335,7 +339,7 @@ class Tvdb(object):
         self.list_results = []
         self.lang = ""
         self.search_name = kwargs['search'] = \
-            re.sub('\[\\\?(B|I|COLOR)\s?[^\]]*\]', '', kwargs.get('search', ''))
+            re.sub(r'\[\\\?(B|I|COLOR)\s?[^\]]*\]', '', kwargs.get('search', ''))
         self.list_episodes = {}
         self.episodes = {}
 
@@ -390,9 +394,11 @@ class Tvdb(object):
 
         url = HOST + "/login"
         params = {"apikey": apikey}
+        if PY3: params = jsontools.dump(params).encode()
+        else: params = jsontools.dump(params)
 
         try:
-            req = urllib.request.Request(url, data=jsontools.dump(params), headers=DEFAULT_HEADERS)
+            req = urllib.request.Request(url, data=params, headers=DEFAULT_HEADERS)
             response = urllib.request.urlopen(req)
             html = response.read()
             response.close()
@@ -743,6 +749,7 @@ class Tvdb(object):
             req = urllib.request.Request(url, headers=DEFAULT_HEADERS)
             response = urllib.request.urlopen(req)
             html = response.read()
+            logger.info(html)
             response.close()
 
         except Exception as ex:
@@ -836,7 +843,7 @@ class Tvdb(object):
 
         except Exception as ex:
             # if isinstance(ex, urllib).HTTPError:
-            logger.debug("code %s " % ex.code)
+            logger.debug("code %s " % ex)
 
             message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
             logger.error("error: %s" % message)
@@ -1021,102 +1028,46 @@ class Tvdb(object):
         if not origen:
             origen = self.result
 
-        # todo revisar
-        # if 'credits' in origen.keys():
-        #     dic_origen_credits = origen['credits']
-        #     origen['credits_cast'] = dic_origen_credits.get('cast', [])
-        #     origen['credits_crew'] = dic_origen_credits.get('crew', [])
-        #     del origen['credits']
-
-        items = list(origen.items())
-
-        for k, v in items:
-            if not v:
-                continue
-
-            if k == 'overview':
-                ret_infoLabels['plot'] = v
-
-            elif k == 'runtime':
-                ret_infoLabels['duration'] = int(v) * 60
-
-            elif k == 'firstAired':
-                ret_infoLabels['year'] = int(v[:4])
-                ret_infoLabels['premiered'] = v.split("-")[2] + "/" + v.split("-")[1] + "/" + v.split("-")[0]
-
-            # todo revisar
-            # elif k == 'original_title' or k == 'original_name':
-            #     ret_infoLabels['originaltitle'] = v
-
-            elif k == 'siteRating':
-                ret_infoLabels['rating'] = float(v)
-
-            elif k == 'siteRatingCount':
-                ret_infoLabels['votes'] = v
-
-            elif k == 'status':
-                # se traduce los estados de una serie
-                ret_infoLabels['status'] = v
-
-            # I am not in favor of putting the chain as a studio but it is how the scraper does it in a generic way
-            elif k == 'network':
-                ret_infoLabels['studio'] = v
-
-            elif k == 'image_poster':
-                # obtenemos la primera imagen de la lista
-                ret_infoLabels['thumbnail'] = HOST_IMAGE + v[0]['fileName']
-
-            elif k == 'image_fanart':
-                # obtenemos la primera imagen de la lista
-                ret_infoLabels['fanart'] = HOST_IMAGE + v[0]['fileName']
-
-            # # no disponemos de la imagen de fondo
-            # elif k == 'banner':
-            #     ret_infoLabels['fanart'] = HOST_IMAGE + v
-
-            elif k == 'id':
-                ret_infoLabels['tvdb_id'] = v
-
-            elif k == 'imdbId':
-                ret_infoLabels['imdb_id'] = v
-                # no se muestra
-                # ret_infoLabels['code'] = v
-
-            elif k in "rating":
-                # we translate the age rating (content rating system)
-                ret_infoLabels['mpaa'] = v
-
-            elif k in "genre":
+        ret_infoLabels['title'] = origen['seriesName']
+        ret_infoLabels['tvdb_id'] = origen['id']
+        thumbs = requests.get(HOST + '/series/' + str(origen['id']) + '/images/query?keyType=poster').json()
+        if 'data' in thumbs:
+            ret_infoLabels['thumbnail'] = HOST_IMAGE + thumbs['data'][0]['fileName']
+        elif 'poster' in origen and origen['poster']:
+            ret_infoLabels['thumbnail'] = origen['poster']
+        fanarts = requests.get(HOST + '/series/' + str(origen['id']) + '/images/query?keyType=fanart').json()
+        if 'data' in fanarts:
+            ret_infoLabels['fanart'] = HOST_IMAGE + fanarts['data'][0]['fileName']
+        elif 'fanart' in origen and origen['fanart']:
+            ret_infoLabels['thumbnail'] = origen['fanart']
+        if 'overview' in origen and origen['overview']:
+            ret_infoLabels['plot'] = origen['overview']
+        if 'duration' in origen and origen['duration']:
+            ret_infoLabels['duration'] = int(origen['duration']) * 60
+        if 'firstAired' in origen and origen['firstAired']:
+            ret_infoLabels['year'] = int(origen['firstAired'][:4])
+            ret_infoLabels['premiered'] = origen['firstAired'].split("-")[2] + "/" + origen['firstAired'].split("-")[1] + "/" + origen['firstAired'].split("-")[0]
+        if 'siteRating' in origen and origen['siteRating']:
+            ret_infoLabels['rating'] = float(origen['siteRating'])
+        if 'siteRatingCount' in origen and origen['siteRatingCount']:
+            ret_infoLabels['votes'] = origen['siteRatingCount']
+        if 'status' in origen and origen['status']:
+            ret_infoLabels['status'] = origen['status']
+        if 'network' in origen and origen['network']:
+            ret_infoLabels['studio'] = origen['network']
+        if 'imdbId' in origen and origen['rating']:
+            ret_infoLabels['imdb_id'] = origen['imdbId']
+        if 'rating' in origen and origen['rating']:
+            ret_infoLabels['mpaa'] = origen['rating']
+        if 'genre' in origen and origen['genre']:
+            for genre in origen['genre']:
                 genre_list = ""
-                for index, i in enumerate(v):
-                    if index > 0:
-                        genre_list += ", "
-
-                    # traducimos los generos
-                    genre_list += i
-
-                ret_infoLabels['genre'] = genre_list
-
-            elif k == 'seriesName':  # or k == 'name' or k == 'title':
-                # if len(origen.get('aliases', [])) > 0:
-                #     ret_infoLabels['title'] = v + " " + origen.get('aliases', [''])[0]
-                # else:
-                #     ret_infoLabels['title'] = v
-                # logger.info("el titulo es %s " % ret_infoLabels['title'])
-                ret_infoLabels['title'] = v
-
-            elif k == 'cast':
-                dic_aux = dict((name, character) for (name, character) in l_castandrole)
-                l_castandrole.extend([(p['name'], p['role']) for p in v if p['name'] not in list(dic_aux.keys())])
-
-            else:
-                logger.debug("Attributes not added: %s=%s" % (k, v))
-                pass
-
-        # Sort the lists and convert them to str if necessary
-        if l_castandrole:
+                genre_list += genre + ', '
+                ret_infoLabels['genre'] = genre_list.rstrip(', ')
+        if 'cast' in origen and origen['cast']:
+            dic_aux = dict((name, character) for (name, character) in l_castandrole)
+            l_castandrole.extend([(p['name'], p['role']) for p in origen['cast'] if p['name'] not in list(dic_aux.keys())])
             ret_infoLabels['castandrole'] = l_castandrole
 
-        logger.debug("ret_infoLabels %s" % ret_infoLabels)
 
         return ret_infoLabels

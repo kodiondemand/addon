@@ -37,8 +37,7 @@ def readLastMessage(mail):
 
 
 def waitForMail(mail, timeout=50):
-    dialog = platformtools.dialog_progress(config.get_localized_string(20000),
-                                           'verifica tramite mail richiesta dal sito, sono in attesa di nuove mail sulla casella ' + mail)
+    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'verifica tramite mail richiesta dal sito, sono in attesa di nuove mail sulla casella ' + mail)
     secs = 0
     while secs < timeout:
         msg = readLastMessage(mail)

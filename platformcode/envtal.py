@@ -25,7 +25,7 @@ from platformcode import logger, config, platformtools
 def get_environment():
     """
     Returns the most common OS, Kodi and Alpha environment variables,
-    necessary for fault diagnosis
+    necessary for fault diagnosis
     """
 
     try:
@@ -341,9 +341,6 @@ def list_env(environment={}):
     if not environment:
         environment = get_environment()
 
-    if environment['debug'] == 'False':
-        logger.log_enable(True)
-
     logger.info(sep)
     logger.info('KoD environment variables: ' + environment['addon_version'] + ' Debug: ' + environment['debug'])
     logger.info(sep)
@@ -398,9 +395,6 @@ def list_env(environment={}):
 
     logger.info('LOG Size: ' + environment['log_size'].replace('.', ',') + ' MB')
     logger.info(sep)
-
-    if environment['debug'] == 'False':
-        logger.log_enable(False)
 
     return environment
 

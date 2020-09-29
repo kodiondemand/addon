@@ -25,7 +25,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.log()
+    support.info()
 
     tvshow = ['/category/serie-tv/',
         ('Aggiornamenti', ['/ultimi-episodi/', 'peliculas', 'update']),
@@ -37,7 +37,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log()
+    support.info()
 
     action = 'episodios'
     patron = r'<div class="post-thumb">\s*<a href="(?P<url>[^"]+)" '\
@@ -54,7 +54,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.log()
+    support.info()
 
     patronBlock = r'</i> Stagione (?P<block>(?P<season>\d+)</div> '\
                   '<div class="su-spoiler-content".*?)<div class="clearfix">'
@@ -70,7 +70,7 @@ def episodios(item):
 
 @support.scrape
 def category(item):
-    support.log()
+    support.info()
 
     action = 'peliculas'
     patron = r'<li class="cat-item.*?href="(?P<url>[^"]+)".*?>(?P<title>.*?)</a>'
@@ -79,7 +79,7 @@ def category(item):
 
 
 def search(item, texto):
-    support.log("s=", texto)
+    support.info("s=", texto)
     item.url = host + "/?s=" + texto
     item.contentType = 'tvshow'
     try:
@@ -88,12 +88,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("%s" % line)
+            support.info("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.log("newest", categoria)
+    support.info("newest", categoria)
     itemlist = []
     item = Item()
     try:
@@ -111,14 +111,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log("{0}".format(line))
+            support.info("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    support.log()
+    support.info()
 
     if item.args == 'update':
         itemlist = []

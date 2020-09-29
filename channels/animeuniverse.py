@@ -33,7 +33,7 @@ def menu(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
     item.search = texto
     try:
         return peliculas(item)
@@ -46,7 +46,7 @@ def search(item, texto):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     item = support.Item()
     try:
         if categoria == "anime":

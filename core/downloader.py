@@ -113,7 +113,7 @@ class Downloader(object):
                 line2 = config.get_localized_string(59983) % ( self.downloaded[1], self.downloaded[2], self.size[1], self.size[2], self.speed[1], self.speed[2], self.connections[0], self.connections[1])
                 line3 = config.get_localized_string(60202) % (self.remaining_time)
 
-                progreso.update(int(self.progress), line1, line2 + " " + line3)
+                progreso.update(int(self.progress), line1 + '\n' + line2 + " " + line3)
                 self.__update_json()
         finally:
             progreso.close()

@@ -41,7 +41,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.log()
+    support.info()
 
     if item.args == 'search':
         action = ''
@@ -88,7 +88,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.log()
+    support.info()
 
     action = 'findvideos'
     patronBlock = r'<div class="row">(?P<block>.*?)<section class="main-content">'
@@ -98,7 +98,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    support.log()
+    support.info()
 
     if item.contentType == 'movie':
         action = 'peliculas'
@@ -115,7 +115,7 @@ def genres(item):
 
 
 def search(item, text):
-    support.log('search', item)
+    support.info('search', item)
 
     text = text.replace(' ', '+')
     item.url = host + '/search/?s=' + text
@@ -126,11 +126,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.log('search log:', line)
+            support.info('search log:', line)
         return []
 
 def newest(categoria):
-    support.log('newest ->', categoria)
+    support.info('newest ->', categoria)
     itemlist = []
     item = Item()
     try:
@@ -146,11 +146,11 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.log({0}.format(line))
+            support.info({0}.format(line))
         return []
 
     return itemlist
 
 def findvideos(item):
-    support.log()
+    support.info()
     return support.server(item)

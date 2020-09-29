@@ -35,12 +35,12 @@ def menu(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
     item.url = host + "/?s=" + texto
     return peliculas(item)
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -80,7 +80,7 @@ def check(item):
 
 @support.scrape
 def episodios(item):
-    support.log('EPISODIOS ', item.data)
+    support.info('EPISODIOS ', item.data)
     data = ''
     matches = item.data
     season = 1

@@ -22,19 +22,19 @@ def mainlist(item):
     action = 'radio'
     patron = r'text="(?P<title>[^"]+)" URL="(?P<url>[^"]+)"'
     def itemHook(item):
-        item.thumbnail = support.thumb(thumb='music.png')
+        item.thumbnail = support.thumb('music')
         item.contentType = 'music'
         return item
     def itemlistHook(itemlist):
         itemlist.append(
-            item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb(thumb='search.png')))
+            item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb('search')))
         support.channel_config(item, itemlist)
         return itemlist
     return locals()
 
 
 def radio(item):
-    support.log()
+    support.info()
     itemlist = []
     data = support.match(item, patron= r'text="(?P<title>[^\("]+)(?:\((?P<location>[^\)]+)\))?" URL="(?P<url>[^"]+)" bitrate="(?P<quality>[^"]+)" reliability="[^"]+" guide_id="[^"]+" subtext="(?P<song>[^"]+)" genre_id="[^"]+" formats="(?P<type>[^"]+)" (?:playing="[^"]+" )?(?:playing_image="[^"]+" )?(?:show_id="[^"]+" )?(?:item="[^"]+" )?image="(?P<thumb>[^"]+)"')
     if data.matches:
@@ -85,7 +85,7 @@ def findvideos(item):
 
 
 def search(item, text):
-    support.log(text)
+    support.info(text)
     item.url = host + '/Search.ashx?query=' +text
     try:
         return radio(item)

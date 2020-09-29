@@ -36,7 +36,7 @@ def submenu(item):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -55,7 +55,7 @@ def newest(categoria):
     return itemlist
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
     item.args = 'noorder'
     item.url = host + '/?s=' + texto + '&cat=6010'
     item.contentType = 'tvshow'
@@ -114,7 +114,7 @@ def episodios(item):
     else:
         patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)"\s*class="btn btn-dark mb-1">'
     def itemHook(item):
-        support.log(item)
+        support.info(item)
         if item.url.startswith('//'): item.url= 'https:' + item.url
         elif item.url.startswith('/'): item.url= 'https:/' + item.url
         return item
@@ -123,7 +123,7 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.log(item)
+    support.info(item)
     itemlist = []
 
     if 'adf.ly' in item.url:

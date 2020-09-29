@@ -27,7 +27,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    support.log(texto)
+    support.info(texto)
     item.args='search'
     item.contentType='tvshow'
     item.url = host + '/?s=' + texto
@@ -42,7 +42,7 @@ def search(item, texto):
 
 
 def newest(categoria):
-    support.log(categoria)
+    support.info(categoria)
     item = support.Item()
     try:
         item.contentType = 'tvshow'
@@ -86,7 +86,7 @@ def peliculas(item):
         patron = r'<li ><a href="(?P<url>[^"]+)" title="[^>]+">(?P<title>[^<|\(]+)?(?:\([^\d]*(?P<year>\d+)\))?[^<]*</a>'
 
     def itemHook(item):
-        support.log(item.title)
+        support.info(item.title)
         item.title = support.re.sub(' (?:- )?[Ss]erie [Tt][Vv]', '', item.title)
         if item.args == 'sub':
             #corregge l'esatta lang per quelle pagine in cui c'è

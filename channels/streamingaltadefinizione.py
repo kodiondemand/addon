@@ -32,7 +32,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.log("[streamingaltadefinizione.py] " + item.url + " search " + text)
+    support.info("[streamingaltadefinizione.py] " + item.url + " search " + text)
     item.url = item.url + "/?s=" + text
     try:
         return support.dooplay_search(item)
