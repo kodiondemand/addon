@@ -945,6 +945,17 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
         from platformcode import xbmc_videolibrary
         xbmc_videolibrary.mark_auto_as_watched(item, nfo_path, head_nfo, item_nfo)
 
+    if 'paramount' in item.title.lower():
+        # from core.support import dbg;dbg()
+        from time import time, sleep
+        start_time = time()
+        while not is_playing() or (time() - start_time) > 5:
+            continue
+        while is_playing and xbmcgui.getCurrentWindowId() != 12006:
+            continue
+        xbmcgui.Window(12006).show()
+        xbmcgui.Window(12005).show()
+
 
 def torrent_client_installed(show_tuple=False):
     # External plugins found in servers / torrent.json node clients
