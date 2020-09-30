@@ -63,7 +63,7 @@ def show_channels(item):
 
         itemlist.append(Item(channel=item.channel,
                              title=support.typo(channel['channel_name'],'bold'),
-                             url=channel['url'],
+                             url=channel['url'] if 'url' in channel else path,
                              thumbnail=thumbnail,
                              fanart=fanart,
                              plot=plot,
