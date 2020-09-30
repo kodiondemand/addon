@@ -1775,7 +1775,7 @@ def imagenes(item):
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
                                                  title=title, infoLabels=item.infoLabels))
                 else:
-                    imagesWindow = infoplus.images(tmdb=value).doModal()
+                    imagesWindow = infoplus.ImagesWindow(tmdb=value).doModal()
 
             elif key == "fanart.tv":
                 if item.folder:
@@ -1787,7 +1787,7 @@ def imagenes(item):
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
                                                  title=title, infoLabels=item.infoLabels))
                 else:
-                    imagesWindow = infoplus.images(fanartv=value).doModal()
+                    imagesWindow = infoplus.ImagesWindow(fanartv=value).doModal()
 
             # elif key == "filmaffinity" and "Filmaffinity" in item.title:
             #     if item.folder:
@@ -1808,7 +1808,7 @@ def imagenes(item):
                             Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart, title=title,
                                   infoLabels=item.infoLabels))
                 else:
-                    imagesWindow = infoplus.images(imdb=value).doModal()
+                    imagesWindow = infoplus.ImagesWindow(imdb=value).doModal()
 
             elif key == "myanimelist" and "MyAnimeList" in item.title:
                 if item.folder:
@@ -1817,7 +1817,7 @@ def imagenes(item):
                             Item(channel=item.channel, action="", thumbnail=imagen, fanart=imagen, title=title,
                                   infoLabels=item.infoLabels))
                 else:
-                    imagesWindow = infoplus.images(mal=value).doModal()
+                    imagesWindow = infoplus.ImagesWindow(mal=value).doModal()
 
     return itemlist
 

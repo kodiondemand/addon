@@ -32,6 +32,7 @@ NEXT = 30009
 PREVIOUS = 30010
 LOADING = 30011
 COMMANDS = 30012
+IMAGES = 30013
 RECOMANDED = TRAILERS = 30500
 ACTORS = 30501
 CAST = 30502
@@ -67,6 +68,7 @@ class MainWindow(xbmcgui.WindowXMLDialog):
         self.cast = []
         self.actors = []
         self.ids = {}
+        self.tmdb = []
 
     def onInit(self):
         #### Compatibility with Kodi 18 ####
@@ -91,9 +93,9 @@ class MainWindow(xbmcgui.WindowXMLDialog):
 
     def onClick(self, control_id):
         setFocus(self)
+        title = self.getControl(RECOMANDED).getSelectedItem().getProperty('title')
+        mode = self.getControl(RECOMANDED).getSelectedItem().getProperty('mediatype')
         if control_id in [SEARCH]:
-            title = self.getControl(RECOMANDED).getSelectedItem().getProperty('title')
-            mode = self.getControl(RECOMANDED).getSelectedItem().getProperty('mediatype')
             self.close()
             if self.getControl(RECOMANDED).getSelectedPosition() > 0:
                 Search(ITEM.clone(action='search', search_text=title))
@@ -103,6 +105,12 @@ class MainWindow(xbmcgui.WindowXMLDialog):
             info = self.getControl(RECOMANDED).getSelectedItem()
             self.close()
             Trailer(info)
+        elif control_id in [IMAGES]:
+            info = self.getControl(RECOMANDED).getSelectedItem()
+            images = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), tipo='movie' if mode == 'movie' else 'tv').result.get("images", {})
+            for key, value in list(images.items()):
+                if not value: images.pop(key)
+            ImagesWindow(tmdb = images).doModal()
         elif control_id in [ACTORS, CAST]:
             self.close()
             Main(self.getControl(self.getFocusId()).getSelectedItem())
@@ -346,7 +354,7 @@ class TrailerWindow(xbmcgui.WindowXMLDialog):
         elif action in [EXIT]:
             self.close()
 
-class images(xbmcgui.WindowDialog):
+class ImagesWindow(xbmcgui.WindowDialog):
     def __init__(self, *args, **kwargs):
         self.tmdb = kwargs.get("tmdb", {})
         self.imdb = kwargs.get("imdb", {})
@@ -371,47 +379,61 @@ class images(xbmcgui.WindowDialog):
         self.main_image = xbmcgui.ControlImage(0, 0, 1280, 720, main_image, 2)
         self.addControl(self.main_image)
 
+        if self.image_list:
+            self.counter = xbmcgui.ControlTextBox(1180, 640, 60, 40, 'font30_title')
+            self.addControl(self.counter)
+            self.counter.setText('%s/%s' % (1,len(self.image_list)))
+        else:
+            self.text = xbmcgui.ControlLabel(0, 0, 1280, 720, 'NESSUNA IMMAGINE', 'font30_title', alignment=2|4)
+            self.addControl(self.text)
+
         self.close_btn = xbmcgui.ControlButton(0, 0, 1280, 720, '' ,'', '')
         self.addControl(self.close_btn)
 
-        # BUTTON LEFT
-        self.btn_left = xbmcgui.ControlButton(0, 330, 60, 60, '', imagepath('previous_focus'), imagepath('previous_nofocus'))
-        self.addControl(self.btn_left)
-        self.btn_left.setAnimations([('WindowOpen', 'effect=slide start=-60,0 end=0,0 delay=100 time=200'),('WindowClose', 'effect=slide start=0,0 end=-60,0 delay=100 time=200')])
+        if len(self.image_list) > 1:
+            # BUTTON LEFT
+            self.btn_left = xbmcgui.ControlButton(0, 330, 60, 60, '', imagepath('previous_focus'), imagepath('previous_nofocus'))
+            self.addControl(self.btn_left)
+            self.btn_left.setAnimations([('WindowOpen', 'effect=slide start=-60,0 end=0,0 delay=100 time=200'),('WindowClose', 'effect=slide start=0,0 end=-60,0 delay=100 time=200')])
 
-        # BUTTON RIGHT
-        self.btn_right = xbmcgui.ControlButton(1220, 330, 60, 60, '', imagepath('next_focus'), imagepath('next_nofocus'))
-        self.addControl(self.btn_right)
-        self.btn_right.setAnimations([('WindowOpen', 'effect=slide start=60,0 end=0,0 delay=100 time=200'),('WindowClose', 'effect=slide start=0,0 end=60,0 delay=100 time=200')])
+            # BUTTON RIGHT
+            self.btn_right = xbmcgui.ControlButton(1220, 330, 60, 60, '', imagepath('next_focus'), imagepath('next_nofocus'))
+            self.addControl(self.btn_right)
+            self.btn_right.setAnimations([('WindowOpen', 'effect=slide start=60,0 end=0,0 delay=100 time=200'),('WindowClose', 'effect=slide start=0,0 end=60,0 delay=100 time=200')])
 
-        self.count = 0
+            self.count = 0
 
     def onAction(self, action):
         if action in [BACKSPACE, EXIT]:
             self.close()
+        if len(self.image_list) > 1:
+            if action in [RIGHT, DOWN]:
+                self.count += 1
+                if self.count > len(self.image_list) -1: self.count = 0
+                self.main_image.setImage(self.image_list[self.count])
+                self.counter.setText('%s/%s' % (self.count,len(self.image_list)))
 
-        if action in [RIGHT, DOWN]:
-            self.count += 1
-            if self.count > len(self.image_list) -1: self.count = 0
-            self.main_image.setImage(self.image_list[self.count])
-
-        if action in [LEFT, UP]:
-            self.count -= 1
-            if self.count < 0: self.count = len(self.image_list) -1
-            self.main_image.setImage(self.image_list[self.count])
+            if action in [LEFT, UP]:
+                self.count -= 1
+                if self.count < 0: self.count = len(self.image_list) -1
+                self.main_image.setImage(self.image_list[self.count])
+                self.counter.setText('%s/%s' % (self.count,len(self.image_list)))
 
 
     def onControl(self, control):
-        if control.getId() == self.btn_right.getId():
-            self.count += 1
-            if self.count > len(self.image_list) -1: self.count = 0
-            self.main_image.setImage(self.image_list[self.count])
+        if len(self.image_list) > 1:
+            if control.getId() == self.btn_right.getId():
+                self.count += 1
+                if self.count > len(self.image_list) -1: self.count = 0
+                self.main_image.setImage(self.image_list[self.count])
 
-        elif control.getId()  == self.btn_left.getId():
-            self.count -= 1
-            if self.count < 0: self.count = len(self.image_list) -1
-            self.main_image.setImage(self.image_list[self.count])
+            elif control.getId()  == self.btn_left.getId():
+                self.count -= 1
+                if self.count < 0: self.count = len(self.image_list) -1
+                self.main_image.setImage(self.image_list[self.count])
 
+            else:
+                self.close()
         else:
             self.close()
 

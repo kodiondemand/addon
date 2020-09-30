@@ -309,8 +309,8 @@
 				<top>25</top>
 				<right>25</right>
 				<height>50</height>
-				<width>240</width>
-                <visible allowhiddenfocus="true">Control.HasFocus(30500) | Control.HasFocus(30006) | Control.HasFocus(30007) | Control.HasFocus(30008)</visible>
+				<width>300</width>
+                <visible allowhiddenfocus="true">Control.HasFocus(30500) | Control.HasFocus(30006) | Control.HasFocus(30007) | Control.HasFocus(30008) | Control.HasFocus(30013)</visible>
 				<control type="image">
 					<width>50</width>
 					<height>50</height>
@@ -335,16 +335,26 @@
 					<texturefocus colordiffuse="FFFFFFFF">Infoplus/trailer.png</texturefocus>
 					<ondown>30500</ondown>
 					<onleft>30008</onleft>
+					<onright>30013</onright>
+				</control>
+				<control type="button" id="30013">
+					<left>180</left>
+					<width>50</width>
+					<height>50</height>
+					<texturenofocus colordiffuse="AAFFFFFF">Infoplus/fanart.png</texturenofocus>
+					<texturefocus colordiffuse="FFFFFFFF">Infoplus/fanart.png</texturefocus>
+					<ondown>30500</ondown>
+					<onleft>30007</onleft>
 					<onright>30008</onright>
 				</control>
 				<control type="button" id="30008">
-					<left>180</left>
+					<left>240</left>
 					<width>50</width>
 					<height>50</height>
 					<texturenofocus colordiffuse="AAFFFFFF">Infoplus/search.png</texturenofocus>
 					<texturefocus colordiffuse="FFFFFFFF">Infoplus/search.png</texturefocus>
 					<ondown>30500</ondown>
-					<onleft>30007</onleft>
+					<onleft>30013</onleft>
 					<onright>30007</onright>
 				</control>
 			</control>
