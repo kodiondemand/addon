@@ -30,7 +30,7 @@ def search(item, texto):
     support.info(texto)
     item.args='search'
     item.contentType='tvshow'
-    item.url = host + '/?s=' + texto
+    item.url = host + '/wp-json/wp/v2/search?search=' + texto
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -45,7 +45,7 @@ def newest(categoria):
     support.info(categoria)
     item = support.Item()
     try:
-        item.contentType = 'tvshow'
+        item.contentType = 'undefined'
         item.url= host
         item.args= 'new'
         return peliculas(item)
@@ -61,20 +61,16 @@ def newest(categoria):
 def peliculas(item):
     pagination = ''
     anime = True
-    # debug = True
+    action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if item.args == 'search':
-        patron = r'<h2 class="entry-title"><a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>.*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
-        typeContentDict={'movie':['film']}
-        typeActionDict={'findvideos':['film']}
-        patronNext = r'<a href="([^"]+)"\s*>Articoli meno recenti'
+        action = 'check'
+        data = support.match(item).data.replace('\\','')
+        patron = r'"title":"(?P<title>[^"]+)","url":"(?P<url>[^"]+)'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
         patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src(?:set)?="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
-    # elif item.args == 'most_view':
-    #     patronBlock = 'I piu visti</h2>(?P<block>.*)</ul>'
-    #     patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
     elif item.args == 'new':
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
         patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
@@ -94,16 +90,19 @@ def peliculas(item):
             item.title = item.title.replace('[ITA]','[Sub-ITA]')
             item.contentLanguage = 'Sub-ITA'
         return item
-
-    action = 'findvideos' if item.contentType == 'movie' else 'episodios'
-
     return locals()
 
+def check(item):
+    if support.match(item, headers=headers, patron=r'(category tag">Film)').match:
+        item.contentType = 'movie'
+        return findvideos(item)
+    else:
+        item.contentType = 'tvshow'
+        return episodios(item)
 
 @support.scrape
 def episodios(item):
     anime = True
-    # debug=True
     data = support.match(item, headers=headers).data
     if 'https://vcrypt.net' in data:
         patron = r'(?: /> |<p>)(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)<a (?P<url>.*?)(?:<br|</p)'
