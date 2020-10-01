@@ -206,7 +206,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 elif val.startswith('/'):
                     domain = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+')
                 val = domain + val
-            scraped[kk] = val
+            scraped[kk] = val.strip() if type(val) == str else val
 
         if scraped['season']:
             stagione = scraped['season']
@@ -229,13 +229,17 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             episode = ''
         else:
             episode = unifyEp(scraped['episode']) if scraped['episode'] else ''
-            if 'x' in episode:
-                ep = episode.split('x')
-                episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
-                item.infoLabels['season'] = int(ep[0])
-                item.infoLabels['episode'] = int(ep[1])
-            second_episode = scrapertools.find_single_match(episode, r'x\d+x(\d+)')
-            if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
+            try:
+                if 'x' in episode:
+                    ep = episode.split('x')
+                    episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
+                    item.infoLabels['season'] = int(ep[0])
+                    item.infoLabels['episode'] = int(ep[1])
+                second_episode = scrapertools.find_single_match(episode, r'x\d+x(\d+)')
+                if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
+            except:
+                logger.debug('invalid episode: ' + episode)
+                pass
 
         #episode = re.sub(r'\s-\s|-|x|&#8211|&#215;', 'x', scraped['episode']) if scraped['episode'] else ''
         title = cleantitle(scraped['title']) if scraped['title'] else ''

@@ -81,7 +81,7 @@ def peliculas(item):
     # debug = True
     anime = True
     data = support.match(host + '/wp-admin/admin-ajax.php', post='action=itajax-sort&loop=main+loop&location=&thumbnail=1&rating=1sorter=recent&columns=4&numarticles='+perpage+'&paginated='+str(item.pag)+'&currentquery%5B'+query+'%5D='+searchtext).data.replace('\\','')
-    patron = '<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>.*?)\s+(?P<type>Movie)?\s*(?P<lang>Sub Ita|Ita)?\s*[sS]treaming'
+    patron = r'<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>[^"]+?)\s+(?P<type>Movie)?\s*(?P<lang>Sub Ita|Ita)?\s*[sS]treaming'
     typeContentDict = {'movie':['movie']}
     typeActionDict = {'findvideos':['movie']}
 
