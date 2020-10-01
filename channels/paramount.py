@@ -171,6 +171,6 @@ def findvideos(item):
     for quality, url in video_urls:
         if quality not in qualities:
             qualities.append(quality)
-            itemlist.append(item.clone(title=support.config.get_localized_string(30137), server='directo', action='play', url=url, quality=quality))
+            itemlist.append(item.clone(title=support.config.get_localized_string(30137), server='directo', action='play', url=url, quality=quality, focusOnVideoPlayer=True))
     itemlist.sort(key=lambda item: item.quality)
     return support.server(item, itemlist=itemlist, Download=False)

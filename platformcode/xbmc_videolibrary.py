@@ -44,7 +44,7 @@ def mark_auto_as_watched(item, nfo_path=None, head_nfo=None, item_nfo=None):
         while platformtools.is_playing():
             actual_time = xbmc.Player().getTime()
             total_time = xbmc.Player().getTotalTime()
-            if item_nfo.played_time and item_nfo.played_time > actual_time > 1:
+            if item_nfo.played_time and xbmcgui.getCurrentWindowId() == 12005:
                 xbmc.Player().seekTime(item_nfo.played_time)
                 item_nfo.played_time = 0 # Fix for Slow Devices
 

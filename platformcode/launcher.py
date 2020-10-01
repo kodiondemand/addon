@@ -125,6 +125,10 @@ def run(item=None):
             from platformcode import infoplus
             return infoplus.Main(item)
 
+        elif item.channel == "backup":
+            from platformcode import backup
+            return getattr(backup, item.action)(item)
+
         elif item.channel == "shortcuts":
             from platformcode import shortcuts
             return getattr(shortcuts, item.action)(item)
