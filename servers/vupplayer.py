@@ -20,6 +20,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
     patron = r'sources:\s*\[\{src:\s*"([^"]+)"'
     matches = scrapertools.find_multiple_matches(data, patron)
+    if not matches:
+        data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
+    if data:
+        from lib import jsunpack
+        data = jsunpack.unpack(data)
+        matches = scrapertools.find_multiple_matches(data, patron)
     for url in matches:
         quality = 'm3u8'
         video_url = url
