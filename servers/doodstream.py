@@ -10,7 +10,7 @@ def test_video_exists(page_url):
     logger.info('page url=', page_url)
     response = httptools.downloadpage(page_url)
 
-    if response.code == 404:
+    if response.code == 404 or 'File you are looking for is not found' in response.data:
         return False, config.get_localized_string(70449) % 'DooD Stream'
     else:
         data = response.data
