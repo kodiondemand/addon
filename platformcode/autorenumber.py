@@ -55,7 +55,10 @@ def renumber(itemlist, item='', typography=''):
     if item:
         item.channel = item.from_channel if item.from_channel else item.channel
         title = item.fulltitle.rstrip()
-        already_renumbered = scrapertools.find_single_match(itemlist[0].title, r'(\d+\D\d+)')
+        try:
+            already_renumbered = scrapertools.find_single_match(itemlist[0].title, r'(\d+\D\d+)')
+        except:
+            return
         if already_renumbered :
             return itemlist
         elif item.channel in item.channel_prefs and TAG_TVSHOW_RENUMERATE in item.channel_prefs[item.channel] and title not in dict_series:
