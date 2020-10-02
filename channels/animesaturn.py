@@ -167,8 +167,9 @@ def findvideos(item):
             link = support.match(data, headers=headers, patron=r'file:\s*"([^"]+)"').match
         if not link:
             page_data += data
-        if link not in links:
+        if link and link not in links:
             links.append(link)
+            link += '|Referer=' + item.url
             itemlist.append(item.clone(action="play", title=titles[i], url=link, server='directo'))
     return support.server(item, data=data, itemlist=itemlist)
 
