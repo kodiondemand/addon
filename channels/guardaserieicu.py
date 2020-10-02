@@ -28,7 +28,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     patronBlock = r'movies-list movies-list-full(?P<block>.*?)footer>'
-    patron = r'<div data-movie-id.*?a href="(?P<url>[^"]+).*?<img data-original="(?P<thumbnail>[^"]+).*?qtip-title">(?P<title>[^<]+).*?(?:rel="tag">(?P<year>[0-9]{4}))?</a>'
+    patron = r'<div data-movie-id[^>]+> <a href="(?P<url>[^"]+).*?<img data-original="(?P<thumbnail>[^"]+)[^>]+>[^>]+>[^>]+>(?P<title>[^<]+).*?jt-info[^>]+>[^:]+:\s*(?P<rating>[^<]+).*?rel="tag">(?P<year>\d+).*?jt-info">(?P<duration>\d+)'
     patronNext = '<li class=.active.>.*?href=.(.*?).>'
     action = 'episodios'
     return locals()
@@ -41,8 +41,7 @@ def episodios(item):
 
 def search(item, text):
     info(text)
-    itemlist = []
-    text = text.replace(' ', '+')
+    item.contentType = 'tvshow'
     item.url = host + "/?s=" + text
     try:
         item.args = 'search'
@@ -56,4 +55,5 @@ def search(item, text):
 
 def findvideos(item):
     support.info('findvideos', item)
-    return support.server(item, headers=headers)
+    data = support.match(item, headers=headers, patron=r'div class="movieplay">([^>]+)').matches
+    return support.server(item, data=data )
