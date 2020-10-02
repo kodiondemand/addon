@@ -3,15 +3,15 @@
   "find_videos": {
     "ignore_urls": [],
     "patterns": [
-       {
-        "pattern": "vudeo.net/(?:embed-)?([a-z0-9-.]+)",
-        "url": "https://vudeo.net/\\1.html"
+      {
+        "pattern": "(https://dood(?:stream|).(?:watch|to|com)/(?:e|d)/[a-z0-9]+)",
+        "url": "\\1"
       }
     ]
   },
   "free": true,
-  "id": "vudeo",
-  "name": "Vudeo",
+  "id": "doodstream",
+  "name": "DooD Stream",
   "settings": [
     {
       "default": false,
