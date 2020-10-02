@@ -298,10 +298,8 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                 if lock:
                     lock.acquire()
 
-                if not otmdb_global or (
-                        item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
-                        or (
-                        otmdb_global.texto_buscado and otmdb_global.texto_buscado != item.infoLabels['tvshowtitle']):
+                if not otmdb_global or (item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
+                        or (otmdb_global.texto_buscado and otmdb_global.texto_buscado != item.infoLabels['tvshowtitle']):
                     if item.infoLabels['tmdb_id']:
                         otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
                                             idioma_busqueda=idioma_busqueda)
@@ -366,8 +364,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                             date = temporada['air_date'].split('-')
                             item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
                         if 'poster_path' in temporada and temporada['poster_path']:
-                            item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada[
-                                'poster_path']
+                            item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada['poster_path']
                             item.thumbnail = item.infoLabels['poster_path']
 
                         # 4l3x87 - fix for overlap infoLabels if there is episode or season
@@ -413,9 +410,8 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                                      tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda)
 
                 # if otmdb is None:
-                if not item.infoLabels['tmdb_id'] and not item.infoLabels['imdb_id'] and not item.infoLabels[
-                    'tvdb_id'] and not item.infoLabels['freebase_mid'] and not item.infoLabels['freebase_id'] and not \
-                item.infoLabels['tvrage_id']:
+                if not item.infoLabels['tmdb_id'] and not item.infoLabels['imdb_id'] and not item.infoLabels['tvdb_id']\
+                    and not item.infoLabels['freebase_mid'] and not item.infoLabels['freebase_id'] and not item.infoLabels['tvrage_id']:
                     # Could not search by ID ...
                     # do it by title
                     if tipo_busqueda == 'tv':
@@ -978,11 +974,13 @@ class Tmdb(object):
             # http://api.themoviedb.org/3/search/movie?api_key=a1ab8b8669da03637a4b98fa39c39228&query=superman&language=es
             # &include_adult=false&page=1
             url = ('http://api.themoviedb.org/3/search/%s?api_key=a1ab8b8669da03637a4b98fa39c39228&query=%s&language=%s'
-                   '&include_adult=%s&page=%s' % (self.busqueda_tipo, text_quote,
-                                                  self.busqueda_idioma, True, page))
+                   '&include_adult=%s&page=%s' % (self.busqueda_tipo, text_quote, self.busqueda_idioma, True, page))
 
             if self.busqueda_year:
-                url += '&year=%s' % self.busqueda_year
+                if self.busqueda_tipo == 'tv':
+                    url += '&first_air_date_year=%s' % self.busqueda_year
+                else:
+                    url += '&year=%s' % self.busqueda_year
 
             buscando = self.busqueda_texto.capitalize()
             logger.info("[Tmdb.py] Searching %s on page %s:\n%s" % (buscando, page, url))
