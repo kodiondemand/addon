@@ -10,7 +10,7 @@
   </extension>
   <extension point="kodi.context.item">
     <menu id="kodi.core.main">
-      <item library="platformcode/updatetvshow.py">
+      <item library="updatetvshow.py">
         <label>70269</label>
         <visible>String.IsEqual(ListItem.dbtype,tvshow)</visible>
       </item>
