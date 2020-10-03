@@ -8,7 +8,7 @@ PY3 = False
 if sys.version_info[0] >= 3:PY3 = True; unicode = str; unichr = chr; long = int
 
 from core.item import Item
-from core import filetools
+from core import filetools, jsontools
 from platformcode import config, logger, platformtools
 from platformcode.logger import WebErrorException
 temp_search_file = config.get_temp_file('temp-search')
@@ -484,8 +484,8 @@ def play_from_library(item):
         item.play_from = 'window'
         itemlist = videolibrary.findvideos(item)
         p_dialog.update(100, ''); sleep(0.5); p_dialog.close()
-        while platformtools.is_playing(): # Conventional window
-            sleep(1)
+        # while platformtools.is_playing(): # Conventional window
+        #     sleep(100)
         play_time = platformtools.resume_playback(item, True)
         if not play_time and config.get_setting('autoplay'):
             return
@@ -504,7 +504,10 @@ def play_from_library(item):
                     item.thumbnail = config.get_online_server_thumb(item.server)
                     quality = '[B][' + item.quality + '][/B]' if item.quality else ''
                     if item.server:
-                        it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (item.server, quality, item.contentTitle))
+                        path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
+                        name = jsontools.load(open(path, "r").read())['name']
+                        if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+                        it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (name, quality, item.contentTitle))
                         it.setArt({'thumb':item.thumbnail})
                         options.append(it)
                     else:

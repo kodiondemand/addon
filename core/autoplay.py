@@ -281,5 +281,6 @@ def play_multi_channel(item, itemlist):
 def servername(server):
     from core.servertools import translate_server_name
     path = filetools.join(config.get_runtime_path(), 'servers', server.lower() + '.json')
-    name = jsontools.load(open(path, "r").read())['name'].upper()
+    name = jsontools.load(open(path, "r").read())['name']
+    if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
     return translate_server_name(name)
