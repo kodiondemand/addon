@@ -187,7 +187,7 @@ def youtube_search(item):
             title = "%s"
         else:
             title = "%s"
-        itemlist.append(item.clone(title=title % config.get_localized_string(70510), action="manual_search", thumbnail=thumb(search), extra="youtube"))
+        itemlist.append(item.clone(title=title % config.get_localized_string(70510), action="manual_search", thumbnail=thumb('search'), extra="youtube"))
     return itemlist
 
 
