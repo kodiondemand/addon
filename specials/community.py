@@ -90,6 +90,8 @@ def show_menu(item):
             json = load_json(item)
         if 'disable_pagination' in json:
             item.disable_pagination = True
+        if 'sort' in json and json['sort']:
+            item.sort = True
 
         for key in json:
             if key == 'menu':
@@ -222,6 +224,8 @@ def peliculas(item, json='', key='', itemlist=[]):
         tmdb.set_infoLabels(itlist, seekTmdb=True)
     itemlist += itlist
 
+    if item.sort:
+        itemlist.sort(key=lambda x: x.title, reverse=False)
     if Pagination and len(itemlist) >= Pagination:
         if inspect.stack()[1][3] != 'get_newest':
             item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
@@ -784,6 +788,7 @@ def add_channel(item):
         file_path = xbmcgui.Dialog().browseSingle(1, config.get_localized_string(70680), 'files')
         try:
             channel_to_add['path'] = file_path
+            channel_to_add['url'] = file_path
             json_file = jsontools.load(open(file_path, "r").read())
             channel_to_add['channel_name'] = json_file['channel_name']
         except:
