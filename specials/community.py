@@ -94,22 +94,23 @@ def show_menu(item):
             item.sort = True
 
         for key in json:
-            if key == 'menu':
-                get_menu(item, json, key, itemlist)
-            if item.filterkey and not item.filter:
-                itemlist += submenu(item, json, key)
-            elif key in ['movies_list', 'tvshows_list', 'generic_list']:
-                itemlist += peliculas(item, json, key)
-            elif key in ['seasons_list']:
-                item.url = json
-                itemlist += get_seasons(item)
-            elif key in ['episodes_list']:
-                itemlist += episodios(item, json, key)
-            elif key in ['links']:
-                itemlist += findvideos(item)
-            elif key in ['search'] and 'url' in json['search']:
-                search_json = json['search']
-                itemlist += get_search_menu(item, search_json)
+            if key != 'sort':
+                if key == 'menu':
+                    get_menu(item, json, key, itemlist)
+                if item.filterkey and not item.filter:
+                    itemlist += submenu(item, json, key)
+                elif key in ['movies_list', 'tvshows_list', 'generic_list']:
+                    itemlist += peliculas(item, json, key)
+                elif key in ['seasons_list']:
+                    item.url = json
+                    itemlist += get_seasons(item)
+                elif key in ['episodes_list']:
+                    itemlist += episodios(item, json, key)
+                elif key in ['links']:
+                    itemlist += findvideos(item)
+                elif key in ['search'] and 'url' in json['search']:
+                    search_json = json['search']
+                    itemlist += get_search_menu(item, search_json)
 
 
 
@@ -600,6 +601,7 @@ def filter_thread(filter, key, item, description):
                 path=item.path,
                 filterkey=item.filterkey,
                 filter=filter,
+                sort=item.sort,
                 key=key)
 
     if item.filterkey in ['genre']:
