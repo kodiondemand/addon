@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<window>
+    <allowoverlays>false</allowoverlays>
+    <animation type="WindowOpen" reversible="false">
+        <effect type="zoom" start="80" end="100" center="640,225" delay="160" tween="back" time="240" />
+        <effect type="fade" delay="160" end="100" time="240" />
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="zoom" start="100" end="80" center="640,225" easing="in" tween="back" time="240" />
+        <effect type="fade" start="100" end="0" time="240" />
+    </animation>
+    <controls>
+        <control type="group" id="10000">
+            <width>790</width>
+            <!-- Background -->
+            <control type="image" id='10001'>
+                <width>790</width>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+            <!-- Header -->
+            <control type="textbox" id="10002">
+                <height>60</height>
+                <width>600</width>
+                <textcolor>FFFFFFFF</textcolor>
+                <wrapmultiline>true</wrapmultiline>
+                <align>center</align>
+                <aligny>center</aligny>
+                <label></label>
+            </control>
+            <!-- User -->
+            <control type="grouplist" id="30000">
+                <top>90</top>
+                <left>40</left>
+                <itemgap>20</itemgap>
+                <onright>10009</onright>
+                <control type="edit" id="10003">
+                    <height>50</height>
+                    <width>560</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                    <aligny>center</aligny>
+                    <label>username</label>
+                </control>
+                <!-- Email -->
+                <control type="edit" id="10004">
+                    <height>50</height>
+                    <width>560</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                    <aligny>center</aligny>
+                    <label>email</label>
+                </control>
+                <!-- Password -->
+                <control type="edit" id="10005">
+                    <height>50</height>
+                    <width>560</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                    <aligny>center</aligny>
+                    <label>password</label>
+                </control>
+                <!-- Captcha -->
+                <control type="edit" id="10006">
+                    <height>50</height>
+                    <width>560</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                    <aligny>center</aligny>
+                    <label>captcha</label>
+                </control>
+                <!-- Captchaimg -->
+                <control type="image" id="10007">
+                    <width>560</width>
+                    <height>170</height>
+                    <left>20</left>
+                    <aspectratio>keep</aspectratio>
+                </control>
+            </control>
+            <control type="group" id='10008'>
+                <top>90</top>
+                <left>620</left>
+                <control type="button" id="10009">
+                    <top>0</top>
+                    <left>0</left>
+                    <width>150</width>
+                    <height>50</height>
+                    <textwidth>110</textwidth>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="000082C2">white.png</texturenofocus>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <label>$ADDON[plugin.video.kod 70007]</label>
+                    <onup>10010</onup>
+                    <ondown>10010</ondown>
+                    <onleft>10003</onleft>
+                    <onright>10003</onright>
+                </control>
+                <control type="button" id="10010">
+                    <top>70</top>
+                    <left>0</left>
+                    <width>150</width>
+                    <height>50</height>
+                    <textwidth>110</textwidth>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="000082C2">white.png</texturenofocus>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <label>$ADDON[plugin.video.kod 707433]</label>
+                    <onup>10009</onup>
+                    <ondown>10009</ondown>
+                    <onleft>10003</onleft>
+                    <onright>10003</onright>
+                </control>
+            </control>
+        </control>
+    </controls>
+</window>
