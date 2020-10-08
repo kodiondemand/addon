@@ -79,6 +79,7 @@ def peliculas(item):
     anime = True
     patronNext = r'href="([^"]+)" title="[^"]+" class="lcp_nextlink"'
     action = 'findvideos'
+    # debug=True
     if item.args == 'last':
         patronBlock = r'<table>(?P<block>.*?)</table>'
         patron = r'<tr><td><a href="(?P<url>[^"]+)">\s*[^>]+>(?P<title>.*?)(?:\s(?P<year>\d{4}))? (?:Streaming|</b>)'
@@ -98,7 +99,7 @@ def peliculas(item):
             return item
     else:
         patronBlock = r'<div class="entry-content pagess">(?P<block>.*?)</ul>'
-        patron = r'<li><a href="(?P<url>[^"]+)" title="(?P<title>.*?)(?:\s(?P<year>\d{4}))?"[^>]*>'
+        patron = r'<li\s*><a href="(?P<url>[^"]+)" title="(?P<title>.*?)(?:\s(?P<year>\d{4}))?"[^>]*>'
     if item.contentType == 'tvshow':
         action = 'episodios'
         anime = True
