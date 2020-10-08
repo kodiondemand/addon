@@ -19,7 +19,12 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
 	video_urls = []
-	media_url = scrapertools.find_single_match(data, r'file:"([^"]+)"')
+	global data
+	new_data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
+	if new_data != "":
+		from lib import jsunpack
+		data = jsunpack.unpack(new_data)
+	media_url = scrapertools.find_single_match(data, r'file:"([^"]+)"') + '|Referer=' + page_url
 	video_urls.append(["%s [UPstream]" % media_url.split('.')[-1], media_url])
 
 	return video_urls
