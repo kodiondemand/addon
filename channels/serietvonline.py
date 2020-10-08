@@ -22,7 +22,7 @@ from core.item import Item
 
 
 def findhost():
-    host = support.match('https://t.me/s/serietvonlineITA', patron=r'<a href="([^"]+)" target="_blank"').matches[-1]
+    host = support.match('https://serietvonline.online', patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
     return host
 
 host = config.get_channel_url(findhost)
