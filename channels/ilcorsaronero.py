@@ -20,11 +20,11 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     menu = [
-        ('BDRiP {film}', ['/categoria.php?active=0&category=1&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'movie']),
+        ('BDRiP {film}', ['/categoria.php?active=0&category=1&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'undefined']),
         ('Cerca BDRiP... {submenu} {film}', ['/torrent-ita/1/', 'search', ['search', 'movie', True], 'movie']),
-        ('DVD {film}', ['/categoria.php?active=0&category=20&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'movie']),
+        ('DVD {film}', ['/categoria.php?active=0&category=20&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'undefined']),
         ('Cerca DVD... {submenu} {film}', ['/torrent-ita/20/', 'search', ['search', 'movie', True], 'movie']),
-        ('Screener {film}', ['/categoria.php?active=0&category=19&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'movie']),
+        ('Screener {film}', ['/categoria.php?active=0&category=19&order=data&by=DESC&page=', 'peliculas', [0, 'movie', True], 'undefined']),
         ('Cerca Screener.. {submenu} {film}', ['/torrent-ita/19/', 'search', ['search', 'movie', True], 'movie']),
         ('Serie TV', ['/categoria.php?active=0&category=15&order=data&by=DES&page=', 'peliculas', [0 , 'tvshow', True], 'tvshow']),
         ('Cerca Serie TV.. {submenu}', ['/torrent-ita/15/', 'search', ['search', 'tvshow',True], 'tvshow']),
@@ -58,7 +58,8 @@ def peliculas(item):
         def itemlistHook(itemlist):
             args = item.args
             args[0] += 1
-            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), args=args, thumbnail=support.thumb()))
+            support.nextPage(itemlist, item, next_page=item.url, function_or_level="peliculas")
+            # itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), args=args, thumbnail=support.thumb()))
             return itemlist
     return locals()
 
