@@ -640,7 +640,7 @@ def actor_list(item):
             if t_k:
                 plot = '%s in %s' % (rol, t_k)
 
-        thumbnail = 'http://image.tmdb.org/t/p/original%s' % elem.get('profile_path', '')
+        thumbnail = 'https://image.tmdb.org/t/p/original%s' % elem.get('profile_path', '')
         title = typo(name,'bold')+typo(rol,'_ [] color kod bold')
 
         discovery = {'url': 'person/%s/combined_credits' % cast_id, 'page': '1',

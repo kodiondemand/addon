@@ -312,7 +312,7 @@ def list_tmdb(item):
                 if new_item.infoLabels['thumbnail']:
                     new_item.thumbnail = new_item.infoLabels['thumbnail']
                 elif new_item.infoLabels['profile_path']:
-                    new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + new_item.infoLabels['profile_path']
+                    new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + new_item.infoLabels['profile_path']
                     new_item.infoLabels['profile_path'] = ''
                     new_item.plot = new_item.infoLabels["biography"]
                     if not item.search.get('with_cast', '') and not item.search.get('with_crew', ''):
@@ -345,7 +345,7 @@ def list_tmdb(item):
                         new_item.title = typo(new_item.contentTitle, 'bold') + typo(known_for[random].get("title", known_for[random].get("name")), '_ () color kod')
 
                         if known_for[random]["backdrop_path"]:
-                            new_item.fanart = 'http://image.tmdb.org/t/p/original' + known_for[random]["backdrop_path"]
+                            new_item.fanart = 'https://image.tmdb.org/t/p/original' + known_for[random]["backdrop_path"]
                     else:
                         new_item.title = new_item.contentTitle
                 itemlist.append(new_item)
@@ -470,9 +470,9 @@ def details(item):
             saga = ob_tmdb.result["belongs_to_collection"]
             new_item.infoLabels["tmdb_id"] = saga["id"]
             if saga["poster_path"]:
-                new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + saga["poster_path"]
+                new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + saga["poster_path"]
             if saga["backdrop_path"]:
-                new_item.fanart = 'http://image.tmdb.org/t/p/original' + saga["backdrop_path"]
+                new_item.fanart = 'https://image.tmdb.org/t/p/original' + saga["backdrop_path"]
             new_item.search = {'url': 'collection/%s' % saga['id'], 'language': langt}
             itemlist.append(new_item.clone(title=config.get_localized_string(70327) % saga["name"], action="list_tmdb"))
     except:
@@ -503,7 +503,7 @@ def distribution(item):
                 new_item = item.clone(action="list_tmdb", fanart=default_fan)
                 new_item.title = "    " + actor["name"] + " as " + actor["character"]
                 if actor["profile_path"]:
-                    new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + actor["profile_path"]
+                    new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + actor["profile_path"]
                 if item.contentType == "movie":
                     new_item.search = {'url': 'discover/movie', 'with_cast': actor['id'],
                                        'language': langt, 'page': 1,
@@ -522,7 +522,7 @@ def distribution(item):
                 new_item = item.clone(action="list_tmdb", fanart=default_fan)
                 new_item.title = "    " + c["job"] + ": " + c["name"]
                 if c["profile_path"]:
-                    new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + c["profile_path"]
+                    new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + c["profile_path"]
                 if item.contentType == "movie":
                     new_item.search = {'url': 'discover/movie', 'with_crew': c['id'], 'page': 1,'sort_by': 'primary_release_date.desc'}
                 else:
@@ -553,7 +553,7 @@ def info_seasons(item):
                 new_item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
                 new_item.infoLabels['year'] = date[0]
             if temporada['poster_path']:
-                new_item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada['poster_path']
+                new_item.infoLabels['poster_path'] = 'https://image.tmdb.org/t/p/original' + temporada['poster_path']
                 new_item.thumbnail = new_item.infoLabels['poster_path']
             new_item.title = config.get_localized_string(60027) % temp
             itemlist.append(new_item)
@@ -1372,9 +1372,9 @@ def indices_imdb(item):
 #             saga = ob_tmdb.result["belongs_to_collection"]
 #             new_item.infoLabels["tmdb_id"] = saga["id"]
 #             if saga["poster_path"]:
-#                 new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + saga["poster_path"]
+#                 new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + saga["poster_path"]
 #             if saga["backdrop_path"]:
-#                 new_item.fanart = 'http://image.tmdb.org/t/p/original' + saga["backdrop_path"]
+#                 new_item.fanart = 'https://image.tmdb.org/t/p/original' + saga["backdrop_path"]
 #             new_item.search = {'url': 'collection/%s' % saga['id'], 'language': langt}
 #             new_item.title = config.get_localized_string(70327) % saga["name"]
 #             itemlist.append(new_item)
@@ -1769,8 +1769,8 @@ def imagenes(item):
                 if item.folder:
                     for tipo, child in value.iteritems():
                         for i, imagen in enumerate(child):
-                            thumb = 'http://image.tmdb.org/t/p/w500' + imagen["file_path"]
-                            fanart = 'http://image.tmdb.org/t/p/original' + imagen["file_path"]
+                            thumb = 'https://image.tmdb.org/t/p/w500' + imagen["file_path"]
+                            fanart = 'https://image.tmdb.org/t/p/original' + imagen["file_path"]
                             title = "   %s %s [%sx%s]" % (tipo.capitalize(), i + 1, imagen["width"], imagen["height"])
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
                                                  title=title, infoLabels=item.infoLabels))
@@ -2250,9 +2250,9 @@ def details_mal(item):
             saga = ob_tmdb.result["belongs_to_collection"]
             new_item.infoLabels["tmdb_id"] = saga["id"]
             if saga["poster_path"]:
-                new_item.thumbnail = 'http://image.tmdb.org/t/p/original' + saga["poster_path"]
+                new_item.thumbnail = 'https://image.tmdb.org/t/p/original' + saga["poster_path"]
             if saga["backdrop_path"]:
-                new_item.fanart = 'http://image.tmdb.org/t/p/original' + saga["backdrop_path"]
+                new_item.fanart = 'https://image.tmdb.org/t/p/original' + saga["backdrop_path"]
             new_item.search = {'url': 'collection/%s' % saga['id'], 'language': langt}
             new_item.title = config.get_localized_string(70327) % saga["name"]
             itemlist.append(new_item)

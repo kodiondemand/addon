@@ -364,7 +364,7 @@ class ImagesWindow(xbmcgui.WindowDialog):
         self.image_list = []
 
         for key, value in self.tmdb.items():
-            for detail in value: self.image_list.append('http://image.tmdb.org/t/p/original' + detail["file_path"])
+            for detail in value: self.image_list.append('https://image.tmdb.org/t/p/original' + detail["file_path"])
         for image in self.imdb: self.image_list.append(image["src"])
         for image, title in self.mal: self.image_list.append(image)
         for key, value in self.fanartv.items():
@@ -451,8 +451,8 @@ def get_recomendations(info):
         else:
             title = result.get("name", '')
             original_title  = result.get("original_name", '')
-        thumbnail ='http://image.tmdb.org/t/p/w342' + result.get("poster_path", "") if result.get("poster_path", "") else ''
-        fanart = 'http://image.tmdb.org/t/p/original' + result.get("backdrop_path", "") if result.get("backdrop_path", "") else ''
+        thumbnail ='https://image.tmdb.org/t/p/w342' + result.get("poster_path", "") if result.get("poster_path", "") else ''
+        fanart = 'https://image.tmdb.org/t/p/original' + result.get("backdrop_path", "") if result.get("backdrop_path", "") else ''
         item = xbmcgui.ListItem(title)
         item.setProperties({'title': title,
                             'original_title': original_title,

@@ -364,7 +364,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                             date = temporada['air_date'].split('-')
                             item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
                         if 'poster_path' in temporada and temporada['poster_path']:
-                            item.infoLabels['poster_path'] = 'http://image.tmdb.org/t/p/original' + temporada['poster_path']
+                            item.infoLabels['poster_path'] = 'https://image.tmdb.org/t/p/original' + temporada['poster_path']
                             item.thumbnail = item.infoLabels['poster_path']
 
                         # 4l3x87 - fix for overlap infoLabels if there is episode or season
@@ -1229,7 +1229,7 @@ class Tmdb(object):
         if self.result["poster_path"] is None or self.result["poster_path"] == "":
             poster_path = ""
         else:
-            poster_path = 'http://image.tmdb.org/t/p/' + size + self.result["poster_path"]
+            poster_path = 'https://image.tmdb.org/t/p/' + size + self.result["poster_path"]
 
         if tipo_respuesta == 'str':
             return poster_path
@@ -1250,7 +1250,7 @@ class Tmdb(object):
                         size = "original"
                     elif size[1] == 'h' and int(imagen_path['height']) < int(size[1:]):
                         size = "original"
-                ret.append('http://image.tmdb.org/t/p/' + size + imagen_path)
+                ret.append('https://image.tmdb.org/t/p/' + size + imagen_path)
         else:
             ret.append(poster_path)
 
@@ -1276,7 +1276,7 @@ class Tmdb(object):
         if self.result["backdrop_path"] is None or self.result["backdrop_path"] == "":
             backdrop_path = ""
         else:
-            backdrop_path = 'http://image.tmdb.org/t/p/' + size + self.result["backdrop_path"]
+            backdrop_path = 'https://image.tmdb.org/t/p/' + size + self.result["backdrop_path"]
 
         if tipo_respuesta == 'str':
             return backdrop_path
@@ -1297,7 +1297,7 @@ class Tmdb(object):
                         size = "original"
                     elif size[1] == 'h' and int(imagen_path['height']) < int(size[1:]):
                         size = "original"
-                ret.append('http://image.tmdb.org/t/p/' + size + imagen_path)
+                ret.append('https://image.tmdb.org/t/p/' + size + imagen_path)
         else:
             ret.append(backdrop_path)
 
@@ -1396,7 +1396,7 @@ class Tmdb(object):
         else:
             ret_dic["temporada_air_date"] = ""
         if temporada["poster_path"]:
-            ret_dic["temporada_poster"] = 'http://image.tmdb.org/t/p/original' + temporada["poster_path"]
+            ret_dic["temporada_poster"] = 'https://image.tmdb.org/t/p/original' + temporada["poster_path"]
         else:
             ret_dic["temporada_poster"] = ""
         dic_aux = temporada.get('credits', {})
@@ -1426,7 +1426,7 @@ class Tmdb(object):
             ret_dic["episodio_vote_count"] = episodio["vote_count"]
             ret_dic["episodio_vote_average"] = episodio["vote_average"]
             if episodio["still_path"]:
-                ret_dic["episodio_imagen"] = 'http://image.tmdb.org/t/p/original' + episodio["still_path"]
+                ret_dic["episodio_imagen"] = 'https://image.tmdb.org/t/p/original' + episodio["still_path"]
             else:
                 ret_dic["episodio_imagen"] = ""
 
@@ -1564,10 +1564,10 @@ class Tmdb(object):
                 ret_infoLabels['votes'] = v
 
             elif k == 'poster_path':
-                ret_infoLabels['thumbnail'] = 'http://image.tmdb.org/t/p/original' + v
+                ret_infoLabels['thumbnail'] = 'https://image.tmdb.org/t/p/original' + v
 
             elif k == 'backdrop_path':
-                ret_infoLabels['fanart'] = 'http://image.tmdb.org/t/p/original' + v
+                ret_infoLabels['fanart'] = 'https://image.tmdb.org/t/p/original' + v
 
             elif k == 'id':
                 ret_infoLabels['tmdb_id'] = v
