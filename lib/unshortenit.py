@@ -43,10 +43,12 @@ class UnshortenIt(object):
     _stayonline_regex = r'stayonline\.pro'
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
+    # for services that only do redirects
+    _simple_redirect = r'streamcrypt\.net/[^/]+'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _vcrypt_regex, _linkup_regex, _linkhub_regex,
-                 _swzz_regex, _stayonline_regex]
+                 _swzz_regex, _stayonline_regex, _simple_redirect]
 
     _maxretries = 5
 
@@ -92,6 +94,10 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_swzz(uri)
             if re.search(self._stayonline_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_stayonline(uri)
+            if re.search(self._simple_redirect, uri, re.IGNORECASE):
+                p = httptools.downloadpage(uri)
+                uri = p.url
+                code = p.code
 
             if oldUri == uri:
                 break
@@ -127,7 +133,7 @@ class UnshortenIt(object):
                     if not r.success:
                         return uri, -1
 
-                    if '4snip' not in r.url and 'location' in r.headers and retries < self._maxretries:
+                    if 'snip.' not in r.url and 'location' in r.headers and retries < self._maxretries:
                         r = httptools.downloadpage(
                             r.headers['location'],
                             cookies=False,
@@ -538,8 +544,9 @@ class UnshortenIt(object):
                     if uri == prev_uri:
                         logger.info('Use Cloudscraper')
                         uri = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, cf=True).headers['location']
-
-            if "4snip" in uri:
+            # from core import support
+            # support.dbg()
+            if "snip." in uri:
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
                 elif '/decode/' in uri:
@@ -578,7 +585,7 @@ class UnshortenIt(object):
             if not r:
                 r = httptools.downloadpage(uri, follow_redirects=False, timeout=self._timeout, cookies=False)
                 uri = r.headers['location']
-            if "4snip" in uri:
+            if "snip." in uri:
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
                 elif '/decode/' in uri:
@@ -688,22 +695,22 @@ def findlinks(text):
         text += '\n' + unshorten(matches[0])[0]
     elif matches:
         # non threaded for webpdb
-        for match in matches:
-            sh = unshorten(match)[0]
-            text += '\n' + sh
-        # import sys
-        # if sys.version_info[0] >= 3:
-        #     from concurrent import futures
-        # else:
-        #     from concurrent_py2 import futures
-        # with futures.ThreadPoolExecutor() as executor:
-        #     unshList = [executor.submit(unshorten, match) for match in matches]
-        #     for link in futures.as_completed(unshList):
-        #         if link.result()[0] not in matches:
-        #             links = link.result()[0]
-        #             if type(links) == list:
-        #                 for l in links:
-        #                     text += '\n' + l
-        #             else:
-        #                 text += '\n' + str(link.result()[0])
+        # for match in matches:
+        #     sh = unshorten(match)[0]
+        #     text += '\n' + sh
+        import sys
+        if sys.version_info[0] >= 3:
+            from concurrent import futures
+        else:
+            from concurrent_py2 import futures
+        with futures.ThreadPoolExecutor() as executor:
+            unshList = [executor.submit(unshorten, match) for match in matches]
+            for link in futures.as_completed(unshList):
+                if link.result()[0] not in matches:
+                    links = link.result()[0]
+                    if type(links) == list:
+                        for l in links:
+                            text += '\n' + l
+                    else:
+                        text += '\n' + str(link.result()[0])
     return text

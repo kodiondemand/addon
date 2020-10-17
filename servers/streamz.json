@@ -4,14 +4,14 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(https://streamz.cc/[A-z0-9]+)",
+        "pattern": "(https://streamz(?:z|).\\w{2,3}/[A-z0-9]+)",
         "url": "\\1"
       }
     ]
   },
   "free": true,
   "id": "streamz",
-  "name": "streamZ",
+  "name": "streamz",
   "settings": [
     {
       "default": false,
