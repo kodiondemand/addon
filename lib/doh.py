@@ -1,18 +1,17 @@
 # https://github.com/stamparm/python-doh
-from __future__ import print_function
-
 import json
 import re
 import socket
 import ssl
 import subprocess
 import sys
+from platformcode import logger
 
 PY3 = sys.version_info >= (3, 0)
 
 if hasattr(ssl, "_create_unverified_context"):
     ssl._create_default_https_context = ssl._create_unverified_context
-    DOH_SERVER = "1.1.1.1"              # Note: to prevent potential blocking of service based on DNS name
+    DOH_SERVER = "1.0.0.1"              # Note: to prevent potential blocking of service based on DNS name
 else:
     DOH_SERVER = "cloudflare-dns.com"   # Alternative servers: doh.securedns.eu, doh-de.blahdns.com, doh-jp.blahdns.com
 
@@ -25,7 +24,7 @@ else:
     _urlopen = urllib2.urlopen
     _Request = urllib2.Request
 
-def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True, verbose=False):
+def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True,):
     """
     Returns domain name query results retrieved by using DNS over HTTPS protocol
     # Reference: https://developers.cloudflare.com/1.1.1.1/dns-over-https/json-format/
@@ -48,8 +47,7 @@ def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True, v
         else:
             retval = []
     except Exception as ex:
-        if verbose:
-            print("Exception occurred: '%s'" % ex)
+        logger.info("Exception occurred: '%s'" % ex)
 
     if retval is None and fallback:
         if type == 'A':
