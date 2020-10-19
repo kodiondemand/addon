@@ -17,10 +17,9 @@ from core import scrapertools, httptools, support
 from core.item import Item
 from platformcode import config, logger
 
-#impostati dinamicamente da findhost()
 
-def findhost():
-    data = httptools.downloadpage('https://altadefinizione01-nuovo.info/').data
+def findhost(url):
+    data = httptools.downloadpage(url).data
     host = scrapertools.find_single_match(data, '<div class="elementor-button-wrapper"> <a href="([^"]+)"')
     return host
 

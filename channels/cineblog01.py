@@ -11,8 +11,8 @@ from lib import unshortenit
 from platformcode import logger, config
 
 
-def findhost():
-    host = httptools.downloadpage('https://cb01.uno/', follow_redirect=True).url
+def findhost(url):
+    host = httptools.downloadpage(url, follow_redirect=True).url
     if host == 'https://cb01.uno/':
         host = support.match(host, patron=r'<a href="([^"]+)', debug=True).match
     return host

@@ -72,7 +72,6 @@ def import_videolibrary(item):
     if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
         xbmc_videolibrary.clean()
     p_dialog.update(30)
-    xbmc.sleep(1000)
     shutil.rmtree(videolibrary_movies_path)
     shutil.rmtree(videolibrary_tvshows_path)
     p_dialog.update(50)
@@ -102,7 +101,7 @@ def zip(dir, file):
         temp = file
         file = filetools.join(temp_path, os.path.split(file)[-1])
         smb = True
-    with ZipFile(file, "w") as zf:
+    with ZipFile(filetools.file_open(file, 'wb', vfs=False), "w") as zf:
         abs_src = os.path.abspath(dir)
         for dirname, subdirs, files in os.walk(dir):
             for filename in files:
@@ -119,5 +118,5 @@ def unzip(dir, file):
         filetools.copy(file, temp)
         file = temp
 
-    with ZipFile(file, 'r') as zf:
+    with ZipFile(filetools.file_open(file, 'rb', vfs=False), 'r') as zf:
         zf.extractall(dir)

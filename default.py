@@ -7,6 +7,13 @@ import os
 import sys
 
 import xbmc
+
+# on kodi 18 its xbmc.translatePath, on 19 xbmcvfs.translatePath
+try:
+    import xbmcvfs
+    xbmc.translatePath = xbmcvfs.translatePath
+except:
+    pass
 from platformcode import config, logger
 
 logger.info("init...")

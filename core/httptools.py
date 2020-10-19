@@ -11,13 +11,15 @@ try:
 except ImportError:
     import urllib, urlparse, cookielib
 
-
 import os, time, json
 from threading import Lock
 from core.jsontools import to_utf8
 from platformcode import config, logger
 from core import scrapertools
 
+# to surpress InsecureRequestWarning
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # Get the addon version
 __version = config.get_addon_version()
 

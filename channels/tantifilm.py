@@ -12,8 +12,8 @@ from platformcode import logger
 from platformcode import config, unify
 
 
-def findhost():
-    permUrl = httptools.downloadpage('https://www.tantifilm.wiki/').data
+def findhost(url):
+    permUrl = httptools.downloadpage(url).data
     host = scrapertools.find_single_match(permUrl, r'Nuovo indirizzo: <a href="([^"]+)')
     return host
 

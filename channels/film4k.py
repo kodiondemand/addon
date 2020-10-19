@@ -7,8 +7,8 @@ from core import support
 from platformcode import logger, config
 
 
-def findhost():
-    return support.httptools.downloadpage('https://film4k-nuovo.link').url
+def findhost(url):
+    return support.httptools.downloadpage(url).url
 
 host = config.get_channel_url(findhost)
 

@@ -39,12 +39,12 @@
             </control>
             <!-- LOADING -->
 			<control type="image" id='30011'>
-				<top>310</top>
-				<left>590</left>
-				<width>100</width>
-				<height>100</height>
-				<texture>Infoplus/loading.png</texture>
-				<animation effect="rotate" center="640,360" start="0" end="-360" time="5000"  loop="true" condition="Control.IsVisible(30011)">Conditional</animation>
+				<top>355</top>
+				<left>490</left>
+				<width>300</width>
+				<height>10</height>
+				<texture>white.png</texture>
+				<animation effect="zoom" pulse ="true" center="auto" start="0,100" end="100,100" time="1000" condition="Control.IsVisible(30011)">Conditional</animation>
 			</control>
             <!-- TITLE -->
             <control type="textbox" id='30001'>

@@ -161,8 +161,12 @@ def check(background=False):
         if addon.getSetting("addon_update_message"):
             if background:
                 platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
-                with open(xbmc.translatePath(changelogFile), 'a+') as fileC:
-                    fileC.write(changelog)
+                try:
+                    with open(xbmc.translatePath(changelogFile), 'a+') as fileC:
+                        fileC.write(changelog)
+                except:
+                    import traceback
+                    logger.error(traceback.format_exc())
             elif changelog:
                 platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80041) + changelog)
     else:
@@ -175,7 +179,8 @@ def showSavedChangelog():
     try:
         with open(xbmc.translatePath(changelogFile), 'r') as fileC:
             changelog = fileC.read()
-            platformtools.dialog_ok('Kodi on Demand', 'Aggiornamenti applicati:\n' + changelog)
+            if changelog.strip():
+                platformtools.dialog_ok('Kodi on Demand', 'Aggiornamenti applicati:\n' + changelog)
         os.remove(xbmc.translatePath(changelogFile))
     except:
         pass

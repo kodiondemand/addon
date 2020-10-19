@@ -13,8 +13,8 @@ else:
     from urllib import unquote
 
 
-def findhost():
-    data = httptools.downloadpage('https://www.popcornstream-nuovo-indirizzo.online/').data
+def findhost(url):
+    data = httptools.downloadpage(url).data
     return support.scrapertools.find_single_match(data, '<a href="([^"]+)')
 
 host = config.get_channel_url(findhost)

@@ -4,17 +4,9 @@
 # ------------------------------------------------------------
 
 from core import support
-from core.item import Item
-from platformcode import config
-from xml.dom import minidom
-
-#impostati dinamicamente da findhost()
-
 
 host = 'https://metalvideo.com'
-headers={'X-Requested-With': 'XMLHttpRequest'}
-
-
+headers = {'X-Requested-With': 'XMLHttpRequest'}
 
 
 @support.scrape

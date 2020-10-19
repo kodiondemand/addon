@@ -54,18 +54,17 @@ from core.item import Item # per newest
 
 # se il sito ha un link per ottenere l'url corretto in caso di oscuramenti
 # la funzione deve ritornare l'indirizzo corretto, verrà chiamata solo se necessario (link primario irraggiungibile)
-def findhost():
-    def findhost():
-    permUrl = httptools.downloadpage('https://www.cb01.uno/', follow_redirects=False).headers
+def findhost(url):
+    permUrl = httptools.downloadpage(url, follow_redirects=False).headers
     if 'google' in permUrl['location']:
         host = permUrl['location'].replace('https://www.google.it/search?q=site:', '')
     else:
         host = permUrl['location']
     return host
 
-# se si usa findhost
+# se si usa findhost metti in channels.json l'url del sito che contiene sempre l'ultimo dominio
 host = config.get_channel_url(findhost)
-# se non si usa (metti l'url in channels.json)
+# se non si usa metti direttamente l'url finale in channels.json
 host = config.get_channel_url()
 headers = [['Referer', host]]
 

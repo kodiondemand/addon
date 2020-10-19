@@ -7,7 +7,7 @@ from core import httptools, support
 from core.item import Item
 from platformcode import config
 
-# def findhost():
+# def findhost(url):
 #     page = httptools.downloadpage("https://filmpertutti.nuovo.live/").data
 #     url = scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è <a href="([^"]+)')
 #     return url

@@ -120,7 +120,7 @@ chNumRis = {
         'Serie TV': 12
     },
     'serietvonline': {
-        'Film': 50,
+        'Film': 25,
         'Serie TV': 35
     },
     'tantifilm': {
@@ -135,6 +135,8 @@ channels = []
 channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
 logger.info(channel_list)
 ret = []
+
+logger.record = True
 for chItem in channel_list:
     try:
         ch = chItem.channel
@@ -143,6 +145,7 @@ for chItem in channel_list:
             hasChannelConfig = False
             mainlist = module.mainlist(Item())
             menuItemlist = {}
+            logMenu = {}
             serversFound = {}
 
             for it in mainlist:
@@ -155,6 +158,8 @@ for chItem in channel_list:
                     continue
                 itemlist = getattr(module, it.action)(it)
                 menuItemlist[it.title] = itemlist
+                logMenu[it.title] = logger.recordedLog
+                logger.recordedLog = ''
 
                 # some sites might have no link inside, but if all results are without servers, there's something wrong
                 for resIt in itemlist:
@@ -165,16 +170,22 @@ for chItem in channel_list:
                             serversFound[it.title] = [resIt]
 
                         if serversFound[it.title]:
+                            if hasattr(module, 'play'):
+                                serversFound[it.title] = [getattr(module, 'play')(resIt)[0] for srv in serversFound[it.title]]
                             servers.extend(
                                 {'name': srv.server.lower(), 'server': srv} for srv in serversFound[it.title] if srv.server)
                             break
 
             channels.append(
                 {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
-                 'serversFound': serversFound, 'module': module})
+                 'serversFound': serversFound, 'module': module, 'logMenu': logMenu})
     except:
         import traceback
         logger.error(traceback.format_exc())
+        print(logger.recordedLog)
+        logger.recordedLog = ''
+
+logger.record = False
 
 from specials import news
 dictNewsChannels, any_active = news.get_channels_list()
@@ -203,12 +214,26 @@ class GenericChannelTest(unittest.TestCase):
                     break
 
 
+def testnameCh(cls, num, params_dict):
+    return 'channels.' + params_dict['ch'] + ' -> ' + params_dict['title']
+
+
+def testnameSrv(cls, num, params_dict):
+    return 'servers.' + params_dict['name']
+
+
 @parameterized.parameterized_class(
-    [{'ch': ch['ch'], 'title': title, 'itemlist': itemlist, 'serversFound': ch['serversFound'][title] if title in ch['serversFound'] else True, 'module': ch['module']} for ch in channels for
-     title, itemlist in ch['menuItemlist'].items()])
+    [{'ch': ch['ch'], 'title': title, 'itemlist': itemlist,
+      'serversFound': ch['serversFound'][title] if title in ch['serversFound'] else True,
+      'module': ch['module'], 'log': ch['logMenu'][title]}
+     for ch in channels
+     for title, itemlist in ch['menuItemlist'].items()], class_name_func=testnameCh)
 class GenericChannelMenuItemTest(unittest.TestCase):
     def test_menu(self):
         print('testing ' + self.ch + ' --> ' + self.title)
+
+        logger.info(self.log)
+
         self.assertTrue(self.module.host, 'channel ' + self.ch + ' has not a valid hostname')
         self.assertTrue(self.itemlist, 'channel ' + self.ch + ' -> ' + self.title + ' is empty')
         self.assertTrue(self.serversFound,
@@ -217,7 +242,7 @@ class GenericChannelMenuItemTest(unittest.TestCase):
         if self.ch in chNumRis:  # i know how much results should be
             for content in chNumRis[self.ch]:
                 if content in self.title:
-                    risNum = len([i for i in self.itemlist if not i.nextPage])  # not count nextpage
+                    risNum = len([i for i in self.itemlist if i.title != typo(config.get_localized_string(30992), 'color kod bold')])  # not count nextpage
                     self.assertEqual(chNumRis[self.ch][content], risNum,
                                      'channel ' + self.ch + ' -> ' + self.title + ' returned wrong number of results<br>'
                                      + str(risNum) + ' but should be ' + str(chNumRis[self.ch][content]) + '<br>' +
@@ -246,48 +271,46 @@ class GenericChannelMenuItemTest(unittest.TestCase):
                 self.assertTrue(nextPageItemlist,
                                 'channel ' + self.ch + ' -> ' + self.title + ' has nextpage not working')
 
-        print('<br>test passed')
+        print('test passed')
 
 
-@parameterized.parameterized_class(serversFinal)
+@parameterized.parameterized_class(serversFinal, class_name_func=testnameSrv)
 class GenericServerTest(unittest.TestCase):
     def test_get_video_url(self):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
         print('testing ' + page_url)
         self.assert_(hasattr(module, 'test_video_exists'), self.name + ' has no test_video_exists')
-        try:
-            if module.test_video_exists(page_url)[0]:
-                urls = module.get_video_url(page_url)
-                server_parameters = servertools.get_server_parameters(self.name)
-                self.assertTrue(urls or server_parameters.get("premium"),
-                                self.name + ' scraper did not return direct urls for ' + page_url)
-                print(urls)
-                for u in urls:
-                    spl = u[1].split('|')
-                    if len(spl) == 2:
-                        directUrl, headersUrl = spl
-                    else:
-                        directUrl, headersUrl = spl[0], ''
-                    headers = {}
-                    if headersUrl:
-                        for name in headersUrl.split('&'):
-                            h, v = name.split('=')
-                            h = str(h)
-                            headers[h] = str(v)
-                        print(headers)
-                    if 'magnet:?' in directUrl:  # check of magnet links not supported
-                        continue
-                    page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True)
-                    self.assertTrue(page.success, self.name + ' scraper returned an invalid link')
-                    self.assertLess(page.code, 400, self.name + ' scraper returned a ' + str(page.code) + ' link')
-                    contentType = page.headers['Content-Type']
-                    self.assert_(contentType.startswith(
-                        'video') or 'mpegurl' in contentType or 'octet-stream' in contentType or 'dash+xml' in contentType,
-                                 self.name + ' scraper did not return valid url for link ' + page_url + '<br>Direct url: ' + directUrl + '<br>Content-Type: ' + contentType)
-        except:
-            import traceback
-            logger.error(traceback.format_exc())
+
+        if module.test_video_exists(page_url)[0]:
+            urls = module.get_video_url(page_url)
+            server_parameters = servertools.get_server_parameters(self.name)
+            self.assertTrue(urls or server_parameters.get("premium"),
+                            self.name + ' scraper did not return direct urls for ' + page_url)
+            print(urls)
+            for u in urls:
+                spl = u[1].split('|')
+                if len(spl) == 2:
+                    directUrl, headersUrl = spl
+                else:
+                    directUrl, headersUrl = spl[0], ''
+                headers = {}
+                if headersUrl:
+                    for name in headersUrl.split('&'):
+                        h, v = name.split('=')
+                        h = str(h)
+                        headers[h] = str(v)
+                    print(headers)
+                if 'magnet:?' in directUrl:  # check of magnet links not supported
+                    continue
+                page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True, verify=False)
+                self.assertTrue(page.success, self.name + ' scraper returned an invalid link')
+                self.assertLess(page.code, 400, self.name + ' scraper returned a ' + str(page.code) + ' link')
+                contentType = page.headers['Content-Type']
+                self.assert_(contentType.startswith(
+                    'video') or 'mpegurl' in contentType or 'octet-stream' in contentType or 'dash+xml' in contentType,
+                             self.name + ' scraper did not return valid url for link ' + page_url + '<br>Direct url: ' + directUrl + '<br>Content-Type: ' + contentType)
+                print('test passed')
 
 
 if __name__ == '__main__':

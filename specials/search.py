@@ -174,10 +174,10 @@ def channel_search(item):
     mode = item.mode
 
     if item.infoLabels['tvshowtitle']:
-        item.text = item.infoLabels['tvshowtitle'].split('-')[0]
+        item.text = item.infoLabels['tvshowtitle'].split(' - ')[0]
         item.title = item.text
     elif item.infoLabels['title']:
-        item.text = item.infoLabels['title'].split('-')[0]
+        item.text = item.infoLabels['title'].split(' - ')[0]
         item.title = item.text
 
     temp_search_file = config.get_temp_file('temp-search')
@@ -235,6 +235,8 @@ def channel_search(item):
                 if channel not in ch_list:
                     ch_list[channel] = []
                 ch_list[channel].extend(res.result()[1])
+            if res.result()[2]:
+                valid.extend(res.result()[2])
 
             if progress.iscanceled():
                 break
@@ -261,21 +263,7 @@ def channel_search(item):
         ch_name = channel_titles[channel_list.index(key)]
         grouped = list()
         cnt += 1
-        progress.update(old_div((cnt * 100), len(ch_list)), config.get_localized_string(60295) + '\n' + config.get_localized_string(60293))
-        if item.mode != 'all':
-            if len(value) == 1:
-                if not value[0].action or config.get_localized_string(70006).lower() in value[0].title.lower():
-                    continue
-            for elem in value:
-                if not elem.infoLabels.get('year', ""):
-                    elem.infoLabels['year'] = '-'
-            tmdb.set_infoLabels_itemlist(value, True, forced=True)
-            for elem in value:
-                if elem.infoLabels['tmdb_id'] == searched_id:
-                    elem.from_channel = key
-                    if not config.get_setting('unify'):
-                        elem.title += ' [%s]' % key
-                    valid.append(elem)
+        progress.update(old_div((cnt * 100), len(ch_list)), config.get_localized_string(60295))
 
         for it in value:
             if it.channel == item.channel:
@@ -355,24 +343,38 @@ def channel_search(item):
 
 def get_channel_results(item, module_dict, search_action):
     ch = search_action.channel
-    max_results = 10
     results = list()
+    valid = list()
     module = module_dict[ch]
+    searched_id = item.infoLabels['tmdb_id']
 
     try:
         results.extend(module.search(search_action, item.text))
+        if len(results) == 1:
+            if not results[0].action or config.get_localized_string(70006).lower() in results[0].title.lower():
+                results.clear()
+        elif item.mode != 'all':
+            for elem in results:
+                if not elem.infoLabels.get('year', ""):
+                    elem.infoLabels['year'] = '-'
+                tmdb.set_infoLabels_item(elem)
+                if elem.infoLabels['tmdb_id'] == searched_id:
+                    elem.from_channel = ch
+                    if not config.get_setting('unify'):
+                        elem.title += ' [%s]' % ch
+                    valid.append(elem)
 
-        if len(results) < 0 and len(results) < max_results and item.mode != 'all':
+        # if len(results) < 0 and len(results) < max_results and item.mode != 'all':
+        #
+        #     if len(results) == 1:
+        #         if not results[0].action or config.get_localized_string(30992).lower() in results[0].title.lower():
+        #             return [ch, []]
+        #
+        #     results = get_info(results)
 
-            if len(results) == 1:
-                if not results[0].action or config.get_localized_string(30992).lower() in results[0].title.lower():
-                    return [ch, []]
-
-            results = get_info(results)
-
-        return [search_action, results]
+        return [search_action, results, valid]
     except:
-        return [search_action, results]
+        return [search_action, results, valid]
 
 
 def get_servers(item, module_dict):

@@ -7,8 +7,8 @@
 from core import httptools, support
 from core.item import Item
 
-def findhost():
-    permUrl = httptools.downloadpage('https://eurostreaming.link/', follow_redirects=False, only_headers=True).headers
+def findhost(url):
+    permUrl = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers
     host = 'https://'+permUrl['location'].replace('https://www.google.it/search?q=site:', '')
     return host
 

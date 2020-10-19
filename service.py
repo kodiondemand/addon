@@ -8,6 +8,12 @@ import traceback
 import xbmc
 import xbmcgui
 from platformcode import config
+# on kodi 18 its xbmc.translatePath, on 19 xbmcvfs.translatePath
+try:
+    import xbmcvfs
+    xbmc.translatePath = xbmcvfs.translatePath
+except:
+    pass
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
@@ -396,6 +402,12 @@ class AddonMonitor(xbmc.Monitor):
 
 if __name__ == "__main__":
     logger.info('Starting KoD service')
+    if config.get_setting('autostart'):
+        xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
+
+    # handling old autoexec method
+    if config.is_autorun_enabled():
+        config.enable_disable_autorun(True)
     monitor = AddonMonitor()
 
     # mark as stopped all downloads (if we are here, probably kodi just started)

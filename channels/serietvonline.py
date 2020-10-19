@@ -21,8 +21,8 @@ from platformcode import config
 from core.item import Item
 
 
-def findhost():
-    host = support.match('https://serietvonline.online', patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
+def findhost(url):
+    host = support.match(url, patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
     return host
 
 host = config.get_channel_url(findhost)

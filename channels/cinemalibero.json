@@ -5,7 +5,7 @@
 	"active": true,
 	"thumbnail": "cinemalibero.png",
 	"banner": "cinemalibero.png",
-	"categories": ["movie","tvshow"],
+	"categories": ["movie","tvshow","anime"],
 	"not_active": ["include_in_newest_anime", "include_in_newest_peliculas"],
     "settings": []
 }

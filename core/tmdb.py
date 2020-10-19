@@ -92,7 +92,7 @@ def cache_response(fn):
     # import time
     # start_time = time.time()
 
-    def wrapper(*args):
+    def wrapper(*args, **kwargs):
         import base64
 
         def check_expired(ts):
@@ -143,7 +143,8 @@ def cache_response(fn):
         try:
 
             # cache is not active
-            if not config.get_setting("tmdb_cache", default=False):
+            if not config.get_setting("tmdb_cache", default=False) or not kwargs.get('cache', True):
+                logger.debug('no cache')
                 result = fn(*args)
             else:
 
@@ -861,8 +862,7 @@ class Tmdb(object):
 
     @staticmethod
     @cache_response
-    def get_json(url):
-
+    def get_json(url, cache=True):
         try:
             result = httptools.downloadpage(url, cookies=False, ignore_response_code=True)
 
@@ -1045,7 +1045,7 @@ class Tmdb(object):
                    % (type_search, "&".join(params)))
 
             logger.info("[Tmdb.py] Searcing %s:\n%s" % (type_search, url))
-            resultado = self.get_json(url)
+            resultado = self.get_json(url, cache=False)
             if not isinstance(resultado, dict):
                 resultado = ast.literal_eval(resultado.decode('utf-8'))
 

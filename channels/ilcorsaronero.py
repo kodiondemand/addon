@@ -5,8 +5,8 @@
 
 from core import support
 
-def findhost():
-    data = support.httptools.downloadpage('https://lagazzettadelcorsaro.com/').data
+def findhost(url):
+    data = support.httptools.downloadpage(url).data
     url = support.scrapertools.find_single_match(data, '<li><a href="([^"]+)')
     return url[:-1] if url.endswith('/') else url
 

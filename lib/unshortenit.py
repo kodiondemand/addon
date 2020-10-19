@@ -544,8 +544,7 @@ class UnshortenIt(object):
                     if uri == prev_uri:
                         logger.info('Use Cloudscraper')
                         uri = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, cf=True).headers['location']
-            # from core import support
-            # support.dbg()
+
             if "snip." in uri:
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]

@@ -15,7 +15,7 @@ __language__ = __settings__.getLocalizedString
 __version_fix = None
 __dev_mode = None
 
-channels_data = list()
+channels_data = dict()
 
 def get_addon_core():
     return __settings__
@@ -101,27 +101,29 @@ def is_xbmc():
 def get_videolibrary_support():
     return True
 
-def get_channel_url(findhostMethod=None, name=None):
+
+def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
     from core import jsontools
     import inspect
+
+    LOCAL_FILE = os.path.join(get_runtime_path(), "channels.json")
+    global channels_data
+    if not channels_data:
+        with open(LOCAL_FILE) as f:
+            channels_data = jsontools.load(f.read())
 
     frame = inspect.stack()[1]
     if not name:
         name = os.path.basename(frame[0].f_code.co_filename).replace('.py', '')
     if findhostMethod:
         url = jsontools.get_node_from_file(name, 'url')
-        if not url or 'web.archive.org' in url:  # per eliminare tutti i webarchive salvati causa bug httptools CF, eliminare in futuro
-            url = findhostMethod()
+        if not url or 'web.archive.org' in url or forceFindhost:  # per eliminare tutti i webarchive salvati causa bug httptools CF, eliminare in futuro
+            url = findhostMethod(channels_data['findhost'][name])
             jsontools.update_node(url, name, 'url')
         return url
     else:
-        ROOT_DIR = xbmc.translatePath(__settings__.getAddonInfo('Path'))
-        LOCAL_FILE = os.path.join(ROOT_DIR, "channels.json")
-        global channels_data
-        if not channels_data:
-            with open(LOCAL_FILE) as f:
-                channels_data = jsontools.load(f.read())
-        return channels_data[name]
+        return channels_data['direct'][name]
+
 
 def get_system_platform():
     """ function: to recover the platform that xbmc is running """
@@ -147,7 +149,7 @@ def is_autorun_enabled():
 
 
 def enable_disable_autorun(is_enabled):
-    # using autoexec.py and not service.py to force autorun
+    # old method, now using service.py
 
     path = os.path.join(xbmc.translatePath('special://userdata'),'autoexec.py')
     append_write = 'a' if os.path.exists(path) else 'w'
@@ -163,7 +165,7 @@ def enable_disable_autorun(is_enabled):
         file.close()
         with open(path, "w") as file:
             file.write(new_content)
-        set_setting('autostart', 'Off')
+        set_setting('autostart', True)
     return True
 
 def get_all_settings_addon():

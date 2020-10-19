@@ -24,7 +24,7 @@ else:
     _urlopen = urllib2.urlopen
     _Request = urllib2.Request
 
-def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True,):
+def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True):
     """
     Returns domain name query results retrieved by using DNS over HTTPS protocol
     # Reference: https://developers.cloudflare.com/1.1.1.1/dns-over-https/json-format/

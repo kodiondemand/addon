@@ -5,7 +5,7 @@ from core.tmdb import Tmdb
 from core.scrapertools import htmlclean, decodeHtmlentities
 from core.support import thumb, typo, match, Item
 from platformcode import config, platformtools
-from platformcode.logger import info, error
+from platformcode import logger
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -14,9 +14,9 @@ langs = ['auto', 'de', 'fr', 'pt', 'it', 'es-MX', 'ca', 'en', 'es']
 langt = langs[config.get_setting('tmdb', "tvmoviedb")]
 if langt == 'auto': langt = def_lang
 langt_alt = langs[config.get_setting('tmdb_alternativo', "tvmoviedb")]
-langs = ['auto', 'co', 'cl', 'ar', 'mx', 'en', 'es']
-langf = langs[config.get_setting('filmaff', "tvmoviedb")]
-if langf == 'auto': langf = 'en'
+# langs = ['auto', 'co', 'cl', 'ar', 'mx', 'en', 'es']
+# langf = langs[config.get_setting('filmaff', "tvmoviedb")]
+# if langf == 'auto': langf = 'en'
 langs = ['auto', 'de-de', 'fr-fr', 'pt-pt', 'it-it', 'es-MX', 'ca-es', 'en', 'es']
 langi = langs[config.get_setting('imdb', "tvmoviedb")]
 if langi == 'auto': langi = def_lang
@@ -28,7 +28,7 @@ default_fan = filetools.join(config.get_runtime_path(), "fanart.jpg")
 
 
 def mainlist(item):
-    info()
+    logger.info()
     itemlist = [
             # TMDB
             # item.clone(title=typo(config.get_localized_string(70021), 'bold'), action=""),
@@ -55,7 +55,7 @@ def configuracion(item):
     return ret
 
 def search_star(item):
-    info()
+    logger.info()
 
     itemlist = []
     item.type='movie'
@@ -97,7 +97,7 @@ def search_(item):
 
 
 def searcing(item):
-    info()
+    logger.info()
 
     new_item = Item(title=item.contentTitle, text=item.contentTitle.replace("+", " "), mode=item.contentType, infoLabels=item.infoLabels)
 
@@ -351,7 +351,7 @@ def list_tmdb(item):
                 itemlist.append(new_item)
         except:
             import traceback
-            error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         if orden:
             itemlist.sort(key=lambda item: item.infoLabels["year"], reverse=True)
@@ -625,7 +625,7 @@ def indices_tmdb(item):
 
 
 def filter(item):
-    info()
+    logger.info()
 
     from datetime import datetime
     list_controls = []
@@ -705,7 +705,7 @@ def filtered(item, values):
 
 
 def musica_movie(item):
-    info()
+    logger.info()
     itemlist = []
     data = match(item).data
     matches = match(data, patron=r'<td class="left">([^<]+)<br><small>([^<]+)</small>.*?<td>(\d+:\d+).*?<p id="([^"]+)"').matches
@@ -729,7 +729,7 @@ def list_imdb(item):
         url = 'http://www.imdb.com/search/title?' + item.url
         # data = httptools.downloadpage(url, headers=headers, replace_headers=True).data
         data = match(url, headers=headers).data
-    info(data)
+    logger.info(data)
 
     # data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     # data = re.sub(r"\s{2}", " ", data)
@@ -812,7 +812,7 @@ def list_imdb(item):
 
 
 def filter_imdb(item):
-    info()
+    logger.info()
 
     from datetime import datetime
     list_controls = []
@@ -1392,7 +1392,7 @@ def indices_imdb(item):
 
 
 # def filter_fa(item):
-#     info()
+#     logger.info()
 
 #     from datetime import datetime
 #     list_controls = []
@@ -1494,7 +1494,7 @@ def indices_imdb(item):
 
 
 # def login_fa():
-#     info()
+#     logger.info()
 
 #     try:
 #         user = config.get_setting("usuariofa", "tvmoviedb")
@@ -1510,7 +1510,7 @@ def indices_imdb(item):
 #         data = httptools.downloadpage("https://m.filmaffinity.com/%s/account.ajax.php?action=login" % langf, post=post).data
 
 #         if "Invalid username" in data:
-#             error("Error en el login")
+#             logger.error("Error en el login")
 #             return False, config.get_localized_string(70330)
 #         else:
 #             post = "name=user-menu&url=http://m.filmaffinity.com/%s/main.php" % langf
@@ -1519,11 +1519,11 @@ def indices_imdb(item):
 #             userid = scrapertools.find_single_match(data, 'id-user=(\d+)')
 #             if userid:
 #                 config.set_setting("userid", userid, "tvmoviedb")
-#             info("Login correcto")
+#             logger.info("Login correcto")
 #             return True, ""
 #     except:
 #         import traceback
-#         error(traceback.format_exc())
+#         logger.error(traceback.format_exc())
 #         return False, config.get_localized_string(70331)
 
 
@@ -1644,7 +1644,7 @@ def indices_imdb(item):
 
 # def votar_fa(item):
 #     # Window to select the vote
-#     info()
+#     logger.info()
 
 #     list_controls = []
 #     valores = {}
@@ -1752,6 +1752,7 @@ def imagenes(item):
     #         return itemlist
     elif "Imdb" in item.title:
         try:
+            from core import httptools
             data = jsontools.load(httptools.downloadpage(item.images["imdb"]["url"], cookies=False).data)
             item.images["imdb"].pop("url")
             if data.get("allImages"):
@@ -1920,7 +1921,7 @@ def acciones_trakt(item):
         ratings = []
         try:
             for i, entry in enumerate(data):
-                info('ENTRY:',entry)
+                logger.info('ENTRY:',entry)
                 if i <= item.pagina: continue
                 # try: entry = entry[item.args]
                 # except: pass
@@ -1974,7 +1975,7 @@ def acciones_trakt(item):
                     if ratings[i]: new_item.title += typo("Trakt: %.2f | Tmdb: %.2f"  % (ratings[i], new_item.infoLabels["rating"]), '_ [] color kod')
         except:
             import traceback
-            error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         if "page" in item.url and len(itemlist) == 20:
             page = match(item.url, patron=r'page=(\d+)').match
@@ -1996,7 +1997,7 @@ def acciones_trakt(item):
 
 
 def order_list(item):
-    info()
+    logger.info()
 
     list_controls = []
     valores1 = ['rating', 'added', 'title', 'released', 'runtime', 'popularity', 'percentage', 'votes']
@@ -2338,7 +2339,7 @@ def indices_mal(item):
         matches = match("https://myanimelist.net/anime.php", cookies=False, patronBlock=patronBlock, patron=patron).matches
         for url, title in matches:
             genero = title.split(" (", 1)[0]
-            info(url_base, genero)
+            logger.info(url_base, genero)
             thumbnail = url_base + genero.lower().replace(" ", "%20")
             if genero in ["Hentai", "Yaoi", "Yuri"] and not adult_mal:
                 continue
@@ -2387,7 +2388,7 @@ def season_mal(item):
                 thumb = thumb.replace("r/167x242/", "") + "l.jpg"
                 itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title, thumbnail=thumb, infoLabels=infoLabels, args=args, tipo=tipo, contentTitle=scrapedtitle, contentType=contentType, fanart=default_fan))
     else:
-        patron = r'<a href="([^"]+)" class="link-title">(.*?)</a>.*?<span>(\? ep|\d+ ep).*?<div class="genres-inner js-genre-inner">(.*?)</div>.*?<div class="image".*?src="(.*?).jpg.*?<span class="preline">(.*?)</span>.*?<div class="info">\s*(.*?)\s*-.*?(\d{4}).*?title="Score">\s*(N/A|\d\.\d+)'
+        patron = r'<a href="([^"]+)" class="link-title">([^<]+)</a>.*?<span>(\? ep|\d+ ep).*?<div class="genres-inner js-genre-inner">(.*?)</div>.*?<div class="image".*?src="([^"]+).*?<span class="preline">(.*?)</span>.*?<div class="info">\s*(.*?)\s*-.*?(\d{4}).*?title="Score">\s*(N/A|\d\.\d+)'
         matches = match(data, patron=patron).matches
         for url, scrapedtitle, epis, scrapedgenres, thumbnail, plot, tipo, year, score in matches:
             if ("Hentai" in scrapedgenres or "Yaoi" in scrapedgenres or "Yuri" in scrapedgenres) and not adult_mal:
@@ -2413,7 +2414,7 @@ def season_mal(item):
             else:
                 args = "tv"
                 contentType = "tvshow"
-            thumbnail = thumbnail.replace("r/167x242/", "") + "l.jpg"
+            thumbnail = thumbnail.replace(".webp", ".jpg")
             itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title,
                                  thumbnail=thumbnail, infoLabels=infoLabels, args=args, tipo=tipo,
                                  contentTitle=scrapedtitle, contentType=contentType,
@@ -2487,7 +2488,7 @@ def detail_staff(item):
         patron_bio = r'<?<div class="spaceit_pad">(.*?)</td>'
         bio = match(data, patron=patron_bio).match
         bio = htmlclean(bio.replace("</div>", "\n"))
-        info(bio)
+        logger.info(bio)
         infoLabels = {'plot': bio}
         if not "No voice acting roles" in data:
             itemlist.append(Item(channel=item.channel, title=typo(config.get_localized_string(70374),'bold bullet'), action="", thumbnail=item.thumbnail, infoLabels=infoLabels))
@@ -2550,7 +2551,7 @@ def searching_mal(item):
                     title += "  (%s)" % year
         except:
             import traceback
-            error(traceback.format_exc())
+            logger.error(traceback.format_exc())
 
         if tipo == "Movie" or tipo == "OVA":
             infolabels["mediatype"] = "movie"
@@ -2625,7 +2626,7 @@ def info_anidb(item, itemlist, url):
 
 
 def filter_mal(item):
-    info()
+    logger.info()
 
     list_controls = []
     valores = {}
@@ -2703,7 +2704,7 @@ def callback_mal(item, values):
 
 def musica_anime(item):
     # List available anime and songs similar to the anime title
-    info()
+    logger.info()
     itemlist = []
 
     data = match("http://www.freeanimemusic.org/song_search.php", post=item.post).data
@@ -2738,7 +2739,7 @@ def musica_anime(item):
 
 
 def login_mal(from_list=False):
-    info()
+    logger.info()
     from core import httptools
     from base64 import b64decode as bdec
 
@@ -2762,16 +2763,16 @@ def login_mal(from_list=False):
         response = httptools.downloadpage("https://myanimelist.net/login.php?from=%2F", post=post)
 
         if not re.search(r'(?i)' + user, response.data):
-            error("Login failed")
+            logger.error("Login failed")
             return False, config.get_localized_string(70330), user
         else:
             if generic:
                 return False, config.get_localized_string(70393), user
-            info("Correct login")
+            logger.info("Correct login")
             return True, "", user
     except:
         import traceback
-        error(traceback.format_exc())
+        logger.error(traceback.format_exc())
         return False, config.get_localized_string(70331) , ''
 
 
@@ -2799,7 +2800,7 @@ def cuenta_mal(item):
 
 def items_mal(item):
     # Scraper for personal lists
-    info()
+    logger.info()
     itemlist = []
     data = match(item.url).data
 

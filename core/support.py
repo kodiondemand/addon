@@ -82,7 +82,6 @@ def color(text, color):
 
 def search(channel, item, texto):
     info(item.url + " search " + texto)
-    if 'findhost' in dir(channel): channel.findhost()
     item.url = channel.host + "/?s=" + texto
     try:
         return channel.peliculas(item)
@@ -318,7 +317,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     longtitle += s + parsedTitle.get('episode_title')
                     item.contentEpisodeTitle = parsedTitle.get('episode_title')
             except:
-                logger.debug('Error')
+                import traceback
+                logger.error(traceback.format_exc())
 
         longtitle = typo(longtitle, 'bold')
         lang1, longtitle = scrapeLang(scraped, lang, longtitle)
@@ -479,10 +479,10 @@ def scrape(func):
             # if url may be changed and channel has findhost to update
             if 'findhost' in func.__globals__ and not itemlist:
                 info('running findhost ' + func.__module__)
-                host = func.__globals__['findhost']()
+                ch = func.__module__.split('.')[-1]
+                host = config.get_channel_url(func.__globals__['findhost'], ch, True)
+
                 parse = list(urlparse.urlparse(item.url))
-                from core import jsontools
-                jsontools.update_node(host, func.__module__.split('.')[-1], 'url')
                 parse[1] = scrapertools.get_domain_from_url(host)
                 item.url = urlparse.urlunparse(parse)
                 data = None
@@ -490,6 +490,9 @@ def scrape(func):
                 matches = []
             else:
                 break
+
+        if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode', 'undefined'] and not disabletmdb:
+            tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if (pagination and len(matches) <= pag * pagination) or not pagination:  # next page with pagination
             if patronNext and inspect.stack()[1][3] not in ['newest']:
@@ -509,8 +512,6 @@ def scrape(func):
                          args=item.args,
                          page=pag + 1,
                          thumbnail=thumb()))
-        if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode', 'undefined'] and not disabletmdb:
-            tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if anime:
             from platformcode import autorenumber

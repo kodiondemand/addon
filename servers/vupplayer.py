@@ -9,7 +9,7 @@ def test_video_exists(page_url):
     page = httptools.downloadpage(page_url)
     global data
     data = page.data
-    if page.code == 404:
+    if page.code == 404 or 'File is no longer available' in data:
         return False, config.get_localized_string(70449)
     return True, ""
 

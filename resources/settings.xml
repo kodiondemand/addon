@@ -3,7 +3,7 @@
     <!-- General -->
     <category label="70168">
         <setting label="70786" type="lsep"/>
-        <setting id="autostart" type="action" label="70706" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAiYXV0b3N0YXJ0IiwNCiAgICAiY2hhbm5lbCI6ICJzZXR0aW5nIg0KfQ==)" default="Off"/>
+        <setting id="autostart" type="bool" label="70706" default="false"/>
         <setting label="70579" type="lsep"/>
         <setting id="addon_update_enabled" type="bool" label="70581" default="true"/>
         <setting id="addon_update_message" type="bool" label="70582" visible="eq(-1,true)" default="true"/>

@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import urllib
+try:
+    import urllib.parse as urllib
+except ImportError:
+    import urllib
 
 from core import httptools
 from core import scrapertools

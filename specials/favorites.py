@@ -138,7 +138,10 @@ def renameFavourite(item):
 # Features to migrate old favorites (.txt)
 def readbookmark(filepath):
     logger.info()
-    import urllib
+    try:
+        import urllib.parse as urllib
+    except ImportError:
+        import urllib
 
     bookmarkfile = filetools.file_open(filepath)
 

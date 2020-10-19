@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from platformcode import logger, side_menu
+from platformcode import logger
 
 
 def context():
@@ -18,6 +18,7 @@ def context():
 	return context
 
 def Side_menu(item):
+	from platformcode import side_menu
 	side_menu.open_menu(item)
 
 def shortcut_menu(item):

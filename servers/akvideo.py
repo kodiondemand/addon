@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import urllib
+try:
+    import urllib.parse as urllib
+except ImportError:
+    import urllib
 
 from core import httptools, support
 from core import scrapertools
 from platformcode import logger, config
 
 headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0']]
+
 
 def test_video_exists(page_url):
     logger.info("(page_url='%s')" % page_url)

@@ -15,50 +15,8 @@ from channelselector import get_thumb
 from core import filetools, servertools
 from core.item import Item
 from platformcode import config, logger, platformtools
-import xbmcgui
 
 CHANNELNAME = "setting"
-AUTOSTART = config.is_autorun_enabled()
-
-def mainlist(item):
-    logger.info()
-
-    itemlist = list()
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60535), action="settings", folder=False,
-                         thumbnail=get_thumb("setting_0.png")))
-    if AUTOSTART is False:
-        autostart_mode = config.get_localized_string(70707)
-    else:
-        autostart_mode = config.get_localized_string(70708)
-    itemlist.append(Item(channel=CHANNELNAME, title=autostart_mode + " " + config.get_localized_string(70706), action="autostart", folder=False, thumbnail=get_thumb("setting_0.png")))
-
-    #itemlist.append(Item(channel=CHANNELNAME, title="", action="", folder=False, thumbnail=get_thumb("setting_0.png")))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60536) + ":", text_bold=True, action="", folder=False,
-                         thumbnail=get_thumb("setting_0.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title="     " + config.get_localized_string(60537), action="menu_channels", folder=True,
-                         thumbnail=get_thumb("channels.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title="     " + config.get_localized_string(60538), action="menu_servers", folder=True,
-                         thumbnail=get_thumb("channels.png")))
-    itemlist.append(Item(channel="news", title="     " + config.get_localized_string(60539), action="menu_opciones",
-                         folder=True, thumbnail=get_thumb("news.png")))
-    itemlist.append(Item(channel="search", title="     " + config.get_localized_string(60540), action="opciones", folder=True,
-                         thumbnail=get_thumb("search.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title="     " + config.get_localized_string(60541), action="channel_config",
-                         config="downloads", folder=True, thumbnail=get_thumb("downloads.png")))
-
-    if config.get_videolibrary_support():
-        itemlist.append(Item(channel="videolibrary", title="     " + config.get_localized_string(60542), action="channel_config",
-                             folder=True, thumbnail=get_thumb("videolibrary.png")))
-
-    if config.is_xbmc():
-        itemlist.append(Item(channel=CHANNELNAME, title="     " + config.get_localized_string(70253), action="setting_torrent",
-                             folder=True, thumbnail=get_thumb("channels_torrent.png")))
-    #itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False, thumbnail=get_thumb("setting_0.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60544), action="submenu_tools", folder=True,
-                         thumbnail=get_thumb("setting_0.png")))
-
-    return itemlist
 
 
 def menu_channels(item):
@@ -94,15 +52,6 @@ def menu_channels(item):
 
 def channel_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels", item.config))
-
-
-def autostart(item):  # item required launcher.py line 265
-    if config.enable_disable_autorun(AUTOSTART):
-        logger.info('AUTOSTART ENABLED')
-        # xbmcgui.Dialog().ok(config.get_localized_string(20000), config.get_localized_string(70709))
-    else:
-        logger.info('AUTOSTART ENABLED')
-        # xbmcgui.Dialog().ok(config.get_localized_string(20000), config.get_localized_string(70710))
 
 
 # def setting_torrent(item):

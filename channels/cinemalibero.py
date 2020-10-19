@@ -11,7 +11,7 @@ from platformcode import config
 
 
 # rimanda a .today che contiene tutti link a .plus
-# def findhost():
+# def findhost(url):
 #     permUrl = httptools.downloadpage('https://www.cinemalibero.online/', follow_redirects=False).headers
 #     try:
 #         import urlparse

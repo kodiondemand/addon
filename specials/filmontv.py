@@ -4,8 +4,10 @@
 # ------------------------------------------------------------
 
 import re
-import urllib
-from channelselector import get_thumb
+try:
+    import urllib.parse as urllib
+except ImportError:
+    import urllib
 from core import httptools, scrapertools, support, tmdb, filetools
 from core.item import Item
 from platformcode import logger, config, platformtools

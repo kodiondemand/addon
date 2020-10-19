@@ -4,16 +4,9 @@
 # ------------------------------------------------------------
 
 from core import support
-from core.item import Item
-from platformcode import config
-from xml.dom import minidom
-
-#impostati dinamicamente da findhost()
-
 
 host = 'http://api.radiotime.com'
 headers = [['Referer', host]]
-
 
 
 @support.scrape

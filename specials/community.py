@@ -137,7 +137,11 @@ def search(item, text):
     json = load_json(item)
     if json:
         for key in json:
-            peliculas(item, json, key, itemlist)
+            if key not in ['sort']:
+                if item.custom_search and key == 'menu':
+                    get_menu(item, json, key, itemlist)
+                else:
+                    peliculas(item, json, key, itemlist)
 
     return itemlist
 

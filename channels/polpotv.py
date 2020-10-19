@@ -7,13 +7,11 @@
 from core import support, jsontools
 from core.item import Item
 from platformcode import config
-import json, datetime
+import datetime
 
 host = config.get_channel_url()
 
 headers = [['Accept', 'application/ld+json']]
-
-
 
 
 @support.menu
@@ -57,8 +55,9 @@ def peliculas(item):
             item.contentType='movie'
         else:
             item.contentType='tvshow'
-        itemlist.extend(get_itemlist_element(element, item))
+        itemlist.append(get_itemlist_element(element, item))
 
+    support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     try:
         if support.inspect.stack()[1][3] not in ['newest']:
             support.nextPage(itemlist, item, next_page=json_object['hydra:view']['hydra:next'])
@@ -106,13 +105,14 @@ def search(item, texto):
         json_object = jsontools.load(data)
         for movie in json_object['hydra:member']:
             item.contentType='movie'
-            itemlist.extend(get_itemlist_element(movie,item))
+            itemlist.append(get_itemlist_element(movie,item))
         item.url = host + "/api/shows?originalTitle="+texto+"&translations.name=" +texto
         data = support.match(item.url, headers=headers).data
         json_object = jsontools.load(data)
         for tvshow in json_object['hydra:member']:
             item.contentType='tvshow'
-            itemlist.extend(get_itemlist_element(tvshow,item))
+            itemlist.append(get_itemlist_element(tvshow,item))
+        support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         return itemlist
     # Continua la ricerca in caso di errore
     except:
@@ -120,6 +120,7 @@ def search(item, texto):
         for line in sys.exc_info():
             support.logger.error("%s" % line)
         return []
+
 
 def search_movie_by_genre(item):
     support.info()
@@ -133,6 +134,7 @@ def search_movie_by_genre(item):
                        contentType='movie',
                        url="%s/api/movies?genres.id=%s" %(host,genre['id'])))
     return support.thumb(itemlist, True)
+
 
 def search_movie_by_year(item):
     support.info()
@@ -148,6 +150,7 @@ def search_movie_by_year(item):
                        title=support.typo(year_to_search,'bold'),
                        action="peliculas"))
     return itemlist
+
 
 def findvideos(item):
     support.info()
@@ -170,9 +173,9 @@ def findvideos(item):
         pass
     return support.server(item, itemlist=itemlist)
 
+
 def get_itemlist_element(element,item):
     support.info()
-    itemlist=[]
     contentSerieName = ''
     contentTitle =''
     try:
@@ -189,13 +192,13 @@ def get_itemlist_element(element,item):
     except:
         scrapedplot = ""
     try:
-        scrapedthumbnail="http://"+element['posterPath']
+        scrapedthumbnail="https:"+element['bestPosters'].values()[0]
     except:
         scrapedthumbnail=""
-    try:
-        scrapedfanart="http://"+element['backdropPath']
-    except:
-        scrapedfanart=""
+    # try:
+    #     scrapedfanart="http:"+element['backdropPath']
+    # except:
+    #     scrapedfanart=""
 
     infoLabels = {}
     if item.contentType=='movie':
@@ -210,20 +213,15 @@ def get_itemlist_element(element,item):
         quality=''
         url="%s%s"
 
-    if item.contentType=='movie':
-        support.tmdb.set_infoLabels_itemlist(itemlist)
-    itemlist.append(
-        item.clone(action=next_action,
+    return item.clone(action=next_action,
                    title=support.typo(scrapedtitle, 'bold') + quality,
                    fulltitle=scrapedtitle,
                    show=scrapedtitle,
                    plot=scrapedplot,
-                   fanart=scrapedfanart,
+                   # fanart=scrapedfanart,
                    thumbnail=scrapedthumbnail,
                    contentTitle=contentTitle,
                    contentSerieName=contentSerieName,
                    contentType=item.contentType,
                    url=url % (host, element['@id']),
-                   infoLabels=infoLabels))
-
-    return itemlist
+                   infoLabels=infoLabels)

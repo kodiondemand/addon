@@ -258,10 +258,10 @@ def check_channels(inutile=''):
 
     risultato = {}
 
-    for chann, host in sorted(data.items()):
+    for chann, host in sorted(data['direct'].items()):
 
         ris = []
-        # to get an idea of ​​the timing
+        # to get an idea of the timing
         # useful only if you control all channels
         # for channels with error 522 about 40 seconds are lost ...
         logger.info("check #### INIZIO #### channel - host :%s - %s " % (chann, host))
@@ -290,6 +290,7 @@ def check_channels(inutile=''):
 
         logger.info("check #### FINE #### rslt :%s  " % (rslt))
 
+    risultato = {'findhost': data['findhost'], 'direct': risultato}
     fileJson_test = 'channels-test.json'
     # I write the updated file
     with open(folderJson+'/'+fileJson_test, 'w') as f:
