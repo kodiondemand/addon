@@ -71,12 +71,14 @@ def episodios(item):
         patron = r'<img src="(?P<thumb>[^"]+)">.*?<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<url>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
     else:
         patronBlock = r'(?:STAGIONE|Stagione)(?:<[^>]+>)?\s*(?:(?P<lang>[A-Za-z- ]+))?(?P<block>.*?)(?:&nbsp;|<strong>|<div class="addtoany)'
-        patron = r'(?:/>|p>)\s*(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<]+(?P<url>.*?)(?:<br|</p)'
-    def itemHook(item):
-        item.title.replace('&#215;','x')
-        if not item.contentLanguage:
-            item.contentLanguage = 'ITA'
-            return item
+        patron = r'(?:/>|p>)\s*(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<]+(?P<other>.*?)(?:<br|</p)'
+
+    def itemHook(i):
+        i.url = item.url
+        i.title.replace('&#215;','x')
+        if not i.contentLanguage:
+            i.contentLanguage = 'ITA'
+        return i
     return locals()
 
 
@@ -157,4 +159,4 @@ def findvideos(item):
         data = httptools.downloadpage(item.url).data
         return support.server(item, data=data, patronTag='Versione: <[^>]+>([^<]+)')
     else:
-        return support.server(item, item.url)
+        return support.server(item, item.other)
