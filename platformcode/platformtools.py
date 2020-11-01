@@ -502,7 +502,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
             context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Search in other channels
-        if item.contentType in ['movie', 'tvshow'] and item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
+        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
 
             # Search in other channels
             if item.contentSerieName != '':
@@ -551,8 +551,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 elif item.contentType == "season":
                     context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
 
-        # Open settings...
-        if item.action in ["findvideos", 'episodios', 'check', 'new_search'] or "buscar_trailer" in context:
+        # Search trailer...
+        if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s)" % (sys.argv[0], urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         if kwargs.get('superfavourites'):

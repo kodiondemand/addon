@@ -353,7 +353,7 @@ def get_channel_results(item, module_dict, search_action):
         if len(results) == 1:
             if not results[0].action or config.get_localized_string(70006).lower() in results[0].title.lower():
                 results.clear()
-        elif item.mode != 'all':
+        if item.mode != 'all':
             for elem in results:
                 if not elem.infoLabels.get('year', ""):
                     elem.infoLabels['year'] = '-'

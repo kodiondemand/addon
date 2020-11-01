@@ -128,16 +128,25 @@ def search(item, text):
     info(text)
     itemlist = []
     text = text.replace(' ', '+')
-    item.url = host + "/search/" + text
-    try:
-        item.args = 'search'
-        return peliculas(item)
-    except:
-        import sys
-        for line in sys.exc_info():
-            info("%s" % line)
-
-    return []
+    item.url = host + "/wp-json/wp/v2/search?search=" + text
+    results = support.httptools.downloadpage(item.url).json
+    for r in results:
+        title = r['title']
+        longtitle = support.typo(title, 'bold')
+        if '[sub-ita]' in title.lower():
+            longtitle += support.typo('Sub-ITA', '_ [] color kod')
+            title = title.split('[')[0]
+        itemlist.append(item.clone(action='findvideos' if r['subtype'] == 'movies' else 'episodios',
+                   title=longtitle,
+                   fulltitle=title,
+                   show=title,
+                   contentTitle=title,
+                   contentSerieName=title,
+                   contentType='movie' if r['subtype'] == 'movies' else 'tvshow',
+                   url=r['url']))
+    # support.dbg()
+    support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    return itemlist
 
 def newest(categoria):
     info(categoria)
