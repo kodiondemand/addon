@@ -18,6 +18,9 @@ def download(item=None):
 
     if filetools.exists(elementum_path):
         if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70783)):
+            addon_file = filetools.file_open(filetools.join(elementum_path,'addon.xml')).read()
+            required = support.match(addon_file, patron=r'addon="([^"]+)').matches
+            for r in required: xbmc.executebuiltin('InstallAddon(' + r + ')', wait=True)
             setting()
             platformtools.dialog_ok('Elementum', config.get_localized_string(70783))
 
@@ -32,6 +35,9 @@ def download(item=None):
                 downloadtools.downloadfile(host + url, filename)
                 extract()
                 xbmc.sleep(1000)
+                addon_file = filetools.file_open(filetools.join(elementum_path,'addon.xml')).read()
+                required = support.match(addon_file, patron=r'addon="([^"]+)').matches
+                for r in required: xbmc.executebuiltin('InstallAddon(' + r + ')', wait=True)
                 setting()
 
 
@@ -40,8 +46,8 @@ def extract():
     from platformcode.updater import fixZipGetHash
     support.info('Estraggo Elementum in:', elementum_path)
     try:
-        hash = fixZipGetHash(filename)
-        support.info(hash)
+        # hash = fixZipGetHash(filename)
+        # support.info(hash)
 
         with zipfile.ZipFile(filetools.file_open(filename, 'rb', vfs=False)) as zip_ref:
             zip_ref.extractall(xbmc.translatePath(addon_path))

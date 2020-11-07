@@ -129,6 +129,10 @@ def run(item=None):
             from platformcode import backup
             return getattr(backup, item.action)(item)
 
+        elif item.channel == "elementum_download":
+            from platformcode import elementum_download
+            return getattr(elementum_download, item.action)(item)
+
         elif item.channel == "shortcuts":
             from platformcode import shortcuts
             return getattr(shortcuts, item.action)(item)
