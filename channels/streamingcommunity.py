@@ -175,10 +175,9 @@ def episodios(item):
 
 
 def findvideos(item):
+
     support.info()
     itemlist=[]
     url = support.match(support.match(item).data.replace('&quot;','"').replace('\\',''), patron=r'video_url"\s*:\s*"([^"]+)"').match
-    playlist = support.match(url.replace('https','http'), patron=r'\./([^.]+)').matches
-    for res in playlist:
-        itemlist.append(item.clone(title=support.config.get_localized_string(30137), server='directo', url=url.replace('playlist',res), quality=res, action='play'))
+    itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', url=url, action='play')]
     return support.server(item, itemlist=itemlist)
