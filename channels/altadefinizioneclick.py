@@ -99,7 +99,7 @@ def search(item, texto):
     support.info("search ", texto)
 
     item.args = 'search'
-    item.url = host + "/?s=" + texto
+    item.url = host + "/search/" + texto
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore

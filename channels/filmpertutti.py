@@ -7,12 +7,12 @@ from core import httptools, support
 from core.item import Item
 from platformcode import config
 
-# def findhost(url):
-#     page = httptools.downloadpage("https://filmpertutti.nuovo.live/").data
-#     url = scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è <a href="([^"]+)')
-#     return url
+def findhost(url):
+    page = httptools.downloadpage(url).data
+    url = support.scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è <a href="([^"]+)')
+    return url
 
-host = config.get_channel_url()
+host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 

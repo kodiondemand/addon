@@ -444,7 +444,7 @@ def scrape(func):
                 data = data.replace('\n', ' ')
                 data = data.replace('\t', ' ')
                 data = data.replace('&nbsp;', ' ')
-                data = re.sub(r'>\s+<', '> <', data)
+                data = re.sub(r'>\s{2,}<', '> <', data)
                 # replace all ' with " and eliminate newline, so we don't need to worry about
             scrapingTime = time()
             if patronBlock:

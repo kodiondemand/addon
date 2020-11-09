@@ -72,9 +72,19 @@ def run(item=None):
             else:
                 item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
-            from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.ask_set_content(silent=False)
-            config.set_setting('show_once', True)
+            if not config.get_all_settings_addon():
+                logger.error('corrupted settings.xml!!')
+                settings_xml = os.path.join(config.get_data_path(), "settings.xml")
+                settings_bak = os.path.join(config.get_data_path(), "settings.bak")
+                if filetools.exists(settings_bak):
+                    filetools.copy(settings_bak, settings_xml, True)
+                    logger.info('restored settings.xml from backup')
+                else:
+                    filetools.write(settings_xml, '<settings version="2">\n</settings>')  # resetted settings
+            else:
+                from platformcode import xbmc_videolibrary
+                xbmc_videolibrary.ask_set_content(silent=False)
+                config.set_setting('show_once', True)
 
     logger.info(item.tostring())
 
