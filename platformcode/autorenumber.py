@@ -318,7 +318,7 @@ def manual_renumeration(item, modify=False):
         season = ''
         while not season:
             season = platformtools.dialog_numeric(0, config.get_localized_string(70733))
-            count = int(platformtools.dialog_numeric(0, config.get_localized_string(70733)))
+            count = int(platformtools.dialog_numeric(0, config.get_localized_string(70733).replace('Season','Episode').replace('della Stagione',"dell'Episodio")))
 
         for select in selected:
             ep = int(scrapertools.find_single_match(_list[select], r'(\d+)'))
