@@ -17,10 +17,10 @@ def mainlist(item):
 
     tvshow = [('Genere', ['', 'menu', 'genre']),
               ('A-Z', ['', 'menu', 'a-z']),
-              ('In Corso', ['/category/serie-tv-streaming/serie-in-corso', 'peliculas']),
-              ('Complete', ['/category/serie-tv-streaming/serie-complete', 'peliculas']),
-              ('Americane', ['/category/serie-tv-streaming/serie-tv-americane', 'peliculas']),
-              ('Italiane', ['/category/serie-tv-streaming/serie-tv-italiane', 'peliculas']),
+              ('In Corso', ['category/serie-tv-streaming/serie-in-corso', 'peliculas']),
+              ('Complete', ['category/serie-tv-streaming/serie-complete', 'peliculas']),
+              ('Americane', ['category/serie-tv-streaming/serie-tv-americane', 'peliculas']),
+              ('Italiane', ['category/serie-tv-streaming/serie-tv-italiane', 'peliculas']),
               ('Ultimi Episodi', ['/aggiornamenti', 'peliculas', 'last']),
               ('Evidenza', ['', 'peliculas', 'best'])]
     return locals()
@@ -65,6 +65,8 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
+
     if item.args == 'last':
         action = 'findvideos'
         patron = r'singleUpdate">[^>]+>[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>\s*<h2>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+>\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
@@ -85,20 +87,25 @@ def episodios(item):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
         for episode_url, episode in episodes:
-            episode_url = support.urlparse.urljoin(item.url, episode_url)
-            if '-' in episode: episode = episode.split('-')[0].zfill(2) + 'x' + episode.split('-')[1].zfill(2)
+            # episode_url = support.urlparse.urljoin(item.url, episode_url)
+            # if '-' in episode: episode = episode.split('-')[0].zfill(2) + 'x' + episode.split('-')[1].zfill(2)
             title = season + "x" + episode.zfill(2) + ' - ' + item.fulltitle
             data += title + '|' + episode_url + '\n'
         return data
 
-    patron_season = '<div class="buttons-bar seasons">(.*?)<div class="buttons'
-    patron_episode = '<div class="buttons-bar episodes">(.*?)<div class="buttons'
-    patron_option = r'<a href="([^"]+?)".*?>([^<]+?)</a>'
+    patron_season = '<div class="[^"]+" id="seasonsModal"[^>]+>(.*?)</ul>'
+    patron_episode = '<div class="[^"]+" id="episodesModal"[^>]+>(.*?)</ul>'
+    patron_option = r'<a href="([^"]+?)".*?>(?:Stagione |Episodio )([^<]+?)</a>'
 
     url = support.match(item, patron=r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
     seasons = support.match(url, patronBlock=patron_season, patron=patron_option)
 
     data = ''
+
+    # debugging
+    # support.dbg()
+    # for i, season in enumerate(seasons.matches):
+    #     data += get_season(seasons.data if i == 0 else '', season[0], season[1])
     import sys
     if sys.version_info[0] >= 3:
         from concurrent import futures
