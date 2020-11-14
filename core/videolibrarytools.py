@@ -436,7 +436,10 @@ def save_tvshow(item, episodelist, silent=False):
         return 0, 0, -1, path  # Salimos sin guardar
 
     contentTypeBackup = item.contentType  # Fix errors in some channels
-    scraper_return = scraper.find_and_set_infoLabels(item)
+    if not item.infoLabels['code']:
+        scraper_return = scraper.find_and_set_infoLabels(item)
+    else:
+        scraper_return = True
     item.contentType = contentTypeBackup  # Fix errors in some channels
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the series
@@ -598,7 +601,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
             local_episodelist += get_local_content(local_episodes_path)
             clean_list = []
             for f in filetools.listdir(path):
-                match = scrapertools.find_single_match(f, r'[S]?(\d+)(?:x|_|\.)?[E]?(\d+)')
+                match = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\.|\s+)?[Ee]?[Pp]?(\d+)')
                 if match:
                     ep = '%dx%02d' % (int(match[0]), int(match[1]))
                     if ep in local_episodelist:
@@ -778,7 +781,10 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         item_nfo = None
         if not nfo_exists and e.infoLabels["code"]:
             # If there is no season_episode.nfo add it
-            scraper.find_and_set_infoLabels(e)
+            if serie.infoLabels["code"]:
+                e.infoLabels["code"] = serie.infoLabels["code"]
+            else:
+                scraper.find_and_set_infoLabels(e)
             head_nfo = scraper.get_nfo(e)
 
             item_nfo = e.clone(channel="videolibrary", url="", action='findvideos', strm_path=strm_path.replace(TVSHOWS_PATH, ""))
@@ -1000,17 +1006,17 @@ def add_movie(item):
     item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
     #if item.tmdb_stat:
     #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
+    if item:
+        new_item = item.clone(action="findvideos")
+        insertados, sobreescritos, fallidos, path = save_movie(new_item)
 
-    new_item = item.clone(action="findvideos")
-    insertados, sobreescritos, fallidos, path = save_movie(new_item)
-
-    if fallidos == 0:
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
-    else:
-        filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+        if fallidos == 0:
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+        else:
+            filetools.rmdirtree(path)
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
 
 
 def add_tvshow(item, channel=None):
@@ -1071,6 +1077,7 @@ def add_tvshow(item, channel=None):
         #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
 
         # Get the episode list
+        # from core.support import dbg;dbg()
         itemlist = getattr(channel, item.action)(item)
         if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'(\d+x\d+)'):
             from platformcode.autorenumber import select_type, renumber, check
