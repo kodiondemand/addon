@@ -77,7 +77,8 @@ def registerOrLogin(page_url):
         if reg['email'] == mailbox.address:
             mail = mailbox.waitForMail()
             if mail:
-                checkUrl = scrapertools.find_single_match(mail.body, 'href="([^"]+)">Premi qui')
+                checkUrl = scrapertools.find_single_match(mail.body, 'href="([^"]+)">Premi qui').replace(r'\/', '/')
+                logger.debug('CheckURL: ' + checkUrl)
                 httptools.downloadpage(checkUrl)
                 config.set_setting('username', mailbox.address, server='hdmario')
                 config.set_setting('password', randPsw, server='hdmario')

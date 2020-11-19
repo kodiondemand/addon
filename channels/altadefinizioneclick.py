@@ -46,6 +46,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
     patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>'\
              r'(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</h2> )'
     patronBlock = r'h1>(?P<block>.*?)<div class="row ismobile">'
@@ -60,8 +61,7 @@ def peliculas(item):
                  r'.+?<h2 class="titleFilm(?:Mobile)?">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(IMDB\:[ ](?P<rating>.+?))<'
     elif item.args == 'search':
         patronBlock = r'<section id="lastUpdate">(?P<block>.*?)<div class="row ismobile">'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:<span class="hd">(?P<quality>[^<]+)<\/span>)?<img[^s]+src="(?P<thumb>[^"]+)"'\
-                 r'[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)<[^<]+>(?:.*?IMDB:\s(\2[^<]+)<\/div>)?'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:<span class="year">(?P<year>[^<]+)<\/span>)?(?:<span class="hd">(?P<quality>[^<]+)<\/span>)?<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)'
 
     if not item.args:
         patronBlock = r'ULTIMI INSERITI(?P<block>.*?)<div class="sliderLastUpdate ismobile ">'

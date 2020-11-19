@@ -1,6 +1,7 @@
 import random
 import string
 import time
+from ast import literal_eval
 
 from core import httptools, support
 from platformcode import platformtools, config, logger
@@ -121,11 +122,13 @@ class Gmailnator(Mailbox):
         inbox = self.inbox()
         if inbox:
             self.user, id = support.match(inbox[0]['content'], patron='([^\/]+)\/messageid\/#([a-z0-9]+)').match
-            #<b>subject</b><div>2 minutes ago</div><hr /><div dir="ltr">body</div>
+            #<b>subject<\/b><div>2 minutes ago</div><hr \/><div dir="ltr">body</div>
             html = httptools.downloadpage(self.baseUrl + 'mailbox/get_single_message/', post={'csrf_gmailnator_token': self.csrf, 'action': 'get_message', 'message_id': id, 'email': self.user}).data
+            html = literal_eval('"""' + html + '"""')
             logger.debug(html)
             m = Email()
-            m.subject, m.date, m.body = support.match(html, patron='<b>([^<]+)<\/b><div>([^<]+)<\/div><hr \/>(.*)').match
+            # ritorna stringhe raw, devo convertirle per eliminare gli \ in piu
+            m.subject, m.date, m.body = support.match(html, patron=r'<b>([^<]+)<\\/b><div>([^<]+)<hr \\/>(.*)').match
 
             return m
         return inbox
