@@ -1414,7 +1414,7 @@ class Tmdb(object):
         # Obtain chapter data if applicable
         if capitulo != -1:
             episodio = temporada["episodes"][capitulo - 1]
-            ret_dic["episodio_titulo"] = episodio["name"]
+            ret_dic["episodio_titulo"] = episodio.get("name", "")
             ret_dic["episodio_sinopsis"] = episodio["overview"]
             if episodio["air_date"]:
                 date = episodio["air_date"].split("-")
@@ -1592,7 +1592,8 @@ class Tmdb(object):
 
             elif k == 'credits_cast' or k == 'temporada_cast' or k == 'episodio_guest_stars':
                 dic_aux = dict((name, character) for (name, character) in l_castandrole)
-                l_castandrole.extend([(p['name'], p['character']) for p in v if p['name'] not in list(dic_aux.keys())])
+                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', '')) \
+                                      for p in v if p['name'] not in list(dic_aux.keys())])
 
             elif k == 'videos':
                 if not isinstance(v, list):
