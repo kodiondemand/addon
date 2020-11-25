@@ -243,9 +243,13 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
             return cond
 
         # Get the conditions
+        # dbg()
         conditions = re.compile(r'''(!?eq|!?gt|!?lt)?\s*\(\s*([^, ]+)\s*,\s*["']?([^"'\)]+)["']?\)([+|])?''').findall(cond)
         for operator, id, value, next in conditions:
-            # The id must be a number, otherwise it is not valid and returns False
+            matches = match(value, patron=r'@(\d+)').matches
+            if matches:
+                for m in matches:
+                    value = value.replace('@' + m, config.get_localized_string(int(m)))
             try:
                 id = int(id)
             except:
@@ -262,11 +266,6 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                 if c["type"] == "text": control_value = c["control"].getText()
                 if c["type"] == "list": control_value = c["label"].getLabel()
                 if c["type"] == "label": control_value = c["control"].getLabel()
-
-                matches = match(self.caption, patron=r'@(\d+)').matches
-                if matches:
-                    for m in matches:
-                        self.caption = self.caption.replace('@' + match, config.get_localized_string(int(m)))
 
             # Operations lt "less than" and gt "greater than" require comparisons to be numbers, otherwise it returns
             # False
