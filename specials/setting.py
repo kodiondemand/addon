@@ -20,7 +20,7 @@ CHANNELNAME = "setting"
 
 
 def menu_channels(item):
-    logger.info()
+    logger.debug()
     itemlist = list()
 
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60545), action="conf_tools", folder=False,
@@ -55,7 +55,7 @@ def channel_config(item):
 
 
 # def setting_torrent(item):
-#     logger.info()
+#     logger.debug()
 
 #     LIBTORRENT_PATH = config.get_setting("libtorrent_path", server="torrent", default="")
 #     LIBTORRENT_ERROR = config.get_setting("libtorrent_error", server="torrent", default="")
@@ -192,7 +192,7 @@ def channel_config(item):
 #         config.set_setting("magnet2torrent", dict_data_saved["magnet2torrent"], server="torrent")
 
 def menu_servers(item):
-    logger.info()
+    logger.debug()
     itemlist = list()
 
     itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60550), action="servers_blacklist", folder=False,
@@ -221,7 +221,7 @@ def menu_servers(item):
 
     for server in sorted(server_list):
         server_parameters = servertools.get_server_parameters(server)
-        logger.info(server_parameters)
+        logger.debug(server_parameters)
         if server_parameters["has_settings"] and [x for x in server_parameters["settings"] if x["id"] not in ["black_list", "white_list"]]:
             itemlist.append(
                 Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60553) % server_parameters["name"],
@@ -269,11 +269,9 @@ def cb_servers_blacklist(dict_values):
     n = len(dict_values)
     i = 1
     for k, v in list(dict_values.items()):
-        config.set_setting("black_list", v, server=k)
         if v:  # If the server is blacklisted it cannot be in the favorites list
             config.set_setting("favorites_servers_list", 0, server=k)
             blaklisted.append(k)
-            f = True
             progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
         i += 1
     config.set_setting("black_list", blaklisted, server='servers')
@@ -355,7 +353,7 @@ def cb_servers_favorites(server_names, dict_values):
         i += 1
 
     c = 1
-    logger.info(dict_favorites)
+    logger.debug(dict_favorites)
     favorites_servers_list = []
     while c in dict_favorites:
         favorites_servers_list.append(dict_favorites[c])
@@ -373,7 +371,7 @@ def settings(item):
 
 
 def submenu_tools(item):
-    logger.info()
+    logger.debug()
     itemlist = list()
 
     # Custom tools
@@ -414,7 +412,7 @@ def submenu_tools(item):
 
 
 def check_quickfixes(item):
-    logger.info()
+    logger.debug()
 
     if not config.dev_mode():
         from platformcode import updater
@@ -425,7 +423,7 @@ def check_quickfixes(item):
 
 
 # def update_quasar(item):
-#     logger.info()
+#     logger.debug()
 
 #     from platformcode import custom_code, platformtools
 #     stat = False
@@ -437,7 +435,7 @@ def check_quickfixes(item):
 
 
 def conf_tools(item):
-    logger.info()
+    logger.debug()
 
     # Enable or disable channels
     if item.extra == "channels_onoff":
@@ -539,14 +537,14 @@ def conf_tools(item):
                                              action="", folder=False,
                                              thumbnail=channel.thumbnail))
                         continue
-                        # logger.info(channel.channel + " SALTADO!")
+                        # logger.debug(channel.channel + " SALTADO!")
 
                     # The json file settings of the channel are loaded
                     file_settings = os.path.join(config.get_data_path(), "settings_channels", channel.channel + "_data.json")
                     dict_settings = {}
                     dict_file = {}
                     if filetools.exists(file_settings):
-                        # logger.info(channel.channel + " Has _data.json file")
+                        # logger.debug(channel.channel + " Has _data.json file")
                         channeljson_exists = True
                         # We get saved settings from ../settings/channel_data.json
                         try:
@@ -556,7 +554,7 @@ def conf_tools(item):
                         except EnvironmentError:
                             logger.error("ERROR when reading the file: %s" % file_settings)
                     else:
-                        # logger.info(channel.channel + " No _data.json file")
+                        # logger.debug(channel.channel + " No _data.json file")
                         channeljson_exists = False
 
                     if channeljson_exists:
@@ -576,7 +574,7 @@ def conf_tools(item):
                             # Default settings are loaded
                             list_controls, default_settings = channeltools.get_channel_controls_settings(
                                 channel.channel)
-                            # logger.info(channel.title + " | Default: %s" % default_settings)
+                            # logger.debug(channel.title + " | Default: %s" % default_settings)
                         except:
                             import traceback
                             logger.error(channel.title + config.get_localized_string(60570) % traceback.format_exc())
@@ -598,7 +596,7 @@ def conf_tools(item):
                                     list_status = config.get_localized_string(60571)
 
                     else:
-                        # logger.info(channel.channel + " - NO correction needed!")
+                        # logger.debug(channel.channel + " - NO correction needed!")
                         needsfix = False
 
                     # If the channel status has been set it is added to the list
@@ -828,7 +826,7 @@ def restore_tools(item):
 
 
 def report_menu(item):
-    logger.info('URL: ' + item.url)
+    logger.debug('URL: ' + item.url)
 
     from channelselector import get_thumb
 

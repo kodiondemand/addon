@@ -13,7 +13,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "We're Sorry" in data:
         return False, config.get_localized_string(70292) % "Vidcloud"
@@ -22,7 +22,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
 
     video_urls = []
 
@@ -56,6 +56,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             video_urls.append(["%s [Vidcloud" % ext, media_url])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls
 

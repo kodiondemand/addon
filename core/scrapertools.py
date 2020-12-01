@@ -34,7 +34,7 @@ from platformcode import logger
 def printMatches(matches):
     i = 0
     for match in matches:
-        logger.info("%d %s" % (i, match))
+        logger.debug("%d %s" % (i, match))
         i = i + 1
 
 
@@ -447,7 +447,7 @@ def get_season_and_episode(title):
         except:
             pass
 
-    logger.info("'" + title + "' -> '" + filename + "'")
+    logger.debug("'" + title + "' -> '" + filename + "'")
 
     return filename
 

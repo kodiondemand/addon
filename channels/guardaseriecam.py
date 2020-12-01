@@ -51,7 +51,7 @@ def episodios(item):
 
 
 def search(item, text):
-    support.info('search', item)
+    support.info('search', text)
     item.contentType = 'tvshow'
     itemlist = []
     text = text.replace(' ', '+')
@@ -66,5 +66,5 @@ def search(item, text):
 
 
 def findvideos(item):
-    logger.info("[guardaserie_live] findvideos")
+    logger.debug()
     return support.server(item, item.url)

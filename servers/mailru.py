@@ -7,7 +7,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     page_url = page_url.replace("embed/", "").replace(".html", ".json")
     data = httptools.downloadpage(page_url).data
     if '"error":"video_not_found"' in data or '"error":"Can\'t find VideoInstance"' in data:
@@ -17,7 +17,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % (page_url))
+    logger.debug("(page_url='%s')" % (page_url))
 
     video_urls = []
     # Carga la página para coger las cookies
@@ -45,6 +45,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         pass
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

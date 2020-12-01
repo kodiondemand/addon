@@ -128,7 +128,7 @@ def search(item, text):
     info(text)
     itemlist = []
     text = text.replace(' ', '+')
-    item.url = host + "/wp-json/wp/v2/search?search=" + text
+    item.url = host + "/wp-json/wp/v2/search?per_page=100&search=" + text
     results = support.httptools.downloadpage(item.url).json
     for r in results:
         title = r['title']

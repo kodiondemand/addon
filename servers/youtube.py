@@ -6,7 +6,7 @@ from platformcode import config, logger, platformtools
 name = 'plugin.video.youtube'
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     data = httptools.downloadpage(page_url).data
 
@@ -18,12 +18,12 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     import xbmc
     from xbmcaddon import Addon
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
     if not page_url.startswith("http"):
         page_url = "http://www.youtube.com/watch?v=%s" % page_url
-        logger.info(" page_url->'%s'" % page_url)
+        logger.debug(" page_url->'%s'" % page_url)
 
     video_id = scrapertools.find_single_match(page_url, '(?:v=|embed/)([A-z0-9_-]{11})')
     inputstream = platformtools.install_inputstream()
@@ -34,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         else: __settings__.setSetting('kodion.video.quality.mpd', 'false')
         video_urls = [['con YouTube', 'plugin://plugin.video.youtube/play/?video_id=' + video_id ]]
     except:
-        if filetools.exists(xbmc.translatePath('special://profile/addon_data/' + name)):
+        if filetools.exists(xbmc.translatePath('special://profile/addons/' + name)):
             if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70818)):
                 xbmc.executeJSONRPC('{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "' + name + '", "enabled": true }}')
             else: return [['','']]

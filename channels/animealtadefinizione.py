@@ -26,7 +26,7 @@ def mainlist(item):
 @support.scrape
 def menu(item):
     action = 'peliculas'
-    data = support.match(item, patron= r'<a href="' + host + r'/category/' + item.args.lower() + r'/">' + item.args + r'</a><ul class="sub-menu">(.*?)</ul>').match
+    patronBlock= r'<a href="' + host + r'/category/' + item.args.lower() + r'/">' + item.args + r'</a>\s*<ul class="sub-menu">(?P<block>.*?)</ul>'
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
     return locals()
 
@@ -85,7 +85,7 @@ def peliculas(item):
     typeContentDict = {'movie':['movie']}
     typeActionDict = {'findvideos':['movie']}
 
-    def ItemItemlistHook(item, itemlist):
+    def itemlistHook(itemlist):
         if item.search:
             itemlist = [ it for it in itemlist if ' Episodio ' not in it.title ]
         if len(itemlist) == int(perpage):
@@ -97,6 +97,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    anime = True
     pagination = int(perpage)
     patron = epPatron
     return locals()
@@ -107,18 +108,19 @@ def findvideos(item):
     if item.contentType == 'movie':
         matches = support.match(item, patron=epPatron).matches
         for title, url in matches:
-            get_video_list(url, title, itemlist)
+            # support.dbg()
+            get_video_list(item, url, title, itemlist)
     else:
-        get_video_list(item.url, support.config.get_localized_string(30137), itemlist)
+        get_video_list(item, item.url, support.config.get_localized_string(30137), itemlist)
     return support.server(item, itemlist=itemlist)
 
 
-def get_video_list(url, title, itemlist):
+def get_video_list(item, url, title, itemlist):
     from requests import get
     if not url.startswith('http'): url = host + url
 
     url = support.match(get(url).url, string=True, patron=r'file=([^$]+)').match
     if 'http' not in url: url = 'http://' + url
-    itemlist.append(support.Item(title=title, url=url, server='directo', action='play'))
+    itemlist.append(item.clone(title=title, url=url, server='directo', action='play'))
 
     return itemlist

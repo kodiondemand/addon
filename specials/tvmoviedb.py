@@ -28,7 +28,7 @@ default_fan = filetools.join(config.get_runtime_path(), "fanart.jpg")
 
 
 def mainlist(item):
-    logger.info()
+    logger.debug()
     itemlist = [
             # TMDB
             # item.clone(title=typo(config.get_localized_string(70021), 'bold'), action=""),
@@ -55,7 +55,7 @@ def configuracion(item):
     return ret
 
 def search_star(item):
-    logger.info()
+    logger.debug()
 
     itemlist = []
     item.type='movie'
@@ -97,7 +97,7 @@ def search_(item):
 
 
 def searcing(item):
-    logger.info()
+    logger.debug()
 
     new_item = Item(title=item.contentTitle, text=item.contentTitle.replace("+", " "), mode=item.contentType, infoLabels=item.infoLabels)
 
@@ -625,7 +625,7 @@ def indices_tmdb(item):
 
 
 def filter(item):
-    logger.info()
+    logger.debug()
 
     from datetime import datetime
     list_controls = []
@@ -705,7 +705,7 @@ def filtered(item, values):
 
 
 def musica_movie(item):
-    logger.info()
+    logger.debug()
     itemlist = []
     data = match(item).data
     matches = match(data, patron=r'<td class="left">([^<]+)<br><small>([^<]+)</small>.*?<td>(\d+:\d+).*?<p id="([^"]+)"').matches
@@ -729,7 +729,7 @@ def list_imdb(item):
         url = 'http://www.imdb.com/search/title?' + item.url
         # data = httptools.downloadpage(url, headers=headers, replace_headers=True).data
         data = match(url, headers=headers).data
-    logger.info(data)
+    logger.debug(data)
 
     # data = re.sub(r"\n|\r|\t|&nbsp;", "", data)
     # data = re.sub(r"\s{2}", " ", data)
@@ -812,7 +812,7 @@ def list_imdb(item):
 
 
 def filter_imdb(item):
-    logger.info()
+    logger.debug()
 
     from datetime import datetime
     list_controls = []
@@ -1392,7 +1392,7 @@ def indices_imdb(item):
 
 
 # def filter_fa(item):
-#     logger.info()
+#     logger.debug()
 
 #     from datetime import datetime
 #     list_controls = []
@@ -1494,7 +1494,7 @@ def indices_imdb(item):
 
 
 # def login_fa():
-#     logger.info()
+#     logger.debug()
 
 #     try:
 #         user = config.get_setting("usuariofa", "tvmoviedb")
@@ -1519,7 +1519,7 @@ def indices_imdb(item):
 #             userid = scrapertools.find_single_match(data, 'id-user=(\d+)')
 #             if userid:
 #                 config.set_setting("userid", userid, "tvmoviedb")
-#             logger.info("Login correcto")
+#             logger.debug("Login correcto")
 #             return True, ""
 #     except:
 #         import traceback
@@ -1644,7 +1644,7 @@ def indices_imdb(item):
 
 # def votar_fa(item):
 #     # Window to select the vote
-#     logger.info()
+#     logger.debug()
 
 #     list_controls = []
 #     valores = {}
@@ -1921,7 +1921,7 @@ def acciones_trakt(item):
         ratings = []
         try:
             for i, entry in enumerate(data):
-                logger.info('ENTRY:',entry)
+                logger.debug('ENTRY:',entry)
                 if i <= item.pagina: continue
                 # try: entry = entry[item.args]
                 # except: pass
@@ -1997,7 +1997,7 @@ def acciones_trakt(item):
 
 
 def order_list(item):
-    logger.info()
+    logger.debug()
 
     list_controls = []
     valores1 = ['rating', 'added', 'title', 'released', 'runtime', 'popularity', 'percentage', 'votes']
@@ -2339,7 +2339,7 @@ def indices_mal(item):
         matches = match("https://myanimelist.net/anime.php", cookies=False, patronBlock=patronBlock, patron=patron).matches
         for url, title in matches:
             genero = title.split(" (", 1)[0]
-            logger.info(url_base, genero)
+            logger.debug(url_base, genero)
             thumbnail = url_base + genero.lower().replace(" ", "%20")
             if genero in ["Hentai", "Yaoi", "Yuri"] and not adult_mal:
                 continue
@@ -2488,7 +2488,7 @@ def detail_staff(item):
         patron_bio = r'<?<div class="spaceit_pad">(.*?)</td>'
         bio = match(data, patron=patron_bio).match
         bio = htmlclean(bio.replace("</div>", "\n"))
-        logger.info(bio)
+        logger.debug(bio)
         infoLabels = {'plot': bio}
         if not "No voice acting roles" in data:
             itemlist.append(Item(channel=item.channel, title=typo(config.get_localized_string(70374),'bold bullet'), action="", thumbnail=item.thumbnail, infoLabels=infoLabels))
@@ -2626,7 +2626,7 @@ def info_anidb(item, itemlist, url):
 
 
 def filter_mal(item):
-    logger.info()
+    logger.debug()
 
     list_controls = []
     valores = {}
@@ -2704,7 +2704,7 @@ def callback_mal(item, values):
 
 def musica_anime(item):
     # List available anime and songs similar to the anime title
-    logger.info()
+    logger.debug()
     itemlist = []
 
     data = match("http://www.freeanimemusic.org/song_search.php", post=item.post).data
@@ -2739,7 +2739,7 @@ def musica_anime(item):
 
 
 def login_mal(from_list=False):
-    logger.info()
+    logger.debug()
     from core import httptools
     from base64 import b64decode as bdec
 
@@ -2768,7 +2768,7 @@ def login_mal(from_list=False):
         else:
             if generic:
                 return False, config.get_localized_string(70393), user
-            logger.info("Correct login")
+            logger.debug("Correct login")
             return True, "", user
     except:
         import traceback
@@ -2800,7 +2800,7 @@ def cuenta_mal(item):
 
 def items_mal(item):
     # Scraper for personal lists
-    logger.info()
+    logger.debug()
     itemlist = []
     data = match(item.url).data
 

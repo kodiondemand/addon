@@ -73,7 +73,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            logger.info("%s mainlist search log: %s" % (__channel__, line))
+            logger.error("%s" % line)
         return []
 
 # =========== def per le novità nel menu principale =============

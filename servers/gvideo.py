@@ -42,7 +42,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info()
+    logger.debug()
     video_urls = []
     urls = []
     streams =[]

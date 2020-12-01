@@ -25,7 +25,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     #Deshabilitamos el server hasta nueva orden
     return False, "[netutv] Servidor deshabilitado"
     # http://netu.tv/watch_video.php=XX solo contiene una redireccion, ir directamente a http://hqq.tv/player/embed_player.php?vid=XX
@@ -37,7 +37,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
 
     if "hash=" in page_url:

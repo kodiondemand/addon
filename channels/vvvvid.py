@@ -4,19 +4,21 @@
 # ----------------------------------------------------------
 import requests, sys
 from core import support, tmdb
-from platformcode import autorenumber
+from platformcode import autorenumber, logger
 
 host = support.config.get_channel_url()
 
 # Creating persistent session
 current_session = requests.Session()
-headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:62.0) Gecko/20100101 Firefox/62.0'}
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36'}
 
 # Getting conn_id token from vvvvid and creating payload
 login_page = host + '/user/login'
 try:
-    conn_id = current_session.get(login_page, headers=headers).json()['data']['conn_id']
+    res = current_session.get(login_page, headers=headers)
+    conn_id = res.json()['data']['conn_id']
     payload = {'conn_id': conn_id}
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14', 'Cookie': res.headers['set-cookie']}
 except:
     conn_id = ''
 
@@ -126,7 +128,7 @@ def peliculas(item):
     if 'category' in item.args:
         support.thumb(itemlist,genre=True)
     elif not 'filter' in item.args:
-        if item.contentType != 'movie': autorenumber.renumber(itemlist)
+        if item.contentType != 'movie': autorenumber.start(itemlist)
         tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
 
@@ -165,10 +167,10 @@ def episodios(item):
                     if type(title) == tuple: title = title[0]
                     itemlist.append(
                         item.clone(title = title,
-                                url=  host + show_id + '/season/' + str(key['season_id']) + '/',
+                                url=  host + show_id + '/season/' + str(key['season_id']),
                                 action= 'findvideos',
                                 video_id= key['video_id']))
-    autorenumber.renumber(itemlist, item, 'bold')
+    autorenumber.start(itemlist, item)
     if autorenumber.check(item) == True \
         or support.match(itemlist[0].title, patron=r"(\d+x\d+)").match:
         support.videolibrary(itemlist,item)
@@ -181,11 +183,12 @@ def findvideos(item):
         json_file = current_session.get(item.url, headers=headers, params=payload).json()
         item.url = host + str(json_file['data'][0]['show_id']) + '/season/' + str(json_file['data'][0]['episodes'][0]['season_id']) + '/'
         item.video_id = json_file['data'][0]['episodes'][0]['video_id']
-
+    logger.info('url=',item.url)
     json_file = current_session.get(item.url, headers=headers, params=payload).json()
     for episode in json_file['data']:
+        logger.info(episode)
         if episode['video_id'] == item.video_id:
-            url = vvvvid_decoder.dec_ei(episode['embed_info'] or episode['embed_info'])
+            url = vvvvid_decoder.dec_ei(episode['embed_info'] or episode['embed_info_sd'])
             if 'youtube' in url: item.url = url
             item.url = url.replace('manifest.f4m','master.m3u8').replace('http://','https://').replace('/z/','/i/')
             if 'https' not in item.url:

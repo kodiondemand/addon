@@ -8,7 +8,7 @@ from platformcode import logger
 id_server = "vidtodo"
 response = ""
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global response
     response = httptools.downloadpage(page_url)
     if not response.success or "Not Found" in response.data:
@@ -19,7 +19,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     data = response.data
     packed_data = scrapertools.find_single_match(data, "javascript'>(eval.*?)</script>")
@@ -41,5 +41,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                 video_urls.append([".mp4 [%s] %s" % (id_server, inf), mp4 % h])
                 video_urls.append(["RTMP [%s] %s" % (id_server, inf), "%s playpath=%s" % (rtmp, playpath)])
     for video_url in video_urls:
-        logger.info("video_url: %s - %s" % (video_url[0], video_url[1]))
+        logger.debug("video_url: %s - %s" % (video_url[0], video_url[1]))
     return video_urls

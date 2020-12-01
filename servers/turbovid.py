@@ -12,7 +12,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File Does not Exist" in data:
         return False, config.get_localized_string(70449) % "Turbovid"
@@ -21,7 +21,7 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password="", server='Turbovid'):
 
-    logger.info("(turbovid page_url='%s')" % page_url)
+    logger.debug("(turbovid page_url='%s')" % page_url)
     video_urls = []
     data = httptools.downloadpage(page_url).data
     data = data.replace('"', "'")
@@ -31,6 +31,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     time.sleep(6)
     data = httptools.downloadpage(page_url_post, post=post).data
-    logger.info("(data page_url='%s')" % data)
+    logger.debug("(data page_url='%s')" % data)
     video_urls = support.get_jwplayer_mediaurl(data, 'Turbovid')
     return video_urls

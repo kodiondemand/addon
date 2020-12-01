@@ -29,7 +29,7 @@ def website(config):
     rebulk = rebulk.regex_defaults(flags=re.IGNORECASE).string_defaults(ignore_case=True)
     rebulk.defaults(name="website")
 
-    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'tlds-alpha-by-domain.txt')) as tld_file:
+    with open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'tlds-alpha-by-domain.txt'), 'rb') as tld_file:
         tlds = [
             tld.strip().decode('utf-8')
             for tld in tld_file.readlines()

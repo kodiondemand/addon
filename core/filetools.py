@@ -8,7 +8,6 @@ from __future__ import division
 # from builtins import str
 import io
 
-from future.builtins import range
 from past.utils import old_div
 import sys
 PY3 = False
@@ -814,7 +813,7 @@ def remove_tags(title):
     @rtype: str
     @return: string without tags
     """
-    logger.info()
+    logger.debug()
 
     title_without_tags = scrapertools.find_single_match(title, r'\[color .+?\](.+)\[\/color\]')
 
@@ -832,7 +831,7 @@ def remove_smb_credential(path):
     @return: chain without credentials
     @rtype: str
     """
-    logger.info()
+    logger.debug()
 
     if not scrapertools.find_single_match(path, r'(^\w+:\/\/)'):
         return path

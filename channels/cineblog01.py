@@ -76,7 +76,7 @@ def newest(categoria):
 
 
 def search(item, text):
-    logger.info(item, "search", text)
+    logger.info("search", text)
     if item.contentType == 'tvshow': item.url = host + '/serietv/'
     else: item.url = host
     try:
@@ -127,40 +127,57 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    # support.dbg()
-    data = support.match(item.url, headers=headers).data
-    support.info(data)
-    if 'TUTTA LA ' in data:
-        folderUrl = scrapertools.find_single_match(data, r'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
+    @support.scrape
+    def folder(item, data):
+        """
+            Quando c'è un link ad una cartelle di vcrypt contenente più stagioni
+        """
+        actLike = 'episodios'
+        addVideolibrary = False
+        downloadEnabled = False
+
+        folderUrl = scrapertools.find_single_match(data, r'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)').replace(
+            '.net/', '.pw/')  # vcrypt.pw non ha CF
         data = httptools.downloadpage(folderUrl).data
-        patron = r'<a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
+        patron = r'><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
         sceneTitle = True
+
         def itemHook(item):
             item.serieFolder = True
             return item
-    else:
-        patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
-        patron = r'(?:/>|<p>|<strong>)(?P<url>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
-        def itemlistHook(itemlist):
-            title_dict = {}
-            itlist = []
-            for item in itemlist:
-                item.title = re.sub(r'\.(\D)',' \\1', item.title)
-                match = support.match(item.title, patron=r'(\d+.\d+)').match.replace('x','')
-                item.order = match
-                if match not in title_dict:
-                    title_dict[match] = item
-                elif match in title_dict and item.contentLanguage == title_dict[match].contentLanguage \
-                    or item.contentLanguage == 'ITA' and not title_dict[match].contentLanguage \
-                    or title_dict[match].contentLanguage == 'ITA' and not item.contentLanguage:
-                    title_dict[match].url = item.url
-                else:
-                    title_dict[match + '1'] = item
+        return locals()
 
-            for key, value in title_dict.items():
-                itlist.append(value)
+    # debug=True
+    data = support.match(item.url, headers=headers).data
+    folderItemlist = folder(item, data) if 'TUTTA LA ' in data else []
 
-            return sorted(itlist, key=lambda it: (it.contentLanguage, int(it.order)))
+    patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
+    patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
+    def itemlistHook(itemlist):
+        title_dict = {}
+        itlist = []
+        for i in itemlist:
+            i.url = item.url
+            i.title = re.sub(r'\.(\D)',' \\1', i.title)
+            match = support.match(i.title, patron=r'(\d+.\d+)').match.replace('x','')
+            i.order = match
+            if match not in title_dict:
+                title_dict[match] = i
+            elif match in title_dict and i.contentLanguage == title_dict[match].contentLanguage \
+                or i.contentLanguage == 'ITA' and not title_dict[match].contentLanguage \
+                or title_dict[match].contentLanguage == 'ITA' and not i.contentLanguage:
+                title_dict[match].url = i.url
+            else:
+                title_dict[match + '1'] = i
+
+        for key, value in title_dict.items():
+            itlist.append(value)
+
+        itlist = sorted(itlist, key=lambda it: (it.contentLanguage, int(it.order)))
+
+        itlist.extend(folderItemlist)
+
+        return itlist
     return locals()
 
 
@@ -172,14 +189,14 @@ def findvideos(item):
 
     def load_links(itemlist, re_txt, desc_txt, quality=""):
         streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
-        support.info('STREAMING', streaming)
-        support.info('STREAMING=', streaming)
+        logger.debug('STREAMING', streaming)
+        logger.debug('STREAMING=', streaming)
         matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
         for scrapedurl, scrapedtitle in matches:
             logger.debug("##### findvideos %s ## %s ## %s ##" % (desc_txt, scrapedurl, scrapedtitle))
             itemlist.append(item.clone(action="play", title=scrapedtitle, url=scrapedurl, server=scrapedtitle, quality=quality))
 
-    support.info()
+    logger.debug()
 
     itemlist = []
 
@@ -211,34 +228,12 @@ def findvideos(item):
 
 
 def findvid_serie(item):
-    def load_vid_series(html, item, itemlist, blktxt):
-        support.info('HTML',html)
-        # Estrae i contenuti
-        matches = support.match(html, patron=r'<a href=(?:")?([^ "]+)[^>]+>(?!<!--)(.*?)(?:</a>|<img)').matches
-        for url, server in matches:
-            item = item.clone(action="play", title=server, url=url, server=server, quality=blktxt)
-            if 'swzz' in item.url: item.url = support.swzz_get_url(item)
-            itemlist.append(item)
+    logger.debug()
+    data = re.sub(r'((?:<p>|<strong>)?[^\d]*\d*(?:&#215;|Ã)[0-9]+[^<]+)', '', item.other)
 
-    support.info()
-
-    itemlist = []
-
-    data = re.sub(r'((?:<p>|<strong>)?[^\d]*\d*(?:&#215;|Ã)[0-9]+[^<]+)', '' ,item.url)
-
-    # Blocks with split
-    blk = re.split(r"(?:>\s*)?([A-Za-z\s0-9]*):\s*<", data, re.S)
-    blktxt = ""
-    for b in blk:
-        if b[0:3] == "a h" or b[0:4] == "<a h":
-            load_vid_series("<%s>" % b, item, itemlist, blktxt)
-            blktxt = ""
-        elif len(b.strip()) > 1:
-            blktxt = b.strip()
-
-    return support.server(item, itemlist=itemlist)
+    return support.server(item, data=data)
 
 
 def play(item):
-    support.info()
+    logger.debug()
     return servertools.find_video_items(item, data=item.url)

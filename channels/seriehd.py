@@ -107,10 +107,8 @@ def episodios(item):
     # for i, season in enumerate(seasons.matches):
     #     data += get_season(seasons.data if i == 0 else '', season[0], season[1])
     import sys
-    if sys.version_info[0] >= 3:
-        from concurrent import futures
-    else:
-        from concurrent_py2 import futures
+    if sys.version_info[0] >= 3: from concurrent import futures
+    else: from concurrent_py2 import futures
     with futures.ThreadPoolExecutor() as executor:
         thL = []
         for i, season in enumerate(seasons.matches):
@@ -118,12 +116,12 @@ def episodios(item):
         for res in futures.as_completed(thL):
             if res.result():
                 data += res.result()
-
-    patron = r'(?P<title>[^\|]+)\|(?P<url>[^\n]+)\n'
+    # debug = True
+    patron = r'(?P<season>\d+)x(?P<episode>\d+)\s*-\s*(?P<title>[^\|]+)\|(?P<url>[^ ]+)'
     action = 'findvideos'
 
     def itemlistHook(itemlist):
-        itemlist.sort(key=lambda item: int(support.re.sub(r'\[[^\]]+\]','',item.title).split('x')[0]))
+        itemlist.sort(key=lambda item: (item.infoLabels['season'], item.infoLabels['episode']))
         return itemlist
 
     return locals()

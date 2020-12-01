@@ -29,7 +29,7 @@ def start(itemlist, item):
 
     if item.global_search:
         return itemlist
-    logger.info()
+    logger.debug()
 
     global PLAYED
     PLAYED = False
@@ -274,7 +274,7 @@ def start(itemlist, item):
 
 
 def play_multi_channel(item, itemlist):
-    logger.info()
+    logger.debug()
     start(itemlist, item)
 
 

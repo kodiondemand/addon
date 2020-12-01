@@ -126,7 +126,7 @@ def SettingOnPosition(item):
 	xbmc.executebuiltin('Addon.OpenSettings(plugin.video.kod)')
 	category = item.category if item.category else 0
 	setting = item.setting if item.setting else 0
-	logger.info('SETTING= ' + str(setting))
+	logger.debug('SETTING= ' + str(setting))
 	xbmc.executebuiltin('SetFocus(%i)' % (category - 100))
 	xbmc.executebuiltin('SetFocus(%i)' % (setting - 80))
 

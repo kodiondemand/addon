@@ -4,6 +4,9 @@
 # ------------------------------------------------------------
 
 from core import support
+import sys
+if sys.version_info[0] >= 3: from concurrent import futures
+else: from concurrent_py2 import futures
 
 host = support.config.get_channel_url()
 
@@ -26,13 +29,23 @@ def mainlist(item):
     return locals()
 
 
-def search(item, texto):
-    support.info(texto)
-    item.args='search'
-    item.contentType='tvshow'
-    item.url = host + '/wp-json/wp/v2/search?search=' + texto
+def search(item, text):
+    support.info(text)
+    # item.args='search'
+    item.text = text
+    itemlist = []
+    
     try:
-        return peliculas(item)
+        # item.url = host + '/lista-serie-tv/'
+        # item.contentType = 'tvshow'
+        # itemlist += peliculas(item)
+        with futures.ThreadPoolExecutor() as executor:
+            for par in [['/lista-serie-tv/', 'tvshow', ''],['/lista-anime-2/', 'tvshow', ''], ['/lista-anime-sub-ita/', 'tvshow', 'sub'], ['/lista-film-animazione/', 'movie', '']]:
+                item.url = host + par[0]
+                item.contentType = par[1]
+                item.args = par[2]
+                itemlist += executor.submit(peliculas, item).result()
+        return itemlist
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -59,6 +72,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    search = item.text
     pagination = ''
     anime = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'

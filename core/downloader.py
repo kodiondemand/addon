@@ -253,7 +253,7 @@ class Downloader(object):
                 self.file.seek(2 ** 31, 0)
             except OverflowError:
                 self._seekable = False
-                logger.info("Cannot do seek() or tell() in files larger than 2GB")
+                logger.error("Cannot do seek() or tell() in files larger than 2GB")
 
         self.__get_download_info__()
 

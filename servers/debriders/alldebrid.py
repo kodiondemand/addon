@@ -7,7 +7,7 @@ from platformcode import logger
 
 # Returns an array of possible video url's from the page_url
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info()
+    logger.debug()
     page_url = correct_url(page_url)
     dd1 = httptools.downloadpage("https://api.alldebrid.com/user/login?agent=mySoft&username=%s&password=%s" %(user, password)).data
     token = scrapertools.find_single_match(dd1, 'token":"([^"]+)')

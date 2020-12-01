@@ -449,7 +449,7 @@ def downloadpage(url, **opt):
 
     if not 'api.themoviedb' in url and not opt.get('alfa_s', False):
         show_infobox(info_dict)
-
+    if not config.get_setting("debug"): logger.info('Page URL:',url)
     return type('HTTPResponse', (), response)
 
 def fill_fields_pre(url, opt, proxy_data, file_name):

@@ -5,7 +5,7 @@ from platformcode import logger
 
 
 def get_video_url(page_url, video_password):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     data = httptools.downloadpage(page_url).data
     url = scrapertools.find_single_match(data, '<source src="([^"]+)"')

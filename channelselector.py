@@ -9,7 +9,7 @@ downloadenabled = addon.getSetting('downloadenabled')
 
 
 def getmainlist(view="thumb_"):
-    logger.info()
+    logger.debug()
     itemlist = list()
 
     if config.dev_mode():
@@ -62,14 +62,14 @@ def getmainlist(view="thumb_"):
 
 
 def getchanneltypes(view="thumb_"):
-    logger.info()
+    logger.debug()
 
     # Category List
     channel_types = ["movie", "tvshow", "anime", "documentary", "vos", "live", "torrent",  "music"] #, "direct"
 
     # Channel Language
     channel_language = auto_filter()
-    logger.info("channel_language=%s" % channel_language)
+    logger.debug("channel_language=%s" % channel_language)
 
     # Build Itemlist
     itemlist = list()
@@ -92,7 +92,7 @@ def getchanneltypes(view="thumb_"):
 
 def filterchannels(category, view="thumb_"):
     from core import channeltools
-    logger.info('Filter Channels ' + category)
+    logger.debug('Filter Channels ' + category)
 
     channelslist = []
 
@@ -103,14 +103,14 @@ def filterchannels(category, view="thumb_"):
         appenddisabledchannels = True
 
     channel_path = os.path.join(config.get_runtime_path(), 'channels', '*.json')
-    logger.info("channel_path = %s" % channel_path)
+    logger.debug("channel_path = %s" % channel_path)
 
     channel_files = glob.glob(channel_path)
-    logger.info("channel_files found %s" % (len(channel_files)))
+    logger.debug("channel_files found %s" % (len(channel_files)))
 
     # Channel Language
     channel_language = auto_filter()
-    logger.info("channel_language=%s" % channel_language)
+    logger.debug("channel_language=%s" % channel_language)
 
     for channel_path in channel_files:
         logger.debug("channel in for = %s" % channel_path)
@@ -221,7 +221,7 @@ def get_thumb(thumb_name, view="thumb_"):
 
 
 def set_channel_info(parameters):
-    logger.info()
+    logger.debug()
 
     info = ''
     language = ''

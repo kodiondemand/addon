@@ -111,7 +111,7 @@ def episodios(item):
     anime = True
     pagination = 50
     patronBlock = r'<table>(?P<block>.*?)</table>'
-    patron = r'<tr><td><b>(?P<title>(?:\d+)?.*?)\s*(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<url>.*?)<tr>'
+    patron = r'<tr><td><b>(?P<title>(?:\d+)?.*?)\s*(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<data>.*?)<tr>'
     def itemHook(item):
         clear = support.re.sub(r'\[[^\]]+\]', '', item.title)
         if clear.isdigit():
@@ -121,4 +121,4 @@ def episodios(item):
 
 def findvideos(item):
     if item.contentType == 'movie': return support.server(item)
-    else: return support.server(item, item.url)
+    else: return support.server(item, item.data)

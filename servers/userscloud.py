@@ -7,7 +7,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     response = httptools.downloadpage(page_url)
 
@@ -18,7 +18,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     unpacked = ""
     data = httptools.downloadpage(page_url).data
@@ -37,6 +37,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.append(["%s [userscloud]" % ext, media_url])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

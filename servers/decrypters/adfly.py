@@ -8,7 +8,7 @@ from platformcode import logger
 
 
 def get_long_url(short_url):
-    logger.info("short_url = '%s'" % short_url)
+    logger.debug("short_url = '%s'" % short_url)
 
     data = httptools.downloadpage(short_url).data
     ysmm = scrapertools.find_single_match(data, "var ysmm = '([^']+)';")

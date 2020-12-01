@@ -27,7 +27,7 @@ class ChromeOSImage:
     """
 
     def __init__(self, imgpath):
-        logger.info('Image Path: ' + imgpath)
+        logger.debug('Image Path: ' + imgpath)
         """Prepares the image"""
         self.imgpath = imgpath
         self.bstream = self.get_bstream(imgpath)
@@ -59,7 +59,7 @@ class ChromeOSImage:
         self.seek_stream(entries_start * lba_size)
 
         if not calcsize(part_format) == entry_size:
-            logger.info('Partition table entries are not 128 bytes long')
+            logger.debug('Partition table entries are not 128 bytes long')
             return 0
 
         for index in range(1, entries_num + 1):  # pylint: disable=unused-variable
@@ -71,7 +71,7 @@ class ChromeOSImage:
                 break
 
         if not offset:
-            logger.info('Failed to calculate losetup offset.')
+            logger.debug('Failed to calculate losetup offset.')
             return 0
 
         return offset
@@ -93,7 +93,7 @@ class ChromeOSImage:
         while True:
             chunk2 = self.read_stream(chunksize)
             if not chunk2:
-                logger.info('File %s not found in the ChromeOS image' % filename)
+                logger.debug('File %s not found in the ChromeOS image' % filename)
                 return False
 
             chunk = chunk1 + chunk2

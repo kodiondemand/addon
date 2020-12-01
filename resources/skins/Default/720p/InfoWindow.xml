@@ -6,18 +6,6 @@
 		<top>0</top>
 	</coordinates>
 	<controls>
-		<!-- CLOSE BUTTON / BACKGROUND -->
-		<control type="button">
-			<left>0</left>
-			<top>0</top>
-			<width>100%</width>
-			<height>100%</height>
-			<texturefocus colordiffuse="FF232323">white.png</texturefocus>
-			<texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
-			<animation effect="fade" time="200">WindowOpen</animation>
-			<animation effect="fade" time="200">WindowClose</animation>
-			<onclick>Action(close)</onclick>
-		</control>
 		<!-- GROUP CONTROLS -->
 		<control type="group">
 			<left>0</left>
@@ -32,6 +20,13 @@
 			</animation>
 
 			<!-- BACKGROUND -->
+			<control type="image">
+				<width>1280</width>
+				<height>720</height>
+				<texture colordiffuse="FF232323">white.png</texture>
+			</control>
+
+      <!-- FANART -->
 			<control type="image" id='30000'>
 				<width>1280</width>
 				<height>720</height>
@@ -48,6 +43,19 @@
 				<animation effect="zoom" pulse ="true" center="auto" start="0,100" end="100,100" time="1000" condition="Control.IsVisible(30001)">Conditional</animation>
 			</control>
 
+      <control type="button" id="30003">
+        <top>40</top>
+        <right>40</right>
+        <height>50</height>
+        <width>50</width>
+        <textcolor>FFFFFFFF</textcolor>
+        <aligny>center</aligny>
+        <align>center</align>
+        <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+        <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+        <ondown>30002</ondown>
+      </control>
+
 			<!-- SELECTION -->
       <control type="fixedlist" id="30002">
       <top>40</top>
@@ -56,10 +64,11 @@
         <viewtype>wrap</viewtype>
         <orientation>horizontal</orientation>
         <scrolltime tween="cubic" easing="out">300</scrolltime>
-        <itemlayout height="640" width="180">
+        <onup>30003</onup>
+        <itemlayout width="180">
           <!-- Poster -->
           <control type="image">
-            <bottom>0</bottom>
+            <top>370</top>
             <left>0</left>
             <width>180</width>
             <height>270</height>
@@ -68,14 +77,14 @@
             <bordersize>10</bordersize>
           </control>
         </itemlayout>
-        <focusedlayout height="640" width="480">
+        <focusedlayout width="427">
           <!-- Title -->
           <control type="textbox">
-            <left>500</left>
+            <left>447</left>
             <top>10</top>
-            <width>730</width>
+            <width>783</width>
             <height>30</height>
-            <font>font30_title</font>
+            <!-- <font>font30_title</font> -->
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>[B]$INFO[ListItem.Label] [COLOR FFAAAAAA] $INFO[ListItem.Property(year)][/COLOR][/B] </label>
@@ -84,11 +93,11 @@
           </control>
           <!-- info -->
           <control type="textbox">
-            <left>500</left>
+            <left>447</left>
             <top>50</top>
-            <width>730</width>
+            <width>783</width>
             <height>30</height>
-            <font>font13</font>
+            <!-- <font>font13</font> -->
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>$ADDON[plugin.video.kod 60382] $INFO[ListItem.Property(genre)] | $ADDON[plugin.video.kod 60380] [B]$INFO[ListItem.Property(rating)][/B]</label>
@@ -96,11 +105,11 @@
           </control>
           <!-- Plot -->
           <control type="textbox">
-            <left>500</left>
+            <left>447</left>
             <top>90</top>
-            <width>730</width>
+            <width>783</width>
             <height>250</height>
-            <font>font13</font>
+            <!-- <font>font13</font> -->
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>$INFO[ListItem.Property(plot)]</label>
@@ -111,7 +120,7 @@
           <control type="image">
             <bottom>0</bottom>
             <left>0</left>
-            <width>480</width>
+            <width>427</width>
             <height>640</height>
             <texture>$INFO[ListItem.Property(thumbnail)]</texture>
             <aspectratio>scale</aspectratio>

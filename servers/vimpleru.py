@@ -7,7 +7,7 @@ from platformcode import config, logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if '"title":"Video Not Found"' in data:
         return False,  config.get_localized_string(70449) % "Vimple"
@@ -16,7 +16,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url=%s)" % page_url)
+    logger.debug("(page_url=%s)" % page_url)
 
     data = httptools.downloadpage(page_url).data
 
@@ -34,6 +34,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [vimple.ru]", media_url])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

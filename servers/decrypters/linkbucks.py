@@ -17,7 +17,7 @@ from platformcode import logger
 
 # Obtiene la URL que hay detrás de un enlace a linkbucks
 def get_long_url(short_url):
-    logger.info("(short_url='%s')" % short_url)
+    logger.debug("(short_url='%s')" % short_url)
 
     request_headers = []
     request_headers.append(["User-Agent",
@@ -33,17 +33,17 @@ def get_long_url(short_url):
     while True:
         for name, value in response_headers:
             if name == "set-cookie":
-                logger.info("Set-Cookie: " + value)
+                logger.debug("Set-Cookie: " + value)
                 cookie_name = scrapertools.scrapertools.find_single_match(value, '(.*?)\=.*?\;')
                 cookie_value = scrapertools.scrapertools.find_single_match(value, '.*?\=(.*?)\;')
                 request_headers.append(["Cookie", cookie_name + "=" + cookie_value])
 
         body, response_headers = scrapertools.read_body_and_headers(url, headers=request_headers)
-        logger.info("body=" + body)
+        logger.debug("body=" + body)
 
         try:
             location = scrapertools.scrapertools.find_single_match(body, '<textarea.*?class="caja_des">([^<]+)</textarea>')
-            logger.info("location=" + location)
+            logger.debug("location=" + location)
             break
         except:
             n = n + 1

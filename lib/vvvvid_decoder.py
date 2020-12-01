@@ -1,5 +1,6 @@
 import sys
-import xbmc
+if sys.version_info[0] > 2: from urllib.parse import unquote
+else: from urllib2 import unquote
 
 def dec_ei(h):
     g = 'MNOPIJKL89+/4567UVWXQRSTEFGHABCDcdefYZabstuvopqr0123wxyzklmnghij'
@@ -7,23 +8,14 @@ def dec_ei(h):
     for e in range(0,len(h)):
         c.append(g.find(h[e]))
     for e in range(len(c)*2-1,-1,-1):
-        #print 'e=' + str(e)
         a = c[e % len(c)] ^ c[(e+1)%len(c)]
-        #print 'a='+str(a)
         c[e%len(c)] = a
-        #print 'c['+str(e % len(c))+']='+ str(c[e % len(c)])
     c = f(c)
     d = ''
     for e in range(0,len(c)):
         d += '%'+ (('0'+ (str(format(c[e],'x'))))[-2:])
 
-    # if python 3
-    if sys.version_info[0] > 2:
-        import urllib
-        return urllib.parse.unquote(d)
-    else:
-        import urllib2
-        return urllib2.unquote(d)
+    return unquote(d)
 
 def f(m):
     l = list()

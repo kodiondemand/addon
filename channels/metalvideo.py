@@ -13,7 +13,7 @@ headers = {'X-Requested-With': 'XMLHttpRequest'}
 def mainlist(item):
     item.url = host
     action = 'peliculas'
-    patronBlock = r'<ul class="dropdown-menu(?P<block>.*?)</ul> </div'
+    patronBlock = r'<ul class="dropdown-menu(?P<block>.*?)</ul>\s*</div'
     patron = r'<a href="(?P<url>[^"]+)"(?: class="")?>(?P<title>[^<]+)<'
     def itemHook(item):
         item.thumbnail = support.thumb('music')
@@ -24,7 +24,7 @@ def mainlist(item):
         itemlist.append(
             support.Item(
                 channel=item.channel,
-                title=support.typo('Cerca...', 'bold color kod'),
+                title=support.typo('Cerca...', 'bold'),
                 contentType='music',
                 url=item.url,
                 action='search',

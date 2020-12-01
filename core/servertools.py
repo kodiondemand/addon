@@ -47,7 +47,7 @@ def find_video_items(item=None, data=None):
     @return: returns the itemlist with the results
     @rtype: list
     """
-    logger.info()
+    logger.debug()
     itemlist = []
 
     # Download the page
@@ -97,7 +97,7 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
 
         # Walk the patterns
         for pattern in server_parameters.get("find_videos", {}).get("patterns", []):
-            logger.info(pattern["pattern"])
+            logger.debug(pattern["pattern"])
             # Scroll through the results
             for match in re.compile(pattern["pattern"], re.DOTALL).finditer(
                     "\n".join([item.url.split('|')[0] for item in itemlist if not item.server])):
@@ -144,7 +144,7 @@ def findvideos(data, skip=False):
     return some link. It can also be an integer greater than 1, which would represent the maximum number of links to search.
     :return:
     """
-    logger.info()
+    logger.debug()
     devuelve = []
     skip = int(skip)
     servers_list = list(get_servers_list().keys())
@@ -181,7 +181,7 @@ def findvideosbyserver(data, serverid):
                 value = translate_server_name(server_parameters["name"]) , url, serverid, server_parameters.get("thumbnail", "")
                 if value not in devuelve and url not in server_parameters["find_videos"].get("ignore_urls", []):
                     devuelve.append(value)
-                logger.info(msg)
+                logger.debug(msg)
 
     return devuelve
 
@@ -193,7 +193,7 @@ def guess_server_thumbnail(serverid):
 
 
 def get_server_from_url(url):
-    logger.info()
+    logger.debug()
     servers_list = list(get_servers_list().keys())
 
     # Run findvideos on each active server
@@ -211,7 +211,7 @@ def get_server_from_url(url):
             for n, pattern in enumerate(server_parameters["find_videos"].get("patterns", [])):
                 msg = "%s\npattern: %s" % (serverid, pattern["pattern"])
                 if not "pattern_compiled" in pattern:
-                    # logger.info('compiled ' + serverid)
+                    # logger.debug('compiled ' + serverid)
                     pattern["pattern_compiled"] = re.compile(pattern["pattern"])
                     dict_servers_parameters[serverid]["find_videos"]["patterns"][n]["pattern_compiled"] = pattern["pattern_compiled"]
                 # Scroll through the results
@@ -224,7 +224,7 @@ def get_server_from_url(url):
                     msg += "\nurl encontrada: %s" % url
                     value = translate_server_name(server_parameters["name"]), url, serverid, server_parameters.get("thumbnail", "")
                     if url not in server_parameters["find_videos"].get("ignore_urls", []):
-                        logger.info(msg)
+                        logger.debug(msg)
                         return value
 
     return None
@@ -353,7 +353,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
                         video_urls.extend(response)
                     except:
                         logger.error("Error getting url in free mode")
-                        error_messages.append(config.get_localized_string(60006) % server_name)
+                        error_messages.append(config.get_localized_string(60014))
                         import traceback
                         logger.error(traceback.format_exc())
 
@@ -370,10 +370,10 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
                         elif response and response[0][0]:
                             error_messages.append(response[0][0])
                         else:
-                            error_messages.append(config.get_localized_string(60006) % server_name)
+                            error_messages.append(config.get_localized_string(60014))
                     except:
                         logger.error("Server errorr: %s" % opcion)
-                        error_messages.append(config.get_localized_string(60006) % server_name)
+                        error_messages.append(config.get_localized_string(60014))
                         import traceback
                         logger.error(traceback.format_exc())
 
@@ -394,7 +394,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
 
             # If we do not have urls or error messages, we put a generic one
             elif not video_urls and not error_messages:
-                error_messages.append(config.get_localized_string(60006) % get_server_parameters(server)["name"])
+                error_messages.append(config.get_localized_string(60014))
 
     return video_urls, len(video_urls) > 0, "<br/>".join(error_messages)
 
@@ -478,6 +478,7 @@ def get_server_parameters(server):
 
     if server not in dict_servers_parameters:
         try:
+            path = ''
             # Servers
             if filetools.isfile(filetools.join(config.get_runtime_path(), "servers", server + ".json")):
                 path = filetools.join(config.get_runtime_path(), "servers", server + ".json")
@@ -488,6 +489,8 @@ def get_server_parameters(server):
 
             # When the server is not well defined in the channel (there is no connector), it shows an error because there is no "path" and the channel has to be checked
             dict_server = jsontools.load(filetools.read(path))
+
+            dict_server["name"] = translate_server_name(dict_server["name"])
 
             # Images: url and local files are allowed inside "resources / images"
             if dict_server.get("thumbnail") and "://" not in dict_server["thumbnail"]:
@@ -614,7 +617,7 @@ def get_server_setting(name, server, default=None):
             dict_file['settings'] = dict_settings
             # We create the file ../settings/channel_data.json
             if not filetools.write(file_settings, jsontools.dump(dict_file)):
-                logger.info("ERROR saving file: %s" % file_settings)
+                logger.error("ERROR saving file: %s" % file_settings)
 
     # We return the value of the local parameter 'name' if it exists, if default is not returned
     return dict_settings.get(name, default)
@@ -636,7 +639,7 @@ def set_server_setting(name, value, server):
             dict_file = jsontools.load(filetools.read(file_settings))
             dict_settings = dict_file.get('settings', {})
         except EnvironmentError:
-            logger.info("ERROR when reading the file: %s" % file_settings)
+            logger.error("ERROR when reading the file: %s" % file_settings)
 
     dict_settings[name] = value
 
@@ -648,7 +651,7 @@ def set_server_setting(name, value, server):
 
     # We create the file ../settings/channel_data.json
     if not filetools.write(file_settings, jsontools.dump(dict_file)):
-        logger.info("ERROR saving file: %s" % file_settings)
+        logger.error("ERROR saving file: %s" % file_settings)
         return None
 
     return value
@@ -750,7 +753,7 @@ def check_video_link(item, timeout=3):
         server_module = __import__('servers.%s' % server, None, None, ["servers.%s" % server])
     except:
         server_module = None
-        logger.info("[check_video_link] Cannot import server! %s" % server)
+        logger.error("[check_video_link] Cannot import server! %s" % server)
         return item, NK
 
     if hasattr(server_module, 'test_video_exists'):
@@ -760,20 +763,20 @@ def check_video_link(item, timeout=3):
         try:
             video_exists, message = server_module.test_video_exists(page_url=url)
             if not video_exists:
-                logger.info("[check_video_link] Does not exist! %s %s %s" % (message, server, url))
+                logger.error("[check_video_link] Does not exist! %s %s %s" % (message, server, url))
                 resultado = KO
             else:
-                logger.info("[check_video_link] check ok %s %s" % (server, url))
+                logger.debug("[check_video_link] check ok %s %s" % (server, url))
                 resultado = OK
         except:
-            logger.info("[check_video_link] Can't check now! %s %s" % (server, url))
+            logger.error("[check_video_link] Can't check now! %s %s" % (server, url))
             resultado = NK
 
         finally:
             httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = ant_timeout  # Restore download time
             return item, resultado
 
-    logger.info("[check_video_link] There is no test_video_exists for server: %s" % server)
+    logger.debug("[check_video_link] There is no test_video_exists for server: %s" % server)
     return item, NK
 
 def translate_server_name(name):

@@ -187,7 +187,7 @@ def peliculas(item):
 
         itemlist.append(itm)
 
-    autorenumber.renumber(itemlist)
+    autorenumber.start(itemlist)
     if len(itemlist) >= 30:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page + 1))
 
@@ -212,7 +212,7 @@ def episodios(item):
                          contentType='episode',
                          url=it['link']))
 
-    autorenumber.renumber(itemlist, item, 'bold')
+    autorenumber.start(itemlist, item)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
     return itemlist

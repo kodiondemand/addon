@@ -10,7 +10,7 @@ from platformcode import logger
 
 data = ""
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url)
 
@@ -22,7 +22,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     logger.error(data)
     video_urls = []
     patron = 'source src="([^"]+)" type="([^"]+)" res=(\d+)'

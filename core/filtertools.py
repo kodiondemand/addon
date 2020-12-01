@@ -234,7 +234,7 @@ def get_link(list_item, item, list_language, list_quality=None, global_filter_la
     @return: Item list
     @rtype: list[Item]
     """
-    logger.info()
+    logger.debug()
 
     # if the required fields are None we leave
     if list_item is None or item is None:
@@ -274,7 +274,7 @@ def get_links(list_item, item, list_language, list_quality=None, global_filter_l
     @return: lista de Item
     @rtype: list[Item]
     """
-    logger.info()
+    logger.debug()
 
 
     # if the required fields are None we leave
@@ -362,7 +362,7 @@ def no_filter(item):
     @return: lista de enlaces
     @rtype: list[Item]
     """
-    logger.info()
+    logger.debug()
 
     itemlist = []
     for i in item.list_item_all:
@@ -384,7 +384,7 @@ def mainlist(channel, list_language, list_quality):
     @return: Item list
     @rtype: list[Item]
     """
-    logger.info()
+    logger.debug()
     itemlist = []
     dict_series = jsontools.get_node_from_file(channel, TAG_TVSHOW_FILTER)
 
@@ -425,8 +425,8 @@ def config_item(item):
     @param item: item
     @type item: Item
     """
-    logger.info()
-    logger.info("item %s" % item.tostring())
+    logger.debug()
+    logger.debug("item %s" % item.tostring())
 
     # WE GET THE JSON DATA
     dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
@@ -448,8 +448,8 @@ def config_item(item):
     else:
         lang_selected = dict_series.get(tvshow, {}).get(TAG_LANGUAGE, default_lang)
         list_quality = dict_series.get(tvshow, {}).get(TAG_QUALITY_ALLOWED, [x.lower() for x in item.list_quality])
-        # logger.info("lang selected {}".format(lang_selected))
-        # logger.info("list quality {}".format(list_quality))
+        # logger.debug("lang selected {}".format(lang_selected))
+        # logger.debug("list quality {}".format(list_quality))
 
         active = True
         custom_button = {'visible': False}
@@ -516,7 +516,7 @@ def config_item(item):
 
 
 def delete(item, dict_values):
-    logger.info()
+    logger.debug()
 
     if item:
         dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
@@ -554,7 +554,7 @@ def save(item, dict_data_saved):
     @param dict_data_saved: dictionary with saved data
     @type dict_data_saved: dict
     """
-    logger.info()
+    logger.debug()
 
     if item and dict_data_saved:
         logger.debug('item: %s\ndatos: %s' % (item.tostring(), dict_data_saved))
@@ -564,7 +564,7 @@ def save(item, dict_data_saved):
         dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
         tvshow = item.show.strip().lower()
 
-        logger.info("Data is updated")
+        logger.debug("Data is updated")
 
         list_quality = []
         for _id, value in list(dict_data_saved.items()):
@@ -599,7 +599,7 @@ def save_from_context(item):
     @param item: item
     @type item: item
     """
-    logger.info()
+    logger.debug()
 
     dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
     tvshow = item.show.strip().lower()
@@ -630,7 +630,7 @@ def delete_from_context(item):
     @param item: item
     @type item: item
     """
-    logger.info()
+    logger.debug()
 
     # We come from get_links and no result has been obtained, in context menu and we delete
     if item.to_channel != "":

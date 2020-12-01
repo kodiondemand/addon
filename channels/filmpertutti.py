@@ -99,7 +99,7 @@ def genres(item):
 
 def select(item):
     support.info()
-    patron=r'class="taxonomy category" ><span property="name">([^>]+)</span></a><meta property="position" content="2">'
+    patron=r'class="taxonomy category"\s*><span property="name">([^>]+)</span></a><meta property="position" content="2">'
     block = support.match(item.url, patron=patron,headers=headers).match
     if block.lower() != 'film':
         support.info('select = ### è una serie ###')

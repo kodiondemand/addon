@@ -18,7 +18,7 @@ TIMEOUT_TOTAL = 60
 
 
 def mainlist(item):
-    logger.info(" mainlist")
+    logger.debug(" mainlist")
     itemlist = [#Item(channel="search", action='discover_list', title=config.get_localized_string(70309),
                #search_type='list', list_type='movie/now_playing',
                #          thumbnail=get_thumb("now_playing.png")),
@@ -91,7 +91,7 @@ def server_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "specials", item.config))
 
 def now_on_misc_film(item):
-    logger.info("filmontv tvoggi")
+    logger.debug("filmontv tvoggi")
     itemlist = []
 
     # Carica la pagina
@@ -126,7 +126,7 @@ def now_on_misc_film(item):
     return itemlist
 
 def now_on_misc(item):
-    logger.info("filmontv tvoggi")
+    logger.debug("filmontv tvoggi")
     itemlist = []
 
     # Carica la pagina
@@ -161,7 +161,7 @@ def now_on_misc(item):
     return itemlist
 
 def now_on_tv(item):
-    logger.info("filmontv tvoggi")
+    logger.debug("filmontv tvoggi")
     itemlist = []
 
     # Carica la pagina
@@ -195,7 +195,7 @@ def now_on_tv(item):
     return itemlist
 
 def primafila(item):
-    logger.info("filmontv tvoggi")
+    logger.debug("filmontv tvoggi")
     itemlist = []
 
     # Carica la pagina

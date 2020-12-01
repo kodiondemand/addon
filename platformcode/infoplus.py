@@ -191,7 +191,8 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                         self.getControl(NUMBER).setText(support.typo(config.get_localized_string(70362),'uppercase bold'))
                     else:
                         it = xbmcgui.ListItem(item.infoLabels['title'])
-                    it.setProperty('channel', channeltools.get_channel_parameters(item.channel).get('title',''))
+                    it.setProperty('channelname', channeltools.get_channel_parameters(item.channel).get('title',''))
+                    it.setProperty('channel', item.channel)
                     it.setProperty('action', item.action)
                     it.setProperty('server', servertools.get_server_parameters(item.server.lower()).get('name',item.server))
                     it.setProperty('url', item.url)
@@ -213,7 +214,6 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                     self.commands.append(itemlist[0].clone(channel='downloads', action='save_download', from_channel=itemlist[0].channel, from_action=itemlist[0].action, thumbnail=support.thumb('downloads')))
                 else:
                     self.commands.append(Info.clone(channel='downloads', action='save_download', from_channel=Info.channel, from_action=Info.action, thumbnail=support.thumb('downloads')))
-
             if self.commands:
                 commands = []
                 for command in self.commands:
@@ -248,7 +248,8 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
             if action == 'play':
                 item.server = self.getControl(RECOMANDED).getSelectedItem().getProperty('server')
                 self.close()
-                platformtools.play_video(item)
+                from platformcode.launcher import run
+                run(item)
                 xbmc.sleep(500)
                 while xbmc.Player().isPlaying():
                     xbmc.sleep(500)

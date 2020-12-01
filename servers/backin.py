@@ -9,7 +9,7 @@ except ImportError:
     from urllib import urlencode
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     if 'http://' in page_url:  # fastids
         page_url = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True).headers['location']
@@ -24,7 +24,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("page_url=" + page_url)
+    logger.debug("page_url=" + page_url)
 
     video_urls = []
 
@@ -36,18 +36,18 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if data_pack:
         from lib import jsunpack
         data = jsunpack.unpack(data_pack)
-    logger.info("page_url=" + data)
+    logger.debug("page_url=" + data)
 
     # URL
     url = scrapertools.find_single_match(data, r'"src"value="([^"]+)"')
     if not url:
         url = scrapertools.find_single_match(data, r'file\s*:\s*"([^"]+)"')
-    logger.info("URL=" + str(url))
+    logger.debug("URL=" + str(url))
 
     # URL del vídeo
     video_urls.append([".mp4" + " [backin]", url])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0],  httptools.get_url_headers(video_url[1])))
+        logger.debug("%s - %s" % (video_url[0],  httptools.get_url_headers(video_url[1])))
 
     return video_urls

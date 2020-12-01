@@ -43,7 +43,7 @@ else:
 
 
 def buscartrailer(item, trailers=[]):
-    logger.info()
+    logger.debug()
 
     # List of actions if run from context menu
     if item.action == "manual_search" and item.contextual:
@@ -78,8 +78,8 @@ def buscartrailer(item, trailers=[]):
 
         item.year = item.infoLabels['year']
 
-        logger.info("Search: %s" % item.contentTitle)
-        logger.info("Year: %s" % item.year)
+        logger.debug("Search: %s" % item.contentTitle)
+        logger.debug("Year: %s" % item.year)
         if item.infoLabels['trailer'] and not trailers:
             url = item.infoLabels['trailer']
             if "youtube" in url:
@@ -122,7 +122,7 @@ def buscartrailer(item, trailers=[]):
 
 
 def manual_search(item):
-    logger.info()
+    logger.debug()
     texto = platformtools.dialog_input(default=item.contentTitle, heading=config.get_localized_string(30112))
     if texto is not None:
         if item.extra == "mymovies":
@@ -134,7 +134,7 @@ def manual_search(item):
 
 
 def tmdb_trailers(item, tipo="movie"):
-    logger.info()
+    logger.debug()
 
     from core.tmdb import Tmdb
     itemlist = []
@@ -153,7 +153,7 @@ def tmdb_trailers(item, tipo="movie"):
 
 
 def youtube_search(item):
-    logger.info()
+    logger.debug()
     itemlist = []
     title = item.contentTitle
     if item.extra != "youtube":
@@ -192,7 +192,7 @@ def youtube_search(item):
 
 
 def mymovies_search(item):
-    logger.info()
+    logger.debug()
     import json
 
     title = item.contentTitle
@@ -216,7 +216,7 @@ def mymovies_search(item):
 
 
 def search_links_mymovies(item):
-    logger.info()
+    logger.debug()
     trailer_url = match(item, patron=r'<li class="bottone_playlist"[^>]+><a href="([^"]+)"').match
     itemlist = []
     data = httptools.downloadpage(item.url).data
@@ -236,7 +236,7 @@ def search_links_mymovies(item):
 
 
 def filmaffinity_search(item):
-    logger.info()
+    logger.debug()
 
     if item.filmaffinity:
         item.url = item.filmaffinity
@@ -284,7 +284,7 @@ def filmaffinity_search(item):
 
 
 def search_links_filmaff(item):
-    logger.info()
+    logger.debug()
 
     itemlist = []
     data = httptools.downloadpage(item.url).data

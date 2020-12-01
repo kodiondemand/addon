@@ -14,15 +14,15 @@ YOUTUBE_V3_API_KEY = "AIzaSyCjsmBT0JZy1RT-PLwB-Zkfba87sa2inyI"
 
 
 def youtube_api_call(method, parameters):
-    logger.info("method=" + method + ", parameters=" + repr(parameters))
+    logger.debug("method=" + method + ", parameters=" + repr(parameters))
 
     encoded_parameters = urllib.urlencode(parameters)
 
     url = "https://www.googleapis.com/youtube/v3/" + method + "?" + encoded_parameters + "&key=" + YOUTUBE_V3_API_KEY;
-    logger.info("url=" + url)
+    logger.debug("url=" + url)
 
     data = httptools.downloadpage(url).data
-    logger.info("data=" + data)
+    logger.debug("data=" + data)
 
     json_object = jsontools.load(data)
 
@@ -51,13 +51,13 @@ def youtube_get_playlist_items(playlist_id, pageToken=""):
 
 # Show all YouTube playlists for the selected channel
 def playlists(item, channel_id, pageToken=""):
-    logger.info()
+    logger.debug()
     itemlist = []
 
     json_object = youtube_get_user_playlists(channel_id, pageToken)
 
     for entry in json_object["items"]:
-        logger.info("entry=" + repr(entry))
+        logger.debug("entry=" + repr(entry))
 
         title = entry["snippet"]["title"]
         plot = entry["snippet"]["description"]
@@ -85,13 +85,13 @@ def latest_videos(item, channel_id):
 
 # Show all YouTube videos for the selected playlist
 def videos(item, pageToken=""):
-    logger.info()
+    logger.debug()
     itemlist = []
 
     json_object = youtube_get_playlist_items(item.url, pageToken)
 
     for entry in json_object["items"]:
-        logger.info("entry=" + repr(entry))
+        logger.debug("entry=" + repr(entry))
 
         title = entry["snippet"]["title"]
         plot = entry["snippet"]["description"]

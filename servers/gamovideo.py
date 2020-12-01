@@ -22,7 +22,7 @@ headers = {"User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:%s.0) Geck
 DATA = ''
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     
 
     data = alfaresolver.get_data(page_url, False)
@@ -46,7 +46,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     data = DATA
 
@@ -87,7 +87,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.append([scrapertools.get_filename_from_url(mediaurl)[-4:] + " [gamovideo]", mediaurl])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls
 

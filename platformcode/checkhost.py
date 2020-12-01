@@ -2,7 +2,6 @@
 
 import xbmc, xbmcgui
 import xbmcaddon
-import json
 from platformcode import config, logger
 import requests
 import sys
@@ -236,63 +235,3 @@ def test_conn(is_exit, check_dns, view_msg,
     #     else:
     #         return False
 
-# def for creating the channels.json file
-def check_channels(inutile=''):
-    """
-    I read the channel hosts from the channels.json file, I check them,
-    I write the channels-test.json file with the error code and the new url in case of redirect
-
-    urls MUST have http (s)
-
-    During the urls check the ip, asdl and dns checks are carried out.
-    This is because it can happen that at any time the connection may have problems. If it does, check it
-    relative writing of the file is interrupted with a warning message
-    """
-    logger.info()
-
-    folderJson = xbmc.translatePath(xbmcaddon.Addon().getAddonInfo('path')).decode('utf-8')
-    fileJson = 'channels.json'
-
-    with open(folderJson+'/'+fileJson) as f:
-        data = json.load(f)
-
-    risultato = {}
-
-    for chann, host in sorted(data['direct'].items()):
-
-        ris = []
-        # to get an idea of the timing
-        # useful only if you control all channels
-        # for channels with error 522 about 40 seconds are lost ...
-        logger.info("check #### INIZIO #### channel - host :%s - %s " % (chann, host))
-
-        rslt = Kdicc(lst_urls = [host]).http_Resp()
-
-        # all right
-        if rslt['code'] == 200:
-            risultato[chann] = host
-        # redirect
-        elif str(rslt['code']).startswith('3'):
-            # risultato[chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
-            if rslt['redirect'].endswith('/'):
-                rslt['redirect'] = rslt['redirect'][:-1]
-            risultato[chann] = rslt['redirect']
-        # non-existent site
-        elif rslt['code'] == -2:
-            risultato[chann] = 'Host Sconosciuto - '+ str(rslt['code']) +' - '+ host
-        # site not reachable - probable dns not set
-        elif rslt['code'] == 111:
-            risultato[chann] = ['Host non raggiungibile - '+ str(rslt['code']) +' - '+ host]
-        else:
-            # other types of errors
-            # risultato[chann] = 'Errore Sconosciuto - '+str(rslt['code']) +' - '+ host
-            risultato[chann] = host
-
-        logger.info("check #### FINE #### rslt :%s  " % (rslt))
-
-    risultato = {'findhost': data['findhost'], 'direct': risultato}
-    fileJson_test = 'channels-test.json'
-    # I write the updated file
-    with open(folderJson+'/'+fileJson_test, 'w') as f:
-        data = json.dump(risultato, f, sort_keys=True, indent=4)
-        logger.info(data)

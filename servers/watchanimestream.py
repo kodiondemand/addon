@@ -5,7 +5,7 @@ from platformcode import logger
 
 
 def get_video_url(page_url, video_password):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     url = page_url.replace("/v/", "/api/source/")
     post = "r=&d=watchanimestream.net"

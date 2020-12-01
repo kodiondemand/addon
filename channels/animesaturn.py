@@ -60,7 +60,7 @@ def newest(categoria):
 def submenu(item):
     data = support.match(item.url + item.args).data
     action = 'filter'
-    patronMenu = r'<h5 class="[^"]+">(?P<title>[^<]+)[^>]+>[^>]+><select id="(?P<parameter>[^"]+)"[^>]+>(?P<url>.*?)</select>'
+    patronMenu = r'<h5 class="[^"]+">(?P<title>[^<]+)[^>]+>[^>]+>\s*<select id="(?P<parameter>[^"]+)"[^>]+>(?P<url>.*?)</select>'
     def itemlistHook(itemlist):
         itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), url=item.url + item.args, action='peliculas'))
         return itemlist[:-1]
@@ -104,7 +104,7 @@ def peliculas(item):
         data = support.match(item, post=post, headers=headers).data
         if item.args == 'updated':
             page = support.match(data, patron=r'data-page="(\d+)" title="Next">').match
-            patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-Za-z-]+)\))?"><img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s\s*(?P<type>[^\s]+)\s*(?P<episode>\d+)'
+            patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-Za-z-]+)\))?">\s*<img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s\s*(?P<type>[^\s]+)\s*(?P<episode>\d+)'
             typeContentDict = {'Movie':'movie', 'Episodio':'episode'} #item.contentType='episode'
             action = 'findvideos'
             def itemlistHook(itemlist):
@@ -113,7 +113,7 @@ def peliculas(item):
                 return itemlist
         elif 'filter' in item.args:
             page = support.match(data, patron=r'totalPages:\s*(\d+)').match
-            patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-Za-z-]+)\))?"><img src="(?P<thumb>[^"]+)"'
+            patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-Za-z-]+)\))?">\s*<img src="(?P<thumb>[^"]+)"'
             def itemlistHook(itemlist):
                 if item.nextpage: item.nextpage += 1
                 else: item.nextpage = 2
@@ -127,7 +127,7 @@ def peliculas(item):
                 patron = r'<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<(]+)(?:\s*\((?P<year>\d+)\))?(?:\s*\((?P<lang>[A-za-z-]+)\))?</a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<'
             else:
                 # debug=True
-                patron = r'<img src="(?P<thumb>[^"]+)" alt="(?P<title>[^"\(]+)(?:\((?P<lang>[Ii][Tt][Aa])\))?(?:\s*\((?P<year>\d+)\))?[^"]*"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a class="[^"]+" href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+><p[^>]+>(?:(?P<plot>[^<]+))?<'
+                patron = r'<img src="(?P<thumb>[^"]+)" alt="(?P<title>[^"\(]+)(?:\((?P<lang>[Ii][Tt][Aa])\))?(?:\s*\((?P<year>\d+)\))?[^"]*"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<a class="[^"]+" href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+>\s*<p[^>]+>(?:(?P<plot>[^<]+))?<'
 
     return locals()
 

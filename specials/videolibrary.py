@@ -20,7 +20,7 @@ else:
 
 
 def mainlist(item):
-    logger.info()
+    logger.debug()
 
     itemlist = [Item(channel=item.channel, action="list_movies", title=config.get_localized_string(60509),
                      category=config.get_localized_string(70270), thumbnail=thumb("videolibrary_movie")),
@@ -37,7 +37,7 @@ def channel_config(item):
 
 
 def list_movies(item, silent=False):
-    logger.info()
+    logger.debug()
     itemlist = []
     movies_path = []
     for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
@@ -61,9 +61,7 @@ def list_movies(item, silent=False):
 
 
 def list_tvshows(item):
-    from time import time
-    start = time()
-    logger.info()
+    logger.debug()
     itemlist = []
     lista = []
     tvshows_path = []
@@ -88,7 +86,6 @@ def list_tvshows(item):
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False),
                      Item(channel=item.channel, action="configure_update_videolibrary", thumbnail=item.thumbnail,
                           title=typo(config.get_localized_string(60599), 'bold color kod'), lista=lista, folder=False)]
-    logger.info('TEMPO= ' + str(time() - start))
     return itemlist
 
 
@@ -188,7 +185,7 @@ def get_results(nfo_path, root, Type, local=False):
                 # Contextual menu: Mark as seen / not seen
                 visto = item.library_playcounts.get(item.contentTitle, 0)
                 item.infoLabels["playcount"] = visto
-                logger.info('item\n' + str(item))
+                logger.debug('item\n' + str(item))
                 if visto > 0:
                     seen_text = config.get_localized_string(60020)
                     counter = 0
@@ -260,7 +257,7 @@ def configure_update_videolibrary(item):
 
 
 def get_seasons(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     itemlist = []
     dict_temp = {}
@@ -319,7 +316,7 @@ def get_seasons(item):
 
 
 def get_episodes(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     itemlist = []
 
@@ -383,7 +380,7 @@ def get_episodes(item):
 
 def findvideos(item):
     from core import autoplay
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     videolibrarytools.check_renumber_options(item)
     itemlist = []
@@ -535,7 +532,7 @@ def findvideos(item):
 
 
 def play(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
 
     if not item.contentChannel == "local":
@@ -575,7 +572,7 @@ def play(item):
 
 
 def update_videolibrary(item=''):
-    logger.info()
+    logger.debug()
 
     # Update active series by overwriting
     import service
@@ -595,7 +592,7 @@ def update_videolibrary(item=''):
 
 
 def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
-    logger.info()
+    logger.debug()
 
     backup_current_path = current_path
     backup_new_path = new_path
@@ -668,7 +665,7 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
 
 
 def delete_videolibrary(item):
-    logger.info()
+    logger.debug()
 
     if not platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80037)):
         return
@@ -694,7 +691,7 @@ def delete_videolibrary(item):
 
 # context menu methods
 def update_tvshow(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
 
     heading = config.get_localized_string(60037)
@@ -720,11 +717,11 @@ def update_tvshow(item):
 
 
 def add_local_episodes(item):
-    logger.info()
+    logger.debug()
 
     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
     if done < 0:
-        logger.info("An issue has occurred while configuring local episodes")
+        logger.debug("An issue has occurred while configuring local episodes")
     elif local_episodes_path:
         nfo_path = filetools.join(item.path, "tvshow.nfo")
         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
@@ -739,7 +736,7 @@ def add_local_episodes(item):
 
 
 def remove_local_episodes(item):
-    logger.info()
+    logger.debug()
 
     nfo_path = filetools.join(item.path, "tvshow.nfo")
     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
@@ -757,7 +754,7 @@ def remove_local_episodes(item):
 
 
 def verify_playcount_series(item, path):
-    logger.info()
+    logger.debug()
 
     """
     This method reviews and repairs the PlayCount of a series that has become out of sync with the actual list of episodes in its folder. Entries for missing episodes, seasons, or series are created with the "not seen" mark. Later it is sent to verify the counters of Seasons and Series
@@ -820,7 +817,7 @@ def verify_playcount_series(item, path):
 
 
 def mark_content_as_watched2(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     if filetools.isfile(item.nfo):
         head_nfo, it = videolibrarytools.read_nfo(item.nfo)
@@ -858,7 +855,7 @@ def mark_content_as_watched2(item):
 
 
 def mark_content_as_watched(item):
-    logger.info()
+    logger.debug()
     #logger.debug("item:\n" + item.tostring('\n'))
 
     if filetools.exists(item.nfo):
@@ -896,7 +893,7 @@ def mark_content_as_watched(item):
 
 
 def mark_season_as_watched(item):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
 
     # Get dictionary of marked episodes
@@ -949,7 +946,7 @@ def mark_season_as_watched(item):
 
 
 def mark_tvshow_as_updatable(item, silent=False):
-    logger.info()
+    logger.debug()
     head_nfo, it = videolibrarytools.read_nfo(item.nfo)
     it.active = item.active
     filetools.write(item.nfo, head_nfo + it.tojson())
@@ -1063,7 +1060,7 @@ def delete(item):
 
 
 def check_season_playcount(item, season):
-    logger.info()
+    logger.debug()
 
     if season:
         episodios_temporada = 0
@@ -1085,7 +1082,7 @@ def check_season_playcount(item, season):
 
 
 def check_tvshow_playcount(item, season):
-    logger.info()
+    logger.debug()
     if season:
         temporadas_serie = 0
         temporadas_vistas_serie = 0

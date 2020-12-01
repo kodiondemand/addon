@@ -22,7 +22,7 @@ excption = False
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     data = get_data(page_url.replace(".org", ".me"))
     if "File Not Found" in data: return False,  config.get_localized_string(70449) % "Clicknupload"
@@ -31,7 +31,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
 
     data = get_data(page_url.replace(".org", ".me"))
 
@@ -51,7 +51,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     media_url = media.rsplit('/', 1)[0] + "/" + url_strip
     video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [clicknupload]", media_url])
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls
 

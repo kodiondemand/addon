@@ -29,7 +29,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
     data = httptools.downloadpage(page_url).data
@@ -43,5 +43,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     mediaurl = '%s%s' % (domain, url)
     extension = "." + mediaurl.split('.')[-1]
     video_urls.append([extension + " [zippyshare]", mediaurl])
-    logger.info("url=%s" %video_urls)
+    logger.debug("url=%s" %video_urls)
     return video_urls

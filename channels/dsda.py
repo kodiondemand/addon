@@ -75,7 +75,7 @@ def peliculas(item):
         else:
             patron = r'<div class="cover-racolta">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)".*?<p class="title[^>]+>(?P<title>[^<]+)<'
     else:
-        patron = r'<article[^>]+>[^>]+>[^>]+>(?:<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>)?.*?<a href="(?P<url>[^"]+)">\s*(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<p>(?P<plot>[^<]+)<'
+        patron = r'<article[^>]+>[^>]+>[^>]+>(?:<img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>)?.*?<a href="(?P<url>[^"]+)"[^>]*>\s*(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<p>(?P<plot>[^<]+)<'
         patronNext = r'<a class="page-numbers next" href="([^"]+)">'
 
     # select category
@@ -121,14 +121,14 @@ def episodios(item):
     else:
         patron = r'class="title-episodio">(?P<title>[^<]+)<(?P<url>.*?)<p'
 
-        def itemlistHook(itemlist):
-            counter = 0
-            for item in itemlist:
-                episode = support.match(item.title, patron=r'\d+').match
-                if episode == '1':
-                    counter += 1
-                item.title = support.typo(str(counter) + 'x' + episode.zfill(2) + support.re.sub(r'\[[^\]]+\](?:\d+)?','',item.title),'bold')
-            return itemlist
+        # def itemlistHook(itemlist):
+        #     counter = 0
+        #     for item in itemlist:
+        #         episode = support.match(item.title, patron=r'\d+').match
+        #         if episode == '1':
+        #             counter += 1
+        #         item.title = support.typo(str(counter) + 'x' + episode.zfill(2) + support.re.sub(r'\[[^\]]+\](?:\d+)?','',item.title),'bold')
+        #     return itemlist
     return locals()
 
 

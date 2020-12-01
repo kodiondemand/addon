@@ -8,12 +8,12 @@ from lib.fakeMail import Gmailnator
 baseUrl = 'https://hdmario.live'
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global page, data
 
     page = httptools.downloadpage(page_url)
     data = page.data
-    logger.info(page.url)
+    logger.debug(page.url)
 
     if "the page you are looking for could not be found" in data:
         return False, config.get_localized_string(70449) % "HDmario"
@@ -54,12 +54,12 @@ def registerOrLogin(page_url):
     else:
         import random
         import string
-        logger.info('Registrazione automatica in corso')
+        logger.debug('Registrazione automatica in corso')
         mailbox = Gmailnator()
         randPsw = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(10))
         captcha = httptools.downloadpage(baseUrl + '/captchaInfo').json
-        logger.info('email: ' + mailbox.address)
-        logger.info('pass: ' + randPsw)
+        logger.debug('email: ' + mailbox.address)
+        logger.debug('pass: ' + randPsw)
         reg = platformtools.dialog_register(baseUrl + '/register/', email=True, password=True, email_default=mailbox.address, password_default=randPsw, captcha_img=captcha['captchaUrl'])
         if not reg:
             return False
@@ -90,7 +90,7 @@ def registerOrLogin(page_url):
         else:
             platformtools.dialog_ok('HDmario', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
                                     + ' e clicca sul link. Premi ok quando fatto')
-        logger.info('Registrazione completata')
+        logger.debug('Registrazione completata')
 
     return True
 
@@ -98,7 +98,7 @@ def registerOrLogin(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     global page, data
     page_url = page_url.replace('?', '')
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
 
     if 'unconfirmed' in page.url:
         id = page_url.split('/')[-1]
@@ -109,7 +109,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         }
         httptools.downloadpage(page.url, post=postData)
         mail = mailbox.waitForMail()
-        logger.info(mail)
+        logger.debug(mail)
         if mail:
             code = mail.subject.split(' - ')[0]
             page = httptools.downloadpage(page_url + '?code=' + code)
@@ -122,12 +122,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         page = httptools.downloadpage(page_url)
         data = page.data
 
-    logger.info(data)
+    logger.debug(data)
     from lib import jsunpack_js2py
     unpacked = jsunpack_js2py.unpack(scrapertools.find_single_match(data, '<script type="text/javascript">\n*\s*\n*(eval.*)'))
     # p,a,c,k,e,d data -> xhr.setRequestHeader
     secureProof = scrapertools.find_single_match(unpacked, """X-Secure-Proof['"]\s*,\s*['"]([^"']+)""")
-    logger.info('X-Secure-Proof=' + secureProof)
+    logger.debug('X-Secure-Proof=' + secureProof)
 
     data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '') + '.m3u8', headers=[['X-Secure-Proof', secureProof]]).data
     filetools.write(xbmc.translatePath('special://temp/hdmario.m3u8'), data, 'w')

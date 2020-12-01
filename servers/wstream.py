@@ -12,6 +12,9 @@ from core import httptools, scrapertools
 from platformcode import logger, config, platformtools
 
 # real_host = 'wstream.video'
+errorsStr = ['Sorry this file is not longer available', 'Sorry this video is unavailable', 'Video is processing'
+             'File was deleted', 'Not Found']
+
 
 def test_video_exists(page_url):
     global headers
@@ -19,7 +22,7 @@ def test_video_exists(page_url):
     headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],
                ['Host', scrapertools.get_domain_from_url(page_url)]]
 
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     if 'wstream' in page_url:
         resp = httptools.downloadpage(page_url.replace(headers[1][1], real_host), headers=headers, verify=False)
     else:
@@ -31,7 +34,7 @@ def test_video_exists(page_url):
     page_url = resp.url.replace(headers[1][1], real_host)
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, headers=headers, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
-        # logger.info('WCODE=' + code)
+        # logger.debug('WCODE=' + code)
         page_url = 'https://' + real_host + '/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
@@ -45,15 +48,15 @@ def test_video_exists(page_url):
             page_url = 'https://' + real_host + '/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
             headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],['Host', 'wstream.video']]
             new_data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
-            logger.info('NEW DATA: \n' + new_data)
+            logger.debug('NEW DATA: \n' + new_data)
             if new_data:
                 data = new_data
 
     real_url = page_url
-    if "Not Found" in data or "File was deleted" in data or 'Video is processing' in data or 'Sorry this video is unavailable' in data:
-        return False, config.get_localized_string(70449) % 'Wstream'
-    else:
-        return True, ""
+    for e in errorsStr:
+        if e in data:
+            return False, config.get_localized_string(70449) % 'Wstream'
+    return True, ""
 
 
 # Returns an array of possible video url's from the page_url
@@ -93,7 +96,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             except:
                 pass
 
-    logger.info("[Wstream] url=" + page_url)
+    logger.debug("[Wstream] url=" + page_url)
     video_urls = []
     global data, real_url, headers
 
@@ -102,7 +105,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', headers[1][1]).replace('nored.icu', headers[1][1])) if sitekey else ''
 
     possibleParam = scrapertools.find_multiple_matches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
-    if possibleParam[0][0]:
+    if possibleParam and possibleParam[0][0]:
         post = {param[0]: param[1] for param in possibleParam if param[0]}
         if captcha: post['g-recaptcha-response'] = captcha
         if post:

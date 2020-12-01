@@ -73,27 +73,28 @@ def peliculas(item):
     pagination = pagination_values[support.config.get_setting('pagination','paramount')]
     item.url = host + '/api/search?activeTab=' + Type + '&searchFilter=site&pageNumber=0&rowsPerPage=10000'
     data = jsontools.load(support.match(item).data)['response']['items']
-
+    titles = []
     for it in data:
         title = it['meta']['header']['title']
-        support.info(title, it)
-        d = it['meta']['date'].split('/') if it['meta']['date'] else ['0000','00','00']
-        date = int(d[2] + d[1] + d[0])
-        if item.search.lower() in title.lower() \
-            and 'stagione' not in it['url'] \
-            and 'season' not in it['url'] \
-            and title not in ['Serie TV']:
-            itemlist.append(
-                item.clone(title=support.typo(title,'bold'),
-                           action=action,
-                           fulltitle=title,
-                           show=title,
-                           contentTitle=title if it['type'] == 'movie' else '',
-                           contentSerieName=title if it['type'] != 'movie' else '',
-                           plot= it['meta']['description'] if 'description' in it['meta'] else '',
-                           url=host + it['url'],
-                           date=date,
-                           thumbnail='https:' + it['media']['image']['url'] if 'url' in it['media']['image'] else item.thumbnail))
+        if title not in titles:
+            titles.append(title)
+            d = it['meta']['date'].split('/') if it['meta']['date'] else ['0000','00','00']
+            date = int(d[2] + d[1] + d[0])
+            if item.search.lower() in title.lower() \
+                and 'stagione' not in it['url'] \
+                and 'season' not in it['url'] \
+                and title not in ['Serie TV']:
+                itemlist.append(
+                    item.clone(title=support.typo(title,'bold'),
+                            action=action,
+                            fulltitle=title,
+                            show=title,
+                            contentTitle=title if it['type'] == 'movie' else '',
+                            contentSerieName=title if it['type'] != 'movie' else '',
+                            plot= it['meta']['description'] if 'description' in it['meta'] else '',
+                            url=host + it['url'],
+                            date=date,
+                            thumbnail='https:' + it['media']['image']['url'] if 'url' in it['media']['image'] else item.thumbnail))
     itemlist.sort(key=lambda item: item.fulltitle)
     if not item.search:
         itlist = []

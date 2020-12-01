@@ -126,7 +126,7 @@ class KodfavouritesData(object):
 # ============================
 
 def addFavourite(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     # If you get here through the context menu, you must retrieve the action and channel parameters
@@ -179,7 +179,7 @@ def addFavourite(item):
 # ====================
 
 def mainlist(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
     item.category = get_name_from_filename(os.path.basename(alfav.user_favorites_file))
 
@@ -216,7 +216,7 @@ def mainlist(item):
 
 
 def mostrar_perfil(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     itemlist = []
@@ -289,7 +289,7 @@ def _crea_perfil(alfav):
 # Profile and link management
 
 def crear_perfil(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not _crea_perfil(alfav): return False
@@ -299,7 +299,7 @@ def crear_perfil(item):
 
 
 def editar_perfil_titulo(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -316,7 +316,7 @@ def editar_perfil_titulo(item):
 
 
 def eliminar_perfil(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -332,7 +332,7 @@ def eliminar_perfil(item):
 
 
 def acciones_enlace(item):
-    logger.info()
+    logger.debug()
 
     acciones = [config.get_localized_string(70620), config.get_localized_string(70621), config.get_localized_string(70622), config.get_localized_string(70623),
                 config.get_localized_string(70624), config.get_localized_string(70548), config.get_localized_string(70625),
@@ -364,7 +364,7 @@ def acciones_enlace(item):
 
 
 def editar_enlace_titulo(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -386,7 +386,7 @@ def editar_enlace_titulo(item):
 
 
 def editar_enlace_color(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -410,7 +410,7 @@ def editar_enlace_color(item):
 
 
 def editar_enlace_thumbnail(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -470,7 +470,7 @@ def editar_enlace_thumbnail(item):
 
 
 def editar_enlace_carpeta(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -489,7 +489,7 @@ def editar_enlace_carpeta(item):
 
 
 def editar_enlace_lista(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -527,7 +527,7 @@ def editar_enlace_lista(item):
 
 
 def eliminar_enlace(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -542,7 +542,7 @@ def eliminar_enlace(item):
 
 # Move profiles and links (up, down, top, bottom)
 def mover_perfil(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     alfav.user_favorites = _mover_item(alfav.user_favorites, item.i_perfil, item.direccion)
@@ -552,7 +552,7 @@ def mover_perfil(item):
     return True
 
 def mover_enlace(item):
-    logger.info()
+    logger.debug()
     alfav = KodfavouritesData()
 
     if not alfav.user_favorites[item.i_perfil]: return False
@@ -597,7 +597,7 @@ def _mover_item(lista, i_selected, direccion):
 # ------------------------------------------
 
 def mainlist_listas(item):
-    logger.info()
+    logger.debug()
     itemlist = []
     item.category = 'Listas'
 
@@ -619,7 +619,7 @@ def mainlist_listas(item):
 
 
 def acciones_lista(item):
-    logger.info()
+    logger.debug()
 
     acciones = [config.get_localized_string(70604), config.get_localized_string(70629),
                 config.get_localized_string(70605), config.get_localized_string(70606), config.get_localized_string(70607)]
@@ -641,7 +641,7 @@ def acciones_lista(item):
 
 
 def activar_lista(item):
-    logger.info()
+    logger.debug()
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
@@ -659,7 +659,7 @@ def activar_lista(item):
 
 
 def renombrar_lista(item):
-    logger.info()
+    logger.debug()
 
     fullfilename_current = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename_current):
@@ -695,7 +695,7 @@ def renombrar_lista(item):
 
 
 def eliminar_lista(item):
-    logger.info()
+    logger.debug()
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
@@ -714,7 +714,7 @@ def eliminar_lista(item):
 
 
 def informacion_lista(item):
-    logger.info()
+    logger.debug()
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
@@ -741,7 +741,7 @@ def informacion_lista(item):
 
 
 def compartir_lista(item):
-    logger.info()
+    logger.debug()
 
     fullfilename = os.path.join(config.get_data_path(), item.lista)
     if not os.path.exists(fullfilename):
@@ -796,7 +796,7 @@ def compartir_lista(item):
 
 
 def acciones_nueva_lista(item):
-    logger.info()
+    logger.debug()
 
     acciones = [config.get_localized_string(70651),
                 config.get_localized_string(70652),
@@ -830,7 +830,7 @@ def acciones_nueva_lista(item):
 
 
 def crear_lista(item):
-    logger.info()
+    logger.debug()
 
     titulo = platformtools.dialog_input(default='', heading=config.get_localized_string(70612))
     if titulo is None or titulo == '':
@@ -853,7 +853,7 @@ def crear_lista(item):
 
 
 def descargar_lista(item, url):
-    logger.info()
+    logger.debug()
     from core import httptools, scrapertools
 
     if 'tinyupload.com/' in url:

@@ -6,7 +6,7 @@ from lib import jsunpack
 from platformcode import logger, config
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url).data
     if "File Not Found" in data or "File was deleted" in data:
@@ -15,7 +15,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
     try:

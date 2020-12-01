@@ -20,7 +20,7 @@ from platformcode import logger
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     post = {}
     r = re.findall(r'type="hidden" name="(.+?)"\s* value="?(.+?)">', data)
@@ -45,6 +45,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.append([scrapertools.get_filename_from_url(mediaurl)[-4:] + " [hugefiles]", mediaurl])
 
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

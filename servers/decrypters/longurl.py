@@ -38,15 +38,15 @@ servers = get_server_list()
 
 
 def get_long_urls(data):
-    logger.info()
+    logger.debug()
     patron = '<a href="http://([^"]+)"'
     matches = re.compile(patron, re.DOTALL).findall(data)
     for short_url in matches:
         if short_url.startswith(tuple(servers)):
-            logger.info(": " + short_url)
+            logger.debug(": " + short_url)
             longurl_data = httptools.downloadpage(
                 "http://api.longurl.org/v2/expand?url=" + urllib.quote_plus(short_url)).data
-            logger.info(longurl_data)
+            logger.debug(longurl_data)
             try:
                 long_url = scrapertools.scrapertools.find_single_match(longurl_data, '<long-url><!\[CDATA\[(.*?)\]\]></long-url>')
             except:

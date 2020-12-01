@@ -11,7 +11,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "borrado" in data or "Deleted" in data:
         return False,  config.get_localized_string(70449) % "videobin"
@@ -19,7 +19,7 @@ def test_video_exists(page_url):
     return True, ""
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     data = httptools.downloadpage(page_url).data
     bloque = scrapertools.find_single_match(data, 'sources:.\[.*?]')

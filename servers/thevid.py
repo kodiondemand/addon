@@ -8,7 +8,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Video not found..." in data or "Video removed due to copyright" in data:
         return False, config.get_localized_string(70292) % "Thevid"
@@ -31,5 +31,5 @@ def get_video_url(page_url, user="", password="", video_password=""):
             continue
         video = "https:" + video
         video_urls.append(["mp4 [Thevid]", video])
-    logger.info("Url: %s" % videos)
+    logger.debug("Url: %s" % videos)
     return video_urls

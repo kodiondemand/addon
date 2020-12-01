@@ -492,7 +492,6 @@ class UnshortenIt(object):
         except Exception as e:
             return uri, str(e)
 
-
     def _unshorten_vcrypt(self, uri):
         uri = uri.replace('.net', '.pw')
         try:
@@ -508,15 +507,15 @@ class UnshortenIt(object):
                     from Crypto.Cipher import AES
 
                 str = str.replace("_ppl_", "+").replace("_eqq_", "=").replace("_sll_", "/")
-                iv = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-                key = "naphajU2usWUswec"
+                iv = b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+                key = b"naphajU2usWUswec"
                 decoded = b64decode(str)
-                decoded = decoded + '\0' * (len(decoded) % 16)
+                decoded = decoded + b'\0' * (len(decoded) % 16)
                 crypt_object = AES.new(key, AES.MODE_CBC, iv)
-                decrypted = ''
+                decrypted = b''
                 for p in range(0, len(decoded), 16):
-                    decrypted += crypt_object.decrypt(decoded[p:p + 16]).replace('\0', '')
-                return decrypted
+                    decrypted += crypt_object.decrypt(decoded[p:p + 16]).replace(b'\0', b'')
+                return decrypted.decode('ascii')
             if 'shield' in uri.split('/')[-2]:
                 uri = decrypt(uri.split('/')[-1])
             else:
@@ -537,7 +536,7 @@ class UnshortenIt(object):
                 r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False)
                 if 'Wait 1 hour' in r.data:
                     uri = ''
-                    logger.info('IP bannato da vcrypt, aspetta un ora')
+                    logger.error('IP bannato da vcrypt, aspetta un ora')
                 else:
                     prev_uri = uri
                     uri = r.headers['location']
@@ -549,14 +548,17 @@ class UnshortenIt(object):
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
                 elif '/decode/' in uri:
-                    uri = httptools.downloadpage(uri, follow_redirects=True).url
+                    scheme, netloc, path, query, fragment = urlsplit(uri)
+                    splitted = path.split('/')
+                    splitted[1] = 'outlink'
+                    uri = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment, follow_redirects=False,
+                                                 post={'url': splitted[2]}).headers['location']
                     # uri = decrypt(uri.split('/')[-1])
 
             return uri, r.code if r else 200
         except Exception as e:
             logger.error(e)
             return uri, 0
-
 
     def _unshorten_linkup(self, uri):
         try:

@@ -9,7 +9,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     response = httptools.downloadpage(page_url)
     if "File was deleted" in response.data or "is no longer available" in response.data:
         return False, config.get_localized_string(70449) % "filepup"
@@ -17,7 +17,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     page_url = page_url.replace("https","http") + "?wmode=transparent"
     data = httptools.downloadpage(page_url).data
@@ -36,5 +36,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.sort(key=lambda x: x[2])
     for video_url in video_urls:
         video_url[2] = 0
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

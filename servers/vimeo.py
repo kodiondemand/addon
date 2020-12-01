@@ -5,7 +5,7 @@ from core import scrapertools
 from platformcode import logger, config
 headers = [['User-Agent', 'Mozilla/5.0']]
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     global data
     if "|" in page_url:
@@ -23,7 +23,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
     global data
@@ -38,6 +38,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls.sort(key=lambda x: x[2])
     for video_url in video_urls:
         video_url[2] = 0
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

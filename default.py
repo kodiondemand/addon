@@ -8,10 +8,12 @@ import sys
 
 import xbmc
 
-# on kodi 18 its xbmc.translatePath, on 19 xbmcvfs.translatePath
+# functions that on kodi 19 moved to xbmcvfs
 try:
     import xbmcvfs
     xbmc.translatePath = xbmcvfs.translatePath
+    xbmc.validatePath = xbmcvfs.validatePath
+    xbmc.makeLegalFilename = xbmcvfs.makeLegalFilename
 except:
     pass
 from platformcode import config, logger

@@ -6,7 +6,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global response
 
     response = httptools.downloadpage(page_url, cookies=False)
@@ -18,7 +18,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     cookie = {'Cookie': response.headers["set-cookie"]}
     data = response.data.replace("\\", "")
@@ -40,5 +40,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                     stream_url = stream_url_http
             video_urls.append(["%sp .%s [dailymotion]" % (calidad, stream_type), stream_url, 0, subtitle])
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

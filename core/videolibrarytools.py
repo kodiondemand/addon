@@ -78,7 +78,7 @@ def save_movie(item, silent=False):
     @rtype fallidos: int
     @return: the number of failed items or -1 if all failed
     """
-    logger.info()
+    logger.debug()
     # logger.debug(item.tostring('\n'))
     insertados = 0
     sobreescritos = 0
@@ -144,7 +144,7 @@ def save_movie(item, silent=False):
     if not path:
         # Create folder
         path = filetools.join(MOVIES_PATH, ("%s [%s]" % (base_name, _id)).strip())
-        logger.info("Creating movie directory:" + path)
+        logger.debug("Creating movie directory:" + path)
         if not filetools.mkdir(path):
             logger.debug("Could not create directory")
             return 0, 0, -1, path
@@ -159,7 +159,7 @@ def save_movie(item, silent=False):
 
     if not nfo_exists:
         # We create .nfo if it doesn't exist
-        logger.info("Creating .nfo: " + nfo_path)
+        logger.debug("Creating .nfo: " + nfo_path)
         head_nfo = scraper.get_nfo(item)
 
         item_nfo = Item(title=item.contentTitle, channel="videolibrary", action='findvideos',
@@ -182,7 +182,7 @@ def save_movie(item, silent=False):
     if item_nfo and strm_exists:
 
         if json_exists:
-            logger.info("The file exists. Is overwritten")
+            logger.debug("The file exists. Is overwritten")
             sobreescritos += 1
         else:
             insertados += 1
@@ -209,7 +209,7 @@ def save_movie(item, silent=False):
             item_nfo.library_urls[item.channel] = item.url
 
             if filetools.write(nfo_path, head_nfo + item_nfo.tojson()):
-                #logger.info("FOLDER_MOVIES : %s" % FOLDER_MOVIES)
+                #logger.debug("FOLDER_MOVIES : %s" % FOLDER_MOVIES)
                 # We update the Kodi video library with the movie
                 if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:
                     from platformcode import xbmc_videolibrary
@@ -238,7 +238,7 @@ def update_renumber_options(item, head_nfo, path):
                 json = json_file['TVSHOW_AUTORENUMBER']
                 if item.fulltitle in json:
                     item.channel_prefs[channel]['TVSHOW_AUTORENUMBER'] = json[item.fulltitle]
-                    logger.info('UPDATED=\n' + str(item.channel_prefs))
+                    logger.debug('UPDATED=\n' + str(item.channel_prefs))
                     filetools.write(tvshow_path, head_nfo + item.tojson())
 
 def add_renumber_options(item, head_nfo, path):
@@ -426,7 +426,7 @@ def save_tvshow(item, episodelist, silent=False):
     @rtype path: str
     @return: serial directory
     """
-    logger.info()
+    logger.debug()
     # logger.debug(item.tostring('\n'))
     path = ""
 
@@ -486,7 +486,7 @@ def save_tvshow(item, episodelist, silent=False):
 
     if not path:
         path = filetools.join(TVSHOWS_PATH, ("%s [%s]" % (base_name, _id)).strip())
-        logger.info("Creating series directory: " + path)
+        logger.debug("Creating series directory: " + path)
         try:
             filetools.mkdir(path)
         except OSError as exception:
@@ -496,7 +496,7 @@ def save_tvshow(item, episodelist, silent=False):
     tvshow_path = filetools.join(path, "tvshow.nfo")
     if not filetools.exists(tvshow_path):
         # We create tvshow.nfo, if it does not exist, with the head_nfo, series info and watched episode marks
-        logger.info("Creating tvshow.nfo: " + tvshow_path)
+        logger.debug("Creating tvshow.nfo: " + tvshow_path)
         head_nfo = scraper.get_nfo(item)
         item.infoLabels['mediatype'] = "tvshow"
         item.infoLabels['title'] = item.contentSerieName
@@ -570,11 +570,11 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
     @rtype fallidos: int
     @return: the number of failed episodes
     """
-    logger.info()
+    logger.debug()
     episodelist = filter_list(episodelist, serie.action, path)
     # No episode list, nothing to save
     if not len(episodelist):
-        logger.info("There is no episode list, we go out without creating strm")
+        logger.debug("There is no episode list, we go out without creating strm")
         return 0, 0, 0
 
     # process local episodes
@@ -589,7 +589,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
     elif config.get_setting("local_episodes", "videolibrary"):
         done, local_episodes_path = config_local_episodes_path(path, serie)
         if done < 0:
-            logger.info("An issue has occurred while configuring local episodes, going out without creating strm")
+            logger.debug("An issue has occurred while configuring local episodes, going out without creating strm")
             return 0, 0, done
         item_nfo.local_episodes_path = local_episodes_path
         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
@@ -601,7 +601,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
             local_episodelist += get_local_content(local_episodes_path)
             clean_list = []
             for f in filetools.listdir(path):
-                match = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\.|\s+)?[Ee]?[Pp]?(\d+)')
+                match = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\s+)?[Ee]?[Pp]?(\d+)')
                 if match:
                     ep = '%dx%02d' % (int(match[0]), int(match[1]))
                     if ep in local_episodelist:
@@ -713,7 +713,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
     # No episode list, nothing to save
     if not len(new_episodelist):
-        logger.info("There is no episode list, we go out without creating strm")
+        logger.debug("There is no episode list, we go out without creating strm")
         return 0, 0, 0
 
     local_episodelist += get_local_content(path)
@@ -745,12 +745,12 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         json_path = filetools.join(path, ("%s [%s].json" % (season_episode, e.channel)).lower())
 
         if season_episode in local_episodelist:
-            logger.info('Skipped: Serie ' + serie.contentSerieName + ' ' + season_episode + ' available as local content')
+            logger.debug('Skipped: Serie ' + serie.contentSerieName + ' ' + season_episode + ' available as local content')
             continue
 
         # check if the episode has been downloaded
         if filetools.join(path, "%s [downloads].json" % season_episode) in ficheros:
-            logger.info('INFO: "%s" episode %s has been downloaded, skipping it' % (serie.contentSerieName, season_episode))
+            logger.debug('INFO: "%s" episode %s has been downloaded, skipping it' % (serie.contentSerieName, season_episode))
             continue
 
         strm_exists = strm_path in ficheros
@@ -806,7 +806,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
                 if filetools.write(json_path, e.tojson()):
                     if not json_exists:
-                        logger.info("Inserted: %s" % json_path)
+                        logger.debug("Inserted: %s" % json_path)
                         insertados += 1
                         # We mark episode as unseen
                         news_in_playcounts[season_episode] = 0
@@ -817,14 +817,14 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
                         news_in_playcounts[serie.contentSerieName] = 0
 
                     else:
-                        logger.info("Overwritten: %s" % json_path)
+                        logger.debug("Overwritten: %s" % json_path)
                         sobreescritos += 1
                 else:
-                    logger.info("Failed: %s" % json_path)
+                    logger.debug("Failed: %s" % json_path)
                     fallidos += 1
 
         else:
-            logger.info("Failed: %s" % json_path)
+            logger.debug("Failed: %s" % json_path)
             fallidos += 1
 
         if not silent and p_dialog.iscanceled():
@@ -894,7 +894,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
 
 def config_local_episodes_path(path, item, silent=False):
-    logger.info(item)
+    logger.debug(item)
     from platformcode.xbmc_videolibrary import search_local_path
     local_episodes_path=search_local_path(item)
     if not local_episodes_path:
@@ -906,11 +906,11 @@ def config_local_episodes_path(path, item, silent=False):
                 platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80043))
             local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
             if local_episodes_path == '':
-                logger.info("User has canceled the dialog")
+                logger.debug("User has canceled the dialog")
                 return -2, local_episodes_path
             elif path in local_episodes_path:
                 platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80045))
-                logger.info("Selected folder is the same of the TV show one")
+                logger.debug("Selected folder is the same of the TV show one")
                 return -2, local_episodes_path
 
     if local_episodes_path:
@@ -925,7 +925,7 @@ def config_local_episodes_path(path, item, silent=False):
 
 
 def process_local_episodes(local_episodes_path, path):
-    logger.info()
+    logger.debug()
 
     sub_extensions = ['.srt', '.sub', '.sbv', '.ass', '.idx', '.ssa', '.smi']
     artwork_extensions = ['.jpg', '.jpeg', '.png']
@@ -964,7 +964,7 @@ def process_local_episodes(local_episodes_path, path):
 
 
 def get_local_content(path):
-    logger.info()
+    logger.debug()
 
     local_episodelist = []
     for root, folders, files in filetools.walk(path):
@@ -993,7 +993,7 @@ def add_movie(item):
         @type item: item
         @param item: item to be saved.
     """
-    logger.info()
+    logger.debug()
     from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     # To disambiguate titles, TMDB is caused to ask for the really desired title
@@ -1006,17 +1006,17 @@ def add_movie(item):
     item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
     #if item.tmdb_stat:
     #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
-    if item:
-        new_item = item.clone(action="findvideos")
-        insertados, sobreescritos, fallidos, path = save_movie(new_item)
+    # if item:
+    new_item = item.clone(action="findvideos")
+    insertados, sobreescritos, fallidos, path = save_movie(new_item)
 
-        if fallidos == 0:
-            platformtools.dialog_ok(config.get_localized_string(30131),
-                                    config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
-        else:
-            filetools.rmdirtree(path)
-            platformtools.dialog_ok(config.get_localized_string(30131),
-                                    config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+    if fallidos == 0:
+        platformtools.dialog_ok(config.get_localized_string(30131),
+                                config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+    else:
+        filetools.rmdirtree(path)
+        platformtools.dialog_ok(config.get_localized_string(30131),
+                                config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
 
 
 def add_tvshow(item, channel=None):
@@ -1040,7 +1040,7 @@ def add_tvshow(item, channel=None):
         @param channel: channel from which the series will be saved. By default, item.from_channel or item.channel will be imported.
 
     """
-    logger.info("show=#" + item.show + "#")
+    logger.debug("show=#" + item.show + "#")
     from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     if item.channel == "downloads":
@@ -1073,21 +1073,26 @@ def add_tvshow(item, channel=None):
         # If the second screen is canceled, the variable "scraper_return" will be False. The user does not want to continue
 
         item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
+        if not item: return
         #if item.tmdb_stat:
         #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
 
         # Get the episode list
         # from core.support import dbg;dbg()
         itemlist = getattr(channel, item.action)(item)
-        if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'(\d+x\d+)'):
-            from platformcode.autorenumber import select_type, renumber, check
+        if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)'):
+            from platformcode.autorenumber import start, check
             if not check(item):
                 action = item.action
-                select_type(item)
+                item.renumber = True
+                start(item)
+                item.renumber = False
                 item.action = action
-                return add_tvshow(item, channel)
+                if not item.exit:
+                    return add_tvshow(item, channel)
+                itemlist = getattr(channel, item.action)(item)
             else:
-                itemlist = renumber(itemlist)
+                itemlist = getattr(channel, item.action)(item)
 
     global magnet_caching
     magnet_caching = False
@@ -1112,7 +1117,7 @@ def add_tvshow(item, channel=None):
 
     else:
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60070) % item.show)
-        logger.info("%s episodes of series %s have been added to the video library" % (insertados, item.show))
+        logger.debug("%s episodes of series %s have been added to the video library" % (insertados, item.show))
         if config.is_xbmc():
             if config.get_setting("sync_trakt_new_tvshow", "videolibrary"):
                 import xbmc
@@ -1128,7 +1133,7 @@ def add_tvshow(item, channel=None):
 
 
 def emergency_urls(item, channel=None, path=None, headers={}):
-    logger.info()
+    logger.debug()
     import re
     from servers import torrent
     try:

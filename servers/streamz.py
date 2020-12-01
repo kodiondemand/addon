@@ -8,7 +8,7 @@ from lib import jsunpack
 
 def test_video_exists(page_url):
     global data
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
 
     if "<font color=\"red\"><b>File not found, sorry!" in data:
@@ -17,7 +17,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, video_password):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     from core.support import match
     matches = match(data, patron=r'(eval\(function\(p,a,c,k,e,d\).*?)\s+</script>').matches

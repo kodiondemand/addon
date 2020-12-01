@@ -589,7 +589,7 @@ msgid "%.2f %s of %.2f %s a %.2f %s/s (%d/%d)"
 msgstr ""
 
 msgctxt "#59985"
-msgid "Error in the channel "
+msgid "Channel %s unreachable"
 msgstr ""
 
 msgctxt "#59986"
@@ -669,7 +669,7 @@ msgid ""
 msgstr ""
 
 msgctxt "#60006"
-msgid "An error has occurred in %s"
+msgid "[B]An error has occurred in %s:[/B]"
 msgstr ""
 
 msgctxt "#60007"
@@ -697,15 +697,15 @@ msgid "No video to play"
 msgstr ""
 
 msgctxt "#60013"
-msgid "This website seems to be unavailable, try later, if the problem persists, check with a browser: %s. If the web page is working correctly, please report the error on : https://t.me/kodiondemand"
+msgid "This website [B]%s[/B] seems to be unavailable, try later. if the web page is working correctly, please report the error on: https://github.com/kodiondemand/addon/issues"
 msgstr ""
 
 msgctxt "#60014"
-msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. To have more details, see the log file."
+msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[B]"
 msgstr ""
 
 msgctxt "#60015"
-msgid "Check the log for more details on the error."
+msgid "Do you want to report the issue?\n(Be sure you follow all steps and give a clear and comprehensive explanation of what happened"
 msgstr ""
 
 msgctxt "#60016"
@@ -800,8 +800,8 @@ msgctxt "#60038"
 msgid "An error has occurred in KoD"
 msgstr ""
 
-msgctxt "#60039"
-msgid "Error on channel %s"
+msgctxt "60039"
+msgid "Channel %s unreachable"
 msgstr ""
 
 msgctxt "#60040"
@@ -1633,7 +1633,7 @@ msgid "Super favourites menu"
 msgstr ""
 
 msgctxt "#60362"
-msgid "You can't watch this video because..."
+msgid "Unexpected error on server %s"
 msgstr ""
 
 msgctxt "#60363"
@@ -6085,6 +6085,44 @@ msgstr ""
 msgctxt "#70821"
 msgid "Search results"
 msgstr ""
+
+# RENUMBER
+msgctxt "#70822"
+msgid "Renumber new episodes of: "
+msgstr ""
+
+msgctxt "#70823"
+msgid "Renumber episodes of: "
+msgstr ""
+
+msgctxt "#70824"
+msgid "Select the specials of: "
+msgstr ""
+
+msgctxt "#70825"
+msgid "Select Season"
+msgstr ""
+
+msgctxt "#70826"
+msgid "Select Episode"
+msgstr ""
+
+msgctxt "#70827"
+msgid "Select Specials"
+msgstr ""
+
+msgctxt "#70828"
+msgid "Manual renumbering"
+msgstr ""
+
+msgctxt "#70829"
+msgid "Delete Numbering for: "
+msgstr ""
+
+msgctxt "#70830"
+msgid "The series / episode number should only be changed if the series has relative numbering."
+msgstr ""
+
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

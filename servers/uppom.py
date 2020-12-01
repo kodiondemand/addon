@@ -9,7 +9,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = get_source(page_url)
 
     if "File was deleted" in data or "File Not Found" in data:
@@ -19,7 +19,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info()
+    logger.debug()
     video_urls = []
     data = httptools.downloadpage(page_url).data
     fid = scrapertools.find_single_match(data, ' name="id" value="([^"]+)"')

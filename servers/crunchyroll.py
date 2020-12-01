@@ -30,7 +30,7 @@ proxy = "https://www.usa-proxy.org/"
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     
     data = httptools.downloadpage(page_url, headers=GLOBAL_HEADER).data
     if "Este es un clip de muestra" in data:
@@ -44,7 +44,7 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     #page_url='https://www.crunchyroll.com/es-es/one-piece/episode-891-climbing-up-a-waterfall-a-great-journey-through-the-land-of-wanos-sea-zone-786643'
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     if "crunchyroll.com" in page_url:
         media_id = page_url.rsplit("-", 1)[1]
@@ -94,7 +94,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         file_sub = ""
     video_urls.append(["%s  %sp [crunchyroll]" % (filename, quality), media_url, 0, file_sub])
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls
 
 

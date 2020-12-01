@@ -6,7 +6,7 @@ from platformcode import config, logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url, cookies=False).data
     if 'File you are looking for is not found.' in data:

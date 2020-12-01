@@ -79,7 +79,7 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     page_url = page_url.replace('/embed#', '/#')
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
     # si hay mas de 5 archivos crea un playlist con todos

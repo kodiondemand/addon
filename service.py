@@ -25,7 +25,7 @@ from servers import torrent
 
 
 def update(path, p_dialog, i, t, serie, overwrite):
-    logger.info("Updating " + path)
+    logger.debug("Updating " + path)
     insertados_total = 0
     nfo_file = xbmc.translatePath(filetools.join(path, 'tvshow.nfo'))
 
@@ -57,8 +57,7 @@ def update(path, p_dialog, i, t, serie, overwrite):
             p_dialog.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (serie.contentSerieName, serie.channel.capitalize()))
             try:
                 pathchannels = filetools.join(config.get_runtime_path(), "channels", serie.channel + '.py')
-                logger.info("loading channel: " + pathchannels + " " +
-                            serie.channel)
+                logger.debug("loading channel: " + pathchannels + " " + serie.channel)
 
                 if serie.library_filter_show:
                     serie.show = serie.library_filter_show.get(serie.channel, serie.contentSerieName)
@@ -110,7 +109,7 @@ def update(path, p_dialog, i, t, serie, overwrite):
 
 
 def check_for_update(overwrite=True):
-    logger.info("Update Series...")
+    logger.debug("Update Series...")
     p_dialog = None
     serie_actualizada = False
     update_when_finished = False
@@ -142,7 +141,7 @@ def check_for_update(overwrite=True):
                     filetools.write(tvshow_file, head_nfo + serie.tojson())
                 path = filetools.dirname(tvshow_file)
 
-                logger.info("serie=" + serie.contentSerieName)
+                logger.debug("serie=" + serie.contentSerieName)
                 p_dialog.update(int(math.ceil((i + 1) * t)), heading, serie.contentSerieName)
 
                 #Verificamos el estado del serie.library_playcounts de la Serie por si está incompleto
@@ -254,7 +253,7 @@ def check_for_update(overwrite=True):
             p_dialog.close()
 
         else:
-            logger.info("Not update the video library, it is disabled")
+            logger.debug("Not update the video library, it is disabled")
 
     except Exception as ex:
         logger.error("An error occurred while updating the series")
@@ -284,7 +283,7 @@ def viewmodeMonitor():
             if content:
                 defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
                 if currentMode != defaultMode:
-                    logger.info('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
+                    logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
                     config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
     except:
         logger.error(traceback.print_exc())
@@ -329,6 +328,8 @@ class AddonMonitor(xbmc.Monitor):
         if settings_post:  # backup settings
             filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
                            os.path.join(config.get_data_path(), "settings.bak"), True)
+            logger.debug({k: self.settings_pre[k] for k in self.settings_pre
+                          if k in settings_post and self.settings_pre[k] != settings_post[k]})
         from platformcode import xbmc_videolibrary
 
         if self.settings_pre.get('downloadpath', None) != settings_post.get('downloadpath', None):
@@ -368,11 +369,11 @@ class AddonMonitor(xbmc.Monitor):
         self.settings_pre = settings_post
 
     def onScreensaverActivated(self):
-        logger.info('screensaver activated, un-scheduling screen-on jobs')
+        logger.debug('screensaver activated, un-scheduling screen-on jobs')
         schedule.clear('screenOn')
 
     def onScreensaverDeactivated(self):
-        logger.info('screensaver deactivated, re-scheduling screen-on jobs')
+        logger.debug('screensaver deactivated, re-scheduling screen-on jobs')
         self.scheduleScreenOnJobs()
 
     def scheduleUpdater(self):
@@ -380,7 +381,7 @@ class AddonMonitor(xbmc.Monitor):
             updaterCheck()
             self.updaterPeriod = config.get_setting('addon_update_timer')
             schedule.every(self.updaterPeriod).hours.do(updaterCheck).tag('updater')
-            logger.info('scheduled updater every ' + str(self.updaterPeriod) + ' hours')
+            logger.debug('scheduled updater every ' + str(self.updaterPeriod) + ' hours')
 
     def scheduleVideolibrary(self):
         self.update_setting = config.get_setting("update", "videolibrary")
@@ -388,18 +389,18 @@ class AddonMonitor(xbmc.Monitor):
         if self.update_setting == 2 or self.update_setting == 3:
             self.update_hour = config.get_setting("everyday_delay", "videolibrary") * 4
             schedule.every().day.at(str(self.update_hour).zfill(2) + ':00').do(run_threaded, check_for_update, (False,)).tag('videolibrary')
-            logger.info('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
+            logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
 
     def scheduleScreenOnJobs(self):
         schedule.every().second.do(viewmodeMonitor).tag('screenOn')
         schedule.every().second.do(torrent.elementum_monitor).tag('screenOn')
 
     def onDPMSActivated(self):
-        logger.info('DPMS activated, un-scheduling screen-on jobs')
+        logger.debug('DPMS activated, un-scheduling screen-on jobs')
         schedule.clear('screenOn')
 
     def onDPMSDeactivated(self):
-        logger.info('DPMS deactivated, re-scheduling screen-on jobs')
+        logger.debug('DPMS deactivated, re-scheduling screen-on jobs')
         self.scheduleScreenOnJobs()
 
 

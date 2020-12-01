@@ -1,0 +1,631 @@
+<?xml version="1.0" encoding="utf-8"?>
+<window>
+    <allowoverlays>false</allowoverlays>
+    <animation type="WindowOpen" reversible="false">
+        <effect type="fade" start="0" end="100" time="200" />
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="fade" start="100" end="0" time="200" />
+    </animation>
+    <controls>
+        <!-- MAIN SELECTION -->
+        <control type='group' id='100'>
+            <height>100%</height>
+            <width>100%</width>
+            <!-- Background -->
+            <control type="image">
+                <height>100%</height>
+                <width>100%</width>
+                <texture colordiffuse="CC232323">white.png</texture>
+            </control>
+            <control type="textbox">
+                <top>640</top>
+                <left>40</left>
+                <height>40</height>
+                <width>1200</width>
+                <align>center</align>
+                <aligny>center</aligny>
+                <textcolor>80FFFFFF</textcolor>
+                <label>$ADDON[plugin.video.kod 70830]</label>
+            </control>
+            <!-- main selection window -->
+            <control type="group">
+                <top>288.5</top>
+                <left>370</left>
+                <height>140</height>
+                <width>540</width>
+                <!-- Beckground -->
+                <control type="image">
+                    <height>100%</height>
+                    <width>100%</width>
+                    <texture colordiffuse="FF232323">white.png</texture>
+                </control>
+                <control type="button" id="101">
+                    <top>30</top>
+                    <left>20</left>
+                    <height>60</height>
+                    <width>100</width>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <texturefocus colordiffuse="FFFFFFFF" border="-20,0,-20,0">updn.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF" border="-20,0,-20,0">updn.png</texturenofocus>
+                </control>
+                <!-- divider  -->
+                <control type="textbox">
+                    <top>30</top>
+                    <left>120</left>
+                    <height>60</height>
+                    <width>20</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <label>[B]X[/B]</label>
+                </control>
+                <control type="button" id="102">
+                    <top>30</top>
+                    <left>140</left>
+                    <height>60</height>
+                    <width>100</width>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <focusedcolor>FFFFFFFF</focusedcolor>
+                    <texturefocus colordiffuse="FFFFFFFF" border="-20,0,-20,0">updn.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF" border="-20,0,-20,0">updn.png</texturenofocus>
+                </control>
+                <!-- ok -->
+                <control type="button" id="103">
+                    <top>35</top>
+                    <left>260</left>
+                    <height>50</height>
+                    <width>50</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus colordiffuse="FFFFFFFF">ok.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">ok.png</texturenofocus>
+                </control>
+                <!-- Select Specials -->
+                <control type="button" id="104">
+                    <top>35</top>
+                    <left>310</left>
+                    <height>50</height>
+                    <width>50</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus colordiffuse="FFFFFFFF">specials.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">specials.png</texturenofocus>
+                </control>
+                <!-- Manual renumeration -->
+                <control type="button" id="105">
+                    <top>35</top>
+                    <left>360</left>
+                    <height>50</height>
+                    <width>50</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus colordiffuse="FFFFFFFF">manual.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">manual.png</texturenofocus>
+                </control>
+                <!-- delete -->
+                <control type="button" id="106">
+                    <top>35</top>
+                    <left>410</left>
+                    <height>50</height>
+                    <width>50</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus colordiffuse="FFFFFFFF">delete.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">delete.png</texturenofocus>
+                </control>
+                <!-- annulla -->
+                <control type="button" id="107">
+                    <top>35</top>
+                    <left>460</left>
+                    <height>50</height>
+                    <width>50</width>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <aligny>center</aligny>
+                    <align>center</align>
+                    <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                </control>
+                <control type="label" id="108">
+                    <bottom>5</bottom>
+                    <width>100%</width>
+                    <height>30</height>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <align>center</align>
+                    <aligny>center</aligny>
+                </control>
+            </control>
+        </control>
+        <!-- END MAIN SELECTION -->
+
+        <!-- SPECIALS -->
+        <control type='group' id='200'>
+            <height>100%</height>
+            <width>100%</width>
+
+            <!-- BACKGROUND -->
+            <control type="image" id="208">
+                <top>0</top>
+                <left>0</left>
+                <height>100%</height>
+                <width>100%</width>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+
+            <!-- POSTER -->
+            <control type="image" id="201">
+                <top>0</top>
+                <left>0</left>
+                <height>720</height>
+                <width>480</width>
+                <texture/>
+            </control>
+
+            <!-- EPISODES LIST -->
+            <control type="list" id="202">
+                <top>140</top>
+                <left>520</left>
+                <height>540</height>
+                <width>340</width>
+                <onleft>10002</onleft>
+                <onright>203</onright>
+                <itemlayout width="340" height="60">
+                    <control type="label">
+                        <height>100%</height>
+                        <width>300</width>
+                        <left>20</left>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
+                        <aligny>center</aligny>
+                    </control>
+                </itemlayout>
+                <focusedlayout width="340" height="60">
+                    <control type="image">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <texture colordiffuse="22FFFFFF">white.png</texture>
+                        <visible allowhiddenfocus="true">Control.HasFocus(202)</visible>
+                    </control>
+                    <control type="image">
+                        <top>10</top>
+                        <left>290</left>
+                        <height>40</height>
+                        <width>40</width>
+                        <texture colordiffuse="FFFFFFFF">add.png</texture>
+                        <visible allowhiddenfocus="true">Control.HasFocus(202)</visible>
+                    </control>
+                    <control type="label">
+                        <height>100%</height>
+                        <width>300</width>
+                        <left>20</left>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
+                        <aligny>center</aligny>
+                    </control>
+                </focusedlayout>
+            </control>
+
+            <!-- SPECIALS LIST -->
+            <control type='group'>
+                <top>140</top>
+                <left>900</left>
+                <height>540</height>
+                <width>340</width>
+                <control type="list" id="203">
+                    <height>540</height>
+                    <width>340</width>
+                    <onleft>202</onleft>
+                    <onright>204</onright>
+                    <itemlayout width="340" height="60">
+                        <!-- EP NUMBER -->
+                        <control type="label">
+                            <left>20</left>
+                            <height>60</height>
+                            <width>140</width>
+                            <textcolor>80FFFFFF</textcolor>
+                            <aligny>center</aligny>
+                            <label>[B]0x$INFO[ListItem.Label()] - Ep. $INFO[ListItem.Property(title)][/B]</label>
+                        </control>
+                    </itemlayout>
+                    <focusedlayout width="340" height="60">
+                        <control type="image">
+                            <height>100%</height>
+                            <width>100%</width>
+                            <texture colordiffuse="22FFFFFF">white.png</texture>
+                            <visible allowhiddenfocus="true">!Control.HasFocus(202)</visible>
+                        </control>
+                        <!-- EP NUMBER -->
+                        <control type="label">
+                            <left>20</left>
+                            <height>60</height>
+                            <width>140</width>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <aligny>center</aligny>
+                            <label>[B]0x$INFO[ListItem.Label()] - Ep. $INFO[ListItem.Property(title)][/B]</label>
+                        </control>
+                    </focusedlayout>
+                </control>
+
+                <!-- ITEM ACTIONS -->
+                <control type="group" id='204'>
+                    <visible allowhiddenfocus="true">Integer.IsGreater(Container(203).Position,-1)</visible>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,0)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,1)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,2)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,3)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,4)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,5)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,6)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(203).Position,7)">Conditional</animation>
+                    <!-- move up -->
+                    <control type="button" id="205">
+                        <top>10</top>
+                        <right>90</right>
+                        <height>40</height>
+                        <width>40</width>
+                        <onleft>203</onleft>
+                        <onright>206</onright>
+                        <onup>Control.Move(203,-1)</onup>
+                        <ondown>Control.Move(203,1)</ondown>
+                        <texturefocus colordiffuse="FFFFFFFF">up.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">up.png</texturenofocus>
+                    </control>
+                    <!-- move down -->
+                    <control type="button" id="206">
+                        <top>10</top>
+                        <right>50</right>
+                        <height>40</height>
+                        <width>40</width>
+                        <onleft>205</onleft>
+                        <onright>207</onright>
+                        <onup>Control.Move(203,-1)</onup>
+                        <ondown>Control.Move(203,1)</ondown>
+                        <texturefocus colordiffuse="FFFFFFFF">down.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">down.png</texturenofocus>
+                    </control>
+                    <!-- remove -->
+                    <control type="button" id="207">
+                        <top>10</top>
+                        <right>10</right>
+                        <height>40</height>
+                        <width>40</width>
+                        <onleft>206</onleft>
+                        <onright>10002</onright>
+                        <onup>Control.Move(203,-1)</onup>
+                        <ondown>Control.Move(203,1)</ondown>
+                        <texturefocus colordiffuse="FFFFFFFF">delete.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">delete.png</texturenofocus>
+                    </control>
+                </control>
+            </control>
+        </control>
+        <!-- END SPECIALS -->
+
+        <!-- MANUAL -->
+        <control type='group' id='300'>
+            <height>100%</height>
+            <width>100%</width>
+
+            <!-- BACKGROUND -->
+            <control type="image" id="310">
+                <top>0</top>
+                <left>0</left>
+                <height>100%</height>
+                <width>100%</width>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+
+            <!-- POSTER -->
+            <control type="image" id="301">
+                <top>0</top>
+                <left>0</left>
+                <height>720</height>
+                <width>480</width>
+            </control>
+
+            <!-- EPISODES LIST -->
+            <control type='group'>
+                <top>140</top>
+                <left>520</left>
+                <height>540</height>
+                <width>340</width>
+                <onleft>10002</onleft>
+                <onright>306</onright>
+                <control type="list" id="302">
+                    <height>100%</height>
+                    <width>100%</width>
+                    <onleft>10002</onleft>
+                    <onright>306</onright>
+                    <itemlayout width="340" height="60">
+                        <control type="label">
+                            <height>100%</height>
+                            <width>120</width>
+                            <left>20</left>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
+                            <aligny>center</aligny>
+                        </control>
+                        <!-- first season number -->
+                        <control type="textbox">
+                            <right>100</right>
+                            <height>60</height>
+                            <width>60</width>
+                            <onleft>302</onleft>
+                            <onright>307</onright>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <textcolor>80FFFFFF</textcolor>
+                            <label>[B]$INFO[ListItem.Property(season)][/B]</label>
+                        </control>
+                        <!-- divider  -->
+                        <control type="textbox">
+                            <right>80</right>
+                            <height>60</height>
+                            <width>20</width>
+                            <textcolor>80FFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]X[/B]</label>
+                        </control>
+                        <!-- first episode number -->
+                        <control type="textbox">
+                            <right>20</right>
+                            <height>60</height>
+                            <width>60</width>
+                            <onleft>306</onleft>
+                            <onright>308</onright>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <textcolor>80FFFFFF</textcolor>
+                            <label>[B]$INFO[ListItem.Property(episode)][/B]</label>
+                        </control>
+                    </itemlayout>
+                    <focusedlayout width="340" height="60">
+                        <control type="image">
+                            <height>100%</height>
+                            <width>100%</width>
+                            <texture colordiffuse="22FFFFFF">white.png</texture>
+                            <visible allowhiddenfocus="true">Control.HasFocus(302)</visible>
+                        </control>
+                        <control type="label">
+                            <height>100%</height>
+                            <width>120</width>
+                            <left>20</left>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
+                            <aligny>center</aligny>
+                        </control>
+                        <!-- first season number -->
+                        <control type="textbox">
+                            <right>100</right>
+                            <height>60</height>
+                            <width>60</width>
+                            <onleft>302</onleft>
+                            <onright>307</onright>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>[B]$INFO[ListItem.Property(season)][/B]</label>
+                        </control>
+                        <!-- divider  -->
+                        <control type="textbox">
+                            <right>80</right>
+                            <height>60</height>
+                            <width>20</width>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <label>[B]X[/B]</label>
+                        </control>
+                        <!-- first episode number -->
+                        <control type="textbox">
+                            <right>20</right>
+                            <height>60</height>
+                            <width>60</width>
+                            <onleft>306</onleft>
+                            <onright>308</onright>
+                            <align>center</align>
+                            <aligny>center</aligny>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>[B]$INFO[ListItem.Property(episode)][/B]</label>
+                        </control>
+                    </focusedlayout>
+                </control>
+
+                <!-- MANUAL EPISODE CONTROL -->
+                <control type='group' id='305'>
+                    <visible allowhiddenfocus="true">Integer.IsGreater(Container(302).Position,-1)</visible>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,0)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,1)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,2)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,3)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,4)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,5)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,6)">Conditional</animation>
+                    <animation effect="slide" end="0,60" condition="Integer.IsGreater(Container(302).Position,7)">Conditional</animation>
+                    <!-- first season number -->
+                    <control type="button" id="306">
+                        <right>100</right>
+                        <height>60</height>
+                        <width>60</width>
+                        <onleft>302</onleft>
+                        <onright>307</onright>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <texturefocus colordiffuse="FFFFFFFF">updn.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">updn.png</texturenofocus>
+                    </control>
+                    <!-- first episode number -->
+                    <control type="button" id="307">
+                        <right>20</right>
+                        <height>60</height>
+                        <width>60</width>
+                        <onleft>306</onleft>
+                        <onright>303</onright>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <texturefocus colordiffuse="FFFFFFFF">updn.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">updn.png</texturenofocus>
+                    </control>
+                </control>
+            </control>
+
+            <!-- SEASONS LIST -->
+            <control type='list' id='303'>
+                <top>140</top>
+                <left>880</left>
+                <height>540</height>
+                <width>80</width>
+                <onleft>302</onleft>
+                <onright>304</onright>
+                <itemlayout width="80" height="60">
+                    <control type="label">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <textcolor>80FFFFFF</textcolor>
+                        <label>[B]$INFO[ListItem.Label()][/B]</label>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                    </control>
+                </itemlayout>
+                <focusedlayout width="80" height="60">
+                    <control type="image">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <texture colordiffuse="22FFFFFF">white.png</texture>
+                        <visible allowhiddenfocus="true">Control.HasFocus(303)</visible>
+                    </control>
+                    <control type="label">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <label>[B]$INFO[ListItem.Label()][/B]</label>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <visible allowhiddenfocus="true">Control.HasFocus(303)</visible>
+                    </control>
+                    <control type="image">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <texture colordiffuse="11FFFFFF">white.png</texture>
+                        <visible allowhiddenfocus="true">!Control.HasFocus(303)</visible>
+                    </control>
+                    <control type="label">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <textcolor>80FFFFFF</textcolor>
+                        <label>[B]$INFO[ListItem.Label()][/B]</label>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                        <visible allowhiddenfocus="true">!Control.HasFocus(303)</visible>
+                    </control>
+                </focusedlayout>
+            </control>
+
+            <control type="image">
+                <top>140</top>
+                <left>960</left>
+                <height>540</height>
+                <height>100%</height>
+                <width>290</width>
+                <texture colordiffuse="11FFFFFF">white.png</texture>
+            </control>
+
+            <!-- EPISODES LIST -->
+            <control type='list' id='304'>
+                <top>140</top>
+                <left>970</left>
+                <height>540</height>
+                <width>270</width>
+                <onleft>303</onleft>
+                <onright>10002</onright>
+                <itemlayout width="270" height="60">
+                    <control type="label">
+                        <height>100%</height>
+                        <width>200</width>
+                        <left>40</left>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <label>[B]$INFO[ListItem.Label()][/B]</label>
+                        <aligny>center</aligny>
+                    </control>
+                </itemlayout>
+                <focusedlayout width="270" height="60">
+                    <control type="image">
+                        <height>100%</height>
+                        <width>100%</width>
+                        <texture colordiffuse="22FFFFFF">white.png</texture>
+                        <visible allowhiddenfocus="true">Control.HasFocus(304)</visible>
+                    </control>
+                    <control type="label">
+                        <height>100%</height>
+                        <width>200</width>
+                        <left>40</left>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <label>[B]$INFO[ListItem.Label()][/B]</label>
+                        <aligny>center</aligny>
+                    </control>
+                </focusedlayout>
+            </control>
+        </control>
+        <!-- END MANUAL -->
+
+        <!-- MAIN ACTIONS -->
+        <control type='group' id='10000'>
+            <visible allowhiddenfocus="true">Control.IsVisible(200) | Control.IsVisible(300)</visible>
+            <!-- info -->
+            <control type="label" id="10001">
+                <top>40</top>
+                <left>540</left>
+                <height>50</height>
+                <width>560</width>
+                <textcolor>FFFFFFFF</textcolor>
+                <aligny>center</aligny>
+            </control>
+            <!-- ok -->
+            <control type="button" id="10002">
+                <top>40</top>
+                <right>90</right>
+                <height>50</height>
+                <width>50</width>
+                <textcolor>FFFFFFFF</textcolor>
+                <aligny>center</aligny>
+                <align>center</align>
+                <texturefocus colordiffuse="FFFFFFFF">ok.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">ok.png</texturenofocus>
+                <ondown condition="Control.IsVisible(200)">202</ondown>
+                <ondown condition="Control.IsVisible(300)">302</ondown>
+                <onleft>10003</onleft>
+                <onright>10003</onright>
+            </control>
+            <!-- annulla -->
+            <control type="button" id="10003">
+                <top>40</top>
+                <right>40</right>
+                <height>50</height>
+                <width>50</width>
+                <textcolor>FFFFFFFF</textcolor>
+                <aligny>center</aligny>
+                <align>center</align>
+                <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                <ondown condition="Control.IsVisible(200)">202</ondown>
+                <ondown condition="Control.IsVisible(300)">302</ondown>
+                <onleft>10002</onleft>
+                <onright>10002</onright>
+            </control>
+        </control>
+        <!-- END MAIN ACTIONS -->
+
+    </controls>
+</window>

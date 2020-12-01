@@ -18,12 +18,17 @@ if PY3:
 else:
     from concurrent_py2 import futures
 from core.item import Item
-from core import tmdb, scrapertools, channeltools, filetools, jsontools
+from core import tmdb, scrapertools, channeltools, filetools, jsontools, servertools
 from channelselector import get_thumb
 from platformcode import logger, config, platformtools, unify
 from core.support import typo
+import xbmcgui
 
 import gc
+
+import xbmc
+from threading import Thread
+from core.support import dbg
 gc.disable()
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
@@ -31,7 +36,7 @@ def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 
 
 def mainlist(item):
-    logger.info()
+    logger.debug()
 
     itemlist = [Item(channel=item.channel, title=config.get_localized_string(70276), action='new_search', mode='all', thumbnail=get_thumb("search.png")),
                 Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(30122), action='new_search', mode='movie', thumbnail=get_thumb("search_movie.png")),
@@ -48,7 +53,7 @@ def mainlist(item):
 
 
 def sub_menu(item):
-    logger.info()
+    logger.debug()
 
     itemlist = [Item(channel=item.channel, action='genres_menu', title=config.get_localized_string(70306), mode='movie', thumbnail=get_thumb("movie_genre.png")),
                 Item(channel=item.channel, action='years_menu', title=config.get_localized_string(70742), mode='movie', thumbnail=get_thumb("movie_year.png")),
@@ -66,7 +71,7 @@ def sub_menu(item):
 
 
 def saved_search(item):
-    logger.info()
+    logger.debug()
 
     itemlist = list()
     saved_searches_list = get_saved_searches()
@@ -93,7 +98,7 @@ def saved_search(item):
 
 
 def new_search(item):
-    logger.info()
+    logger.debug()
 
     temp_search_file = config.get_temp_file('temp-search')
     if filetools.isfile(temp_search_file):
@@ -199,10 +204,8 @@ def channel_search(item):
     searching += channel_list
     searching_titles += channel_titles
     cnt = 0
-
     progress = platformtools.dialog_progress(config.get_localized_string(30993) % item.title, config.get_localized_string(70744) % len(channel_list) + '\n' + ', '.join(searching_titles))
     config.set_setting('tmdb_active', False)
-
     search_action_list = []
     module_dict = {}
     for ch in channel_list:
@@ -391,14 +394,14 @@ def get_servers(item, module_dict):
 
 
 def get_info(itemlist):
-    logger.info()
+    logger.debug()
     tmdb.set_infoLabels_itemlist(itemlist, True, forced=True)
 
     return itemlist
 
 
 def get_channels(item):
-    logger.info()
+    logger.debug()
 
     channels_list = list()
     title_list = list()
@@ -720,7 +723,7 @@ def discover_list(item):
 
 
 def from_context(item):
-    logger.info()
+    logger.debug()
 
     select = setting_channel_new(item)
 
@@ -741,7 +744,7 @@ def from_context(item):
 
 
 def set_context(itemlist):
-    logger.info()
+    logger.debug()
 
     for elem in itemlist:
         elem.context = [{"title": config.get_localized_string(60412),
@@ -758,7 +761,7 @@ def set_context(itemlist):
 
 
 def get_from_temp(item):
-    logger.info()
+    logger.debug()
 
     n = 30
     nTotal = len(item.itemlist)

@@ -311,7 +311,7 @@ def menu(item):
 
     # Show Dialog
     seleccion = platformtools.dialog_select(config.get_localized_string(30163), opciones)
-    logger.info('SELECTION: '+ op[seleccion])
+    logger.debug('SELECTION: '+ op[seleccion])
 
     # -1 is cancel
     if seleccion == -1: return

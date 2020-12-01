@@ -5,7 +5,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     resp = httptools.downloadpage(page_url)
     data = resp.data
@@ -15,7 +15,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     global data
     video_urls = support.get_jwplayer_mediaurl(data, 'Vidmoly')
 

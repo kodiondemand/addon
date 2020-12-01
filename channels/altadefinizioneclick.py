@@ -46,9 +46,8 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    # debug = True
-    patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>'\
-             r'(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</h2> )'
+    # debug=True
+    patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</h2> )'
     patronBlock = r'h1>(?P<block>.*?)<div class="row ismobile">'
 
     if item.args == 'az':
@@ -60,8 +59,8 @@ def peliculas(item):
         patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)"'\
                  r'.+?<h2 class="titleFilm(?:Mobile)?">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(IMDB\:[ ](?P<rating>.+?))<'
     elif item.args == 'search':
-        patronBlock = r'<section id="lastUpdate">(?P<block>.*?)<div class="row ismobile">'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:<span class="year">(?P<year>[^<]+)<\/span>)?(?:<span class="hd">(?P<quality>[^<]+)<\/span>)?<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)'
+        patronBlock = r'<section id="lastUpdate">(?P<block>.*?)(?:<div class="row ismobile">|<section)'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)'
 
     if not item.args:
         patronBlock = r'ULTIMI INSERITI(?P<block>.*?)<div class="sliderLastUpdate ismobile ">'
@@ -99,7 +98,7 @@ def search(item, texto):
     support.info("search ", texto)
 
     item.args = 'search'
-    item.url = host + "/search/" + texto
+    item.url = host + "?s=" + texto
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore

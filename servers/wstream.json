@@ -31,7 +31,7 @@
             "visible": true
         },
         {
-            "default": "100",
+            "default": 0,
             "enabled": true,
             "id": "favorites_servers_list",
             "label": "$ADDON[plugin.video.kod 60655]",

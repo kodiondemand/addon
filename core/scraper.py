@@ -21,6 +21,7 @@ def find_and_set_infoLabels(item):
         :param item:
         :return: Boolean indicating if the 'code' could be found
     """
+    # from core.support import dbg;dbg()
     global scraper
     scraper = None
     # logger.debug("item:\n" + item.tostring('\n'))
@@ -32,7 +33,7 @@ def find_and_set_infoLabels(item):
     # Get the default Scraper of the configuration according to the content type
     if item.contentType == "movie":
         scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
-        tipo_contenido = config.get_localized_string(70283)
+        tipo_contenido = "movie"
         title = item.contentTitle
         # Complete list of options for this type of content
         list_opciones_cuadro.append(scrapers_disponibles['tmdb'])
@@ -61,7 +62,7 @@ def find_and_set_infoLabels(item):
         # Check if there is a 'code'
         if scraper_result and item.infoLabels['code']:
             # correct code
-            logger.info("Identificador encontrado: %s" % item.infoLabels['code'])
+            logger.debug("Identificador encontrado: %s" % item.infoLabels['code'])
             scraper.completar_codigos(item)
             return True
         elif scraper_result:
@@ -71,57 +72,18 @@ def find_and_set_infoLabels(item):
             # Content not found
             msg = config.get_localized_string(60228) % title
 
-        logger.info(msg)
+        logger.debug(msg)
         # Show box with other options:
-        if scrapers_disponibles[scraper_actual] in list_opciones_cuadro:
-            list_opciones_cuadro.remove(scrapers_disponibles[scraper_actual])
-        index = platformtools.dialog_select(msg, list_opciones_cuadro)
-
-        if index < 0:
+        item = platformtools.dialog_info(item, scraper_actual)
+        if item.exit:
             logger.debug("You have clicked 'cancel' in the window '%s'" % msg)
             return False
-
-        elif index == 0:
-            # Ask the title
-            title = platformtools.dialog_input(title, config.get_localized_string(60229) % tipo_contenido)
-            if title:
-                if item.contentType == "movie":
-                    item.contentTitle = title
-                else:
-                    item.contentSerieName = title
-            else:
-                logger.debug("I clicked 'cancel' in the window 'Enter the correct name'")
-                return False
-
-        elif index == 1:
-            # You have to create a dialog box to enter the data
-            logger.info("Complete information")
-            if cuadro_completar(item):
-                # correct code
-                logger.info("Identifier found: %s" % str(item.infoLabels['code']))
-                return True
-                # raise
-
-        elif list_opciones_cuadro[index] in list(scrapers_disponibles.values()):
-            # Get the name of the scraper module
-            for k, v in list(scrapers_disponibles.items()):
-                if list_opciones_cuadro[index] == v:
-                    if scrapers_disponibles[scraper_actual] not in list_opciones_cuadro:
-                        list_opciones_cuadro.append(scrapers_disponibles[scraper_actual])
-                    # We import the scraper k
-                    scraper_actual = k
-                    try:
-                        scraper = None
-                        scraper = __import__('core.%s' % scraper_actual, fromlist=["core.%s" % scraper_actual])
-                    except ImportError:
-                        exec("import core." + scraper_actual + " as scraper_module")
-                    break
 
     logger.error("Error importing the scraper module %s" % scraper_actual)
 
 
 def cuadro_completar(item):
-    logger.info()
+    logger.debug()
 
     global dict_default
     dict_default = {}
@@ -234,7 +196,7 @@ def get_nfo(item):
     @rtype: str
     @return:
     """
-    logger.info()
+    logger.debug()
     if "infoLabels" in item and "noscrap_id" in item.infoLabels:
         # Create the xml file with the data obtained from the item since there is no active scraper
         info_nfo = '<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>'

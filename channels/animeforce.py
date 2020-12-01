@@ -27,7 +27,7 @@ def mainlist(item):
 def submenu(item):
     action = 'peliculas'
     patronBlock = r'data-taxonomy="' + item.args + r'"(?P<block>.*?)</select'
-    patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<t>[^&]+)[^\(]+\((?P<num>\d+)'
+    patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<t>[^(]+)[^\(]+\((?P<num>\d+)'
     def itemHook(item):
         item.url += host + '/anime/' + item.args + '/' + item.u
         item.title = support.typo(item.t, 'bold')
@@ -54,10 +54,10 @@ def newest(categoria):
 
     return itemlist
 
-def search(item, texto):
-    support.info(texto)
-    item.args = 'noorder'
-    item.url = host + '/?s=' + texto + '&cat=6010'
+def search(item, text):
+    support.info('search',text)
+    item.search = text
+    item.url = host + '/lista-anime/'
     item.contentType = 'tvshow'
     try:
         return peliculas(item)
@@ -71,6 +71,7 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
+    search = item.search
     anime = True
     if 'movie' in item.url:
         action = 'findvideos'

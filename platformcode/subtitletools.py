@@ -84,7 +84,7 @@ def regex_tvshow(compare, file, sub=""):
 
 
 def set_Subtitle():
-    logger.info()
+    logger.debug()
 
     exts = [".srt", ".sub", ".txt", ".smi", ".ssa", ".ass"]
     subtitle_folder_path = filetools.join(config.get_data_path(), "subtitles")
@@ -216,7 +216,7 @@ def searchSubtitle(item):
             filetools.mkdir(full_path_tvshow)  # title_new + ".mp4"
         full_path_video_new = xbmc.translatePath(
             filetools.join(full_path_tvshow, "%s %sx%s.mp4" % (tvshow_title, season, episode)))
-        logger.info(full_path_video_new)
+        logger.debug(full_path_video_new)
         listitem = xbmcgui.ListItem(title_new, iconImage="DefaultVideo.png", thumbnailImage="")
         listitem.setInfo("video", {"Title": title_new, "Genre": "Tv shows", "episode": int(episode), "season": int(season), "tvshowtitle": tvshow_title})
 
@@ -230,7 +230,7 @@ def searchSubtitle(item):
     try:
         filetools.copy(path_video_temp, full_path_video_new)
         copy = True
-        logger.info("nuevo path =" + full_path_video_new)
+        logger.debug("nuevo path =" + full_path_video_new)
         time.sleep(2)
         playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
         playlist.clear()
@@ -288,7 +288,7 @@ def get_from_subdivx(sub_url):
     :return: The path to the unzipped subtitle
     """
 
-    logger.info()
+    logger.debug()
 
     sub = ''
     sub_dir = os.path.join(config.get_data_path(), 'temp_subs')
@@ -312,9 +312,9 @@ def get_from_subdivx(sub_url):
             filetools.write(filename, data_dl)
             sub = extract_file_online(sub_dir, filename)
         except:
-           logger.info('sub invalid')
+           logger.debug('sub invalid')
     else:
-       logger.info('sub invalid')
+       logger.debug('sub invalid')
     return sub
 
 
@@ -328,7 +328,7 @@ def extract_file_online(path, filename):
     :return:  
     """
 
-    logger.info()
+    logger.debug()
 
     url = "http://online.b1.org/rest/online/upload"
 

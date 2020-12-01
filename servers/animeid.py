@@ -6,7 +6,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "no longer exists" in data or "to copyright issues" in data:
         return False,  config.get_localized_string(70449) % "animeid"
@@ -16,7 +16,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     video_urls = []
     label, videourl = scrapertools.find_single_match(data, 'label":"([^"]+)".*?file":"([^"]+)')

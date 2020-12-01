@@ -11,7 +11,7 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
 
     referer = {"Referer": page_url}
@@ -25,7 +25,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
 
     video_urls = []
     possible_url = scrapertools.find_single_match(data, 'innerHTML = "([^"]+)')

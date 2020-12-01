@@ -6,7 +6,7 @@ from lib import jsunpack
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File Does not Exist" in data:
@@ -15,7 +15,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     global data
     video_urls = []
     code = scrapertools.find_single_match(data, 'name="code" value="([^"]+)')

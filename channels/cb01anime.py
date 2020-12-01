@@ -64,7 +64,7 @@ def peliculas(item):
     if item.args == 'newest':
         patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img[^>]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
     else:
-        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> <h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
+        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> +<h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
         patronNext = r'<link rel="next" href="([^"]+)"'
     action = 'check'
     return locals()
@@ -90,6 +90,7 @@ def episodios(item):
     s = 1
     e = 0
     sp = 0
+
     for match in item.url:
         if 'stagione' in match.lower():
             find_season = support.match(match, patron=r'Stagione\s*(\d+)').match
@@ -111,17 +112,17 @@ def episodios(item):
                                 s += 1
                                 e = ep - 1
                             title = str(season) + 'x' + str(ep-e).zfill(2) + ' - ' + title
-                        data += title + '|' + match + '\n'
+                        data += title + '|' + match + '\|'
                     else:
                         title += ' #movie'
-                        data += title + '|' + match + '\n'
+                        data += title + '|' + match + '\|'
     def itemHook(item):
         if '#movie' in item.title:
             item.contentType='movie'
             item.title = item.title.replace(' #movie','')
         return item
 
-    patron = r'(?P<title>[^\|]+)\|(?P<url>[^\n]+)\n'
+    patron = r'(?P<title>[^\|]+)\|(?P<url>[^\|]+)\|'
     action = 'findvideos'
     return locals()
 

@@ -25,7 +25,7 @@ def findhost(url):
     host = support.match(url, patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
     return host
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = [['Referer', host]]
 
 

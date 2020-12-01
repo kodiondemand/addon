@@ -10,7 +10,7 @@ headers = {'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N)
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Archive no Encontrado" in data:
         return False,  config.get_localized_string(70449) % "bdupload"
@@ -19,7 +19,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     post = ""
     patron = '(?s)type="hidden" name="([^"]+)".*?value="([^"]*)"'

@@ -20,7 +20,7 @@ from platformcode import logger
 
 def test_video_exists(page_url):
     return False, "[Vidup] Servidor Deshabilitado"
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     page = httptools.downloadpage(page_url)
     url = page.url
     if "Not Found" in page.data or "/404" in url:
@@ -29,7 +29,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     post= {}
     post = urllib.urlencode(post)

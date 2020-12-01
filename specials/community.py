@@ -6,7 +6,7 @@ import re, inspect, xbmcgui
 
 from core import httptools, jsontools, tmdb, support, filetools
 from core.item import Item
-from platformcode import config, platformtools
+from platformcode import config, platformtools, logger
 from channelselector import get_thumb
 from collections import OrderedDict
 
@@ -25,7 +25,7 @@ list_quality = ['SD', '720', '1080', '4k']
 tmdb_api = 'a1ab8b8669da03637a4b98fa39c39228'
 
 def mainlist(item):
-    support.info()
+    logger.debug()
 
     path = filetools.join(config.get_data_path(), 'community_channels.json')
     if not filetools.exists(path):
@@ -37,7 +37,7 @@ def mainlist(item):
 
 
 def show_channels(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
     # add context menu
@@ -77,7 +77,7 @@ def show_channels(item):
 
 
 def show_menu(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
 
@@ -116,12 +116,12 @@ def show_menu(item):
 
         if 'channel_name' in json and not 'disable_search' in json and 'search' not in json:
             itemlist += get_search_menu(item, json, channel_name=json['channel_name'])
-    support.info('PAGINATION:', disable_pagination)
+    logger.debug('PAGINATION:', disable_pagination)
     return itemlist
 
 
 def search(item, text):
-    support.info(text)
+    logger.info('search',text)
     itemlist = []
 
     if item.custom_search:
@@ -170,7 +170,7 @@ def global_search(item, text):
 
 def peliculas(item, json='', key='', itemlist=[]):
     item.plot = item.thumb = item.fanart =''
-    support.info('PAGINATION:', item.disable_pagination)
+    logger.debug('PAGINATION:', item.disable_pagination)
     if not json:
         key = item.key
         json = load_json(item)[key]
@@ -241,7 +241,7 @@ def peliculas(item, json='', key='', itemlist=[]):
 
 
 def get_seasons(item):
-    support.info()
+    logger.debug()
     itemlist = []
     infoLabels = item.infoLabels
     json = item.url if type(item.url) == dict else item.url
@@ -281,7 +281,7 @@ def get_seasons(item):
 
 
 def episodios(item, json ='', key='', itemlist =[]):
-    support.info()
+    logger.debug()
     infoLabels = item.infoLabels
     itm=item
 
@@ -325,8 +325,10 @@ def episodios(item, json ='', key='', itemlist =[]):
             season_number = int(match[0])
         else:
             season_number = option['season'] if 'season' in option else season if season else 1
-            episode_number = option['number'] if 'number' in option else ''
-            if not episode_number.isdigit():
+            episode_number = option['number'] if 'number' in option else option['episode'] if 'episode' else ''
+            if type(episode_number) == int:
+                pass
+            elif not episode_number.isdigit():
                 episode_number = support.match(option['title'], patron=r'(?P<episode>\d+)').match
             ep = int(episode_number) if episode_number else ep
             if not episode_number:
@@ -392,7 +394,7 @@ def episodios(item, json ='', key='', itemlist =[]):
 
 # Find Servers
 def findvideos(item):
-    support.info()
+    logger.debug()
     itemlist = []
     if 'links' in item.url:
         json = item.url['links']
@@ -412,7 +414,7 @@ def findvideos(item):
 ################################   Menu   ################################
 
 def get_menu(item, json, key, itemlist=[]):
-    support.info()
+    logger.debug()
     json = json[key]
     for option in json:
         title = option['title'] if 'title' in option else json[option] if 'search' not in option else ''
@@ -447,7 +449,7 @@ def get_menu(item, json, key, itemlist=[]):
 
 
 def get_sub_menu(item, json, key, itemlist=[]):
-    support.info()
+    logger.debug()
     json = json[key]
     search = False
     if item.menu:
@@ -486,7 +488,7 @@ def get_sub_menu(item, json, key, itemlist=[]):
 
 
 def get_search_menu(item, json='', itemlist=[], channel_name=''):
-    support.info()
+    logger.debug()
     if 'title' in json:
         title = json['title']
     elif channel_name:
@@ -512,7 +514,7 @@ def get_search_menu(item, json='', itemlist=[], channel_name=''):
 
 
 def submenu(item, json, key, itemlist = [], filter_list = []):
-    support.info(item)
+    logger.debug(item)
     import sys
     if sys.version_info[0] >= 3:
         from concurrent import futures
@@ -583,7 +585,6 @@ def filter_thread(filter, key, item, description):
         if id:
             thumbnail = 'https://image.tmdb.org/t/p/original' + results['profile_path'] if results['profile_path'] else item.thumbnail
             json_file = httptools.downloadpage('http://api.themoviedb.org/3/person/'+ str(id) + '?api_key=' + tmdb_api + '&language=en', use_requests=True).data
-            support.info(json_file)
             plot += jsontools.load(json_file)['biography']
 
     if description:
@@ -618,7 +619,7 @@ def filter_thread(filter, key, item, description):
 
 # for load json from item or url
 def load_json(item, no_order=False):
-    support.info()
+    logger.debug()
     if type(item) == Item:
         url = item.url
         filterkey = item.filterkey
@@ -643,7 +644,7 @@ def load_json(item, no_order=False):
 
 # Load Channels json and check that the paths and channel titles are correct
 def load_and_check(item):
-    support.info()
+    logger.debug()
     path = filetools.join(config.get_data_path(), 'community_channels.json')
     file = open(path, "r")
     json = jsontools.load(file.read())
@@ -665,7 +666,7 @@ def load_and_check(item):
 
 # set extra values
 def set_extra_values(item, json, path):
-    support.info()
+    logger.debug()
     ret = Item()
     for key in json:
         if key == 'quality':
@@ -711,7 +712,7 @@ def set_extra_values(item, json, path):
 
 # format titles
 def set_title(title, language='', quality=''):
-    support.info()
+    logger.debug()
 
     t = support.match(title, patron=r'\{([^\}]+)\}').match
     if 'bold' not in t: t += ' bold'
@@ -732,7 +733,7 @@ def set_title(title, language='', quality=''):
 
 # for relative path
 def relative(key, json, path):
-    support.info()
+    logger.debug()
     ret = ''
     if key in json:
         if key in ['thumbnail', 'poster']:
@@ -744,7 +745,7 @@ def relative(key, json, path):
 
 
 def pagination(item, itemlist = []):
-    support.info()
+    logger.debug()
     itlist = []
 
     if not itemlist:
@@ -784,7 +785,7 @@ def pagination(item, itemlist = []):
     return itlist
 
 def add_channel(item):
-    support.info()
+    logger.debug()
     channel_to_add = {}
     json_file = ''
     result = platformtools.dialog_select(config.get_localized_string(70676), [config.get_localized_string(70678), config.get_localized_string(70679)])
@@ -838,7 +839,7 @@ def add_channel(item):
     return
 
 def remove_channel(item):
-    support.info()
+    logger.debug()
 
     path = filetools.join(config.get_data_path(), 'community_channels.json')
 

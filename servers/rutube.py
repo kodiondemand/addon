@@ -24,13 +24,13 @@ from core import jsontools
 
 
 def get_source(url):
-    logger.info()
+    logger.debug()
     data = httptools.downloadpage(url).data
     data = re.sub(r'\n|\r|\t|&nbsp;|<br>|\s{2,}', "", data)
     return data
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = get_source(page_url)
 
     if "File was deleted" in data or "File Not Found" in data:
@@ -40,7 +40,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
 
     video_urls = []
     referer = ''

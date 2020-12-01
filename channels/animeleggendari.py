@@ -59,7 +59,7 @@ def peliculas(item):
     anime = True
     blacklist = ['top 10 anime da vedere']
     if item.url != host: patronBlock = r'<div id="main-content(?P<block>.*?)<aside'
-    patron = r'<figure class="(?:mh-carousel-thumb|mh-posts-grid-thumb)"> <a (?:class="[^"]+" )?href="(?P<url>[^"]+)" title="(?P<title>.*?)(?: \((?P<year>\d+)\))? (?:(?P<lang>SUB ITA|ITA))(?: (?P<title2>[Mm][Oo][Vv][Ii][Ee]))?[^"]*"><img (?:class="[^"]+"|width="[^"]+" height="[^"]+") src="(?P<thumb>[^"]+)"[^>]+'
+    patron = r'<figure class="(?:mh-carousel-thumb|mh-posts-grid-thumb)">\s*<a (?:class="[^"]+" )?href="(?P<url>[^"]+)" title="(?P<title>.*?)(?: \((?P<year>\d+)\))? (?:(?P<lang>SUB ITA|ITA))(?: (?P<title2>[Mm][Oo][Vv][Ii][Ee]))?[^"]*"><img (?:class="[^"]+"|width="[^"]+" height="[^"]+") src="(?P<thumb>[^"]+)"[^>]+'
     def itemHook(item):
         if 'movie' in item.title.lower():
             item.title = support.re.sub(' - [Mm][Oo][Vv][Ii][Ee]|[Mm][Oo][Vv][Ii][Ee]','',item.title)

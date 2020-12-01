@@ -52,7 +52,7 @@
                 <top>50</top>
                 <width>1000</width>
                 <height>30</height>
-                <font>font30_title</font>
+                <!-- <font>font30_title</font> -->
                 <textcolor>FFFFFFFF</textcolor>
                 <shadowcolor>00000000</shadowcolor>
                 <label>[UPPERCASE]$ADDON[plugin.video.kod 70145][/UPPERCASE]</label>
@@ -71,7 +71,7 @@
                 <itemlayout height="400" width="200">
                     <!-- Poster -->
                     <control type="image">
-                        <bottom>0</bottom>
+                        <top>200</top>
                         <left>0</left>
                         <width>200</width>
                         <height>200</height>
@@ -87,7 +87,7 @@
                         <top>0</top>
                         <width>800</width>
                         <height>30</height>
-                        <font>font30_title</font>
+                        <!-- <font>font30_title</font> -->
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[ListItem.Property(server)] [COLOR FFAAAAAA]$INFO[ListItem.Property(quality)][/COLOR][/B] </label>
@@ -100,7 +100,7 @@
                         <top>40</top>
                         <width>800</width>
                         <height>120</height>
-                        <font>font13</font>
+                        <!-- <font>font13</font> -->
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>$INFO[ListItem.Property(plot)]</label>

@@ -47,7 +47,7 @@ def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True):
         else:
             retval = []
     except Exception as ex:
-        logger.info("Exception occurred: '%s'" % ex)
+        logger.error("Exception occurred: '%s'" % ex)
 
     if retval is None and fallback:
         if type == 'A':

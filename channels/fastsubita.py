@@ -25,14 +25,12 @@ host = config.get_channel_url()
 headers = [['Referer', host]]
 
 
-
-
 @support.menu
 def mainlist(item):
 
     Tvshow = [
-        ('Aggiornamenti', ['', 'peliculas', '', 'update']),
-        ('Cerca... {bold}{TV}', ['','search'])
+        ('Aggiornamenti', ['', 'peliculas', 'update']),
+        ('Cerca... {bold}{TV}', ['', 'search'])
     ]
 
     # search = ''
@@ -46,6 +44,16 @@ def peliculas(item):
     # support.dbg()
     deflang = 'Sub-ITA'
 
+    # è una singola pagina con tutti gli episodi
+    if item.grouped and not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
+        item.grouped = False
+        return episodios_args(item)
+
+    # ogni puntata è un articolo a se
+    if item.fulltitle:
+        item.url = host + '?s=' + item.fulltitle
+        actLike = 'episodios'
+
     action = 'findvideos'
     blacklist = ['']
     if item.args == 'genres':
@@ -53,32 +61,45 @@ def peliculas(item):
         patron = r'[^>]+>[^>]+>.+?href="(?P<url>[^"]+)[^>]>(?P<title>[^<]+)\s<'
         action = 'episodios'
     elif item.args == 'search':
-        patronBlock = r'</h1> </header>(?P<block>.*?)</main>'
-        patronMenu = r'(?:<img src="(?P<thumb>[^"]+)"[^>]+>)?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)"[^>]+>(?:(?P<title>.+?)[ ](?P<episode>[\d&#;\d]+\d+|\d+..\d+)(?: \([a-zA-Z\s]+\) )(?:s\d+e\d+)?[ ]?(?:[&#\d;|.{3}]+)(?P<title2>[^&#\d;|^.{3}]+)(?:|.+?))<'
+        group = True
+        patronBlock = r'</header>(?P<block>.*?)</main>'
+        patron = '(?:<img[^>]+src="(?P<thumb>[^"]+)".*?)?<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+?)(?:(?P<episode>\d+&#215;\d+|\d+×\d+)|\[[sS](?P<season>[0-9]+)[^]]+\])\s?(?:(?P<lang>\([a-zA-Z\s]+\)) (?:[Ss]\d+[Ee]\d+)?\s?(?:[&#\d;|.{3}]+)(?P<title2>[^”[<]+)(?:&#\d)?)?'
     else:
-        patron = r'<div class="featured-thumb"> <a href="(?P<url>[^"]+)" title="(?:(?P<title>.+?)[ ]?(?P<episode>\d+&#215;\d+).+?&#8220;(?P<title2>.+?)&#8221;).+?">'
+        # è una singola pagina con tutti gli episodi
+        if item.args != 'update' and not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
+            return episodios_args(item)
+        patron = r'<div class="featured-thumb"> +<a href="(?P<url>[^"]+)" title="(?P<title>[^[]+)\[(?P<episode>\d+&#215;\d+)?'
         patronBlock = r'<main id="main"[^>]+>(?P<block>.*?)<div id="secondary'
+
+    # def itemlistHook(itemlist):
+    #     from core import scraper
+    #     return scraper.sort_episode_list(itemlist)
 
     patronNext = '<a class="next page-numbers" href="(.*?)">Successivi'
 
-    #debug = True
+    # debug = True
+    return locals()
+
+
+def episodios_args(item):
+    actLike = 'episodios'
+    # support.dbg()
+
+    deflang = 'Sub-ITA'
+    action = 'findvideos'
+    patron = '(?P<episode>\d+&#215;\d+|\d+[Ã.]+\d+)(?:\s?\((?P<lang>[a-zA-Z ]+)\))?(?:\s[Ss]\d+[Ee]+\d+)? +(?:“|&#8220;)(?P<title2>.*?)(?:”|&#8221;).*?(?P<other>.*?)(?:/>|<p)'
+    patronBlock = r'<main id="main" class="site-main" role="main">(?P<block>.*?)</main>'
+    patronNext = '<a class="next page-numbers" href="(.*?)">Successivi'
+
+    # debug = True
     return locals()
 
 
 @support.scrape
 def episodios(item):
     support.info(item)
-    #support.dbg()
+    return episodios_args(item)
 
-    deflang = 'Sub-ITA'
-    action = 'findvideos'
-    blacklist = ['']
-    patron = r'<div class="featured-thumb"> <a href="(?P<url>[^"]+)" title="(?:(?P<title>.+?)[ ]?(?P<episode>\d+&#215;\d+|\d+[Ã.]+\d+).+?&#8220;(?P<title2>.+?)&#8221;).+?">'
-    patronBlock = r'<main id="main" class="site-main" role="main">(?P<block>.*?)</main>'
-    patronNext = '<a class="next page-numbers" href="(.*?)">Successivi'
-
-    #debug = True
-    return locals()
 
 @support.scrape
 def genres(item):
@@ -140,38 +161,54 @@ def newest(categoria):
 
 def findvideos(item):
     support.info('findvideos ->', item)
-    itemlist = []
-    patronBlock = '<div class="entry-content">(?P<block>.*)<footer class="entry-footer">'
     patron = r'<a href="([^"]+)">'
-    html = support.match(item, patron=patron, patronBlock=patronBlock, headers=headers)
-    matches = html.matches
-    data= html.data
 
-    if item.args != 'episodios':
-        item.infoLabels['mediatype'] = 'episode'
-    for scrapedurl in matches:
-        if 'is.gd' in scrapedurl:
-            resp = httptools.downloadpage(scrapedurl, follow_redirects=False)
-            data += resp.headers.get("location", "") + '\n'
+    itemlist = []
+    if item.other.startswith('http'):
+        resp = httptools.downloadpage(item.url, follow_redirects=False)
+        data = resp.headers.get("location", "") + '\n'
+    elif item.other:
+        html = support.match(item.other, patron=patron, headers=headers)
+        matches = html.matches
+        data = html.data
+        for scrapedurl in matches:
+            if 'is.gd' in scrapedurl:
+                resp = httptools.downloadpage(scrapedurl, follow_redirects=False)
+                data += resp.headers.get("location", "") + '\n'
+    elif not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
+        return episodios(item)
+    else:
+        patronBlock = '<div class="entry-content">(?P<block>.*)<footer class="entry-footer">'
+        html = support.match(item, patron=patron, patronBlock=patronBlock, headers=headers)
+        matches = html.matches
+        data= html.data
+
+        if item.args != 'episodios':
+            item.infoLabels['mediatype'] = 'episode'
+        for scrapedurl in matches:
+            if 'is.gd' in scrapedurl:
+                resp = httptools.downloadpage(scrapedurl, follow_redirects=False)
+                data += resp.headers.get("location", "") + '\n'
 
     itemlist += support.server(item, data)
 
-    data = support.match(item.url).data
-    patron = r'>Posted in <a href="https?://fastsubita.com/serietv/([^/]+)/(?:[^"]+)?"'
-    series = scrapertools.find_single_match(data, patron)
-    titles = support.typo(series.upper().replace('-', ' '), 'bold color kod')
-    goseries = support.typo("Vai alla Serie:", ' bold color kod')
-    itemlist.append(
-        item.clone(channel=item.channel,
-                   title=goseries + titles,
-                   fulltitle=titles,
-                   show=series,
-                   contentType='tvshow',
-                   contentSerieName=series,
-                   url=host+"/serietv/"+series,
-                   action='episodios',
-                   contentTitle=titles,
-                   plot = "Vai alla Serie " + titles + " con tutte le puntate",
-                   ))
+    # data = support.match(item.url).data
+    # patron = r'>Posted in <a href="https?://fastsubita.com/serietv/([^/]+)/(?:[^"]+)?"'
+    # series = scrapertools.find_single_match(data, patron)
+    # titles = support.typo(series.upper().replace('-', ' '), 'bold color kod')
+    # goseries = support.typo("Vai alla Serie:", ' bold color kod')
+    # itemlist.append(
+    #     item.clone(channel=item.channel,
+    #                # title=goseries + titles,
+    #                title=titles,
+    #                fulltitle=titles,
+    #                show=series,
+    #                contentType='tvshow',
+    #                contentSerieName=series,
+    #                url=host+"/serietv/"+series,
+    #                action='episodios',
+    #                contentTitle=titles,
+    #                plot = "Vai alla Serie " + titles + " con tutte le puntate",
+    #                ))
 
     return itemlist

@@ -178,6 +178,60 @@ def dialog_register(heading, user=False, email=False, password=False, user_defau
     dialog = Register('Register.xml', config.get_runtime_path()).Start(heading, user, email, password, user_default, email_default, password_default, captcha_img)
     return dialog
 
+def dialog_info(item, scraper):
+    class TitleOrIDWindow(xbmcgui.WindowXMLDialog):
+        def Start(self, item, scraper):
+            self.item = item
+            self.item.exit = False
+            self.title = item.show if item.show else item.fulltitle
+            self.id = item.infoLabels.get('tmdb_id', '') if scraper == 'tmdb' else item.infoLabels.get('tvdb_id', '')
+            self.scraper = scraper
+            self.idtitle = 'TMDB ID' if scraper == 'tmdb' else 'TVDB ID'
+            self.doModal()
+            return self.item
+
+        def onInit(self):
+            #### Kodi 18 compatibility ####
+            if config.get_platform(True)['num_version'] < 18:
+                self.setCoordinateResolution(2)
+            self.HEADER = self.getControl(100)
+            self.TITLE = self.getControl(101)
+            self.ID = self.getControl(102)
+            self.EXIT = self.getControl(103)
+            self.EXIT2 = self.getControl(104)
+
+            self.HEADER.setText(config.get_localized_string(60228) % self.title)
+            self.TITLE.setLabel('[UPPERCASE]' + config.get_localized_string(60230).replace(':','') + '[/UPPERCASE]')
+            self.ID.setLabel(self.idtitle)
+            self.setFocusId(101)
+
+        def onClick(self, control):
+            if control in [101]:
+                result = dialog_input(self.title)
+                if result:
+                    if self.item.contentType == 'movie': self.item.contentTitle = result
+                    else: self.item.contentSerieName = result
+                    self.close()
+            elif control in [102]:
+                result = dialog_numeric(0, self.idtitle, self.id)
+                if result:
+                    if self.scraper == 'tmdb': self.item.infoLabels['tmdb_id'] = result
+                    elif self.scraper == 'tvdb': self.item.infoLabels['tvdb_id'] = result
+                    self.close()
+
+            elif control in [103, 104]:
+                self.item.exit = True
+                self.close()
+
+        def onAction(self, action):
+            action = action.getId()
+            if action in [92, 10]:
+                self.item.exit = True
+                self.close()
+
+    dialog = TitleOrIDWindow('TitleOrIDWindow.xml', config.get_runtime_path()).Start(item, scraper)
+    return dialog
+
 
 def itemlist_refresh():
     # pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition
@@ -202,7 +256,7 @@ def render_items(itemlist, parent_item):
     """
     Function used to render itemlist on kodi
     """
-    logger.info('START render_items')
+    logger.debug('START render_items')
     thumb_type = config.get_setting('video_thumbnail_type')
     from platformcode import shortcuts
     # from core import httptools
@@ -287,7 +341,7 @@ def render_items(itemlist, parent_item):
     set_view_mode(itemlist[0], parent_item)
 
     xbmcplugin.endOfDirectory(_handle)
-    logger.info('END render_items')
+    logger.debug('END render_items')
 
 
 def getCurrentView(item=None, parent_item=None):
@@ -344,11 +398,11 @@ def set_view_mode(item, parent_item):
     if content:
         mode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
         if mode == 0:
-            logger.info('default mode')
+            logger.debug('default mode')
             mode = 55
         xbmcplugin.setContent(handle=int(sys.argv[1]), content=Type)
         xbmc.executebuiltin('Container.SetViewMode(%s)' % mode)
-        logger.info('TYPE: ' + Type + ' - ' + 'CONTENT: ' + content)
+        logger.debug('TYPE: ' + Type + ' - ' + 'CONTENT: ' + content)
 
 
 def set_infolabels(listitem, item, player=False):
@@ -568,10 +622,10 @@ def is_playing():
 
 
 def play_video(item, strm=False, force_direct=False, autoplay=False):
-    logger.info()
+    logger.debug()
     logger.debug(item.tostring('\n'))
     if item.channel == 'downloads':
-        logger.info("Play local video: %s [%s]" % (item.title, item.url))
+        logger.debug("Play local video: %s [%s]" % (item.title, item.url))
         xlistitem = xbmcgui.ListItem(path=item.url)
         xlistitem.setArt({"thumb": item.thumbnail})
         set_infolabels(xlistitem, item, True)
@@ -579,18 +633,22 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         return
 
     default_action = config.get_setting("default_action")
-    logger.info("default_action=%s" % default_action)
+    logger.debug("default_action=%s" % default_action)
+
+    # pass referer
+    from core import httptools
+    httptools.default_headers['Referer'] = item.referer
 
     # Open the selection dialog to see the available options
     opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-    if salir: return
+    if salir: exit()
 
     # get default option of addon configuration
     seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
-    if seleccion < 0: return # Canceled box
+    if seleccion < 0: exit() # Canceled box
 
-    logger.info("selection=%d" % seleccion)
-    logger.info("selection=%s" % opciones[seleccion])
+    logger.debug("selection=%d" % seleccion)
+    logger.debug("selection=%s" % opciones[seleccion])
 
     # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
     salir = set_opcion(item, seleccion, opciones, video_urls)
@@ -751,7 +809,7 @@ def alert_unsopported_server():
 
 
 def handle_wait(time_to_wait, title, text):
-    logger.info("handle_wait(time_to_wait=%d)" % time_to_wait)
+    logger.debug("handle_wait(time_to_wait=%d)" % time_to_wait)
     espera = dialog_progress(' ' + title, "")
 
     secs = 0
@@ -770,15 +828,15 @@ def handle_wait(time_to_wait, title, text):
             break
 
     if cancelled:
-        logger.info('Wait canceled')
+        logger.debug('Wait canceled')
         return False
     else:
-        logger.info('Wait finished')
+        logger.debug('Wait finished')
         return True
 
 
 def get_dialogo_opciones(item, default_action, strm, autoplay):
-    logger.info()
+    logger.debug()
     # logger.debug(item.tostring('\n'))
     from core import servertools
 
@@ -827,10 +885,6 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
                 # "Add to Favorites"
                 opciones.append(config.get_localized_string(30155))
 
-            if not strm and item.contentType == 'movie' and item.channel != 'videolibrary':
-                # "Add to video library"
-                opciones.append(config.get_localized_string(30161))
-
         if default_action == 3:
             seleccion = len(opciones) - 1
 
@@ -844,13 +898,14 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
         if not autoplay:
             if item.server != "":
                 if "<br/>" in motivo:
-                    ret = dialog_yesno(config.get_localized_string(60362), motivo.split("<br/>")[0] + '\n' + motivo.split("<br/>")[1] + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                    ret = dialog_yesno(config.get_localized_string(60362) % item.server, motivo.split("<br/>")[0] + '\n' + motivo.split("<br/>")[1], nolabel='ok', yeslabel=config.get_localized_string(70739))
                 else:
-                    ret = dialog_yesno(config.get_localized_string(60362), motivo + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                    ret = dialog_yesno(config.get_localized_string(60362) % item.server, motivo, nolabel='ok', yeslabel=config.get_localized_string(70739))
             else:
-                ret = dialog_yesno(config.get_localized_string(60362), config.get_localized_string(60363) + '\n' + config.get_localized_string(60364) + '\n' + item.url, nolabel='ok', yeslabel=config.get_localized_string(70739))
+                ret = dialog_yesno(config.get_localized_string(60362) % item.server, config.get_localized_string(60363) + '\n' + config.get_localized_string(60364), nolabel='ok', yeslabel=config.get_localized_string(70739))
             if ret:
-                xbmc.executebuiltin("Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl()))
+                xbmc.executebuiltin("Container.Update (%s?%s)" %
+                                    (sys.argv[0], Item(action="open_browser", url=item.url).tourl()))
             if item.channel == "favorites":
                 # "Remove from favorites"
                 opciones.append(config.get_localized_string(30154))
@@ -862,7 +917,7 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
 
 
 def set_opcion(item, seleccion, opciones, video_urls):
-    logger.info()
+    logger.debug()
     # logger.debug(item.tostring('\n'))
     salir = False
     # You have not chosen anything, most likely because you have given the ESC
@@ -912,7 +967,7 @@ def set_opcion(item, seleccion, opciones, video_urls):
 
 
 def get_video_seleccionado(item, seleccion, video_urls):
-    logger.info()
+    logger.debug()
     mediaurl = ""
     view = False
     wait_time = 0
@@ -938,7 +993,7 @@ def get_video_seleccionado(item, seleccion, video_urls):
         mpd = True
 
     # If there is no mediaurl it is because the video is not there :)
-    logger.info("mediaurl=" + mediaurl)
+    logger.debug("mediaurl=" + mediaurl)
     if mediaurl == "":
         if item.server == "unknown":
             alert_unsopported_server()
@@ -955,7 +1010,7 @@ def get_video_seleccionado(item, seleccion, video_urls):
 
 
 def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=None, item_nfo=None):
-    logger.info()
+    logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     # Moved del conector "torrent" here
     if item.server == "torrent":
@@ -969,7 +1024,10 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
             xbmc_player.setSubtitles(item.subtitle)
 
     else:
-        player_mode = config.get_setting("player_mode")
+        if type(item.player_mode) == int:
+            player_mode = item.player_mode
+        else:
+            player_mode = config.get_setting("player_mode")
         if (player_mode == 3 and mediaurl.startswith("rtmp")) or item.play_from == 'window' or item.nfo: player_mode = 0
         elif "megacrypter.com" in mediaurl: player_mode = 3
         logger.info("mediaurl=" + mediaurl)
@@ -989,9 +1047,10 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
 
         elif player_mode == 1:
             logger.info('Player Mode: setResolvedUrl')
-            xlistitem.setPath(mediaurl)
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xlistitem)
-            xbmc.sleep(2500)
+            # xlistitem.setPath(mediaurl)
+            par = int(sys.argv[1])
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=mediaurl))
+            # xbmc.sleep(2500)
 
         elif player_mode == 2:
             logger.info('Player Mode: Built-In')
@@ -1038,7 +1097,7 @@ def torrent_client_installed(show_tuple=False):
 
 
 def play_torrent(item, xlistitem, mediaurl):
-    logger.info()
+    logger.debug()
     import time
     from servers import torrent
 
@@ -1074,7 +1133,7 @@ def play_torrent(item, xlistitem, mediaurl):
 
             torrent.mark_auto_as_watched(item)
 
-            while is_playing() and not xbmc.abortRequested:
+            while is_playing() and not xbmc.Monitor().abortRequested():
                 time.sleep(3)
 
 

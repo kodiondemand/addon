@@ -9,7 +9,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-	logger.info("(page_url='%s')" % page_url)
+	logger.debug("(page_url='%s')" % page_url)
 	global data
 	data = httptools.downloadpage(page_url).data
 	if "<h2>WE ARE SORRY</h2>" in data or '<title>404 Not Found</title>' in data:

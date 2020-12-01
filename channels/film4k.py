@@ -29,7 +29,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    logger.info()
+    logger.info('search', text)
     item.url = item.url + "/?s=" + text
     try:
         return support.dooplay_search(item)

@@ -10,7 +10,7 @@ import re
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url)
     global page_data
     page_data = data.data
@@ -21,7 +21,7 @@ def test_video_exists(page_url):
     return True, ""
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     global page_data
     video_url = scrapertools.find_single_match(decode(page_data), r"'src',\s*'([^']+)")

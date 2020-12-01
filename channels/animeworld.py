@@ -88,7 +88,7 @@ def menu(item):
     action = 'submenu'
     # data = get_data(item)
     patronMenu=r'<button[^>]+>\s*(?P<title>[A-Za-z0-9]+)\s*<span.[^>]+>(?P<other>.*?)</ul>'
-    def ItemItemlistHook(item, itemlist):
+    def itemlistHook(itemlist):
         itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), action='peliculas'))
         itemlist.append(item.clone(title=support.typo('Cerca...','bold'), action='search', search=True, thumbnail=support.thumb('search.png')))
         return itemlist
@@ -174,7 +174,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime=True
-    pagination = 50
+    pagination = 25
     # data = get_data(item)
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^<]+)<'

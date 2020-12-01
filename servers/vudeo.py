@@ -6,7 +6,7 @@ data = ""
 
 def test_video_exists(page_url):
     global data
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     response = httptools.downloadpage(page_url)
 
     if response.code == 404:
@@ -18,5 +18,5 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     global data
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     return support.get_jwplayer_mediaurl(data, 'Vudeo')

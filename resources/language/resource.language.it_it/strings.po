@@ -588,8 +588,8 @@ msgid "%.2f %s of %.2f %s a %.2f %s/s (%d/%d)"
 msgstr "%.2f %s di %.2f %s a %.2f %s/s (%d/%d)"
 
 msgctxt "#59985"
-msgid "Error in the channel "
-msgstr "Errore nel canale "
+msgid "Channel %s unreachable"
+msgstr "Canale %s irraggiungibile"
 
 msgctxt "#59986"
 msgid "Error loading the server: %s\n"
@@ -668,8 +668,8 @@ msgid ""
 msgstr ""
 
 msgctxt "#60006"
-msgid "An error has occurred in %s"
-msgstr "Si è verificato un errore in %s"
+msgid "[B]An error has occurred in %s:[/B]"
+msgstr "[B]Si è verificato un errore in %s:[/B]"
 
 msgctxt "#60007"
 msgid "An error has occurred on %s"
@@ -696,16 +696,16 @@ msgid "No video to play"
 msgstr "Nessun video da riprodurre"
 
 msgctxt "#60013"
-msgid "This website seems to be unavailable, try later, if the problem persists, check with a browser: %s. If the web page is working correctly, please report the error on : https://t.me/kodiondemand"
-msgstr "Questo sito non sembra essere disponibile, riprova più tardi, se il problema persiste verifica mediante un browser: %s. Se la pagina web funziona correttamente segnala l'errore su : https://t.me/kodiondemand"
+msgid "This website [B]%s[/B] seems to be unavailable, try later. if the web page is working correctly, please report the error on: https://github.com/kodiondemand/addon/issues"
+msgstr "Il sito [B]%s[/B] non sembra essere disponibile, riprova più tardi. Se la pagina web funziona correttamente segnala l'errore qui: https://github.com/kodiondemand/addon/issues"
 
 msgctxt "#60014"
-msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. To have more details, see the log file."
-msgstr "Potrebbe essere dovuto a un problema di connessione, la pagina web del canale ha cambiato la sua struttura, oppure un errore interno di KoD. Per avere maggiori dettagli, consulta il file di log."
+msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[B]"
+msgstr "Potrebbe essere dovuto a un problema di connessione, la pagina web del canale ha cambiato la sua struttura, oppure un errore interno di KoD. Se sul browser funziona, segnala il problema andando in [B]Aiuto->Segnala un problema[/B]."
 
 msgctxt "#60015"
-msgid "Check the log for more details on the error."
-msgstr "Controlla il log per avere maggiori dettagli sull'errore."
+msgid "Do you want to report the issue?\n(Be sure you follow all steps and give a clear and comprehensive explanation of what happened"
+msgstr "Vuoi fare una segnalazione agli sviluppatori?\n(Assicurati di seguire bene tutti i punti e dai una spiegazione chiara ed esaustiva di quanto accaduto)"
 
 msgctxt "#60016"
 msgid "Segna film come non visto"
@@ -1632,8 +1632,8 @@ msgid "Super favourites menu"
 msgstr "Menu super favoriti"
 
 msgctxt "#60362"
-msgid "You can't watch this video because..."
-msgstr "Non è possibile vedere questo video perchè..."
+msgid "Unexpected error on server %s"
+msgstr "Errore inaspettato sul server %s"
 
 msgctxt "#60363"
 msgid "The server on which it is hosted"
@@ -6086,6 +6086,43 @@ msgstr "Nessun risultato sul canale %s, vuoi provare con la Ricerca Globale?"
 msgctxt "#70821"
 msgid "Search results"
 msgstr "Risultati della ricerca"
+
+# RENUMBER
+msgctxt "#70822"
+msgid "Renumber new episodes of: "
+msgstr "Rinumera i nuovi episodi di: "
+
+msgctxt "#70823"
+msgid "Renumber episodes of: "
+msgstr "Rinumera gli episodi di: "
+
+msgctxt "#70824"
+msgid "Select the specials of: "
+msgstr "Seleziona gli speciali di: "
+
+msgctxt "#70825"
+msgid "Select Season"
+msgstr "Seleziona Stagione"
+
+msgctxt "#70826"
+msgid "Select Episode"
+msgstr "Seleziona Episodio"
+
+msgctxt "#70827"
+msgid "Select Specials"
+msgstr "Seleziona Speciali"
+
+msgctxt "#70828"
+msgid "Manual renumbering"
+msgstr "Rinumerazione Manuale"
+
+msgctxt "#70829"
+msgid "Delete Numbering for: "
+msgstr "Elimina Numerazione per: "
+
+msgctxt "#70830"
+msgid "The series / episode number should only be changed if the series has relative numbering."
+msgstr "Il numero della serie / episodio deve essere modificato solo se  la serie ha una numerazione relativa."
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

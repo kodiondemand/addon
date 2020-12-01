@@ -9,7 +9,7 @@ from platformcode import logger
 
 video_urls = []
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     subtitles = ""
     response = httptools.downloadpage(page_url)
@@ -21,9 +21,9 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
-    logger.info("Intel11 %s" %data)
+    logger.debug("Intel11 %s" %data)
     media_url = scrapertools.find_single_match(data, 'file:"([^"]+)')
     if media_url:
         ext = media_url[-4:]

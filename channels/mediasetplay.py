@@ -87,24 +87,27 @@ def live(item):
                 for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
                     urls += key['publicUrls']
             plot = support.typo(guide['currentListing']['mediasetlisting$epgTitle'],'bold') + '\n' + guide['currentListing']['mediasetlisting$shortDescription'] + '\n' + guide['currentListing']['description'] + '\n\n' + support.typo('A Seguire:' + guide['nextListing']['mediasetlisting$epgTitle'], 'bold')
+
             itemlist.append(item.clone(title=support.typo(it['title'], 'bold'),
-                                       fulltitle=it['title'],
-                                       show=it['title'],
-                                       contentTitle=it['title'],
-                                       thumbnail=it['thumbnails']['channel_logo-100x100']['url'],
-                                       forcethumb = True,
-                                       urls=urls,
-                                       plot=plot,
-                                       action='play'))
+                                    fulltitle=it['title'],
+                                    show=it['title'],
+                                    contentTitle=it['title'],
+                                    thumbnail=it['thumbnails']['channel_logo-100x100']['url'],
+                                    forcethumb = True,
+                                    urls=urls,
+                                    plot=plot,
+                                    action='play'))
     return support.thumb(itemlist, live=True)
 
 def peliculas(item):
     support.info()
     itemlist = []
+    titlelist = []
     contentType = ''
     json = get_programs(item)
     for it in json:
-        if item.search.lower() in it['title'].lower():
+        if item.search.lower() in it['title'].lower() and it['title'] not in titlelist:
+            titlelist.append(it['title'])
             if item.contentType == 'movie':
                 action = 'findvideos'
                 urls = []
@@ -184,8 +187,10 @@ def episodios(item):
                            plot=it['longDescription'] if 'longDescription' in it else it['description'],
                            urls=urls,
                            url=it['mediasetprogram$pageUrl']))
-    if episode: support.videolibrary(itemlist, item)
-    return sorted(itemlist, key=lambda it: it.title)
+    if episode:
+        itemlist = sorted(itemlist, key=lambda it: it.title)
+        support.videolibrary(itemlist, item)
+    return itemlist
 
 def findvideos(item):
     support.info()

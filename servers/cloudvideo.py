@@ -8,7 +8,7 @@ from lib import jsunpack
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     html = httptools.downloadpage(page_url)
     global data
     data = html.data
@@ -18,7 +18,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     global data
     # data = httptools.downloadpage(page_url).data

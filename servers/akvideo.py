@@ -13,7 +13,7 @@ headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     # page_url = re.sub('akvideo.stream/(?:video/|video\\.php\\?file_code=)?(?:embed-)?([a-zA-Z0-9]+)','akvideo.stream/video/\\1',page_url)
     global data
     page = httptools.downloadpage(page_url, headers=headers)
@@ -32,18 +32,18 @@ def test_video_exists(page_url):
 
     # ID, code = scrapertools.find_single_match(data, r"""input\D*id=(?:'|")([^'"]+)(?:'|").*?value='([a-z0-9]+)""")
     # post = urllib.urlencode({ID: code})
-    # logger.info('PAGE DATA' + data)
+    # logger.debug('PAGE DATA' + data)
     if "File Not Found" in data:
         return False, config.get_localized_string(70449) % "Akvideo"
     return True, ""
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info(" url=" + page_url)
+    logger.debug(" url=" + page_url)
     video_urls = []
 
     global data
-    # logger.info('PAGE DATA' + data)
+    # logger.debug('PAGE DATA' + data)
     # sitekey = scrapertools.find_single_match(data, 'data-sitekey="([^"]+)')
     # captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
     #

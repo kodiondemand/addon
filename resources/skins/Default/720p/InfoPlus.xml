@@ -67,7 +67,7 @@
 					<itemlayout height="570" width="180">
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>300</top>
 							<left>0</left>
 							<width>180</width>
 							<height>270</height>
@@ -83,7 +83,7 @@
 							<top>10</top>
 							<width>840</width>
 							<height>30</height>
-							<font>font30_title</font>
+							<!-- <font>font30_title</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>[B]$INFO[ListItem.Label] [COLOR FFAAAAAA] $INFO[ListItem.Property(year)][/COLOR][/B] </label>
@@ -96,7 +96,7 @@
 							<top>70</top>
 							<width>840</width>
 							<height>190</height>
-							<font>font13</font>
+							<!-- <font>font13</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>$INFO[ListItem.Property(plot)]</label>
@@ -105,7 +105,7 @@
 						</control>
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>0</top>
 							<left>0</left>
 							<width>380</width>
 							<height>570</height>
@@ -125,7 +125,7 @@
 					<itemlayout height="570" width="180">
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>300</top>
 							<left>0</left>
 							<width>180</width>
 							<height>270</height>
@@ -141,7 +141,7 @@
 							<top>10</top>
 							<width>840</width>
 							<height>30</height>
-							<font>font30_title</font>
+							<!-- <font>font30_title</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>[B]$INFO[ListItem.Property(title)][/B] </label>
@@ -154,7 +154,7 @@
 							<top>50</top>
 							<width>840</width>
 							<height>30</height>
-							<font>font30</font>
+							<!-- <font>font30</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>[B]$INFO[ListItem.Property(job)][/B]</label>
@@ -166,7 +166,7 @@
 							<top>90</top>
 							<width>830</width>
 							<height>180</height>
-							<font>font13</font>
+							<!-- <font>font13</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>$INFO[ListItem.Property(bio)]</label>
@@ -175,7 +175,7 @@
 						</control>
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>0</top>
 							<left>0</left>
 							<width>380</width>
 							<height>570</height>
@@ -195,7 +195,7 @@
 					<itemlayout height="570" width="180">
 						<!-- Background -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>300</top>
 							<left>0</left>
 							<width>180</width>
 							<height>270</height>
@@ -205,7 +205,7 @@
 						</control>
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>300</top>
 							<left>0</left>
 							<width>180</width>
 							<height>270</height>
@@ -216,11 +216,11 @@
 						<!-- DEPARTMENT -->
 						<control type="textbox">
 							<visible>String.IsEmpty(ListItem.Property(thumbnail))</visible>
-							<left>0</left>
-							<bottom>0</bottom>
-							<width>180</width>
+							<left>10</left>
+							<top>300</top>
+							<width>160</width>
 							<height>270</height>
-							<font>font13</font>
+							<!-- <font>font13</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<label>[B]$INFO[ListItem.Property(department)][/B]</label>
                             <autoscroll delay="3000" time="2000" repeat="3000"></autoscroll>
@@ -235,7 +235,7 @@
 							<top>10</top>
 							<width>840</width>
 							<height>30</height>
-							<font>font30_title</font>
+							<!-- <font>font30_title</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>[B]$INFO[ListItem.Property(title)][/B] </label>
@@ -248,7 +248,7 @@
 							<top>50</top>
 							<width>840</width>
 							<height>30</height>
-							<font>font30</font>
+							<!-- <font>font30</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>[B]$INFO[ListItem.Property(job)][/B]</label>
@@ -260,7 +260,7 @@
 							<top>90</top>
 							<width>830</width>
 							<height>180</height>
-							<font>font13</font>
+							<!-- <font>font13</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<shadowcolor>00000000</shadowcolor>
 							<label>$INFO[ListItem.Property(bio)]</label>
@@ -269,7 +269,7 @@
 						</control>
 						<!-- Background -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>0</top>
 							<left>0</left>
 							<width>380</width>
 							<height>570</height>
@@ -279,7 +279,7 @@
 						</control>
 						<!-- Poster -->
 						<control type="image">
-							<bottom>0</bottom>
+							<top>0</top>
 							<left>0</left>
 							<width>380</width>
 							<height>570</height>
@@ -294,7 +294,7 @@
 							<top>0</top>
 							<width>380</width>
 							<height>570</height>
-							<font>font30_title</font>
+							<!-- <font>font30_title</font> -->
 							<textcolor>FFFFFFFF</textcolor>
 							<label>$INFO[ListItem.Property(department)]</label>
                             <autoscroll delay="3000" time="2000" repeat="3000"></autoscroll>
@@ -322,7 +322,7 @@
 					<height>50</height>
 					<textcolor>FFFFFFFF</textcolor>
 					<shadowcolor>00000000</shadowcolor>
-					<font>font30_title</font>
+					<!-- <font>font30_title</font> -->
 					<label></label>
 					<align>left</align>
 					<aligny>center</aligny>

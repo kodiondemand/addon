@@ -7,7 +7,7 @@ from platformcode import logger, config
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File was deleted" in data:
@@ -16,7 +16,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     media_urls = scrapertools.find_multiple_matches(data, 'file:"([^"]+)"')
     if not media_urls:
@@ -34,5 +34,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         video_urls.append(["%s [watchvideo]" % (ext), media_url])
     video_urls.reverse()
     for video_url in video_urls:
-        logger.info("%s - %s" % (video_url[0], video_url[1]))
+        logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

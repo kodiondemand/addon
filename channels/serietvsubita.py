@@ -337,7 +337,8 @@ def list_az(item):
             item.clone(action="lista_serie",
                        data='\n\n'.join(alphabet[letter]),
                        title=letter,
-                       fulltitle=letter))
+                       fulltitle=letter,
+                       args=''))
 
     return itemlist
 

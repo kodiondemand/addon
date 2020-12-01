@@ -3,7 +3,7 @@
 # Logger (kodi)
 # --------------------------------------------------------------------------------
 from __future__ import unicode_literals
-import inspect, os, xbmc, sys
+import inspect,os, xbmc, sys
 from platformcode import config
 
 # for test suite
@@ -53,5 +53,11 @@ def log(*args, **kwargs):
 
 
 class WebErrorException(Exception):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, url, channel, *args, **kwargs):
+        self.url = url
+        self.channel = channel
         Exception.__init__(self, *args, **kwargs)
+
+
+class ChannelScraperException(Exception):
+    pass

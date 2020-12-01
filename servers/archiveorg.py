@@ -9,7 +9,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url)
     if data.code == 404:
         return False,  config.get_localized_string(70449) % "ArchiveOrg"
@@ -17,7 +17,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     video_urls = []
     data = httptools.downloadpage(page_url).data
     patron = '<meta property="og:video" content="([^"]+)">'

@@ -23,7 +23,7 @@ flashx_hash_f = ""
 flashx_post = ""
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     global flashx_data
     try:
         flashx_data = httptools.downloadpage(page_url, cookies="xfsts=pfp5dj3e6go1l2o1").data
@@ -53,7 +53,7 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("url=" + page_url)
+    logger.debug("url=" + page_url)
     pfxfx = ""
     data = flashx_data
     data = data.replace("\n", "")
@@ -70,8 +70,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         matches = scrapertools.find_multiple_matches(mfxfx, '(\w+):(\w+)')
         for f, v in matches:
             pfxfx += f + "=" + v + "&"
-    logger.info("mfxfxfx1= %s" % js_fxfx)
-    logger.info("mfxfxfx2= %s" % pfxfx)
+    logger.debug("mfxfxfx1= %s" % js_fxfx)
+    logger.debug("mfxfxfx2= %s" % pfxfx)
     if pfxfx == "":
         pfxfx = "f=fail&fxfx=6"
     coding_url = 'https://www.flashx.co/flashx.php?%s' % pfxfx
@@ -119,14 +119,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                         filetools.write(subtitle, data)
                     except:
                         import traceback
-                        logger.info("Error al descargar el subtítulo: " + traceback.format_exc())
+                        logger.debug("Error al descargar el subtítulo: " + traceback.format_exc())
 
             for media_url, label in media_urls:
                 if not media_url.endswith("png") and not media_url.endswith(".srt"):
                     video_urls.append(["." + media_url.rsplit('.', 1)[1] + " [flashx]", media_url, 0, subtitle])
 
             for video_url in video_urls:
-                logger.info("%s - %s" % (video_url[0], video_url[1]))
+                logger.debug("%s - %s" % (video_url[0], video_url[1]))
         except:
             pass
 

@@ -12,7 +12,7 @@ def findhost(url):
     host = 'https://'+permUrl['location'].replace('https://www.google.it/search?q=site:', '')
     return host
 
-host = support.config.get_channel_url(findhost)
+host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 @support.menu

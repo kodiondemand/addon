@@ -30,7 +30,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    logger.info("[vedohd.py] " + item.url + " search " + text)
+    logger.info("search",text)
     item.url = item.url + "/?s=" + text
 
     return support.dooplay_search(item, blacklist)
@@ -44,7 +44,6 @@ def findvideos(item):
     itemlist = []
     for link in support.dooplay_get_links(item, host):
         if link['title'] != 'Trailer':
-            logger.info(link['title'])
             server, quality = scrapertools.find_single_match(link['title'], '([^ ]+) ?(HD|3D)?')
             if quality:
                 title = server + " [COLOR blue][" + quality + "][/COLOR]"
@@ -63,7 +62,7 @@ def menu(item):
 
 
 def play(item):
-    logger.info("[vedohd.py] play")
+    logger.debug()
 
     data = support.swzz_get_url(item)
 

@@ -17,8 +17,8 @@ from core import filetools
 
 class ziptools(object):
     def extract(self, file, dir, folder_to_extract="", overwrite_question=False, backup=False):
-        logger.info("file= %s" % file)
-        logger.info("dir= %s" % dir)
+        logger.debug("file= %s" % file)
+        logger.debug("dir= %s" % dir)
 
         if not dir.endswith(':') and not filetools.exists(dir):
             filetools.mkdir(dir)
@@ -30,13 +30,13 @@ class ziptools(object):
 
         for nameo in zf.namelist():
             name = nameo.replace(':', '_').replace('<', '_').replace('>', '_').replace('|', '_').replace('"', '_').replace('?', '_').replace('*', '_')
-            logger.info("name=%s" % nameo)
+            logger.debug("name=%s" % nameo)
             if not name.endswith('/'):
-                logger.info("it's not a directory")
+                logger.debug("it's not a directory")
                 try:
                     (path, filename) = filetools.split(filetools.join(dir, name))
-                    logger.info("path=%s" % path)
-                    logger.info("name=%s" % name)
+                    logger.debug("path=%s" % path)
+                    logger.debug("name=%s" % name)
                     if folder_to_extract:
                         if path != filetools.join(dir, folder_to_extract):
                             break
@@ -49,7 +49,7 @@ class ziptools(object):
 
                 else:
                     outfilename = filetools.join(dir, name)
-                logger.info("outfilename=%s" % outfilename)
+                logger.debug("outfilename=%s" % outfilename)
                 try:
                     if filetools.exists(outfilename) and overwrite_question:
                         from platformcode import platformtools
@@ -74,7 +74,7 @@ class ziptools(object):
         try:
             zf.close()
         except:
-            logger.info("Error closing .zip " + file)
+            logger.error("Error closing .zip " + file)
 
     def _createstructure(self, file, dir):
         self._makedirs(self._listdirs(file), dir)

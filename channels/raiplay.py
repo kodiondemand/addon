@@ -3,9 +3,9 @@
 # Canale per Rai Play
 # ------------------------------------------------------------
 
-import requests
+import requests, sys
 from core import support
-import sys
+from platformcode import autorenumber
 if sys.version_info[0] >= 3:
     from concurrent import futures
 else:
@@ -118,7 +118,6 @@ def replay(item):
     return itemlist
 
 def search(item, text):
-    # support.dbg()
     support.info()
     itemlist =[]
     try:
@@ -224,13 +223,23 @@ def peliculas(item):
 def select(item):
     support.info()
     itemlist = []
-    json = current_session.get(item.url).json()['blocks']
-    for key in json:
-        itemlist.append(item.clone(title = support.typo(key['name'],'bold'), url = key['sets'], action = 'episodios'))
-    if len(itemlist) == 1:
-        return episodios(itemlist[0])
+    if type(item.url) in [list, dict]:
+        json = item.url
     else:
-        return itemlist
+        json = current_session.get(item.url).json()
+    if 'blocks' in json:
+        json = json['blocks']
+        season = ''
+        for key in json:
+            if item.fulltitle in key['name']: season = key['name'].replace(item.fulltitle, '').strip()
+            if not season.isdigit(): season = ''
+            itemlist.append(item.clone(title = support.typo(key['name'],'bold'), season = season, url = key['sets'], action = 'select'))
+        if len(itemlist) == 1:
+            return episodios(itemlist[0])
+    else:
+        for key in item.url:
+            itemlist.append(item.clone(title = support.typo(key['name'], 'bold'), url = getUrl(key['path_id']), contentType = 'tvshow', action = 'episodios'))
+    return itemlist
 
 
 def episodios(item):
@@ -241,6 +250,8 @@ def episodios(item):
             itemlist.append(item.clone(title = support.typo(key['name'], 'bold'), url = getUrl(key['path_id']), contentType = 'tvshow', action = 'episodios'))
 
     elif type(item.url) in [list, dict]:
+        for key in item.url:
+            load_episodes(key, item)
         with futures.ThreadPoolExecutor() as executor:
             itlist = [executor.submit(load_episodes, key, item) for key in item.url]
             for res in futures.as_completed(itlist):
@@ -254,6 +265,7 @@ def episodios(item):
             itemlist = sorted(itemlist, key=lambda it: it.title)
 
     else:
+        date = ''
         if type(item.url) in [list, dict]: item.url = getUrl(item.url[0]['path_id'])
         json = current_session.get(item.url).json()['items']
         for key in json:
@@ -263,15 +275,30 @@ def episodios(item):
                 episode = ep[1].zfill(2)
                 title = support.re.sub(r'(?:St\s*\d+)?\s*Ep\s*\d+','',key['subtitle'])
                 title = season + 'x' + episode + (' - ' + title if not title.startswith(' ') else title if title else '')
+            elif item.season and support.match(item.title.lower(), patron =r'(puntate)').match:
+                title = key['subtitle'].strip()
+                if not title: title = key['name']
+                date = support.match(title, patron=r'(\d+/\d+/\d+)').match
+                if date:
+                    date = title.split('/')
+                    date = date[2][-2] + '/' + date[1] + '/' + date[0]
+
             else:
                 title = key['subtitle'].strip()
-            # title = key['subtitle'].strip()
             if not title:
                 title = key['name']
             itemlist.append(item.clone(title = support.typo(title, 'bold'), action = 'findvideos', VL=True if ep else False, plot = key['description'],
-                                       fanart = getUrl(key['images']['landscape']), url = key['video_url'], contentType = 'episode'))
+                                       fanart = getUrl(key['images']['landscape']), url = key['video_url'], contentType = 'episode', date=date))
+
+        if item.season and support.match(item.title.lower(), patron =r'(puntate)').match:
+            itemlist = sorted(itemlist, key=lambda it: it.date)
+            for i, it in enumerate(itemlist):
+                episode = str(i + 1)
+                it.title = support.typo(item.season + 'x' + episode, 'bold') + (' - ' + it.title)
 
         if itemlist and itemlist[0].VL: support.videolibrary(itemlist, item)
+    if itemlist and not support.match(itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\.|\s+)[Ee]?[Pp]?(\d+)').match:
+        autorenumber.start(itemlist, item)
     return itemlist
 
 

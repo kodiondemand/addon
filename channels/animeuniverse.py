@@ -84,12 +84,12 @@ def peliculas(item):
     if not item.pag: item.pag = 1
 
     anime=True
-    blacklist=['Altri Hentai']
+    # blacklist=['Altri Hentai']
     data = support.match(host + '/wp-content/themes/animeuniverse/functions/ajax.php', post='sorter=recent&location=&loop=main+loop&action=sort&numarticles='+perpage+'&paginated='+str(item.pag)+'&currentquery%5B'+query+'%5D='+searchtext+'&thumbnail=1').data.replace('\\','')
     patron=r'<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>.*?)\s*(?P<lang>Sub ITA|ITA)?(?:"| \[)'
 
-    def ItemItemlistHook(item, itemlist):
-        if len(itemlist) == int(perpage) - len(blacklist):
+    def itemlistHook(itemlist):
+        if len(itemlist) == int(perpage):
             item.pag += 1
             itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), action='peliculas'))
         return itemlist

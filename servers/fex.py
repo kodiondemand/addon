@@ -8,7 +8,7 @@ from platformcode import logger
 
 
 def test_video_exists(page_url):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
 
     data = httptools.downloadpage(page_url, follow_redirects=False)
 
@@ -18,7 +18,7 @@ def test_video_exists(page_url):
     return True, ""
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
+    logger.debug("(page_url='%s')" % page_url)
     video_urls = []
     data = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True)
     logger.debug(data.headers)
