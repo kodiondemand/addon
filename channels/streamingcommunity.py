@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per AnimeUnity
+# Canale per StreamingCommunity
 # ------------------------------------------------------------
 
 import requests, json
 from core import support
 
-try: from lib import cloudscraper
-except: from lib import cloudscraper
-
-
 host = support.config.get_channel_url()
 
-session=requests.Session()
+session = requests.Session()
 response = session.get(host)
-csrf_token = support.match(response.text, patron= 'name="csrf-token" content="([^"]+)"').match
+csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
 headers = {'content-type': 'application/json;charset=UTF-8',
            'Referer': host,
            'x-csrf-token': csrf_token,
-           'Cookie' : '; '.join([x.name + '=' + x.value for x in response.cookies])}
+           'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+
 
 @support.menu
 def mainlist(item):

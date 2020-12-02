@@ -33,6 +33,7 @@ LEFT = 1
 RIGHT = 2
 UP = 3
 DOWN = 4
+ENTER = 7
 EXIT = 10
 BACKSPACE = 92
 SWIPEUP = 531
@@ -75,7 +76,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.episodes = []
         self.servers = []
         self.results = {}
-        self.channelsList =  self.get_channels()
+        self.channelsList = self.get_channels()
         self.focus = SEARCH
         self.process = True
         self.page = 1
@@ -228,10 +229,16 @@ class SearchWindow(xbmcgui.WindowXML):
         self.count = 0
         self.LOADING.setVisible(True)
         with futures.ThreadPoolExecutor() as executor:
+            results = []
             for channel in self.channelsList:
-                if self.exit: break
-                module, action = executor.submit(self.getModule, channel).result()
+                if self.exit: return
+                results.append(executor.submit(self.getModule, channel))
+
+            for res in futures.as_completed(results):
+                if self.exit: return
+                module, action = res.result()
                 if module and action:
+                    channel = action[0].channel
                     self.moduleDict[channel] = module
                     self.searchActions += action
                 count += 1
@@ -242,7 +249,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
             for searchAction in self.searchActions:
-                if self.exit: break
+                if self.exit: return
                 executor.submit(self.get_channel_results, self.item, self.moduleDict, searchAction)
         self.moduleDict = {}
         self.searchActions = []
@@ -264,6 +271,8 @@ class SearchWindow(xbmcgui.WindowXML):
 
             if self.item.mode != 'all':
                 for elem in results:
+                    if self.exit:
+                        return
                     if not elem.infoLabels.get('year', ""):
                         elem.infoLabels['year'] = '-'
                     tmdb.set_infoLabels_item(elem)
@@ -299,6 +308,8 @@ class SearchWindow(xbmcgui.WindowXML):
         return it
 
     def update(self, channel, results):
+        if self.exit:
+            return
         logger.debug('Search on channel', channel)
         if results:
             channelParams = channeltools.get_channel_parameters(channel)
@@ -389,7 +400,7 @@ class SearchWindow(xbmcgui.WindowXML):
         if action in [CONTEXT] and focus in [RESULTS, EPISODESLIST, SERVERLIST]:
             self.context()
 
-        elif action in [SWIPEUP] and self.CHANNELS.isVisible() :
+        elif action in [SWIPEUP] and self.CHANNELS.isVisible():
             self.setFocusId(CHANNELS)
             pos = self.CHANNELS.getSelectedPosition()
             self.CHANNELS.selectItem(pos)
@@ -413,6 +424,9 @@ class SearchWindow(xbmcgui.WindowXML):
             pos = self.RESULTS.getSelectedPosition()
             self.CHANNELS.getSelectedItem().setProperty('position', str(pos))
 
+        elif action == ENTER and focus in [CHANNELS]:
+            self.setFocusId(RESULTS)
+
         if action in [BACKSPACE]:
             self.Back()
 
@@ -432,7 +446,6 @@ class SearchWindow(xbmcgui.WindowXML):
             self.RESULTS.addItems(items)
             self.RESULTS.selectItem(subpos)
             self.CHANNELS.getSelectedItem().setProperty('position', str(subpos))
-            # self.setFocusId(RESULTS)
 
         elif control_id in [BACK]:
             self.Back()
@@ -574,7 +587,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.exit = True
         if self.thread:
             busy(True)
-            while self.thread.is_alive(): xbmc.sleep(200)
+            self.thread.join()
             busy(False)
         self.close()
 
