@@ -69,11 +69,11 @@
                         <left>400</left>
                         <top>90</top>
                         <width>840</width>
-                        <height>30</height>
+                        <height>60</height>
                         <!-- <font>font30_title</font> -->
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
-                        <label>$INFO[Container(102).ListItem.Label]   [B][COLOR FFAAAAAA]$INFO[Container(102).ListItem.Property(year)][/COLOR][/B]</label>
+                        <label>$INFO[Container(102).ListItem.Label]   [B][COLOR FFAAAAAA]$INFO[Container(102).ListItem.Property(year)] [CR]$INFO[Container(101).ListItem.Label][/COLOR][/B]</label>
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
@@ -81,7 +81,7 @@
                     <control type="textbox">
                         <description>Item Title</description>
                         <right>40</right>
-                        <top>90</top>
+                        <top>91</top>
                         <width>200</width>
                         <height>30</height>
                         <!-- <font>font30_title</font> -->
@@ -95,7 +95,7 @@
                     <control type="textbox">
                         <description>Item Plot</description>
                         <left>400</left>
-                        <top>150</top>
+                        <top>170</top>
                         <width>840</width> 
                         <height>170</height>
                         <!-- <font>font13</font> -->
@@ -123,7 +123,19 @@
                                 <left>0</left>
                                 <width>180</width>
                                 <height>270</height>
+                                <texture colordiffuse="AAFFFFFF">$INFO[ListItem.Property(thumb)]</texture>
+                                <visible>!Control.HasFocus(102)</visible>
+                                <bordersize>10</bordersize>
+                                <aspectratio>scale</aspectratio>
+                            </control>
+                            <control type="image">
+                                <description>Item Poster</description>
+                                <top>300</top>
+                                <left>0</left>
+                                <width>180</width>
+                                <height>270</height>
                                 <texture>$INFO[ListItem.Property(thumb)]</texture>
+                                <visible>Control.HasFocus(102)</visible>
                                 <bordersize>10</bordersize>
                                 <aspectratio>scale</aspectratio>
                             </control>
@@ -144,7 +156,19 @@
                                 <left>0</left>
                                 <width>380</width>
                                 <height>570</height>
+                                <texture colordiffuse="AAFFFFFF">$INFO[ListItem.Property(thumb)]</texture>
+                                <visible>!Control.HasFocus(102)</visible>
+                                <bordersize>10</bordersize>
+                                <aspectratio>scale</aspectratio>
+                            </control>
+                            <control type="image">
+                                <description>Item Poster</description>
+                                <top>0</top>
+                                <left>0</left>
+                                <width>380</width>
+                                <height>570</height>
                                 <texture>$INFO[ListItem.Property(thumb)]</texture>
+                                <visible>Control.HasFocus(102)</visible>
                                 <bordersize>10</bordersize>
                                 <aspectratio>scale</aspectratio>
                             </control>
@@ -160,7 +184,9 @@
                         </focusedlayout>
                     </control>
                 </control> <!-- END Search Result Group -->
+
                 <control type='button'>
+                    <description>Result Overflow</description>
                     <top>0</top>
                     <left>400</left>
                     <width>880</width>
@@ -168,6 +194,7 @@
                     <texturefocus></texturefocus>
                     <texturenofocus></texturenofocus>
                 </control>
+
                 <control type="group"> <!-- Chennels Group-->
                     <description>Chennels Group</description>
                     <bottom>-100</bottom>

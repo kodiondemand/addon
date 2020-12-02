@@ -201,6 +201,7 @@ def play(item):
     support.info()
     if not item.urls: urls = item.url
     else: urls = item.urls
+    data = ''
     for url in urls:
         new_url = support.httptools.downloadpage(url, allow_redirects=True).url
         if '.mpd' in new_url:
