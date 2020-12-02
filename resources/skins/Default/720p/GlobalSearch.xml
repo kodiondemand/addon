@@ -96,16 +96,17 @@
                         <description>Item Plot</description>
                         <left>400</left>
                         <top>150</top>
-                        <width>840</width>
+                        <width>840</width> 
                         <height>170</height>
                         <!-- <font>font13</font> -->
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>$INFO[Container(102).ListItem.Property(plot)]</label>
+                        <autoscroll time="3000" delay="3000" repeat="3000">True</autoscroll>
                         <align>left</align>
                     </control>
 
-                    <control type="wraplist" id="102">
+                    <control type="fixedlist" id="102">
                         <description>Search Results list</description>
                         <bottom>70</bottom>
                         <left>0</left>
@@ -159,7 +160,14 @@
                         </focusedlayout>
                     </control>
                 </control> <!-- END Search Result Group -->
-
+                <control type='button'>
+                    <top>0</top>
+                    <left>400</left>
+                    <width>880</width>
+                    <height>100%</height>
+                    <texturefocus></texturefocus>
+                    <texturenofocus></texturenofocus>
+                </control>
                 <control type="group"> <!-- Chennels Group-->
                     <description>Chennels Group</description>
                     <bottom>-100</bottom>
