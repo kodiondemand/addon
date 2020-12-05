@@ -1047,9 +1047,8 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
 
         elif player_mode == 1:
             logger.info('Player Mode: setResolvedUrl')
-            # xlistitem.setPath(mediaurl)
-            par = int(sys.argv[1])
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=mediaurl))
+            xlistitem.setPath(mediaurl)
+            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xlistitem)
             # xbmc.sleep(2500)
 
         elif player_mode == 2:
