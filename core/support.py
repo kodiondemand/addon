@@ -477,7 +477,7 @@ def scrape(func):
                     raise logger.ChannelScraperException
 
             # if url may be changed and channel has findhost to update
-            if 'findhost' in func.__globals__ and not itemlist:
+            if 'findhost' in func.__globals__ and not itemlist and n == 0:
                 info('running findhost ' + func.__module__)
                 ch = func.__module__.split('.')[-1]
                 try:

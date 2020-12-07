@@ -48,22 +48,22 @@ def mainlist(item):
 def peliculas(item):
     # debug=True
     patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</h2> )'
-    patronBlock = r'h1>(?P<block>.*?)<div class="row ismobile">'
+    # patronBlock = r'h1>(?P<block>.*?)</section'
 
     if item.args == 'az':
         patron = r'<img style="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)" [^>]+>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\]\s*)?<'\
                  r'[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<year>\d{4})[^>]+>[^>]+>\s*(?P<quality>[^<]+).*?<span class="label">(?P<ratting>[^<]+)<'
         patronBlock =''
 
-    elif item.args == 'genres':
-        patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)"'\
-                 r'.+?<h2 class="titleFilm(?:Mobile)?">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(IMDB\:[ ](?P<rating>.+?))<'
+    # elif item.args == 'genres':
+    #     patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)"'\
+    #              r'.+?<h2 class="titleFilm(?:Mobile)?">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(IMDB\:[ ](?P<rating>.+?))<'
     elif item.args == 'search':
         patronBlock = r'<section id="lastUpdate">(?P<block>.*?)(?:<div class="row ismobile">|<section)'
         patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)'
 
     if not item.args:
-        patronBlock = r'ULTIMI INSERITI(?P<block>.*?)<div class="sliderLastUpdate ismobile ">'
+        patronBlock = r'ULTIMI INSERITI(?P<block>.*?)</section'
 
     # nella pagina "CERCA", la voce "SUCCESSIVO" apre la maschera di inserimento dati
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
