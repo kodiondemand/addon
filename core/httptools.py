@@ -58,7 +58,6 @@ HTTPTOOLS_DEFAULT_RANDOM_HEADERS = False
 #     with open(CF_LIST_PATH, "rb") as CF_File:
 #         CF_LIST = CF_File.read().splitlines()
 
-FORCE_CLOUDSCRAPER_LIST = ['akvideo.stream']
 
 def get_user_agent():
     # Returns the global user agent to be used when necessary for the url.
@@ -269,25 +268,12 @@ def downloadpage(url, **opt):
         """
     url = scrapertools.unescape(url)
     domain = urlparse.urlparse(url).netloc
-    # global CF_LIST
-    CF = False
-
-    if domain in FORCE_CLOUDSCRAPER_LIST or opt.get('cf', False):
-        from lib import cloudscraper
-        session = cloudscraper.create_scraper()
-        CF = True
-    else:
-        from lib import requests
-        session = requests.session()
-
-    # if domain in CF_LIST or opt.get('CF', False):
-    if opt.get('CF', False):
-        url = 'https://web.archive.org/save/' + url
-        CF = True
+    from lib import requests
+    session = requests.session()
 
     if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
         from core import resolverdns
-        session.mount('https://', resolverdns.CipherSuiteAdapter(domain, CF))
+        session.mount('https://', resolverdns.CipherSuiteAdapter(domain))
 
     req_headers = default_headers.copy()
 
@@ -401,29 +387,29 @@ def downloadpage(url, **opt):
         return type('HTTPResponse', (), response)
 
     response_code = req.status_code
-    response['data'] = req.content if req.content else ''
     response['url'] = req.url
 
+    if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
+            and not opt.get('CF', False) and 'Please turn JavaScript on and reload the page' in req.content:
+        logger.debug("CF retry... for domain: %s" % domain)
+        from lib import proxytranslate
+        gResp = proxytranslate.process_request_proxy(url)
+        if gResp:
+            req = gResp['result']
+            response_code = req.status_code
+            response['url'] = gResp['url']
+            response['data'] = gResp['data']
+    else:
+        response['data'] = req.content if req.content else ''
+
     if type(response['data']) != str:
-        try: response['data'] = response['data'].decode('utf-8')
-        except: response['data'] = response['data'].decode('ISO-8859-1')
+        try:
+            response['data'] = response['data'].decode('utf-8')
+        except:
+            response['data'] = response['data'].decode('ISO-8859-1')
 
     if not response['data']:
         response['data'] = ''
-
-    if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
-            and not opt.get('CF', False) and 'Please turn JavaScript on and reload the page' in response['data']:
-        # if domain not in CF_LIST:
-        opt["CF"] = True
-        # with open(CF_LIST_PATH, "a") as CF_File:
-        #     CF_File.write("%s\n" % domain)
-        logger.debug("CF retry... for domain: %s" % domain)
-        return downloadpage(url, **opt)
-
-    if CF:
-        import re
-        response['data'] = re.sub('["|\']/save/[^"]*(https?://[^"]+)', '"\\1', response['data'])
-        response['url'] = response['url'].replace('https://web.archive.org/save/', '')
 
     try:
         response['json'] = to_utf8(req.json())
@@ -438,14 +424,6 @@ def downloadpage(url, **opt):
 
     if opt.get('cookies', True):
         save_cookies(alfa_s=opt.get('alfa_s', False))
-
-    # is_channel = inspect.getmodule(inspect.currentframe().f_back)
-    # is_channel = scrapertools.find_single_match(str(is_channel), "<module '(channels).*?'")
-    # if is_channel and isinstance(response_code, int):
-    #     if not opt.get('ignore_response_code', False) and not proxy_data.get('stat', ''):
-    #         if response_code > 399:
-    #             show_infobox(info_dict)
-    #             raise WebErrorException(urlparse.urlparse(url)[1])
 
     if not 'api.themoviedb' in url and not opt.get('alfa_s', False):
         show_infobox(info_dict)
