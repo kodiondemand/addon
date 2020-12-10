@@ -1,4 +1,11 @@
 # based on https://github.com/MrCl0wnLab/ProxyGoogleTranslate
+import sys
+if sys.version_info[0] >= 3:
+    from urllib import request
+    PY3 = True
+else:
+    PY3 = False
+    import urllib as request
 
 import re
 import time
@@ -6,10 +13,6 @@ import time
 import requests
 from platformcode import logger
 
-try:
-    from urllib import request
-except:
-    import urllib as request
 HEADERS = {
     'Host': 'translate.google.com',
     'User-Agent': 'android'
@@ -61,20 +64,22 @@ def process_request_proxy(url):
 
         logger.debug(url_request_proxy)
 
+        data = None
         result = None
-        while not result or 'Sto traducendo' in result.content:
+        while not data or 'Sto traducendo' in data:
             time.sleep(0.5)
             result = requests.get(
                 url_request_proxy,
                 timeout=20,
                 headers={'User-Agent': 'android'}
             )
+            data = result.content.decode('utf-8', 'ignore')
+            if not PY3:
+                data = data.encode('utf-8')
             logger.debug()
 
-        data = result.content.decode('utf-8', 'ignore').encode('utf-8')
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
-        data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+',
-                      '\\1', data)
+        data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
 
         return {'url': url.strip(), 'result': result, 'data': data.replace('&amp;', '&')}
     except Exception as e:
