@@ -5,12 +5,12 @@
 
 from core import support
 
-def findhost(url):
-    data = support.httptools.downloadpage(url).data
-    url = support.scrapertools.find_single_match(data, '<li><a href="([^"]+)')
-    return url[:-1] if url.endswith('/') else url
+# def findhost(url):
+#     data = support.httptools.downloadpage(url).data
+#     url = support.scrapertools.find_single_match(data, '<li><a href="([^"]+)')
+#     return url[:-1] if url.endswith('/') else url
 
-host = support.config.get_channel_url(findhost)
+host = support.config.get_channel_url()
 support.info('HOST',host)
 # host = 'https://ilcorsaronero.xyz'
 headers = [['Referer', host]]
