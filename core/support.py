@@ -95,11 +95,14 @@ def search(channel, item, texto):
 
 def dbg():
     if config.dev_mode():
-        import web_pdb
-        if not web_pdb.WebPdb.active_instance:
-            import webbrowser
-            webbrowser.open('http://127.0.0.1:5555')
-        web_pdb.set_trace()
+        try:
+            import web_pdb
+            if not web_pdb.WebPdb.active_instance:
+                import webbrowser
+                webbrowser.open('http://127.0.0.1:5555')
+            web_pdb.set_trace()
+        except:
+            pass
 
 
 def regexDbg(item, patron, headers, data=''):

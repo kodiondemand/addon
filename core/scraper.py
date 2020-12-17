@@ -224,7 +224,12 @@ def get_nfo(item):
 
         return info_nfo
     else:
-        return scraper.get_nfo(item)
+        try: return scraper.get_nfo(item)
+        except:
+            if item.contentType == "movie": scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
+            else: scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
+            scraper = __import__('core.%s' % scraper_actual, fromlist=["core.%s" % scraper_actual])
+            return scraper.get_nfo(item)
 
 
 def sort_episode_list(episodelist):

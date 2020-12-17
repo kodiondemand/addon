@@ -8,13 +8,18 @@ from core import support
 
 host = support.config.get_channel_url()
 
-session = requests.Session()
-response = session.get(host)
-csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
-headers = {'content-type': 'application/json;charset=UTF-8',
-           'Referer': host,
-           'x-csrf-token': csrf_token,
-           'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+headers = {}
+
+def getHeaders():
+    global headers
+    if not headers:
+        session = requests.Session()
+        response = session.get(host)
+        csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
+        headers = {'content-type': 'application/json;charset=UTF-8',
+                   'Referer': host,
+                   'x-csrf-token': csrf_token,
+                   'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
 
 
 @support.menu
@@ -34,6 +39,7 @@ def mainlist(item):
 
 
 def genres(item):
+    getHeaders()
     support.info()
     itemlist = []
     data = support.scrapertools.decodeHtmlentities(support.match(item).data)
@@ -85,6 +91,7 @@ def newest(category):
 
 
 def peliculas(item):
+    getHeaders()
     support.info()
     itemlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
@@ -145,6 +152,7 @@ def peliculas(item):
     return itemlist
 
 def episodios(item):
+    getHeaders()
     support.info()
     itemlist = []
 
@@ -172,7 +180,7 @@ def episodios(item):
 
 
 def findvideos(item):
-
+    getHeaders()
     support.info()
     itemlist=[]
     url = support.match(support.match(item).data.replace('&quot;','"').replace('\\',''), patron=r'video_url"\s*:\s*"([^"]+)"').match

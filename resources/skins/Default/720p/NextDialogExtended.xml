@@ -25,6 +25,7 @@
                     <width>326</width>
                     <height>180</height>
                     <texture>$INFO[Window.Property(next_img)]</texture>
+                    <aspectratio>scale</aspectratio>
                 </control>
                 <control type="grouplist" id="20">
                     <orientation>vertical</orientation>

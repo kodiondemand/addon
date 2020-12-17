@@ -67,7 +67,7 @@ def start(itemlist, item):
         # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
         if not user_config_setting_action: config.set_setting("default_action", 2)
 
-        if user_config_setting_player != 0: config.set_setting("player_mode", 0)
+        # if user_config_setting_player != 0: config.set_setting("player_mode", 0)
 
         # Priorities when ordering itemlist:
         #       0: Servers and qualities
@@ -230,6 +230,7 @@ def start(itemlist, item):
                             if isinstance(resolved_item[0], list): videoitem.video_urls = resolved_item
                             else: videoitem = resolved_item[0]
 
+                    play_item.autoplay = True
                     # If not directly reproduce and mark as seen
                     # Check if the item comes from the video library
                     try:

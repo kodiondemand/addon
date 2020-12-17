@@ -22,7 +22,7 @@
       "default": false,
       "enabled": true,
       "id": "black_list",
-      "label": "$ADDON[plugin.video.kod 60654]",
+      "label": "$ADDON[plugin.video.kod 70708]",
       "type": "bool",
       "visible": true
     },

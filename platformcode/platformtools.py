@@ -547,7 +547,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
 
         # Go to the Main Menu (channel.mainlist)
-        if parent_item.channel not in ["news", "channelselector", "downloads"] and item.action != "mainlist":
+        if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
             if parent_item.action != "mainlist":
                 context_commands.insert(0, (config.get_localized_string(60349), "Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
             context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
@@ -556,7 +556,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
             context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Search in other channels
-        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
+        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
 
             # Search in other channels
             if item.contentSerieName != '':
@@ -586,7 +586,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
                 context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
 
-        if not item.local and item.channel not in ["downloads", "filmontv"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
+        if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
             # Download movie
             if item.contentType == "movie":
                 context_commands.append((config.get_localized_string(60354), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
@@ -679,9 +679,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
     if force_direct: item.play_from = 'window'
 
-
-    item, nfo_path, head_nfo, item_nfo = resume_playback(item)
-    set_player(item, xlistitem, mediaurl, view, strm, nfo_path, head_nfo, item_nfo)
+    set_player(item, xlistitem, mediaurl, view, strm)
 
 
 def stop_video():
@@ -1009,9 +1007,17 @@ def get_video_seleccionado(item, seleccion, video_urls):
     return mediaurl, view, mpd
 
 
-def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=None, item_nfo=None):
+def set_player(item, xlistitem, mediaurl, view, strm):
     logger.debug()
+    item.options = {'strm':False, 'continue':False}
     # logger.debug("item:\n" + item.tostring('\n'))
+
+    # Prevent Busy
+    if not item.autoplay:
+        if item.globalsearch: xbmc.executebuiltin("PlayMedia(" + os.path.join(config.get_runtime_path(), "resources", "kod.mp4") + ")")
+        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+        xbmc.Player().stop()
+
     # Moved del conector "torrent" here
     if item.server == "torrent":
         play_torrent(item, xlistitem, mediaurl)
@@ -1028,28 +1034,25 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
             player_mode = item.player_mode
         else:
             player_mode = config.get_setting("player_mode")
-        if (player_mode == 3 and mediaurl.startswith("rtmp")) or item.play_from == 'window' or item.nfo: player_mode = 0
+        if (player_mode == 3 and mediaurl.startswith("rtmp")): player_mode = 0
         elif "megacrypter.com" in mediaurl: player_mode = 3
         logger.info("mediaurl=" + mediaurl)
 
-        if player_mode == 0:
-            logger.info('Player Mode: Direct')
+        if player_mode in [0,1]:
+            logger.info('Player Mode:' + ['Direct', 'Bookmark'][player_mode])
             # Add the listitem to a playlist
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             playlist.clear()
             playlist.add(mediaurl, xlistitem)
 
+            # played_time = resume_playback(get_played_time(item))
+
             # Reproduce
             xbmc_player.play(playlist, xlistitem)
+            # viewed(item, played_time)
             if config.get_setting('trakt_sync'):
                 from core import trakt_tools
                 trakt_tools.wait_for_update_trakt()
-
-        elif player_mode == 1:
-            logger.info('Player Mode: setResolvedUrl')
-            xlistitem.setPath(mediaurl)
-            xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xlistitem)
-            # xbmc.sleep(2500)
 
         elif player_mode == 2:
             logger.info('Player Mode: Built-In')
@@ -1068,13 +1071,14 @@ def set_player(item, xlistitem, mediaurl, view, strm, nfo_path=None, head_nfo=No
         xbmc_player.setSubtitles(item.subtitle)
 
     # if it is a video library file send to mark as seen
-    if strm or item.strm_path:
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.mark_auto_as_watched(item, nfo_path, head_nfo, item_nfo)
+    if strm or item.strm_path: item.options['strm'] = True
+    if player_mode == 1: item.options['continue'] = True
+    from platformcode import xbmc_videolibrary
+    xbmc_videolibrary.mark_auto_as_watched(item)
 
     # for cases where the audio playback window appears in place of the video one
     if item.focusOnVideoPlayer:
-        while is_playing and xbmcgui.getCurrentWindowId() != 12006:
+        while is_playing() and xbmcgui.getCurrentWindowId() != 12006:
             continue
         xbmc.sleep(500)
         xbmcgui.Window(12005).show()
@@ -1136,16 +1140,16 @@ def play_torrent(item, xlistitem, mediaurl):
                 time.sleep(3)
 
 
-def resume_playback(item, return_played_time=False):
+def resume_playback(played_time):
     class ResumePlayback(xbmcgui.WindowXMLDialog):
         Close = False
         Resume = False
 
         def __init__(self, *args, **kwargs):
-            self.action_exitkeys_id = [xbmcgui.ACTION_BACKSPACE, xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK]
+            self.action_exitkeys_id = [92, 10]
             self.progress_control = None
-            self.item = kwargs.get('item')
-            m, s = divmod(float(self.item.played_time), 60)
+            played_time = kwargs.get('played_time')
+            m, s = divmod(played_time, 60)
             h, m = divmod(m, 60)
             self.setProperty("time", '%02d:%02d:%02d' % (h, m, s))
 
@@ -1168,38 +1172,17 @@ def resume_playback(item, return_played_time=False):
             if action in self.action_exitkeys_id:
                 self.set_values(False)
                 self.close()
-
-
-    from core import videolibrarytools, filetools
-
-    # Read NFO FILE
-    if item.contentType == 'movie':
-        nfo_path = item.nfo
-    else:
-        nfo_path = item.strm_path.replace('strm','nfo')
-
-    if filetools.isfile(nfo_path):
-        head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-
-        if return_played_time:
-            return item_nfo.played_time
-        # Show Window
-        elif (config.get_setting("player_mode") not in [3] or item.play_from == 'window') and item_nfo.played_time and item_nfo.played_time >= 120:
-            Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), item=item_nfo)
-            Dialog.show()
-            t = 0
-            while not Dialog.is_close() and t < 100:
-                t += 1
-                xbmc.sleep(100)
-            if not Dialog.Resume: item_nfo.played_time = 0
-        else:
-            item_nfo.played_time = 0
-
-        return item, nfo_path, head_nfo, item_nfo
-    else:
-        item.nfo = item.strm_path = ""
-        return item, None, None, None
-
+    if played_time:
+        Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
+        Dialog.show()
+        t = 0
+        while not Dialog.is_close() and t < 100:
+            t += 1
+            xbmc.sleep(100)
+        if not Dialog.Resume: played_time = 0
+    else: played_time = 0
+    xbmc.sleep(300)
+    return played_time
 
 ##### INPUTSTREM #####
 
@@ -1396,3 +1379,65 @@ def get_platform():
         ret["arch"] = "arm"
 
     return ret
+
+
+
+def get_played_time(item):
+    import sqlite3
+    from core import filetools
+    db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
+    ID = item.infoLabels['tmdb_id']
+    conn = sqlite3.connect(db_name, timeout=15)
+    c = conn.cursor()
+    c.execute('CREATE TABLE IF NOT EXISTS viewed (tmdb_id TEXT, season INT, episode INT, played_time REAL)')
+    conn.commit()
+    if ID:
+        if item.contentType == 'movie': c.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
+        elif 'season' in item.infoLabels:
+            S = item.infoLabels['season']
+            E = item.infoLabels['episode']
+            c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
+        elif 'episode' in item.infoLabels:
+            E = item.infoLabels['episode']
+            c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
+        result = c.fetchone()
+        if not result: played_time = 0
+        else: played_time = result[0]
+    else: played_time = 0
+    conn.close()
+    return played_time
+
+def set_played_time(item):
+    import sqlite3
+    from core import filetools
+    ID = item.infoLabels['tmdb_id']
+    played_time = item.played_time
+    db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
+    conn = sqlite3.connect(db_name, timeout=15)
+    c = conn.cursor()
+    if item.contentType == 'movie':
+        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
+        result = c.fetchone()
+        if result:
+            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=?", (item.played_time, ID))
+            else: c.execute("DELETE from viewed WHERE tmdb_id=?", (ID,))
+        else: c.execute("INSERT INTO viewed (tmdb_id, played_time) VALUES (?, ?)", (ID, item.played_time))
+    elif 'season' in item.infoLabels:
+        S = item.infoLabels['season']
+        E = item.infoLabels['episode']
+        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season = ? AND episode=?", (ID, S, E))
+        result = c.fetchone()
+        if result:
+            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND season=? AND episode=?", (item.played_time, ID, S, E))
+            else: c.execute("DELETE from viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
+        else: c.execute("INSERT INTO viewed (tmdb_id, season, episode, played_time) VALUES (?, ?, ?, ?)", (ID, S, E, item.played_time))
+    elif 'episode' in item.infoLabels:
+        E = item.infoLabels['episode']
+        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
+        result = c.fetchone()
+        if result:
+            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND episode=?", (item.played_time, ID, E))
+            else: c.execute("DELETE from viewed WHERE tmdb_id=? AND episode=?", (ID, E))
+        else: c.execute("INSERT INTO viewed (tmdb_id, episode, played_time) VALUES (?, ?, ?)", (ID, E, item.played_time))
+    conn.commit()
+    conn.close()

@@ -3,7 +3,7 @@
 # Canale per Rai Play
 # ------------------------------------------------------------
 
-import requests, sys
+import requests, sys, inspect
 from core import support
 from platformcode import autorenumber
 if sys.version_info[0] >= 3:
@@ -297,7 +297,7 @@ def episodios(item):
                 it.title = support.typo(item.season + 'x' + episode, 'bold') + (' - ' + it.title)
 
         if itemlist and itemlist[0].VL: support.videolibrary(itemlist, item)
-    if itemlist and not support.match(itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\.|\s+)[Ee]?[Pp]?(\d+)').match:
+    if itemlist and not support.match(itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\.|\s+)[Ee]?[Pp]?(\d+)').match and inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
     return itemlist
 

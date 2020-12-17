@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <window>
-    <depth>0.52</depth>
+    <zorder>0.52</zorder>
     <coordinates>
         <left>0</left>
         <top>0</top>
@@ -73,7 +73,7 @@
                         <!-- <font>font30_title</font> -->
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
-                        <label>$INFO[Container(102).ListItem.Label]   [B][COLOR FFAAAAAA]$INFO[Container(102).ListItem.Property(year)] [CR]$INFO[Container(101).ListItem.Label][/COLOR][/B]</label>
+                        <label>$INFO[Container(102).ListItem.Label][B][COLOR FFAAAAAA]$INFO[Container(102).ListItem.Property(year)]$INFO[Container(102).ListItem.Property(rating)][CR]$INFO[Container(102).ListItem.Property(channel)][/COLOR][/B]</label>
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
@@ -117,69 +117,110 @@
                         <orientation>horizontal</orientation>
                         <scrolltime tween="cubic" easing="out">300</scrolltime>
                         <itemlayout height="570" width="180">
-                            <control type="image">
-                                <description>Item Poster</description>
+                            <control type="group">
                                 <top>300</top>
-                                <left>0</left>
-                                <width>180</width>
-                                <height>270</height>
-                                <texture colordiffuse="AAFFFFFF">$INFO[ListItem.Property(thumb)]</texture>
-                                <visible>!Control.HasFocus(102)</visible>
-                                <bordersize>10</bordersize>
-                                <aspectratio>scale</aspectratio>
+                                <visible>String.IsEmpty(ListItem.Property(channelthumb))</visible>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>180</width>
+                                    <height>270</height>
+                                    <texture colordiffuse="FF999999">$INFO[ListItem.Property(thumb)]</texture>
+                                    <visible>!Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>180</width>
+                                    <height>270</height>
+                                    <texture>$INFO[ListItem.Property(thumb)]</texture>
+                                    <visible>Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
                             </control>
-                            <control type="image">
-                                <description>Item Poster</description>
-                                <top>300</top>
-                                <left>0</left>
-                                <width>180</width>
-                                <height>270</height>
-                                <texture>$INFO[ListItem.Property(thumb)]</texture>
-                                <visible>Control.HasFocus(102)</visible>
-                                <bordersize>10</bordersize>
-                                <aspectratio>scale</aspectratio>
-                            </control>
-                            <control type="image">
-                                <description>Item Verified</description>
-                                <top>315</top>
-                                <left>145</left>
-                                <width>20</width>
-                                <height>20</height>
-                                <texture colordiffuse="FF0082C2">$INFO[ListItem.Property(verified)]</texture>
-                                <aspectratio>scale</aspectratio>
+                            <control type="group">
+                                <top>390</top>
+                                <visible>!String.IsEmpty(ListItem.Property(channelthumb))</visible>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>180</width>
+                                    <height>180</height>
+                                    <texture colordiffuse="FF999999">$INFO[ListItem.Property(channelthumb)]</texture>
+                                    <visible>!Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>180</width>
+                                    <height>180</height>
+                                    <texture>$INFO[ListItem.Property(channelthumb)]</texture>
+                                    <visible>Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
                             </control>
                         </itemlayout>
                         <focusedlayout height="570" width="380">
-                            <control type="image">
-                                <description>Item Poster</description>
-                                <top>0</top>
-                                <left>0</left>
-                                <width>380</width>
-                                <height>570</height>
-                                <texture colordiffuse="AAFFFFFF">$INFO[ListItem.Property(thumb)]</texture>
-                                <visible>!Control.HasFocus(102)</visible>
-                                <bordersize>10</bordersize>
-                                <aspectratio>scale</aspectratio>
+                            <control type="group">
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>380</width>
+                                    <height>570</height>
+                                    <texture colordiffuse="FF999999">$INFO[ListItem.Property(thumb)]</texture>
+                                    <visible>!Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>380</width>
+                                    <height>570</height>
+                                    <texture>$INFO[ListItem.Property(thumb)]</texture>
+                                    <visible>Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
                             </control>
-                            <control type="image">
-                                <description>Item Poster</description>
-                                <top>0</top>
-                                <left>0</left>
-                                <width>380</width>
-                                <height>570</height>
-                                <texture>$INFO[ListItem.Property(thumb)]</texture>
-                                <visible>Control.HasFocus(102)</visible>
-                                <bordersize>10</bordersize>
-                                <aspectratio>scale</aspectratio>
-                            </control>
-                            <control type="image">
-                                <description>Item Verified</description>
-                                <top>15</top>
-                                <left>330</left>
-                                <width>40</width>
-                                <height>40</height>
-                                <texture colordiffuse="FF0082C2">$INFO[ListItem.Property(verified)]</texture>
-                                <aspectratio>scale</aspectratio>
+                            <control type="group">
+                                <top>420</top>
+                                <left>230</left>
+                                <visible>!String.IsEmpty(ListItem.Property(channelthumb))</visible>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>150</width>
+                                    <height>150</height>
+                                    <texture colordiffuse="FF999999">$INFO[ListItem.Property(channelthumb)]</texture>
+                                    <visible>!Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
+                                <control type="image">
+                                    <description>Item Poster</description>
+                                    <top>0</top>
+                                    <left>0</left>
+                                    <width>150</width>
+                                    <height>150</height>
+                                    <texture>$INFO[ListItem.Property(channelthumb)]</texture>
+                                    <visible>Control.HasFocus(102)</visible>
+                                    <bordersize>10</bordersize>
+                                    <aspectratio>scale</aspectratio>
+                                </control>
                             </control>
                         </focusedlayout>
                     </control>
@@ -248,25 +289,16 @@
                             </control>
                             <control type="textbox">
                                 <description>Results Count</description>
-                                <right>5</right>
-                                <top>5</top>
-                                <width>30</width>
-                                <height>30</height>
+                                <left>110</left>
+                                <top>0</top>
+                                <width>40</width>
+                                <height>40</height>
                                 <!-- <font>font30_title</font> -->
                                 <textcolor>22FFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <label>[B]$INFO[ListItem.Property(results)][/B]</label>
                                 <align>center</align>
                                 <aligny>center</aligny>
-                            </control>
-                            <control type="image">
-                                <description>Verified</description>
-                                <top>5</top>
-                                <left>5</left>
-                                <width>30</width>
-                                <height>30</height>
-                                <texture colordiffuse="880082C2">$INFO[ListItem.Property(verified)]</texture>
-                                <aspectratio>scale</aspectratio>
                             </control>
                         </itemlayout>
                         <focusedlayout height="150" width="150">
@@ -288,22 +320,12 @@
                                 <texture colordiffuse="880082C2">white.png</texture>
                                 <aspectratio>scale</aspectratio>
                             </control>
-                            <control type="image">
-                                <description>Results Count</description>
-                                <top>5</top>
-                                <left>5</left>
-                                <width>30</width>
-                                <height>30</height>
-                                <texture colordiffuse="FF0082C2">$INFO[ListItem.Property(verified)]</texture>
-                                <aspectratio>scale</aspectratio>
-                            </control>
                             <control type="textbox">
-                                <description>Verified</description>
-                                <right>5</right>
-                                <top>5</top>
-                                <width>30</width>
-                                <height>30</height>
-                                <!-- <font>font30_title</font> -->
+                                <description>Results Count</description>
+                                <left>110</left>
+                                <top>0</top>
+                                <width>40</width>
+                                <height>40</height>
                                 <textcolor>FFFFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <label>[B]$INFO[ListItem.Property(results)][/B]</label>
@@ -346,7 +368,7 @@
 
                 <control type="list" id="200"> <!-- Episodes List -->
                     <description>Episodes List</description>
-                    <bottom>40</bottom>
+                    <top>110</top>
                     <left>520</left>
                     <width>700</width>
                     <height>570</height>
@@ -359,7 +381,6 @@
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -370,6 +391,8 @@
                     <focusedlayout height="60" width="700">
                         <control type="image">
                             <description>Selected Background</description>
+                            <top>0</top>
+                            <left>0</left>
                             <width>700</width>
                             <height>60</height>
                             <texture colordiffuse="88000000">white.png</texture>
@@ -380,7 +403,6 @@
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -476,6 +498,20 @@
                             <aligny>center</aligny>
                             <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
                         </control>
+                        <control type="textbox">
+                            <description>No Server Title</description>
+                            <left>150</left>
+                            <top>35</top>
+                            <width>450</width>
+                            <height>60</height>
+                            <!-- <font>font30_title</font> -->
+                            <textcolor>FFFFFFFF</textcolor>
+                            <shadowcolor>00000000</shadowcolor>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[ListItem.Label]</label>
+                            <visible>!ListItem.Property(servername)</visible>
+                        </control>
                     </itemlayout>
                     <focusedlayout height="140" width="700">
                         <control type="image">
@@ -542,6 +578,20 @@
                             <align>left</align>
                             <aligny>center</aligny>
                             <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
+                        </control>
+                        <control type="textbox">
+                            <description>No Server Title</description>
+                            <left>150</left>
+                            <top>35</top>
+                            <width>450</width>
+                            <height>60</height>
+                            <!-- <font>font30_title</font> -->
+                            <textcolor>FFFFFFFF</textcolor>
+                            <shadowcolor>00000000</shadowcolor>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <label>$INFO[ListItem.Label]</label>
+                            <visible>!ListItem.Property(servername)</visible>
                         </control>
                     </focusedlayout>
                 </control> <!-- END Servers List -->

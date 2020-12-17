@@ -95,7 +95,7 @@ def episodios(item):
         item.contentType = 'tvshow'
     else:# item.extra == 'serie':
         support.info("Serie :", item)
-        patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<url>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
+        patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         item.contentType = 'tvshow'
     def itemHook(item):

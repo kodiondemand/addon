@@ -241,6 +241,7 @@ def server_debrid_config(item):
 
 def servers_blacklist(item):
     server_list = servertools.get_servers_list()
+    black_list = config.get_setting("black_list", server='servers')
     blacklisted = []
 
     list_controls = []
@@ -252,10 +253,10 @@ def servers_blacklist(item):
 
         control = server_parameters["name"]
         # control.setArt({'thumb:': server_parameters['thumb'] if 'thumb' in server_parameters else config.get_online_server_thumb(server)})
-        if defaults.get("black_list", False) or config.get_setting("black_list", server=server):
-            blacklisted.append(i)
-
-        list_controls.append(control)
+        if not config.get_setting("black_list", server=server):
+            list_controls.append(control)
+            if defaults.get("black_list", False) or server in black_list:
+                blacklisted.append(i)
         list_servers.append(server)
     ris = platformtools.dialog_multiselect(config.get_localized_string(60550), list_controls, preselect=blacklisted)
     if ris is not None:

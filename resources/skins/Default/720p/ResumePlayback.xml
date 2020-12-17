@@ -6,26 +6,26 @@
     <controls>
         <control type="group">
             <animation type="WindowOpen" reversible="false">
-                <effect type="fade" start="0" end="100" time="300" />
+                <effect type="fade" start="0" end="100" time="100" />
             </animation>
             <animation type="WindowClose" reversible="false">
-                <effect type="fade" start="100" end="0" time="300" />
+                <effect type="fade" start="100" end="0" time="100" />
             </animation>
-            <right>440</right>
-            <top>320</top>
+            <right>490</right>
+            <top>300</top>
             <height>40</height>
-            <width>400</width>
+            <width>300</width>
             <control type="grouplist" id="20">
                 <orientation>vertical</orientation>
-                <height>80</height>
+                <height>120</height>
                 <itemgap>0</itemgap>
                 <align>center</align>
                 <control type="button" id="3012">
-                    <label>$ADDON[plugin.video.kod 30045] $INFO[Window.Property(time)]</label>
+                    <label>[B]$ADDON[plugin.video.kod 30045] $INFO[Window.Property(time)][/B]</label>
                     <onclick>SendClick(3012)</onclick>
-                    <height>40</height>
-                    <width>400</width>
-                    <font>font30_title</font>
+                    <height>60</height>
+                    <width>300</width>
+                    <!-- <font>font30_title</font> -->
                     <textoffsetx>20</textoffsetx>
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>
@@ -35,10 +35,10 @@
                     <pulseonselect>no</pulseonselect>
                 </control>
                 <control type="button" id="3013">
-                    <label>$ADDON[plugin.video.kod 30046]</label>
-                    <height>40</height>
-                    <width>400</width>
-                    <font>font30_title</font>
+                    <label>[B]$ADDON[plugin.video.kod 30046][/B]</label>
+                    <height>60</height>
+                    <width>300</width>
+                    <!-- <font>font30_title</font> -->
                     <textoffsetx>20</textoffsetx>
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>

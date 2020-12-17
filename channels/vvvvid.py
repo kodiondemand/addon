@@ -2,9 +2,9 @@
 # ------------------------------------------------------------
 # Canale per vvvvid
 # ----------------------------------------------------------
-import requests, sys
+import requests, sys, inspect
 from core import support, tmdb
-from platformcode import autorenumber, logger
+from platformcode import autorenumber, logger, config
 
 host = support.config.get_channel_url()
 
@@ -170,7 +170,8 @@ def episodios(item):
                                 url=  host + show_id + '/season/' + str(key['season_id']),
                                 action= 'findvideos',
                                 video_id= key['video_id']))
-    autorenumber.start(itemlist, item)
+    if inspect.stack()[1][3] not in ['find_episodes']:
+        autorenumber.start(itemlist, item)
     if autorenumber.check(item) == True \
         or support.match(itemlist[0].title, patron=r"(\d+x\d+)").match:
         support.videolibrary(itemlist,item)
@@ -196,7 +197,7 @@ def findvideos(item):
                 url = url.split()[-1]
                 itemlist.append(
                     item.clone(action= 'play',
-                               title='direct',
+                               title=config.get_localized_string(30137),
                                url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
                                server= 'directo')
                 )
@@ -206,7 +207,7 @@ def findvideos(item):
 
                 itemlist.append(
                     item.clone(action= 'play',
-                               title='direct',
+                               title=config.get_localized_string(30137),
                                url= item.url + '?' + key,
                                server= 'directo')
                 )

@@ -344,7 +344,7 @@ def get_episodes(item):
                 head_nfo, epi = videolibrarytools.read_nfo(nfo_path)
 
                 # Set the chapter title if possible
-                if epi.contentTitle:
+                if epi.contentTitle and epi.contentTitle != epi.fulltitle:
                     title_episodie = epi.contentTitle.strip()
                 else:
                     title_episodie = config.get_localized_string(60031) %  (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2))

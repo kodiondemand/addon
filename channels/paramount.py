@@ -105,7 +105,7 @@ def peliculas(item):
         if pagination and len(itemlist) >= item.page * pagination and not item.search:
             itlist.append(item.clone(channel=item.channel, action = 'peliculas', title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), page=item.page + 1, thumbnail=support.thumb()))
         itemlist = itlist
-    autorenumber.renumber(itemlist, item, 'bold')
+    autorenumber.start(itemlist)
     return itemlist
 
 
@@ -156,7 +156,8 @@ def episodios(item):
                         action='findvideos'))
 
     itemlist.sort(key=lambda item: (item.season, item.episode))
-    autorenumber.renumber(itemlist, item, 'bold')
+    if inspect.stack()[1][3] not in ['find_episodes']:
+        autorenumber.start(itemlist, item)
     return support.videolibrary(itemlist, item)
 
 

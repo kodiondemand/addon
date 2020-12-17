@@ -3,7 +3,7 @@
 # Canale per AnimeUnity
 # ------------------------------------------------------------
 
-import requests, json, copy
+import requests, json, copy, inspect
 from core import support
 from platformcode import autorenumber
 
@@ -212,7 +212,8 @@ def episodios(item):
                          contentType='episode',
                          url=it['link']))
 
-    autorenumber.start(itemlist, item)
+    if inspect.stack()[1][3] not in ['find_episodes']:
+        autorenumber.start(itemlist, item)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
     return itemlist

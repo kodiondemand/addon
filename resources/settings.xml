@@ -13,6 +13,7 @@
         <setting id="checkdns" type="bool" default="true" visible="false"/>
         <setting label="70788" type="lsep"/>
         <setting id="debug" type="bool" label="30003" default="false"/>
+        <setting id="chrome_ua_version" type="text" default="87.0.4280.88" visible="False"/>
     </category>
 
     <!-- Playback -->
