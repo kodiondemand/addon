@@ -90,6 +90,7 @@ def busy(state):
 
 # Main
 def start(itemlist, item=None):
+    if not itemlist: return
     if type(itemlist) == Item:
         item = itemlist
         if item.channel in ['autorenumber']:

@@ -749,6 +749,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
             while not xbmc.Player().getTime() > 0:
                 xbmc.sleep(500)
             self.close()
+            xbmc.sleep(500)
             while xbmcgui.getCurrentWindowId() in [12005, 12006]:
                 xbmc.sleep(500)
             if platformtools.is_playing():
