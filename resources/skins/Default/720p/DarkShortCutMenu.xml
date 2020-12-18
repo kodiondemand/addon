@@ -78,32 +78,31 @@
 						<top>1</top>
 						<width>220</width>
 						<height>218</height>
-						<texture colordiffuse="FF0082C2">white.png</texture>
+						<texture colordiffuse="550082C2">white.png</texture>
+					</control>
+					<control type="image">
+						<width>220</width>
+						<height>220</height>
+						<texture>$INFO[ListItem.Property(thumbnail)]</texture>
+						<aspectratio>keep</aspectratio>
+						<align>center</align>
 					</control>
 					<control type="textbox">
 						<left>0</left>
 						<top>160</top>
 						<width>220</width>
 						<height>74</height>
-						<font>font12</font>
-						<textcolor>FFFFFFFF</textcolor>
+						<textcolor>FF232323</textcolor>
 						<label>$INFO[ListItem.Label]</label>
 						<align>center</align>
 						<aligny>center</aligny>
 					</control>
 					<control type="image">
-						<left>100</left>
-						<top>5</top>
-						<width>20</width>
-						<height>20</height>
-						<texture>$INFO[ListItem.Property(sub)]</texture>
-						<aspectratio>keep</aspectratio>
-						<align>center</align>
-					</control>
-					<control type="image">
-						<width>220</width>
-						<height>220</height>
-						<texture>$INFO[ListItem.Property(thumbnail)]</texture>
+						<left>90</left>
+						<top>0</top>
+						<width>40</width>
+						<height>40</height>
+						<texture colordiffuse="FF232323">$INFO[ListItem.Property(sub)]</texture>
 						<aspectratio>keep</aspectratio>
 						<align>center</align>
 					</control>

@@ -100,7 +100,7 @@ class Main(xbmcgui.WindowXMLDialog):
             if not menuentry.channel: menuentry.channel = prevchannel
             item = xbmcgui.ListItem(menuentry.title)
             if not submenu and menuentry.channel in ['news', 'channelselector', 'search', 'videolibrary']:
-                item.setProperty('sub', 'Controls/spinUp-Focus.png')
+                item.setProperty('sub', 'Shortcut/sub.png')
             if menuentry.title != 'Redirect':
                 for key , value in json.loads(menuentry.tojson()).items():
                     item.setProperty(key, str(value))
@@ -115,7 +115,10 @@ class Main(xbmcgui.WindowXMLDialog):
         if control_id == 32500:
             action = self.getControl(32500).getSelectedItem().getProperty('run')
             self.close()
-            xbmc.executebuiltin('ActivateWindow(10025, "plugin://plugin.video.kod/?' + base64.b64encode(action) + '")')
+            if self.getControl(32500).getSelectedItem().getProperty('folder') == 'False':
+                xbmc.executebuiltin('RunPlugin("plugin://plugin.video.kod/?' + base64.b64encode(action) + '")')
+            else:
+                xbmc.executebuiltin('ActivateWindow(10025, "plugin://plugin.video.kod/?' + base64.b64encode(action) + '")')
 
 
 
