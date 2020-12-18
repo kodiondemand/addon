@@ -530,6 +530,7 @@
                             <visible>Control.HasFocus(300)</visible>
                             <texture colordiffuse="$INFO[ListItem.Property(color)]">white.png</texture>
                             <aspectratio>scale</aspectratio>
+                            <visible>ListItem.Property(servername)</visible>
                         </control>
                         <control type="image">
                             <description>Servers Icon</description>
