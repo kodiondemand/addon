@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import xbmc, xbmcgui, sys, channelselector, time, gc
-from core.support import dbg, typo, tmdb
+import xbmc, xbmcgui, sys, channelselector, time
+from core.support import dbg, tmdb
 from core.item import Item
 from core import channeltools, servertools, scrapertools
 from platformcode import platformtools, config, logger
@@ -329,7 +329,6 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
 
     def makeItem(self, url):
         item = Item().fromurl(url)
-        logger.debug(item)
         channelParams = channeltools.get_channel_parameters(item.channel)
         thumb = item.thumbnail if item.thumbnail else 'Infoplus/' + item.contentType.replace('show', '') + '.png'
         logger.info('THUMB', thumb)
@@ -434,7 +433,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
         self.PROGRESS = self.getControl(PROGRESS)
         self.COUNT = self.getControl(COUNT)
         self.MAINTITLE = self.getControl(MAINTITLE)
-        self.MAINTITLE.setText(typo(config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text, 'bold'))
+        self.MAINTITLE.setText(config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text)
         self.SEARCH = self.getControl(SEARCH)
         self.EPISODES = self.getControl(EPISODES)
         self.EPISODESLIST = self.getControl(EPISODESLIST)
@@ -744,6 +743,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
     def playmonitor(self, server=None):
         if server:
             server.globalsearch = True
+            platformtools.prevent_busy(server)
             run(server)
         try:
             while not xbmc.Player().getTime() > 0:

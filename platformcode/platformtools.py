@@ -1012,12 +1012,6 @@ def set_player(item, xlistitem, mediaurl, view, strm):
     item.options = {'strm':False, 'continue':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    # Prevent Busy
-    if not item.autoplay:
-        if item.globalsearch: xbmc.executebuiltin("PlayMedia(" + os.path.join(config.get_runtime_path(), "resources", "kod.mp4") + ")")
-        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.Player().stop()
-
     # Moved del conector "torrent" here
     if item.server == "torrent":
         play_torrent(item, xlistitem, mediaurl)
@@ -1441,3 +1435,10 @@ def set_played_time(item):
         else: c.execute("INSERT INTO viewed (tmdb_id, episode, played_time) VALUES (?, ?, ?)", (ID, E, item.played_time))
     conn.commit()
     conn.close()
+
+def prevent_busy(item):
+    if not item.autoplay:
+        if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
+        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    xbmc.sleep(200)
+    xbmc.Player().stop()
