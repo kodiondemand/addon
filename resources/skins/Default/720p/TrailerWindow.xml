@@ -43,7 +43,7 @@
                 <bottom>40</bottom>
                 <width>50</width>
                 <height>30</height>
-                <font>font30_title</font>
+                <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <shadowcolor>00000000</shadowcolor>
                 <label></label>
@@ -78,7 +78,7 @@
                         <top>164</top>
                         <width>600</width>
                         <height>30</height>
-                        <font>font30_title</font>
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[ListItem.Label][/B]</label>

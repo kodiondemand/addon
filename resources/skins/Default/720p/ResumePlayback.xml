@@ -25,7 +25,7 @@
                     <onclick>SendClick(3012)</onclick>
                     <height>60</height>
                     <width>300</width>
-                    <!-- <font>font30_title</font> -->
+                    <font>font13</font>
                     <textoffsetx>20</textoffsetx>
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>
@@ -38,7 +38,7 @@
                     <label>[B]$ADDON[plugin.video.kod 30046][/B]</label>
                     <height>60</height>
                     <width>300</width>
-                    <!-- <font>font30_title</font> -->
+                    <font>font13</font>
                     <textoffsetx>20</textoffsetx>
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>

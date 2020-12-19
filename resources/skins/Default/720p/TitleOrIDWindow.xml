@@ -23,7 +23,7 @@
             <left>40</left>
             <height>40</height>
             <width>1200</width>
-            <!-- <font>font30_title</font> -->
+            <font>font13</font>
             <textcolor>CCFFFFFF</textcolor>
             <aligny>center</aligny>
             <align>center</align>
@@ -46,7 +46,7 @@
                 <left>40</left>
                 <height>40</height>
                 <width>100</width>
-                <!-- <font>font30_title</font> -->
+                <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <label>$ADDON[plugin.video.kod 70714]</label>
                 <aligny>center</aligny>

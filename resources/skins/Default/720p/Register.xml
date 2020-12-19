@@ -21,6 +21,7 @@
             <control type="textbox" id="10002">
                 <height>60</height>
                 <width>600</width>
+                <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <wrapmultiline>true</wrapmultiline>
                 <align>center</align>

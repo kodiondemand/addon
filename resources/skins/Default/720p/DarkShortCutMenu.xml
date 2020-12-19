@@ -92,6 +92,7 @@
 						<top>160</top>
 						<width>220</width>
 						<height>74</height>
+						<font>font13</font>
 						<textcolor>FF232323</textcolor>
 						<label>$INFO[ListItem.Label]</label>
 						<align>center</align>

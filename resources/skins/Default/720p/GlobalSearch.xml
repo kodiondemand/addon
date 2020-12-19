@@ -51,7 +51,7 @@
                     <top>30</top>
                     <width>1000</width>
                     <height>30</height>
-                    <!-- <font>font30_title</font> -->
+                    <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
                     <visible>Integer.IsGreater(Container(101).NumItems, 0)</visible>
@@ -70,7 +70,7 @@
                         <top>90</top>
                         <width>840</width>
                         <height>60</height>
-                        <!-- <font>font30_title</font> -->
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>$INFO[Container(102).ListItem.Label][B][COLOR FFAAAAAA]$INFO[Container(102).ListItem.Property(year)]$INFO[Container(102).ListItem.Property(rating)][CR]$INFO[Container(102).ListItem.Property(channel)][/COLOR][/B]</label>
@@ -84,7 +84,7 @@
                         <top>91</top>
                         <width>200</width>
                         <height>30</height>
-                        <!-- <font>font30_title</font> -->
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B][COLOR FFAAAAAA]$INFO[Container(102).CurrentItem]/$INFO[Container(102).NumItems][/COLOR][/B]</label>
@@ -98,7 +98,7 @@
                         <top>170</top>
                         <width>840</width> 
                         <height>170</height>
-                        <!-- <font>font13</font> -->
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>$INFO[Container(102).ListItem.Property(plot)]</label>
@@ -293,7 +293,7 @@
                                 <top>0</top>
                                 <width>40</width>
                                 <height>40</height>
-                                <!-- <font>font30_title</font> -->
+                                <font>font13</font>
                                 <textcolor>22FFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <label>[B]$INFO[ListItem.Property(results)][/B]</label>
@@ -326,6 +326,7 @@
                                 <top>0</top>
                                 <width>40</width>
                                 <height>40</height>
+                                <font>font13</font>
                                 <textcolor>FFFFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <label>[B]$INFO[ListItem.Property(results)][/B]</label>
@@ -358,7 +359,7 @@
                     <top>40</top>
                     <width>1150</width>
                     <height>30</height>
-                    <!-- <font>font30_title</font> -->
+                    <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
                     <align>left</align>
@@ -381,6 +382,7 @@
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -403,6 +405,7 @@
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -432,7 +435,7 @@
                     <top>40</top>
                     <width>1150</width>
                     <height>30</height>
-                    <!-- <font>font30_title</font> -->
+                    <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
                     <align>left</align>
@@ -476,7 +479,7 @@
                                 <top>35</top>
                                 <width>450</width>
                                 <height>60</height>
-                                <!-- <font>font30_title</font> -->
+                                <font>font13</font>
                                 <textcolor>FFFFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <align>left</align>
@@ -491,7 +494,7 @@
                             <top>35</top>
                             <width>450</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -504,7 +507,7 @@
                             <top>35</top>
                             <width>450</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -558,7 +561,7 @@
                                 <top>35</top>
                                 <width>450</width>
                                 <height>60</height>
-                                <!-- <font>font30_title</font> -->
+                                <font>font13</font>
                                 <textcolor>FFFFFFFF</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <align>left</align>
@@ -573,7 +576,7 @@
                             <top>35</top>
                             <width>450</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -586,7 +589,7 @@
                             <top>35</top>
                             <width>450</width>
                             <height>60</height>
-                            <!-- <font>font30_title</font> -->
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
@@ -620,7 +623,7 @@
             <right>130</right>
             <width>200</width>
             <height>40</height>
-            <!-- <font>font30_title</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <align>right</align>
@@ -635,7 +638,7 @@
             <left>0</left>
             <width>100%</width>
             <height>40</height>
-            <!-- <font>font30_title</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <align>center</align>
@@ -650,7 +653,7 @@
             <left>0</left>
             <width>100%</width>
             <height>40</height>
-            <!-- <font>font30_title</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <align>center</align>
@@ -702,6 +705,7 @@
             <right>20</right>
             <width>200</width>
             <height>40</height>
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <align>right</align>

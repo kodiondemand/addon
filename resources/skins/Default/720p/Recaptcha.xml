@@ -26,6 +26,7 @@
           <left>20</left>
           <height>60</height>
           <width>560</width>
+          <font>font13</font>
           <textcolor>FFFFFFFF</textcolor>
           <wrapmultiline>true</wrapmultiline>
           <align>center</align>

@@ -25,6 +25,7 @@
                 <width>1200</width>
                 <align>center</align>
                 <aligny>center</aligny>
+                <font>font13</font>
                 <textcolor>80FFFFFF</textcolor>
                 <label>$ADDON[plugin.video.kod 70830]</label>
             </control>
@@ -58,6 +59,7 @@
                     <left>120</left>
                     <height>60</height>
                     <width>20</width>
+                    <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <align>center</align>
                     <aligny>center</aligny>
@@ -139,6 +141,7 @@
                     <bottom>5</bottom>
                     <width>100%</width>
                     <height>30</height>
+                    <font>font13</font>
                     <textcolor>FFFFFFFF</textcolor>
                     <align>center</align>
                     <aligny>center</aligny>
@@ -183,6 +186,7 @@
                         <height>100%</height>
                         <width>300</width>
                         <left>20</left>
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
                         <aligny>center</aligny>
@@ -207,6 +211,7 @@
                         <height>100%</height>
                         <width>300</width>
                         <left>20</left>
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
                         <aligny>center</aligny>
@@ -231,6 +236,7 @@
                             <left>20</left>
                             <height>60</height>
                             <width>140</width>
+                            <font>font13</font>
                             <textcolor>80FFFFFF</textcolor>
                             <aligny>center</aligny>
                             <label>[B]0x$INFO[ListItem.Label()] - Ep. $INFO[ListItem.Property(title)][/B]</label>
@@ -248,6 +254,7 @@
                             <left>20</left>
                             <height>60</height>
                             <width>140</width>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <aligny>center</aligny>
                             <label>[B]0x$INFO[ListItem.Label()] - Ep. $INFO[ListItem.Property(title)][/B]</label>
@@ -350,6 +357,7 @@
                             <height>100%</height>
                             <width>120</width>
                             <left>20</left>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
                             <aligny>center</aligny>
@@ -363,6 +371,7 @@
                             <onright>307</onright>
                             <align>center</align>
                             <aligny>center</aligny>
+                            <font>font13</font>
                             <textcolor>80FFFFFF</textcolor>
                             <label>[B]$INFO[ListItem.Property(season)][/B]</label>
                         </control>
@@ -371,6 +380,7 @@
                             <right>80</right>
                             <height>60</height>
                             <width>20</width>
+                            <font>font13</font>
                             <textcolor>80FFFFFF</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
@@ -385,6 +395,7 @@
                             <onright>308</onright>
                             <align>center</align>
                             <aligny>center</aligny>
+                            <font>font13</font>
                             <textcolor>80FFFFFF</textcolor>
                             <label>[B]$INFO[ListItem.Property(episode)][/B]</label>
                         </control>
@@ -400,6 +411,7 @@
                             <height>100%</height>
                             <width>120</width>
                             <left>20</left>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <label>[B]Episodio $INFO[ListItem.Label()][/B]</label>
                             <aligny>center</aligny>
@@ -413,6 +425,7 @@
                             <onright>307</onright>
                             <align>center</align>
                             <aligny>center</aligny>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <label>[B]$INFO[ListItem.Property(season)][/B]</label>
                         </control>
@@ -421,6 +434,7 @@
                             <right>80</right>
                             <height>60</height>
                             <width>20</width>
+                            <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <align>center</align>
                             <aligny>center</aligny>
@@ -493,6 +507,7 @@
                     <control type="label">
                         <height>100%</height>
                         <width>100%</width>
+                        <font>font13</font>
                         <textcolor>80FFFFFF</textcolor>
                         <label>[B]$INFO[ListItem.Label()][/B]</label>
                         <align>center</align>
@@ -510,6 +525,7 @@
                         <height>100%</height>
                         <width>100%</width>
                         <textcolor>FFFFFFFF</textcolor>
+                        <font>font13</font>
                         <label>[B]$INFO[ListItem.Label()][/B]</label>
                         <align>center</align>
                         <aligny>center</aligny>
@@ -524,6 +540,7 @@
                     <control type="label">
                         <height>100%</height>
                         <width>100%</width>
+                        <font>font13</font>
                         <textcolor>80FFFFFF</textcolor>
                         <label>[B]$INFO[ListItem.Label()][/B]</label>
                         <align>center</align>
@@ -555,6 +572,7 @@
                         <height>100%</height>
                         <width>200</width>
                         <left>40</left>
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <label>[B]$INFO[ListItem.Label()][/B]</label>
                         <aligny>center</aligny>
@@ -571,6 +589,7 @@
                         <height>100%</height>
                         <width>200</width>
                         <left>40</left>
+                        <font>font13</font>
                         <textcolor>FFFFFFFF</textcolor>
                         <label>[B]$INFO[ListItem.Label()][/B]</label>
                         <aligny>center</aligny>
@@ -589,6 +608,7 @@
                 <left>540</left>
                 <height>50</height>
                 <width>560</width>
+                <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <aligny>center</aligny>
             </control>

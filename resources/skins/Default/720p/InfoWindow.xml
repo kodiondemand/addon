@@ -84,7 +84,7 @@
             <top>10</top>
             <width>783</width>
             <height>30</height>
-            <!-- <font>font30_title</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>[B]$INFO[ListItem.Label] [COLOR FFAAAAAA] $INFO[ListItem.Property(year)][/COLOR][/B] </label>
@@ -97,7 +97,7 @@
             <top>50</top>
             <width>783</width>
             <height>30</height>
-            <!-- <font>font13</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>$ADDON[plugin.video.kod 60382] $INFO[ListItem.Property(genre)] | $ADDON[plugin.video.kod 60380] [B]$INFO[ListItem.Property(rating)][/B]</label>
@@ -109,7 +109,7 @@
             <top>90</top>
             <width>783</width>
             <height>250</height>
-            <!-- <font>font13</font> -->
+            <font>font13</font>
             <textcolor>FFFFFFFF</textcolor>
             <shadowcolor>00000000</shadowcolor>
             <label>$INFO[ListItem.Property(plot)]</label>
