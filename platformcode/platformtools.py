@@ -555,6 +555,9 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # Add to kodfavoritos (My links)
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
             context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
+        # Add to kodfavoritos 
+        if parent_item.channel == 'globalsearch':
+            context_commands.append( (config.get_localized_string(30155), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "favorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Search in other channels
         if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
 
@@ -1012,12 +1015,6 @@ def set_player(item, xlistitem, mediaurl, view, strm):
     item.options = {'strm':False, 'continue':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    # Prevent Busy
-    if not item.autoplay:
-        if item.globalsearch: xbmc.executebuiltin("PlayMedia(" + os.path.join(config.get_runtime_path(), "resources", "kod.mp4") + ")")
-        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.Player().stop()
-
     # Moved del conector "torrent" here
     if item.server == "torrent":
         play_torrent(item, xlistitem, mediaurl)
@@ -1039,14 +1036,12 @@ def set_player(item, xlistitem, mediaurl, view, strm):
         logger.info("mediaurl=" + mediaurl)
 
         if player_mode in [0,1]:
+            prevent_busy(item)
             logger.info('Player Mode:' + ['Direct', 'Bookmark'][player_mode])
             # Add the listitem to a playlist
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             playlist.clear()
             playlist.add(mediaurl, xlistitem)
-
-            # played_time = resume_playback(get_played_time(item))
-
             # Reproduce
             xbmc_player.play(playlist, xlistitem)
             # viewed(item, played_time)
@@ -1441,3 +1436,12 @@ def set_played_time(item):
         else: c.execute("INSERT INTO viewed (tmdb_id, episode, played_time) VALUES (?, ?, ?)", (ID, E, item.played_time))
     conn.commit()
     conn.close()
+
+def prevent_busy(item):
+    logger.debug()
+    if not item.autoplay and not item.window:
+        if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
+        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+        xbmc.sleep(500)
+        xbmc.Player().stop()
+        xbmc.sleep(500)

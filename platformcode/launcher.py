@@ -464,8 +464,7 @@ def play_from_library(item):
     # logger.debug("item: \n" + item.tostring('\n'))
 
     # Try to reproduce an image (this does nothing and also does not give an error)
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-    xbmc.Player().stop()
+    platformtools.prevent_busy(item)
 
     # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
@@ -485,12 +484,12 @@ def play_from_library(item):
         itemlist = videolibrary.findvideos(item)
         p_dialog.update(100, ''); sleep(0.5); p_dialog.close()
         while platformtools.is_playing(): sleep(1)
-        # from core.support import dbg;dbg()
         if item.contentType == 'movie': nfo_path = item.nfo
         else: nfo_path = item.strm_path.replace('strm','nfo')
         if nfo_path and filetools.isfile(nfo_path):
             from core import videolibrarytools
             head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
+            item_nfo.window = True
             played_time = platformtools.get_played_time(item_nfo)
         else: played_time = 0
 
@@ -505,27 +504,28 @@ def play_from_library(item):
         if len(itemlist) > 0:
             while not xbmc.Monitor().abortRequested():
                 # The user chooses the mirror
-                options = []
-                selection_implementation = 0
-                for item in itemlist:
-                    item.thumbnail = config.get_online_server_thumb(item.server)
-                    quality = '[B][' + item.quality + '][/B]' if item.quality else ''
-                    if item.server:
-                        path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
-                        name = jsontools.load(open(path, "r").read())['name']
-                        if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-                        it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (name, quality, item.contentTitle))
-                        it.setArt({'thumb':item.thumbnail})
-                        options.append(it)
+                if not platformtools.is_playing():
+                    options = []
+                    selection_implementation = 0
+                    for item in itemlist:
+                        item.thumbnail = config.get_online_server_thumb(item.server)
+                        quality = '[B][' + item.quality + '][/B]' if item.quality else ''
+                        if item.server:
+                            path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
+                            name = jsontools.load(open(path, "r").read())['name']
+                            if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+                            it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (name, quality, item.contentTitle))
+                            it.setArt({'thumb':item.thumbnail})
+                            options.append(it)
+                        else:
+                            selection_implementation += 1
+                    # The selection window opens
+                    if (item.contentSerieName and item.contentSeason and item.contentEpisodeNumber): head = ("%s - %sx%s | %s" % (item.contentSerieName, item.contentSeason, item.contentEpisodeNumber, config.get_localized_string(30163)))
+                    else: head = config.get_localized_string(30163)
+                    selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
+                    if selection == -1:
+                        return
                     else:
-                        selection_implementation += 1
-                # The selection window opens
-                if (item.contentSerieName and item.contentSeason and item.contentEpisodeNumber): head = ("%s - %sx%s | %s" % (item.contentSerieName, item.contentSeason, item.contentEpisodeNumber, config.get_localized_string(30163)))
-                else: head = config.get_localized_string(30163)
-                selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
-                if selection == -1:
-                    return
-                else:
-                    item = videolibrary.play(itemlist[selection  + selection_implementation])[0]
-                    platformtools.play_video(item)
-                if (platformtools.is_playing() and item.action) or item.server == 'torrent' or config.get_setting('autoplay'): break
+                        item = videolibrary.play(itemlist[selection  + selection_implementation])[0]
+                        platformtools.play_video(item)
+                # if (platformtools.is_playing() and item.action) or item.server == 'torrent' or config.get_setting('autoplay'): break
