@@ -464,10 +464,8 @@ def play_from_library(item):
     # logger.debug("item: \n" + item.tostring('\n'))
 
     # Try to reproduce an image (this does nothing and also does not give an error)
-    platformtools.prevent_busy(item)
-    # xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-    # xbmc.sleep(200)
-    # xbmc.Player().stop()
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    xbmc.Player().stop()
 
     # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
