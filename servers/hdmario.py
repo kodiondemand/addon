@@ -50,7 +50,7 @@ def registerOrLogin(page_url):
         if user_pre != user_post or password_pre != password_post:
             return registerOrLogin(page_url)
         else:
-            return False
+            return []
     else:
         import random
         import string
@@ -75,6 +75,10 @@ def registerOrLogin(page_url):
             platformtools.dialog_ok('HDmario', error)
             return False
         if reg['email'] == mailbox.address:
+            if "L'indirizzo email è già stato utilizzato" in regPost.data:
+                # httptools.downloadpage(baseUrl + '/forgotPassword', post={'email': reg['email']})
+                platformtools.dialog_ok('HDmario', 'Indirizzo mail già utilizzato')
+                return False
             mail = mailbox.waitForMail()
             if mail:
                 checkUrl = scrapertools.find_single_match(mail.body, 'href="([^"]+)">Premi qui').replace(r'\/', '/')
@@ -116,7 +120,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             data = page.data
 
     if '/unauthorized' in page.url or '/not-active' in page.url:
-        httptools.set_cookies({}, True)  # clear cookies
+        httptools.set_cookies({'domain': 'hdmario.live'}, True)  # clear cookies
         if not registerOrLogin(page_url):
             return []
         page = httptools.downloadpage(page_url)

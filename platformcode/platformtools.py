@@ -161,7 +161,7 @@ def dialog_register(heading, user=False, email=False, password=False, user_defau
             if height < 250: height = 250
             self.getControl(10000).setHeight(height)
             self.getControl(10001).setHeight(height)
-            self.getControl(10000).setPosition(255, (720 - height) / 2)
+            self.getControl(10000).setPosition(255, old_div(720 - height, 2))
             self.setFocusId(30000)
 
         def onClick(self, control):

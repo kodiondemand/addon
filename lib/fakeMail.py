@@ -95,8 +95,8 @@ class OneSecMailbox(Mailbox):
 
 
 class Gmailnator(Mailbox):
-    def __init__(self, domains=('.gmail',)):
-        self.baseUrl = 'https://gmailnator.com/'
+    def __init__(self, domains=('.gmail', '+gmail')):
+        self.baseUrl = 'https://www.gmailnator.com/'
         self.genDomains = {
             'gmailnator': 1,
             '+gmail': 2,
@@ -108,8 +108,9 @@ class Gmailnator(Mailbox):
     def new(self):
         self.csrf = support.match(self.baseUrl, patron='csrf-token" content="([a-z0-9]+)').match
         logger.debug(self.csrf)
-        e = httptools.downloadpage(self.baseUrl + 'index/indexquery', post={'csrf_gmailnator_token': self.csrf, 'action': 'GenerateEmail', 'data[]': self.data})
-        if e.success:
+        e = httptools.downloadpage(self.baseUrl + 'index/indexquery', post={'csrf_gmailnator_token': self.csrf, 'action': 'GenerateEmail', 'data[]': self.data},
+                                   headers={'x-requested-with': 'XMLHttpRequest'})
+        if e.success and e.data:
             return e.data
         else:
             platformtools.dialog_ok(config.get_localized_string(20000), 'Impossibile ottenere una mail temporanea')
@@ -128,7 +129,7 @@ class Gmailnator(Mailbox):
             logger.debug(html)
             m = Email()
             # ritorna stringhe raw, devo convertirle per eliminare gli \ in piu
-            m.subject, m.date, m.body = support.match(html, patron=r'<b>([^<]+)<\\/b><div>([^<]+)<hr \\/>(.*)').match
+            m.subject, m.date, m.body = support.match(html, patron=r'Subject:\s?<\\/b>([^<]+)<\\/b><div><b>Time:\s?<\\/b>([^<]+).*?\"content\"\s?:\s?\"(.*?)\"}').match
 
             return m
         return inbox
