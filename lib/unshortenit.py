@@ -527,7 +527,7 @@ class UnshortenIt(object):
                     day = datetime.date.today().strftime('%Y%m%d')
                     if PY3: day = day.encode()
                     headers = {
-                        "Cookie": hashlib.md5(ip+day).hexdigest() + "=1"
+                        "Cookie": hashlib.md5(ip+day).hexdigest() + "=1;saveMe=1"
                     }
                     spl = uri.split('/')
                     spl[3] += '1'
