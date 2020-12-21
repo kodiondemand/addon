@@ -672,7 +672,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
     if mpd:
         if not install_inputstream():
             return
-        xlistitem.setProperty('inputstreamaddon', 'inputstream.adaptive')
+        xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
         xlistitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
         if item.drm and item.license:
             install_widevine()
@@ -1110,9 +1110,7 @@ def play_torrent(item, xlistitem, mediaurl):
         selection = 0
 
     if selection >= 0:
-
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, xlistitem)
-        time.sleep(1)
+        prevent_busy(item)
 
         mediaurl = urllib.quote_plus(item.url)
         torr_client = torrent_options[selection][0]
@@ -1131,8 +1129,9 @@ def play_torrent(item, xlistitem, mediaurl):
 
             torrent.mark_auto_as_watched(item)
 
-            while is_playing() and not xbmc.Monitor().abortRequested():
-                time.sleep(3)
+            if not item.globalsearch:
+                while is_playing() and not xbmc.Monitor().abortRequested():
+                    time.sleep(3)
 
 
 def resume_playback(played_time):

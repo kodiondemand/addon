@@ -64,7 +64,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
 
     def onClick(self, control_id):
         if control_id == SELECT:
-            self.response = self.results[self.getControl(SELECT).getSelectedPosition()]
+            self.response = self.results[int(self.getControl(SELECT).getSelectedItem().getProperty('position'))]
             self.close()
         elif control_id == CLOSE:
             self.close()

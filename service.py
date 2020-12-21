@@ -47,9 +47,9 @@ def update(path, p_dialog, i, t, serie, overwrite):
         url = module.host + urlsplit(url).path
         serie.url = url
 
-        ###### Redirección al canal NewPct1.py si es un clone, o a otro canal y url si ha intervención judicial
+        ###### Redirection to the NewPct1.py channel if it is a clone, or to another channel and url if there has been judicial intervention
         try:
-            head_nfo, it = videolibrarytools.read_nfo(nfo_file)         #Refresca el .nfo para recoger actualizaciones
+            head_nfo, it = videolibrarytools.read_nfo(nfo_file)         # Refresh the .nfo to collect updates
             if it.emergency_urls:
                 serie.emergency_urls = it.emergency_urls
             serie.category = category
@@ -75,7 +75,7 @@ def update(path, p_dialog, i, t, serie, overwrite):
 
                 try:
                     if int(overwrite) == 3:
-                        # Sobrescribir todos los archivos (tvshow.nfo, 1x01.nfo, 1x01 [canal].json, 1x01.strm, etc...)
+                        # Overwrite all files (tvshow.nfo, 1x01.nfo, 1x01 [channel] .json, 1x01.strm, etc ...)
                         insertados, sobreescritos, fallidos, notusedpath = videolibrarytools.save_tvshow(serie, itemlist)
                         #serie= videolibrary.check_season_playcount(serie, serie.contentSeason)
                         #if filetools.write(path + '/tvshow.nfo', head_nfo + it.tojson()):
@@ -104,9 +104,9 @@ def update(path, p_dialog, i, t, serie, overwrite):
         else:
             logger.debug("Channel %s not active is not updated" % serie.channel)
 
-    #Sincronizamos los episodios vistos desde la videoteca de Kodi con la de Alfa
+    # Synchronize the episodes seen from the Kodi video library with that of KoD
     try:
-        if config.is_xbmc():                #Si es Kodi, lo hacemos
+        if config.is_xbmc():                # If it's Kodi, we do it
             from platformcode import xbmc_videolibrary
             xbmc_videolibrary.mark_content_as_watched_on_kod(filetools.join(path,'tvshow.nfo'))
     except:
@@ -151,27 +151,27 @@ def check_for_update(overwrite=True):
                 logger.debug("serie=" + serie.contentSerieName)
                 p_dialog.update(int(math.ceil((i + 1) * t)), heading, serie.contentSerieName)
 
-                #Verificamos el estado del serie.library_playcounts de la Serie por si está incompleto
+                # Check the status of the series.library_playcounts of the Series in case it is incomplete
                 try:
                     estado = False
-                    #Si no hemos hecho la verificación o no tiene playcount, entramos
+                    # If we have not done the verification or do not have a playcount, we enter
                     estado = config.get_setting("verify_playcount", "videolibrary")
-                    if not estado or estado == False or not serie.library_playcounts:               #Si no se ha pasado antes, lo hacemos ahora
-                        serie, estado = videolibrary.verify_playcount_series(serie, path)           #También se pasa si falta un PlayCount por completo
+                    if not estado or estado == False or not serie.library_playcounts:               # If it hasn't happened before, we do it now
+                        serie, estado = videolibrary.verify_playcount_series(serie, path)           # Also happens if a PlayCount is missing completely
                 except:
                     logger.error(traceback.format_exc())
                 else:
-                    if estado:                                                                      #Si ha tenido éxito la actualización...
-                        estado_verify_playcount_series = True                                       #... se marca para cambiar la opción de la Videoteca
+                    if estado:                                                                      # If the update was successful ...
+                        estado_verify_playcount_series = True                                       # ... is checked to change the Video Library option
 
-                interval = int(serie.active)  # Podria ser del tipo bool
+                interval = int(serie.active)  # Could be the bool type
 
                 if not serie.active:
-                    # si la serie no esta activa descartar
+                    # if the series is not active discard
                     if not overwrite:
-                        #Sincronizamos los episodios vistos desde la videoteca de Kodi con la de Alfa, aunque la serie esté desactivada
+                        # Synchronize the episodes seen from the Kodi video library with that of Alpha, even if the series is deactivated
                         try:
-                            if config.is_xbmc():                #Si es Kodi, lo hacemos
+                            if config.is_xbmc():                # If it's Kodi, we do it
                                 from platformcode import xbmc_videolibrary
                                 xbmc_videolibrary.mark_content_as_watched_on_kod(filetools.join(path,'tvshow.nfo'))
                         except:
@@ -179,7 +179,7 @@ def check_for_update(overwrite=True):
 
                         continue
 
-                # obtenemos las fecha de actualizacion y de la proxima programada para esta serie
+                # Obtain the update date and the next scheduled for this series
                 update_next = serie.update_next
                 if update_next:
                     y, m, d = update_next.split('-')
@@ -194,33 +194,33 @@ def check_for_update(overwrite=True):
                 else:
                     update_last = hoy
 
-                # si la serie esta activa ...
+                # if the series is active ...
                 if overwrite or config.get_setting("updatetvshows_interval", "videolibrary") == 0:
-                    # ... forzar actualizacion independientemente del intervalo
+                    # ... force update regardless of interval
                     serie_actualizada = update(path, p_dialog, i, t, serie, overwrite)
                     if not serie_actualizada:
                         update_next = hoy + datetime.timedelta(days=interval)
 
                 elif interval == 1 and update_next <= hoy:
-                    # ...actualizacion diaria
+                    # ...daily update
                     serie_actualizada = update(path, p_dialog, i, t, serie, overwrite)
                     if not serie_actualizada and update_last <= hoy - datetime.timedelta(days=7):
-                        # si hace una semana q no se actualiza, pasar el intervalo a semanal
+                        # if it hasn't been updated for a week, change the interval to weekly
                         interval = 7
                         update_next = hoy + datetime.timedelta(days=interval)
 
                 elif interval == 7 and update_next <= hoy:
-                    # ...actualizacion semanal
+                    # ... weekly update
                     serie_actualizada = update(path, p_dialog, i, t, serie, overwrite)
                     if not serie_actualizada:
                         if update_last <= hoy - datetime.timedelta(days=14):
-                            # si hace 2 semanas q no se actualiza, pasar el intervalo a mensual
+                            # if it has not been updated for 2 weeks, change the interval to monthly
                             interval = 30
 
                         update_next += datetime.timedelta(days=interval)
 
                 elif interval == 30 and update_next <= hoy:
-                    # ...actualizacion mensual
+                    # ... monthly update
                     serie_actualizada = update(path, p_dialog, i, t, serie, overwrite)
                     if not serie_actualizada:
                         update_next += datetime.timedelta(days=interval)
@@ -229,7 +229,7 @@ def check_for_update(overwrite=True):
                     update_last = hoy
                     update_next = hoy + datetime.timedelta(days=interval)
 
-                head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)                       #Vuelve a leer el.nfo, que ha sido modificado
+                head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)                       # Reread the .nfo, which has been modified
                 if interval != int(serie.active) or update_next.strftime('%Y-%m-%d') != serie.update_next or update_last.strftime('%Y-%m-%d') != serie.update_last:
                     serie.update_last = update_last.strftime('%Y-%m-%d')
                     if update_next > hoy:
@@ -241,18 +241,18 @@ def check_for_update(overwrite=True):
 
                 if serie_actualizada:
                     if config.get_setting("search_new_content", "videolibrary") == 0:
-                        # Actualizamos la videoteca de Kodi: Buscar contenido en la carpeta de la serie
+                        # We update the Kodi video library: Find content in the series folder
                         if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
                             from platformcode import xbmc_videolibrary
                             xbmc_videolibrary.update(folder=filetools.basename(path))
                     else:
                         update_when_finished = True
 
-            if estado_verify_playcount_series:                                                  #Si se ha cambiado algún playcount, ...
-                estado = config.set_setting("verify_playcount", True, "videolibrary")           #... actualizamos la opción de Videolibrary
+            if estado_verify_playcount_series:                                                  # If any playcount has been changed, ...
+                estado = config.set_setting("verify_playcount", True, "videolibrary")           # ... we update the Videolibrary option
 
             if config.get_setting("search_new_content", "videolibrary") == 1 and update_when_finished:
-                # Actualizamos la videoteca de Kodi: Buscar contenido en todas las series
+                # We update the Kodi video library: Find content in all series
                 if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
                     from platformcode import xbmc_videolibrary
                     xbmc_videolibrary.update()
@@ -308,17 +308,21 @@ def get_ua_list():
     # https://github.com/alfa-addon/addon/blob/master/plugin.video.alfa/platformcode/updater.py#L273
     logger.info()
     url = "http://omahaproxy.appspot.com/all?csv=1"
-    current_ver = config.get_setting("chrome_ua_version", default="").split(".")
-    data = httptools.downloadpage(url, alfa_s=True).data
-    new_ua_ver = scrapertools.find_single_match(data, "win64,stable,([^,]+),")
 
-    if not current_ver:
-        config.set_setting("chrome_ua_version", new_ua_ver)
-    else:
-        for pos, val in enumerate(new_ua_ver.split('.')):
-            if int(val) > int(current_ver[pos]):
-                config.set_setting("chrome_ua_version", new_ua_ver)
-                break
+    try:
+        current_ver = config.get_setting("chrome_ua_version", default="").split(".")
+        data = httptools.downloadpage(url, alfa_s=True).data
+        new_ua_ver = scrapertools.find_single_match(data, "win64,stable,([^,]+),")
+
+        if not current_ver:
+            config.set_setting("chrome_ua_version", new_ua_ver)
+        else:
+            for pos, val in enumerate(new_ua_ver.split('.')):
+                if int(val) > int(current_ver[pos]):
+                    config.set_setting("chrome_ua_version", new_ua_ver)
+                    break
+    except:
+        logger.error(traceback.format_exc())
 
 
 def run_threaded(job_func, args):
@@ -361,11 +365,10 @@ class AddonMonitor(xbmc.Monitor):
             xbmc_videolibrary.update_sources(settings_post.get('downloadpath', None),
                                              self.settings_pre.get('downloadpath', None))
 
-        # si se ha cambiado la ruta de la videoteca llamamos a comprobar directorios para que lo cree y pregunte
-        # automaticamente si configurar la videoteca
-        if self.settings_pre.get("videolibrarypath", None) != settings_post.get("videolibrarypath", None) or \
-                self.settings_pre.get("folder_movies", None) != settings_post.get("folder_movies", None) or \
-                self.settings_pre.get("folder_tvshows", None) != settings_post.get("folder_tvshows", None):
+        # If the path of the video library has been changed, we call to check directories so that it creates it and automatically asks if to configure the video library
+        if self.settings_pre.get("videolibrarypath", None) and self.settings_pre.get("videolibrarypath", None) != settings_post.get("videolibrarypath", None) or \
+            self.settings_pre.get("folder_movies", None) and self.settings_pre.get("folder_movies", None) != settings_post.get("folder_movies", None) or \
+            self.settings_pre.get("folder_tvshows", None) and self.settings_pre.get("folder_tvshows", None) != settings_post.get("folder_tvshows", None):
             videolibrary.move_videolibrary(self.settings_pre.get("videolibrarypath", ''),
                                            settings_post.get("videolibrarypath", ''),
                                            self.settings_pre.get("folder_movies", ''),
@@ -373,7 +376,7 @@ class AddonMonitor(xbmc.Monitor):
                                            self.settings_pre.get("folder_tvshows", ''),
                                            settings_post.get("folder_tvshows", ''))
 
-        # si se ha puesto que se quiere autoconfigurar y se había creado el directorio de la videoteca
+        # if you want to autoconfigure and the video library directory had been created
         if not self.settings_pre.get("videolibrary_kodi", None) and settings_post.get("videolibrary_kodi", None):
             xbmc_videolibrary.ask_set_content(silent=True)
         elif self.settings_pre.get("videolibrary_kodi", None) and not settings_post.get("videolibrary_kodi", None):
@@ -451,7 +454,10 @@ if __name__ == "__main__":
         logger.error(traceback.format_exc())
 
     while True:
-        schedule.run_pending()
+        try:
+            schedule.run_pending()
+        except:
+            logger.error(traceback.format_exc())
 
         if monitor.waitForAbort(1):  # every second
             break

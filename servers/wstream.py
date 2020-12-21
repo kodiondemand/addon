@@ -18,24 +18,20 @@ errorsStr = ['Sorry this file is not longer available', 'Sorry this video is una
 
 def test_video_exists(page_url):
     global headers
-    real_host = '116.202.226.34'
-    headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],
-               ['Host', scrapertools.get_domain_from_url(page_url)]]
+    headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0']]
 
     logger.debug("(page_url='%s')" % page_url)
-    if 'wstream' in page_url:
-        resp = httptools.downloadpage(page_url.replace(headers[1][1], real_host), headers=headers, verify=False)
-    else:
-        resp = httptools.downloadpage(page_url, headers=headers, verify=False)
+    disable_directIP = False
+    if 'swvideoid' in page_url: disable_directIP = True
+    resp = httptools.downloadpage(page_url, headers=headers, verify=False, disable_directIP=disable_directIP)
 
     global data, real_url
     data = resp.data
 
-    page_url = resp.url.replace(headers[1][1], real_host)
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, headers=headers, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
         # logger.debug('WCODE=' + code)
-        page_url = 'https://' + real_host + '/video.php?file_code=' + code
+        page_url = 'https://wstream.video/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
 
     if 'nored.icu' in str(headers):
@@ -45,7 +41,7 @@ def test_video_exists(page_url):
             dec = ''
             for v in var.split(','):
                 dec += chr(int(v) - int(value))
-            page_url = 'https://' + real_host + '/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
+            page_url = 'https://wstream.video/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
             headers = [['User-Agent', 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:54.0) Gecko/20100101 Firefox/54.0'],['Host', 'wstream.video']]
             new_data = httptools.downloadpage(page_url, headers=headers, follow_redirects=True, verify=False).data
             logger.debug('NEW DATA: \n' + new_data)
@@ -102,7 +98,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
-    captcha = platformtools.show_recaptcha(sitekey, page_url.replace('116.202.226.34', headers[1][1]).replace('nored.icu', headers[1][1])) if sitekey else ''
+    captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
 
     possibleParam = scrapertools.find_multiple_matches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
     if possibleParam and possibleParam[0][0]:
@@ -118,7 +114,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
         return []
 
-    headers.append(['Referer', real_url.replace('116.202.226.34', headers[1][1]).replace('nored.icu', headers[1][1])])
+    headers.append(['Referer', real_url])
     _headers = urllib.urlencode(dict(headers))
 
     post_data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")

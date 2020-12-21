@@ -5,11 +5,11 @@
 
     "patterns": [
       {
-        "pattern": "https?://(?:akvideo\\.stream|akvi\\.club)/[^\\s]+[/=]([$0-9]+)(?:[\\s<]|$|\\.html)",
+        "pattern": "https?://(?:akvideo\\.stream|akvi\\.club|akvi\\.icu|akki\\.monster)/[^\\s]+[/=]([$0-9]+)(?:[\\s<]|$|\\.html)",
         "url": "http://akvideo.stream/swembedid/\\1"
       },
       {
-        "pattern": "https?://(?:akvideo\\.stream|akvi\\.club)/(?:embed-|video/|video\\.php\\?file_code=)?([a-z0-9]+)(?:[\\s<]|$|\\.html)",
+        "pattern": "https?://(?:akvideo\\.stream|akvi\\.club|akvi\\.icu|akki\\.monster)/(?:embed-|video/|video\\.php\\?file_code=)?([a-z0-9]+)(?:[\\s<]|$|\\.html)",
         "url": "http://akvi.club/embed-\\1.html"
       }
     ]

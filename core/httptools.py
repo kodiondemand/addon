@@ -36,6 +36,20 @@ default_headers["Accept-Language"] = "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3"
 default_headers["Accept-Charset"] = "UTF-8"
 default_headers["Accept-Encoding"] = "gzip"
 
+# direct IP access for some hosts
+directIP = {
+    'akki.monster': '31.220.1.77',
+    'akvi.club': '31.220.1.77',
+    'akvi.icu': '31.220.1.77',
+    'akvideo.stream': '31.220.1.77',
+    'vcrypt.net': '31.220.1.77',
+    'vcrypt.pw': '31.220.1.77',
+    'vidtome.host': '94.75.219.1"',
+    'nored.icu': '31.220.1.77',
+    'wstream.icu': '31.220.1.77',
+    'wstream.video': '31.220.1.77',
+}
+
 # Maximum wait time for downloadpage, if nothing is specified
 HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = config.get_setting('httptools_timeout', default=15)
 if HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT == 0: HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = None
@@ -267,7 +281,9 @@ def downloadpage(url, **opt):
 
         """
     url = scrapertools.unescape(url)
-    domain = urlparse.urlparse(url).netloc
+    parse = urlparse.urlparse(url)
+    domain = parse.netloc
+
     from lib import requests
     session = requests.session()
 
@@ -283,6 +299,10 @@ def downloadpage(url, **opt):
             req_headers.update(dict(opt['headers']))
         else:
             req_headers = dict(opt['headers'])
+
+    if domain in directIP.keys() and not opt.get('disable_directIP', False):
+        req_headers['Host'] = domain
+        url = urlparse.urlunparse(parse._replace(netloc=directIP.get(domain)))
 
     if opt.get('random_headers', False) or HTTPTOOLS_DEFAULT_RANDOM_HEADERS:
         req_headers['User-Agent'] = random_useragent()

@@ -51,7 +51,7 @@ def peliculas(item):
 
     if item.args == 'search':
         patronBlock = r'<div class="search-page">(?P<block>.*?)<footer class="main">'
-        patron = r'<img src="(?P<thumb>[^"]+)" alt="[^"]+" />[^>]+>(?P<type>[^<]+)</span>.*?<a href="(?P<url>[^"]+)">(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA)\])?</a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*(?P<rating>[^>]+)</span>)?.?(?:<span class="year">(?P<year>[0-9]+)</span>)?[^>]+>[^>]+><p>(?P<plot>.*?)</p>'
+        patron = r'<img src="(?P<thumb>[^"]+)" alt="[^"]+" ?/?>[^>]+>(?P<type>[^<]+)</span>.*?<a href="(?P<url>[^"]+)">(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA)\])?</a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*(?P<rating>[^>]+)</span>)?.?(?:<span class="year">(?P<year>[0-9]+)</span>)?.*?<p>(?P<plot>.*?)</p>'
 
         typeContentDict={'movie': ['film'], 'tvshow': ['tv']}
         typeActionDict={'findvideos': ['film'], 'episodios': ['tv']}

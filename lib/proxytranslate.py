@@ -25,10 +25,10 @@ BASE_URL_TRANSLATE = 'https://translate.google.com/translate?hl=it&sl=en&tl=it&u
 
 
 def checker_url(html, url):
-    grep_regex = re.findall(r'href="|src="|value="|((?:http[s]://|ftp[s]://)+\.*([-a-zA-Z0-9\.]+)([-a-zA-Z0-9\.]){1,}([-a-zA-Z0-9_\.\#\@\:%_/\?\=\~\&\-\//\!\'\;\(\)\s\^\:blank:\:punct:\:xdigit:\:space:\$]+))', html)  # noqa: E501
+    grep_regex = re.findall(r'(?:href="|src="|value=")([^"]+)', html)  # noqa: E501
     for url_result_regex in grep_regex:
-        if url in url_result_regex[0]:
-            return url_result_regex[0].replace('&amp;', '&')
+        if url in url_result_regex:
+            return url_result_regex.replace('&amp;', '&')
 
 
 def process_request_proxy(url):
@@ -60,7 +60,7 @@ def process_request_proxy(url):
         )
 
         url_request_proxy = checker_url(
-            request_final.text, BASE_URL_PROXY + '/translate_c?depth=1')
+            request_final.text, 'translate.google')
 
         logger.debug(url_request_proxy)
 

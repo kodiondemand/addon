@@ -493,7 +493,8 @@ class UnshortenIt(object):
             return uri, str(e)
 
     def _unshorten_vcrypt(self, uri):
-        uri = uri.replace('.net', '.pw')
+        httptools.set_cookies({'domain': 'vcrypt.net', 'name': 'saveMe', 'value': '1'})
+        httptools.set_cookies({'domain': 'vcrypt.pw', 'name': 'saveMe', 'value': '1'})
         try:
             headers = {}
             if 'myfoldersakstream.php' in uri or '/verys/' in uri:
@@ -531,9 +532,9 @@ class UnshortenIt(object):
                     spl = uri.split('/')
                     spl[3] += '1'
                     if spl[3] == 'wss1':
-                        spl[4] = b64encode(spl[4])
+                        spl[4] = b64encode(spl[4].encode('utf-8')).decode('utf-8')
                         uri = '/'.join(spl)
-                r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False)
+                r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, verify=False)
                 if 'Wait 1 hour' in r.data:
                     uri = ''
                     logger.error('IP bannato da vcrypt, aspetta un ora')
@@ -543,7 +544,6 @@ class UnshortenIt(object):
                     if uri == prev_uri:
                         logger.info('Use Cloudscraper')
                         uri = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, cf=True).headers['location']
-            # from core.support import dbg;dbg()
             if "snip." in uri:
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
@@ -552,7 +552,7 @@ class UnshortenIt(object):
                     splitted = path.split('/')
                     splitted[1] = 'outlink'
                     new_uri = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]}).headers['location']
-                    if new_uri != uri:
+                    if new_uri and new_uri != uri:
                         uri = new_uri
                     else:
                         uri = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment, follow_redirects=False, post={'url': splitted[2]}).headers['location']

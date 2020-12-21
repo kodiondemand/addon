@@ -310,6 +310,396 @@ class autorenumber():
 
 
 def SelectreNumeration(opt, itemlist, manual=False):
+    class SelectreNumerationWindow(xbmcgui.WindowXMLDialog):
+        def start(self, opt):
+            self.episodes = opt.Episodes if opt.Episodes else {}
+            self.dictSeries = opt.dictSeries
+            self.item = opt.item
+            self.title = opt.title
+            self.season = opt.s
+            self.episode = opt.e
+            self.mode = opt.Mode
+            self.sp = opt.sp
+            self.manual = opt.manual
+            self.offset = 0
+            self.Exit = False
+
+            self.itemlist = opt.itemlist
+            self.count = 1
+            self.specials = {}
+            self.items = []
+            self.selected = []
+            self.seasons = {}
+
+            self.doModal()
+            return self.season, self.episode, self.mode, self.specials, self.seasons, self.Exit
+
+        def onInit(self):
+            # Compatibility with Kodi 18
+            if config.get_platform(True)['num_version'] < 18: self.setCoordinateResolution(2)
+            fanart = self.item.fanart
+            thumb = self.item.thumbnail
+            self.getControl(SELECT).setVisible(False)
+            self.getControl(SPECIALS).setVisible(False)
+            self.getControl(MANUAL).setVisible(False)
+            # MANUAL
+            if self.manual:
+                self.getControl(MANUAL).setVisible(True)
+                self.getControl(MPOSTER).setImage(thumb)
+                if fanart: self.getControl(MBACKGROUND).setImage(fanart)
+                self.getControl(INFO).setLabel(typo(config.get_localized_string(70822) + self.title, 'bold'))
+
+                self.mode = True
+
+                se = '1'
+                ep = '1'
+                position = 0
+                for i, item in enumerate(self.itemlist):
+                    title = match(item.title, patron=r'(\d+)').match.lstrip('0')
+                    it = xbmcgui.ListItem(title)
+                    if int(title) <= len(self.episodes):
+                        se, ep = self.episodes[title].split('x')
+                    else:
+                        if position == 0: position = i
+                        ep = str(int(ep) + 1)
+                    it.setProperties({'season': se, "episode": ep})
+                    self.items.append(it)
+                self.makerenumber()
+                self.addseasons()
+                season = self.getControl(MSEASONS).getSelectedItem().getLabel()
+                self.getControl(MSEP).reset()
+                self.getControl(MSEP).addItems(self.episodes[season])
+                self.getControl(MLIST).addItems(self.items)
+                self.setFocusId(MLIST)
+                self.getControl(MLIST).selectItem(position)
+            # MAIN / SPECIALS
+            else:
+                for item in self.itemlist:
+                    if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
+                        title = match(item.title, patron=r'(\d+)').match.lstrip('0')
+                        it = xbmcgui.ListItem(title)
+                        self.items.append(it)
+
+                self.getControl(POSTER).setImage(thumb)
+                self.getControl(MPOSTER).setImage(thumb)
+                if fanart:
+                    self.getControl(BACKGROUND).setImage(fanart)
+                    self.getControl(MBACKGROUND).setImage(fanart)
+                self.getControl(INFO).setLabel(typo(config.get_localized_string(70824) + self.title, 'bold'))
+                self.getControl(LIST).addItems(self.items)
+
+                if self.sp:
+                    self.getControl(SPECIALS).setVisible(True)
+                    self.setFocusId(OK)
+                else:
+                    self.getControl(SELECT).setVisible(True)
+
+                    self.getControl(S).setLabel(str(self.season))
+                    self.getControl(E).setLabel(str(self.episode))
+
+                    self.setFocusId(O)
+
+        def onFocus(self, focus):
+            if focus in [S]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70825), 'bold'))
+            elif focus in [E]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70826), 'bold'))
+            elif focus in [O]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70001), 'bold'))
+            elif focus in [SS]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70827), 'bold'))
+            elif focus in [M]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70828), 'bold'))
+            elif focus in [D]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70829) + self.title, 'bold'))
+            elif focus in [C]:
+                self.getControl(108).setLabel(typo(config.get_localized_string(70002), 'bold'))
+
+        def onAction(self, action):
+            action = action.getId()
+            focus = self.getFocusId()
+            # SEASON SELECT
+            if 100 < focus < 200:
+                s = int(self.getControl(S).getLabel())
+                e = int(self.getControl(E).getLabel())
+                if action in [RIGHT]:
+                    if focus in [C]:
+                        self.setFocusId(S)
+                    else:
+                        self.setFocusId(focus + 1)
+                elif action in [LEFT]:
+                    if focus in [S]:
+                        self.setFocusId(C)
+                    else:
+                        self.setFocusId(focus - 1)
+                elif action in [UP]:
+                    if focus in [S]:
+                        s += 1
+                        self.getControl(S).setLabel(str(s))
+                    elif focus in [E]:
+                        e += 1
+                        self.getControl(E).setLabel(str(e))
+                elif action in [DOWN]:
+                    if focus in [S]:
+                        if s > 0: s -= 1
+                        self.getControl(S).setLabel(str(s))
+                    elif focus in [E]:
+                        if e > 0: e -= 1
+                        self.getControl(E).setLabel(str(e))
+            # MANUAL
+            if focus in [MS, ME]:
+                s = int(self.getControl(MLIST).getSelectedItem().getProperty('season'))
+                e = int(self.getControl(MLIST).getSelectedItem().getProperty('episode'))
+                pos = self.getControl(MLIST).getSelectedPosition()
+                # Set Season
+                if focus in [MS] and action in [UP]:
+                    s += 1
+                elif focus in [MS] and action in [DOWN] and s > 0:
+                    s -= 1
+                # Set Episode
+                if focus in [ME] and action in [UP]:
+                    e += 1
+                elif focus in [ME] and action in [DOWN] and e > 0:
+                    e -= 1
+                if action in [UP, DOWN]:
+                    if s != self.season: e = 1
+                    self.season = s
+                    self.episode = e
+                    self.makerenumber(pos)
+                    self.addseasons()
+                    season = self.getControl(MSEASONS).getSelectedItem().getLabel()
+                    self.getControl(MSEP).reset()
+                    self.getControl(MSEP).addItems(self.episodes[season])
+                    self.getControl(MLIST).reset()
+                    self.getControl(MLIST).addItems(self.items)
+                    self.getControl(MLIST).selectItem(pos)
+            if focus in [MSEASONS]:
+                season = self.getControl(MSEASONS).getSelectedItem().getLabel()
+                self.getControl(MSEP).reset()
+                self.getControl(MSEP).addItems(self.episodes[season])
+
+            # EXIT
+            if action in [EXIT, BACKSPACE]:
+                self.Exit = True
+                self.close()
+
+        def onClick(self, control_id):
+            ## FIRST SECTION
+            if control_id in [S]:
+                selected = platformtools.dialog_numeric(0, config.get_localized_string(70825),
+                                                        self.getControl(S).getLabel())
+                if selected: s = self.getControl(S).setLabel(selected)
+            elif control_id in [E]:
+                selected = platformtools.dialog_numeric(0, config.get_localized_string(70826),
+                                                        self.getControl(E).getLabel())
+                if selected: e = self.getControl(E).setLabel(selected)
+            # OPEN SPECIALS OR OK
+            if control_id in [O, SS]:
+                s = self.getControl(S).getLabel()
+                e = self.getControl(E).getLabel()
+                self.season = int(s)
+                self.episode = int(e)
+                if control_id in [O]:
+                    self.close()
+                elif control_id in [SS]:
+                    self.getControl(SELECT).setVisible(False)
+                    self.getControl(SPECIALS).setVisible(True)
+                    self.setFocusId(OK)
+            # OPEN MANUAL
+            elif control_id in [M]:
+                self.getControl(INFO).setLabel(typo(config.get_localized_string(70823) + self.title, 'bold'))
+                self.mode = True
+                if self.episodes:
+                    items = []
+                    se = '1'
+                    ep = '1'
+                    for item in self.items:
+                        if int(item.getLabel()) <= len(self.episodes) - 1:
+                            se, ep = self.episodes[item.getLabel()].split('x')
+                        else:
+                            ep = str(int(ep) + 1)
+                        item.setProperties({'season': se, "episode": ep})
+                        items.append(item)
+                        self.seasons[item.getLabel()] = '%sx%s' % (se, ep)
+                    self.items = items
+                else:
+                    self.makerenumber()
+                self.addseasons()
+                season = self.getControl(MSEASONS).getSelectedItem().getLabel()
+                self.getControl(MSEP).reset()
+                self.getControl(MSEP).addItems(self.episodes[season])
+                self.getControl(MLIST).addItems(self.items)
+                self.getControl(SELECT).setVisible(False)
+                self.getControl(MANUAL).setVisible(True)
+                self.setFocusId(OK)
+            # CLOSE
+            elif control_id in [C]:
+                self.Exit = True
+                self.close()
+            # DELETE
+            if control_id in [D]:
+                self.Exit = True
+                self.dictSeries.pop(self.title)
+                write(self.item, self.dictSeries)
+                self.close()
+
+            ## SPECIAL SECTION
+            # ADD TO SPECIALS
+            p1 = self.getControl(SELECTED).getSelectedPosition()
+            if control_id in [LIST]:
+                item = self.getControl(LIST).getSelectedItem()
+                it = xbmcgui.ListItem(str(len(self.selected) + 1))
+                it.setProperty('title', item.getLabel())
+                self.selected.append(it)
+                index = self.getControl(SELECTED).getSelectedPosition()
+                self.getControl(SELECTED).reset()
+                self.getControl(SELECTED).addItems(self.selected)
+                self.getControl(SELECTED).selectItem(index)
+
+                index = self.getControl(LIST).getSelectedPosition()
+                self.items.pop(index)
+                self.getControl(LIST).reset()
+                self.getControl(LIST).addItems(self.items)
+                if index == len(self.items): index -= 1
+                self.getControl(LIST).selectItem(index)
+            # MOVE SPECIALS
+            elif control_id in [SU]:
+                p2 = p1 - 1
+                if p2 > -1:
+                    self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
+                    for i, it in enumerate(self.selected):
+                        it.setLabel(str(i + 1))
+                        break
+                    self.getControl(SELECTED).reset()
+                    self.getControl(SELECTED).addItems(self.selected)
+                    self.getControl(SELECTED).selectItem(p2)
+
+            elif control_id in [SD]:
+                p2 = p1 + 1
+                if p2 < len(self.selected):
+                    self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
+                    for i, it in enumerate(self.selected):
+                        it.setLabel(str(i + 1))
+                        break
+                    self.getControl(SELECTED).reset()
+                    self.getControl(SELECTED).addItems(self.selected)
+                    self.getControl(SELECTED).selectItem(p2)
+            # REMOVE FROM SPECIALS
+            elif control_id in [SR]:
+                item = self.getControl(SELECTED).getSelectedItem()
+                it = xbmcgui.ListItem(item.getProperty('title'))
+                if int(item.getProperty('title')) < int(self.items[-1].getLabel()):
+                    for i, itm in enumerate(self.items):
+                        if int(itm.getLabel()) > int(item.getProperty('title')):
+                            self.items.insert(i, it)
+                            break
+                else:
+                    self.items.append(it)
+                self.getControl(LIST).reset()
+                self.getControl(LIST).addItems(self.items)
+                index = self.getControl(SELECTED).getSelectedPosition()
+                self.selected.pop(index)
+                self.getControl(SELECTED).reset()
+                self.getControl(SELECTED).addItems(self.selected)
+
+                if index == len(self.selected): index -= 1
+                self.getControl(SELECTED).selectItem(index)
+            # RELOAD SPECIALS
+            if control_id in [SELECTED]:
+                epnumber = platformtools.dialog_numeric(0, config.get_localized_string(60386))
+                it = self.getControl(SELECTED).getSelectedItem()
+                it.setLabel(str(epnumber))
+                self.selected.sort(key=lambda it: int(it.getLabel()))
+                for i, it in enumerate(self.selected):
+                    if it.getLabel() == epnumber: pos = i
+                    self.selected.sort(key=lambda it: int(it.getLabel()))
+                    self.getControl(SELECTED).reset()
+                    self.getControl(SELECTED).addItems(self.selected)
+                    self.getControl(SELECTED).selectItem(pos)
+                    break
+            if len(self.selected) > 0:
+                self.getControl(SPECIALCOMMANDS).setVisible(True)
+            else:
+                self.getControl(SPECIALCOMMANDS).setVisible(False)
+
+            ## MANUAL SECTION
+            # SELECT SEASON EPISODE (MANUAL)
+            if control_id in [MS, ME]:
+                s = int(self.getControl(MLIST).getSelectedItem().getProperty('season'))
+                e = int(self.getControl(MLIST).getSelectedItem().getProperty('episode'))
+                pos = self.getControl(MLIST).getSelectedPosition()
+                if control_id in [MS]:
+                    selected = platformtools.dialog_numeric(0, config.get_localized_string(70825), str(s))
+                    if selected: s = int(selected)
+                elif control_id in [ME]:
+                    selected = platformtools.dialog_numeric(0, config.get_localized_string(70826), str(e))
+                    if selected: e = int(selected)
+                if s != self.season or e != self.episode:
+                    self.season = s
+                    self.episode = 1 if s != self.season else e
+                    self.makerenumber(pos)
+                    self.addseasons()
+                    season = self.getControl(MSEASONS).getSelectedItem().getLabel()
+                    self.getControl(MSEP).reset()
+                    self.getControl(MSEP).addItems(self.episodes[season])
+                    self.getControl(MLIST).reset()
+                    self.getControl(MLIST).addItems(self.items)
+                    self.getControl(MLIST).selectItem(pos)
+            # OK
+            if control_id in [OK]:
+                for it in self.selected:
+                    self.specials[int(it.getProperty('title'))] = '0x' + it.getLabel()
+                self.close()
+            # CLOSE
+            elif control_id in [CLOSE]:
+                self.Exit = True
+                self.close()
+
+        def makerenumber(self, pos=0):
+            items = []
+            currentSeason = self.items[pos].getProperty('season')
+            previousSeason = self.items[pos - 1 if pos > 0 else 0].getProperty('season')
+            prevEpisode = self.items[pos - 1 if pos > 0 else 0].getProperty('episode')
+            if currentSeason != str(self.season):
+                if str(self.season) == previousSeason:
+                    prevEpisode = int(prevEpisode) + 1
+                else:
+                    prevEpisode = 1
+            else:
+                prevEpisode = self.episode
+
+            for i, item in enumerate(self.items):
+                if (i >= pos and item.getProperty('season') == currentSeason) or not item.getProperty('season'):
+                    if i > pos: prevEpisode += 1
+                    item.setProperties({'season': self.season, 'episode': prevEpisode})
+                items.append(item)
+                self.seasons[item.getLabel()] = '%sx%s' % (item.getProperty('season'), item.getProperty('episode'))
+            self.items = items
+            logger.debug('SELF', self.seasons)
+
+        def addseasons(self):
+            seasonlist = []
+            seasons = []
+            self.episodes = {}
+            for ep, value in self.seasons.items():
+                season = value.split('x')[0]
+                if season not in seasonlist:
+                    item = xbmcgui.ListItem(season)
+                    seasonlist.append(season)
+                    seasons.append(item)
+                if season in seasonlist:
+                    if season not in self.episodes:
+                        self.episodes[season] = []
+                    item = xbmcgui.ListItem('%s - Ep. %s' % (value, ep))
+                    item.setProperty('episode', ep)
+                    self.episodes[season].append(item)
+                    logger.log('EPISODES', self.episodes[season])
+                self.episodes[season].sort(key=lambda it: int(it.getProperty('episode')))
+
+            seasons.sort(key=lambda it: int(it.getLabel()))
+            self.getControl(MSEASONS).reset()
+            self.getControl(MSEASONS).addItems(seasons)
+
     opt.itemlist = itemlist
     opt.manual = manual
     return SelectreNumerationWindow('Renumber.xml', path).start(opt)
@@ -365,375 +755,3 @@ EXIT = 10
 BACKSPACE = 92
 
 path = config.get_runtime_path()
-
-class SelectreNumerationWindow(xbmcgui.WindowXMLDialog):
-    def start(self, opt):
-        self.episodes = opt.Episodes if opt.Episodes else {}
-        self.dictSeries = opt.dictSeries
-        self.item = opt.item
-        self.title = opt.title
-        self.season = opt.s
-        self.episode = opt.e
-        self.mode = opt.Mode
-        self.sp = opt.sp
-        self.manual = opt.manual
-        self.offset = 0
-        self.Exit = False
-
-        self.itemlist = opt.itemlist
-        self.count = 1
-        self.specials = {}
-        self.items = []
-        self.selected = []
-        self.seasons = {}
-
-        self.doModal()
-        return self.season, self.episode, self.mode, self.specials, self.seasons, self.Exit
-
-    def onInit(self):
-        # Compatibility with Kodi 18
-        if config.get_platform(True)['num_version'] < 18: self.setCoordinateResolution(2)
-        fanart = self.item.fanart
-        thumb = self.item.thumbnail
-        self.getControl(SELECT).setVisible(False)
-        self.getControl(SPECIALS).setVisible(False)
-        self.getControl(MANUAL).setVisible(False)
-        # MANUAL
-        if self.manual:
-            self.getControl(MANUAL).setVisible(True)
-            self.getControl(MPOSTER).setImage(thumb)
-            if fanart: self.getControl(MBACKGROUND).setImage(fanart)
-            self.getControl(INFO).setLabel(typo(config.get_localized_string(70822) + self.title,'bold'))
-
-            self.mode = True
-
-            se = '1'
-            ep = '1'
-            position = 0
-            for i, item in enumerate(self.itemlist):
-                title = match(item.title, patron=r'(\d+)').match.lstrip('0')
-                it = xbmcgui.ListItem(title)
-                if int(title) <= len(self.episodes):
-                    se, ep = self.episodes[title].split('x')
-                else:
-                    if position == 0: position = i
-                    ep = str(int(ep) + 1)
-                it.setProperties({'season':se, "episode":ep})
-                self.items.append(it)
-            self.makerenumber()
-            self.addseasons()
-            season = self.getControl(MSEASONS).getSelectedItem().getLabel()
-            self.getControl(MSEP).reset()
-            self.getControl(MSEP).addItems(self.episodes[season])
-            self.getControl(MLIST).addItems(self.items)
-            self.setFocusId(MLIST)
-            self.getControl(MLIST).selectItem(position)
-        # MAIN / SPECIALS
-        else:
-            for item in self.itemlist:
-                if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
-                    title = match(item.title, patron=r'(\d+)').match.lstrip('0')
-                    it = xbmcgui.ListItem(title)
-                    self.items.append(it)
-
-            self.getControl(POSTER).setImage(thumb)
-            self.getControl(MPOSTER).setImage(thumb)
-            if fanart:
-                self.getControl(BACKGROUND).setImage(fanart)
-                self.getControl(MBACKGROUND).setImage(fanart)
-            self.getControl(INFO).setLabel(typo(config.get_localized_string(70824) + self.title, 'bold'))
-            self.getControl(LIST).addItems(self.items)
-
-            if self.sp:
-                self.getControl(SPECIALS).setVisible(True)
-                self.setFocusId(OK)
-            else:
-                self.getControl(SELECT).setVisible(True)
-
-                self.getControl(S).setLabel(str(self.season))
-                self.getControl(E).setLabel(str(self.episode))
-
-                self.setFocusId(O)
-
-    def onFocus(self, focus):
-        if focus in [S]: self.getControl(108).setLabel(typo(config.get_localized_string(70825), 'bold'))
-        elif focus in [E]: self.getControl(108).setLabel(typo(config.get_localized_string(70826), 'bold'))
-        elif focus in [O]: self.getControl(108).setLabel(typo(config.get_localized_string(70001), 'bold'))
-        elif focus in [SS]: self.getControl(108).setLabel(typo(config.get_localized_string(70827), 'bold'))
-        elif focus in [M]: self.getControl(108).setLabel(typo(config.get_localized_string(70828), 'bold'))
-        elif focus in [D]: self.getControl(108).setLabel(typo(config.get_localized_string(70829) + self.title, 'bold'))
-        elif focus in [C]: self.getControl(108).setLabel(typo(config.get_localized_string(70002), 'bold'))
-
-
-    def onAction(self, action):
-        action = action.getId()
-        focus = self.getFocusId()
-        # SEASON SELECT
-        if 100 < focus < 200:
-            s = int(self.getControl(S).getLabel())
-            e = int(self.getControl(E).getLabel())
-            if action in [RIGHT]:
-                if focus in [C]: self.setFocusId(S)
-                else: self.setFocusId(focus + 1)
-            elif action in [LEFT]:
-                if focus in [S]: self.setFocusId(C)
-                else: self.setFocusId(focus - 1)
-            elif action in [UP]:
-                if focus in [S]:
-                    s += 1
-                    self.getControl(S).setLabel(str(s))
-                elif focus in [E]:
-                    e += 1
-                    self.getControl(E).setLabel(str(e))
-            elif action in [DOWN]:
-                if focus in [S]:
-                    if s > 0: s -= 1
-                    self.getControl(S).setLabel(str(s))
-                elif focus in [E]:
-                    if e > 0: e -= 1
-                    self.getControl(E).setLabel(str(e))
-        # MANUAL
-        if focus in [MS, ME]:
-            s = int(self.getControl(MLIST).getSelectedItem().getProperty('season'))
-            e = int(self.getControl(MLIST).getSelectedItem().getProperty('episode'))
-            pos = self.getControl(MLIST).getSelectedPosition()
-            # Set Season
-            if focus in [MS] and action in [UP]: s += 1
-            elif focus in [MS] and action in [DOWN] and s > 0: s -= 1
-            # Set Episode
-            if focus in [ME] and action in [UP]: e += 1
-            elif focus in [ME] and action in [DOWN] and e > 0: e -= 1
-            if action in [UP, DOWN]:
-                if s != self.season: e = 1
-                self.season = s
-                self.episode = e
-                self.makerenumber(pos)
-                self.addseasons()
-                season = self.getControl(MSEASONS).getSelectedItem().getLabel()
-                self.getControl(MSEP).reset()
-                self.getControl(MSEP).addItems(self.episodes[season])
-                self.getControl(MLIST).reset()
-                self.getControl(MLIST).addItems(self.items)
-                self.getControl(MLIST).selectItem(pos)
-        if focus in [MSEASONS]:
-            season = self.getControl(MSEASONS).getSelectedItem().getLabel()
-            self.getControl(MSEP).reset()
-            self.getControl(MSEP).addItems(self.episodes[season])
-
-        # EXIT
-        if action in [EXIT, BACKSPACE]:
-            self.Exit = True
-            self.close()
-
-    def onClick(self, control_id):
-        ## FIRST SECTION
-        if control_id in [S]:
-            selected = platformtools.dialog_numeric(0, config.get_localized_string(70825), self.getControl(S).getLabel())
-            if selected: s = self.getControl(S).setLabel(selected)
-        elif control_id in [E]:
-            selected = platformtools.dialog_numeric(0, config.get_localized_string(70826), self.getControl(E).getLabel())
-            if selected: e = self.getControl(E).setLabel(selected)
-        # OPEN SPECIALS OR OK
-        if control_id in [O, SS]:
-            s = self.getControl(S).getLabel()
-            e = self.getControl(E).getLabel()
-            self.season = int(s)
-            self.episode = int(e)
-            if control_id in [O]:
-                self.close()
-            elif control_id in [SS]:
-                self.getControl(SELECT).setVisible(False)
-                self.getControl(SPECIALS).setVisible(True)
-                self.setFocusId(OK)
-        # OPEN MANUAL
-        elif control_id in [M]:
-            self.getControl(INFO).setLabel(typo(config.get_localized_string(70823) + self.title, 'bold'))
-            self.mode = True
-            if self.episodes:
-                items = []
-                se = '1'
-                ep = '1'
-                for item in self.items:
-                    if int(item.getLabel()) <= len(self.episodes) - 1:
-                        se, ep = self.episodes[item.getLabel()].split('x')
-                    else:
-                        ep = str(int(ep) + 1)
-                    item.setProperties({'season':se, "episode":ep})
-                    items.append(item)
-                    self.seasons[item.getLabel()] = '%sx%s' %(se, ep)
-                self.items = items
-            else:
-                self.makerenumber()
-            self.addseasons()
-            season = self.getControl(MSEASONS).getSelectedItem().getLabel()
-            self.getControl(MSEP).reset()
-            self.getControl(MSEP).addItems(self.episodes[season])
-            self.getControl(MLIST).addItems(self.items)
-            self.getControl(SELECT).setVisible(False)
-            self.getControl(MANUAL).setVisible(True)
-            self.setFocusId(OK)
-        # CLOSE
-        elif control_id in [C]:
-            self.Exit = True
-            self.close()
-        # DELETE
-        if control_id in [D]:
-            self.Exit = True
-            self.dictSeries.pop(self.title)
-            write(self.item, self.dictSeries)
-            self.close()
-
-        ## SPECIAL SECTION
-        # ADD TO SPECIALS
-        p1 = self.getControl(SELECTED).getSelectedPosition()
-        if control_id in [LIST]:
-            item = self.getControl(LIST).getSelectedItem()
-            it = xbmcgui.ListItem(str(len(self.selected) + 1))
-            it.setProperty('title', item.getLabel())
-            self.selected.append(it)
-            index = self.getControl(SELECTED).getSelectedPosition()
-            self.getControl(SELECTED).reset()
-            self.getControl(SELECTED).addItems(self.selected)
-            self.getControl(SELECTED).selectItem(index)
-
-            index = self.getControl(LIST).getSelectedPosition()
-            self.items.pop(index)
-            self.getControl(LIST).reset()
-            self.getControl(LIST).addItems(self.items)
-            if index == len(self.items): index -= 1
-            self.getControl(LIST).selectItem(index)
-        # MOVE SPECIALS
-        elif control_id in [SU]:
-            p2 = p1 - 1
-            if p2 > -1:
-                self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
-                for i, it in enumerate(self.selected):
-                    it.setLabel(str(i+1))
-                    break
-                self.getControl(SELECTED).reset()
-                self.getControl(SELECTED).addItems(self.selected)
-                self.getControl(SELECTED).selectItem(p2)
-
-        elif control_id in [SD]:
-            p2 = p1 + 1
-            if p2 < len(self.selected):
-                self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
-                for i, it in enumerate(self.selected):
-                    it.setLabel(str(i+1))
-                    break
-                self.getControl(SELECTED).reset()
-                self.getControl(SELECTED).addItems(self.selected)
-                self.getControl(SELECTED).selectItem(p2)
-        # REMOVE FROM SPECIALS
-        elif control_id in [SR]:
-            item = self.getControl(SELECTED).getSelectedItem()
-            it = xbmcgui.ListItem(item.getProperty('title'))
-            if int(item.getProperty('title')) < int(self.items[-1].getLabel()):
-                for i, itm in enumerate(self.items):
-                    if int(itm.getLabel()) > int(item.getProperty('title')):
-                        self.items.insert(i, it)
-                        break
-            else:
-                self.items.append(it)
-            self.getControl(LIST).reset()
-            self.getControl(LIST).addItems(self.items)
-            index = self.getControl(SELECTED).getSelectedPosition()
-            self.selected.pop(index)
-            self.getControl(SELECTED).reset()
-            self.getControl(SELECTED).addItems(self.selected)
-
-            if index == len(self.selected): index -= 1
-            self.getControl(SELECTED).selectItem(index)
-        # RELOAD SPECIALS
-        if control_id in [SELECTED]:
-            epnumber = platformtools.dialog_numeric(0, config.get_localized_string(60386))
-            it = self.getControl(SELECTED).getSelectedItem()
-            it.setLabel(str(epnumber))
-            self.selected.sort(key=lambda it: int(it.getLabel()))
-            for i, it in enumerate(self.selected):
-                if it.getLabel() == epnumber: pos = i
-                self.selected.sort(key=lambda it: int(it.getLabel()))
-                self.getControl(SELECTED).reset()
-                self.getControl(SELECTED).addItems(self.selected)
-                self.getControl(SELECTED).selectItem(pos)
-                break
-        if len(self.selected) > 0: self.getControl(SPECIALCOMMANDS).setVisible(True)
-        else: self.getControl(SPECIALCOMMANDS).setVisible(False)
-
-        ## MANUAL SECTION
-        # SELECT SEASON EPISODE (MANUAL)
-        if control_id in [MS, ME]:
-            s = int(self.getControl(MLIST).getSelectedItem().getProperty('season'))
-            e = int(self.getControl(MLIST).getSelectedItem().getProperty('episode'))
-            pos = self.getControl(MLIST).getSelectedPosition()
-            if control_id in [MS]:
-                selected = platformtools.dialog_numeric(0, config.get_localized_string(70825), str(s))
-                if selected: s = int(selected)
-            elif control_id in [ME]:
-                selected = platformtools.dialog_numeric(0, config.get_localized_string(70826), str(e))
-                if selected: e = int(selected)
-            if s != self.season or e != self.episode:
-                self.season = s
-                self.episode = 1 if s != self.season else e
-                self.makerenumber(pos)
-                self.addseasons()
-                season = self.getControl(MSEASONS).getSelectedItem().getLabel()
-                self.getControl(MSEP).reset()
-                self.getControl(MSEP).addItems(self.episodes[season])
-                self.getControl(MLIST).reset()
-                self.getControl(MLIST).addItems(self.items)
-                self.getControl(MLIST).selectItem(pos)
-        # OK
-        if control_id in [OK]:
-            for it in self.selected:
-                self.specials[int(it.getProperty('title'))] = '0x' + it.getLabel()
-            self.close()
-        # CLOSE
-        elif control_id in [CLOSE]:
-            self.Exit = True
-            self.close()
-
-
-    def makerenumber(self, pos = 0):
-        items = []
-        currentSeason = self.items[pos].getProperty('season')
-        previousSeason = self.items[pos - 1 if pos > 0 else 0].getProperty('season')
-        prevEpisode = self.items[pos - 1 if pos > 0 else 0].getProperty('episode')
-        if currentSeason != str(self.season):
-            if str(self.season) == previousSeason:
-                prevEpisode = int(prevEpisode) + 1
-            else:
-                prevEpisode = 1
-        else: prevEpisode = self.episode
-
-        for i, item in enumerate(self.items):
-            if (i >= pos and item.getProperty('season') == currentSeason) or not item.getProperty('season'):
-                if i > pos: prevEpisode += 1
-                item.setProperties({'season':self.season, 'episode':prevEpisode})
-            items.append(item)
-            self.seasons[item.getLabel()] =  '%sx%s' % (item.getProperty('season'), item.getProperty('episode'))
-        self.items = items
-        logger.debug('SELF',self.seasons)
-
-    def addseasons(self):
-        seasonlist = []
-        seasons = []
-        self.episodes = {}
-        for ep, value in self.seasons.items():
-            season = value.split('x')[0]
-            if season not in seasonlist:
-                item = xbmcgui.ListItem(season)
-                seasonlist.append(season)
-                seasons.append(item)
-            if season in seasonlist:
-                if season not in self.episodes:
-                    self.episodes[season] = []
-                item = xbmcgui.ListItem('%s - Ep. %s' % (value, ep))
-                item.setProperty('episode', ep)
-                self.episodes[season].append(item)
-                logger.log('EPISODES',self.episodes[season])
-            self.episodes[season].sort(key=lambda it: int(it.getProperty('episode')))
-
-        seasons.sort(key=lambda it: int(it.getLabel()))
-        self.getControl(MSEASONS).reset()
-        self.getControl(MSEASONS).addItems(seasons)
