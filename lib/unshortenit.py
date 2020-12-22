@@ -545,17 +545,22 @@ class UnshortenIt(object):
                         logger.info('Use Cloudscraper')
                         uri = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, cf=True).headers['location']
             if "snip." in uri:
+                new_uri = ''
                 if 'out_generator' in uri:
                     uri = re.findall('url=(.*)$', uri)[0]
                 elif '/decode/' in uri:
                     scheme, netloc, path, query, fragment = urlsplit(uri)
                     splitted = path.split('/')
                     splitted[1] = 'outlink'
-                    new_uri = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]}).headers['location']
+                    r = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]})
+                    if 'location' in r.headers and r.headers['location']:
+                        new_uri = r.headers['location']
+                    else:
+                        r = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment, follow_redirects=False, post={'url': splitted[2]})
+                        if 'location' in r.headers and r.headers['location']:
+                            new_uri = r.headers['location']
                     if new_uri and new_uri != uri:
                         uri = new_uri
-                    else:
-                        uri = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment, follow_redirects=False, post={'url': splitted[2]}).headers['location']
                     # uri = decrypt(uri.split('/')[-1])
 
             return uri, r.code if r else 200
