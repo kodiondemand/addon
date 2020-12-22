@@ -30,6 +30,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     label = scrapertools.find_single_match(data, r'type:\s*"video/([^"]+)"')
 
+    logger.debug(data)
+
     base_url, token = scrapertools.find_single_match(data, r'''dsplayer\.hotkeys[^']+'([^']+).+?function\s*makePlay.+?return[^?]+([^"]+)''')
     url = '{}{}{}|Referer={}'.format(httptools.downloadpage(host + base_url, headers={"Referer": page_url}).data, token, str(int(time.time() * 1000)), page_url)
     video_urls.append([ label + ' [DooD Stream]', url])
