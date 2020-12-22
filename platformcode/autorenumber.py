@@ -274,9 +274,9 @@ class autorenumber():
                         ep = ep + 1
                     allep = allep + 1
 
-            if season > 1:
+            if Season > 1:
                 for numbers, data in self.regular.items():
-                    if data[0] == str(season) + 'x1':
+                    if data[0] == str(Season) + 'x1':
                         FirstOfSeason = numbers - 1
             else: FirstOfSeason = Episode - 1
 
@@ -296,7 +296,7 @@ class autorenumber():
                         elif number <= len(self.regular) and number in self.regular:
                             self.Episodes[str(episode)] = str(self.regular[number][0])
                         else:
-                            try: Episodes[str(episode)] = str(self.complete[self.regular[number+2][2]][0])
+                            try: self.Episodes[str(episode)] = str(self.complete[self.regular[number+2][2]][0])
                             except: self.Episodes[str(episode)] = '0x0'
 
         if self.Episodes: self.dictSeries[self.title][EPISODE] = b64(jsontools.dump(self.Episodes))
