@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from builtins import map
-import sys, xbmc, xbmcaddon, xbmcgui, base64, json
+import sys, xbmc, xbmcaddon, xbmcgui, base64, json, os
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 from threading import Timer
@@ -9,7 +9,7 @@ from threading import Timer
 from channelselector import get_thumb
 from platformcode import config, logger
 import channelselector
-
+addon_icon = os.path.join( config.__settings__.getAddonInfo( "path" ),'resources', 'media', 'logo.png' )
 
 class KeyListener(xbmcgui.WindowXMLDialog):
     TIMEOUT = 10
@@ -29,9 +29,12 @@ class KeyListener(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         try:
+            logger.debug('ICONA',addon_icon)
+            self.getControl(400).setImage(addon_icon)
             self.getControl(401).addLabel(config.get_localized_string(70698))
             self.getControl(402).addLabel(config.get_localized_string(70699) % self.TIMEOUT)
         except AttributeError:
+            self.getControl(400).setImage(addon_icon)
             self.getControl(401).setLabel(config.get_localized_string(70698))
             self.getControl(402).setLabel(config.get_localized_string(70699) % self.TIMEOUT)
 
@@ -68,7 +71,7 @@ def set_key():
         file_xml = "special://profile/keymaps/kod.xml"
         data = '<keymap><global><keyboard><key id="%s">' % new_key + 'runplugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAia2V5bWFwIiwNCiAgICAib3BlbiI6IHRydWUNCn0=)</key></keyboard></global></keymap>'
         filetools.write(xbmc.translatePath(file_xml), data)
-        platformtools.dialog_notification(config.get_localized_string(70700),config.get_localized_string(70702))
+        # platformtools.dialog_notification(config.get_localized_string(70700),config.get_localized_string(70702),4)
 
         config.set_setting("shortcut_key", new_key)
 
@@ -81,9 +84,10 @@ def delete_key():
     import xbmc
 
     filetools.remove(xbmc.translatePath( "special://profile/keymaps/kod.xml"))
-    platformtools.dialog_notification(config.get_localized_string(70701),config.get_localized_string(70702))
+    # platformtools.dialog_notification(config.get_localized_string(70701),config.get_localized_string(70702),4)
 
     config.set_setting("shortcut_key", '')
+    xbmc.executebuiltin('Action(reloadkeymaps)')
 
 
 class Main(xbmcgui.WindowXMLDialog):

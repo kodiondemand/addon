@@ -1501,7 +1501,7 @@ msgstr "Premere il tasto da utilizzare per aprire la finestra"
 
 msgctxt "#60324"
 msgid "You have %s seconds"
-msgstr "Hai %s segcondi"
+msgstr "Hai %s secondi"
 
 msgctxt "#60325"
 msgid "Saved key"

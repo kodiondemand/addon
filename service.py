@@ -393,7 +393,8 @@ class AddonMonitor(xbmc.Monitor):
         if self.settings_pre.get('elementum_on_seed') != settings_post.get('elementum_on_seed') and settings_post.get('elementum_on_seed'):
             if not platformtools.dialog_yesno(config.get_localized_string(70805), config.get_localized_string(70806)):
                 config.set_setting('elementum_on_seed', False)
-
+        if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
+            xbmc.executebuiltin('Action(reloadkeymaps)')
         self.settings_pre = settings_post
 
     def onScreensaverActivated(self):

@@ -22,7 +22,7 @@ from core.item import Item
 from platformcode import logger, config
 
 addon = config.__settings__
-addon_icon = os.path.join( addon.getAddonInfo( "path" ), "logo.png" )
+addon_icon = os.path.join( addon.getAddonInfo( "path" ),'resources', 'media', "logo.png" )
 
 class XBMCPlayer(xbmc.Player):
 
@@ -41,7 +41,7 @@ def dialog_ok(heading, message):
 def dialog_notification(heading, message, icon=3, time=5000, sound=True):
     dialog = xbmcgui.Dialog()
     try:
-        l_icono = xbmcgui.NOTIFICATION_INFO, xbmcgui.NOTIFICATION_WARNING, xbmcgui.NOTIFICATION_ERROR, addon_icon
+        l_icono = [xbmcgui.NOTIFICATION_INFO, xbmcgui.NOTIFICATION_WARNING, xbmcgui.NOTIFICATION_ERROR, addon_icon]
         dialog.notification(heading, message, l_icono[icon], time, sound)
     except:
         dialog_ok(heading, message)
