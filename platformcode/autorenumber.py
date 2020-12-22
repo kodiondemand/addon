@@ -205,9 +205,9 @@ class autorenumber():
 
         if '|' in self.Season:
             ep = int(self.Season.split('|')[-1])
-            season = int(self.Season.split('|')[0])
+            Season = int(self.Season.split('|')[0])
         else:
-            season = int(self.Season)
+            Season = int(self.Season)
             ep = 1
 
         busy(True)
@@ -215,7 +215,7 @@ class autorenumber():
         busy(False)
 
         if self.item.renumber:
-            self.s = season
+            self.s = Season
             self.e = 1
             Season, Episode, self.Mode, Specials, Seasons, Exit = SelectreNumeration(self, itemlist)
             if Exit: return
@@ -223,7 +223,7 @@ class autorenumber():
             else: self.Season = str(Season)
 
         elif self.Episodes and not self.Mode:
-            self.s = season
+            self.s = Season
             self.e = ep
             self.sp = True
             Season, Episode, self.Mode, Specials, Seasons, Exit = SelectreNumeration(self, itemlist)
