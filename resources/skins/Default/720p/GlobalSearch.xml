@@ -80,7 +80,7 @@
 
                     <control type="textbox">
                         <description>Item Title</description>
-                        <right>40</right>
+                        <left>1040</left>
                         <top>91</top>
                         <width>200</width>
                         <height>30</height>
@@ -379,6 +379,7 @@
                     <itemlayout height="60" width="700">
                         <control type="textbox">
                             <description>Episode Title</description>
+                            <top>0</top>
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
@@ -402,6 +403,7 @@
                         </control>
                         <control type="textbox">
                             <description>Episode Title</description>
+                            <top>0</top>
                             <left>20</left>
                             <width>660</width>
                             <height>60</height>
@@ -620,7 +622,7 @@
         <control type="textbox" id="501">
             <description>Progress Count</description>
             <top>340</top>
-            <right>130</right>
+            <left>950</left>
             <width>200</width>
             <height>40</height>
             <font>font13</font>
