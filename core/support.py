@@ -40,7 +40,7 @@ def hdpass_get_servers(item):
         return ret
     # Carica la pagina
     itemlist = []
-    if 'hdpass' in item.url or 'hdplayer' in item.url:  url = item.url
+    if 'hdpass' in item.url or 'hdplayer' in item.url: url = item.url
     else:
         data = httptools.downloadpage(item.url, CF=False).data.replace('\n', '')
         patron = r'<iframe(?: id="[^"]+")? width="[^"]+" height="[^"]+" src="([^"]+)"[^>]+><\/iframe>'
@@ -68,12 +68,12 @@ def hdpass_get_servers(item):
     return server(item, itemlist=itemlist)
 
 def hdpass_get_url(item):
+    item.referer = item.url
     data = httptools.downloadpage(item.url, CF=False).data
     src = scrapertools.find_single_match(data, r'<iframe allowfullscreen custom-src="([^"]+)')
     if src: item.url = base64.b64decode(src)
     else: item.url = scrapertools.find_single_match(data, r'<iframe allowfullscreen src="([^"]+)')
     item.url, c = unshortenit.unshorten_only(item.url)
-
     return [item]
 
 def color(text, color):
@@ -1166,7 +1166,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         videoitem.contentType = item.contentType
         videoitem.infoLabels = item.infoLabels
         videoitem.quality = quality
-        videoitem.referer = item.url
+        videoitem.referer = item.referer if item.referer else item.url
         videoitem.action = "play"
         # videoitem.nfo = item.nfo
         # videoitem.strm_path = item.strm_path
