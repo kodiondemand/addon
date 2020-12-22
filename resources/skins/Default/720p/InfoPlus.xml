@@ -317,6 +317,7 @@
 					<texture >Infoplus/tmdb.png</texture>
 				</control>
 				<control type="textbox" id="30006">
+					<top>0</top>
 					<left>60</left>
 					<width>40</width>
 					<height>50</height>

@@ -381,11 +381,11 @@ class ImagesWindow(xbmcgui.WindowDialog):
         self.addControl(self.main_image)
 
         if self.image_list:
-            self.counter = xbmcgui.ControlTextBox(1180, 640, 60, 40, 'font30_title')
+            self.counter = xbmcgui.ControlTextBox(1180, 640, 60, 40, 'font13')
             self.addControl(self.counter)
             self.counter.setText('%s/%s' % (1,len(self.image_list)))
         else:
-            self.text = xbmcgui.ControlLabel(0, 0, 1280, 720, 'NESSUNA IMMAGINE', 'font30_title', alignment=2|4)
+            self.text = xbmcgui.ControlLabel(0, 0, 1280, 720, 'NESSUNA IMMAGINE', 'font13', alignment=2|4)
             self.addControl(self.text)
 
         self.close_btn = xbmcgui.ControlButton(0, 0, 1280, 720, '' ,'', '')

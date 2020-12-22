@@ -39,8 +39,8 @@
             </control>
             <!-- COUNT -->
             <control type="textbox" id='30001'>
-                <right>40</right>
-                <bottom>40</bottom>
+                <left>1190</left>
+                <top>650</top>
                 <width>50</width>
                 <height>30</height>
                 <font>font13</font>
