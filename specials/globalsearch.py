@@ -151,7 +151,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
             year = result.get('release_date', '')
             rating = str(result.get('vote_average', ''))
 
-            new_item = Item(channel='search',
+            new_item = Item(channel='globalsearch',
                             action=True,
                             title=title,
                             thumbnail=thumbnail,
@@ -733,7 +733,6 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
             parent = self.item
         item = Item().fromurl(item_url)
         parent.noMainMenu = True
-
         commands = platformtools.set_context_commands(item, item_url, parent)
         context = [c[0] for c in commands]
         context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
