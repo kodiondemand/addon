@@ -21,10 +21,10 @@ def mainlist(item):
 
     top = [('Novità',['', 'peliculas', 'new', 'tvshow']),
            ('Aggiornamenti', ['', 'peliculas', 'last', 'tvshow'])]
-    tvshow = ['/lista-serie-tv/']
-    anime =['/lista-anime-2/',
-               ('Sub-Ita',['/lista-anime-sub-ita/', 'peliculas', 'sub']),
-               ('Film Animati',['/lista-film-animazione/','peliculas', '', 'movie'])]
+    tvshow = ['/category/serie-tv/']
+    anime =['/category/anime/',
+               ('Sub-Ita',['/category/anime-sub-ita/', 'peliculas', 'sub']),
+               ('Film Animati',['/category/film-animazione/','peliculas', '', 'movie'])]
     search = ''
     return locals()
 
@@ -34,13 +34,13 @@ def search(item, text):
     # item.args='search'
     item.text = text
     itemlist = []
-    
+
     try:
         # item.url = host + '/lista-serie-tv/'
         # item.contentType = 'tvshow'
         # itemlist += peliculas(item)
         with futures.ThreadPoolExecutor() as executor:
-            for par in [['/lista-serie-tv/', 'tvshow', ''],['/lista-anime-2/', 'tvshow', ''], ['/lista-anime-sub-ita/', 'tvshow', 'sub'], ['/lista-film-animazione/', 'movie', '']]:
+            for par in [['/serie-tv/', 'tvshow', ''],['/anime/', 'tvshow', ''], ['/-anime-sub-ita/', 'tvshow', 'sub'], ['/film-animazione/', 'movie', '']]:
                 item.url = host + par[0]
                 item.contentType = par[1]
                 item.args = par[2]
@@ -73,46 +73,32 @@ def newest(categoria):
 @support.scrape
 def peliculas(item):
     search = item.text
-    pagination = ''
-    anime = True
+    if item.contentType != 'movie': anime = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
-    if item.args == 'search':
-        action = 'check'
-        data = support.match(item).data.replace('\\','')
-        patron = r'"title":"(?P<title>[^"]+)","url":"(?P<url>[^"]+)'
+    if search:
+        pagination = ''
+        patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
+        patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
         patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src(?:set)?="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
-    elif item.args == 'new':
+    else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
         patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
-        patronNext = '<a class="next page-numbers" href="([^"]+)">'
         typeContentDict={'movie':['film']}
         typeActionDict={'findvideos':['film']}
-    else:
-        patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
-        patron = r'<li ><a href="(?P<url>[^"]+)" title="[^>]+">(?P<title>[^<|\(]+)?(?:\([^\d]*(?P<year>\d+)\))?[^<]*</a>'
+        patronNext = '<a class="next page-numbers" href="([^"]+)">'
 
     def itemHook(item):
         support.info(item.title)
-        item.title = support.re.sub(' (?:- )?[Ss]erie [Tt][Vv]', '', item.title)
         if item.args == 'sub':
-            #corregge l'esatta lang per quelle pagine in cui c'è
-            #solo sub-ita
-            item.title = item.title.replace('[ITA]','[Sub-ITA]')
+            item.title += support.typo('Sub-ITA', 'bold color kod _ []')
             item.contentLanguage = 'Sub-ITA'
         return item
     return locals()
 
-def check(item):
-    if support.match(item, headers=headers, patron=r'(category tag">Film)').match:
-        item.contentType = 'movie'
-        return findvideos(item)
-    else:
-        item.contentType = 'tvshow'
-        return episodios(item)
 
 @support.scrape
 def episodios(item):
@@ -134,4 +120,4 @@ def episodios(item):
 
 
 def findvideos(item):
-    return support.server(item, item.url if item.contentType != 'movie' else support.httptools.downloadpage(item.url, headers=headers).data )
+    return support.server(item, item.url if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
