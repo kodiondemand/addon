@@ -24,13 +24,13 @@ from platformcode import logger, config
 addon = config.__settings__
 addon_icon = os.path.join( addon.getAddonInfo( "path" ),'resources', 'media', "logo.png" )
 
-class XBMCPlayer(xbmc.Player):
+# class XBMCPlayer(xbmc.Player):
 
-    def __init__(self, *args):
-        pass
+#     def __init__(self, *args):
+#         pass
 
 
-xbmc_player = XBMCPlayer()
+xbmc_player = xbmc.Player()
 
 
 def dialog_ok(heading, message):
@@ -1037,14 +1037,18 @@ def set_player(item, xlistitem, mediaurl, view, strm):
 
         if player_mode in [0,1]:
             prevent_busy(item)
-            logger.info('Player Mode:' + ['Direct', 'Bookmark'][player_mode])
+            if player_mode in [1]:
+                item.played_time = resume_playback(get_played_time(item))
+                item.options['continue'] = True
+
+            logger.info('Player Mode:',['Direct', 'Bookmark'][player_mode])
             # Add the listitem to a playlist
             playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
             playlist.clear()
             playlist.add(mediaurl, xlistitem)
             # Reproduce
             xbmc_player.play(playlist, xlistitem)
-            # viewed(item, played_time)
+
             if config.get_setting('trakt_sync'):
                 from core import trakt_tools
                 trakt_tools.wait_for_update_trakt()
@@ -1067,7 +1071,7 @@ def set_player(item, xlistitem, mediaurl, view, strm):
 
     # if it is a video library file send to mark as seen
     if strm or item.strm_path: item.options['strm'] = True
-    if player_mode == 1: item.options['continue'] = True
+    # if player_mode == 1: item.options['continue'] = True
     from platformcode import xbmc_videolibrary
     xbmc_videolibrary.mark_auto_as_watched(item)
 

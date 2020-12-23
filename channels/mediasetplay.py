@@ -96,7 +96,8 @@ def live(item):
                                     forcethumb = True,
                                     urls=urls,
                                     plot=plot,
-                                    action='play'))
+                                    action='play',
+                                    no_return=True))
     return support.thumb(itemlist, live=True)
 
 def peliculas(item):

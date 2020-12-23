@@ -34,8 +34,8 @@ def mainlist(item):
 
 
 def live(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True)]
+    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True, no_return=True),
+                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True, no_return=True)]
     return support.thumb(itemlist, live=True)
 
 

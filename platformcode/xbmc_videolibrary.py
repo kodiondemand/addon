@@ -26,7 +26,7 @@ def mark_auto_as_watched(item):
         actual_time = 0
         total_time = 0
         # logger.debug("item:\n" + item.tostring('\n'))
-        if item.options['continue']: item.played_time = platformtools.resume_playback(platformtools.get_played_time(item))
+        # if item.options['continue']: item.played_time = platformtools.resume_playback(platformtools.get_played_time(item))
 
         time_limit = time.time() + 30
         while not platformtools.is_playing() and time.time() < time_limit:
@@ -91,7 +91,7 @@ def mark_auto_as_watched(item):
 
         while platformtools.is_playing():
             xbmc.sleep(100)
-        if not show_server and item.play_from != 'window':
+        if not show_server and item.play_from != 'window' and not item.no_return:
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(Back)')
             xbmc.sleep(500)

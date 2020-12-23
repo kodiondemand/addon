@@ -594,7 +594,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                     busy(False)
                     return
 
-                if item.action not in ['findvideos', 'episodios']:  # special items (add to videolibrary, download ecc.)
+                if item.action in ['add_pelicula_to_library', 'add_serie_to_library','save_download']:  # special items (add to videolibrary, download ecc.)
                     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item_url + ")")
                     busy(False)
                     return
@@ -742,9 +742,9 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
 
     def playmonitor(self, server=None):
         if server:
+            platformtools.prevent_busy(server)
             server.window = True
             server.globalsearch = True
-            platformtools.prevent_busy(server)
             Thread(target=run, args=[server]).start()
             # run(server)
         try:

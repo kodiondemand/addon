@@ -169,7 +169,7 @@ def findvideos(item):
             page_data += data
         if link and link not in links:
             links.append(link)
-            link += '|Referer=' + item.url
+            # link += '|Referer=' + item.url
             itemlist.append(item.clone(action="play", title=titles[i], url=link, server='directo'))
     return support.server(item, data=data, itemlist=itemlist)
 

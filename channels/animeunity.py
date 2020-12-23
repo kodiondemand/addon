@@ -183,7 +183,7 @@ def peliculas(item):
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodios'
             itm.episodes = it['episodes'] if 'episodes' in it else it['link']
-            itm.url = ''
+            itm.url = item.url
 
         itemlist.append(itm)
 
@@ -221,4 +221,7 @@ def episodios(item):
 
 def findvideos(item):
     support.info()
-    return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', action='play')])
+    if not 'vvvvid' in item.url:
+        return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', action='play')])
+    else:
+        return support.server(item, item.url)
