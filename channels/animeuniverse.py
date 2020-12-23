@@ -100,6 +100,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    anime = True
     pagination = int(perpage)
     patron = epPatron
     return locals()
