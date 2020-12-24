@@ -469,9 +469,10 @@ def play_from_library(item):
     window_type = config.get_setting("window_type", "videolibrary")
     # and launch kodi again
     if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.Player().stop()
+        # xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+        # xbmc.Player().stop()
         # Conventional window
+        platformtools.prevent_busy(item)
         item.window = True
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
 
