@@ -182,13 +182,14 @@ def findvideos(item):
             if 'player.php' in match:
                 match = support.httptools.downloadpage(match, follow_redirect=True).url
             list_url.append(match)
-    for i, url in enumerate(list_url):
-        itemlist.append(support.Item(
-                channel=item.channel,
-                title=list_servers[i],
-                url=url,
-                action='play',
-                quality=list_quality[i],
-                infoLabels=item.infoLabels))
+    if list_servers:
+        for i, url in enumerate(list_url):
+            itemlist.append(support.Item(
+                    channel=item.channel,
+                    title=list_servers[i],
+                    url=url,
+                    action='play',
+                    quality=list_quality[i],
+                    infoLabels=item.infoLabels))
 
     return support.server(item, itemlist=itemlist)

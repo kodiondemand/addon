@@ -2,10 +2,12 @@
 import sys
 if sys.version_info[0] >= 3:
     from urllib import request
+    import urllib.parse as urlparse
     PY3 = True
 else:
     PY3 = False
     import urllib as request
+    import urlparse
 
 import re
 import time
@@ -36,6 +38,8 @@ def process_request_proxy(url):
         return
 
     try:
+        domain = urlparse.urlparse(url).netloc
+
         target_url = \
             BASE_URL_TRANSLATE.replace('[TARGET_URL]', request.quote(url))
 
@@ -80,6 +84,7 @@ def process_request_proxy(url):
 
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
+        data = re.sub('https?://[a-zA-Z0-9]+--' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
 
         return {'url': url.strip(), 'result': result, 'data': data.replace('&amp;', '&')}
     except Exception as e:
