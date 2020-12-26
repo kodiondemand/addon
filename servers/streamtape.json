@@ -4,7 +4,10 @@
         "ignore_urls": [],
         "patterns": [{
             "pattern": "https?://streamtape\\.com/(?:e|v)/(\\w+)",
-            "url": "https://streamtape.com/e/\\1"
+            "url": "https://streamta.pe/e/\\1"
+        },{
+            "pattern": "https?://streamta\\.pe/(?:e|v)/(\\w+)",
+            "url": "https://streamta.pe/e/\\1"
         }]
     },
     "free": true,

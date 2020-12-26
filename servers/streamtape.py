@@ -29,7 +29,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     video_urls = []
     possible_url = scrapertools.find_single_match(data, 'innerHTML = "([^"]+)')
-    if not '\\' in possible_url:
+    if not possible_url:
         possible_url = scrapertools.find_single_match(data, "innerHTML\\'\]=\\'([^']+)")
     url = "https:" + possible_url
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers.get("location", "")
