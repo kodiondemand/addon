@@ -37,7 +37,6 @@ if not xbmc_vfs:
     except:
         samba = None
         # Python 2.4 Not compatible with samba module, you have to check
-
 # Windows is "mbcs" linux, osx, android is "utf8"
 if os.name == "nt":
     fs_encoding = ""

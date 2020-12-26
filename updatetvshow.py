@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-import xbmc, sys, base64, json, xbmcgui, os, xbmcvfs, traceback
+import xbmc, sys, xbmcgui, os, xbmcvfs, traceback
 from platformcode import config, logger
+
+librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
+sys.path.insert(0, librerias)
+
+from core.item import Item
 from lib.sambatools import libsmb as samba
 from core import scrapertools
 
@@ -86,7 +91,7 @@ def execute_sql(sql):
                     records = []
 
             conn.close()
-            logger.debug("Query executed. Records: %s" % nun_records)
+            logger.debug("Query executed. Records: %s" % len(records))
 
         except:
             logger.error("Error executing sql query")
@@ -101,11 +106,12 @@ def execute_sql(sql):
 if __name__ == '__main__':
     path = search_paths(sys.listitem.getVideoInfoTag().getDbId())
     if path:
-        item = {"action": "update_tvshow", "channel": "videolibrary", 'path':path}
-        xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + base64.b64encode(json.dumps(item).encode()) + ")")
+        item = Item(action="update_tvshow", channel="videolibrary", path=path)
+        item.tourl()
+        xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
     else:
         dialog = xbmcgui.Dialog()
         title = sys.listitem.getVideoInfoTag().getTitle()
         if dialog.yesno(title, config.get_localized_string(70817) % title, nolabel=config.get_localized_string(70170), yeslabel=config.get_localized_string(30022)):
-            item = {"action": "new_search", "channel": "search", "mode":"tvshow", "search_text": sys.listitem.getVideoInfoTag().getTitle()}
-            xbmc.executebuiltin("ActivateWindow(10025,plugin://plugin.video.kod/?" + base64.b64encode(json.dumps(item).encode()) + ")")
+            item = Item(action="new_search", channel="search", mode="tvshow", search_text=sys.listitem.getVideoInfoTag().getTitle())
+            xbmc.executebuiltin("ActivateWindow(10025,plugin://plugin.video.kod/?" + item.tourl() + ")")

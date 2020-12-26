@@ -354,48 +354,49 @@ class AddonMonitor(xbmc.Monitor):
     def onSettingsChanged(self):
         logger.debug('settings changed')
         settings_post = config.get_all_settings_addon()
-        if settings_post:  # backup settings
+        if settings_post:
+            # backup settings
             filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
                            os.path.join(config.get_data_path(), "settings.bak"), True)
             logger.debug({k: self.settings_pre[k] for k in self.settings_pre
                           if k in settings_post and self.settings_pre[k] != settings_post[k]})
-        from platformcode import xbmc_videolibrary
+            from platformcode import xbmc_videolibrary
 
-        if self.settings_pre.get('downloadpath', None) != settings_post.get('downloadpath', None):
-            xbmc_videolibrary.update_sources(settings_post.get('downloadpath', None),
-                                             self.settings_pre.get('downloadpath', None))
+            if self.settings_pre.get('downloadpath', None) != settings_post.get('downloadpath', None):
+                xbmc_videolibrary.update_sources(settings_post.get('downloadpath', None),
+                                                 self.settings_pre.get('downloadpath', None))
 
-        # If the path of the video library has been changed, we call to check directories so that it creates it and automatically asks if to configure the video library
-        if self.settings_pre.get("videolibrarypath", None) and self.settings_pre.get("videolibrarypath", None) != settings_post.get("videolibrarypath", None) or \
-            self.settings_pre.get("folder_movies", None) and self.settings_pre.get("folder_movies", None) != settings_post.get("folder_movies", None) or \
-            self.settings_pre.get("folder_tvshows", None) and self.settings_pre.get("folder_tvshows", None) != settings_post.get("folder_tvshows", None):
-            videolibrary.move_videolibrary(self.settings_pre.get("videolibrarypath", ''),
-                                           settings_post.get("videolibrarypath", ''),
-                                           self.settings_pre.get("folder_movies", ''),
-                                           settings_post.get("folder_movies", ''),
-                                           self.settings_pre.get("folder_tvshows", ''),
-                                           settings_post.get("folder_tvshows", ''))
+            # If the path of the video library has been changed, we call to check directories so that it creates it and automatically asks if to configure the video library
+            if self.settings_pre.get("videolibrarypath", None) and self.settings_pre.get("videolibrarypath", None) != settings_post.get("videolibrarypath", None) or \
+                self.settings_pre.get("folder_movies", None) and self.settings_pre.get("folder_movies", None) != settings_post.get("folder_movies", None) or \
+                self.settings_pre.get("folder_tvshows", None) and self.settings_pre.get("folder_tvshows", None) != settings_post.get("folder_tvshows", None):
+                videolibrary.move_videolibrary(self.settings_pre.get("videolibrarypath", ''),
+                                               settings_post.get("videolibrarypath", ''),
+                                               self.settings_pre.get("folder_movies", ''),
+                                               settings_post.get("folder_movies", ''),
+                                               self.settings_pre.get("folder_tvshows", ''),
+                                               settings_post.get("folder_tvshows", ''))
 
-        # if you want to autoconfigure and the video library directory had been created
-        if not self.settings_pre.get("videolibrary_kodi", None) and settings_post.get("videolibrary_kodi", None):
-            xbmc_videolibrary.ask_set_content(silent=True)
-        elif self.settings_pre.get("videolibrary_kodi", None) and not settings_post.get("videolibrary_kodi", None):
-            xbmc_videolibrary.clean()
+            # if you want to autoconfigure and the video library directory had been created
+            if not self.settings_pre.get("videolibrary_kodi", None) and settings_post.get("videolibrary_kodi", None):
+                xbmc_videolibrary.ask_set_content(silent=True)
+            elif self.settings_pre.get("videolibrary_kodi", None) and not settings_post.get("videolibrary_kodi", None):
+                xbmc_videolibrary.clean()
 
-        if self.settings_pre.get('addon_update_timer') != settings_post.get('addon_update_timer'):
-            schedule.clear('updater')
-            self.scheduleUpdater()
+            if self.settings_pre.get('addon_update_timer') != settings_post.get('addon_update_timer'):
+                schedule.clear('updater')
+                self.scheduleUpdater()
 
-        if self.update_setting != config.get_setting("update", "videolibrary") or self.update_hour != config.get_setting("everyday_delay", "videolibrary") * 4:
-            schedule.clear('videolibrary')
-            self.scheduleVideolibrary()
+            if self.update_setting != config.get_setting("update", "videolibrary") or self.update_hour != config.get_setting("everyday_delay", "videolibrary") * 4:
+                schedule.clear('videolibrary')
+                self.scheduleVideolibrary()
 
-        if self.settings_pre.get('elementum_on_seed') != settings_post.get('elementum_on_seed') and settings_post.get('elementum_on_seed'):
-            if not platformtools.dialog_yesno(config.get_localized_string(70805), config.get_localized_string(70806)):
-                config.set_setting('elementum_on_seed', False)
-        if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
-            xbmc.executebuiltin('Action(reloadkeymaps)')
-        self.settings_pre = settings_post
+            if self.settings_pre.get('elementum_on_seed') != settings_post.get('elementum_on_seed') and settings_post.get('elementum_on_seed'):
+                if not platformtools.dialog_yesno(config.get_localized_string(70805), config.get_localized_string(70806)):
+                    config.set_setting('elementum_on_seed', False)
+            if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
+                xbmc.executebuiltin('Action(reloadkeymaps)')
+            self.settings_pre = settings_post
 
     def onScreensaverActivated(self):
         logger.debug('screensaver activated, un-scheduling screen-on jobs')

@@ -5,7 +5,6 @@ import re, os, sys, time, requests, xbmc, xbmcaddon
 from core import filetools, jsontools
 from core.support import info, match
 from platformcode import config, platformtools
-from torrentool.api import Torrent
 from lib.guessit import guessit
 
 if sys.version_info[0] >= 3:

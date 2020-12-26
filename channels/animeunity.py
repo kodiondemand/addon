@@ -7,12 +7,9 @@ import requests, json, copy, inspect
 from core import support
 from platformcode import autorenumber
 
-try: from lib import cloudscraper
-except: from lib import cloudscraper
-
 host = support.config.get_channel_url()
-response = cloudscraper.create_scraper().get(host + '/archivio')
-csrf_token = support.match(response.text, patron= 'name="csrf-token" content="([^"]+)"').match
+response = support.httptools.downloadpage(host + '/archivio')
+csrf_token = support.match(response.data, patron='name="csrf-token" content="([^"]+)"').match
 headers = {'content-type': 'application/json;charset=UTF-8',
            'x-csrf-token': csrf_token,
            'Cookie' : '; '.join([x.name + '=' + x.value for x in response.cookies])}

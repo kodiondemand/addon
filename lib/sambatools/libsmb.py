@@ -2,13 +2,15 @@
 
 import os
 import re
+import sys
+if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 from nmb.NetBIOS import NetBIOS
 from platformcode import logger
 from smb.SMBConnection import SMBConnection
 
-GitHub = 'https://github.com/miketeo/pysmb'     #buscar aquí de vez en cuando la última versiónde SMB-pysmb, y actualizar en Alfa
-vesion_actual_pysmb = '1.1.25'                  #actualizada el 25/11/2018
+GitHub = 'https://github.com/miketeo/pysmb'  # check here from time to time for the latest version of SMB-pysmb
+vesion_actual_pysmb = '1.2.6'  #updated on 26/12/2020
 
 remote = None
 
@@ -65,11 +67,8 @@ def connect(url):
 def listdir(url):
     logger.info("Url: %s" % url)
     remote, share_name, path = connect(url)
-    try:
-        files = [f.filename for f in remote.listPath(share_name, path) if not f.filename in [".", ".."]]
-        return files
-    except Exception, e:
-        raise type(e)(e.message, "")
+    files = [f.filename for f in remote.listPath(share_name, path) if not f.filename in [".", ".."]]
+    return files
 
 
 def walk(url, topdown=True, onerror=None):
@@ -78,7 +77,7 @@ def walk(url, topdown=True, onerror=None):
 
     try:
         names = remote.listPath(share_name, path)
-    except Exception, _err:
+    except Exception as _err:
         if onerror is not None:
             onerror(_err)
         return
@@ -107,7 +106,7 @@ def get_attributes(url):
     remote, share_name, path = connect(url)
     try:
         return remote.getAttributes(share_name, path)
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
 
 
@@ -116,7 +115,7 @@ def mkdir(url):
     remote, share_name, path = connect(url)
     try:
         remote.createDirectory(share_name, path)
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
 
 
@@ -130,7 +129,7 @@ def isfile(url):
     remote, share_name, path = connect(url)
     try:
         files = [f.filename for f in remote.listPath(share_name, os.path.dirname(path)) if not f.isDirectory]
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
     return os.path.basename(path) in files
 
@@ -140,7 +139,7 @@ def isdir(url):
     remote, share_name, path = connect(url)
     try:
         folders = [f.filename for f in remote.listPath(share_name, os.path.dirname(path)) if f.isDirectory]
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
     return os.path.basename(path) in folders or path == "/"
 
@@ -150,7 +149,7 @@ def exists(url):
     remote, share_name, path = connect(url)
     try:
         files = [f.filename for f in remote.listPath(share_name, os.path.dirname(path))]
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
     return os.path.basename(path) in files or path == "/"
 
@@ -160,7 +159,7 @@ def remove(url):
     remote, share_name, path = connect(url)
     try:
         remote.deleteFiles(share_name, path)
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
 
 
@@ -169,7 +168,7 @@ def rmdir(url):
     remote, share_name, path = connect(url)
     try:
         remote.deleteDirectory(share_name, path)
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
 
 
@@ -179,7 +178,7 @@ def rename(url, new_name):
     _, _, _, new_name, _, _, _ = parse_url(new_name)
     try:
         remote.rename(share_name, path, new_name)
-    except Exception, e:
+    except Exception as e:
         raise type(e)(e.message, "")
 
 
@@ -225,7 +224,7 @@ class SMBFile(object):
         if "r+" in self.mode:
             try:
                 attr = self.remote.getAttributes(self.share, self.path)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.size = attr.file_size
@@ -236,7 +235,7 @@ class SMBFile(object):
         elif "r" in self.mode:
             try:
                 attr = self.remote.getAttributes(self.share, self.path)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.size = attr.file_size
@@ -246,7 +245,7 @@ class SMBFile(object):
         elif "w+" in self.mode:
             try:
                 self.remote.storeFileFromOffset(self.share, self.path, self.tmpfile(), 0, truncate=True)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.canread = True
@@ -256,7 +255,7 @@ class SMBFile(object):
         elif "w" in self.mode:
             try:
                 self.remote.storeFileFromOffset(self.share, self.path, self.tmpfile(), 0, truncate=True)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.canwrite = True
@@ -266,7 +265,7 @@ class SMBFile(object):
             try:
                 self.remote.storeFileFromOffset(self.share, self.path, self.tmpfile(), 0)
                 attr = self.remote.getAttributes(self.share, self.path)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.size = attr.file_size
@@ -279,7 +278,7 @@ class SMBFile(object):
             try:
                 self.remote.storeFileFromOffset(self.share, self.path, self.tmpfile(), 0)
                 attr = self.remote.getAttributes(self.share, self.path)
-            except Exception, e:
+            except Exception as e:
                 raise type(e)(e.message, "")
 
             self.size = attr.file_size
@@ -314,7 +313,7 @@ class SMBFile(object):
         if self.pos > self.size:
             self.size = self.pos
 
-    def read(self, size=-1L):
+    def read(self, size=-1):
         if not self.canread:
             raise IOError("File not open for reading")
         f = self.tmpfile()

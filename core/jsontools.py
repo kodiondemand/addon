@@ -8,27 +8,7 @@ import traceback
 from platformcode import logger
 from inspect import stack
 
-try:
-    import json
-except:
-    logger.error("json included in the interpreter **NOT** available")
-
-    try:
-        import simplejson as json
-    except:
-        logger.error("simplejson included in the interpreter **NOT** available")
-        try:
-            from lib import simplejson as json
-        except:
-            logger.error("simplejson in lib directory **NOT** available")
-            logger.error("A valid JSON parser was not found")
-            json = None
-        else:
-            logger.info("Using simplejson in the lib directory")
-    else:
-        logger.error("Using simplejson included in the interpreter")
-# ~ else:
-    # ~ logger.info("Usando json incluido en el interprete")
+import json
 
 import sys
 PY3 = False

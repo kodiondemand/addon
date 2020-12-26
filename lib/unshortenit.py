@@ -539,11 +539,7 @@ class UnshortenIt(object):
                     uri = ''
                     logger.error('IP bannato da vcrypt, aspetta un ora')
                 else:
-                    prev_uri = uri
                     uri = r.headers['location']
-                    if uri == prev_uri:
-                        logger.info('Use Cloudscraper')
-                        uri = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, cf=True).headers['location']
             if "snip." in uri:
                 new_uri = ''
                 if 'out_generator' in uri:
