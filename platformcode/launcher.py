@@ -460,8 +460,11 @@ def play_from_library(item):
 
     itemlist=[]
     item.fromLibrary = True
+    item.window = True
     logger.debug()
     # logger.debug("item: \n" + item.tostring('\n'))
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    xbmc.Player().stop()
 
      # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
@@ -469,16 +472,10 @@ def play_from_library(item):
     window_type = config.get_setting("window_type", "videolibrary")
     # and launch kodi again
     if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
-        # xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        # xbmc.Player().stop()
-        # Conventional window
-        platformtools.prevent_busy(item)
-        item.window = True
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
 
     else:
         # Pop-up window
-        # platformtools.prevent_busy(item)
         from specials import videolibrary
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
         p_dialog.update(0, '')
@@ -493,8 +490,7 @@ def play_from_library(item):
             head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
             played_time = platformtools.get_played_time(item_nfo)
         else: played_time = 0
-
-        if not played_time and config.get_setting('autoplay'):
+        if not played_time:
             return
 
         # The number of links to show is limited
