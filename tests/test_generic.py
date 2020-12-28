@@ -28,6 +28,15 @@ if 'KOD_TST_CH' not in os.environ:
     xbmc.get_add_on_info_from_calling_script = add_on_info
 
 
+# functions that on kodi 19 moved to xbmcvfs
+try:
+    import xbmcvfs
+    xbmc.translatePath = xbmcvfs.translatePath
+    xbmc.validatePath = xbmcvfs.validatePath
+    xbmc.makeLegalFilename = xbmcvfs.makeLegalFilename
+except:
+    pass
+
 import HtmlTestRunner
 import parameterized
 
@@ -95,7 +104,7 @@ chNumRis = {
         'Serie TV': 30
     },
     'italiaserie': {
-        'Serie TV': 20
+        'Serie TV': 15
     },
     'casacinemaInfo': {
         'Film': 150

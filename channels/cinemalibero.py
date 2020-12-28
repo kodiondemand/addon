@@ -93,11 +93,14 @@ def episodios(item):
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
-    else:# item.extra == 'serie':
+    elif item.args == 'serie':
         support.info("Serie :", item)
         patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         item.contentType = 'tvshow'
+    else:
+        patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)<br'
+
     def itemHook(item):
         if not scrapertools.find_single_match(item.title, r'(\d+x\d+)'):
             item.title = re.sub(r'(\d+) -', '1x\\1', item.title)
@@ -156,23 +159,29 @@ def check(item):
     support.info()
     data = support.match(item.url, headers=headers).data
     if data:
-        blockAnime = support.match(data, patron=r'<div id="container" class="container">(.+?<div style="margin-left)').match
+        ck = support.match(data, patron=r'Supportaci condividendo quest[oa] ([^:]+)').match.lower()
 
-        if support.match(blockAnime, patron=r'\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+').match:
+        if ck == 'serie tv':
             item.contentType = 'tvshow'
+            item.args = 'serie'
             item.data = data
             return episodios(item)
 
-        elif blockAnime and ('episodio' in blockAnime.lower() or 'saga' in blockAnime.lower()):
+        elif ck == 'anime':
             item.contentType = 'tvshow'
             item.args = 'anime'
-            item.data = blockAnime
+            item.data = data
             return episodios(item)
 
-        else:
+        elif ck == 'film':
             item.contentType = 'movie'
             item.data = data
             return findvideos(item)
+
+        else:
+            item.contentType = 'tvshow'
+            item.data = data
+            return episodios(item)
 
 
 def findvideos(item):

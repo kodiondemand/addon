@@ -21,7 +21,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
               'NORMAL':2,
               'HD':3}
     data = httptools.downloadpage(page_url).data
-    logger.debug('SPEEDVIDEO DATA '+ data)
+    # logger.debug('SPEEDVIDEO DATA '+ data)
 
     media_urls = scrapertools.find_multiple_matches(data, r"file:[^']'([^']+)',\s*label:[^\"]\"([^\"]+)\"")
     logger.debug("speed video - media urls: %s " % media_urls)
