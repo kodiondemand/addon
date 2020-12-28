@@ -86,7 +86,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data=item.data
-    # debugBlock=True
+    # debug=True
     if item.args == 'anime':
         support.info("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
@@ -99,7 +99,7 @@ def episodios(item):
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         item.contentType = 'tvshow'
     else:
-        patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)<br'
+        patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)(?:<br|</p)'
 
     def itemHook(item):
         if not scrapertools.find_single_match(item.title, r'(\d+x\d+)'):
