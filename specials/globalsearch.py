@@ -666,10 +666,10 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                     self.playmonitor()
 
             else:
-                episodes = self.itemsResult if self.itemsResult else []
+                self.episodes = self.itemsResult if self.itemsResult else []
                 self.itemsResult = []
                 ep = []
-                for item in episodes:
+                for item in self.episodes:
                     # if item.action == 'findvideos':
                     it = xbmcgui.ListItem(item.title)
                     it.setProperty('item', item.tourl())
@@ -745,8 +745,8 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
             platformtools.prevent_busy(server)
             server.window = True
             server.globalsearch = True
-            Thread(target=run, args=[server]).start()
-            # run(server)
+            if server in ['torrent']: Thread(target=run, args=[server]).start()
+            else: run(server)
         try:
             while not platformtools.is_playing() or not xbmc.Player().getTime() > 0:
                 xbmc.sleep(500)
