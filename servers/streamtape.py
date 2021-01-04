@@ -4,6 +4,7 @@
 # --------------------------------------------------------
 from core import httptools, scrapertools
 from platformcode import logger, config
+from core.support import match
 import sys
 
 PY3 = False
@@ -26,11 +27,16 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
+    # from core .support import dbg;dbg()
 
     video_urls = []
-    possible_url = scrapertools.find_single_match(data, 'innerHTML = "([^"]+)')
+    possible_url = ''
+    find_url = match(data, patron=r'''innerHTML = ["']([^"]+)["'](?:\s*\+\s*['"]([^"']+))?''').match
+    for m in find_url:
+        possible_url += m
+
     if not possible_url:
-        possible_url = scrapertools.find_single_match(data, "innerHTML\\'\]=\\'([^']+)")
+        possible_url = match(data, patron=r"innerHTML\\'\]=\\'([^']+)").match
     url = "https:" + possible_url
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers.get("location", "")
     video_urls.append(['MP4 [Streamtape]', url])

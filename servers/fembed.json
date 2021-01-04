@@ -3,8 +3,8 @@
     "find_videos": {
         "ignore_urls": [],
         "patterns": [{
-            "pattern": "(?:fembed|divload|cercafilm|sonline|verystream|animeworld).(?:com|net|pro|info|biz)/((?:f|v)/[A-z0-9_-]+)",
-            "url": "https://www.feurl.com/\\1"
+            "pattern": "((?:fembed|divload|cercafilm|sonline|verystream|animeworld|tantifilm).([^/]+)/(?:f|v)/[A-z0-9_-]+)",
+            "url": "https://\\1"
         }]
     },
     "free": true,

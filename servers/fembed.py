@@ -9,7 +9,7 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     global data
 
-    page_url = re.sub('://[^/]+/', '://feurl.com/', page_url)
+    # page_url = re.sub('://[^/]+/', '://feurl.com/', page_url)
     data = httptools.downloadpage(page_url).data
     if "Sorry 404 not found" in data or "This video is unavailable" in data or "Sorry this video is unavailable:" in data:
         return False,  config.get_localized_string(70449) % "fembed"
