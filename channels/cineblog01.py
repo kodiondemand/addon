@@ -5,9 +5,7 @@
 
 import re
 
-from core import scrapertools, httptools, servertools, tmdb, support
-from core.item import Item
-from lib import unshortenit
+from core import scrapertools, httptools, servertools, support
 from platformcode import logger, config
 
 
@@ -90,14 +88,14 @@ def search(item, text):
             logger.error("%s" % line)
         return []
 
-
 @support.scrape
 def peliculas(item):
     # esclusione degli articoli 'di servizio'
     blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
                  'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬',
                  'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
-                 'OSCAR 2020 &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;']
+                 'OSCAR 2020 &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
+                 'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; 2021!']
     # debug= True
     if 'newest' in item.args:
         if '/serietv/' not in item.url:
@@ -112,7 +110,7 @@ def peliculas(item):
             action = 'episodios'
 
     elif '/serietv/' not in item.url:
-        patron = r'<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[A-Za-z0-9/-]+)])? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
+        patron = r'<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[A-Za-z0-9/-]+)])? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
         action = 'findvideos'
 
     else:

@@ -95,7 +95,7 @@ def peliculas(item):
     deflang= 'Sub-ITA'
     action = 'check'
     page = None
-    post = "page=" + str(item.page if item.page else 1) if item.page > 1 else None
+    post = "page=" + str(item.page if item.page else 1) if item.page and item.page > 1 else None
 
     if item.args == 'top':
         data = item.other

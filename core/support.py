@@ -283,7 +283,10 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     scraped['duration'] = int(h) * 60 + int(m)
                 if not matches:
                     scraped['duration'] = scrapertools.find_single_match(scraped['duration'], r'(\d+)')
-                infolabels['duration'] = int(scraped['duration']) * 60
+                try:
+                    infolabels['duration'] = int(scraped['duration']) * 60
+                except:
+                    scraped['duration'] = ''
             if scraped['genere']:
                 genres = scrapertools.find_multiple_matches(scraped['genere'], '[A-Za-z]+')
                 infolabels['genere'] = ", ".join(genres)

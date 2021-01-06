@@ -2,7 +2,7 @@
     "id": "fastsubita",
     "name": "Fastsubita",
     "language": ["sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "fastsubita.png",
     "banner": "fastsubita.png",
     "categories": ["tvshow", "vos"],
