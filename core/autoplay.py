@@ -67,8 +67,6 @@ def start(itemlist, item):
         # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
         if not user_config_setting_action: config.set_setting("default_action", 2)
 
-        # if user_config_setting_player != 0: config.set_setting("player_mode", 0)
-
         # Priorities when ordering itemlist:
         #       0: Servers and qualities
         #       1: Qualities and servers
@@ -210,6 +208,8 @@ def start(itemlist, item):
                     videoitem = autoplay_elem['videoitem']
                     if videoitem.server.lower() not in max_intentos_servers:
                         max_intentos_servers[videoitem.server.lower()] = max_intentos
+                    if videoitem.server.lower() in ['youtube'] and user_config_setting_player != 0:
+                        config.set_setting("player_mode", 0)
 
                     # If the maximum number of attempts of this server have been reached, we jump to the next
                     if max_intentos_servers[videoitem.server.lower()] == 0:
@@ -269,7 +269,7 @@ def start(itemlist, item):
 
         # Restore if necessary the previous value of "Action and Player Mode" in preferences
         if not user_config_setting_action: config.set_setting("default_action", user_config_setting_action)
-        if user_config_setting_player != 0: config.set_setting("player_mode", user_config_setting_player)
+        config.set_setting("player_mode", user_config_setting_player)
 
     return itemlist
 
