@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from builtins import map
-import sys, xbmc, xbmcaddon, xbmcgui, base64, json, os
-PY3 = False
-if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
+import xbmc, xbmcaddon, xbmcgui, re
 from threading import Timer
-
-from channelselector import get_thumb
-from platformcode import config, logger
+from platformcode import config, logger, platformtools, launcher
+from core import filetools
+from core.item import Item
 import channelselector
-addon_icon = os.path.join( config.__settings__.getAddonInfo( "path" ),'resources', 'media', 'logo.png' )
+addon_icon = filetools.join( config.__settings__.getAddonInfo( "path" ),'resources', 'media', 'logo.png' )
+
+background = 'FF232323'
+text = 'FFFFFFFF'
+select = 'FF0082C2'
+if config.get_setting('icon_set') == 'dark':
+    background = 'FFDCDCDC'
+    text = 'FF232323'
+    select = '880082C2'
 
 class KeyListener(xbmcgui.WindowXMLDialog):
     TIMEOUT = 10
@@ -29,7 +35,6 @@ class KeyListener(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         try:
-            logger.debug('ICONA',addon_icon)
             self.getControl(400).setImage(addon_icon)
             self.getControl(401).addLabel(config.get_localized_string(70698))
             self.getControl(402).addLabel(config.get_localized_string(70699) % self.TIMEOUT)
@@ -89,88 +94,111 @@ def delete_key():
     config.set_setting("shortcut_key", '')
     xbmc.executebuiltin('Action(reloadkeymaps)')
 
+LEFT = 1
+RIGHT = 2
+UP = 3
+DOWN = 4
+EXIT = 10
+BACKSPACE = 92
+RIGHTCLICK = 101
+MOUSEMOVE = 107
 
 class Main(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self.items = []
 
-
     def onInit(self):
+        self.MENU = self.getControl(1)
+        self.SUBMENU = self.getControl(2)
         #### Compatibility with Kodi 18 ####
         if config.get_platform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
 
-        for menuentry in menu:
-            if not menuentry.channel: menuentry.channel = prevchannel
-            item = xbmcgui.ListItem(menuentry.title)
-            if not submenu and menuentry.channel in ['news', 'channelselector', 'search', 'videolibrary']:
-                item.setProperty('sub', 'Shortcut/sub.png')
-            if menuentry.title != 'Redirect':
-                for key , value in json.loads(menuentry.tojson()).items():
-                    item.setProperty(key, str(value))
-                item.setProperty('run', menuentry.tojson())
-                self.items.append(item)
+        itemlist = self.menulist(channelselector.getmainlist())
 
-        self.getControl(32500).addItems(self.items)
-        self.setFocusId(32500)
+        self.MENU.addItems(itemlist)
+        self.setFocusId(1)
+        self.submenu()
+
+    def menulist(self, menu):
+        itemlist = []
+        for menuentry in menu:
+            # if not menuentry.channel: menuentry.channel = 'news'
+            title = re.sub(r'(\[[/]?COLOR[^\]]*\])','',menuentry.title)
+            item = xbmcgui.ListItem(title)
+            item.setProperty('background', background)
+            item.setProperty('text', text)
+            item.setProperty('select', select)
+            item.setProperty('channel', menuentry.channel)
+            item.setProperty('focus', '0')
+            item.setProperty('thumbnail', menuentry.thumbnail)
+            if menuentry.channel not in ['downloads', 'setting', 'help']:
+                item.setProperty('sub', 'true')
+            item.setProperty('run', menuentry.tourl())
+            itemlist.append(item)
+        return itemlist
 
 
     def onClick(self, control_id):
-        if control_id == 32500:
-            action = self.getControl(32500).getSelectedItem().getProperty('run')
+        if control_id in [1, 2]:
+            action = self.getControl(control_id).getSelectedItem().getProperty('run')
             self.close()
-            if self.getControl(32500).getSelectedItem().getProperty('folder') == 'False':
-                xbmc.executebuiltin('RunPlugin("plugin://plugin.video.kod/?' + base64.b64encode(action) + '")')
+            if Item().fromurl(action).folder == False:
+                xbmc.executebuiltin('RunPlugin("plugin://plugin.video.kod/?' + action + '")')
             else:
-                xbmc.executebuiltin('ActivateWindow(10025, "plugin://plugin.video.kod/?' + base64.b64encode(action) + '")')
+                xbmc.executebuiltin('ActivateWindow(10025, "plugin://plugin.video.kod/?' + action + '")')
+
+        elif control_id in [101]:
+            self.setFocusId(2)
+        elif control_id in [102]:
+            self.setFocusId(1)
 
 
 
     def onAction(self, action):
-        # exit
-        if action.getId() in [xbmcgui.ACTION_PREVIOUS_MENU, xbmcgui.ACTION_NAV_BACK]:
+        if action.getButtonCode() == config.get_setting('shortcut_key'):
             self.close()
-            if submenu: open_shortcut_menu(self=True)
 
-        if action.getId() == xbmcgui.ACTION_CONTEXT_MENU:
-            config.open_settings()
+        action = action.getId()
+
+        if action in [EXIT, BACKSPACE, RIGHTCLICK]:
+            self.close()
 
         focus = self.getFocusId()
 
-        if action == 3:
-            if focus == 61:
-                self.setFocusId(32500)
-            elif submenu:
-                self.close()
-                open_shortcut_menu(self=True)
-            elif self.getControl(32500).getSelectedItem().getProperty('channel') in ['news', 'channelselector', 'search', 'videolibrary']:
-                channel_name = self.getControl(32500).getSelectedItem().getProperty('channel')
-                if channel_name == 'channelselector':
-                    import channelselector
-                    self.close()
-                    open_shortcut_menu(channelselector.getchanneltypes(), channel_name, self=True)
-                else:
-                    from core.item import Item
-                    channel = __import__('specials.%s' % channel_name, fromlist=["specials.%s" % channel_name])
-                    self.close()
-                    open_shortcut_menu(channel.mainlist(Item()), channel_name, self=True)
+        if action in [LEFT, RIGHT, MOUSEMOVE] and self.getFocusId() in [1]:
+            if focus in [1]:
+                self.submenu()
+            else:
+                itfocus = str(self.SUBMENU.getSelectedPosition())
+                self.MENU.getSelectedItem().setProperty('focus', itfocus)
 
 
-def open_shortcut_menu(newmenu='', channel='', self=False):
-    if not self: xbmc.executebuiltin('Dialog.Close(all,true)')
-    global menu
-    global submenu
-    global prevchannel
-    prevchannel = channel
-    if newmenu:
-        menu = newmenu
-        submenu = True
-    else:
-        menu = channelselector.getmainlist()
-        submenu = False
-    XML =  'ShortCutMenu.xml'
-    if config.get_setting('icon_set') == 'dark':
-        XML = 'Dark' + XML
-    main = Main(XML, config.get_runtime_path())
-    main.doModal()
-    del main
+    def submenu(self):
+        channel_name = self.MENU.getSelectedItem().getProperty('channel')
+        focus = int(self.MENU.getSelectedItem().getProperty('focus'))
+        if channel_name == 'channelselector':
+            import channelselector
+            itemlist = self.menulist(channelselector.getchanneltypes())
+        elif channel_name not in ['downloads', 'setting', 'help']:
+            channel = __import__('specials.%s' % channel_name, fromlist=["specials.%s" % channel_name])
+            itemlist = self.menulist(channel.mainlist(Item().fromurl(self.MENU.getSelectedItem().getProperty('run'))))
+        self.SUBMENU.reset()
+        self.SUBMENU.addItems(itemlist)
+        self.SUBMENU.selectItem(focus)
+
+    def context(self):
+        focus = self.getFocusId()
+        item_url = self.MENU.getSelectedItem().getProperty('run')
+        item = Item().fromurl(item_url)
+        commands = platformtools.set_context_commands(item, item_url, Item())
+        context = [c[0] for c in commands]
+        context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
+        index = xbmcgui.Dialog().contextmenu(context)
+        if index > 0: xbmc.executebuiltin(context_commands[index])
+
+
+def open_shortcut_menu():
+    if xbmcgui.getCurrentWindowDialogId() == 9999:
+        main = Main('ShortCutMenu.xml', config.get_runtime_path())
+        main.doModal()

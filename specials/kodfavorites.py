@@ -26,7 +26,7 @@ from datetime import datetime
 
 from core.item import Item
 from platformcode import config, logger, platformtools
-from core import filetools, jsontools
+from core import filetools, jsontools, support
 
 
 def fechahora_actual():
@@ -189,30 +189,24 @@ def mainlist(item):
     for i_perfil, perfil in enumerate(alfav.user_favorites):
         context = []
 
-        context.append({'title': config.get_localized_string(70533), 'channel': item.channel, 'action': 'editar_perfil_titulo',
-                        'i_perfil': i_perfil})
-        context.append({'title': config.get_localized_string(70534), 'channel': item.channel, 'action': 'eliminar_perfil',
-                        'i_perfil': i_perfil})
+        context.append({'title': config.get_localized_string(70533), 'channel': item.channel, 'action': 'editar_perfil_titulo', 'i_perfil': i_perfil})
+        context.append({'title': config.get_localized_string(70534), 'channel': item.channel, 'action': 'eliminar_perfil', 'i_perfil': i_perfil})
 
         if i_perfil > 0:
-            context.append({'title': config.get_localized_string(70535), 'channel': item.channel, 'action': 'mover_perfil',
-                            'i_perfil': i_perfil, 'direccion': 'top'})
-            context.append({'title': config.get_localized_string(70536), 'channel': item.channel, 'action': 'mover_perfil',
-                            'i_perfil': i_perfil, 'direccion': 'arriba'})
+            context.append({'title': config.get_localized_string(70535), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'top'})
+            context.append({'title': config.get_localized_string(70536), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'arriba'})
         if i_perfil < last_i:
-            context.append({'title': config.get_localized_string(70537), 'channel': item.channel, 'action': 'mover_perfil',
-                            'i_perfil': i_perfil, 'direccion': 'abajo'})
-            context.append({'title': config.get_localized_string(70538), 'channel': item.channel, 'action': 'mover_perfil',
-                            'i_perfil': i_perfil, 'direccion': 'bottom'})
+            context.append({'title': config.get_localized_string(70537), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'abajo'})
+            context.append({'title': config.get_localized_string(70538), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'bottom'})
 
         plot = str(len(perfil['items'])) + " " + config.get_localized_string(70723)
-        itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context))
+        itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context, thumbnail=support.thumb('mylink.png')))
 
     itemlist.append(item.clone(action='crear_perfil', title=config.get_localized_string(70542), folder=False))
 
     itemlist.append(item.clone(action='mainlist_listas', title=config.get_localized_string(70603)))
 
-    return itemlist
+    return support.thumb(itemlist)
 
 
 def mostrar_perfil(item):
@@ -230,13 +224,13 @@ def mostrar_perfil(item):
     for i_enlace, enlace in enumerate(alfav.user_favorites[i_perfil]['items']):
 
         it = Item().fromurl(enlace)
-        it.context = [ {'title': '[COLOR blue]'+config.get_localized_string(70617)+'[/COLOR]', 'channel': item.channel, 'action': 'acciones_enlace',
+        it.context = [ {'title': config.get_localized_string(70617), 'channel': item.channel, 'action': 'acciones_enlace',
                         'i_enlace': i_enlace, 'i_perfil': i_perfil} ]
 
-        it.plot += '[CR][CR][COLOR blue]' + config.get_localized_string(70724) + ':[/COLOR] ' + it.channel + ' [COLOR blue]' + config.get_localized_string(60266) + ':[/COLOR] ' + it.action
-        if it.extra != '': it.plot += ' [COLOR blue]Extra:[/COLOR] ' + it.extra
-        it.plot += '[CR][COLOR blue]Url:[/COLOR] ' + it.url if isinstance(it.url, str) else '...'
-        if it.date_added != '': it.plot += '[CR][COLOR blue]' + config.get_localized_string(70469) + ':[/COLOR] ' + it.date_added
+        it.plot += '[CR][CR]' + config.get_localized_string(70724) + ': ' + it.channel + ' ' + config.get_localized_string(60266) + ': ' + it.action
+        if it.extra != '': it.plot += ' Extra: ' + it.extra
+        it.plot += '[CR]Url: ' + it.url if isinstance(it.url, str) else '...'
+        if it.date_added != '': it.plot += '[CR]' + config.get_localized_string(70469) + ': ' + it.date_added
 
         # If it is not a url, nor does it have the system path, convert the path since it will have been copied from another device.
         # It would be more optimal if the conversion was done with an import menu, but at the moment it is controlled in run-time.

@@ -1936,8 +1936,8 @@ msgid "FILTER SAVED"
 msgstr "FILTRO SALVATO"
 
 msgctxt "#60447"
-msgid "FAQ:"
-msgstr "FAQ:"
+msgid "Guide (opens the browser)"
+msgstr "Guida alle funzioni di KoD (apre il browser)"
 
 msgctxt "#60448"
 msgid "    - How do I report an error?"

@@ -1937,7 +1937,7 @@ msgid "FILTER SAVED"
 msgstr ""
 
 msgctxt "#60447"
-msgid "FAQ:"
+msgid "Guide (opens the browser)"
 msgstr ""
 
 msgctxt "#60448"

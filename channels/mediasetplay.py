@@ -24,7 +24,8 @@ entries = 'https://api.one.accedo.tv/content/entries?id={id}&locale=it'
 sessionUrl = "https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid={uuid}&gid=default"
 
 current_session = requests.Session()
-current_session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(), 'Referer': support.config.get_channel_url()})
+current_session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(),
+                                'Referer': support.config.get_channel_url()})
 
 # login anonimo
 res = current_session.post(loginUrl, json=loginData, verify=False)

@@ -148,7 +148,7 @@
         <!-- Contextual -->
         <setting label="30024" type="lsep"/>
         <setting id="quick_menu" type="bool" label="60360" default="true"/>
-        <setting id="side_menu" type="bool" label="70737" default="false"/>
+        <!-- <setting id="side_menu" type="bool" label="70737" default="false"/> -->
         <setting id="kod_menu" type="bool" label="60026" default="true"/>
         <setting id="infoplus" type="bool" label="70151" default="false"/>
         <!-- <setting id="infoplus_set" type="bool" label="70128" visible="eq(-1,true)" default="false" subsetting="true"/> -->
@@ -157,13 +157,6 @@
 		<setting label="30998" type="lsep"/>
 		<setting id="shortcut_key" type="action" label="30999" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAia2V5bWFwIg0KfQ==)"/>
         <setting id="delete_key" type="action" label="31000" action="RunPlugin(plugin://plugin.video.kod/?ewogICAgImFjdGlvbiI6ICJkZWxldGVfa2V5Igp9==)"/>
-        <!-- Custom Start -->
-        <setting label="70715" type="lsep"/>
-        <setting id="start_page" type="bool" label="70121" default="false"/>
-        <setting id="custom_start" type="bool" label="70122" default="false" visible="eq(-1,True)" enable="eq(-1,True)+eq(1,False)" subsetting="true"/>
-        <setting id="news_start" type="bool" label="70123" default="false" visible="eq(-2,True)" enable="eq(-1,False)+eq(-2,True)" subsetting="true"/>
-        <setting id="category" type="action" label="70124" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZWxlY3QiLA0KICAgICJjaGFubmVsIjoic2hvcnRjdXRzIiwNCgkiaWQiOiJjYXRlZ29yeSIsDQoJInR5cGUiOiJsYWJlbHMiLA0KCSJ2YWx1ZXMiOiI3MDEzN3wzMDEyM3wzMDEyNHw2MDUxMyIsDQoJImxhYmVsIjoiNzAxMjQiDQp9)" visible="eq(-3,True)+eq(-1,True)+eq(-2,False)" enable="eq(-3,True)+eq(-1,True)+eq(-2,False)" subsetting="true"/>
-        <!-- <setting id="category" type="select" label="70124" lvalues="70137|30123|30124|60513" default="Film" visible="eq(-3,True)+eq(-1,True)+eq(-2,False)" enable="eq(-3,True)+eq(-1,True)+(-2,false)"/> -->
 		<!-- Others -->
         <setting label="70149" type="lsep"/>
         <setting id="icon_set" type="select" label="70108" values="default|light|dark|mike" default="default"/>

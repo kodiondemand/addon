@@ -51,27 +51,7 @@ def run(item=None):
                     item.__setattr__(key, val)
         # If no item, this is mainlist
         else:
-            if config.get_setting("start_page"):
-
-                if not config.get_setting("custom_start"):
-                    dictCategory = {
-                        config.get_localized_string(70137): 'peliculas',
-                        config.get_localized_string(30123): 'series',
-                        config.get_localized_string(30124): 'anime',
-                        config.get_localized_string(60513): 'documentales',
-                        config.get_localized_string(70171): 'torrent',
-                    }
-                    if not config.get_setting("category") in dictCategory.keys():
-                        config.set_setting('category', config.get_localized_string(70137))
-                    category = dictCategory[config.get_setting("category")]
-                    item = Item(channel="news", action="novedades", extra=category, mode = 'silent')
-                else:
-                    from platformcode import side_menu
-                    item= Item()
-                    item = side_menu.check_user_home(item)
-                    item.start = True
-            else:
-                item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
+            item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
             if not config.get_all_settings_addon():
                 logger.error('corrupted settings.xml!!')
@@ -455,6 +435,18 @@ def play_from_library(item):
         @type item: item
         @param item: item with information
     """
+
+    def get_played_time(item):
+        if item.contentType == 'movie': nfo_path = item.nfo
+        else: nfo_path = item.strm_path.replace('strm','nfo')
+        if nfo_path and filetools.isfile(nfo_path):
+            from core import videolibrarytools
+            head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
+            sleep(1)
+            played_time = platformtools.get_played_time(item_nfo)
+        else: played_time = 0
+        return played_time
+
     import xbmcgui, xbmcplugin, xbmc
     from time import sleep
 
@@ -482,16 +474,7 @@ def play_from_library(item):
         item.play_from = 'window'
         itemlist = videolibrary.findvideos(item)
         p_dialog.update(100, ''); sleep(0.5); p_dialog.close()
-        while platformtools.is_playing(): sleep(1)
-        if item.contentType == 'movie': nfo_path = item.nfo
-        else: nfo_path = item.strm_path.replace('strm','nfo')
-        if nfo_path and filetools.isfile(nfo_path):
-            from core import videolibrarytools
-            head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-            played_time = platformtools.get_played_time(item_nfo)
-        else: played_time = 0
-        if not played_time:
-            return
+        played = False
 
         # The number of links to show is limited
         if config.get_setting("max_links", "videolibrary") != 0: itemlist = limit_itemlist(itemlist)
@@ -499,9 +482,16 @@ def play_from_library(item):
         if config.get_setting("replace_VD", "videolibrary") == 1: itemlist = reorder_itemlist(itemlist)
         # from core.support import dbg;dbg()
         if len(itemlist) > 0:
+            reopen = False
             while not xbmc.Monitor().abortRequested():
+                played = True
                 # The user chooses the mirror
                 if not platformtools.is_playing():
+                    # from core.support import dbg;dbg()
+                    if config.get_setting('autoplay') or reopen:
+                        played_time = get_played_time(item)
+                        if not played_time and played:
+                            return
                     options = []
                     selection_implementation = 0
                     for item in itemlist:
@@ -525,4 +515,6 @@ def play_from_library(item):
                     else:
                         item = videolibrary.play(itemlist[selection  + selection_implementation])[0]
                         platformtools.play_video(item)
+                        reopen = True
                 # if (platformtools.is_playing() and item.action) or item.server == 'torrent' or config.get_setting('autoplay'): break
+

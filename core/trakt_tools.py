@@ -269,7 +269,7 @@ def wait_for_update_trakt():
     t = Thread(update_all)
     t.setDaemon(True)
     t.start()
-    t.isAlive()
+    t.is_alive()
 
 def update_all():
     # from core.support import dbg;dbg()

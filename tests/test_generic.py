@@ -6,7 +6,7 @@
 # export PYTHONPATH=/home/user/.kodi/addons/plugin.video.kod
 # export KOD_TST_CH=channel
 # python tests/test_generic.py
-
+import html
 import os
 import sys
 import unittest
@@ -141,23 +141,33 @@ chNumRis = {
 servers = []
 channels = []
 
-channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
-logger.info(channel_list)
+# channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
+channel_list = [Item(channel='tantifilm', action="mainlist")]
+logger.info([c.channel for c in channel_list])
 ret = []
 
 logger.record = True
 for chItem in channel_list:
-    try:
-        ch = chItem.channel
-        if ch not in chBlackList:
-            module = __import__('channels.%s' % ch, fromlist=["channels.%s" % ch])
-            hasChannelConfig = False
-            mainlist = module.mainlist(Item())
-            menuItemlist = {}
-            logMenu = {}
-            serversFound = {}
+    ch = chItem.channel
+    if ch not in chBlackList:
+        hasChannelConfig = False
+        mainlist = []
+        module = None
+        error = None
+        menuItemlist = {}
+        serversFound = {}
+        logMenu = {}
 
-            for it in mainlist:
+        try:
+            module = __import__('channels.%s' % ch, fromlist=["channels.%s" % ch])
+            mainlist = module.mainlist(Item())
+        except:
+            import traceback
+            logger.error(traceback.format_exc())
+            error = logger.recordedLog
+            logger.recordedLog = ''
+        for it in mainlist:
+            try:
                 print('preparing ' + ch + ' -> ' + it.title)
 
                 if it.action == 'channel_config':
@@ -165,6 +175,8 @@ for chItem in channel_list:
                     continue
                 if it.action == 'search':  # channel-specific
                     continue
+                menuItemlist[it.title] = []
+
                 itemlist = getattr(module, it.action)(it)
                 menuItemlist[it.title] = itemlist
                 logMenu[it.title] = logger.recordedLog
@@ -180,19 +192,24 @@ for chItem in channel_list:
 
                         if serversFound[it.title]:
                             if hasattr(module, 'play'):
-                                serversFound[it.title] = [getattr(module, 'play')(resIt)[0] for srv in serversFound[it.title]]
+                                tmp = []
+                                for srv in serversFound[it.title]:
+                                    itPlay = getattr(module, 'play')(srv)
+                                    if itPlay:
+                                        tmp.append(itPlay[0])
+                                serversFound[it.title] = tmp
                             servers.extend(
                                 {'name': srv.server.lower(), 'server': srv} for srv in serversFound[it.title] if srv.server)
                             break
+            except:
+                import traceback
+                logger.error(traceback.format_exc())
+                logMenu[it.title] = logger.recordedLog
+                logger.recordedLog = ''
 
-            channels.append(
-                {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
-                 'serversFound': serversFound, 'module': module, 'logMenu': logMenu})
-    except:
-        import traceback
-        logger.error(traceback.format_exc())
-        print(logger.recordedLog)
-        logger.recordedLog = ''
+        channels.append(
+            {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
+             'serversFound': serversFound, 'module': module, 'logMenu': logMenu, 'error': error})
 
 logger.record = False
 
@@ -211,6 +228,7 @@ for s in servers:
 @parameterized.parameterized_class(channels)
 class GenericChannelTest(unittest.TestCase):
     def test_mainlist(self):
+        self.assertIsNone(self.error, self.error)
         self.assertTrue(self.mainlist, 'channel ' + self.ch + ' has no mainlist')
         self.assertTrue(self.hasChannelConfig, 'channel ' + self.ch + ' has no channel config')
 
@@ -255,25 +273,22 @@ class GenericChannelMenuItemTest(unittest.TestCase):
                     self.assertEqual(chNumRis[self.ch][content], risNum,
                                      'channel ' + self.ch + ' -> ' + self.title + ' returned wrong number of results<br>'
                                      + str(risNum) + ' but should be ' + str(chNumRis[self.ch][content]) + '<br>' +
-                                     '<br>'.join([i.title for i in self.itemlist if not i.nextPage]))
+                                     '<br>'.join([html.escape(i.title) for i in self.itemlist if not i.nextPage]))
                     break
 
         for resIt in self.itemlist:
             logger.info(resIt.title + ' -> ' + resIt.url)
             self.assertLess(len(resIt.fulltitle), 110,
-                            'channel ' + self.ch + ' -> ' + self.title + ' might contain wrong titles<br>' + resIt.fulltitle)
+                            'channel ' + self.ch + ' -> ' + self.title + ' might contain wrong titles:<br>' + html.escape(resIt.fulltitle))
             if resIt.url:
                 self.assertIsInstance(resIt.url, str,
-                                      'channel ' + self.ch + ' -> ' + self.title + ' -> ' + resIt.title + ' contain non-string url')
+                                      'channel ' + self.ch + ' -> ' + self.title + ' -> ' + html.escape(resIt.title) + ' contain non-string url')
                 self.assertIsNotNone(re.match(validUrlRegex, resIt.url),
-                                     'channel ' + self.ch + ' -> ' + self.title + ' -> ' + resIt.title + ' might contain wrong url<br>' + resIt.url)
+                                     'channel ' + self.ch + ' -> ' + self.title + ' -> ' + html.escape(resIt.title) + ' might contain wrong url<br>' + html.escape(resIt.url))
             if 'year' in resIt.infoLabels and resIt.infoLabels['year']:
-                msgYear = 'channel ' + self.ch + ' -> ' + self.title + ' might contain wrong infolabels year<br>' + str(
-                    resIt.infoLabels['year'])
-                self.assert_(type(resIt.infoLabels['year']) is int or resIt.infoLabels['year'].isdigit(),
-                             msgYear)
-                self.assert_(int(resIt.infoLabels['year']) > 1900 and int(resIt.infoLabels['year']) < 2100,
-                             msgYear)
+                msgYear = 'channel ' + self.ch + ' -> ' + self.title + ' might contain wrong infolabels year:<br>' + html.escape(str(resIt.infoLabels['year']))
+                self.assert_(type(resIt.infoLabels['year']) is int or resIt.infoLabels['year'].isdigit(), msgYear)
+                self.assert_(1900 < int(resIt.infoLabels['year']) < 2100, msgYear)
 
             if resIt.title == typo(config.get_localized_string(30992), 'color kod bold'):  # next page
                 nextPageItemlist = getattr(self.module, resIt.action)(resIt)
@@ -326,5 +341,7 @@ if __name__ == '__main__':
     if 'KOD_TST_CH' not in os.environ:
         unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(report_name='report', add_timestamp=False, combine_reports=True,
                      report_title='KoD Test Suite', template=os.path.join(config.get_runtime_path(), 'tests', 'template.html')), exit=False)
+        import webbrowser
+        webbrowser.open(os.path.join(config.get_runtime_path(), 'reports', 'report.html'))
     else:
         unittest.main()

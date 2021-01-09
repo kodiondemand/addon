@@ -21,7 +21,7 @@ from core.item import Item
 from core import tmdb, scrapertools, channeltools, filetools, jsontools, servertools
 from channelselector import get_thumb
 from platformcode import logger, config, platformtools, unify
-from core.support import typo
+from core.support import typo, thumb
 import xbmcgui
 
 import gc
@@ -697,11 +697,18 @@ def discover_list(item):
             year = scrapertools.find_single_match(release, r'(\d{4})')
 
         if not item.cast_ or (item.cast_ and (int(year) <= int(datetime.datetime.today().year))):
-            new_item = Item(channel='search', title=typo(title, 'bold'), infoLabels=elem,
-                            action='channel_search', text=title,
-                            thumbnail=thumbnail, fanart=fanart,
-                            context='', mode=mode, contentType=mode,
-                            release_date=year)
+            if config.get_setting('new_search'):
+                new_item = Item(channel='globalsearch', title=typo(title, 'bold'), infoLabels=elem,
+                                action='Search', text=title,
+                                thumbnail=thumbnail, fanart=fanart,
+                                context='', mode='search', type = mode, contentType=mode,
+                                release_date=year, folder = False)
+            else:
+                new_item = Item(channel='search', title=typo(title, 'bold'), infoLabels=elem,
+                                action='channel_search', text=title,
+                                thumbnail=thumbnail, fanart=fanart,
+                                context='', mode=mode, contentType=mode,
+                                release_date=year)
 
             if tvshow:
                 new_item.contentSerieName = title
@@ -718,14 +725,13 @@ def discover_list(item):
 
     elif len(result) > 19 and item.discovery:
         item.discovery['page'] = str(int(item.discovery['page']) + 1)
-        itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70065),
-                             list_type=item.list_type, discovery=item.discovery, text_color='gold'))
+        itemlist.append(Item(channel=item.channel, action='discover_list', title=typo(config.get_localized_string(30992), 'color kod bold'),
+                             list_type=item.list_type, discovery=item.discovery, thumbnail=thumb())) 
     elif len(result) > 19:
         next_page = str(int(item.page) + 1)
 
-        itemlist.append(Item(channel=item.channel, action='discover_list', title=config.get_localized_string(70065),
-                             list_type=item.list_type, search_type=item.search_type, mode=item.mode, page=next_page,
-                             text_color='gold'))
+        itemlist.append(Item(channel=item.channel, action='discover_list', title=typo(config.get_localized_string(30992), 'color kod bold'),
+                             list_type=item.list_type, search_type=item.search_type, mode=item.mode, page=next_page, thumbnail=thumb()))
 
     return itemlist
 

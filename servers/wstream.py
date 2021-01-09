@@ -13,7 +13,7 @@ from platformcode import logger, config, platformtools
 
 # real_host = 'wstream.video'
 errorsStr = ['Sorry this file is not longer available', 'Sorry this video is unavailable', 'Video is processing'
-             'File was deleted', 'Not Found']
+             'File was deleted', 'Not Found', 'This server is in maintenance mode. Refresh this page in some minutes.']
 
 
 def test_video_exists(page_url):

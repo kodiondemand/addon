@@ -246,15 +246,15 @@ def novedades(item):
 
     list_canales, any_active = get_channels_list()
 
-    if config.is_xbmc():
-        from platformcode import side_menu
-        if mode=='silent' and any_active and len(list_canales[item.extra]) > 0:
-            side_menu.set_menu_settings(item)
-            aux_list=[]
-            for canal in list_canales[item.extra]:
-                if len(aux_list)<2:
-                    aux_list.append(canal)
-            list_canales[item.extra]=aux_list
+    # if config.is_xbmc():
+    #     from platformcode import side_menu
+    #     if mode=='silent' and any_active and len(list_canales[item.extra]) > 0:
+    #         side_menu.set_menu_settings(item)
+    #         aux_list=[]
+    #         for canal in list_canales[item.extra]:
+    #             if len(aux_list)<2:
+    #                 aux_list.append(canal)
+    #         list_canales[item.extra]=aux_list
 
     if mode == 'set_cache':
         list_canales[item.extra] = list_canales[item.extra][2:]
@@ -290,7 +290,7 @@ def novedades(item):
 
         # Multi Thread mode: wait for all threads to finish
         if multithread:
-            pendent = [a for a in threads if a.isAlive()]
+            pendent = [a for a in threads if a.is_alive()]
             t = float(100) / len(pendent)
             while pendent:
                 index = (len(threads) - len(pendent)) + 1
@@ -308,7 +308,7 @@ def novedades(item):
                         break
 
                 time.sleep(0.5)
-                pendent = [a for a in threads if a.isAlive()]
+                pendent = [a for a in threads if a.is_alive()]
         if mode == 'normal':
             mensaje = config.get_localized_string(60522) % (len(list_newest), time.time() - start_time)
             progreso.update(100, mensaje)

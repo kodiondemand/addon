@@ -34,6 +34,7 @@ def mark_auto_as_watched(item):
 
 
         marked = False
+        sync = False
         next_episode = None
         show_server = True
 
@@ -60,7 +61,10 @@ def mark_auto_as_watched(item):
             if actual_time > mark_time and not marked:
                 logger.info("Marked as Watched")
                 item.playcount = 1
-                if item.options['strm'] : marked = True
+                marked = True
+                item.played_time = 0
+                platformtools.set_played_time(item)
+                if item.options['strm'] : sync = True
                 show_server = False
                 from specials import videolibrary
                 videolibrary.mark_content_as_watched2(item)
@@ -68,7 +72,7 @@ def mark_auto_as_watched(item):
                     break
 
             # check for next Episode
-            if next_episode and marked and time_from_end >= difference:
+            if next_episode and sync and time_from_end >= difference:
                 nextdialog = NextDialog(ND, config.get_runtime_path())
                 nextdialog.show()
                 while platformtools.is_playing() and not nextdialog.is_exit():
@@ -80,20 +84,20 @@ def mark_auto_as_watched(item):
                 break
             xbmc.sleep(1000)
 
-        if item.options['continue']:
-            if 120 < actual_time < (total_time / 100) * 80:
-                item.played_time = actual_time
-            else: item.played_time = 0
-            platformtools.set_played_time(item)
+        # if item.options['continue']:
+        if actual_time < mark_time:
+            item.played_time = actual_time
+        else: item.played_time = 0
+        platformtools.set_played_time(item)
 
         # Silent sync with Trakt
-        if marked and config.get_setting("trakt_sync"): sync_trakt_kodi()
+        if sync and config.get_setting("trakt_sync"): sync_trakt_kodi()
 
         while platformtools.is_playing():
             xbmc.sleep(100)
         if not show_server and item.play_from != 'window' and not item.no_return:
             xbmc.sleep(700)
-            xbmc.executebuiltin('Action(Back)')
+            xbmc.executebuiltin('Action(ParentDir)')
             xbmc.sleep(500)
         if next_episode and next_episode.next_ep:
             from platformcode.launcher import play_from_library

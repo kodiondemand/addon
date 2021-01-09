@@ -371,47 +371,6 @@ def settings(item):
     config.open_settings()
 
 
-def submenu_tools(item):
-    logger.debug()
-    itemlist = list()
-
-    # Custom tools
-    import os
-    channel_custom = os.path.join(config.get_runtime_path(), 'channels', 'custom.py')
-    if not filetools.exists(channel_custom):
-        user_custom = os.path.join(config.get_data_path(), 'custom.py')
-        if filetools.exists(user_custom):
-            filetools.copy(user_custom, channel_custom, silent=True)
-    if filetools.exists(channel_custom):
-        itemlist.append(Item(channel='custom', action='mainlist', title='Custom Channel'))
-
-    itemlist.append(Item(channel=CHANNELNAME, action="check_quickfixes", folder=False,
-                         title=config.get_localized_string(30001), plot=config.get_addon_version(with_fix=True)))
-    # itemlist.append(Item(channel=CHANNELNAME, action="update_quasar", folder=False,
-    # title=config.get_localized_string(70569)))
-    itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False,
-                         thumbnail=get_thumb("setting_0.png")))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60564) + ":", action="", folder=False,
-                         text_bold=True, thumbnail=get_thumb("channels.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60565), action="conf_tools",
-                         folder=True, extra="lib_check_datajson", thumbnail=get_thumb("channels.png")))
-
-    if config.get_videolibrary_support():
-        itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False,
-                             thumbnail=get_thumb("setting_0.png")))
-        itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60566) + ":", action="", folder=False,
-                             text_bold=True, thumbnail=get_thumb("videolibrary.png")))
-        itemlist.append(Item(channel=CHANNELNAME, action="restore_tools", folder=False,
-                             thumbnail=get_thumb("videolibrary.png"),
-                             title="- " + config.get_localized_string(60567)))
-        itemlist.append(Item(channel="videolibrary", action="update_videolibrary", folder=False,
-                             thumbnail=get_thumb("videolibrary.png"),
-                             title="- " + config.get_localized_string(60568)))
-
-    return itemlist
-
-
 def check_quickfixes(item):
     logger.debug()
 

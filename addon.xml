@@ -1,4 +1,4 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.5.1" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.5.2" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
@@ -26,9 +26,12 @@
       <screenshot>resources/media/themes/ss/2.png</screenshot>
       <screenshot>resources/media/themes/ss/3.png</screenshot>
     </assets>
-      <news>- corretta e migliorata la nuova ricerca globale
-- salvataggio punto di visione basato sull'id tmdb (disponibile su qualunque canale / server anche senza salvare in videoteca)
-- alcuni fix e migliore</news>
+      <news>- Migliorato Menu Rapido
+- Rimosso Menu Laterale
+- Fix Youtube
+- Fix Visualizza collegamenti della videoteca come pop-up
+- Riorganizzata sezione Aiuto
+- Reinserito canale tantifilm</news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]
     [COLOR yellow]Kodi © is a registered trademark of the XBMC Foundation. We are not connected to or in any other way affiliated with Kodi, Team Kodi, or the XBMC Foundation. Furthermore, any software, addons, or products offered by us will receive no support in official Kodi channels, including the Kodi forums and various social networks.[/COLOR]</disclaimer>

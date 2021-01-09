@@ -576,11 +576,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
-        # Set as Home Page
-        if config.get_setting('start_page'):
-            if item.action not in ['episodios', 'seasons', 'findvideos', 'play']:
-                context_commands.insert(0, (config.get_localized_string(60351), "RunPlugin(%s?%s)" % (sys.argv[0], Item(channel='side_menu', action="set_custom_start", parent=item.tourl()).tourl())))
-
         if item.channel != "videolibrary":
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
@@ -602,7 +597,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                     context_commands.append((config.get_localized_string(60355), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
                     context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
                 # Download episode
-                elif item.contentType == "episode" or item.action in ['findvideos']:
+                elif item.contentType == "episode" and item.action in ['findvideos']:
                     context_commands.append((config.get_localized_string(60356), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
                 # Download season
                 elif item.contentType == "season":
@@ -1012,7 +1007,7 @@ def get_video_seleccionado(item, seleccion, video_urls):
 
 def set_player(item, xlistitem, mediaurl, view, strm):
     logger.debug()
-    item.options = {'strm':False, 'continue':False}
+    item.options = {'strm':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 
     # Moved del conector "torrent" here
@@ -1039,7 +1034,6 @@ def set_player(item, xlistitem, mediaurl, view, strm):
             prevent_busy(item)
             if player_mode in [1]:
                 item.played_time = resume_playback(get_played_time(item))
-                item.options['continue'] = True
 
             logger.info('Player Mode:',['Direct', 'Bookmark'][player_mode])
             # Add the listitem to a playlist

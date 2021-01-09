@@ -57,7 +57,6 @@
                             <td class="col-xs-9" colspan="3">
                                 {%- if test_case.stdout %}<p style="white-space: pre-line;">{{ test_case.stdout|e }}</p>{% endif %}
                                 {%- if test_case.err %}<p style="color:maroon;">{{ test_case.err[0].__name__ }}: {{ test_case.err[1] }}</p>{% endif %}
-                                {%- if test_case.err %}<p style="color:maroon;">{{ test_case.test_exception_info }}</p>{% endif %}
                             </td>
                         </tr>
                         {%- endif %}

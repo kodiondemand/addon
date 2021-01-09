@@ -12,9 +12,6 @@ def getmainlist(view="thumb_"):
     logger.debug()
     itemlist = list()
 
-    if config.dev_mode():
-        itemlist.append(Item(title="Redirect", action="check_channels", thumbnail='',
-                             category=config.get_localized_string(30119), viewmode="thumbnails"))
     # Main Menu Channels
     if addon.getSetting('enable_news_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30130), channel="news", action="mainlist",

@@ -358,11 +358,11 @@ try:
             self.control_list.addItems(self.items)
             self.setFocus(self.control_list)
         def onClick(self, id):
+            global window_select, result
             # Cancel button y [X]
             if id == 7:
                 window_select[-1].close()
             if id == 5:
-                global window_select, result
                 self.result = "_no_video"
                 result = "no_video"
                 self.close()

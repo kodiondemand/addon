@@ -40,7 +40,7 @@ def download_and_play(url, file_name, download_path):
         dialog.create(config.get_localized_string(60200), config.get_localized_string(60312))
         dialog.update(0)
 
-        while not cancelled and download_thread.isAlive():
+        while not cancelled and download_thread.is_alive():
             dialog.update(download_thread.get_progress(), config.get_localized_string(60313) + '\n' +
                           config.get_localized_string(60314) + str(int(old_div(download_thread.get_speed(), 1024))) + " KB/s " + str(
                               download_thread.get_actual_size()) + config.get_localized_string(60316) + str( download_thread.get_total_size()) + "MB",
@@ -67,15 +67,15 @@ def download_and_play(url, file_name, download_path):
             logger.info("Terminated by user")
             break
         else:
-            if not download_thread.isAlive():
+            if not download_thread.is_alive():
                 logger.info("Download has finished")
                 break
             else:
                 logger.info("Continua la descarga")
 
     # When the player finishes, if you continue downloading it for now
-    logger.info("Download thread alive=" + str(download_thread.isAlive()))
-    if download_thread.isAlive():
+    logger.info("Download thread alive=" + str(download_thread.is_alive()))
+    if download_thread.is_alive():
         logger.info("Killing download thread")
         download_thread.force_stop()
 
@@ -106,11 +106,11 @@ class CustomPlayer(xbmc.Player):
     def force_stop_download_thread(self):
         logger.info()
 
-        if self.download_thread.isAlive():
+        if self.download_thread.is_alive():
             logger.info("Killing download thread")
             self.download_thread.force_stop()
 
-            # while self.download_thread.isAlive():
+            # while self.download_thread.is_alive():
             #    xbmc.sleep(1000)
 
     def onPlayBackStarted(self):

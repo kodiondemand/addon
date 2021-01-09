@@ -20,7 +20,7 @@ def findhost(url):
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-player_iframe = r'<iframe src="([^"]+)"[^>]+></iframe>\s?<div class="player'
+player_iframe = r'<iframe.*?src="([^"]+)"[^>]+></iframe>\s*<div class="player'
 
 @support.menu
 def mainlist(item):
@@ -49,11 +49,12 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     if item.args == 'search':
         patron = r'<a href="(?P<url>[^"]+)" title="Permalink to\s*(?P<title>[^"]+) \((?P<year>[0-9]+)[^<]*\)[^"]*"[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)".*?<div class="calitate">\s*<p>(?P<quality>[^<]+)<\/p>'
     else:
         patronNext = r'<a class="nextpostslink" rel="next" href="([^"]+)">'
-        patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*<img[^s]+src="([^"]+)"[^>]+>\s*<\/a>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?P<lang>[sSuUbB\-iItTaA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?)\).[^<]+[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z-0-9\.]+)'
+        patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>\s*<\/a>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+?)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?)\).[^<]+[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z-0-9\.]+)?'
         patronBlock = r'<div id="main_col">(?P<block>.*?)<!\-\- main_col \-\->'
 
     # if item.args != 'all' and item.args != 'search':
@@ -63,60 +64,49 @@ def peliculas(item):
     return locals()
 
 
+
 @support.scrape
 def episodios(item):
-    info()
-    if not item.data:
-        data_check = httptools.downloadpage(item.url, headers=headers).data
-        data_check = re.sub('\n|\t', ' ', data_check)
-        data_check = re.sub(r'>\s+<', '> <', data_check)
-    else:
-        data_check = item.data
-    data = httptools.downloadpage(scrapertools.find_single_match(data_check, player_iframe), headers=headers).data
-    data = data.replace("'", '"')
-    data = re.sub('\n|\t', ' ', data)
-    data = re.sub(r'>\s+<', '> <', data)
+    def get_season(pageData, seas_url, season):
+        data = ''
+        episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
+        for episode_url, episode in episodes:
+            title = season + "x" + episode.zfill(2) + ' - ' + item.fulltitle
+            data += title + '|' + episode_url + '\n'
+        return data
 
-    patronBlock = r'Stagioni<\/a>.*?<ul class="nav navbar-nav">(?P<block>.*?)<\/ul>'
-    patron = r'<a href="(?P<url>[^"]+)"\s*>\s*<i[^>]+><\/i>\s*(?P<episode>\d+)<\/a>'
-    # debugBlock = True
+    patron_season = 'Stagioni<\/a>.*?<ul class="nav navbar-nav">(.*?)<\/ul>'
+    patron_episode = 'Episodio<\/a>.*?<ul class="nav navbar-nav">(?P<block>.*?)<\/ul>'
+    patron_option = r'<a href="([^"]+?)".*?>[^>]+></i>\s*(\d+)'
 
-    otherLinks = support.match(data_check, patronBlock='<div class="content-left-film">.*?Keywords', patron='([0-9]+)(?:×|x)([0-9]+(?:-[0-9]+)?)(.*?)(?:<br|$)').matches
+    url = support.match(item, patron=player_iframe).match
+    seasons = support.match(url, patronBlock=patron_season, patron=patron_option)
+
+    data = ''
+
+    import sys
+    if sys.version_info[0] >= 3: from concurrent import futures
+    else: from concurrent_py2 import futures
+    with futures.ThreadPoolExecutor() as executor:
+        thL = []
+        for i, season in enumerate(seasons.matches):
+            thL.append(executor.submit(get_season, seasons.data if i == 0 else '', season[0], season[1]))
+        for res in futures.as_completed(thL):
+            if res.result():
+                data += res.result()
+    patron = r'(?P<season>\d+)x(?P<episode>\d+)\s*-\s*(?P<title>[^\|]+)\|(?P<url>[^ ]+)'
+    action = 'findvideos'
 
     def itemlistHook(itemlist):
-        retItemlist = []
+        itemlist.sort(key=lambda item: (item.infoLabels['season'], item.infoLabels['episode']))
+        return itemlist
 
-        for item in itemlist:
-            item.contentType = 'episode'
-
-            season = unify.remove_format(item.title)
-            season_data = httptools.downloadpage(item.url).data
-            season_data = re.sub('\n|\t', ' ', season_data)
-            season_data = re.sub(r'>\s+<', '> <', season_data)
-            # block = scrapertools.find_single_match(season_data, 'Episodi.*?<ul class="nav navbar-nav">(.*?)</ul>')
-            episodes = scrapertools.find_multiple_matches(season_data, '<a.*?href="(?P<url>[^"]+)"[^>]+>Episodio (?P<episode>[0-9]+)(?::\s*(?P<title2>[^<]+))?')
-            for url, episode in episodes:
-                i = item.clone()
-                i.action = 'findvideos'
-                i.url = url
-                i.contentSeason = str(season)
-                i.contentEpisodeNumber = str(episode)
-                i.title = str(season) + 'x' + str(episode)
-                for ep in otherLinks:
-                    if int(ep[0]) == int(season) and int(ep[1].split('-')[-1]) == int(episode):
-                        i.otherLinks = ep[2]
-                        break
-                retItemlist.append(i)
-        retItemlist.sort(key=lambda e: (int(e.contentSeason), int(e.contentEpisodeNumber)))
-        return retItemlist
-
-    # debugBlock = True
     return locals()
 
 
 @support.scrape
 def category(item):
-    blacklist = ['Serie TV Altadefinizione', 'HD AltaDefinizione', 'Al Cinema', 'Serie TV', 'Miniserie', 'Programmi Tv', 'Live', 'Trailers', 'Serie TV Aggiornate', 'Aggiornamenti', 'Featured']
+    blacklist = ['Ultimi Film Aggiornati', 'Anime', 'Serie TV Altadefinizione', 'HD AltaDefinizione', 'Al Cinema', 'Serie TV', 'Miniserie', 'Programmi Tv', 'Live', 'Trailers', 'Serie TV Aggiornate', 'Aggiornamenti', 'Featured']
     patron = '<li><a href="(?P<url>[^"]+)"><span></span>(?P<title>[^<]+)</a></li>'
     patron_block = '<ul class="table-list">(.*?)</ul>'
     action = 'peliculas'
@@ -185,6 +175,9 @@ def findvideos(item):
         item.contentType = 'tvshow'
         item.data = data
         return episodios(item)
+    else:
+        item.contentTitle = item.fulltitle
+        item.contentType = 'movie'
 
     # if 'protectlink' in data:
     #     urls = scrapertools.find_multiple_matches(data, r'<iframe src="[^=]+=(.*?)"')

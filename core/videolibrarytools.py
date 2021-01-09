@@ -49,6 +49,8 @@ def read_nfo(path_nfo, item=None):
         data = "\n".join(data.splitlines()[1:])
 
         it_nfo = Item().fromjson(data)
+        if not it_nfo.library_playcounts:  # may be corrupted
+            it_nfo.library_playcounts = {}
 
         if item:
             it = item.clone()

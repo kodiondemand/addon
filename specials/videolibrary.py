@@ -64,15 +64,17 @@ def list_tvshows(item):
     logger.debug()
     itemlist = []
     lista = []
-    tvshows_path = []
+    # tvshows_path = []
 
-    # We get all the tvshow.nfo from the SERIES video library recursively
-    for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
-        for f in folders:
-            tvshows_path += [filetools.join(root, f, "tvshow.nfo")]
+    # # We get all the tvshow.nfo from the SERIES video library recursively
+    # for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
+    #     for f in folders:
+    #         tvshows_path += [filetools.join(root, f, "tvshow.nfo")]
 
+    root = videolibrarytools.TVSHOWS_PATH
     with futures.ThreadPoolExecutor() as executor:
-        for tvshow_path in tvshows_path:
+        for folder in filetools.listdir(root):
+            tvshow_path = filetools.join(root, folder, "tvshow.nfo")
             item_tvshow, value = executor.submit(get_results, tvshow_path, root, 'tvshow').result()
             # verify the existence of the channels
             if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
@@ -394,7 +396,10 @@ def findvideos(item):
         logger.debug("Unable to search for videos due to lack of parameters")
         return []
 
-    content_title = str(item.contentSeason) + 'x' + (str(item.contentEpisodeNumber) if item.contentEpisodeNumber > 9 else '0' + str(item.contentEpisodeNumber))
+    if item.contentEpisodeNumber:
+        content_title = str(item.contentSeason) + 'x' + (str(item.contentEpisodeNumber) if item.contentEpisodeNumber > 9 else '0' + str(item.contentEpisodeNumber))
+    else:
+        content_title = item.contentTitle.strip().lower()
     if item.contentType == 'movie':
         item.strm_path = filetools.join(videolibrarytools.MOVIES_PATH, item.strm_path)
         path_dir = filetools.dirname(item.strm_path)
@@ -1127,8 +1132,8 @@ def add_download_items(item, itemlist):
                                 thumbnail=thumb('downloads'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
-                if item.contentType == 'episode':
-                    downloadItem.title = typo(config.get_localized_string(60356), "color kod bold")
+                if item.contentType != 'movie':
+                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), "color kod bold"), item.title)
                 else:  # film
                     downloadItem.title = typo(config.get_localized_string(60354), "color kod bold")
                 downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
