@@ -409,9 +409,9 @@ def details(item):
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
     # Search by titles chosen language and / or original version and Spanish
     if config.get_setting('new_search'):
-        itemlist.append(item.clone(channel='globalsearch', action="Search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, mode='search', type=item.contentType))
+        itemlist.append(item.clone(channel='globalsearch', action="Search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, mode='search', type=item.contentType, folder=False))
         if item.infoLabels['originaltitle'] and item.contentTitle != item.infoLabels['originaltitle']:
-            itemlist.append(item.clone(channel='globalsearch', action="Search", search_text=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle'], mode='search', type=item.contentType))
+            itemlist.append(item.clone(channel='globalsearch', action="Search", search_text=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle'], mode='search', type=item.contentType, folder=False))
     else:
         itemlist.append(item.clone(channel='search', action="new_search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, mode=item.contentType))
         if item.infoLabels['originaltitle'] and item.contentTitle != item.infoLabels['originaltitle']:
@@ -2161,12 +2161,12 @@ def details_mal(item):
     if item.infoLabels['thumbnail']: item.thumbnail = item.infoLabels['thumbnail']
     if not item.thumbnail: item.thumbnail = match(data, patron=r'/pics">.*?<img src="([^"]+)"').match.replace(".jpg", "l.jpg")
     if config.get_setting('new_search'):
-        itemlist.append(item.clone(action="Search", channel='globalsearch', title=config.get_localized_string(70350) % title_mal, text=title_mal, mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search')))
+        itemlist.append(item.clone(action="Search", channel='globalsearch', title=config.get_localized_string(70350) % title_mal, text=title_mal, mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search'), folder=False))
         if item.infoLabels["title"] and title_mal != item.infoLabels["title"]:
-            itemlist.append(item.clone(action="Search", channel='globalsearch', search_text=item.infoLabels["title"], title=config.get_localized_string(70351) % item.infoLabels["title"], mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search')))
+            itemlist.append(item.clone(action="Search", channel='globalsearch', search_text=item.infoLabels["title"], title=config.get_localized_string(70351) % item.infoLabels["title"], mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search'), folder=False))
 
         if eng_title and item.contentTitle != eng_title and title_mal != eng_title:
-            itemlist.append(item.clone(action="Search", channel='globalsearch', search_text=eng_title, title=config.get_localized_string(70352) % eng_title, mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search')))
+            itemlist.append(item.clone(action="Search", channel='globalsearch', search_text=eng_title, title=config.get_localized_string(70352) % eng_title, mode=item.args.replace("tv", "tvshow"), contentType=item.args.replace("tv", "tvshow"), thumbnail=thumb('search'), folder=False))
     else:
         itemlist.append(item.clone(action="new_search", channel='search', title=config.get_localized_string(70350) % title_mal, search_text=title_mal, args=item.args.replace("tv", "anime"), thumbnail=thumb('search')))
         if item.infoLabels["title"] and title_mal != item.infoLabels["title"]:
