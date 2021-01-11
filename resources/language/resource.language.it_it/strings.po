@@ -212,8 +212,8 @@ msgid "Video not available"
 msgstr "Video non disponibile"
 
 msgctxt "#30057"
-msgid "The video has been removed from %s"
-msgstr "Il video è stato rimosso da %s"
+msgid "The video has been removed from %s or the website has changed structure"
+msgstr "Il video è stato rimosso da %s oppure il sito ha cambiato struttura"
 
 msgctxt "#30058"
 msgid "Try another server or channel"

@@ -654,7 +654,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         return
 
     # we get the selected video
-    mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls)
+    mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
     if not mediaurl: return
 
     # video information is obtained.
@@ -962,7 +962,7 @@ def set_opcion(item, seleccion, opciones, video_urls):
     return salir
 
 
-def get_video_seleccionado(item, seleccion, video_urls):
+def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
     logger.debug()
     mediaurl = ""
     view = False
@@ -990,7 +990,7 @@ def get_video_seleccionado(item, seleccion, video_urls):
 
     # If there is no mediaurl it is because the video is not there :)
     logger.debug("mediaurl=" + mediaurl)
-    if mediaurl == "":
+    if mediaurl == "" and not autoplay:
         if item.server == "unknown":
             alert_unsopported_server()
         else:

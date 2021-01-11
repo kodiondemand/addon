@@ -212,7 +212,7 @@ msgid "Video not available"
 msgstr ""
 
 msgctxt "#30057"
-msgid "The video has been removed from %s"
+msgid "The video has been removed from %s or the website has changed structure"
 msgstr ""
 
 msgctxt "#30058"
