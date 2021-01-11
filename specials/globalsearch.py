@@ -625,16 +625,16 @@ class SearchWindow(xbmcgui.WindowXML):
                     if item.server:
                         it = self.makeItem(item.tourl())
                         it.setProperty('index', str(i))
-                        if item.quality in ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k']:
+                        if item.quality.lower() in ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k']:
                             it.setProperty('quality', 'uhd.png')
                             uhd.append(it)
-                        elif item.quality in ['fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p']:
+                        elif item.quality.lower() in ['fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p']:
                             it.setProperty('quality', 'Fhd.png')
                             fhd.append(it)
-                        elif item.quality in ['hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv']:
+                        elif item.quality.lower() in ['hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv']:
                             it.setProperty('quality', 'hd.png')
                             hd.append(it)
-                        elif item.quality in ['sd', '480p', '480', '360p', '360', '240p', '240']:
+                        elif item.quality.lower() in ['sd', '480p', '480', '360p', '360', '240p', '240']:
                             it.setProperty('quality', 'sd.png')
                             sd.append(it)
                         else:
