@@ -1155,39 +1155,41 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     verifiedItemlist = []
 
     def getItem(videoitem):
-        if not servertools.get_server_parameters(videoitem.server.lower()):  # do not exists or it's empty
-            findS = servertools.get_server_from_url(videoitem.url)
-            info(findS)
-            if not findS:
-                if item.channel == 'community':
-                    findS= (config.get_localized_string(30137), videoitem.url, 'directo')
-                else:
-                    videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
-                    findS = servertools.get_server_from_url(videoitem.url)
-                    if not findS:
-                        info(videoitem, 'Non supportato')
-                        return
-            videoitem.server = findS[2]
-            videoitem.title = findS[0]
-            videoitem.url = findS[1]
+        srv_param = servertools.get_server_parameters(videoitem.server.lower())
+        if srv_param['active']:
+            if not srv_param:  # do not exists or it's empty
+                findS = servertools.get_server_from_url(videoitem.url)
+                info(findS)
+                if not findS:
+                    if item.channel == 'community':
+                        findS= (config.get_localized_string(30137), videoitem.url, 'directo')
+                    else:
+                        videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
+                        findS = servertools.get_server_from_url(videoitem.url)
+                        if not findS:
+                            info(videoitem, 'Non supportato')
+                            return
+                videoitem.server = findS[2]
+                videoitem.title = findS[0]
+                videoitem.url = findS[1]
 
-        item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
-        quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
-        videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
-        videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
-        videoitem.channel = item.channel
-        videoitem.fulltitle = item.fulltitle
-        videoitem.show = item.show
-        videoitem.thumbnail = item.thumbnail
-        videoitem.contentType = item.contentType
-        videoitem.infoLabels = item.infoLabels
-        videoitem.quality = quality
-        videoitem.referer = item.referer if item.referer else item.url
-        videoitem.action = "play"
-        # videoitem.nfo = item.nfo
-        # videoitem.strm_path = item.strm_path
-        return videoitem
+            quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
+            videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
+            videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
+            videoitem.channel = item.channel
+            videoitem.fulltitle = item.fulltitle
+            videoitem.show = item.show
+            videoitem.thumbnail = item.thumbnail
+            videoitem.contentType = item.contentType
+            videoitem.infoLabels = item.infoLabels
+            videoitem.quality = quality
+            videoitem.referer = item.referer if item.referer else item.url
+            videoitem.action = "play"
+            # videoitem.nfo = item.nfo
+            # videoitem.strm_path = item.strm_path
+            return videoitem
 
     with futures.ThreadPoolExecutor() as executor:
         thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url]
