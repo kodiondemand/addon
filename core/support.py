@@ -1160,23 +1160,24 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             videoitem.server = s[2] if s else 'directo'
             videoitem.title = s[0] if s else config.get_localized_string(30137)
         srv_param = servertools.get_server_parameters(videoitem.server.lower())
-        if srv_param.get('active', False):
-            if not srv_param:  # do not exists or it's empty
-                findS = servertools.get_server_from_url(videoitem.url)
-                info(findS)
-                if not findS:
-                    if item.channel == 'community':
-                        findS= (config.get_localized_string(30137), videoitem.url, 'directo')
-                    else:
-                        videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
-                        findS = servertools.get_server_from_url(videoitem.url)
-                        if not findS:
-                            info(videoitem, 'Non supportato')
-                            return
-                videoitem.server = findS[2]
-                videoitem.title = findS[0]
-                videoitem.url = findS[1]
+        if not srv_param:  # do not exists or it's empty
+            findS = servertools.get_server_from_url(videoitem.url)
+            info(findS)
+            if not findS:
+                if item.channel == 'community':
+                    findS= (config.get_localized_string(30137), videoitem.url, 'directo')
+                else:
+                    videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
+                    findS = servertools.get_server_from_url(videoitem.url)
+                    if not findS:
+                        info(videoitem, 'Non supportato')
+                        return
+            videoitem.server = findS[2]
+            videoitem.title = findS[0]
+            videoitem.url = findS[1]
+            srv_param = servertools.get_server_parameters(videoitem.server.lower())
 
+        if srv_param.get('active', False):
             item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
@@ -1195,6 +1196,13 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             # videoitem.strm_path = item.strm_path
             return videoitem
 
+    # non threaded for webpdb
+    # dbg()
+    # thL = [getItem(videoitem) for videoitem in itemlist if videoitem.url]
+    # for it in thL:
+    #     if it and not config.get_setting("black_list", server=it.server.lower()):
+    #         verifiedItemlist.append(it)
+    #
     with futures.ThreadPoolExecutor() as executor:
         thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url]
         for it in futures.as_completed(thL):
