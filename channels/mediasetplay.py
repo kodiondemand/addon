@@ -186,10 +186,11 @@ def peliculas(item):
                     contentType = 'tvshow'
                     urls = it['mediasetprogram$brandId']
             if urls:
+                title = it['mediasetprogram$brandTitle'] + ' - ' if 'mediasetprogram$brandTitle' in it and it['mediasetprogram$brandTitle'] != it['title'] else ''
                 itemlist.append(
                     item.clone(channel=item.channel,
                                action=action,
-                               title=support.typo(it['title'], 'bold'),
+                               title=support.typo(title + it['title'], 'bold'),
                                fulltitle=it['title'],
                                show=it['title'],
                                contentType=contentType if contentType else item.contentType,
@@ -199,6 +200,7 @@ def peliculas(item):
                                fanart=it['thumbnails']['image_keyframe_poster-1280x720']['url'] if 'image_keyframe_poster-1280x720' in it['thumbnails'] else '',
                                plot=it['longDescription'] if 'longDescription' in it else it['description'] if 'description' in it else '',
                                urls=urls,
+                               seriesid = it.get('seriesId',''),
                                url=it['mediasetprogram$pageUrl']))
     return itemlist
 
@@ -206,14 +208,25 @@ def peliculas(item):
 def epmenu(item):
     support.info()
     itemlist = []
-    entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
-    for entry in entries:
-        if 'mediasetprogram$subBrandId' in entry:
-            itemlist.append(
-                item.clone(action='episodios',
-                           title=support.typo(entry['description'], 'bold'),
-                           url=entry['mediasetprogram$subBrandId']))
-    if len(itemlist) == 1: return episodios(itemlist[0])
+    if item.seriesid:
+        seasons = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-tv-seasons?bySeriesId=' + item.seriesid).json()['entries']
+        for season in seasons:
+            if 'mediasettvseason$brandId' in season and 'mediasettvseason$displaySeason' in seasons:
+                itemlist.append(
+                    item.clone(seriesid = '',
+                               title=support.typo(season['mediasettvseason$displaySeason'], 'bold'),
+                               urls=season['mediasettvseason$brandId']))
+        itemlist = sorted(itemlist, key=lambda it: it.title, reverse=True)
+        if len(itemlist) == 1: return epmenu(itemlist[0])
+    if not itemlist:
+        entries = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + item.urls + '}').json()['entries']
+        for entry in entries:
+            if 'mediasetprogram$subBrandId' in entry:
+                itemlist.append(
+                    item.clone(action='episodios',
+                               title=support.typo(entry['description'], 'bold'),
+                               url=entry['mediasetprogram$subBrandId']))
+        if len(itemlist) == 1: return episodios(itemlist[0])
     return itemlist
 
 
