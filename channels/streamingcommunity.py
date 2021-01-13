@@ -3,9 +3,13 @@
 # Canale per StreamingCommunity
 # ------------------------------------------------------------
 
-import json, requests
+import json, requests, sys
 from core import support
 from platformcode import logger
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 host = support.config.get_channel_url()
 session = requests.Session()
@@ -117,41 +121,48 @@ def peliculas(item):
             js += record
     else:
         js = records
+    # support.dbg()
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(makeItem, i, it, item) for i, it in enumerate(js)]
+        for res in futures.as_completed(itlist):
+            itemlist.append(res.result())
+    # for i, it in enumerate(js):
+    #     itm = makeItem(i, it, item)
+    #     itemlist.append(itm)
 
-    for it in js:
-        title, lang = support.match(it['name'], patron=r'([^\[|$]+)(?:\[([^\]]+)\])?').match
-        if not lang:
-            lang = 'ITA'
-        itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
-        itm.type = it['type']
-        itm.thumbnail = 'https://image.tmdb.org/t/p/w500' + it['images'][0]['url']
-        itm.fanart = 'https://image.tmdb.org/t/p/w1280' + it['images'][2]['url']
-        itm.plot = it['plot']
-        itm.infoLabels['tmdb_id'] = it['tmdb_id']
-        itm.language = lang
-
-
-        if itm.type == 'movie':
-            itm.contentType = 'movie'
-            itm.fulltitle = itm.show = itm.contentTitle = title
-            itm.contentSerieName = ''
-            itm.action = 'findvideos'
-            itm.url = host + '/watch/%s' % it['id']
-
-        else:
-            itm.contentType = 'tvshow'
-            itm.contentTitle = ''
-            itm.fulltitle = itm.show = itm.contentSerieName = title
-            itm.action = 'episodios'
-            itm.season_count = it['seasons_count']
-            itm.url = host + '/titles/%s-%s' % (it['id'], it['slug'])
-
-        itemlist.append(itm)
+    itemlist.sort(key=lambda item: item.n, reverse = True)
 
     if len(itemlist) >= 60:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page + 1))
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
+
+def makeItem(n, it, item):
+    info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
+    title, lang = support.match(info['name'], patron=r'([^\[|$]+)(?:\[([^\]]+)\])?').match
+    if not lang:
+        lang = 'ITA'
+    itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
+    itm.type = info['type']
+    itm.language = lang
+
+
+    if itm.type == 'movie':
+        itm.contentType = 'movie'
+        itm.fulltitle = itm.show = itm.contentTitle = title
+        itm.contentTitle = ''
+        itm.action = 'findvideos'
+        itm.url = host + '/watch/%s' % it['id']
+
+    else:
+        itm.contentType = 'tvshow'
+        itm.contentTitle = ''
+        itm.fulltitle = itm.show = itm.contentSerieName = title
+        itm.action = 'episodios'
+        itm.season_count = info['seasons_count']
+        itm.url = host + '/titles/%s-%s' % (it['id'], it['slug'])
+    itm.n = n
+    return itm
 
 def episodios(item):
     getHeaders()
