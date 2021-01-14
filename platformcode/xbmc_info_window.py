@@ -50,11 +50,13 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
     def onInit(self):
         if config.get_platform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
+        results = []
         with futures.ThreadPoolExecutor() as executor:
             for i, result in enumerate(self.results):
-                logger.debug(result)
                 if ('seriesName' in result and result['seriesName']) or ('name' in result and result['name']) or ('title' in result and result['title']):
-                    self.items += [executor.submit(self.make_items, i, result).result()]
+                    results.append(executor.submit(self.make_items, i, result))
+            for res in futures.as_completed(results):
+                self.items.append(res.result())
         self.items.sort(key=lambda it: int(it.getProperty('position')))
 
         self.getControl(SELECT).addItems(self.items)
