@@ -1155,10 +1155,10 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     verifiedItemlist = []
 
     def getItem(videoitem):
-        if not videoitem.server:
-            s = servertools.get_server_from_url(videoitem.url)
-            videoitem.server = s[2] if s else 'directo'
-            videoitem.title = s[0] if s else config.get_localized_string(30137)
+        # if not videoitem.server:
+        #     s = servertools.get_server_from_url(videoitem.url)
+        #     videoitem.server = s[2] if s else 'directo'
+        #     videoitem.title = s[0] if s else config.get_localized_string(30137)
         srv_param = servertools.get_server_parameters(videoitem.server.lower())
         if not srv_param:  # do not exists or it's empty
             findS = servertools.get_server_from_url(videoitem.url)

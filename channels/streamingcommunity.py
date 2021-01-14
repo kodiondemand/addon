@@ -57,7 +57,7 @@ def genres(item):
 
 
 def search(item, text):
-    logger.debug('search', item)
+    logger.debug('search', text)
     item.search = text
 
     try:
@@ -140,19 +140,20 @@ def makeItem(n, it, item):
     if not lang:
         lang = 'ITA'
     itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
-    itm.type = info['type']
+    itm.contentType = info['type'].replace('tv', 'tvshow')
     itm.language = lang
+    itm.year = info['release_date'].split('-')[0]
 
 
-    if itm.type == 'movie':
-        itm.contentType = 'movie'
+    if itm.contentType == 'movie':
+        # itm.contentType = 'movie'
         itm.fulltitle = itm.show = itm.contentTitle = title
         itm.contentTitle = ''
         itm.action = 'findvideos'
         itm.url = host + '/watch/%s' % it['id']
 
     else:
-        itm.contentType = 'tvshow'
+        # itm.contentType = 'tvshow'
         itm.contentTitle = ''
         itm.fulltitle = itm.show = itm.contentSerieName = title
         itm.action = 'episodios'
@@ -167,22 +168,21 @@ def episodios(item):
     itemlist = []
 
     js = json.loads(support.match(item.url, patron=r'seasons="([^"]+)').match.replace('&quot;','"'))
-    logger.debug(js)
 
     for episodes in js:
         for it in episodes['episodes']:
             itemlist.append(
                 support.Item(channel=item.channel,
-                            title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + it['name'], 'bold'),
-                            episode = it['number'],
-                            season=episodes['number'],
-                            thumbnail=item.thumbnail,
-                            fanart=item.fanart,
-                            plot=it['plot'],
-                            action='findvideos',
-                            contentType='episode',
-                            contentSerieName=item.fulltitle,
-                            url=host + '/watch/' + str(episodes['title_id']) + '?e=' + str(it['id'])))
+                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + it['name'], 'bold'),
+                             episode = it['number'],
+                             season=episodes['number'],
+                             thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
+                             fanart=item.fanart,
+                             plot=it['plot'],
+                             action='findvideos',
+                             contentType='episode',
+                             contentSerieName=item.fulltitle,
+                             url=host + '/watch/' + str(episodes['title_id']) + '?e=' + str(it['id'])))
 
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
