@@ -50,8 +50,9 @@ def list_movies(item, silent=False):
                     break
 
     with futures.ThreadPoolExecutor() as executor:
-        for movie_path in movies_path:
-            item_movie, value = executor.submit(get_results, movie_path, root, 'movie', local).result()
+        itlist = [executor.submit(get_results, movie_path, root, 'movie', local) for movie_path in movies_path]
+        for res in futures.as_completed(itlist):
+            item_movie, value = res.result()
             # verify the existence of the channels
             if item_movie.library_urls and len(item_movie.library_urls) > 0:
                 itemlist += [item_movie]
@@ -64,22 +65,16 @@ def list_tvshows(item):
     logger.debug()
     itemlist = []
     lista = []
-    # tvshows_path = []
-
-    # # We get all the tvshow.nfo from the SERIES video library recursively
-    # for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
-    #     for f in folders:
-    #         tvshows_path += [filetools.join(root, f, "tvshow.nfo")]
 
     root = videolibrarytools.TVSHOWS_PATH
     with futures.ThreadPoolExecutor() as executor:
-        for folder in filetools.listdir(root):
-            tvshow_path = filetools.join(root, folder, "tvshow.nfo")
-            item_tvshow, value = executor.submit(get_results, tvshow_path, root, 'tvshow').result()
+        itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
+        for res in futures.as_completed(itlist):
+            item_tvshow, value = res.result()
             # verify the existence of the channels
             if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
                 itemlist += [item_tvshow]
-                lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':tvshow_path}]
+                lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':item_tvshow.nfo}]
 
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
