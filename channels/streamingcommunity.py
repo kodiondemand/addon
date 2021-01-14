@@ -46,7 +46,7 @@ def mainlist(item):
 
 def genres(item):
     getHeaders()
-    support.info()
+    logger.debug()
     itemlist = []
     data = support.scrapertools.decodeHtmlentities(support.match(item).data)
     args = support.match(data, patronBlock=r'genre-options-json="([^\]]+)\]', patron=r'name"\s*:\s*"([^"]+)').matches
@@ -57,7 +57,7 @@ def genres(item):
 
 
 def search(item, text):
-    support.info('search', item)
+    logger.debug('search', item)
     item.search = text
 
     try:
@@ -66,12 +66,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error(line)
         return []
 
 
 def newest(category):
-    support.info(category)
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     item.args = 1
@@ -89,7 +89,7 @@ def newest(category):
     except:
         import sys
         for line in sys.exc_info():
-            support.info(line)
+            logger.error(line)
         return []
 
     return itemlist
@@ -98,7 +98,7 @@ def newest(category):
 
 def peliculas(item):
     getHeaders()
-    support.info()
+    logger.debug()
     itemlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
 
@@ -121,16 +121,13 @@ def peliculas(item):
             js += record
     else:
         js = records
-    # support.dbg()
+
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(makeItem, i, it, item) for i, it in enumerate(js)]
         for res in futures.as_completed(itlist):
             itemlist.append(res.result())
-    # for i, it in enumerate(js):
-    #     itm = makeItem(i, it, item)
-    #     itemlist.append(itm)
 
-    itemlist.sort(key=lambda item: item.n, reverse = True)
+    itemlist.sort(key=lambda item: item.n)
 
     if len(itemlist) >= 60:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page + 1))
@@ -166,22 +163,21 @@ def makeItem(n, it, item):
 
 def episodios(item):
     getHeaders()
-    support.info()
+    logger.debug()
     itemlist = []
 
     js = json.loads(support.match(item.url, patron=r'seasons="([^"]+)').match.replace('&quot;','"'))
-    support.info(js)
+    logger.debug(js)
 
     for episodes in js:
         for it in episodes['episodes']:
-            support.info(it)
             itemlist.append(
                 support.Item(channel=item.channel,
                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + it['name'], 'bold'),
                             episode = it['number'],
                             season=episodes['number'],
-                            thumbnail='https://image.tmdb.org/t/p/w1280' + it['images'][0]['url'],
-                            fanart='https://image.tmdb.org/t/p/w1280' + it['images'][0]['url'],
+                            thumbnail=item.thumbnail,
+                            fanart=item.fanart,
                             plot=it['plot'],
                             action='findvideos',
                             contentType='episode',
@@ -195,7 +191,7 @@ def episodios(item):
 
 def findvideos(item):
     getHeaders()
-    support.info()
+    logger.debug()
     itemlist=[]
     url = support.match(support.match(item).data.replace('&quot;','"').replace('\\',''), patron=r'video_url"\s*:\s*"([^"]+)"').match
     for res in ['480p', '720p', '1080p']:
