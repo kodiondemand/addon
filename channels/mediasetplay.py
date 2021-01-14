@@ -155,10 +155,13 @@ def peliculas(item):
     contentType = ''
     if item.text:
         json = []
+        itlist = []
         with futures.ThreadPoolExecutor() as executor:
             for arg in ['searchMovie', 'searchStagioni', 'searchClip']:
                 item.args = ['', 'search', arg]
-                json += executor.submit(get_programs, item).result()
+                itlist += [executor.submit(get_programs, item)]
+            for res in futures.as_completed(itlist):
+                json += res.result()
     else:
         json = get_programs(item)
     for it in json:

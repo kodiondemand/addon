@@ -34,6 +34,7 @@ def search(item, text):
     # item.args='search'
     item.text = text
     itemlist = []
+    itlist = []
 
     try:
         # item.url = host + '/lista-serie-tv/'
@@ -44,7 +45,9 @@ def search(item, text):
                 item.url = host + par[0]
                 item.contentType = par[1]
                 item.args = par[2]
-                itemlist += executor.submit(peliculas, item).result()
+                itlist.append(executor.submit(peliculas, item))
+            for res in futures.as_completed(itlist):
+                itemlist += res.result()
         return itemlist
     # Continua la ricerca in caso di errore
     except:
