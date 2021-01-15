@@ -85,7 +85,7 @@ def mark_auto_as_watched(item):
             xbmc.sleep(1000)
 
         # if item.options['continue']:
-        if actual_time < mark_time:
+        if 10 < actual_time < mark_time:
             item.played_time = actual_time
         else: item.played_time = 0
         platformtools.set_played_time(item)

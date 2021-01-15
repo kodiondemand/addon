@@ -4,14 +4,14 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https://dood(?:stream|).[^/]+/((?:e|d)/[a-z0-9]+)",
-        "url": "https://dood.to/\\1"
+        "pattern": "userload.co/embed/([a-z0-9]+)",
+        "url": "https://userload.co/e/\\1"
       }
     ]
   },
   "free": true,
-  "id": "doodstream",
-  "name": "DooD Stream",
+  "id": "userload",
+  "name": "userload",
   "settings": [
     {
       "default": false,

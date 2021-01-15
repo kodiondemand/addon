@@ -4,14 +4,14 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https://dood(?:stream|).[^/]+/((?:e|d)/[a-z0-9]+)",
-        "url": "https://dood.to/\\1"
+        "pattern": "ninjastream.to/(?:watch/)?([0-9a-zA-Z]+)",
+        "url": "https://ninjastream.to/watch/\\1"
       }
     ]
   },
   "free": true,
-  "id": "doodstream",
-  "name": "DooD Stream",
+  "id":"ninjastream",
+  "name": "NinjaStream",
   "settings": [
     {
       "default": false,

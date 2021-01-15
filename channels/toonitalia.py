@@ -108,7 +108,7 @@ def episodios(item):
     anime = True
     data = support.match(item, headers=headers).data
     if 'https://vcrypt.net' in data:
-        patron = r'(?: /> |<p>)(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)<a (?P<url>.*?)(?:<br|</p)'
+        patron = r'(?: /> |<p>)(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)'
     else:
         patron = r'<br />\s*<a href="(?P<url>[^"]+)" target="_blank" rel="noopener[^>]+>(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)</a>'
 
@@ -123,4 +123,4 @@ def episodios(item):
 
 
 def findvideos(item):
-    return support.server(item, item.url if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
+    return support.server(item, item.data if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
