@@ -88,11 +88,11 @@ def episodios(item):
         title = item.title
         def fullItemlistHook(itemlist):
             if len(itemlist) > 0:
-                url = ''
+                urls = []
                 for item in itemlist:
-                    url += item.url +'\n'
+                    urls.append(item.url)
                 item = itemlist[0]
-                item.data = url
+                item.data = urls
                 item.title = title
                 item.contentType = 'movie'
                 itemlist = []
