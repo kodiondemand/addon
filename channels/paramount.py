@@ -57,7 +57,7 @@ def live(item):
             info = jsontools.load(support.match(host +'/api/on-air?channelId=' + ch_dict[title]).data)
             support.info(info)
             plot= '[B]' + info['seriesTitle'] +'[/B]\n' + info['description'] if 'seriesTitle' in info else ''
-            itemlist.append(item.clone(title=support.typo(title,'bold'), contentTitle=title, fulltitle=title, show=title, url=host+url, plot=plot, action='play', forcethumb=True))
+            itemlist.append(item.clone(title=support.typo(title,'bold'), contentTitle=title, fulltitle=title, show=title, url=host+url, plot=plot, action='play', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 

@@ -241,7 +241,7 @@ def live(item):
         from concurrent_py2 import futures
     itemlist = []
     channels_dict = {}
-    channels = ['raiplay', 'mediasetplay', 'la7']
+    channels = ['raiplay', 'mediasetplay', 'la7', 'paramount']
 
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(load_live, channel) for channel in channels]

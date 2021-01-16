@@ -190,12 +190,5 @@ def episodios(item):
 
 
 def findvideos(item):
-    getHeaders()
-    logger.debug()
-    itemlist=[]
-    url = support.match(support.match(item).data.replace('&quot;','"').replace('\\',''), patron=r'video_url"\s*:\s*"([^"]+)"').match
-    for res in ['480p', '720p', '1080p']:
-        newurl = '{}/{}'.format(url, res)
-        if session.head(newurl, headers=headers).status_code == 200:
-            itemlist += [item.clone(title=support.config.get_localized_string(30137), server='directo', url=newurl, quality=res, action='play')]
-    return support.server(item, itemlist=itemlist)
+    itemlist = [item.clone(title = 'StreamingCommunity', server='streamingcommunity_server')]
+    return support.server(item, item.url)
