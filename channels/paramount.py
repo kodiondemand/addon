@@ -2,9 +2,9 @@
 # ------------------------------------------------------------
 # Canale per Paramount Network
 # ------------------------------------------------------------
-
+import inspect
 from core import support, jsontools
-from platformcode import autorenumber
+from platformcode import autorenumber, logger
 
 # host = support.config.get_channel_url()
 host = 'https://www.paramountnetwork.it'
@@ -13,9 +13,9 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    top = [('Dirette {bold}', ['/dl/RaiPlay/2016/PublishingBlock-9a2ff311-fcf0-4539-8f8f-c4fee2a71d58.html?json', 'live'])]
-    film = []
-    tvshow = []
+    top = [('Dirette {bold}', ['', 'live'])]
+    film = ['/film']
+    tvshow = ['/programmi']
     return locals()
 
 @support.scrape
@@ -27,20 +27,21 @@ def menu(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.info(text)
 
-    item.search = text.replace(' ','+')
+    item.text = text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore .
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def live(item):
+    logger.debug()
     itemlist=[]
     urls=[]
     matches = support.match(host, patron=r'(/diretta-tv/[^"]+)"[^>]+>([^ ]+)').matches
@@ -56,60 +57,46 @@ def live(item):
             info = jsontools.load(support.match(host +'/api/on-air?channelId=' + ch_dict[title]).data)
             support.info(info)
             plot= '[B]' + info['seriesTitle'] +'[/B]\n' + info['description'] if 'seriesTitle' in info else ''
-            itemlist.append(item.clone(title=support.typo(title,'bold'), contentTitle=title, url=host+url, plot=plot, action='findvideos'))
-    return itemlist
+            itemlist.append(item.clone(title=support.typo(title,'bold'), contentTitle=title, fulltitle=title, show=title, url=host+url, plot=plot, action='play', forcethumb=True))
+    return support.thumb(itemlist, live=True)
 
 
 def peliculas(item):
+    logger.debug()
+    def load_more(url):
+        second_url = host if url.startswith('/') else '' + url.replace('\u002F','/').replace('%5C','/')
+        new_data = support.match(host + second_url).data.replace('\x01','l').replace('\x02','a')
+        return jsontools.load(new_data)['items']
+
     itemlist = []
-    if item.contentType == 'movie':
-        Type = 'Movie'
-        action = 'findvideos'
-    else:
-        Type = 'Series'
-        action = 'episodios'
-    if not item.page: item.page = 1
-    pagination_values = [20, 40, 60, 80, 100]
-    pagination = pagination_values[support.config.get_setting('pagination','paramount')]
-    item.url = host + '/api/search?activeTab=' + Type + '&searchFilter=site&pageNumber=0&rowsPerPage=10000'
-    data = jsontools.load(support.match(item).data)['response']['items']
-    titles = []
-    for it in data:
-        title = it['meta']['header']['title']
-        if title not in titles:
-            titles.append(title)
-            d = it['meta']['date'].split('/') if it['meta']['date'] else ['0000','00','00']
-            date = int(d[2] + d[1] + d[0])
-            if item.search.lower() in title.lower() \
-                and 'stagione' not in it['url'] \
-                and 'season' not in it['url'] \
-                and title not in ['Serie TV']:
+    data = []
+    page_data = support.match(item.url).data
+    more = support.match(page_data, patron=r'loadingTitle":[^,]+,"url":"([^"]+)"').match
+    data = jsontools.load(support.scrapertools.decodeHtmlentities(support.match(page_data, patron=[r'"nextPageUrl":[^,]+,"items":(.*?),"customContainerClass"', r'Streaming"},"items":(.*?),"isGrid"']).match))
+
+    if data:
+        if more:
+            new_data = load_more(more)
+            data += new_data
+        for it in data:
+            title = it['meta']['header']['title']
+            if item.text.lower() in title.lower():
                 itemlist.append(
                     item.clone(title=support.typo(title,'bold'),
-                            action=action,
-                            fulltitle=title,
-                            show=title,
-                            contentTitle=title if it['type'] == 'movie' else '',
-                            contentSerieName=title if it['type'] != 'movie' else '',
-                            plot= it['meta']['description'] if 'description' in it['meta'] else '',
-                            url=host + it['url'],
-                            date=date,
-                            thumbnail='https:' + it['media']['image']['url'] if 'url' in it['media']['image'] else item.thumbnail))
-    itemlist.sort(key=lambda item: item.fulltitle)
-    if not item.search:
-        itlist = []
-        for i, it in enumerate(itemlist):
-            if pagination and (item.page - 1) * pagination > i and not item.search: continue  # pagination
-            if pagination and i >= item.page * pagination and not item.search: break          # pagination
-            itlist.append(it)
-        if pagination and len(itemlist) >= item.page * pagination and not item.search:
-            itlist.append(item.clone(channel=item.channel, action = 'peliculas', title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), page=item.page + 1, thumbnail=support.thumb()))
-        itemlist = itlist
-    autorenumber.start(itemlist)
+                               fulltitle = title,
+                               show = title,
+                               contentTitle = title if item.contentType == 'movie' else '',
+                               contentSerieName = title if item.contentType != 'movie' else '',
+                               url = host + it['url'] if it['url'].startswith('/') else it['url'],
+                               thumbnail = it['media']['image']['url'],
+                               fanart = it['media']['image']['url'],
+                               plot = it['meta']['description'],
+                               action = 'findvideos' if item.contentType == 'movie' else 'episodios'))
     return itemlist
 
 
 def episodios(item):
+    logger.debug()
     def load_more(url):
         second_url = host if url.startswith('/') else '' + url.replace('\u002F','/').replace('%5C','/')
         new_data = support.match(host + second_url).data
@@ -121,7 +108,7 @@ def episodios(item):
     page_data = support.match(item.url).data
     seasons = support.match(page_data, patron=r'href="([^"]+)"[^>]+>Stagione\s*\d+').matches
     more = support.match(page_data, patron=r'loadingTitle":[^,]+,"url":"([^"]+)"').match
-    data = jsontools.load(support.scrapertools.decodeHtmlentities(support.match(page_data, patron=r'"isEpisodes":[^,]+,"items":(.*?),"as"').match))
+    data = jsontools.load(support.scrapertools.decodeHtmlentities(support.match(page_data, patron=r'"isEpisodes":[^,]+,"items":(.*?),"isKidsUI"').match))
 
     if data:
         if more:
@@ -129,7 +116,7 @@ def episodios(item):
         if seasons:
             for url in seasons:
                 new_data = support.match(host + url).data
-                data += jsontools.load(support.scrapertools.decodeHtmlentities(support.match(new_data, patron=r'isEpisodes":[^,]+,"items":(.*?),"as"').match.replace('\x01','l').replace('\x02','a')))
+                data += jsontools.load(support.scrapertools.decodeHtmlentities(support.match(new_data, patron=r'isEpisodes":[^,]+,"items":(.*?),"isKidsUI"').match.replace('\x01','l').replace('\x02','a')))
                 match = support.match(new_data, patron=r'loadingTitle":[^,]+,"url":"([^"]+)"').match
                 if match and match != load_more:
                     data += load_more(match)
@@ -162,17 +149,10 @@ def episodios(item):
 
 
 def findvideos(item):
-    itemlist = []
-    qualities = []
+    logger.debug()
+    return support.server(item, item.url, Download=False)
 
-    mgid = support.match(item, patron=r'uri":"([^"]+)"').match
-    url = 'https://media.mtvnservices.com/pmt/e1/access/index.html?uri=' + mgid + '&configtype=edge&ref=' + item.url
-    ID, rootUrl = support.match(url, patron=[r'"id":"([^"]+)",',r'brightcove_mediagenRootURL":"([^"]+)"']).matches
-    url = jsontools.load(support.match(rootUrl.replace('&device={device}','').format(uri = ID)).data)['package']['video']['item'][0]['rendition'][0]['src']
-    video_urls = support.match(url, patron=r'RESOLUTION=(\d+x\d+).*?(http[^ ]+)').matches
-    for quality, url in video_urls:
-        if quality not in qualities:
-            qualities.append(quality)
-            itemlist.append(item.clone(title=support.config.get_localized_string(30137), server='directo', action='play', url=url, quality=quality, focusOnVideoPlayer=True))
-    itemlist.sort(key=lambda item: item.quality)
-    return support.server(item, itemlist=itemlist, Download=False)
+
+def play(item):
+    logger.debug()
+    return support.servertools.find_video_items(item, data=item.url)
