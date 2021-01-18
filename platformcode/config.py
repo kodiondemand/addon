@@ -468,4 +468,4 @@ def verify_directories_created():
 
 
 def get_online_server_thumb(server):
-    return "https://raw.github.com/kodiondemand/media/master/resources/servers/" + server.lower() + '.png'
+    return "https://raw.github.com/kodiondemand/media/master/resources/servers/" + server.lower().replace('_server','') + '.png'
