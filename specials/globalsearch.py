@@ -343,7 +343,7 @@ class SearchWindow(xbmcgui.WindowXML):
         if item.server:
             color = scrapertools.find_single_match(item.alive, r'(FF[^\]]+)')
             it.setProperties({'channel': channeltools.get_channel_parameters(item.channel).get('title', ''),
-                              'thumb': "https://raw.githubusercontent.com/kodiondemand/media/master/resources/servers/%s.png" % item.server.lower(),
+                              'thumb': config.get_online_server_thumb(item.server),
                               'servername': servertools.get_server_parameters(item.server.lower()).get('name', item.server),
                               'color': color if color else 'FF0082C2'})
 

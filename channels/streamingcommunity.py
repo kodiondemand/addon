@@ -191,4 +191,4 @@ def episodios(item):
 
 def findvideos(item):
     itemlist = [item.clone(title = 'StreamingCommunity', server='streamingcommunity_server')]
-    return support.server(item, item.url)
+    return support.server(item, itemlist=itemlist)
