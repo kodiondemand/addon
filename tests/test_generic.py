@@ -62,6 +62,7 @@ validUrlRegex = re.compile(
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
 chBlackList = ['url', 'mediasetplay']
+srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {
         'Film': 20
@@ -141,8 +142,7 @@ chNumRis = {
 servers = []
 channels = []
 
-# channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
-channel_list = [Item(channel='tantifilm', action="mainlist")]
+channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
 logger.info([c.channel for c in channel_list])
 ret = []
 
@@ -198,8 +198,10 @@ for chItem in channel_list:
                                     if itPlay:
                                         tmp.append(itPlay[0])
                                 serversFound[it.title] = tmp
-                            servers.extend(
-                                {'name': srv.server.lower(), 'server': srv} for srv in serversFound[it.title] if srv.server)
+                            for srv in serversFound[it.title]:
+                                if srv.server:
+                                    srv.foundOn = ch + ' --> ' + it.title + ' --> ' + resIt.title
+                                    servers.append({'name': srv.server.lower(), 'server': srv})
                             break
             except:
                 import traceback
@@ -220,7 +222,7 @@ print(channels)
 serverNames = []
 serversFinal = []
 for s in servers:
-    if not s['name'] in serverNames:
+    if s['name'] not in serverNames and s['name'] not in srvBlacklist:
         serverNames.append(s['name'])
         serversFinal.append(s)
 
@@ -304,6 +306,9 @@ class GenericServerTest(unittest.TestCase):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
         print('testing ' + page_url)
+        print('Found on ' + self.server.foundOn)
+        print()
+
         self.assert_(hasattr(module, 'test_video_exists'), self.name + ' has no test_video_exists')
 
         if module.test_video_exists(page_url)[0]:
@@ -327,7 +332,10 @@ class GenericServerTest(unittest.TestCase):
                     print(headers)
                 if 'magnet:?' in directUrl:  # check of magnet links not supported
                     continue
-                page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True, verify=False)
+                if directUrl.split('.')[-1] == 'm3u8':  # m3u8 is a text file and HEAD may be forbidden
+                    page = downloadpage(directUrl, headers=headers, use_requests=True, verify=False)
+                else:
+                    page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True, verify=False)
                 self.assertTrue(page.success, self.name + ' scraper returned an invalid link')
                 self.assertLess(page.code, 400, self.name + ' scraper returned a ' + str(page.code) + ' link')
                 contentType = page.headers['Content-Type']

@@ -31,7 +31,7 @@ class UnshortenIt(object):
     _linkbucks_regex = r'linkbucks\.com|any\.gs|cash4links\.co|cash4files\.co|dyo\.gs|filesonthe\.net|goneviral\.com|megaline\.co|miniurls\.co|qqc\.co|seriousdeals\.net|theseblogs\.com|theseforums\.com|tinylinks\.co|tubeviral\.com|ultrafiles\.net|urlbeat\.net|whackyvidz\.com|yyv\.co'
     _adfocus_regex = r'adfoc\.us'
     _lnxlu_regex = r'lnx\.lu'
-    _shst_regex = r'sh\.st|festyy\.com|ceesty\.com'
+    _shst_regex = r'sh\.st|shorte\.st|sh\.st|clkmein\.com|viid\.me|xiw34\.com|corneey\.com|gestyy\.com|cllkme\.com|festyy\.com|destyy\.com|ceesty\.com'
     _hrefli_regex = r'href\.li'
     _anonymz_regex = r'anonymz\.com'
     _shrink_service_regex = r'shrink-service\.it'
@@ -41,6 +41,7 @@ class UnshortenIt(object):
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
     _stayonline_regex = r'stayonline\.pro'
+    _snip_regex = r'[0-9a-z]+snip\.|uprotector\.xyz'
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
     # for services that only do redirects
@@ -48,7 +49,7 @@ class UnshortenIt(object):
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _vcrypt_regex, _linkup_regex, _linkhub_regex,
-                 _swzz_regex, _stayonline_regex, _simple_redirect]
+                 _swzz_regex, _stayonline_regex, _snip_regex, _simple_redirect]
 
     _maxretries = 5
 
@@ -94,6 +95,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_swzz(uri)
             if re.search(self._stayonline_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_stayonline(uri)
+            if re.search(self._snip_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_snip(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -381,41 +384,43 @@ class UnshortenIt(object):
 
     def _unshorten_shst(self, uri):
         try:
-            r = httptools.downloadpage(uri, timeout=self._timeout)
-            html = r.data
-            session_id = re.findall(r'sessionId\:(.*?)\"\,', html)
-            if len(session_id) > 0:
-                session_id = re.sub(r'\s\"', '', session_id[0])
-
-                http_header = dict()
-                http_header["Content-Type"] = "application/x-www-form-urlencoded"
-                http_header["Host"] = "sh.st"
-                http_header["Referer"] = uri
-                http_header["Origin"] = "http://sh.st"
-                http_header["X-Requested-With"] = "XMLHttpRequest"
-
-                if config.is_xbmc():
-                    import xbmc
-                    xbmc.sleep(5 * 1000)
-                else:
-                    time.sleep(5 * 1000)
-
-                payload = {'adSessionId': session_id, 'callback': 'c'}
-                r = httptools.downloadpage(
-                    'http://sh.st/shortest-url/end-adsession?' +
-                    urlencode(payload),
-                    headers=http_header,
-                    timeout=self._timeout)
-                response = r.data[6:-2].decode('utf-8')
-
-                if r.code == 200:
-                    resp_uri = json.loads(response)['destinationUrl']
-                    if resp_uri is not None:
-                        uri = resp_uri
-                    else:
-                        return uri, 'Error extracting url'
-                else:
-                    return uri, 'Error extracting url'
+            # act like a crawler
+            r = httptools.downloadpage(uri, timeout=self._timeout, headers=[['User-Agent', '']])
+            uri = r.url
+            # html = r.data
+            # session_id = re.findall(r'sessionId\:(.*?)\"\,', html)
+            # if len(session_id) > 0:
+            #     session_id = re.sub(r'\s\"', '', session_id[0])
+            #
+            #     http_header = dict()
+            #     http_header["Content-Type"] = "application/x-www-form-urlencoded"
+            #     http_header["Host"] = "sh.st"
+            #     http_header["Referer"] = uri
+            #     http_header["Origin"] = "http://sh.st"
+            #     http_header["X-Requested-With"] = "XMLHttpRequest"
+            #
+            #     if config.is_xbmc():
+            #         import xbmc
+            #         xbmc.sleep(5 * 1000)
+            #     else:
+            #         time.sleep(5 * 1000)
+            #
+            #     payload = {'adSessionId': session_id, 'callback': 'c'}
+            #     r = httptools.downloadpage(
+            #         'http://sh.st/shortest-url/end-adsession?' +
+            #         urlencode(payload),
+            #         headers=http_header,
+            #         timeout=self._timeout)
+            #     response = r.data[6:-2].decode('utf-8')
+            #
+            #     if r.code == 200:
+            #         resp_uri = json.loads(response)['destinationUrl']
+            #         if resp_uri is not None:
+            #             uri = resp_uri
+            #         else:
+            #             return uri, 'Error extracting url'
+            #     else:
+            #         return uri, 'Error extracting url'
 
             return uri, r.code
 
@@ -540,25 +545,6 @@ class UnshortenIt(object):
                     logger.error('IP bannato da vcrypt, aspetta un ora')
                 else:
                     uri = r.headers['location']
-            if "snip." in uri:
-                new_uri = ''
-                if 'out_generator' in uri:
-                    uri = re.findall('url=(.*)$', uri)[0]
-                elif '/decode/' in uri:
-                    scheme, netloc, path, query, fragment = urlsplit(uri)
-                    splitted = path.split('/')
-                    splitted[1] = 'outlink'
-                    r = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]})
-                    if 'location' in r.headers and r.headers['location']:
-                        new_uri = r.headers['location']
-                    else:
-                        r = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment, follow_redirects=False, post={'url': splitted[2]})
-                        if 'location' in r.headers and r.headers['location']:
-                            new_uri = r.headers['location']
-                    if new_uri and new_uri != uri:
-                        uri = new_uri
-                    # uri = decrypt(uri.split('/')[-1])
-
             return uri, r.code if r else 200
         except Exception as e:
             logger.error(e)
@@ -665,6 +651,26 @@ class UnshortenIt(object):
         except Exception as e:
             return uri, str(e)
 
+    def _unshorten_snip(self, uri):
+        new_uri = ''
+        if 'out_generator' in uri:
+            uri = re.findall('url=(.*)$', uri)[0]
+        elif '/decode/' in uri:
+            scheme, netloc, path, query, fragment = urlsplit(uri)
+            splitted = path.split('/')
+            splitted[1] = 'outlink'
+            r = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]})
+            if 'location' in r.headers and r.headers['location']:
+                new_uri = r.headers['location']
+            else:
+                r = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment,
+                                           follow_redirects=False, post={'url': splitted[2]})
+                if 'location' in r.headers and r.headers['location']:
+                    new_uri = r.headers['location']
+            if new_uri and new_uri != uri:
+                uri = new_uri
+        return uri, 200
+
 
 def unwrap_30x_only(uri, timeout=10):
     unshortener = UnshortenIt()
@@ -691,10 +697,13 @@ def findlinks(text):
     unshortener = UnshortenIt()
     matches = []
 
-    for regex in unshortener.listRegex:
-        regex = '(?:https?://(?:[\w\d]+\.)?)?(?:' + regex + ')/[a-zA-Z0-9_=/]+'
-        for match in re.findall(regex, text):
-            matches.append(match)
+    regex = '(?:https?://(?:[\w\d]+\.)?)?(?:'
+    for rg in unshortener.listRegex:
+         regex += rg + '|'
+    regex = regex[:-1] + ')/[a-zA-Z0-9_=/]+'
+    for match in re.findall(regex, text):
+        matches.append(match)
+
     logger.info('matches=' + str(matches))
     if len(matches) == 1:
         text += '\n' + unshorten(matches[0])[0]

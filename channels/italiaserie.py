@@ -17,8 +17,7 @@ def mainlist(item):
     tvshow = ['',
         ('Aggiornamenti', ['/aggiornamento-episodi/', 'peliculas', 'update']),
         ('Top 10', ['/top-10', 'peliculas', 'top']),
-        ('Netflix {tv submenu}', ['/genere/netflix', 'peliculas']),
-        ('A-Z', ['/lista-completa', 'peliculas', 'a-z'])
+        ('Netflix {tv submenu}', ['/genere/netflix', 'peliculas'])
         ]
 
     return locals()
@@ -26,13 +25,14 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    blacklist = ['Aggiornamento Episodi']
     action = 'episodios'
     patron = r'<div class="post-thumb">\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"\[]+)[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>'
 
     if item.args == 'update':
         pagination = ''
-        patron = r'br />(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))??'
-        action = 'findvideos'
+        patron = r'br />(?:[^>]+>)?(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
+        action = 'episodios'
     if item.args == 'top':
         patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>:\s*(?P<rating>[^/]+)'
     if item.args =='a-z':
@@ -89,7 +89,7 @@ def newest(categoria):
     item = Item()
     try:
         if categoria == "series":
-            item.url = host + "/ultimi-episodi/"
+            item.url = host + "/aggiornamento-episodi/"
             item.action = "peliculas"
             item.args = "update"
             item.contentType = "episode"
@@ -110,20 +110,5 @@ def newest(categoria):
 
 def findvideos(item):
     logger.debug()
-
-    if item.args == 'update':
-        itemlist = []
-        item.infoLabels['mediatype'] = 'episode'
-
-        data = support.match(item.url, headers=headers).data
-        url_video = support.match(data, patron=r'<a rel="[^"]+" target="[^"]+" act="[^"]+"\s+href="([^"]+)" class="[^"]+-link".+?\d+.+?</strong> </a>').matches
-        url_serie = support.match(data, patron=r'<link rel="canonical" href="([^"]+)" />').matches
-        goseries = support.typo("Vai alla Serie:", ' bold')
-        series = support.typo(item.contentSerieName, ' bold color kod')
-        itemlist = support.server(item, data=url_video)
-
-        itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodios', plot = goseries + series + "con tutte le puntate"))
-
-        return itemlist
-    else:
-        return support.server(item, data=item.data)
+    data = support.match(item.data, patron=r'href="([^"]+)').matches
+    return support.server(item, data=data)

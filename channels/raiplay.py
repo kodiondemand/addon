@@ -53,7 +53,7 @@ def learning(item):
     json = current_session.get(item.url).json()['contents']
     for key in json:
         itemlist.append(item.clone(title = support.typo(key['name'],'bold'), fulltitle = key['name'],
-                                   show = key['name'], url = key['contents'], action = 'peliculas'))
+                                   show = key['name'], data = key['contents'], action = 'peliculas'))
     return itemlist
 
 
@@ -82,9 +82,14 @@ def replay_menu(item):
     # create day and month list
     days = []
     months = []
-    days.append(xbmc.getLocalizedString(17))
-    for day in range(11, 17): days.append(xbmc.getLocalizedString(day))
-    for month in range(21, 33): months.append(xbmc.getLocalizedString(month))
+    try:
+        days.append(xbmc.getLocalizedString(17))
+        for day in range(11, 17): days.append(xbmc.getLocalizedString(day))
+        for month in range(21, 33): months.append(xbmc.getLocalizedString(month))
+    except:  # per i test, xbmc.getLocalizedString non è supportato
+        days.append('dummy')
+        for day in range(11, 17): days.append('dummy')
+        for month in range(21, 33): months.append('dummy')
 
     # make menu
     itemlist = []
@@ -184,8 +189,8 @@ def peliculas(item):
     pagination = 40 if not item.search else ''
 
     # load json
-    if type(item.url) in [dict, list]:
-        json = item.url
+    if item.data:
+        json = item.data
         for key in json:
             if item.search.lower() in key['name'].lower():
                 keys.append(key)

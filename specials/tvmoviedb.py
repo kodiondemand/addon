@@ -32,18 +32,18 @@ def mainlist(item):
     itemlist = [
             # TMDB
             # item.clone(title=typo(config.get_localized_string(70021), 'bold'), action=""),
-            item.clone(title=typo(config.get_localized_string(70021) % (config.get_localized_string(30122), 'TMDB'), 'bold'), action="tmdb", args="movie", thumbnail=thumb('search_movie')),
-            item.clone(title=typo(config.get_localized_string(70021) % (config.get_localized_string(30123), 'TMDB'), 'bold'), action="tmdb", args="tv", thumbnail=thumb('search_tvshow')),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'TMDB'), action="tmdb", args="movie", thumbnail=thumb('search_movie')),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'TMDB'), action="tmdb", args="tv", thumbnail=thumb('search_tvshow')),
             # Filmaffinity
             # itemlist.append(item.clone(title=typo(config.get_localized_string(70024), 'bold'), action=""))
             # itemlist.append(item.clone(title=config.get_localized_string(70022), action="filmaf", args="movie", thumbnail=thumb('search_movie')))
             # itemlist.append(item.clone(title=config.get_localized_string(70023), action="filmaf", args="tv", thumbnail=thumb('search_tvshow')))
             # IMDB
             # item.clone(title=typo(config.get_localized_string(70025), 'bold'), action=""),
-            item.clone(title=typo(config.get_localized_string(70021) % (config.get_localized_string(30122), 'IMDB'), 'bold'), action="imdb", args="movie", url='&title_type=feature,tv_movie', thumbnail=thumb('search_movie')),
-            item.clone(title=typo(config.get_localized_string(70021) % (config.get_localized_string(30123), 'IMDB'), 'bold'), action="imdb", args="tv", url='&title_type=tv_series,tv_special,mini_series', thumbnail=thumb('search_tvshow')),
-            item.clone(title=typo(config.get_localized_string(70415), 'bold'), action="trakt", thumbnail="http://i.imgur.com/5sQjjuk.png"),
-            item.clone(title=typo(config.get_localized_string(70026), 'bold'), action="mal", thumbnail="http://i.imgur.com/RhsYWmd.png"),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'IMDB'), action="imdb", args="movie", url='&title_type=feature,tv_movie', thumbnail=thumb('search_movie')),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'IMDB'), action="imdb", args="tv", url='&title_type=tv_series,tv_special,mini_series', thumbnail=thumb('search_tvshow')),
+            item.clone(title=config.get_localized_string(70415), action="trakt", thumbnail="http://i.imgur.com/5sQjjuk.png"),
+            item.clone(title=config.get_localized_string(70026), action="mal", thumbnail="http://i.imgur.com/RhsYWmd.png"),
             item.clone(title=typo(config.get_localized_string(70027), 'color kod'), action="configuracion", folder=False)
         ]
     return itemlist
@@ -130,8 +130,8 @@ def tmdb(item):
         itemlist.append(item.clone(title=config.get_localized_string(70036), action="search_", search={'url': 'search/person', 'language': langt, 'page': 1}))
         if item.args == "movie": itemlist.append(item.clone(title=config.get_localized_string(70037), action="search_", search={'url': "search/person", 'language': langt, 'page': 1}, crew=True))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filter", ))
-    itemlist.append(item.clone(title=config.get_localized_string(70039), action="filter", ))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70038),'color kod'), action="filter", ))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70039),'color kod'), action="filter", ))
 
     return thumb(itemlist)
 
@@ -155,7 +155,7 @@ def imdb(item):
         itemlist.append(item.clone(title=config.get_localized_string(30980), action="search_", url="http://www.imdb.com/search/title?title={}" + item.url))
         itemlist.append(item.clone(title=config.get_localized_string(70036), action="search_", url="http://www.imdb.com/search/name?name={}"))
 
-    itemlist.append(item.clone(title=config.get_localized_string(70038), action="filter_imdb", ))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70038),'color kod'), action="filter_imdb", ))
 
     return thumb(itemlist)
 
@@ -199,20 +199,20 @@ def trakt(item):
     page = "?page=1&limit=20&extended=full"
     if not item.args:
         item.args = "movie"
-        itemlist.append(item.clone(title=typo(config.get_localized_string(70416), 'bold'), action=""))
-        itemlist.append(item.clone(title=config.get_localized_string(70049), action="acciones_trakt", url="movies/popular%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70050), action="acciones_trakt", url="movies/trending%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70053), action="acciones_trakt", url="movies/watched/all%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70051), action="acciones_trakt", url="movies/anticipated%s" % page))
-        if token_auth: itemlist.append(item.clone(title=config.get_localized_string(70052), action="acciones_trakt",url="recommendations/movies?limit=100&extended=full", pagina=0))
-        itemlist.append(item.clone(title=typo(config.get_localized_string(70417), 'bold'), action="",))
+        # itemlist.append(item.clone(title=typo(config.get_localized_string(70416), 'bold'), action=""))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30122), 'bold') + typo(config.get_localized_string(70049),'[] _'), action="acciones_trakt", url="movies/popular%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30122), 'bold') + typo(config.get_localized_string(70050),'[] _'), action="acciones_trakt", url="movies/trending%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30122), 'bold') + typo(config.get_localized_string(70053),'[] _'), action="acciones_trakt", url="movies/watched/all%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30122), 'bold') + typo(config.get_localized_string(70051),'[] _'), action="acciones_trakt", url="movies/anticipated%s" % page))
+        if token_auth: itemlist.append(item.clone(title=typo(config.get_localized_string(30122), 'bold') + typo(config.get_localized_string(70052),'[] _'), action="acciones_trakt",url="recommendations/movies?limit=100&extended=full", pagina=0))
+        # itemlist.append(item.clone(title=typo(config.get_localized_string(70417), 'bold'), action="",))
         item.args = "show"
-        itemlist.append(item.clone(title=config.get_localized_string(70049), action="acciones_trakt", url="shows/popular%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70050), action="acciones_trakt", url="shows/trending%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70053), action="acciones_trakt", url="shows/watched/all%s" % page))
-        itemlist.append(item.clone(title=config.get_localized_string(70051), action="acciones_trakt", url="shows/anticipated%s" % page))
-        if token_auth: itemlist.append(item.clone(title=config.get_localized_string(70052), action="acciones_trakt", url="recommendations/shows?limit=100&extended=full", pagina=0))
-        itemlist.append(item.clone(title=typo(config.get_localized_string(70048), 'color kod bold'), args="cuenta"))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30123), 'bold') + typo(config.get_localized_string(70049),'[] _'), action="acciones_trakt", url="shows/popular%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30123), 'bold') + typo(config.get_localized_string(70050),'[] _'), action="acciones_trakt", url="shows/trending%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30123), 'bold') + typo(config.get_localized_string(70053),'[] _'), action="acciones_trakt", url="shows/watched/all%s" % page))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(30123), 'bold') + typo(config.get_localized_string(70051),'[] _'), action="acciones_trakt", url="shows/anticipated%s" % page))
+        if token_auth: itemlist.append(item.clone(title=typo(config.get_localized_string(30123), 'bold') + typo(config.get_localized_string(70052),'[] _'), action="acciones_trakt", url="recommendations/shows?limit=100&extended=full", pagina=0))
+        itemlist.append(item.clone(title=typo(config.get_localized_string(70048), 'color kod'), args="cuenta"))
     else:
         item.args = "movie"
         # A saved token is checked and the authentication process is executed
@@ -220,16 +220,16 @@ def trakt(item):
             folder = (config.get_platform() == "plex")
             itemlist.append(item.clone(title=config.get_localized_string(70054), action="auth_trakt", folder=folder))
         else:
-            itemlist.append(item.clone(title=config.get_localized_string(70055), action="", ))
-            itemlist.append(item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watchlist/movies%s" % page, order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watchlist/shows%s" % page, args="show", order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(70056), action="", ))
-            itemlist.append(item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/watched/movies%s" % page, order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/watched/shows%s" % page, args="show", order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(70068), action="", ))
-            itemlist.append(item.clone(title=config.get_localized_string(60651), action="acciones_trakt", url="users/me/collection/movies%s" % page, order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(60652), action="acciones_trakt", url="users/me/collection/shows%s" % page, args="show", order="added", how="desc"))
-            itemlist.append(item.clone(title=config.get_localized_string(70057), action="acciones_trakt", url="users/me/lists", ))
+
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30122),'bold') + typo(config.get_localized_string(70055),'_ []'), action="acciones_trakt", url="users/me/watchlist/movies%s" % page, order="added", how="desc"))
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30122),'bold') + typo(config.get_localized_string(70056),'_ []'), action="acciones_trakt", url="users/me/watched/movies%s" % page, order="added", how="desc"))
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30122),'bold') + typo(config.get_localized_string(70068),'_ []'), action="acciones_trakt", url="users/me/collection/movies%s" % page, order="added", how="desc"))
+
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30123),'bold') + typo(config.get_localized_string(70055),'_ []'), action="acciones_trakt", url="users/me/watchlist/shows%s" % page, args="show", order="added", how="desc"))
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30123),'bold') + typo(config.get_localized_string(70056),'_ []'), action="acciones_trakt", url="users/me/watched/shows%s" % page, args="show", order="added", how="desc"))
+            itemlist.append(item.clone(title=typo(config.get_localized_string(30123),'bold') + typo(config.get_localized_string(70068),'_ []'), action="acciones_trakt", url="users/me/collection/shows%s" % page, args="show", order="added", how="desc"))
+
+            itemlist.append(item.clone(title=typo(config.get_localized_string(70057),'color kod bold'), action="acciones_trakt", url="users/me/lists", ))
 
     return itemlist
 
@@ -249,9 +249,9 @@ def mal(item):
     itemlist.append(item.clone(title=config.get_localized_string(70063), url="", action="indices_mal"))
     if config.get_platform() != "plex":
         itemlist.append(item.clone(title=config.get_localized_string(70064), url="https://myanimelist.net/anime.php?q=", action="search_"))
-    itemlist.append(item.clone(title=typo(config.get_localized_string(70038), 'bold submenu'), action="filter_mal"))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70038), 'color kod'), action="filter_mal"))
 
-    itemlist.append(item.clone(title=typo(config.get_localized_string(70057), 'bold submenu'), action="cuenta_mal"))
+    itemlist.append(item.clone(title=typo(config.get_localized_string(70057), 'color kod'), action="cuenta_mal"))
 
     return itemlist
 
@@ -267,15 +267,15 @@ def list_tmdb(item):
     # List of actors
     if 'nm' in item.infoLabels['imdb_id']:
         try:
-            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_searching=langt)
+            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
             id_cast = ob_tmdb.result["person_results"][0]["id"]
             if item.contentType == "movie": item.search = {'url': 'discover/movie', 'with_cast': id_cast, 'page': item.pagina, 'sort_by': 'primary_release_date.desc', 'language': langt}
             else:item.search = {'url': 'person/%s/tv_credits' % id_cast, 'language': langt}
-            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_searching=langt)
+            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
         except:
             pass
     else:
-        ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_searching=langt)
+        ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
 
     # Sagas and collections
     if "collection" in item.search["url"]:
@@ -307,7 +307,7 @@ def list_tmdb(item):
                 new_item.infoLabels = ob_tmdb.get_infoLabels(new_item.infoLabels, origen=ob_tmdb.results[i])
                 # If there is no synopsis in the chosen language, search in the alternative
                 if not new_item.infoLabels["plot"] and not 'person' in item.search["url"]:
-                    ob_tmdb2 = Tmdb(id_Tmdb=new_item.infoLabels["tmdb_id"], tipo=item.args, idioma_searching=langt_alt)
+                    ob_tmdb2 = Tmdb(id_Tmdb=new_item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=langt_alt)
                     new_item.infoLabels["plot"] = ob_tmdb2.get_sinopsis()
                 if new_item.infoLabels['thumbnail']:
                     new_item.thumbnail = new_item.infoLabels['thumbnail']
@@ -375,10 +375,10 @@ def details(item):
         pics = match(data, patron=r'showAllVidsAndPics.*?href=".*?(tt\d+)').match
         if pics: images["imdb"] = {'url': 'http://www.imdb.com/_json/title/%s/mediaviewer' % pics}
 
-        ob_tmdb = Tmdb(external_id=item.infoLabels["imdb_id"], external_source="imdb_id", tipo=item.args, idioma_searching=langt)
+        ob_tmdb = Tmdb(external_id=item.infoLabels["imdb_id"], external_source="imdb_id", tipo=item.args, idioma_busqueda=langt)
         item.infoLabels["tmdb_id"] = ob_tmdb.get_id()
 
-    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_searching=langt)
+    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=langt)
 
     try:
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
@@ -407,24 +407,26 @@ def details(item):
     if item.infoLabels['tagline']: item.plot= typo(item.infoLabels['tagline'],'bold') + '\n' + item.plot
 
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", "serie")
+    # from core.support import dbg;dbg()
+    if not item.contentTitle: item.contentTitle = item.title.split('(')[0].strip()
     # Search by titles chosen language and / or original version and Spanish
     if config.get_setting('new_search'):
-        itemlist.append(item.clone(channel='globalsearch', action="Search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, mode='search', type=item.contentType, folder=False))
+        itemlist.append(item.clone(channel='globalsearch', action="Search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, text=item.contentTitle, mode='search', type=item.contentType, folder=False))
         if item.infoLabels['originaltitle'] and item.contentTitle != item.infoLabels['originaltitle']:
             itemlist.append(item.clone(channel='globalsearch', action="Search", search_text=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle'], mode='search', type=item.contentType, folder=False))
     else:
-        itemlist.append(item.clone(channel='search', action="new_search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, mode=item.contentType))
+        itemlist.append(item.clone(channel='search', action="new_search", title=config.get_localized_string(70069) % (title, item.contentTitle), search_text=item.contentTitle, text=item.contentTitle, mode=item.contentType))
         if item.infoLabels['originaltitle'] and item.contentTitle != item.infoLabels['originaltitle']:
             itemlist.append(item.clone(channel='search', action="search", search_text=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle'], mode=item.contentType))
 
     # if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-    #     tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_searching=def_lang)
+    #     tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=def_lang)
     #     if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle and tmdb_lang.result["title"] != item.infoLabels['originaltitle']:
     #         tmdb_lang = tmdb_lang.result["title"]
     #         itemlist.append(item.clone(channel='search', action="search", title=config.get_localized_string(70066) % tmdb_lang, contentTitle=tmdb_lang, mode=item.contentType))
 
     # In case of series, option of info by seasons
-    if item.contentType == "tvshow" and item.infoLabels['tmdb_id']:
+    if item.contentType == "tvshow" and item.infoLabels['tmdb_id'] and "number_of_seasons" in item.infoLabels:
         itemlist.append(item.clone(action="info_seasons", title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"]))
     # Option to watch the cast and browse their movies / series
     if item.infoLabels['tmdb_id']:
@@ -498,7 +500,7 @@ def distribution(item):
     itemlist = []
     item.args=item.contentType.replace('tvshow','tv')
     item.search = {'url': '%s/%s/credits' % (item.args, item.infoLabels['tmdb_id'])}
-    ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_searching=langt)
+    ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
 
     try:
         cast = ob_tmdb.result["cast"]
@@ -543,9 +545,10 @@ def distribution(item):
 def info_seasons(item):
     # Season and episode info
     itemlist = []
-    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo="tv", idioma_searching=langt)
+    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo="tv", idioma_busqueda=langt)
+    logger.info(item.infoLabels)
 
-    for temp in range(item.infoLabels["number_of_seasons"], 0, -1):
+    for temp in range(int(item.infoLabels["number_of_seasons"]), 0, -1):
         temporada = ob_tmdb.get_temporada(temp)
         if temporada:
             new_item = item.clone(action="", mediatype="season")
@@ -855,11 +858,13 @@ def filter_imdb(item):
 
         data = match("http://www.imdb.com/search/title", cookies=False).data
         # bloque = scrapertools.find_single_match(data, '<h3>Genres</h3>(.*?)</table>')
-        matches = match(data, paronBlock=r'<h3>Genres</h3>(.*?)</table>', patron=r' value="([^"]+)"\s*>\s*<label.*?>([^<]+)<').matches
+        matches = match(data, patronBlock=r'<h3>Genres</h3>(.*?)</table>', patron=r' value="([^"]+)"\s*>\s*<label.*?>([^<]+)<').matches
         if matches:
+            list_controls.append({'id': 'espacio', 'label': '', 'enabled': False, 'type': 'label', 'default': None, 'visible': True})
             list_controls.append({'id': 'labelgenre', 'enabled': True, 'type': 'label', 'visible': True, 'label': config.get_localized_string(70451),})
             lista = []
             for value, title in matches:
+                logger.debug('TITOLO:',title, genres_translate.get(title, title))
                 title = genres_translate.get(title, title)
                 lista.append([value, title])
             lista.sort(key=lambda lista: lista[1])
@@ -1213,18 +1218,18 @@ def indices_imdb(item):
 
 #     if item.contentType == "movie":
 #         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args,
-#                        idioma_searching=langt)
+#                        idioma_busqueda=langt)
 #         if not ob_tmdb.result:
 #             ob_tmdb = Tmdb(text_buscado=item_tmdb.infoLabels['originaltitle'], year=item_tmdb.infoLabels['year'],
-#                            tipo=item_tmdb.args, idioma_searching=langt)
+#                            tipo=item_tmdb.args, idioma_busqueda=langt)
 #     else:
-#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_searching=langt)
+#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_busqueda=langt)
 #         if not ob_tmdb.result:
 #             ob_tmdb = Tmdb(text_buscado=item_tmdb.infoLabels['tvshowtitle'], tipo=item_tmdb.args,
-#                            idioma_searching=langt)
+#                            idioma_busqueda=langt)
 
 #     if ob_tmdb.result:
-#         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_searching=langt)
+#         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_busqueda=langt)
 #         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
 #         # If there is no synopsis in the chosen language, search in the alternative
@@ -1284,7 +1289,7 @@ def indices_imdb(item):
 #                                    title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
 
 #     if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-#         tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_searching=def_lang)
+#         tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=def_lang)
 #         if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle:
 #             tmdb_lang = tmdb_lang.result["title"]
 #             itemlist.append(item.clone(action="searching", title=config.get_localized_string(70066) % tmdb_lang,
@@ -1833,7 +1838,7 @@ def fanartv(item):
     id_search = item.infoLabels['tmdb_id']
     if item.contentType == "tvshow" and id_search:
         search = {'url': 'tv/%s/external_ids' % item.infoLabels['tmdb_id'], 'language': langt}
-        ob_tmdb = Tmdb(discover=search, idioma_searching=langt)
+        ob_tmdb = Tmdb(discover=search, idioma_busqueda=langt)
         id_search = ob_tmdb.result.get("tvdb_id")
 
     resultado = False
@@ -1991,7 +1996,7 @@ def acciones_trakt(item):
         data = jsontools.load(data)
         for entry in data:
             new_item = item.clone()
-            new_item.title = entry["name"] + ' ' + entry["item_count"]
+            new_item.title = typo(entry["name"],'bold') + typo(str(entry["item_count"]),'color kod bold _ []')
             new_item.infoLabels["plot"] = entry.get("description")
             new_item.url = "users/me/lists/%s/items/?page=1&limit=20&extended=full" % entry["ids"]["trakt"]
             new_item.order = entry.get("sort_by")
@@ -2111,25 +2116,25 @@ def details_mal(item):
     item_tmdb = item.clone()
 
     if item.contentType == "movie":
-        ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_searching=langt)
+        ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_busqueda=langt)
         if not ob_tmdb.result and eng_title:
-            ob_tmdb = Tmdb(text_buscado=eng_title, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_searching=langt)
+            ob_tmdb = Tmdb(text_buscado=eng_title, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_busqueda=langt)
         if not ob_tmdb.result and ("Special (" in item.title or item.tipo == "special"):
             item_tmdb.args = "tv"
             search = {'url': 'search/tv', 'language': langt, 'query': item_tmdb.contentTitle, 'first_air_date': item_tmdb.infoLabels["year"]}
-            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_searching=langt)
+            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
     else:
         search = {'url': 'search/tv', 'language': langt, 'query': eng_title, 'first_air_date': item_tmdb.infoLabels["year"]}
-        ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_searching=langt)
+        ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
         if not ob_tmdb.result and eng_title:
             search['query'] = eng_title
-            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_searching=langt)
+            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
         if not ob_tmdb.result and ("OVA (" in item.title or item.tipo == "ova"):
             item_tmdb.args = "movie"
-            ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_searching=langt, year=item_tmdb.infoLabels['year'])
+            ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_busqueda=langt, year=item_tmdb.infoLabels['year'])
 
     if ob_tmdb.result:
-        ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_searching=langt)
+        ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_busqueda=langt)
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
     # Myanimelist synopsis is concatenated with that of tmdb if any
@@ -2175,7 +2180,7 @@ def details_mal(item):
         if eng_title and item.contentTitle != eng_title and title_mal != eng_title:
             itemlist.append(item.clone(action="new_search", channel='search', search_text=eng_title, title=config.get_localized_string(70352) % eng_title, thumbnail=thumb('search')))
 
-    if item_tmdb.args == "tv" and ob_tmdb.result:
+    if item_tmdb.args == "tv" and ob_tmdb.result and "number_of_seasons" in item.infoLabels:
         itemlist.append(item.clone(action="info_seasons", title=config.get_localized_string(70067) % item.infoLabels["number_of_seasons"], thumbnail=thumb('info')))
 
     itemlist.append(item.clone(action="videos_mal", title=config.get_localized_string(70353), url=item.url + "/video", thumbnail=thumb('trailer')))

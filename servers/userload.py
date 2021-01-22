@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from lib import jsunpack
 from core import support, httptools
 from platformcode import logger, config
 
@@ -19,9 +20,13 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
     logger.debug("URL", page_url)
     video_urls = []
-    var = support.match(data, patron=r"var\|\|([^']+)").match.split('|')
+    packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*<").match
+    unpack = jsunpack.unpack(packed)
+    var = support.match(unpack, patron= r'baffffbd="([^"]+)".*?edecbade="([^"]+)').match
+
     if var:
-        post = 'morocco={}&mycountry={}'.format(var[7], var[17])
+        post = 'morocco={}&mycountry={}'.format(var[1], var[0])
+        logger.debug(post)
         url = support.match('https://userload.co/api/request/', post=post, patron=r'([^\s\r\n]+)').match
         if url:
             video_urls.append(["{} [Userload]".format(url.split('.')[-1]), url])

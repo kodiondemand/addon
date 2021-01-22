@@ -60,7 +60,7 @@ def newest(categoria):
 def submenu(item):
     data = support.match(item.url + item.args).data
     action = 'filter'
-    patronMenu = r'<h5 class="[^"]+">(?P<title>[^<]+)[^>]+>[^>]+>\s*<select id="(?P<parameter>[^"]+)"[^>]+>(?P<url>.*?)</select>'
+    patronMenu = r'<h5 class="[^"]+">(?P<title>[^<]+)[^>]+>[^>]+>\s*<select id="(?P<parameter>[^"]+)"[^>]+>(?P<data>.*?)</select>'
     def itemlistHook(itemlist):
         itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), url=item.url + item.args, action='peliculas'))
         return itemlist[:-1]
@@ -69,7 +69,7 @@ def submenu(item):
 
 def filter(item):
     itemlist = []
-    matches = support.match(item.url, patron=r'<option value="(?P<value>[^"]+)"[^>]*>(?P<title>[^<]+)').matches
+    matches = support.match(item.data if item.data else item.url, patron=r'<option value="(?P<value>[^"]+)"[^>]*>(?P<title>[^<]+)').matches
     for value, title in matches:
         itemlist.append(item.clone(title= support.typo(title,'bold'), url='{}{}&{}%5B0%5D={}'.format(host, item.args, item.parameter, value), action='peliculas', args='filter'))
     support.thumb(itemlist, genre=True)
@@ -95,7 +95,7 @@ def peliculas(item):
     deflang= 'Sub-ITA'
     action = 'check'
     page = None
-    post = "page=" + str(item.page if item.page else 1) if item.page and item.page > 1 else None
+    post = "page=" + str(item.page if item.page else 1) if item.page and int(item.page) > 1 else None
 
     if item.args == 'top':
         data = item.other

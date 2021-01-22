@@ -402,24 +402,17 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
                                                  label=c["label"], font=self.font, textColor=c["color"],
                                                  focusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
                                                  noFocusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'))
-        elif xbmcgui.__version__ in ["3.0", "3.0.0"]:
-            control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20,
-                                                 self.height_control, label=c["label"], font=self.font,
-                                                 textColor=c["color"],
-                                                 focusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
-                                                 noFocusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
-                                                 focusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'),
-                                                 noFocusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'))
         else:
             control = xbmcgui.ControlRadioButton(0, -100, self.controls_width + 20,
                                                  self.height_control, label=c["label"], font=self.font,
                                                  textColor=c["color"],
-                                                 focusTexture='',
-                                                 noFocusTexture='',
+                                                 focusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'),
+                                                 noFocusTexture=os.path.join(self.mediapath, 'Controls', 'MenuItemNF.png'),
                                                  focusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
                                                  noFocusOnTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-focus.png'),
                                                  focusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'),
                                                  noFocusOffTexture=os.path.join(self.mediapath, 'Controls', 'radiobutton-nofocus.png'))
+       
         image = xbmcgui.ControlImage(0, -100, self.controls_width + 10, self.height_control, os.path.join(self.mediapath, 'Controls', 'MenuItemFO.png'))
         self.addControl(image)
         self.addControl(control)

@@ -153,10 +153,12 @@ def start(itemlist, item):
             autoplay_list.append(autoplay_elem)
 
         # We order according to priority
-        if priority == 0: autoplay_list.sort(key=lambda orden: (orden['indice_quality'], orden['indice_server'])) # Servers and qualities
+        if priority == 0: autoplay_list.sort(key=lambda orden: ((orden['indice_server'], orden['indice_quality']))) # Servers and qualities
         elif priority == 1: autoplay_list.sort(key=lambda orden: (orden['indice_quality'], orden['indice_server'])) # Qualities and servers
         elif priority == 2: autoplay_list.sort(key=lambda orden: (orden['indice_server'])) # Servers only
         elif priority == 3: autoplay_list.sort(key=lambda orden: (orden['indice_quality'])) # Only qualities
+
+        logger.debug('PRIORITY',priority, autoplay_list)
 
         # if quality priority is active
         if priority == 0 and config.get_setting('quality_priority'):

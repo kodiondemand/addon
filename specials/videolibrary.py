@@ -87,8 +87,6 @@ def list_tvshows(item):
 
 
 def get_results(nfo_path, root, Type, local=False):
-    dead_list = []
-    zombie_list = []
     value = 0
     if Type == 'movie': folder = "folder_movies"
     else: folder = "folder_tvshows"
@@ -106,40 +104,6 @@ def get_results(nfo_path, root, Type, local=False):
 
         if len(item.library_urls) > 1: multichannel = True
         else: multichannel = False
-
-        # Verify the existence of the channels. If the channel does not exist, ask yourself if you want to remove the links from that channel.
-
-        for canal in item.library_urls:
-            try:
-                if canal in ['community', 'downloads']: channel_verify = __import__('specials.%s' % canal, fromlist=["channels.%s" % canal])
-                else: channel_verify = __import__('channels.%s' % canal, fromlist=["channels.%s" % canal])
-                logger.debug('Channel %s seems correct' % channel_verify)
-            except:
-                dead_item = Item(multichannel=multichannel,
-                                 contentType='tvshow',
-                                 dead=canal,
-                                 path=filetools.split(nfo_path)[0],
-                                 nfo=nfo_path,
-                                 library_urls=item.library_urls,
-                                 infoLabels={'title': item.contentTitle})
-
-                if canal not in dead_list and canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % canal.upper() + '\n' + config.get_localized_string(30133))
-                elif canal in zombie_list: confirm = False
-                else: confirm = True
-
-                if confirm:
-                    delete(dead_item)
-                    if canal not in dead_list:
-                        dead_list.append(canal)
-                    continue
-                else:
-                    if canal not in zombie_list:
-                        zombie_list.append(canal)
-
-        if len(dead_list) > 0:
-            for canal in dead_list:
-                if canal in item.library_urls:
-                    del item.library_urls[canal]
 
         # continue loading the elements of the video library
         if Type == 'movie':
@@ -377,6 +341,8 @@ def get_episodes(item):
 
 def findvideos(item):
     from core import autoplay
+    from platformcode import platformtools
+
     logger.debug()
     # logger.debug("item:\n" + item.tostring('\n'))
     videolibrarytools.check_renumber_options(item)
@@ -436,7 +402,6 @@ def findvideos(item):
         if item_local:
             opciones.append(item_local.title)
 
-        from platformcode import platformtools
         index = platformtools.dialog_select(config.get_localized_string(30163), opciones)
         if index < 0:
             return []
@@ -449,6 +414,7 @@ def findvideos(item):
             filtro_canal = opciones[index].replace(config.get_localized_string(70078), "").strip()
             itemlist = []
 
+    all_videolibrary = []
     for nom_canal, json_path in list(list_canales.items()):
         if filtro_canal and filtro_canal != nom_canal.capitalize():
             continue
@@ -463,6 +429,50 @@ def findvideos(item):
                 channel = __import__('channels.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
         except ImportError:
             exec("import channels." + nom_canal + " as channel")
+        except:
+            dead_list = []
+            zombie_list = []
+
+            if nom_canal not in dead_list and nom_canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % nom_canal.upper() + '\n' + config.get_localized_string(30133))
+            elif nom_canal in zombie_list: confirm = False
+            else: confirm = True
+
+            if confirm:
+                # delete the channel from all movie and tvshow
+                from past.utils import old_div
+                num_enlaces = 0
+                dialog = platformtools.dialog_progress(config.get_localized_string(30131), config.get_localized_string(60005) % nom_canal)
+                if not all_videolibrary:
+                    all_videolibrary = list_movies(Item()) + list_tvshows(Item())
+                for n, it in enumerate(all_videolibrary):
+                    if nom_canal in it.library_urls:
+                        dead_item = Item(multichannel=len(it.library_urls) > 1,
+                                         contentType=it.contentType,
+                                         dead=nom_canal,
+                                         path=filetools.split(it.nfo)[0],
+                                         nfo=it.nfo,
+                                         library_urls=it.library_urls,
+                                         infoLabels={'title': it.contentTitle})
+                        num_enlaces += delete(dead_item)
+                    dialog.update(old_div(100*n, len(all_videolibrary)))
+
+                dialog.close()
+                msg_txt = config.get_localized_string(70087) % (num_enlaces, nom_canal)
+                logger.info(msg_txt)
+                platformtools.dialog_notification(config.get_localized_string(30131), msg_txt)
+                platformtools.itemlist_refresh()
+
+                if nom_canal not in dead_list:
+                    dead_list.append(nom_canal)
+                continue
+            else:
+                if nom_canal not in zombie_list:
+                    zombie_list.append(nom_canal)
+
+            if len(dead_list) > 0:
+                for nom_canal in dead_list:
+                    if nom_canal in item.library_urls:
+                        del item.library_urls[nom_canal]
 
         item_json = Item().fromjson(filetools.read(json_path))
         list_servers = []
@@ -1048,15 +1058,13 @@ def delete(item):
             if item_nfo.emergency_urls and item_nfo.emergency_urls.get(canal, False):
                 del item_nfo.emergency_urls[canal]
             filetools.write(item.nfo, head_nfo + item_nfo.tojson())
-
-        msg_txt = config.get_localized_string(70087) % (num_enlaces, canal)
-        logger.info(msg_txt)
-        platformtools.dialog_notification(heading, msg_txt)
-        platformtools.itemlist_refresh()
-
+        return num_enlaces
     else:
         if platformtools.dialog_yesno(heading, config.get_localized_string(70088) % item.infoLabels['title']):
             delete_all(item)
+            return 1
+        else:
+            return 0
 
 
 def check_season_playcount(item, season):

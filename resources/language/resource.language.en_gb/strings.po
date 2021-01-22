@@ -320,7 +320,7 @@ msgid "It seems that the Channel %s no longer exists."
 msgstr ""
 
 msgctxt "#30133"
-msgid "Do you want to remove links from this channel?"
+msgid "Do you want to remove ALL links from this channel?"
 msgstr ""
 
 msgctxt "#30135"
@@ -665,7 +665,7 @@ msgid "No connector for the server %s"
 msgstr ""
 
 msgctxt "#60005"
-msgid ""
+msgid "Deleting all links from channel %s"
 msgstr ""
 
 msgctxt "#60006"
@@ -3025,7 +3025,7 @@ msgid "Search by director"
 msgstr ""
 
 msgctxt "#70048"
-msgid " My Account"
+msgid "My Account"
 msgstr ""
 
 msgctxt "#70049"
@@ -3057,7 +3057,7 @@ msgid "Watchlists"
 msgstr ""
 
 msgctxt "#70056"
-msgid "Viewed"
+msgid "Recently Watched"
 msgstr ""
 
 msgctxt "#70057"

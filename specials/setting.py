@@ -241,7 +241,7 @@ def server_debrid_config(item):
 
 def servers_blacklist(item):
     server_list = servertools.get_servers_list()
-    black_list = config.get_setting("black_list", server='servers')
+    black_list = config.get_setting("black_list", server='servers', default=[])
     blacklisted = []
 
     list_controls = []
@@ -349,7 +349,7 @@ def cb_servers_favorites(server_names, dict_values):
             dict_favorites[dict_name[server_parameters['name']]] = server
             config.set_setting("favorites_servers_list", dict_name[server_parameters['name']], server=server)
         else:
-            config.set_setting("favorites_servers_list", 0, server=server)
+            config.set_setting("favorites_servers_list", 999, server=server)
         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % server_parameters['name'])
         i += 1
 
