@@ -66,7 +66,7 @@ def submenu(item):
         json = current_session.get(json_url).json()['contents']
         for key in json:
             itemlist.append(item.clone(title = support.typo(key,'bold'), fulltitle = key,
-                                       show = key, url = json[key], action = 'peliculas'))
+                                       show = key, data = json[key], action = 'peliculas'))
     else:
         for key in json:
             itemlist.append(item.clone(title = support.typo(key['name'],'bold'), fulltitle = key['name'], show = key['name'],
@@ -206,7 +206,8 @@ def peliculas(item):
         for key in json:
             if len(json[key]) > 0:
                 for key in json[key]:
-                    keys.append(key)
+                    if item.search.lower() in key['name'].lower():
+                        keys.append(key)
 
     # load titles
     for i, key in enumerate(keys):
@@ -221,7 +222,7 @@ def peliculas(item):
                 itemlist.append(res.result())
     itemlist = sorted(itemlist, key=lambda it: it.title)
 
-    if len(keys) > pag * pagination and not item.search:
+    if not item.search and len(keys) > pag * pagination:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), page=pag + 1, thumbnail=support.thumb()))
     return itemlist
 
@@ -229,9 +230,8 @@ def peliculas(item):
 def select(item):
     support.info()
     itemlist = []
-    # support.dbg()
-    if type(item.url) in [list, dict]:
-        json = item.url
+    if type(item.data) in [list, dict]:
+        json = item.data
     else:
         json = current_session.get(item.url).json()
     if 'blocks' in json:
@@ -240,29 +240,34 @@ def select(item):
         for key in json:
             if item.fulltitle in key['name']: season = key['name'].replace(item.fulltitle, '').strip()
             if not season.isdigit(): season = ''
-            itemlist.append(item.clone(title = support.typo(key['name'],'bold'), season = season, url = key['sets'], action = 'select'))
+            itemlist.append(item.clone(title = support.typo(key['name'],'bold'), season = season, data = key['sets'], action = 'select'))
         if len(itemlist) == 1:
             return select(itemlist[0])
     else:
-        for key in item.url:
-            itemlist.append(item.clone(title = support.typo(key['name'], 'bold'), data = getUrl(key['path_id']), url = getUrl(key['path_id']), contentType = 'tvshow', action = 'episodios'))
-        if len(itemlist) == 1:
-            return episodios(itemlist[0])
+        if item.data:
+            for key in item.data:
+                itemlist.append(item.clone(title = support.typo(key['name'], 'bold'), data = getUrl(key['path_id']), url = getUrl(key['path_id']), contentType = 'tvshow', action = 'episodios'))
+            if len(itemlist) == 1:
+                return episodios(itemlist[0])
+        elif 'contents' in json:
+            for letter in json['contents'].keys():
+                if json['contents'][letter]:
+                    itemlist.extend(peliculas(item.clone(data=json['contents'][letter])))
     return itemlist
 
 
 def episodios(item):
     support.info()
     itemlist = []
-    if type(item.url) in [list, dict] and len(item.url) > 1 and ('name' in item.url[0] and 'stagione' not in item.url[0]['name'].lower()):
-        for key in item.url:
+    if type(item.data) in [list, dict] and len(item.data) > 1 and ('name' in item.data[0] and 'stagione' not in item.data[0]['name'].lower()):
+        for key in item.data:
             itemlist.append(item.clone(title = support.typo(key['name'], 'bold'), url = getUrl(key['path_id']), contentType = 'tvshow', action = 'episodios'))
 
-    elif type(item.url) in [list, dict]:
-        for key in item.url:
+    elif type(item.data) in [list, dict]:
+        for key in item.data:
             load_episodes(key, item)
         with futures.ThreadPoolExecutor() as executor:
-            itlist = [executor.submit(load_episodes, key, item) for key in item.url]
+            itlist = [executor.submit(load_episodes, key, item) for key in item.data]
             for res in futures.as_completed(itlist):
                 if res.result():
                     itemlist += res.result()
@@ -276,7 +281,7 @@ def episodios(item):
 
     else:
         date = ''
-        if type(item.url) in [list, dict]: item.url = getUrl(item.url[0]['path_id'])
+        if type(item.data) in [list, dict]: item.data = getUrl(item.url[0]['path_id'])
         json = current_session.get(item.url).json()['items']
         for key in json:
             ep = support.match(key['subtitle'], patron=r'(?:St\s*(\d+))?\s*Ep\s*(\d+)').match
@@ -354,20 +359,29 @@ def getUrl(pathId):
 
 def addinfo(key, item):
     support.info()
-    info = current_session.get(getUrl(key['info_url'])).json()
-    if not item.search or item.search.lower() in key['name'].lower():
-        it = item.clone(title = support.typo(key['name'],'bold'), fulltitle = key['name'], show = key['name'],
-                        thumbnail = getUrl(key['images']['portrait_logo'] if key['images']['portrait_logo'] else key['images']['landscape']),
-                        fanart = getUrl(key['images']['landscape']), url = getUrl(key['path_id']), plot = info['description'])
-        if 'layout' not in key or key['layout'] == 'single':
-            it.action = 'findvideos'
-            it.contentType = 'movie'
-            it.contentTitle = it.fulltitle
+    info = current_session.get(getUrl(key['info_url'])).json() if 'info_url' in key else {}
+    if 'images' in key:
+        fanart = key['images']['landscape']
+        if key['images']['portrait_logo']:
+            thumb = key['images']['portrait_logo']
         else:
-            it.action = 'select'
-            it.contentType = 'tvshow'
-            it.contentSerieName = it.fulltitle
-        return it
+            thumb = key['images']['landscape']
+    else:
+        thumb = ''
+        fanart = ''
+    it = item.clone(title=support.typo(key.get('name', ''), 'bold'), fulltitle=key.get('name', ''),
+                    show=key.get('name', ''), data='', thumbnail=getUrl(thumb),
+                    fanart=getUrl(fanart), url=getUrl(key['path_id']), plot=info.get('description', ''))
+
+    if 'Genere' not in key.get('sub_type', '') and ('layout' not in key or key['layout'] == 'single'):
+        it.action = 'findvideos'
+        it.contentType = 'movie'
+        it.contentTitle = it.fulltitle
+    else:
+        it.action = 'select'
+        it.contentType = 'tvshow'
+        it.contentSerieName = it.fulltitle
+    return it
 
 
 def load_episodes(key, item):
