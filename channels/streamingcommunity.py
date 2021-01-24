@@ -19,7 +19,7 @@ def getHeaders():
     global headers
     if not headers:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
-        response = session.get(host)
+        response = session.get(host, headers=headers)
         csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
                     'content-type': 'application/json;charset=UTF-8',
@@ -100,12 +100,14 @@ def peliculas(item):
     getHeaders()
     logger.debug()
     itemlist = []
+    recordlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
 
     page = item.page if item.page else 0
     offset = page * 60
-
-    if type(item.args) == int:
+    if item.records:
+        records = item.records
+    elif type(item.args) == int:
         data = support.scrapertools.decodeHtmlentities(support.match(item).data)
         records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
     elif not item.search:
@@ -122,15 +124,17 @@ def peliculas(item):
     else:
         js = records
 
-    with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(makeItem, i, it, item) for i, it in enumerate(js)]
-        for res in futures.as_completed(itlist):
-            itemlist.append(res.result())
-
+    for i, it in enumerate(js):
+        if i < 20:
+            itemlist.append(makeItem(i, it, item))
+        else:
+            recordlist.append(it)
+    
     itemlist.sort(key=lambda item: item.n)
-
-    if len(itemlist) >= 60:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page + 1))
+    if recordlist:
+        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
+    elif len(itemlist) >= 20:
+        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
 
@@ -191,9 +195,6 @@ def episodios(item):
 
 def findvideos(item):
     video_urls = []
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
-           'content-type': 'application/json;charset=UTF-8',
-           'Referer': 'https://streamingcommunity.net'}
     data = support.match(item, headers=headers).data.replace('&quot;','"').replace('\\','')
     url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match
     def videourls(res):
