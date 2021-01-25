@@ -1963,9 +1963,17 @@ def acciones_trakt(item):
         ratings = []
         try:
             for entry in data:
-                try: entry = entry[item.args]
-                except: pass
+                # try: entry = entry[item.args]
+                # except: pass
                 new_item = item.clone(action="details")
+                if 'show' in entry or 'show' in item.args:
+                    entry = entry['show']
+                    new_item.args = 'show'
+                    new_item.contentType = 'tvshow'
+                else:
+                    entry = entry['movie']
+                    new_item.args = 'movie'
+                    new_item.contentType = 'movie'
                 new_item.title = entry["title"] + " (%s)" % entry["year"]
                 new_item.infoLabels["tmdb_id"] = entry["ids"]["tmdb"]
                 try: ratings.append(entry["rating"])

@@ -476,7 +476,7 @@ def get_server_parameters(server):
     if not server:
         return {}
 
-    if server not in dict_servers_parameters:
+    if server not in dict_servers_parameters and server not in ['servers']:
         try:
             path = ''
             # Servers
