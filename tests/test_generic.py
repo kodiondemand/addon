@@ -209,11 +209,11 @@ for chItem in channel_list:
             logMenu[it.title] = logger.recordedLog
             logger.recordedLog = ''
 
-        results.append(
-            {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': [it.title for it in mainlist],
-             'menuItemlist': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
-             'serversFound': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
-             'module': str(module), 'logMenu': logMenu, 'error': error})
+        # results.append(
+        #     {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': [it.title for it in mainlist],
+        #      'menuItemlist': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
+        #      'serversFound': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
+        #      'module': str(module), 'logMenu': logMenu, 'error': error})
         channels.append(
             {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
              'serversFound': serversFound, 'module': module, 'logMenu': logMenu, 'error': error})
@@ -222,9 +222,10 @@ logger.record = False
 
 from specials import news
 dictNewsChannels, any_active = news.get_channels_list()
-if not os.path.isdir(outDir):
-    os.mkdir(outDir)
-json.dump(results, open(os.path.join(outDir, 'result.json'), 'w'))
+# if not os.path.isdir(outDir):
+#     os.mkdir(outDir)
+# json.dump(results, open(os.path.join(outDir, 'result.json'), 'w'))
+
 # only 1 server item for single server
 serverNames = []
 serversFinal = []
