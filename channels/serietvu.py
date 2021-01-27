@@ -33,14 +33,15 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     patronBlock = r'<div class="wrap">\s*<h.>.*?</h.>(?P<block>.*?)<footer>'
 
     if item.args != 'update':
         action = 'episodios'
-        patron = r'<div class="item">\s*<a href="(?P<url>[^"]+)" data-original="(?P<thumb>[^"]+)" class="lazy inner">[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)<'
+        patron = r'<div class="item">\s*?<a href="(?P<url>[^"]+)" data-original="(?P<thumb>[^"]+)" class="lazy inner">(?:[^>]+>){4}(?P<title>[^<]+)<'
     else:
         action = 'findvideos'
-        patron = r'<div class="item">\s+?<a href="(?P<url>[^"]+)"\s+?data-original="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)<[^>]+>\((?P<episode>[\dx\-]+)\s+?(?P<lang>Sub-Ita|[iITtAa]+)\)<'
+        patron = r'<div class="item">\s*?<a href="(?P<url>[^"]+)"\s*?data-original="(?P<thumb>[^"]+)"(?:[^>]+>){5}(?P<title>.+?)<[^>]+>\((?P<episode>[\dx\-]+)\s+?(?P<lang>Sub-Ita|[iITtAa]+)\)<'
         pagination = 25
 
     patronNext = r'<li><a href="([^"]+)"\s+?>Pagina successiva'
