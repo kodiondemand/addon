@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col-xs-12">
                 <h2 class="text-capitalize">{{ title }}</h2>
@@ -113,8 +113,8 @@
                                         {%- if subtest.err or subtest.err %}
                                         <tr style="display:none;">
                                             <td class="col-xs-9" colspan="3">
-                                                {%- if subtest.err %}<p style="color:maroon;">{{ subtest.err[0].__name__ }}: {{ subtest.err[1] }}</p>{% endif %}
                                                 {%- if subtest.err %}<p style="color:maroon;">{{ subtest.test_exception_info }}</p>{% endif %}
+                                                {%- if subtest.err %}<p style="color:maroon;">{{ subtest.err[0].__name__ }}: {{ subtest.err[1] }}</p>{% endif %}
                                             </td>
                                         </tr>
                                         {%- endif %}

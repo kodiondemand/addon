@@ -7,6 +7,7 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 import xbmc, os, traceback
+from time import time
 
 from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
@@ -70,7 +71,6 @@ def list_tvshows(item):
     lista = []
 
     root = videolibrarytools.TVSHOWS_PATH
-    from time import time
     start = time()
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
@@ -93,16 +93,8 @@ def list_tvshows(item):
 
 def get_results(nfo_path, root, Type, local=False):
     value = 0
-    if Type == 'movie': folder = "folder_movies"
-    else: folder = "folder_tvshows"
 
     if filetools.exists(nfo_path):
-        # We synchronize the episodes seen from the Kodi video library with that of KoD
-        from platformcode import xbmc_videolibrary
-        from time import time
-        start = time()
-        # xbmc_videolibrary.mark_content_as_watched_on_kod(nfo_path)
-        logger.debug('execution time =',time()-start)
         head_nfo, item = videolibrarytools.read_nfo(nfo_path)
 
         # If you have not read the .nfo well, we will proceed to the next
@@ -115,6 +107,7 @@ def get_results(nfo_path, root, Type, local=False):
 
         # continue loading the elements of the video library
         if Type == 'movie':
+            folder = "folder_movies"
             item.path = filetools.split(nfo_path)[0]
             item.nfo = nfo_path
             sep = '/' if '/' in nfo_path else '\\'
@@ -144,7 +137,7 @@ def get_results(nfo_path, root, Type, local=False):
             item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary",  "playcount": counter},
                             {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel}]
         else:
-            # Sometimes it gives random errors, for not finding the .nfo. Probably timing issues
+            folder = "folder_tvshows"
             try:
                 item.title = item.contentTitle
                 item.path = filetools.split(nfo_path)[0]
