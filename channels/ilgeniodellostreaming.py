@@ -48,6 +48,7 @@ def mainlist(item):
 def peliculas(item):
     info()
     # debugBlock = True
+    # debug=True
 
     if item.args == 'search':
         patronBlock = r'<div class="search-page">(?P<block>.*?)<footer class="main">'
@@ -85,7 +86,7 @@ def peliculas(item):
                     item.contentType = 'episode'
                     return item
             else:
-                patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> (?P<rating>[0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>(?P<year>[0-9]{4})?[^<]*(?:<.*?<div class="texto">(?P<plot>[^<]+))?'
+                patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> (?P<rating>[0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>(?P<year>[0-9]{4})?[^<]*(?:<.*?<div class="texto">(?P<plot>[^<]+)?)?'
     patronNext = '<span class="current">[^<]+<[^>]+><a href=[\'"]([^\'"]+)[\'"]'
 
     #support.regexDbg(item, patron, headers)

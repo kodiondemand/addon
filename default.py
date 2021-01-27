@@ -27,6 +27,5 @@ from platformcode import launcher
 
 if sys.argv[2] == "":
     launcher.start()
-    launcher.run()
-else:
-    launcher.run()
+
+launcher.run()
