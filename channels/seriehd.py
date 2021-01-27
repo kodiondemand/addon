@@ -69,13 +69,13 @@ def peliculas(item):
 
     if item.args == 'last':
         action = 'findvideos'
-        patron = r'singleUpdate">[^>]+>[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>\s*<h2>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)">[^>]+>[^>]+>[^>]+>\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
+        patron = r'singleUpdate">(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){16}\s*<a href="(?P<url>[^"]+)">(?:[^>]+>){3}\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
     elif item.args == 'best':
         action='episodios'
-        patron = r'col-md-3">\s*<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoVetrina">[^>]+>(?P<year>\d{4})[^>]+>[^>]+>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>\s*<img src="(?P<thumb>[^"]+)"'
+        patron = r'col-md-3">\s*<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoVetrina">[^>]+>(?P<year>\d{4})(?:[^>]+>){2}(?P<title>[^<]+)<(?:[^>]+>){4}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)"'
     else:
         action='episodios'
-        patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<rating>[^<]+)?[^>]+>[^>]+>[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>(?P<quality>[^<]+)<[^>]+>[^>]+>(?P<year>\d{4})'
+        patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
         patronNext=r'next page-numbers" href="([^"]+)"'
 
     return locals()
