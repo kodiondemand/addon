@@ -48,6 +48,7 @@ directIP = {
     'nored.icu': '31.220.1.77',
     'wstream.icu': '31.220.1.77',
     'wstream.video': '31.220.1.77',
+    'krask.xyz': '31.220.1.77'
 }
 
 # Maximum wait time for downloadpage, if nothing is specified
