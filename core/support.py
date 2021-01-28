@@ -1151,6 +1151,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
 
 def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
     logger.debug()
+
     if not data and not itemlist:
         data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
     if data:
@@ -1183,10 +1184,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
 
         if videoitem.video_urls or srv_param.get('active', False):
-            if item.channel == 'community':
-                item.title = item.fulltitle
-            else:
-                item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
