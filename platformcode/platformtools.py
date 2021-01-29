@@ -628,8 +628,9 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
     logger.debug("default_action=%s" % default_action)
 
     # pass referer
-    from core import httptools
-    httptools.default_headers['Referer'] = item.referer
+    if item.referer:
+        from core import httptools
+        httptools.default_headers['Referer'] = item.referer
 
     # Open the selection dialog to see the available options
     opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)

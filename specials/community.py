@@ -394,8 +394,8 @@ def episodios(item, json ='', key='', itemlist =[]):
 
 # Find Servers
 def findvideos(item):
-    item.contentTitle = item.fulltitle
     logger.debug()
+    item.contentTitle = item.fulltitle
     itemlist = []
     if 'links' in item.url:
         json = item.url['links']
@@ -408,8 +408,9 @@ def findvideos(item):
         title = set_title(title, extra.language, extra.quality)
 
         itemlist.append(item.clone(channel=item.channel, title=title, url=option['url'], action='play', quality=extra.quality,
-                             language=extra.language, infoLabels = item.infoLabels))
+                             language=extra.language, infoLabels=item.infoLabels))
 
+    item.url = ''  # do not pass referer
     return support.server(item, itemlist=itemlist)
 
 
