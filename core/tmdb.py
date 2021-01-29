@@ -3,7 +3,7 @@
 # from future import standard_library
 # standard_library.install_aliases()
 # from builtins import str
-import sys
+import sys, requests
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -1429,6 +1429,13 @@ class Tmdb(object):
                 ret_dic["episodio_imagen"] = ""
 
         return ret_dic
+
+    def get_list_episodes(self):
+        # from core.support import dbg;dbg()
+        url = 'https://api.themoviedb.org/3/tv/{id}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, lang=self.busqueda_idioma)
+        # url = 'https://api.themoviedb.org/3/tv/{id}/episode_groups?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=_id, lang=self.busqueda_idioma)
+        results = requests.get(url).json()['seasons']
+        return results if 'Error' not in results else {}
 
     def get_videos(self):
         """

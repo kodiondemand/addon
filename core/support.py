@@ -1151,6 +1151,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
 
 def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
     logger.debug()
+
     if not data and not itemlist:
         data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
     if data:
@@ -1207,7 +1208,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     # for it in thL:
     #     if it and not config.get_setting("black_list", server=it.server.lower()):
     #         verifiedItemlist.append(it)
-    
+
     with futures.ThreadPoolExecutor() as executor:
         thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
         for it in futures.as_completed(thL):
