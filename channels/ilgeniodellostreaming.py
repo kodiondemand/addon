@@ -48,7 +48,7 @@ def mainlist(item):
 def peliculas(item):
     info()
     # debugBlock = True
-    # debug=True
+    debug=True
 
     if item.args == 'search':
         patronBlock = r'<div class="search-page">(?P<block>.*?)<footer class="main">'
