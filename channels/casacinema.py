@@ -108,7 +108,7 @@ def peliculas(item):
     else:
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?:\[(?P<quality1>HD)\])?[ ]?(?:\(|\[)?(?P<lang>Sub-ITA)?(?:\)|\])?[ ]?(?:\[(?P<quality>.+?)\])?[ ]?(?:\((?P<year>\d+)\))?'
 
-    patronNext = r'<a href="([^"]+)"\s*?>Pagina'
+    patronNext = r'<a href="([^"]+)"\s*>Pagina'
     # debug = True
 
     def itemHook(item):

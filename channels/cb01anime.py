@@ -65,7 +65,7 @@ def peliculas(item):
     if item.args == 'newest':
         patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img[^>]+src="(?P<thumb>[^"]+)"[^>]*>(?:[^>]+>){4}(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
     else:
-        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>(?:[^>]+>){7}\s*?<h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
+        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>(?:[^>]+>){7}\s*<h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
         patronNext = r'<link rel="next" href="([^"]+)"'
     action = 'check'
     return locals()

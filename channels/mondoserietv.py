@@ -82,7 +82,7 @@ def peliculas(item):
     # debug=True
     if item.args == 'last':
         patronBlock = r'<table>(?P<block>.*?)</table>'
-        patron = r'<tr><td><a href="(?P<url>[^"]+)">\s*[^>]+>(?P<title>.*?)(?:\s(?P<year>\d{4}))?\s*?(?:Streaming|</b>)'
+        patron = r'<tr><td><a href="(?P<url>[^"]+)">\s*[^>]+>(?P<title>.*?)(?:\s(?P<year>\d{4}))?\s*(?:Streaming|</b>)'
     elif item.args == 'lastep':
         patronBlock = r'<table>(?P<block>.*?)</table>'
         patron = r'<td>\s*<a href="[^>]+>(?P<title>.*?)(?:\s(?P<year>\d{4}))?\s(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<url>.*?)<tr>'
