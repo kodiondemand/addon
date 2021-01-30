@@ -2,7 +2,7 @@
 	"id": "polpotv",
 	"name": "PolpoTV",
 	"language": ["ita"],
-	"active": true,
+	"active": false,
 	"thumbnail": "polpotv.png",
 	"banner": "polpotv.png",
 	"categories": ["movie","tvshow"],
