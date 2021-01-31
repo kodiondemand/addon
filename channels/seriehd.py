@@ -65,11 +65,11 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    # debug = True
+    debug = True
 
     if item.args == 'last':
         action = 'findvideos'
-        patron = r'singleUpdate">(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){16}\s*<a href="(?P<url>[^"]+)">(?:[^>]+>){3}\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
+        patron = r'singleUpdate">(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){14,16}\s*<a href="(?P<url>[^"]+)">(?:[^>]+>){3}\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
     elif item.args == 'best':
         action='episodios'
         patron = r'col-md-3">\s*<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoVetrina">[^>]+>(?P<year>\d{4})(?:[^>]+>){2}(?P<title>[^<]+)<(?:[^>]+>){4}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)"'
