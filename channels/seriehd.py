@@ -65,7 +65,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    debug = True
+    # debug = True
 
     if item.args == 'last':
         action = 'findvideos'
