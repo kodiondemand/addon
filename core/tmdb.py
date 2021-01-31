@@ -62,27 +62,7 @@ def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 # ------------------------------------------------- -------------------------------------------------- -----------
 
 otmdb_global = None
-fname = filetools.join(config.get_data_path(), "kod_db.sqlite")
-
-def create_bd():
-    conn = sqlite3.connect(fname)
-    c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS tmdb_cache (url TEXT PRIMARY KEY, response TEXT, added TEXT)')
-    conn.commit()
-    conn.close()
-
-
-def drop_bd():
-    conn = sqlite3.connect(fname)
-    c = conn.cursor()
-    c.execute('DROP TABLE IF EXISTS tmdb_cache')
-    conn.commit()
-    conn.close()
-
-    return True
-
-
-create_bd()
+from core import db, db_conn
 
 
 # The function name is the name of the decorator and receives the function that decorates.
@@ -148,13 +128,11 @@ def cache_response(fn):
                 result = fn(*args)
             else:
 
-                conn = sqlite3.connect(fname, timeout=15)
-                c = conn.cursor()
                 url = re.sub('&year=-', '', args[0])
                 if PY3: url = str.encode(url)
                 url_base64 = base64.b64encode(url)
-                c.execute("SELECT response, added FROM tmdb_cache WHERE url=?", (url_base64,))
-                row = c.fetchone()
+                db.execute("SELECT response, added FROM tmdb_cache WHERE url=?", (url_base64,))
+                row = db.fetchone()
 
                 if row and check_expired(float(row[1])):
                     result = eval(base64.b64decode(row[0]))
@@ -165,12 +143,10 @@ def cache_response(fn):
                     result = str(result)
                     if PY3: result = str.encode(result)
                     result_base64 = base64.b64encode(result)
-                    c.execute("INSERT OR REPLACE INTO tmdb_cache (url, response, added) VALUES (?, ?, ?)",
+                    db.execute("INSERT OR REPLACE INTO tmdb_cache (url, response, added) VALUES (?, ?, ?)",
                               (url_base64, result_base64, time.time()))
 
-                    conn.commit()
-
-                conn.close()
+                    db_conn.commit()
 
             # elapsed_time = time.time() - start_time
             # logger.debug("TARDADO %s" % elapsed_time)

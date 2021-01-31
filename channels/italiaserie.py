@@ -25,16 +25,18 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     blacklist = ['Aggiornamento Episodi']
     action = 'episodios'
     patron = r'<div class="post-thumb">\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"\[]+)[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>'
 
     if item.args == 'update':
         pagination = ''
-        patron = r'br />(?:[^>]+>)?(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
+        #patron = r'br />(?:[^>]+>)?(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
+        patron = r'br />(?:\s*<[^>]+>)*(?P<title>[^–<]+)[^<]+<a href="(?P<url>[^"]+)"[^>]*>(?P<episode>[\S]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
         action = 'episodios'
     if item.args == 'top':
-        patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>:\s*(?P<rating>[^/]+)'
+        patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>(?:[^>]+>){3}<img.*?src="(?P<thumb>[^"]+)"[^>]+>(?:[^>]+>){5}:\s*(?P<rating>[^/]+)'
     if item.args =='a-z':
         pagination = ''
         patron = r'<li ><a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'

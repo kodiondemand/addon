@@ -26,7 +26,7 @@ def getHeaders():
                     'Referer': host,
                     'x-csrf-token': csrf_token,
                     'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
-
+getHeaders()
 
 @support.menu
 def mainlist(item):
@@ -45,7 +45,7 @@ def mainlist(item):
 
 
 def genres(item):
-    getHeaders()
+    # getHeaders()
     logger.debug()
     itemlist = []
     data = support.scrapertools.decodeHtmlentities(support.match(item).data)
@@ -97,7 +97,7 @@ def newest(category):
 
 
 def peliculas(item):
-    getHeaders()
+    # getHeaders()
     logger.debug()
     itemlist = []
     recordlist = []
@@ -167,7 +167,7 @@ def makeItem(n, it, item):
     return itm
 
 def episodios(item):
-    getHeaders()
+    # getHeaders()
     logger.debug()
     itemlist = []
 
@@ -194,6 +194,7 @@ def episodios(item):
 
 
 def findvideos(item):
+    # getHeaders()
     video_urls = []
     data = support.match(item, headers=headers).data.replace('&quot;','"').replace('\\','')
     url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match

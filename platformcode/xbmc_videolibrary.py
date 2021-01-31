@@ -46,6 +46,7 @@ def mark_auto_as_watched(item):
             ND = next_dialogs[next_ep_type]
             try: next_episode = next_ep(item)
             except: next_episode = False
+            logger.debug(next_episode)
 
         while platformtools.is_playing():
             actual_time = xbmc.Player().getTime()
@@ -354,12 +355,12 @@ def mark_season_as_watched_on_kodi(item, value=1):
 def set_watched_on_kod(data):
     from specials import videolibrary
     from core import videolibrarytools
-    logger.debug('TYPE',type(data))
     data = jsontools.load(data)
-    logger.debug('TYPE',type(data))
-    Type = data['item']['type']
-    ID = data['item']['id']
-    playcount = data['playcount']
+    Type = data.get('item', {}).get('type','')
+    ID = data.get('item', {}).get('id','')
+    if not Type or not ID:
+        return
+    playcount = data.get('playcount',0)
     for Type in ['movie', 'episode']:
         sql = 'select strFileName, strPath, uniqueid_value from %s_view where (id%s like "%s")' % (Type, Type.capitalize(), ID)
         n, records = execute_sql_kodi(sql)
