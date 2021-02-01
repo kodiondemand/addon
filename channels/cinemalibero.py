@@ -181,7 +181,12 @@ def check(item):
         else:
             item.contentType = 'tvshow'
             item.data = data
-            return episodios(item)
+            itemlist = episodios(item)
+            if not itemlist:
+                item.contentType = 'movie'
+                item.data = data
+                return findvideos(item)
+            return itemlist
 
 
 def findvideos(item):
