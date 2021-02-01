@@ -33,7 +33,7 @@ def peliculas(item):
     if item.args == 'update':
         pagination = ''
         #patron = r'br />(?:[^>]+>)?(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
-        patron = r'br />(?:\s*<[^>]+>)*(?P<title>[^–<]+)[^<]+<a href="(?P<url>[^"]+)"[^>]*>(?P<episode>[\S]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
+        patron = r'br />(?:\s*<[^>]+>)*(?P<title>[^–<]+)[^<]+<a href="(?P<url>[^"]+)"[^>]*>(?:[^,]{0,80}[, ]{2})*(?P<episode>[\S]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
         action = 'episodios'
     if item.args == 'top':
         patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>(?:[^>]+>){3}<img.*?src="(?P<thumb>[^"]+)"[^>]+>(?:[^>]+>){5}:\s*(?P<rating>[^/]+)'
