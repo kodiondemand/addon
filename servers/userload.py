@@ -22,10 +22,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*<").match
     unpack = jsunpack.unpack(packed)
-    var = support.match(unpack, patron= r'baffffbd="([^"]+)".*?edecbade="([^"]+)').match
+    var = support.match(unpack, patron= r'"([a-zA-Z0-9]{31,32})"').matches[2:]
 
     if var:
-        post = 'morocco={}&mycountry={}'.format(var[1], var[0])
+        post = 'morocco={}&mycountry={}'.format(var[0], var[1])
         logger.debug(post)
         url = support.match('https://userload.co/api/request/', post=post, patron=r'([^\s\r\n]+)').match
         if url:

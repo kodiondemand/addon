@@ -20,5 +20,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("url=" + page_url)
     global data
     # logger.debug(data)
-    video_urls = support.get_jwplayer_mediaurl(data, 'Onlystream')
+    block = scrapertools.find_single_match(data, 'player.updateSrc\(([^\)]+)')
+    video_urls = support.get_jwplayer_mediaurl(block, 'Onlystream', dataIsBlock=True)
     return video_urls
