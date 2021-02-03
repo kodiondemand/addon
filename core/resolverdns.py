@@ -15,7 +15,7 @@ from lib import doh
 from platformcode import logger
 import requests
 from core import scrapertools
-from core import db, db_conn
+from core import db
 
 if 'PROTOCOL_TLS' in ssl.__dict__:
     protocol = ssl.PROTOCOL_TLS
@@ -50,18 +50,13 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         super(CipherSuiteAdapter, self).__init__(**kwargs)
 
     def flushDns(self, request, domain, **kwargs):
-        db.execute('delete from dnscache where domain=?', (domain,))
-        db_conn.commit()
+        del db['dnscache'][domain]
         return self.send(request, flushedDns=True, **kwargs)
 
     def getIp(self, domain):
-        ip = None
-        try:
-            db.execute('select ip from dnscache where domain=?', (domain,))
-            ip = db.fetchall()[0][0]
-            logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
-        except:
-            pass
+        ip = db['dnscache'].get(domain, None)
+        logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
+
         if not ip:  # not cached
             try:
                 ip = doh.query(domain)[0]
@@ -74,11 +69,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         return ip
 
     def writeToCache(self, domain, ip):
-        try:
-            db.execute('insert into dnscache values(?,?)', (domain, ip))
-            db_conn.commit()
-        except:
-            pass
+        db['dnscache'][domain] = ip
 
     def init_poolmanager(self, *args, **kwargs):
         kwargs['ssl_context'] = self.ssl_context

@@ -226,6 +226,45 @@ def dialog_info(item, scraper):
     dialog = TitleOrIDWindow('TitleOrIDWindow.xml', config.get_runtime_path()).Start(item, scraper)
     return dialog
 
+def dialog_select_group(heading, _list, preselect=0):
+    class SelectGroup(xbmcgui.WindowXMLDialog):
+        def start(self, heading, _list, preselect):
+            self.selected = preselect
+            self.heading = heading
+            self.list = _list
+            self.doModal()
+
+            return self.selected
+
+        def onInit(self):
+            self.getControl(1).setText(self.heading)
+            itemlist = []
+            for n, text in enumerate(self.list):
+                item = xbmcgui.ListItem(str(n))
+                item.setProperty('title', text)
+                itemlist.append(item)
+
+            self.getControl(2).addItems(itemlist)
+            self.setFocusId(2)
+            self.getControl(2).selectItem(self.selected)
+
+        def onClick(self, control):
+            if control in [100]:
+                self.selected = -1
+                self.close()
+            elif control in [2]:
+                self.selected = self.getControl(2).getSelectedPosition()
+                self.close()
+
+        def onAction(self, action):
+            action = action.getId()
+            if action in [10, 92]:
+                self.selected = -1
+                self.close()
+
+    dialog = SelectGroup('SelectGroup.xml', config.get_runtime_path()).start(heading, _list, preselect)
+    return dialog
+
 
 def itemlist_refresh():
     # pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition
@@ -1375,75 +1414,47 @@ def get_played_time(item):
 
     if not item.infoLabels:
         return 0
-    ID = item.infoLabels.get('tmdb_id','')
+    ID = item.infoLabels.get('tmdb_id', '')
     if not ID:
         return 0
 
-    S = item.infoLabels.get('season')
+    S = item.infoLabels.get('season', 0)
     E = item.infoLabels.get('episode')
+    result = None
 
     if item.contentType == 'movie':
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
-
+        result = db['viewed'].get(ID)
     elif S and E:
-        S = item.infoLabels['season']
-        E = item.infoLabels['episode']
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
-
-    elif E:
-        E = item.infoLabels['episode']
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-
-    result = db.fetchone()
+        result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
 
     if not result: played_time = 0
-    else: played_time = result[0]
+    else: played_time = result
 
     return played_time
 
 
 def set_played_time(item):
     logger.debug()
-    from core import db, db_conn
+    from core import db
 
     played_time = item.played_time
     if not item.infoLabels:
         return
 
-    ID = item.infoLabels.get('tmdb_id','')
+    ID = item.infoLabels.get('tmdb_id', '')
     if not ID:
         return
 
-    S = item.infoLabels.get('season')
+    S = item.infoLabels.get('season', 0)
     E = item.infoLabels.get('episode')
 
 
     if item.contentType == 'movie':
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
-        result = db.fetchone()
-        if result:
-            if played_time > 0: db.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=?", (played_time, ID))
-            else: db.execute("DELETE from viewed WHERE tmdb_id=?", (ID,))
-        else: db.execute("INSERT INTO viewed (tmdb_id, played_time) VALUES (?, ?)", (ID, played_time))
-
-    elif S and E:
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season = ? AND episode=?", (ID, S, E))
-        result = db.fetchone()
-        if result:
-            if played_time > 0: db.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND season=? AND episode=?", (played_time, ID, S, E))
-            else: db.execute("DELETE from viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
-        else: db.execute("INSERT INTO viewed (tmdb_id, season, episode, played_time) VALUES (?, ?, ?, ?)", (ID, S, E, played_time))
-
+        db['viewed'][ID] = played_time
     elif E:
-        E = item.infoLabels['episode']
-        db.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-        result = db.fetchone()
-        if result:
-            if played_time > 0: db.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND episode=?", (played_time, ID, E))
-            else: db.execute("DELETE from viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-        else: db.execute("INSERT INTO viewed (tmdb_id, episode, played_time) VALUES (?, ?, ?)", (ID, E, played_time))
-
-    db_conn.commit()
+        newDict = db['viewed'].get(ID, {})
+        newDict[str(S) + 'x' + str(E)] = played_time
+        db['viewed'][ID] = newDict
 
 
 def prevent_busy(item):

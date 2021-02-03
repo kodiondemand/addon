@@ -187,7 +187,7 @@ def callback_cuadro_completar(item, dict_values):
     return False
 
 
-def get_nfo(item):
+def get_nfo(item, search_groups=False):
     """
     Returns the information necessary for the result to be scraped into the kodi video library,
 
@@ -229,7 +229,7 @@ def get_nfo(item):
             if item.contentType == "movie": scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
             else: scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
             scraper = __import__('core.%s' % scraper_actual, fromlist=["core.%s" % scraper_actual])
-            return scraper.get_nfo(item)
+            return scraper.get_nfo(item, search_groups)
 
 
 def sort_episode_list(episodelist):

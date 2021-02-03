@@ -13,7 +13,10 @@ import re
 import time
 
 import requests
-from platformcode import logger
+try:
+    from platformcode import logger
+except ImportError:
+    logger = None
 
 HEADERS = {
     'Host': 'translate.google.com',
@@ -45,7 +48,10 @@ def process_request_proxy(url):
         target_url = \
             BASE_URL_TRANSLATE.replace('[TARGET_URL]', request.quote(url))
 
-        logger.debug(target_url)
+        if logger:
+            logger.debug(target_url)
+        else:
+            print(target_url)
 
         return_html = requests.get(target_url, timeout=20, headers=HEADERS)
 
@@ -57,7 +63,10 @@ def process_request_proxy(url):
             BASE_URL_PROXY + '/translate_p?hl=it&sl=' + SL + '&tl=' + TL + '&u='
         )
 
-        logger.debug(url_request)
+        if logger:
+            logger.debug(url_request)
+        else:
+            print(url_request)
 
         request_final = requests.get(
             url_request,
@@ -68,7 +77,10 @@ def process_request_proxy(url):
         url_request_proxy = checker_url(
             request_final.text, 'translate.google')
 
-        logger.debug(url_request_proxy)
+        if logger:
+            logger.debug(url_request_proxy)
+        else:
+            print(url_request_proxy)
 
         data = None
         result = None
@@ -82,7 +94,8 @@ def process_request_proxy(url):
             data = result.content.decode('utf-8', 'ignore')
             if not PY3:
                 data = data.encode('utf-8')
-            logger.debug()
+            if logger:
+                logger.debug()
 
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
@@ -92,4 +105,7 @@ def process_request_proxy(url):
 
         return {'url': url.strip(), 'result': result, 'data': data}
     except Exception as e:
-        logger.error(e)
+        if logger:
+            logger.error(e)
+        else:
+            print(e)

@@ -14,6 +14,7 @@ from core import filetools, scraper, scrapertools
 from core.item import Item
 from lib import generictools
 from platformcode import config, logger, platformtools
+from platformcode.autorenumber import RENUMBER
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -236,10 +237,10 @@ def update_renumber_options(item, head_nfo, path):
             filename = filetools.join(config.get_data_path(), "settings_channels", channel + '_data.json')
 
             json_file = jsontools.load(filetools.read(filename))
-            if 'TVSHOW_AUTORENUMBER' in json_file:
-                json = json_file['TVSHOW_AUTORENUMBER']
+            if RENUMBER in json_file:
+                json = json_file[RENUMBER]
                 if item.fulltitle in json:
-                    item.channel_prefs[channel]['TVSHOW_AUTORENUMBER'] = json[item.fulltitle]
+                    item.channel_prefs[channel][RENUMBER] = json[item.fulltitle]
                     logger.debug('UPDATED=\n' + str(item.channel_prefs))
                     filetools.write(tvshow_path, head_nfo + item.tojson())
 
@@ -249,8 +250,8 @@ def add_renumber_options(item, head_nfo, path):
     ret = None
     filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
     json_file = jsontools.load(filetools.read(filename))
-    if 'TVSHOW_AUTORENUMBER' in json_file:
-        json = json_file['TVSHOW_AUTORENUMBER']
+    if RENUMBER in json_file:
+        json = json_file[RENUMBER]
         if item.fulltitle in json:
             ret = json[item.fulltitle]
     return ret
@@ -258,11 +259,11 @@ def add_renumber_options(item, head_nfo, path):
 def check_renumber_options(item):
     from platformcode.autorenumber import load, write
     for key in item.channel_prefs:
-        if 'TVSHOW_AUTORENUMBER' in item.channel_prefs[key]:
+        if RENUMBER in item.channel_prefs[key]:
             item.channel = key
             json = load(item)
             if not json or item.fulltitle not in json:
-                json[item.fulltitle] = item.channel_prefs[key]['TVSHOW_AUTORENUMBER']
+                json[item.fulltitle] = item.channel_prefs[key][RENUMBER]
                 write(item, json)
 
     # head_nfo, tvshow_item = read_nfo(filetools.join(item.context[0]['nfo']))
@@ -275,7 +276,7 @@ def filter_list(episodelist, action=None, path=None):
     # if xbmc.getCondVisibility('system.platform.windows') > 0: path = path.replace('smb:','').replace('/','\\')
     channel_prefs = {}
     lang_sel = quality_sel = show_title = channel =''
-    # from core.support import dbg;dbg()
+
     if action:
         tvshow_path = filetools.join(path, "tvshow.nfo")
         head_nfo, tvshow_item = read_nfo(tvshow_path)
@@ -294,7 +295,7 @@ def filter_list(episodelist, action=None, path=None):
 
         renumber = add_renumber_options(episodelist[0], head_nfo, tvshow_path)
         if renumber:
-            channel_prefs['TVSHOW_AUTORENUMBER'] = renumber
+            channel_prefs[RENUMBER] = renumber
 
         if action == 'get_seasons':
             if 'favourite_language' not in channel_prefs:
@@ -499,7 +500,9 @@ def save_tvshow(item, episodelist, silent=False):
     if not filetools.exists(tvshow_path):
         # We create tvshow.nfo, if it does not exist, with the head_nfo, series info and watched episode marks
         logger.debug("Creating tvshow.nfo: " + tvshow_path)
-        head_nfo = scraper.get_nfo(item)
+        head_nfo = scraper.get_nfo(item, search_groups=True)
+        if not head_nfo:
+            return None, None, None, None
         item.infoLabels['mediatype'] = "tvshow"
         item.infoLabels['title'] = item.contentSerieName
         item_tvshow = Item(title=item.contentSerieName, channel="videolibrary", action="get_seasons",
@@ -1099,6 +1102,9 @@ def add_tvshow(item, channel=None):
     global magnet_caching
     magnet_caching = False
     insertados, sobreescritos, fallidos, path = save_tvshow(item, itemlist)
+
+    if all(val == None for val in [insertados, sobreescritos, fallidos, path]):
+        return
 
     if not insertados and not sobreescritos and not fallidos:
         filetools.rmdirtree(path)

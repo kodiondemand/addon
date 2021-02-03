@@ -20,6 +20,7 @@ EPISODE = 'episode'
 EPISODES = 'episodes'
 SPECIALEPISODES = 'specials'
 MANUALMODE = 'manual'
+GROUP = 'info'
 
 # helper Functions
 def check(item):
@@ -178,6 +179,7 @@ class autorenumber():
 
     def makelist(self):
         self.epdict = {}
+        self.group = self.renumberdict[self.title].get(GROUP, None)
         busy(True)
         itemlist = find_episodes(self.item)
         busy(False)
@@ -192,7 +194,22 @@ class autorenumber():
             self.episodes = Manual
 
         else:
-            seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
+            if self.group:
+                Id = self.group.split('/')[-1]
+            else:
+                Id = None
+                groups = tmdb.get_groups(self.item)
+                if groups:
+                    Id = tmdb.select_group(groups)
+
+            if Id:
+                self.group = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(self.item.infoLabels['tmdb_id'], Id)
+                seasons = []
+                groupedSeasons = tmdb.get_group(Id)
+                for groupedSeason in groupedSeasons:
+                    seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes'])})
+            else:
+                seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
             count = 0
             for season in seasons:
                 s = season['season_number']
@@ -202,7 +219,7 @@ class autorenumber():
                     for e in range(1, c + 1):
                         count += 1
                         self.epdict[count] = '{}x{:02d}'.format(s,e)
-            # dbg()
+
             firstep = 0
             if self.season > 1:
                 for c in range(1, self.season):
@@ -228,6 +245,7 @@ class autorenumber():
                                 count += 1
 
         if self.episodes: self.renumberdict[self.title][EPISODES] = self.episodes
+        if self.group: self.renumberdict[self.title][GROUP] = self.group
         self.renumberdict[self.title][MANUALMODE] = self.manual
         self.renumberdict[self.title][SEASON] = self.season
         self.renumberdict[self.title][EPISODE] = self.episode

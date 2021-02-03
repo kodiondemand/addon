@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from core import servertools
-from core.support import match, info
+from core.support import match, info, server
 from core.item import Item
 from platformcode import config, logger
 
@@ -27,10 +27,10 @@ def search(item, text):
     itemlist = []
 
     if "server" in item.args:
-        from core.support import server
         itemlist = server(item, text)
     elif "direct" in item.args:
         itemlist.append(Item(channel=item.channel, action="play", url=text, server="directo", title=config.get_localized_string(60092)))
+        itemlist = server(item, itemlist=itemlist)
     else:
         data = match(text).data
         itemlist = servertools.find_video_items(data=data)

@@ -6124,6 +6124,10 @@ msgctxt "#70830"
 msgid "The series / episode number should only be changed if the series has relative numbering."
 msgstr "Il numero della serie / episodio deve essere modificato solo se  la serie ha una numerazione relativa."
 
+msgctxt "#70831"
+msgid "This series has multiple types of numbering, choose the most suitable one "
+msgstr "Questa serie ha più tipi di numerazione, scegli quello più adatto"
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"

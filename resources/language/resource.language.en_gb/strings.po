@@ -6123,6 +6123,9 @@ msgctxt "#70830"
 msgid "The series / episode number should only be changed if the series has relative numbering."
 msgstr ""
 
+msgctxt "#70831"
+msgid "This series has multiple types of numbering, choose the most suitable one "
+msgstr ""
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

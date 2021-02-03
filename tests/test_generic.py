@@ -7,7 +7,6 @@
 # export KOD_TST_CH=channel
 # python tests/test_generic.py
 import html
-import json
 import os
 import sys
 import unittest
@@ -49,9 +48,12 @@ sys.path.insert(0, librerias)
 from core.support import typo
 from core.item import Item
 from core.httptools import downloadpage
-from core import servertools
+from core import servertools, httptools
 import channelselector
 import re
+
+
+httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = 60
 
 outDir = os.path.join(os.getcwd(), 'reports')
 validUrlRegex = re.compile(
