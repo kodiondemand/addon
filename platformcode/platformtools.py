@@ -673,11 +673,11 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
     # Open the selection dialog to see the available options
     opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-    if salir: exit()
+    if salir: return
 
     # get default option of addon configuration
     seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
-    if seleccion < 0: exit() # Canceled box
+    if seleccion < 0: return # Canceled box
 
     logger.debug("selection=%d" % seleccion)
     logger.debug("selection=%s" % opciones[seleccion])
@@ -1462,7 +1462,7 @@ def prevent_busy(item):
     if not item.autoplay and not item.window:
         if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.sleep(100)
+        xbmc.sleep(200)
         xbmc.Player().stop()
         # xbmc.executebuiltin('Action(Stop)')
         # xbmc.sleep(500)

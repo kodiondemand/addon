@@ -142,7 +142,12 @@ def episodios(item):
     return itemlist
 
 def play(item):
-    if item.filter: item.id = liveDict()[item.filter]['id']
+    if item.filter:
+        item.id = liveDict()[item.filter]['id']
+        item.fulltitle = item.filter
+        item.forcethumb = True
+        item.no_return = True
+        support.thumb(item, live=True)
     if item.contentType == 'episode': data = session.get('{}/playback/v2/videoPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     else: data = session.get('{}/playback/v2/channelPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     if data['protection'].get('drm_enabled',True):

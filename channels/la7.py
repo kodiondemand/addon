@@ -118,6 +118,11 @@ def episodios(item):
 
 def play(item):
     support.info()
+    if item.filter:
+        for it in live(item):
+            if it.fulltitle == item.filter:
+                item = it
+                break
     data = support.match(item).data
     match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
     if match:

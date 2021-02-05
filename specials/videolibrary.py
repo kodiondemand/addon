@@ -559,6 +559,8 @@ def play(item):
     else:
         itemlist = [item.clone(url=item.url, server="local")]
 
+    if not itemlist:
+        return []
     # For direct links in list format
     if isinstance(itemlist[0], list):
         item.video_urls = itemlist

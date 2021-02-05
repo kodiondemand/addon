@@ -10,6 +10,7 @@ if sys.version_info[0] >= 3: from urllib.parse import urlencode, quote
 else: from urllib import urlencode, quote
 if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
+from collections import OrderedDict
 
 host = ''
 DRM = 'com.widevine.alpha'
@@ -120,10 +121,9 @@ def menu(item):
     return itemlist
 
 
-def live(item):
-    support.info()
-    itemlist = []
-    json = current_session.get(item.url).json()['entries']
+def liveDict():
+    livedict = OrderedDict({})
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-stations?sort=ShortTitle').json()['entries']
     for it in json:
         urls = []
         if it['tuningInstruction'] and not it['mediasetstation$digitalOnly']:
@@ -133,18 +133,25 @@ def live(item):
             else:
                 for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
                     urls += key['publicUrls']
-            plot = support.typo(guide['currentListing']['mediasetlisting$epgTitle'],'bold') + '\n' + guide['currentListing']['mediasetlisting$shortDescription'] + '\n' + guide['currentListing']['description'] + '\n\n' + support.typo('A Seguire:' + guide['nextListing']['mediasetlisting$epgTitle'], 'bold')
+            title = it['title']
+            livedict[title] = {}
+            livedict[title]['urls'] = urls
+            livedict[title]['plot'] = support.typo(guide['currentListing']['mediasetlisting$epgTitle'],'bold') + '\n' + guide['currentListing']['mediasetlisting$shortDescription'] + '\n' + guide['currentListing']['description'] + '\n\n' + support.typo('A Seguire:' + guide['nextListing']['mediasetlisting$epgTitle'], 'bold')
+    return livedict
 
-            itemlist.append(item.clone(title=support.typo(it['title'], 'bold'),
-                                       fulltitle=it['title'],
-                                       show=it['title'],
-                                       contentTitle=it['title'],
-                                       thumbnail=it['thumbnails']['channel_logo-100x100']['url'],
-                                       forcethumb=True,
-                                       urls=urls,
-                                       plot=plot,
-                                       action='play',
-                                       no_return=True))
+def live(item):
+    support.info()
+    itemlist = []
+    for key, value in liveDict().items():
+        itemlist.append(item.clone(title=support.typo(key, 'bold'),
+                                   fulltitle=key,
+                                   show=key,
+                                   contentTitle=key,
+                                   forcethumb=True,
+                                   urls=value['urls'],
+                                   plot=value['plot'],
+                                   action='play',
+                                   no_return=True))
     return support.thumb(itemlist, live=True)
 
 
@@ -204,7 +211,9 @@ def peliculas(item):
                                plot=it['longDescription'] if 'longDescription' in it else it['description'] if 'description' in it else '',
                                urls=urls,
                                seriesid = it.get('seriesId',''),
-                               url=it['mediasetprogram$pageUrl']))
+                               url=it['mediasetprogram$pageUrl'],
+                               forcethumb=True,
+                               no_return=True))
     return itemlist
 
 
@@ -258,7 +267,9 @@ def episodios(item):
                            fanart=it['thumbnails']['image_keyframe_poster-1280x720']['url'] if 'image_keyframe_poster-1280x720' in it['thumbnails'] else '',
                            plot=it['longDescription'] if 'longDescription' in it else it['description'],
                            urls=urls,
-                           url=it['mediasetprogram$pageUrl']))
+                           url=it['mediasetprogram$pageUrl'],
+                           forcethumb=True,
+                           no_return=True))
     if episode:
         itemlist = sorted(itemlist, key=lambda it: it.title)
         support.videolibrary(itemlist, item)
@@ -267,12 +278,17 @@ def episodios(item):
 
 def findvideos(item):
     support.info()
-    itemlist = [support.Item(server='directo', title='Direct', url=item.urls, action='play')]
+    itemlist = [support.Item(server='directo', title='Mediaset Play', url=item.urls, action='play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 
 def play(item):
     support.info()
+    if item.filter:
+        d = liveDict()[item.filter]
+        # support.dbg()
+        item = item.clone(title=support.typo(item.filter, 'bold'), fulltitle=item.filter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
+        support.thumb(item, live=True)
     if not item.urls: urls = item.url
     else: urls = item.urls
     data = ''
@@ -285,6 +301,10 @@ def play(item):
                 item.drm = DRM
                 item.license = lic_url % support.match(sec_data, patron=r'pid=([^|]+)').match
                 data = support.match(sec_data, patron=r'<video src="([^"]+)').match
+                break
+        else:
+            support.dbg()
+            data = url
 
     return support.servertools.find_video_items(item, data=data)
 

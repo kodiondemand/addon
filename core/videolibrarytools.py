@@ -502,7 +502,7 @@ def save_tvshow(item, episodelist, silent=False):
         logger.debug("Creating tvshow.nfo: " + tvshow_path)
         head_nfo = scraper.get_nfo(item, search_groups=True)
         if not head_nfo:
-            return None, None, None, None
+            return 0, 0, 0, ''
         item.infoLabels['mediatype'] = "tvshow"
         item.infoLabels['title'] = item.contentSerieName
         item_tvshow = Item(title=item.contentSerieName, channel="videolibrary", action="get_seasons",
@@ -1103,10 +1103,10 @@ def add_tvshow(item, channel=None):
     magnet_caching = False
     insertados, sobreescritos, fallidos, path = save_tvshow(item, itemlist)
 
-    if all(val == None for val in [insertados, sobreescritos, fallidos, path]):
-        return
+    if not path:
+        pass
 
-    if not insertados and not sobreescritos and not fallidos:
+    elif not insertados and not sobreescritos and not fallidos:
         filetools.rmdirtree(path)
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.show)
         logger.error("The string %s could not be added to the video library. Could not get any episode" % item.show)

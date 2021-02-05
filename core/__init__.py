@@ -24,6 +24,10 @@ class nested_dict_sqlite(defaultdict):
         self[key] = value = self.default_factory(key)
         return value
 
+    def close(self):
+        for key in self.keys():
+            self[key].close()
+
 
 db_name = filetools.join(config.get_data_path(), "db.sqlite")
 db = nested_dict_sqlite(lambda table: SqliteDict(db_name, table, 'c', True))

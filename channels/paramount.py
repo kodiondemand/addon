@@ -5,6 +5,7 @@
 import inspect
 from core import support, jsontools
 from platformcode import autorenumber, logger
+from collections import OrderedDict
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -39,24 +40,31 @@ def search(item, text):
         return []
 
 
-def live(item):
-    logger.debug()
-    itemlist=[]
+def liveDict():
+    livedict = OrderedDict({})
     urls=[]
     matches = support.match(host, patron=r'(/diretta-tv/[^"]+)"[^>]+>([^ ]+)').matches
     from datetime import date
     today = date.today()
     channels = jsontools.load(support.match(host + '/api/more/tvschedule/' + str(today.year) + str(today.month) + str(today.day)).data)['channels']
-    ch_dict = {}
+
     for channel in channels:
-        ch_dict[channel['label']] = channel['channelId']
+        title = channel['label']
+        livedict[title] = {}
+        livedict[title]['id'] = channel['channelId']
     for url, title in matches:
         if url not in urls:
             urls.append(url)
-            info = jsontools.load(support.match(host +'/api/on-air?channelId=' + ch_dict[title]).data)
-            support.info(info)
-            plot= '[B]' + info['seriesTitle'] +'[/B]\n' + info['description'] if 'seriesTitle' in info else ''
-            itemlist.append(item.clone(title=support.typo(title,'bold'), contentTitle=title, fulltitle=title, show=title, url=host+url, plot=plot, action='play', forcethumb=True, no_return=True))
+            livedict[title]['url'] = host + url
+            info = jsontools.load(support.match(host +'/api/on-air?channelId=' + livedict[title]['id']).data)
+            livedict[title]['plot']= '[B]' + info['seriesTitle'] +'[/B]\n' + info['description'] if 'seriesTitle' in info else ''
+    return livedict
+
+def live(item):
+    logger.debug()
+    itemlist=[]
+    for key, value in liveDict().items():
+        itemlist.append(item.clone(title=support.typo(key,'bold'), contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='play', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 
@@ -154,4 +162,8 @@ def findvideos(item):
 
 def play(item):
     logger.debug()
+    if item.filter:
+        d = liveDict()[item.filter]
+        item = item.clone(title=support.typo(item.filter, 'bold'), fulltitle=item.filter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
+        support.thumb(item, live=True)
     return support.servertools.find_video_items(item, data=item.url)

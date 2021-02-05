@@ -343,6 +343,10 @@ def run(item=None):
             if platformtools.dialog_yesno(config.get_localized_string(60038), config.get_localized_string(60015)):
                 run(Item(channel="setting", action="report_menu"))
 
+    # close db to ensure his thread will stop
+    from core import db
+    db.close()
+
 
 def new_search(item, channel=None):
     itemlist=[]
