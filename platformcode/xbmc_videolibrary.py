@@ -996,13 +996,14 @@ def clean(path_list=[]):
             sql = 'SELECT idPath FROM path where strPath LIKE "%s"' % sql_path
             logger.debug('sql: ' + sql)
             nun_records, records = execute_sql_kodi(sql)
-            idPath = records[0][0]
-            sql = 'DELETE from path WHERE idPath=%s' % idPath
-            logger.debug('sql: ' + sql)
-            nun_records, records = execute_sql_kodi(sql)
-            sql = 'DELETE from path WHERE idParentPath=%s' % idPath
-            logger.debug('sql: ' + sql)
-            nun_records, records = execute_sql_kodi(sql)
+            if records:
+                idPath = records[0][0]
+                sql = 'DELETE from path WHERE idPath=%s' % idPath
+                logger.debug('sql: ' + sql)
+                nun_records, records = execute_sql_kodi(sql)
+                sql = 'DELETE from path WHERE idParentPath=%s' % idPath
+                logger.debug('sql: ' + sql)
+                nun_records, records = execute_sql_kodi(sql)
 
         from core import videolibrarytools
         for path, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
@@ -1271,7 +1272,6 @@ def update_sources(new='', old=''):
 def ask_set_content(silent=False):
     logger.debug()
     logger.debug("videolibrary_kodi %s" % config.get_setting("videolibrary_kodi"))
-
     def do_config(custom=False):
         if set_content("movie", True, custom) and set_content("tvshow", True, custom):
             platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(70104))
@@ -1306,11 +1306,11 @@ def ask_set_content(silent=False):
                         config.set_setting("folder_movies", movies_folder)
                         config.set_setting("folder_tvshows", tvshows_folder)
                         config.verify_directories_created()
-                        do_config(True)
+                        do_config(False)
                 # default path and folders
                 else:
                     platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80030))
-                    do_config(True)
+                    do_config(False)
             # default settings
             else:
                 platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80027))
@@ -1321,7 +1321,7 @@ def ask_set_content(silent=False):
     # configuration from the settings menu
     else:
         platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80023))
-        do_config(True)
+        do_config(False)
 
 
 def next_ep(item):
