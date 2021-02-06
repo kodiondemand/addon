@@ -80,7 +80,7 @@ def peliculas(item):
             action = 'episodios'
             if item.args == 'update':
                 action = 'findvideos'
-                patron = r'<div class="poster"><img src="(?P<thumb>[^"]+)"[^>]+>[^>]+><a href="(?P<url>[^"]+)">[^>]+>(?P<episode>[\d\-x]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>[^>]+>(?P<quality>[HD]+)?(?:.+?)?/span><p class="serie"'
+                patron = r'<div class="poster"><img src="(?P<thumb>[^"]+)"(?:[^>]+>){2}<a href="(?P<url>[^"]+)">[^>]+>(?P<episode>[\d\-x]+)(?:[^>]+>){4}(?P<title>.+?)(?:\[(?P<lang>[SsuUbBiItTaA-]{7})\])?<(?:[^>]+>){4}(?P<quality>[HDWEBRIP-]+)?(?:.+?)?/span><p class="serie"'
                 pagination = 25
                 def itemHook(item):
                     item.contentType = 'episode'
