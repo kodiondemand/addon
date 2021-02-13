@@ -12,16 +12,11 @@ else:
 
 from lib.requests_toolbelt.adapters import host_header_ssl
 from lib import doh
-from platformcode import logger, config
+from platformcode import logger
 import requests
 from core import scrapertools
+from core import db
 
-try:
-    import _sqlite3 as sql
-except:
-    import sqlite3 as sql
-
-db = os.path.join(config.get_data_path(), 'kod_db.sqlite')
 if 'PROTOCOL_TLS' in ssl.__dict__:
     protocol = ssl.PROTOCOL_TLS
 elif 'PROTOCOL_SSLv23' in ssl.__dict__:
@@ -48,8 +43,6 @@ class CustomContext(ssl.SSLContext):
 class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
 
     def __init__(self, domain, CF=False, *args, **kwargs):
-        self.conn = sql.connect(db)
-        self.cur = self.conn.cursor()
         self.ssl_context = CustomContext(protocol, domain)
         self.CF = CF  # if cloudscrape is in action
         self.cipherSuite = kwargs.pop('cipherSuite', DEFAULT_CIPHERS)
@@ -57,18 +50,13 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         super(CipherSuiteAdapter, self).__init__(**kwargs)
 
     def flushDns(self, request, domain, **kwargs):
-        self.cur.execute('delete from dnscache where domain=?', (domain,))
-        self.conn.commit()
+        del db['dnscache'][domain]
         return self.send(request, flushedDns=True, **kwargs)
 
     def getIp(self, domain):
-        ip = None
-        try:
-            self.cur.execute('select ip from dnscache where domain=?', (domain,))
-            ip = self.cur.fetchall()[0][0]
-            logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
-        except:
-            pass
+        ip = db['dnscache'].get(domain, None)
+        logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
+
         if not ip:  # not cached
             try:
                 ip = doh.query(domain)[0]
@@ -81,15 +69,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         return ip
 
     def writeToCache(self, domain, ip):
-        try:
-            self.cur.execute('insert into dnscache values(?,?)', (domain, ip))
-        except:
-            self.cur.execute("""CREATE TABLE IF NOT EXISTS dnscache(
-                    "domain"	TEXT NOT NULL UNIQUE,
-                    "ip"	TEXT NOT NULL,
-                    PRIMARY KEY("domain")
-                );""")
-        self.conn.commit()
+        db['dnscache'][domain] = ip
 
     def init_poolmanager(self, *args, **kwargs):
         kwargs['ssl_context'] = self.ssl_context

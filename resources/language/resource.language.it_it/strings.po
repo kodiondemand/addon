@@ -700,7 +700,7 @@ msgid "This website [B]%s[/B] seems to be unavailable, try later. if the web pag
 msgstr "Il sito [B]%s[/B] non sembra essere disponibile, riprova più tardi. Se la pagina web funziona correttamente segnala l'errore qui: https://github.com/kodiondemand/addon/issues"
 
 msgctxt "#60014"
-msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[B]"
+msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[/B]"
 msgstr "Potrebbe essere dovuto a un problema di connessione, la pagina web del canale ha cambiato la sua struttura, oppure un errore interno di KoD. Se sul browser funziona, segnala il problema andando in [B]Aiuto->Segnala un problema[/B]."
 
 msgctxt "#60015"
@@ -6124,6 +6124,10 @@ msgctxt "#70830"
 msgid "The series / episode number should only be changed if the series has relative numbering."
 msgstr "Il numero della serie / episodio deve essere modificato solo se  la serie ha una numerazione relativa."
 
+msgctxt "#70831"
+msgid "This series has multiple types of numbering, choose the most suitable one "
+msgstr "Questa serie ha più tipi di numerazione, scegli quello più adatto"
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"
@@ -6370,8 +6374,8 @@ msgid "Configuration of Kodi video library"
 msgstr "Configurazione della libreria di Kodi"
 
 msgctxt "#80027"
-msgid "You will be asked to configure The Movie Database for movies and The TVDB for TV shows"
-msgstr "Ti verrà chiesto di configurare The Movie Database per i film e The TVDB per le serie TV"
+msgid "You will be asked to configure The Movie Database for movies and tvshows"
+msgstr "Ti verrà chiesto di configurare The Movie Database sia per i film che per le serie TV"
 
 msgctxt "#80028"
 msgid "The selected folders are already used by the Kodi library. Please change them properly"

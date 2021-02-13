@@ -14,6 +14,7 @@ from core import filetools, scraper, scrapertools
 from core.item import Item
 from lib import generictools
 from platformcode import config, logger, platformtools
+from platformcode.autorenumber import RENUMBER
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -234,14 +235,14 @@ def update_renumber_options(item, head_nfo, path):
     if filetools.isfile(tvshow_path) and item.channel_prefs:
         for channel in item.channel_prefs:
             filename = filetools.join(config.get_data_path(), "settings_channels", channel + '_data.json')
-
-            json_file = jsontools.load(filetools.read(filename))
-            if 'TVSHOW_AUTORENUMBER' in json_file:
-                json = json_file['TVSHOW_AUTORENUMBER']
-                if item.fulltitle in json:
-                    item.channel_prefs[channel]['TVSHOW_AUTORENUMBER'] = json[item.fulltitle]
-                    logger.debug('UPDATED=\n' + str(item.channel_prefs))
-                    filetools.write(tvshow_path, head_nfo + item.tojson())
+            if filetools.isfile(filename):
+                json_file = jsontools.load(filetools.read(filename))
+                if RENUMBER in json_file:
+                    json = json_file[RENUMBER]
+                    if item.fulltitle in json:
+                        item.channel_prefs[channel][RENUMBER] = json[item.fulltitle]
+                        logger.debug('UPDATED=\n' + str(item.channel_prefs))
+                        filetools.write(tvshow_path, head_nfo + item.tojson())
 
 def add_renumber_options(item, head_nfo, path):
     from core import jsontools
@@ -249,8 +250,8 @@ def add_renumber_options(item, head_nfo, path):
     ret = None
     filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
     json_file = jsontools.load(filetools.read(filename))
-    if 'TVSHOW_AUTORENUMBER' in json_file:
-        json = json_file['TVSHOW_AUTORENUMBER']
+    if RENUMBER in json_file:
+        json = json_file[RENUMBER]
         if item.fulltitle in json:
             ret = json[item.fulltitle]
     return ret
@@ -258,11 +259,11 @@ def add_renumber_options(item, head_nfo, path):
 def check_renumber_options(item):
     from platformcode.autorenumber import load, write
     for key in item.channel_prefs:
-        if 'TVSHOW_AUTORENUMBER' in item.channel_prefs[key]:
+        if RENUMBER in item.channel_prefs[key]:
             item.channel = key
             json = load(item)
             if not json or item.fulltitle not in json:
-                json[item.fulltitle] = item.channel_prefs[key]['TVSHOW_AUTORENUMBER']
+                json[item.fulltitle] = item.channel_prefs[key][RENUMBER]
                 write(item, json)
 
     # head_nfo, tvshow_item = read_nfo(filetools.join(item.context[0]['nfo']))
@@ -275,7 +276,7 @@ def filter_list(episodelist, action=None, path=None):
     # if xbmc.getCondVisibility('system.platform.windows') > 0: path = path.replace('smb:','').replace('/','\\')
     channel_prefs = {}
     lang_sel = quality_sel = show_title = channel =''
-    # from core.support import dbg;dbg()
+
     if action:
         tvshow_path = filetools.join(path, "tvshow.nfo")
         head_nfo, tvshow_item = read_nfo(tvshow_path)
@@ -294,7 +295,7 @@ def filter_list(episodelist, action=None, path=None):
 
         renumber = add_renumber_options(episodelist[0], head_nfo, tvshow_path)
         if renumber:
-            channel_prefs['TVSHOW_AUTORENUMBER'] = renumber
+            channel_prefs[RENUMBER] = renumber
 
         if action == 'get_seasons':
             if 'favourite_language' not in channel_prefs:
@@ -499,7 +500,9 @@ def save_tvshow(item, episodelist, silent=False):
     if not filetools.exists(tvshow_path):
         # We create tvshow.nfo, if it does not exist, with the head_nfo, series info and watched episode marks
         logger.debug("Creating tvshow.nfo: " + tvshow_path)
-        head_nfo = scraper.get_nfo(item)
+        head_nfo = scraper.get_nfo(item, search_groups=True)
+        if not head_nfo:
+            return 0, 0, 0, ''
         item.infoLabels['mediatype'] = "tvshow"
         item.infoLabels['title'] = item.contentSerieName
         item_tvshow = Item(title=item.contentSerieName, channel="videolibrary", action="get_seasons",
@@ -1004,21 +1007,20 @@ def add_movie(item):
     # If you do it in "Enter another name", TMDB will automatically search for the new title
     # If you do it in "Complete Information", it partially changes to the new title, but does not search TMDB. We have to do it
     # If the second screen is canceled, the variable "scraper_return" will be False. The user does not want to continue
-
     item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
     #if item.tmdb_stat:
     #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
-    # if item:
-    new_item = item.clone(action="findvideos")
-    insertados, sobreescritos, fallidos, path = save_movie(new_item)
+    if item:
+        new_item = item.clone(action="findvideos")
+        insertados, sobreescritos, fallidos, path = save_movie(new_item)
 
-    if fallidos == 0:
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
-    else:
-        filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+        if fallidos == 0:
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+        else:
+            filetools.rmdirtree(path)
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
 
 
 def add_tvshow(item, channel=None):
@@ -1100,7 +1102,10 @@ def add_tvshow(item, channel=None):
     magnet_caching = False
     insertados, sobreescritos, fallidos, path = save_tvshow(item, itemlist)
 
-    if not insertados and not sobreescritos and not fallidos:
+    if not path:
+        pass
+
+    elif not insertados and not sobreescritos and not fallidos:
         filetools.rmdirtree(path)
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.show)
         logger.error("The string %s could not be added to the video library. Could not get any episode" % item.show)

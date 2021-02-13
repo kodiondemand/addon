@@ -36,9 +36,10 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     action = 'findvideos'
-    patron= r'<img src="[^"]+" alt="(?P<title>[^"]+)" data-echo="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)"'
-    patronNext = r'<a href="([^"]+)">&raquo'
+    patron= r'<img src="[^"]+" alt="(?P<title>[^"]+)" data-echo="(?P<thumb>[^"]+)"(?:[^>]+>){7}<a href="(?P<url>[^"]+)"'
+    patronNext = r'<a href="([^"]+)">(?:&raquo|»)'
     typeContentDict = {'': 'music'}
     return locals()
 

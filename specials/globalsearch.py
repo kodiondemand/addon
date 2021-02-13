@@ -700,7 +700,7 @@ class SearchWindow(xbmcgui.WindowXML):
             else:
                 self.Focus(SEARCH)
                 self.setFocusId(RESULTS)
-                self.RESULTS.selectItem(self.epos)
+                self.RESULTS.selectItem(self.pos)
         elif self.EPISODES.isVisible():
             self.episodes = []
             self.Focus(SEARCH)

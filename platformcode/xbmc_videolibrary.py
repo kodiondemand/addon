@@ -46,6 +46,7 @@ def mark_auto_as_watched(item):
             ND = next_dialogs[next_ep_type]
             try: next_episode = next_ep(item)
             except: next_episode = False
+            logger.debug(next_episode)
 
         while platformtools.is_playing():
             actual_time = xbmc.Player().getTime()
@@ -106,9 +107,6 @@ def mark_auto_as_watched(item):
     # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
-
-
-
 
 
 def sync_trakt_addon(path_folder):
@@ -351,6 +349,38 @@ def mark_season_as_watched_on_kodi(item, value=1):
 
     execute_sql_kodi(sql)
 
+def set_watched_on_kod(data):
+    from specials import videolibrary
+    from core import videolibrarytools
+    data = jsontools.load(data)
+    Type = data.get('item', {}).get('type','')
+    ID = data.get('item', {}).get('id','')
+    if not Type or not ID:
+        return
+    playcount = data.get('playcount',0)
+    for Type in ['movie', 'episode']:
+        sql = 'select strFileName, strPath, uniqueid_value from %s_view where (id%s like "%s")' % (Type, Type.capitalize(), ID)
+        n, records = execute_sql_kodi(sql)
+        if records:
+            for filename, path, uniqueid_value in records:
+                if Type in ['movie']:
+                    title = filename.replace('.strm', ' [' + uniqueid_value + ']')
+                    filename = title +'.nfo'
+                else:
+                    title = filename.replace('.strm', '')
+                    filename = 'tvshow.nfo'
+
+                path = filetools.join(path, filename)
+                head_nfo, item = videolibrarytools.read_nfo(path)
+                item.library_playcounts.update({title: playcount})
+                filetools.write(path, head_nfo + item.tojson())
+
+                if item.infoLabels['mediatype'] == "tvshow":
+                    for season in item.library_playcounts:
+                        if "season" in season:
+                            season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))
+                            item = videolibrary.check_season_playcount(item, season_num)
+                            filetools.write(path, head_nfo + item.tojson())
 
 def mark_content_as_watched_on_kod(path):
     from specials import videolibrary
@@ -384,6 +414,7 @@ def mark_content_as_watched_on_kod(path):
     if "\\" in path:
         path = path.replace("/", "\\")
     head_nfo, item = videolibrarytools.read_nfo(path)                   # I read the content .nfo
+    old = item.clone()
     if not item:
         logger.error('.NFO not found: ' + path)
         return
@@ -437,8 +468,9 @@ def mark_content_as_watched_on_kod(path):
             if "season" in season:                                      # we look for the tags "season" inside playCounts
                 season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))    # we save the season number
                 item = videolibrary.check_season_playcount(item, season_num)    # We call the method that updates Temps. and series
-
-    filetools.write(path, head_nfo + item.tojson())
+    if item.library_playcounts != old.library_playcounts:
+        logger.debug('scrivo')
+        filetools.write(path, head_nfo + item.tojson())
 
     #logger.debug(item)
 
@@ -626,37 +658,14 @@ def set_content(content_type, silent=False, custom=False):
                 xbmc.executebuiltin('Addon.OpenSettings(metadata.universal)', True)
 
     else:  # SERIES
-        scraper = [config.get_localized_string(70098), config.get_localized_string(70093)]
+        scraper = [config.get_localized_string(70093), config.get_localized_string(70098)]
         if not custom:
-            seleccion = 0 # tvdb
+            seleccion = 0 # tmdb
         else:
             seleccion = platformtools.dialog_select(config.get_localized_string(70107), scraper)
 
-        # Instalar The TVDB
-        if seleccion == -1 or seleccion == 0:
-            if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
-                if not silent:
-                    #Ask if we want to install metadata.tvdb.com
-                    install = platformtools.dialog_yesno(config.get_localized_string(60048),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        # Install metadata.tvdb.com
-                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
-                        logger.debug("The TVDB series Scraper installed ")
-                    except:
-                        pass
-
-                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'))
-                if not continuar:
-                    msg_text = config.get_localized_string(60049)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvdb.com)', True)
-
         # Instalar The Movie Database
-        elif seleccion == 1:
+        if seleccion == -1 or seleccion == 0:
             if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
                 continuar = False
                 if not silent:
@@ -679,6 +688,29 @@ def set_content(content_type, silent=False, custom=False):
                     msg_text = config.get_localized_string(60051)
             if continuar:
                 xbmc.executebuiltin('Addon.OpenSettings(metadata.tvshows.themoviedb.org)', True)
+
+        # Instalar The TVDB
+        elif seleccion == 1:
+            if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
+                if not silent:
+                    #Ask if we want to install metadata.tvdb.com
+                    install = platformtools.dialog_yesno(config.get_localized_string(60048),'')
+                else:
+                    install = True
+
+                if install:
+                    try:
+                        # Install metadata.tvdb.com
+                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
+                        logger.debug("The TVDB series Scraper installed ")
+                    except:
+                        pass
+
+                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'))
+                if not continuar:
+                    msg_text = config.get_localized_string(60049)
+            if continuar:
+                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvdb.com)', True)
 
     idPath = 0
     idParentPath = 0
@@ -753,11 +785,11 @@ def set_content(content_type, silent=False, custom=False):
             strContent = 'tvshows'
             scanRecursive = 0
             if seleccion == -1 or seleccion == 0:
-                strScraper = 'metadata.tvdb.com'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvdb.com/settings.xml")
-            elif seleccion == 1:
                 strScraper = 'metadata.tvshows.themoviedb.org'
                 path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
+            elif seleccion == 1:
+                strScraper = 'metadata.tvdb.com'
+                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvdb.com/settings.xml")
             if not os.path.exists(path_settings):
                 logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
                 return continuar
@@ -961,13 +993,14 @@ def clean(path_list=[]):
             sql = 'SELECT idPath FROM path where strPath LIKE "%s"' % sql_path
             logger.debug('sql: ' + sql)
             nun_records, records = execute_sql_kodi(sql)
-            idPath = records[0][0]
-            sql = 'DELETE from path WHERE idPath=%s' % idPath
-            logger.debug('sql: ' + sql)
-            nun_records, records = execute_sql_kodi(sql)
-            sql = 'DELETE from path WHERE idParentPath=%s' % idPath
-            logger.debug('sql: ' + sql)
-            nun_records, records = execute_sql_kodi(sql)
+            if records:
+                idPath = records[0][0]
+                sql = 'DELETE from path WHERE idPath=%s' % idPath
+                logger.debug('sql: ' + sql)
+                nun_records, records = execute_sql_kodi(sql)
+                sql = 'DELETE from path WHERE idParentPath=%s' % idPath
+                logger.debug('sql: ' + sql)
+                nun_records, records = execute_sql_kodi(sql)
 
         from core import videolibrarytools
         for path, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
@@ -1236,7 +1269,6 @@ def update_sources(new='', old=''):
 def ask_set_content(silent=False):
     logger.debug()
     logger.debug("videolibrary_kodi %s" % config.get_setting("videolibrary_kodi"))
-
     def do_config(custom=False):
         if set_content("movie", True, custom) and set_content("tvshow", True, custom):
             platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(70104))
@@ -1271,11 +1303,11 @@ def ask_set_content(silent=False):
                         config.set_setting("folder_movies", movies_folder)
                         config.set_setting("folder_tvshows", tvshows_folder)
                         config.verify_directories_created()
-                        do_config(True)
+                        do_config(False)
                 # default path and folders
                 else:
                     platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80030))
-                    do_config(True)
+                    do_config(False)
             # default settings
             else:
                 platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80027))
@@ -1286,7 +1318,7 @@ def ask_set_content(silent=False):
     # configuration from the settings menu
     else:
         platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80023))
-        do_config(True)
+        do_config(False)
 
 
 def next_ep(item):

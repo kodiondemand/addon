@@ -32,19 +32,21 @@ def find_and_set_infoLabels(item):
 
     # Get the default Scraper of the configuration according to the content type
     if item.contentType == "movie":
-        scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
+        scraper_actual = 'tmdb'
+        # scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
         tipo_contenido = "movie"
         title = item.contentTitle
         # Complete list of options for this type of content
         list_opciones_cuadro.append(scrapers_disponibles['tmdb'])
 
     else:
-        scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
+        scraper_actual = 'tmdb'
+        # scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
         tipo_contenido = "serie"
         title = item.contentSerieName
         # Complete list of options for this type of content
         list_opciones_cuadro.append(scrapers_disponibles['tmdb'])
-        list_opciones_cuadro.append(scrapers_disponibles['tvdb'])
+        # list_opciones_cuadro.append(scrapers_disponibles['tvdb'])
 
     # We import the scraper
     try:
@@ -187,7 +189,7 @@ def callback_cuadro_completar(item, dict_values):
     return False
 
 
-def get_nfo(item):
+def get_nfo(item, search_groups=False):
     """
     Returns the information necessary for the result to be scraped into the kodi video library,
 
@@ -229,7 +231,7 @@ def get_nfo(item):
             if item.contentType == "movie": scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
             else: scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
             scraper = __import__('core.%s' % scraper_actual, fromlist=["core.%s" % scraper_actual])
-            return scraper.get_nfo(item)
+            return scraper.get_nfo(item, search_groups)
 
 
 def sort_episode_list(episodelist):

@@ -41,7 +41,12 @@ def run(item=None):
     logger.debug()
     if not item:
         # Extract item from sys.argv
-        if sys.argv[2]:
+        if sys.argv[2] and 'play' in sys.argv[2]:
+            sp = sys.argv[2].split('/')
+            if len(sp) == 3:
+                item = Item(channel=sp[1], livefilter=sp[2], action='play')
+        # If no item, this is mainlist
+        elif sys.argv[2]:
             sp = sys.argv[2].split('&')
             url = sp[0]
             item = Item().fromurl(url)
@@ -49,7 +54,7 @@ def run(item=None):
                 for e in sp[1:]:
                     key, val = e.split('=')
                     item.__setattr__(key, val)
-        # If no item, this is mainlist
+
         else:
             item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
@@ -337,6 +342,10 @@ def run(item=None):
         else:
             if platformtools.dialog_yesno(config.get_localized_string(60038), config.get_localized_string(60015)):
                 run(Item(channel="setting", action="report_menu"))
+    finally:
+        if not item.action.startswith('play'):
+            from core import db
+            db.close()
 
 
 def new_search(item, channel=None):
@@ -469,6 +478,7 @@ def play_from_library(item):
     else:
         # Pop-up window
         from specials import videolibrary
+        from core.channeltools import get_channel_parameters
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
         p_dialog.update(0, '')
         item.play_from = 'window'
@@ -499,9 +509,10 @@ def play_from_library(item):
                         quality = '[B][' + item.quality + '][/B]' if item.quality else ''
                         if item.server:
                             path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
-                            name = jsontools.load(open(path, "r").read())['name']
+                            name = jsontools.load(open(path, "rb").read())['name']
                             if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-                            it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s' % (name, quality, item.contentTitle))
+                            logger.debug(item)
+                            it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s [%s]' % (name, quality, item.contentTitle, get_channel_parameters(item.contentChannel)['title']))
                             it.setArt({'thumb':item.thumbnail})
                             options.append(it)
                         else:

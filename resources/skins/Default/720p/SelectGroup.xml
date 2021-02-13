@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<window>
+    <allowoverlays>false</allowoverlays>
+    <animation type="WindowOpen" reversible="false">
+        <effect type="slide" start="0,200" end="0,0" center="640,225" delay="160" tween="cubic" time="200" />
+        <effect type="fade" delay="160" end="100" time="240" />
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="slide" start="0,0" end="0,200" center="640,225" easing="in" tween="cubic" time="200" />
+        <effect type="fade" start="100" end="0" time="240" />
+    </animation>
+    <controls>
+        <control type="group">
+            <description>Container</description>
+            <left>200</left>
+            <top>60</top>
+            <width>860</width>
+            <height>600</height>
+            <control type="image">
+                <description>Background</description>
+                <width>100%</width>
+                <height>100%</height>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+            <control type="textbox" id="1">
+                <description>Heading</description>
+                <top>0</top>
+                <left>0</left>
+                <height>60</height>
+                <width>100%</width>
+                <font>font13</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <align>center</align>
+                <aligny>center</aligny>
+                <label></label>
+            </control>
+            <control type="group">
+                <left>30</left>
+                <top>70</top>
+                <width>595</width>
+                <height>530</height>
+                <control type="list" id="2">
+					<description>List</description>
+					<left>0</left>
+					<top>0</top>
+					<width>795</width>
+					<height>530</height>
+					<onup>100</onup>
+                    <onright>4</onright>
+					<orientation>vertical</orientation>
+					<scrolltime>200</scrolltime>
+					<pagecontrol>4</pagecontrol>
+					<itemlayout height="150" width="795">
+						<control type="textbox">
+							<description>Selected Item</description>
+							<left>20</left>
+							<top>20</top>
+							<width>765</width>
+							<height>110</height>
+							<font>font13</font>
+							<textcolor>FFFFFFFF</textcolor>
+							<label>$INFO[ListItem.Property(title)]</label>
+							<align>center</align>
+							<aligny>center</aligny>
+						</control>
+					</itemlayout>
+					<focusedlayout height="150" width="795">
+						<control type="image">
+							<top>1</top>
+							<width>100%</width>
+							<height>100%</height>
+							<texture colordiffuse="FF0081C2">white.png</texture>
+						</control>
+						<control type="textbox">
+							<description>Selected Item</description>
+							<left>20</left>
+							<top>20</top>
+							<width>765</width>
+							<height>110</height>
+							<font>font13</font>
+							<textcolor>FFFFFFFF</textcolor>
+							<label>$INFO[ListItem.Property(title)]</label>
+                            <autoscroll time="3000" delay="3000" repeat="3000">True</autoscroll>
+							<align>center</align>
+							<aligny>center</aligny>
+						</control>
+					</focusedlayout>
+				</control>
+                <control type="scrollbar" id="4">
+                    <description>Scrollbar</description>
+                    <left>595</left>
+                    <top>60</top>
+                    <width>5</width>
+                    <height>100%</height>
+                    <visible>true</visible>
+                    <texturesliderbackground colordiffuse="FF232323">white.png</texturesliderbackground>
+                    <texturesliderbar colordiffuse="FFFFFFFF">white.png</texturesliderbar>
+                    <texturesliderbarfocus colordiffuse="FF0081C2">white.png</texturesliderbarfocus>
+                    <textureslidernib colordiffuse="FF232323">white.png</textureslidernib>
+                    <textureslidernibfocus colordiffuse="FF232323">white.png</textureslidernibfocus>
+                    <orientation>vertical</orientation>
+                    <showonepage>false</showonepage>
+                    <onleft>2</onleft>
+                    <onright>3</onright>
+                </control>
+            </control>
+            <control type="button" id="100">
+                    <description>Close Button</description>
+                    <right>30</right>
+                    <top>10</top>
+                    <width>40</width>
+                    <height>40</height>
+                    <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                    <texturenofocus colordiffuse="55FFFFFF">close.png</texturenofocus>
+                    <ondown>2</ondown>
+                </control>
+        </control>
+    </controls>
+</window>

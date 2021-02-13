@@ -401,6 +401,7 @@ def findvideos(item):
         json = item.url['links']
     else:
         json = item.url
+
     for option in json:
         extra = set_extra_values(item, option, item.path)
         title = item.fulltitle + (' - '+option['title'] if 'title' in option else '')

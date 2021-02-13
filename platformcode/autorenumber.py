@@ -5,23 +5,22 @@
 
 
 import xbmc, xbmcgui, re, base64, inspect, sys
-from core import jsontools, tvdb, scrapertools, filetools
+from core import jsontools, tmdb, scrapertools, filetools
 from core.item import Item
 from core.support import typo, match, dbg, Item
 from platformcode import config, platformtools, logger
 PY3 = True if sys.version_info[0] >= 3 else False
 
 # Json Var
-TVSHOW_RENUMERATE = "TVSHOW_AUTORENUMBER"
-ID = "ID"
-SEASON = "Season"
-EPISODE = "Episode"
-SPECIAL = "Special"
-MODE = "Mode"
-EPLIST = "EpList"
-CHECK = "ReCheck"
-SPLIST = "SpList"
-TYPE = "Type"
+RENUMBER = 'TVSHOW_AUTORENUMBER'
+ID = 'id'
+SEASONSDICT = 'seasons'
+SEASON = 'season'
+EPISODE = 'episode'
+EPISODES = 'episodes'
+SPECIALEPISODES = 'specials'
+MANUALMODE = 'manual'
+GROUP = 'info'
 
 # helper Functions
 def check(item):
@@ -41,21 +40,15 @@ def filename(item):
 
 def load(item):
     logger.debug()
-    try:
-        json_file = open(filename(item), "r").read()
-        json = jsontools.load(json_file)[TVSHOW_RENUMERATE]
-
-    except:
-        json = {}
-
+    try: json = jsontools.load(open(filename(item), "r").read())[RENUMBER]
+    except: json = {}
     return json
 
 
 def write(item, json):
     logger.debug()
-    json_file = open(filename(item), "r").read()
-    js = jsontools.load(json_file)
-    js[TVSHOW_RENUMERATE] = json
+    js = jsontools.load(open(filename(item), "r").read())
+    js[RENUMBER] = json
     with open(filename(item), "w") as file:
         file.write(jsontools.dump(js))
         file.close()
@@ -69,15 +62,6 @@ def b64(json, mode = 'encode'):
         ret = jsontools.load(base64.b64decode(json))
     return ret
 
-def RepresentsInt(s):
-    # Controllo Numro Stagione
-    logger.debug()
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
 def find_episodes(item):
     logger.debug()
     ch = __import__('channels.' + item.channel, fromlist=["channels.%s" % item.channel])
@@ -87,6 +71,15 @@ def find_episodes(item):
 def busy(state):
     if state: xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     else: xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+
+def RepresentsInt(s):
+    # Controllo Numro Stagione
+    logger.debug()
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
 
 # Main
 def start(itemlist, item=None):
@@ -106,48 +99,44 @@ class autorenumber():
     def __init__(self, itemlist, item=None):
         self.item = item
         self.itemlist = itemlist
+        self.renumberdict = load(self.itemlist[0]) if self.itemlist else load(item) if item else {}
+        self.selectspecials = False
+        self.manual = False
         self.auto = False
-        self.dictSeries = load(self.itemlist[0]) if self.itemlist else load(item) if item else {}
-        self.Episodes = {}
-        self.sp = False
         if self.item:
             self.auto = config.get_setting('autorenumber', item.channel)
             self.title = self.item.fulltitle.strip()
             if match(self.itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
                 item.exit = True
                 return 
-            elif self.item.channel in self.item.channel_prefs and TVSHOW_RENUMERATE in self.item.channel_prefs[item.channel] and self.title not in self.dictSeries:
+            elif self.item.channel in self.item.channel_prefs and RENUMBER in self.item.channel_prefs[item.channel] and self.title not in self.renumberdict:
                 from core.videolibrarytools import check_renumber_options
                 from specials.videolibrary import update_videolibrary
                 check_renumber_options(self.item)
                 update_videolibrary(self.item)
-            if self.title in self.dictSeries and ID in self.dictSeries[self.title] and self.dictSeries[self.title][ID] != '0':
-                self.id = self.dictSeries[self.title][ID]
-                self.Episodes = b64(self.dictSeries[self.title][EPISODE], 'decode') if EPISODE in self.dictSeries[self.title] else {}
-                self.Season = self.dictSeries[self.title][SEASON]
-                self.Mode = self.dictSeries[self.title].get(MODE, False)
-                self.Type = self.dictSeries[self.title].get(TYPE, False)
-                if self.item.renumber:
-                    self.config()
-                else:
-                    self.renumber()
+            self.series = self.renumberdict.get(self.title,{})
+            self.id = self.series.get(ID, 0)
+            self.episodes = self.series.get(EPISODES,{})
+            self.seasonsdict = self.series.get(SEASONSDICT,{})
+            self.season = self.series.get(SEASON, -1)
+            self.episode = self.series.get(EPISODE, -1)
+            self.manual = self.series.get(MANUALMODE, False)
+            self.specials = self.series.get(SPECIALEPISODES, {})
+            if self.id and self.episodes and self.season >= 0 and self.episode >= 0: 
+                if self.item.renumber: self.config()
+                else:self.renumber()
             elif self.auto or self.item.renumber:
-                self.Episodes = {}
+                self.episodes = {}
                 self.config()
-
         else:
             for item in self.itemlist:
                 item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
-                                "action": "start",
-                                "channel": "autorenumber",
-                                "from_channel": item.channel,
-                                "from_action": item.action}]
+                                 "action": "start",
+                                 "channel": "autorenumber",
+                                 "from_channel": item.channel,
+                                 "from_action": item.action}]
 
     def config(self):
-        self.id = ''
-        if self.title in self.dictSeries:
-            self.id = self.dictSeries[self.title].get(ID,'')
-
         # Pulizia del Titolo
         if any( word in self.title.lower() for word in ['specials', 'speciali']):
             self.title = re.sub(r'\s*specials|\s*speciali', '', self.title.lower())
@@ -155,184 +144,149 @@ class autorenumber():
             self.item.contentSerieName = self.title.rstrip('123456789 ')
 
         while not self.item.exit:
-            tvdb.find_and_set_infoLabels(self.item)
-            if self.item.infoLabels['tvdb_id']: self.item.exit = True
-            else: self.item = platformtools.dialog_info(self.item, 'tvdb')
+            self.item.infoLabels['tmdb_id'] = ''
+            self.item.infoLabels['year'] = '-'
+            self.item.contentType ='tvshow'
+            tmdb.find_and_set_infoLabels(self.item)
+            if self.item.infoLabels['tmdb_id']: self.item.exit = True
+            else: self.item = platformtools.dialog_info(self.item, 'tmdb')
 
         # Rinumerazione Automatica
         if (not self.id and self.auto) or self.item.renumber:
-            self.id = self.item.infoLabels['tvdb_id'] if 'tvdb_id' in self.item.infoLabels else ''
+            self.id = self.item.infoLabels['tmdb_id'] if 'tmdb_id' in self.item.infoLabels else 0
             if self.id:
-                self.dictRenumber = {ID: self.id}
-                self.dictSeries[self.title] = self.dictRenumber
-                if any(word in self.title.lower() for word in ['specials', 'speciali']): season = '0'
-                elif RepresentsInt(self.title.split()[-1]): season = self.title.split()[-1]
-                else: season = '1'
-                self.Season = self.dictRenumber[SEASON] = season
+                self.series = {ID: self.id}
+                self.renumberdict[self.title] = self.series
+                if any(word in self.title.lower() for word in ['specials', 'speciali']): season = 0
+                elif RepresentsInt(self.title.split()[-1]): season = int(self.title.split()[-1])
+                else: season = 1
+                self.season = self.series[SEASON] = season
+                self.episode = 1
                 self.renumber()
+
 
     def renumber(self):
         if not self.item.renumber and self.itemlist:
-            if '|' in self.Season:
-                season = int(self.Season.split('|')[0])
-                addNumber = int(self.Season.split('|')[-1]) - 1
-            else:
-                season = int(self.Season)
-                addNumber = 0
             for item in self.itemlist:
                 if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
                     number = match(item.title, patron=r'(\d+)').match.lstrip('0')
                     if number:
-                        if number in self.Episodes:
-                            if season > 0: item.title = typo(self.Episodes[number] + ' - ', 'bold') + item.title
-                            else: item.title = typo('0x%s - ' % str(int(number) + addNumber), 'bold') + item.title
-                        else:
-                            self.makelist()
-                            if season > 0: item.title = typo(self.Episodes[number] + ' - ', 'bold') + item.title
-                            else: item.title = typo('0x%s - ' % str(int(number) + addNumber), 'bold') + item.title
+                        if not number in self.episodes: self.makelist()
+                        item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
         else:
             self.makelist()
 
 
     def makelist(self):
-        FirstOfSeason= 0
-        self.EpList = b64(self.dictSeries[self.title][EPLIST], 'decode') if EPLIST in self.dictSeries[self.title] else []
-        self.Pages = self.dictSeries[self.title].get(CHECK, [1])
-        self.Mode = self.dictSeries[self.title].get(MODE, False)
-        self.Type = self.dictSeries[self.title].get(TYPE, False)
-        Specials = {}
-        Seasons = {}
-
-        if '|' in self.Season:
-            ep = int(self.Season.split('|')[-1])
-            Season = int(self.Season.split('|')[0])
-        else:
-            Season = int(self.Season)
-            ep = 1
-
+        self.epdict = {}
+        self.group = self.renumberdict[self.title].get(GROUP, None)
         busy(True)
         itemlist = find_episodes(self.item)
         busy(False)
 
-        if self.item.renumber:
-            self.s = Season
-            self.e = 1
-            Season, Episode, self.Mode, Specials, Seasons, Exit = SelectreNumeration(self, itemlist)
-            if Exit: return
-            if ep != 1: self.Season = '%s|%s' % (Season, Episode)
-            else: self.Season = str(Season)
-
-        elif self.Episodes and not self.Mode:
-            self.s = Season
-            self.e = ep
-            self.sp = True
-            Season, Episode, self.Mode, Specials, Seasons, Exit = SelectreNumeration(self, itemlist)
-
-        if self.Mode:
-            if not Seasons:
-                self.s = 1
-                self.e = 1
-                Season, Episode, self.Mode, Specials, Seasons, Exit = SelectreNumeration(self, itemlist, True)
-            self.Episodes = Seasons
+        if self.item.renumber or self.manual:
+            self.item.renumber = False
+            self.season, self.episode, self.manual, self.specials, Manual, Exit = SelectreNumeration(self, itemlist)
+            if Exit:
+                self.item.exit = True
+                return
+        if self.manual:
+            self.episodes = Manual
 
         else:
-            # Ricava Informazioni da TVDB
-            checkpages = []
-            exist = True
-            Page = self.Pages[-1]
-            Episode = ep
+            if self.group:
+                Id = self.group.split('/')[-1]
+            else:
+                Id = None
+                groups = tmdb.get_groups(self.item)
+                if groups:
+                    Id = tmdb.select_group(groups)
 
-            while exist:
-                data = tvdb.Tvdb(tvdb_id=self.id).get_list_episodes(self.id, Page)
-                if data:
-                    for episode in data['data']:
-                        if episode['firstAired'] and [episode['firstAired'], episode['airedSeason'], episode['airedEpisodeNumber']] not in self.EpList:
-                            self.EpList.append([episode['firstAired'], episode['airedSeason'], episode['airedEpisodeNumber']])
-                    Page += 1
-                else:
-                    if Page not in checkpages:
-                        checkpages.append(Page -1)
-                    exist = False
-            self.Pages = [checkpages[-1]]
-            self.EpList.sort()
+            if Id:
+                self.group = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(self.item.infoLabels['tmdb_id'], Id)
+                seasons = []
+                groupedSeasons = tmdb.get_group(Id)
+                for groupedSeason in groupedSeasons:
+                    seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes'])})
+            else:
+                seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
+            count = 0
+            for season in seasons:
+                s = season['season_number']
+                c = season['episode_count']
+                self.seasonsdict[str(s)] = c
+                if s > 0:
+                    for e in range(1, c + 1):
+                        count += 1
+                        self.epdict[count] = '{}x{:02d}'.format(s,e)
 
-            # Crea Dizionari per la Rinumerazione
-            if self.EpList:
-                self.specials = []
-                self.regular = {}
-                self.complete = {}
-                allep = 1
-                specialep = 0
+            firstep = 0
+            if self.season > 1:
+                for c in range(1, self.season):
+                    firstep += self.seasonsdict[str(c)]
+            firstep += self.episode - 1
+            count = 0
+            if self.epdict:
+                for item in itemlist:
+                    if not match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
+                        # Otiene Numerazione Episodi
+                        scraped_ep = match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'(\d+)').match
+                        if scraped_ep:
+                            episode = int(scraped_ep)
+                            if episode == 0:
+                                self.episodes[str(episode)] = '0x01'
+                            elif str(episode) in self.specials:
+                                self.episodes[str(episode)] = self.specials[str(episode)]
+                                count += 1
+                            elif episode - count + firstep in self.epdict:
+                                self.episodes[str(episode)] = self.epdict[episode - count + firstep]
+                            else:
+                                self.episodes[str(episode)] = '0x{:02d}'.format(count + 1)
+                                count += 1
 
-                for episode in self.EpList:
-                    self.complete[allep] = [str(episode[1]) + 'x' + str(episode[2]), episode[0]]
-                    if episode[1] == 0:
-                        self.specials.append(allep)
-                        specialep = specialep + 1
-                    else:
-                        self.regular[ep] = [str(episode[1]) + 'x' + str(episode[2]), str(episode[0]), allep - 1]
-                        ep = ep + 1
-                    allep = allep + 1
+        if self.episodes: self.renumberdict[self.title][EPISODES] = self.episodes
+        if self.group: self.renumberdict[self.title][GROUP] = self.group
+        self.renumberdict[self.title][MANUALMODE] = self.manual
+        self.renumberdict[self.title][SEASON] = self.season
+        self.renumberdict[self.title][EPISODE] = self.episode
+        self.renumberdict[self.title][SPECIALEPISODES] = self.specials
+        self.renumberdict[self.title][SEASONSDICT] = self.seasonsdict
+        write(self.item, self.renumberdict)
+        # if self.auto: self.renumber()
 
-            if Season > 1:
-                for numbers, data in self.regular.items():
-                    if data[0] == str(Season) + 'x1':
-                        FirstOfSeason = numbers - 1
-            else: FirstOfSeason = Episode - 1
 
-            addiction = 0
-            for item in itemlist:
-                if not match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
-                    # Otiene Numerazione Episodi
-                    scraped_ep = match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'(\d+)').match
-                    if scraped_ep:
-                        episode = int(scraped_ep)
-                        number = episode + FirstOfSeason - addiction
-                        if episode == 0:
-                            self.Episodes[str(episode)] = str(self.complete[self.regular[FirstOfSeason+1][2]][0])
-                        elif episode in Specials:
-                                self.Episodes[str(episode)] = Specials[episode]
-                                addiction +=  1
-                        elif number <= len(self.regular) and number in self.regular:
-                            self.Episodes[str(episode)] = str(self.regular[number][0])
-                        else:
-                            try: self.Episodes[str(episode)] = str(self.complete[self.regular[number+2][2]][0])
-                            except: self.Episodes[str(episode)] = '0x0'
 
-        if self.Episodes: self.dictSeries[self.title][EPISODE] = b64(jsontools.dump(self.Episodes))
-        self.dictSeries[self.title][EPLIST] = b64(jsontools.dump(self.EpList))
-        self.dictSeries[self.title][MODE] = self.Mode
-        self.dictSeries[self.title][SEASON] = self.Season
-        self.dictSeries[self.title][CHECK] = self.Pages
-        write(self.item, self.dictSeries)
 
-        if self.auto: self.renumber()
+
+
+
 
 
 def SelectreNumeration(opt, itemlist, manual=False):
     class SelectreNumerationWindow(xbmcgui.WindowXMLDialog):
         def start(self, opt):
-            self.episodes = opt.Episodes if opt.Episodes else {}
-            self.dictSeries = opt.dictSeries
+            self.episodes = opt.episodes if opt.episodes else {}
+            self.renumberdict = opt.renumberdict
             self.item = opt.item
             self.title = opt.title
-            self.season = opt.s
-            self.episode = opt.e
-            self.mode = opt.Mode
-            self.sp = opt.sp
+            self.season = opt.season
+            self.episode = opt.episode
+            self.manual = opt.manual
+            self.sp = opt.selectspecials
             self.manual = opt.manual
             self.offset = 0
             self.Exit = False
 
             self.itemlist = opt.itemlist
             self.count = 1
-            self.specials = {}
+            self.specials = opt.specials
             self.items = []
             self.selected = []
             self.seasons = {}
+            self.seasonsdict = opt.seasonsdict
 
             self.doModal()
-            return self.season, self.episode, self.mode, self.specials, self.seasons, self.Exit
+            return self.season, self.episode, self.manual, self.specials, self.seasons, self.Exit
 
         def onInit(self):
             # Compatibility with Kodi 18
@@ -349,7 +303,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 if fanart: self.getControl(MBACKGROUND).setImage(fanart)
                 self.getControl(INFO).setLabel(typo(config.get_localized_string(70822) + self.title, 'bold'))
 
-                self.mode = True
+                self.manual = True
 
                 se = '1'
                 ep = '1'
@@ -434,17 +388,19 @@ def SelectreNumeration(opt, itemlist, manual=False):
                         self.setFocusId(focus - 1)
                 elif action in [UP]:
                     if focus in [S]:
-                        s += 1
-                        self.getControl(S).setLabel(str(s))
+                        if str(s + 1) in self.seasonsdict:
+                            s += 1
+                            self.getControl(S).setLabel(str(s))
                     elif focus in [E]:
-                        e += 1
-                        self.getControl(E).setLabel(str(e))
+                        if self.seasonsdict[str(s)] > e:
+                            e += 1
+                            self.getControl(E).setLabel(str(e))
                 elif action in [DOWN]:
                     if focus in [S]:
-                        if s > 0: s -= 1
+                        if str(s - 1) in self.seasonsdict: s -= 1
                         self.getControl(S).setLabel(str(s))
                     elif focus in [E]:
-                        if e > 0: e -= 1
+                        if e > 1: e -= 1
                         self.getControl(E).setLabel(str(e))
             # MANUAL
             if focus in [MS, ME]:
@@ -508,7 +464,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
             # OPEN MANUAL
             elif control_id in [M]:
                 self.getControl(INFO).setLabel(typo(config.get_localized_string(70823) + self.title, 'bold'))
-                self.mode = True
+                self.manual = True
                 if self.episodes:
                     items = []
                     se = '1'
@@ -539,8 +495,8 @@ def SelectreNumeration(opt, itemlist, manual=False):
             # DELETE
             if control_id in [D]:
                 self.Exit = True
-                self.dictSeries.pop(self.title)
-                write(self.item, self.dictSeries)
+                self.renumberdict.pop(self.title)
+                write(self.item, self.renumberdict)
                 self.close()
 
             ## SPECIAL SECTION
@@ -548,7 +504,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
             p1 = self.getControl(SELECTED).getSelectedPosition()
             if control_id in [LIST]:
                 item = self.getControl(LIST).getSelectedItem()
-                it = xbmcgui.ListItem(str(len(self.selected) + 1))
+                it = xbmcgui.ListItem(str(len(self.selected) + len(self.specials) + 1))
                 it.setProperty('title', item.getLabel())
                 self.selected.append(it)
                 index = self.getControl(SELECTED).getSelectedPosition()

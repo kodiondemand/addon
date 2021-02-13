@@ -24,7 +24,7 @@ def peliculas(item):
     if item.args == 'alternative':
         patron = r'<a title="(?P<title>[^\(]+)\(\s*(?P<year>\d+)\)\s\D+(?P<quality>\d+p) ... (?P<lang>[^ ]+).*?[^"]+"\s*href="(?P<url>[^"]+)'
     else:
-        patron = r'<a href="(?P<url>[^"]+)" rel="?[0-9]+"? title="(?P<title>[^\(]+)(?!\()\s*\((?P<year>\d+)\)\s\D+(?P<quality>\d+p).{3}(?P<lang>[^ ]+).*?<img id="?cov"?.*?src="(?P<thumb>[^"]+)'
+        patron = r'<a href="(?P<url>[^"]+)" (?:rel="?[0-9]+"?)? title="(?P<title>[^\(]+)(?!\()\s*\((?P<year>\d+)\)\s(?:[^\]]+\])?\D+(?P<quality>\d+p).{3}(?P<lang>[^ ]+).*?<img id="?cov"?.*?src="(?P<thumb>[^"]+)'
         patronNext = r'rel="?next"? href="([^"]+)"'
     return locals()
 

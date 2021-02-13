@@ -1,0 +1,12 @@
+{
+    "id": "discoveryplus",
+    "name": "Discovery + [free]",
+    "active": true,
+    "language": ["ita"],
+    "thumbnail": "discoveryplus.png",
+    "banner": "discoveryplus.png",
+    "categories": ["tvshow", "documentary", "live"],
+    "not_active": ["include_in_newest"],
+    "default_off": ["include_in_global_search"],
+    "settings": []
+}

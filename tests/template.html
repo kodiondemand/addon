@@ -5,9 +5,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+        textarea {
+            font-family: monospace;
+            box-sizing: border-box;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col-xs-12">
                 <h2 class="text-capitalize">{{ title }}</h2>
@@ -55,7 +62,9 @@
                         {%- if (test_case.stdout or test_case.err or test_case.err) and test_case.outcome != test_case.SKIP %}
                         <tr style="display:none;">
                             <td class="col-xs-9" colspan="3">
-                                {%- if test_case.stdout %}<p style="white-space: pre-line;">{{ test_case.stdout|e }}</p>{% endif %}
+                                <textarea rows="40" readonly>
+                                    {%- if test_case.stdout %}{{ test_case.stdout|e }}{% endif %}
+                                </textarea>
                                 {%- if test_case.err %}<p style="color:maroon;">{{ test_case.err[0].__name__ }}: {{ test_case.err[1] }}</p>{% endif %}
                             </td>
                         </tr>
@@ -63,7 +72,9 @@
                         {%- if (test_case.stdout or test_case.err or test_case.err) and test_case.outcome == test_case.SKIP %}
                         <tr style="display:none;">
                             <td class="col-xs-9" colspan="3">
-                                {%- if test_case.stdout %}<p style="white-space: pre-line;">{{ test_case.stdout|e }}</p>{% endif %}
+                                <textarea rows="40" readonly>
+                                    {%- if test_case.stdout %}{{ test_case.stdout|e }}{% endif %}
+                                </textarea>
                                 {%- if test_case.err %}<p style="color:maroon;">{{ test_case.err }}</p>{% endif %}
                             </td>
                         </tr>
@@ -113,8 +124,10 @@
                                         {%- if subtest.err or subtest.err %}
                                         <tr style="display:none;">
                                             <td class="col-xs-9" colspan="3">
-                                                {%- if subtest.err %}<p style="color:maroon;">{{ subtest.err[0].__name__ }}: {{ subtest.err[1] }}</p>{% endif %}
-                                                {%- if subtest.err %}<p style="color:maroon;">{{ subtest.test_exception_info }}</p>{% endif %}
+                                                <textarea rows="40" readonly>
+                                                    {%- if subtest.err %}{{ subtest.err[0].__name__ }}: {{ subtest.err[1] }}{% endif %}
+                                                </textarea>
+                                                    {%- if subtest.err %}<p style="color:maroon;">{{ subtest.test_exception_info }}</p>{% endif %}
                                             </td>
                                         </tr>
                                         {%- endif %}
@@ -126,11 +139,6 @@
                         {%- endif %}
                         {%- endif %}
                         {%- endfor %}
-                        <tr>
-                            <td colspan="3">
-                                Total: {{ summaries[test_case_name].total }}, Pass: {{ summaries[test_case_name].success }}{% if summaries[test_case_name].failure %}, Fail: {{ summaries[test_case_name].failure }}{% endif %}{% if summaries[test_case_name].error %}, Error: {{ summaries[test_case_name].error }}{% endif %}{% if summaries[test_case_name].skip %}, Skip: {{ summaries[test_case_name].skip }}{% endif %} -- Duration: {{ summaries[test_case_name].duration }}
-                            </td>
-                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -171,30 +179,18 @@
             }
             $('#showPassed').on('click', function(){
                 $(".success").toggle(this.checked);
-                if (this.checked == false) {
-                    $(".success").next('tr').toggle(this.checked);
-                }
                 hideOrShow()
             });
             $('#showFailed').on('click', function(){
                 $(".danger").toggle(this.checked);
-                if (this.checked == false) {
-                    $(".danger").next('tr').toggle(this.checked);
-                }
                 hideOrShow()
             });
             $('#showErrors').on('click', function(){
                 $(".warning").toggle(this.checked);
-                if (this.checked == false) {
-                    $(".warning").next('tr').toggle(this.checked);
-                }
                 hideOrShow()
             });
             $('#showSkipped').on('click', function(){
                 $(".info").toggle(this.checked);
-                if (this.checked == false) {
-                    $(".info").next('tr').toggle(this.checked);
-                }
                 hideOrShow()
             });
         });

@@ -137,7 +137,7 @@ def findvideos(item):
             if 'sub' in lang.lower():
                 language = 'Sub-' + language
             quality = url.split('/')[-1].split('?')[0]
-            url += "|User-Agent=" + support.httptools.get_user_agent() + '&Referer=' + item.url
+            url += '|User-Agent=' + support.httptools.get_user_agent() + '&Referer=' + url
 
             itemlist.append(item.clone(action="play", title=language, url=url, contentLanguage = language, quality = quality, order = quality.replace('p','').zfill(4), server='directo',))
 

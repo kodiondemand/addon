@@ -58,9 +58,20 @@ if __name__ == '__main__':
         # redirect
         elif str(rslt['code']).startswith('3'):
             # result[chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
-            if rslt['redirect'].endswith('/'):
-                rslt['redirect'] = rslt['redirect'][:-1]
             result[chann] = rslt['redirect']
+        # cloudflare...
+        elif rslt['code'] in [429, 503, 403]:
+            from lib import proxytranslate
+            import re
+
+            print('Cloudflare riconosciuto')
+            try:
+                page_data = proxytranslate.process_request_proxy(host).get('data', '')
+                result[chann] = re.search('<base href="([^"]+)', page_data).group(1)
+                rslt['code_new'] = 200
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
         # non-existent site
         elif rslt['code'] == -2:
             print('Host Sconosciuto - '+ str(rslt['code']) +' - '+ host)
@@ -72,6 +83,8 @@ if __name__ == '__main__':
             print('Errore Sconosciuto - '+str(rslt['code']) +' - '+ host)
 
         print("check #### FINE #### rslt :%s  " % (rslt))
+        if result[chann].endswith('/'):
+            result[chann] = result[chann][:-1]
 
     result = {'findhost': data['findhost'], 'direct': result}
     # I write the updated file

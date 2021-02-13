@@ -37,7 +37,14 @@ def menu(item):
 def search(item, texto):
     support.info(texto)
     item.url = host + "/?s=" + texto
-    return peliculas(item)
+    try:
+        return peliculas(item)
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.info('search log:', line)
+        return []
+
 
 def newest(categoria):
     support.info(categoria)
@@ -59,12 +66,13 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     blacklist = Blacklist
     item.contentType = 'tvshow'
     if item.args == 'newest':
-        patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img[^>]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
+        patron = r'<div id="blockvids">\s*<ul>\s*<li>\s*<a href="(?P<url>[^"]+)"[^>]+><img[^>]+src="(?P<thumb>[^"]+)"[^>]*>(?:[^>]+>){4}(?P<title>[^\[]+)\[(?P<lang>[^\]]+)\]'
     else:
-        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> +<h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
+        patron = r'<div class="span4">\s*<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)"[^>]+><\/a>(?:[^>]+>){7}\s*<h1>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\])?</h1></a>.*?-->(?:.*?<br />)?\s*(?P<plot>[^<]+)'
         patronNext = r'<link rel="next" href="([^"]+)"'
     action = 'check'
     return locals()

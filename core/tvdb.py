@@ -298,7 +298,7 @@ def set_infoLabels_item(item):
             return len(item.infoLabels)
 
 
-def get_nfo(item):
+def get_nfo(item, search_groups=False):
     """
     Returns the information necessary for the result to be scraped into the kodi video library,
 

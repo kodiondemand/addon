@@ -220,7 +220,8 @@ def make_itemlist(itemlist, item, data):
     for key in data['data']:
         if search.lower() in encode(key['title']).lower():
             infoLabels['year'] = key['date_published']
-            infoLabels['title'] = infoLabels['tvshowtitle'] = key['title']
+            infoLabels['title'] = key['title']
+            if item.contentType != 'movie': infoLabels['tvshowtitle'] = key['title']
             title = encode(key['title'])
             itemlist.append(
                 item.clone(title = support.typo(title, 'bold'),

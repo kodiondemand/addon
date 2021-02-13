@@ -7,6 +7,7 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 import xbmc, os, traceback
+from time import time
 
 from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
@@ -49,6 +50,9 @@ def list_movies(item, silent=False):
                     local= True
                     break
 
+    # from core.support import dbg;dbg()
+    # for movie_path in movies_path:
+    #     get_results(movie_path, root, 'movie', local)
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(get_results, movie_path, root, 'movie', local) for movie_path in movies_path]
         for res in futures.as_completed(itlist):
@@ -67,6 +71,7 @@ def list_tvshows(item):
     lista = []
 
     root = videolibrarytools.TVSHOWS_PATH
+    start = time()
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
         for res in futures.as_completed(itlist):
@@ -75,7 +80,7 @@ def list_tvshows(item):
             if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
                 itemlist += [item_tvshow]
                 lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':item_tvshow.nfo}]
-
+    logger.debug('load list',time() - start)
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
 
@@ -88,13 +93,8 @@ def list_tvshows(item):
 
 def get_results(nfo_path, root, Type, local=False):
     value = 0
-    if Type == 'movie': folder = "folder_movies"
-    else: folder = "folder_tvshows"
 
     if filetools.exists(nfo_path):
-        # We synchronize the episodes seen from the Kodi video library with that of KoD
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.mark_content_as_watched_on_kod(nfo_path)
         head_nfo, item = videolibrarytools.read_nfo(nfo_path)
 
         # If you have not read the .nfo well, we will proceed to the next
@@ -107,6 +107,7 @@ def get_results(nfo_path, root, Type, local=False):
 
         # continue loading the elements of the video library
         if Type == 'movie':
+            folder = "folder_movies"
             item.path = filetools.split(nfo_path)[0]
             item.nfo = nfo_path
             sep = '/' if '/' in nfo_path else '\\'
@@ -118,7 +119,7 @@ def get_results(nfo_path, root, Type, local=False):
             if not filetools.exists(filetools.join(item.path, filetools.basename(strm_path))) and not local: return Item(), 0
 
             # Contextual menu: Mark as seen / not seen
-            visto = item.library_playcounts.get(item.path.split(sep)[0], 0)
+            visto = item.library_playcounts.get(strm_path.strip('/').split('/')[0], 0)
             item.infoLabels["playcount"] = visto
             if visto > 0:
                 seen_text = config.get_localized_string(60016)
@@ -136,7 +137,7 @@ def get_results(nfo_path, root, Type, local=False):
             item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary",  "playcount": counter},
                             {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel}]
         else:
-            # Sometimes it gives random errors, for not finding the .nfo. Probably timing issues
+            folder = "folder_tvshows"
             try:
                 item.title = item.contentTitle
                 item.path = filetools.split(nfo_path)[0]
@@ -558,6 +559,8 @@ def play(item):
     else:
         itemlist = [item.clone(url=item.url, server="local")]
 
+    if not itemlist:
+        return []
     # For direct links in list format
     if isinstance(itemlist[0], list):
         item.video_urls = itemlist
@@ -907,7 +910,9 @@ def mark_season_as_watched(item):
     # logger.debug("item:\n" + item.tostring('\n'))
 
     # Get dictionary of marked episodes
-    f = filetools.join(item.path, 'tvshow.nfo')
+    if not item.path: f = item.nfo
+    else: f = filetools.join(item.path, 'tvshow.nfo')
+
     head_nfo, it = videolibrarytools.read_nfo(f)
     if not hasattr(it, 'library_playcounts'):
         it.library_playcounts = {}

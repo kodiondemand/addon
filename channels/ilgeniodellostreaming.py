@@ -48,6 +48,7 @@ def mainlist(item):
 def peliculas(item):
     info()
     # debugBlock = True
+    # debug=True
 
     if item.args == 'search':
         patronBlock = r'<div class="search-page">(?P<block>.*?)<footer class="main">'
@@ -79,13 +80,13 @@ def peliculas(item):
             action = 'episodios'
             if item.args == 'update':
                 action = 'findvideos'
-                patron = r'<div class="poster"><img src="(?P<thumb>[^"]+)"[^>]+>[^>]+><a href="(?P<url>[^"]+)">[^>]+>(?P<episode>[\d\-x]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>[^>]+>(?P<quality>[HD]+)?(?:.+?)?/span><p class="serie"'
+                patron = r'<div class="poster"><img src="(?P<thumb>[^"]+)"(?:[^>]+>){2}<a href="(?P<url>[^"]+)">[^>]+>(?P<episode>[\d\-x]+)(?:[^>]+>){4}(?P<title>.+?)(?:\[(?P<lang>[SsuUbBiItTaA-]{7})\])?<(?:[^>]+>){4}(?P<quality>[HDWEBRIP-]+)?(?:.+?)?/span><p class="serie"'
                 pagination = 25
                 def itemHook(item):
                     item.contentType = 'episode'
                     return item
             else:
-                patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> (?P<rating>[0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>(?P<year>[0-9]{4})?[^<]*(?:<.*?<div class="texto">(?P<plot>[^<]+))?'
+                patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+> (?P<rating>[0-9.]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA|Sub-ita)\])?<[^>]+>[^>]+>[^>]+>(?P<year>[0-9]{4})?[^<]*(?:<.*?<div class="texto">(?P<plot>[^<]+)?)?'
     patronNext = '<span class="current">[^<]+<[^>]+><a href=[\'"]([^\'"]+)[\'"]'
 
     #support.regexDbg(item, patron, headers)
@@ -128,13 +129,13 @@ def search(item, text):
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + "?s=" + text
-    # try:
-    item.args = 'search'
-    return peliculas(item)
-    # except:
-    #     import sys
-    #     for line in sys.exc_info():
-    #         info("%s" % line)
+    try:
+        item.args = 'search'
+        return peliculas(item)
+    except:
+        import sys
+        for line in sys.exc_info():
+            info("%s" % line)
 
     return []
 

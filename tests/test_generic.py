@@ -14,19 +14,18 @@ import unittest
 import xbmc
 
 if 'KOD_TST_CH' not in os.environ:
+    from sakee import addoninfo
     # custom paths
     def add_on_info(*args, **kwargs):
-        return xbmc.AddonData(
+        return addoninfo.AddonData(
             kodi_home_path=os.path.join(os.getcwd(), 'tests', 'home'),
             add_on_id='plugin.video.kod',
             add_on_path=os.getcwd(),
             kodi_profile_path=os.path.join(os.getcwd(), 'tests', 'home', 'userdata')
         )
 
-
     # override
-    xbmc.get_add_on_info_from_calling_script = add_on_info
-
+    addoninfo.get_add_on_info_from_calling_script = add_on_info
 
 # functions that on kodi 19 moved to xbmcvfs
 try:
@@ -49,10 +48,14 @@ sys.path.insert(0, librerias)
 from core.support import typo
 from core.item import Item
 from core.httptools import downloadpage
-from core import servertools
+from core import servertools, httptools
 import channelselector
 import re
 
+
+httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = 60
+
+outDir = os.path.join(os.getcwd(), 'reports')
 validUrlRegex = re.compile(
     r'^(?:http|ftp)s?://'  # http:// or https://
     r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
@@ -144,7 +147,7 @@ channels = []
 
 channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
 logger.info([c.channel for c in channel_list])
-ret = []
+results = []
 
 logger.record = True
 for chItem in channel_list:
@@ -179,8 +182,6 @@ for chItem in channel_list:
 
                 itemlist = getattr(module, it.action)(it)
                 menuItemlist[it.title] = itemlist
-                logMenu[it.title] = logger.recordedLog
-                logger.recordedLog = ''
 
                 # some sites might have no link inside, but if all results are without servers, there's something wrong
                 for resIt in itemlist:
@@ -206,9 +207,15 @@ for chItem in channel_list:
             except:
                 import traceback
                 logger.error(traceback.format_exc())
-                logMenu[it.title] = logger.recordedLog
-                logger.recordedLog = ''
 
+            logMenu[it.title] = logger.recordedLog
+            logger.recordedLog = ''
+
+        # results.append(
+        #     {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': [it.title for it in mainlist],
+        #      'menuItemlist': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
+        #      'serversFound': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
+        #      'module': str(module), 'logMenu': logMenu, 'error': error})
         channels.append(
             {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
              'serversFound': serversFound, 'module': module, 'logMenu': logMenu, 'error': error})
@@ -217,7 +224,10 @@ logger.record = False
 
 from specials import news
 dictNewsChannels, any_active = news.get_channels_list()
-print(channels)
+# if not os.path.isdir(outDir):
+#     os.mkdir(outDir)
+# json.dump(results, open(os.path.join(outDir, 'result.json'), 'w'))
+
 # only 1 server item for single server
 serverNames = []
 serversFinal = []
@@ -350,6 +360,6 @@ if __name__ == '__main__':
         unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(report_name='report', add_timestamp=False, combine_reports=True,
                      report_title='KoD Test Suite', template=os.path.join(config.get_runtime_path(), 'tests', 'template.html')), exit=False)
         import webbrowser
-        webbrowser.open(os.path.join(config.get_runtime_path(), 'reports', 'report.html'))
+        webbrowser.open(os.path.join(outDir, 'report.html'))
     else:
         unittest.main()

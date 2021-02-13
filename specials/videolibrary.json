@@ -87,6 +87,7 @@
       "label": "@60651",
       "enabled": false,
       "default": 0,
+      "visible": false,
       "lvalues": [
         "TMDB",
         "None"
@@ -97,6 +98,7 @@
       "type": "list",
       "label": "@60652",
       "default": 0,
+      "visible": false,
       "lvalues": [
         "TMDB",
         "TVDB"

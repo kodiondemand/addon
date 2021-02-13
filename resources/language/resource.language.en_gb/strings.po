@@ -701,7 +701,7 @@ msgid "This website [B]%s[/B] seems to be unavailable, try later. if the web pag
 msgstr ""
 
 msgctxt "#60014"
-msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[B]"
+msgid "It may be due to a connection problem, the web page of the channel has changed its structure, or an internal error of KoD. If on browser it works, report the issue using [B]Help->Report an issue.[/B]"
 msgstr ""
 
 msgctxt "#60015"
@@ -6123,6 +6123,9 @@ msgctxt "#70830"
 msgid "The series / episode number should only be changed if the series has relative numbering."
 msgstr ""
 
+msgctxt "#70831"
+msgid "This series has multiple types of numbering, choose the most suitable one "
+msgstr ""
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
@@ -6370,7 +6373,7 @@ msgid "Configuration of Kodi video library"
 msgstr ""
 
 msgctxt "#80027"
-msgid "You will be asked to configure The Movie Database for movies and The TVDB for TV shows"
+msgid "You will be asked to configure The Movie Database for movies and tvshows"
 msgstr ""
 
 msgctxt "#80028"

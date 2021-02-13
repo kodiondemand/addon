@@ -226,6 +226,45 @@ def dialog_info(item, scraper):
     dialog = TitleOrIDWindow('TitleOrIDWindow.xml', config.get_runtime_path()).Start(item, scraper)
     return dialog
 
+def dialog_select_group(heading, _list, preselect=0):
+    class SelectGroup(xbmcgui.WindowXMLDialog):
+        def start(self, heading, _list, preselect):
+            self.selected = preselect
+            self.heading = heading
+            self.list = _list
+            self.doModal()
+
+            return self.selected
+
+        def onInit(self):
+            self.getControl(1).setText(self.heading)
+            itemlist = []
+            for n, text in enumerate(self.list):
+                item = xbmcgui.ListItem(str(n))
+                item.setProperty('title', text)
+                itemlist.append(item)
+
+            self.getControl(2).addItems(itemlist)
+            self.setFocusId(2)
+            self.getControl(2).selectItem(self.selected)
+
+        def onClick(self, control):
+            if control in [100]:
+                self.selected = -1
+                self.close()
+            elif control in [2]:
+                self.selected = self.getControl(2).getSelectedPosition()
+                self.close()
+
+        def onAction(self, action):
+            action = action.getId()
+            if action in [10, 92]:
+                self.selected = -1
+                self.close()
+
+    dialog = SelectGroup('SelectGroup.xml', config.get_runtime_path()).start(heading, _list, preselect)
+    return dialog
+
 
 def itemlist_refresh():
     # pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition
@@ -616,63 +655,71 @@ def is_playing():
 def play_video(item, strm=False, force_direct=False, autoplay=False):
     logger.debug()
     logger.debug(item.tostring('\n'))
-    if item.channel == 'downloads':
-        logger.debug("Play local video: %s [%s]" % (item.title, item.url))
-        xlistitem = xbmcgui.ListItem(path=item.url)
-        xlistitem.setArt({"thumb": item.thumbnail})
-        set_infolabels(xlistitem, item, True)
-        set_player(item, xlistitem, item.url, True, None) # Fix Play From Download Section
-        return
 
-    default_action = config.get_setting("default_action")
-    logger.debug("default_action=%s" % default_action)
-
-    # pass referer
-    if item.referer:
-        from core import httptools
-        httptools.default_headers['Referer'] = item.referer
-
-    # Open the selection dialog to see the available options
-    opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-    if salir: exit()
-
-    # get default option of addon configuration
-    seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
-    if seleccion < 0: exit() # Canceled box
-
-    logger.debug("selection=%d" % seleccion)
-    logger.debug("selection=%s" % opciones[seleccion])
-
-    # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
-    salir = set_opcion(item, seleccion, opciones, video_urls)
-    if salir:
-        return
-
-    # we get the selected video
-    mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
-    if not mediaurl: return
-
-    # video information is obtained.
-    xlistitem = xbmcgui.ListItem(path=item.url)
-    xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
-    set_infolabels(xlistitem, item, True)
-
-    # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
-    # from core.support import dbg;dbg()
-    if mpd:
-        if not install_inputstream():
+    def play():
+        if item.channel == 'downloads':
+            logger.debug("Play local video: %s [%s]" % (item.title, item.url))
+            xlistitem = xbmcgui.ListItem(path=item.url)
+            xlistitem.setArt({"thumb": item.thumbnail})
+            set_infolabels(xlistitem, item, True)
+            set_player(item, xlistitem, item.url, True, None) # Fix Play From Download Section
             return
-        xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
-        xlistitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-        if item.drm and item.license:
-            install_widevine()
-            xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
-            xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
-            xlistitem.setMimeType('application/dash+xml')
 
-    if force_direct: item.play_from = 'window'
+        default_action = config.get_setting("default_action")
+        logger.debug("default_action=%s" % default_action)
 
-    set_player(item, xlistitem, mediaurl, view, strm)
+        # pass referer
+        if item.referer:
+            from core import httptools
+            httptools.default_headers['Referer'] = item.referer
+
+        # Open the selection dialog to see the available options
+        opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
+        if salir: return
+
+        # get default option of addon configuration
+        seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
+        if seleccion < 0: return # Canceled box
+
+        logger.debug("selection=%d" % seleccion)
+        logger.debug("selection=%s" % opciones[seleccion])
+
+        # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
+        salir = set_opcion(item, seleccion, opciones, video_urls)
+        if salir:
+            return
+
+        # we get the selected video
+        mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
+        if not mediaurl: return
+
+        # video information is obtained.
+        xlistitem = xbmcgui.ListItem(path=item.url)
+        xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
+        set_infolabels(xlistitem, item, True)
+
+        # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
+        # from core.support import dbg;dbg()
+        if mpd:
+            if not install_inputstream():
+                return
+            xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
+            xlistitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+            if item.drm and item.license:
+                install_widevine()
+                xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
+                xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
+                xlistitem.setMimeType('application/dash+xml')
+
+        if force_direct: item.play_from = 'window'
+
+        set_player(item, xlistitem, mediaurl, view, strm)
+        return True
+
+    if not play():
+        # close db to ensure his thread will stop
+        from core import db
+        db.close()
 
 
 def stop_video():
@@ -1370,71 +1417,60 @@ def get_platform():
 
 
 def get_played_time(item):
-    import sqlite3
-    from core import filetools
-    db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
-    ID = item.infoLabels['tmdb_id']
-    conn = sqlite3.connect(db_name, timeout=15)
-    c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS viewed (tmdb_id TEXT, season INT, episode INT, played_time REAL)')
-    conn.commit()
-    if ID:
-        if item.contentType == 'movie': c.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
-        elif 'season' in item.infoLabels:
-            S = item.infoLabels['season']
-            E = item.infoLabels['episode']
-            c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
-        elif 'episode' in item.infoLabels:
-            E = item.infoLabels['episode']
-            c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-        result = c.fetchone()
-        if not result: played_time = 0
-        else: played_time = result[0]
-    else: played_time = 0
-    conn.close()
+    logger.debug()
+    from core import db
+
+    if not item.infoLabels:
+        return 0
+    ID = item.infoLabels.get('tmdb_id', '')
+    if not ID:
+        return 0
+
+    S = item.infoLabels.get('season', 0)
+    E = item.infoLabels.get('episode')
+    result = None
+
+    if item.contentType == 'movie':
+        result = db['viewed'].get(ID)
+    elif S and E:
+        result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
+
+    if not result: played_time = 0
+    else: played_time = result
+
     return played_time
 
+
 def set_played_time(item):
-    import sqlite3
-    from core import filetools
-    ID = item.infoLabels['tmdb_id']
+    logger.debug()
+    from core import db
+
     played_time = item.played_time
-    db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
-    conn = sqlite3.connect(db_name, timeout=15)
-    c = conn.cursor()
+    if not item.infoLabels:
+        return
+
+    ID = item.infoLabels.get('tmdb_id', '')
+    if not ID:
+        return
+
+    S = item.infoLabels.get('season', 0)
+    E = item.infoLabels.get('episode')
+
+
     if item.contentType == 'movie':
-        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=?", (ID,))
-        result = c.fetchone()
-        if result:
-            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=?", (item.played_time, ID))
-            else: c.execute("DELETE from viewed WHERE tmdb_id=?", (ID,))
-        else: c.execute("INSERT INTO viewed (tmdb_id, played_time) VALUES (?, ?)", (ID, item.played_time))
-    elif 'season' in item.infoLabels:
-        S = item.infoLabels['season']
-        E = item.infoLabels['episode']
-        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND season = ? AND episode=?", (ID, S, E))
-        result = c.fetchone()
-        if result:
-            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND season=? AND episode=?", (item.played_time, ID, S, E))
-            else: c.execute("DELETE from viewed WHERE tmdb_id=? AND season=? AND episode=?", (ID, S, E))
-        else: c.execute("INSERT INTO viewed (tmdb_id, season, episode, played_time) VALUES (?, ?, ?, ?)", (ID, S, E, item.played_time))
-    elif 'episode' in item.infoLabels:
-        E = item.infoLabels['episode']
-        c.execute("SELECT played_time FROM viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-        result = c.fetchone()
-        if result:
-            if played_time > 0: c.execute("UPDATE viewed SET played_time=? WHERE tmdb_id=? AND episode=?", (item.played_time, ID, E))
-            else: c.execute("DELETE from viewed WHERE tmdb_id=? AND episode=?", (ID, E))
-        else: c.execute("INSERT INTO viewed (tmdb_id, episode, played_time) VALUES (?, ?, ?)", (ID, E, item.played_time))
-    conn.commit()
-    conn.close()
+        db['viewed'][ID] = played_time
+    elif E:
+        newDict = db['viewed'].get(ID, {})
+        newDict[str(S) + 'x' + str(E)] = played_time
+        db['viewed'][ID] = newDict
+
 
 def prevent_busy(item):
     logger.debug()
     if not item.autoplay and not item.window:
         if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.sleep(100)
+        xbmc.sleep(200)
         xbmc.Player().stop()
         # xbmc.executebuiltin('Action(Stop)')
         # xbmc.sleep(500)

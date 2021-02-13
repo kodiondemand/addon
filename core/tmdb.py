@@ -3,7 +3,8 @@
 # from future import standard_library
 # standard_library.install_aliases()
 # from builtins import str
-import sys
+import datetime
+import sys, requests
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -15,7 +16,7 @@ else:
 from future.builtins import range
 from future.builtins import object
 
-import ast, copy, re, sqlite3, time, xbmcaddon
+import ast, copy, re, time
 
 from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
@@ -62,27 +63,7 @@ def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 # ------------------------------------------------- -------------------------------------------------- -----------
 
 otmdb_global = None
-fname = filetools.join(config.get_data_path(), "kod_db.sqlite")
-
-def create_bd():
-    conn = sqlite3.connect(fname)
-    c = conn.cursor()
-    c.execute('CREATE TABLE IF NOT EXISTS tmdb_cache (url TEXT PRIMARY KEY, response TEXT, added TEXT)')
-    conn.commit()
-    conn.close()
-
-
-def drop_bd():
-    conn = sqlite3.connect(fname)
-    c = conn.cursor()
-    c.execute('DROP TABLE IF EXISTS tmdb_cache')
-    conn.commit()
-    conn.close()
-
-    return True
-
-
-create_bd()
+from core import db
 
 
 # The function name is the name of the decorator and receives the function that decorates.
@@ -93,17 +74,11 @@ def cache_response(fn):
     # start_time = time.time()
 
     def wrapper(*args, **kwargs):
-        import base64
-
-        def check_expired(ts):
-            import datetime
-
+        def check_expired(saved_date):
             valided = False
 
             cache_expire = config.get_setting("tmdb_cache_expire", default=0)
-
-            saved_date = datetime.datetime.fromtimestamp(ts)
-            current_date = datetime.datetime.fromtimestamp(time.time())
+            current_date = datetime.datetime.now()
             elapsed = current_date - saved_date
 
             # 1 day
@@ -148,29 +123,18 @@ def cache_response(fn):
                 result = fn(*args)
             else:
 
-                conn = sqlite3.connect(fname, timeout=15)
-                c = conn.cursor()
                 url = re.sub('&year=-', '', args[0])
                 if PY3: url = str.encode(url)
-                url_base64 = base64.b64encode(url)
-                c.execute("SELECT response, added FROM tmdb_cache WHERE url=?", (url_base64,))
-                row = c.fetchone()
 
-                if row and check_expired(float(row[1])):
-                    result = eval(base64.b64decode(row[0]))
+                row = db['tmdb_cache'].get(url)
+
+                if row and check_expired(row[1]):
+                    result = row[0]
 
                 # si no se ha obtenido información, llamamos a la funcion
                 if not result:
                     result = fn(*args)
-                    result = str(result)
-                    if PY3: result = str.encode(result)
-                    result_base64 = base64.b64encode(result)
-                    c.execute("INSERT OR REPLACE INTO tmdb_cache (url, response, added) VALUES (?, ?, ?)",
-                              (url_base64, result_base64, time.time()))
-
-                    conn.commit()
-
-                conn.close()
+                    db['tmdb_cache'][url] = [result, datetime.datetime.now()]
 
             # elapsed_time = time.time() - start_time
             # logger.debug("TARDADO %s" % elapsed_time)
@@ -550,7 +514,7 @@ def find_and_set_infoLabels(item):
         return False
 
 
-def get_nfo(item):
+def get_nfo(item, search_groups=False):
     """
     Returns the information necessary for the result to be scraped into the kodi video library, for tmdb it works only by passing it the url.
     @param item: element that contains the data necessary to generate the info
@@ -558,6 +522,23 @@ def get_nfo(item):
     @rtype: str
     @return:
     """
+
+    if search_groups:
+        from platformcode.autorenumber import RENUMBER, GROUP
+        path = filetools.join(config.get_data_path(), "settings_channels", item.channel + "_data.json")
+        if filetools.exists(path): 
+            g = jsontools.load(filetools.read(path)).get(RENUMBER,{}).get(item.fulltitle.strip(),{}).get(GROUP,'')
+            if g: return g + '\n'
+
+        groups = get_groups(item)
+
+        if groups:
+            Id = select_group(groups)
+            if Id:
+                info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}\n'.format(item.infoLabels['tmdb_id'], Id)
+                return info_nfo
+            else: return
+
     if "season" in item.infoLabels and "episode" in item.infoLabels:
         info_nfo = "https://www.themoviedb.org/tv/%s/season/%s/episode/%s\n" % (item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
     else:
@@ -565,6 +546,34 @@ def get_nfo(item):
 
     return info_nfo
 
+def get_groups(item):
+    url = 'https://api.themoviedb.org/3/tv/{}/episode_groups?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(item.infoLabels['tmdb_id'], def_lang)
+    groups = requests.get(url).json().get('results',[])
+    return groups
+
+def select_group(groups):
+    selected = -1
+    selections = []
+    ids = []
+    for group in groups:
+        name = '[B]{}[/B] Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',''), group.get('episode_count',''))
+        description = group.get('description','')
+        if description:
+            name = '{}\n{}'.format(name, description)
+        ID = group.get('id','')
+        if ID:
+            selections.append(name)
+            ids.append(ID)
+    if selections and ids:
+        selected = platformtools.dialog_select_group(config.get_localized_string(70831), selections)
+    if selected > -1:
+        return ids[selected]
+    return ''
+
+def get_group(Id):
+    url = 'https://api.themoviedb.org/3/tv/episode_group/{}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(Id, def_lang)
+    group = requests.get(url).json().get('groups',[])
+    return group
 
 def completar_codigos(item):
     """
@@ -1009,6 +1018,11 @@ class Tmdb(object):
                     % (buscando, len(results), page, index_results))
                 return 0
 
+            # We sort result based on fuzzy match to detect most similar
+            if len(results) > 1:
+                from lib.fuzzy_match import algorithims
+                results.sort(key=lambda r: algorithims.trigram(text_simple, r['title'] if self.busqueda_tipo == 'movie' else r['name']), reverse=True)
+
             # We return the number of results of this page
             self.results = results
             self.total_results = total_results
@@ -1429,6 +1443,11 @@ class Tmdb(object):
                 ret_dic["episodio_imagen"] = ""
 
         return ret_dic
+
+    def get_list_episodes(self):
+        url = 'https://api.themoviedb.org/3/tv/{id}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, lang=self.busqueda_idioma)
+        results = requests.get(url).json().get('seasons', [])
+        return results if 'Error' not in results else []
 
     def get_videos(self):
         """

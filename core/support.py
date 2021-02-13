@@ -1367,7 +1367,7 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
             for item in item_itemlist_string:
                 item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
         else:
-            item_itemlist_string.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
+            item_itemlist_string.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item_itemlist_string.fulltitle.lower().replace(' ','_') + '.png'
         return item_itemlist_string
 
     icon_dict = {'movie':['film', 'movie'],
