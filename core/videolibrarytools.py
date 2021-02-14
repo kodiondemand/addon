@@ -352,7 +352,7 @@ def filter_list(episodelist, action=None, path=None):
         for name, var in quality_dict.items():
             if not episode.quality and 'N/A' not in quality_list:
                 quality_list.append('N/A')
-            if episode.quality.lower() in var and name not in quality_list:
+            elif episode.quality and episode.quality.lower() in var and name not in quality_list:
                 quality_list.append(name)
     quality_list = sorted(quality_list, key=lambda x:quality_order.index(x))
 

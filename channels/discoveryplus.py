@@ -32,7 +32,7 @@ def Dict(item):
 @support.menu
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live']),
-            ('Programmi {bullet bold tv}', ['/programmi', 'peliculas']),
+            ('Programmi {bullet bold tv}', ['', 'peliculas', 'programmi']),
             ('Generi {bullet bold tv}', ['', 'genres'])]
 
     search = ''
@@ -77,26 +77,26 @@ def live(item):
 def genres(item):
     item.action = 'peliculas'
     itemlist = [
-        item.clone(title='Attualità e inchiesta', url='/genere/attualita-e-inchiesta'),
-        item.clone(title='Beauty and style', url='/genere/beauty-and-style'),
-        item.clone(title='Serie TV', url='/genere/serie-tv'),
-        item.clone(title='Casa', url='/genere/casa'),
-        item.clone(title='Comedy', url='/genere/comedy'),
-        item.clone(title='Crime', url='/genere/crime'),
-        item.clone(title='Documentari', url='/genere/documentari'),
-        item.clone(title='Discovery + Originals', url='/genere/discoveryplus-original'),
-        item.clone(title='Food', url='/genere/food'),
-        item.clone(title='Medical', url='/genere/medical'),
-        item.clone(title='Motori', url='/genere/motori'),
-        item.clone(title='Natura', url='/genere/natura'),
-        item.clone(title='Paranormal', url='/genere/paranormal'),
-        item.clone(title='People', url='/genere/people'),
-        item.clone(title='Real Adventure', url='/genere/real-adventure'),
-        item.clone(title='Real Life', url='/genere/real-life'),
-        item.clone(title='Scienza e Spazio', url='/genere/scienza-e-spazio'),
-        item.clone(title='Sex and love', url='/genere/sex-and-love'),
-        item.clone(title='Sport', url='/genere/sport'),
-        item.clone(title='Talent Show', url='/genere/talent-show'),
+        item.clone(title='Attualità e inchiesta', args='genere/attualita-e-inchiesta'),
+        item.clone(title='Beauty and style', args='genere/beauty-and-style'),
+        item.clone(title='Serie TV', args='genere/serie-tv'),
+        item.clone(title='Casa', args='genere/casa'),
+        item.clone(title='Comedy', args='genere/comedy'),
+        item.clone(title='Crime', args='genere/crime'),
+        item.clone(title='Documentari', args='genere/documentari'),
+        item.clone(title='Discovery + Originals', args='genere/discoveryplus-original'),
+        item.clone(title='Food', args='genere/food'),
+        item.clone(title='Medical', args='genere/medical'),
+        item.clone(title='Motori', args='genere/motori'),
+        item.clone(title='Natura', args='genere/natura'),
+        item.clone(title='Paranormal', args='genere/paranormal'),
+        item.clone(title='People', args='genere/people'),
+        item.clone(title='Real Adventure', args='genere/real-adventure'),
+        item.clone(title='Real Life', args='genere/real-life'),
+        item.clone(title='Scienza e Spazio', args='genere/scienza-e-spazio'),
+        item.clone(title='Sex and love', args='genere/sex-and-love'),
+        item.clone(title='Sport', args='genere/sport'),
+        item.clone(title='Talent Show', args='genere/talent-show'),
         ]
     return itemlist
 
@@ -105,9 +105,9 @@ def peliculas(item):
     logger.debug()
     itemlist =[]
     if 'search' in item.args:
-        pdict = session.get(api + '/content/shows?include=genres,images,primaryChannel.images,contentPackages&page[size]=12&query=' + item.text, headers=headers).json()['data']
+        pdict = session.get('{}/content/shows?include=genres,images,primaryChannel.images,contentPackages&page[size]=12&query={}'.format(api, item.text), headers=headers).json()['data']
     else:
-        pdict = session.get(api + '/cms/routes{}?decorators=viewingHistory&include=default'.format(item.url), headers=headers).json()['included']
+        pdict = session.get('{}/cms/routes/{}?decorators=viewingHistory&include=default'.format(api, item.args), headers=headers).json()['included']
     images = list(filter(lambda x: x['type'] == 'image', pdict))
 
     for key in pdict:
@@ -146,9 +146,23 @@ def episodios(item):
             mandatory = key['attributes']['component']['mandatoryParams']
             for option in key['attributes']['component']['filters'][0]['options']:
                 url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}'.format(api, key['id'], mandatory, option['parameter'])
-                season = session.get(url, headers=headers).json()
-                if season.get('included', {}):
-                    for episode  in season['included']:
+                seasons = []
+                season = {}
+                try:
+                    season = session.get(url, headers=headers).json()
+                    seasons.append(season['included'])
+                    pages = season['data'].get('meta',{}).get('itemsTotalPages', 0)
+                    if pages:
+                        for page in range(2,pages):
+                            url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}&page[items.number]={}'.format(api, key['id'], mandatory, option['parameter'], page)
+                            logger.debug(url)
+                            season = session.get(url, headers=headers).json()['included']
+                            seasons.append(season)
+                except:
+                    pass
+
+                for season in seasons:
+                    for episode in season:
                         if episode['type'] == 'video' and 'Free' in episode['attributes']['packages']:
                             title = '{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name'])
                             plot = episode['attributes']['description']
