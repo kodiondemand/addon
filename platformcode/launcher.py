@@ -343,9 +343,9 @@ def run(item=None):
             if platformtools.dialog_yesno(config.get_localized_string(60038), config.get_localized_string(60015)):
                 run(Item(channel="setting", action="report_menu"))
     finally:
-        if not item.action.startswith('play'):
-            from core import db
-            db.close()
+        # db need to be closed when not used, it will cause freezes
+        from core import db
+        db.close()
 
 
 def new_search(item, channel=None):

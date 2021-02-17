@@ -22,7 +22,7 @@ except:
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import videolibrarytools, filetools, channeltools, httptools, scrapertools
+from core import videolibrarytools, filetools, channeltools, httptools, scrapertools, db
 from lib import schedule
 from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
@@ -456,7 +456,6 @@ if __name__ == "__main__":
     if filetools.isfile(old_db_name):
         try:
             import sqlite3
-            from core import db
 
             old_db_conn = sqlite3.connect(old_db_name, timeout=15)
             old_db = old_db_conn.cursor()
@@ -522,4 +521,6 @@ if __name__ == "__main__":
             logger.error(traceback.format_exc())
 
         if monitor.waitForAbort(1):  # every second
+            # db need to be closed when not used, it will cause freezes
+            db.close()
             break
