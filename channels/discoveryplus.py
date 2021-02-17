@@ -153,7 +153,7 @@ def episodios(item):
                     seasons.append(season['included'])
                     pages = season['data'].get('meta',{}).get('itemsTotalPages', 0)
                     if pages:
-                        for page in range(2,pages):
+                        for page in range(2,pages + 1):
                             url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}&page[items.number]={}'.format(api, key['id'], mandatory, option['parameter'], page)
                             logger.debug(url)
                             season = session.get(url, headers=headers).json()['included']
