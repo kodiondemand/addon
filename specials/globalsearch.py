@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xbmc, xbmcgui, sys, channelselector, time, os
+from core import support
 from core.support import dbg, tmdb
 from core.item import Item
 from core import channeltools, servertools, scrapertools
@@ -8,8 +9,12 @@ from platformcode import platformtools, config, logger
 from platformcode.launcher import run
 from threading import Thread
 
-if sys.version_info[0] >= 3: from concurrent import futures
-else: from concurrent_py2 import futures
+if sys.version_info[0] >= 3:
+    PY3 = True
+    from concurrent import futures
+else:
+    PY3 = False
+    from concurrent_py2 import futures
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -75,17 +80,14 @@ class SearchWindow(xbmcgui.WindowXML):
         self.channels = []
         self.persons = []
         self.episodes = []
-        self.servers = []
         self.results = {}
         self.focus = SEARCH
-        self.process = True
         self.page = 1
         self.moduleDict = moduleDict
         self.searchActions = searchActions
         self.thread = None
         self.selected = False
         self.pos = 0
-        selfeppos = 0
         self.items = []
 
         if not searchActions:
@@ -116,6 +118,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     from specials.search import save_search
                     save_search(self.item.text)
 
+
     def getActions(self):
         logger.debug()
         count = 0
@@ -144,9 +147,12 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.item.mode == 'movie':
                 title = result['title']
                 result['mode'] = 'movie'
-            else:
+            elif self.item.mode == 'tvshow':
                 title = result['name']
                 result['mode'] = 'tvshow'
+            else:
+                title = result.get('title', '')
+                result['mode'] = result['media_type'].replace('tv', 'tvshow')
 
             thumbnail = result.get('thumbnail', '')
             noThumb = 'Infoplus/' + result['mode'].replace('show','') + '.png'
@@ -453,7 +459,9 @@ class SearchWindow(xbmcgui.WindowXML):
         if self.type:
             self.type = None
             if self.item.mode in ['all', 'search']:
-                if self.item.type: self.item.mode = self.item.type
+                if self.item.type:
+                    self.item.mode = self.item.type
+                    self.item.text = title_unify(self.item.text)
                 self.thread = Thread(target=self.search)
                 self.thread.start()
             elif self.item.mode in ['movie', 'tvshow', 'person_']:
@@ -507,9 +515,12 @@ class SearchWindow(xbmcgui.WindowXML):
             elif self.EPISODES.isVisible(): self.setFocusId(EPISODESLIST)
             elif self.RESULTS.isVisible(): self.setFocusId(RESULTS)
 
-        elif focus in [RESULTS] and self.item.mode == 'all':
+        elif focus in [RESULTS]:
             pos = self.RESULTS.getSelectedPosition()
-            self.CHANNELS.getSelectedItem().setProperty('position', str(pos))
+            try:
+                self.CHANNELS.getSelectedItem().setProperty('position', str(pos))
+            except:
+                pass
 
         elif action == ENTER and focus in [CHANNELS]:
             self.setFocusId(RESULTS)
@@ -559,7 +570,6 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                # self.close()
                 Search(item, self.moduleDict, self.searchActions)
                 if close_action:
                     self.close
@@ -568,16 +578,6 @@ class SearchWindow(xbmcgui.WindowXML):
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                self.RESULTS.reset()
-                self.RESULTS.setVisible(False)
-                self.PROGRESS.setVisible(True)
-                self.selected = True
-                self.thActions.join()
-                self.RESULTS.addItems(self.items)
-                self.RESULTS.setVisible(True)
-                self.PROGRESS.setVisible(False)
-
-                # self.close()
                 Search(item, self.moduleDict, self.searchActions)
                 if close_action:
                     self.close()
@@ -589,7 +589,6 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.pos = self.RESULTS.getSelectedPosition()
                 item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item'))
             else:
-                self.eppos = self.EPISODESLIST.getSelectedPosition()
                 item_url = self.EPISODESLIST.getSelectedItem().getProperty('item')
                 if item_url:
                     item = Item().fromurl(item_url)
@@ -706,8 +705,6 @@ class SearchWindow(xbmcgui.WindowXML):
             self.Focus(SEARCH)
             self.setFocusId(RESULTS)
             self.RESULTS.selectItem(self.pos)
-        elif self.item.mode in ['person']:
-            self.actors()
         else:
             self.Close()
 
@@ -746,3 +743,29 @@ class SearchWindow(xbmcgui.WindowXML):
         server.globalsearch = True
         return run(server)
 
+
+def title_unify(title):
+    import unicodedata
+
+    u_title = ''
+    sep_count = 0
+    for c in unicodedata.normalize('NFD', title if PY3 else title.decode('utf-8', 'ignore')):
+        cat = unicodedata.category(c)
+        if cat != 'Mn':
+            if cat == 'Pd':
+                c_new = '-'
+            elif cat in ['Ll', 'Lu'] or c in [':']:
+                c_new = c
+            else:
+                c_new = ' '
+            if c_new in ['-', ':']:
+                sep_count += 1
+
+            u_title += c_new
+    if sep_count == 1:  # subtitle, split but only if there's one, it might be part of title
+        spl = u_title.replace(':', '-').split('-')
+        if len(spl[0]) > 5:
+            u_title = spl[0]
+        else:
+            u_title = spl[1]
+    return u_title.strip()

@@ -655,63 +655,71 @@ def is_playing():
 def play_video(item, strm=False, force_direct=False, autoplay=False):
     logger.debug()
     logger.debug(item.tostring('\n'))
-    if item.channel == 'downloads':
-        logger.debug("Play local video: %s [%s]" % (item.title, item.url))
-        xlistitem = xbmcgui.ListItem(path=item.url)
-        xlistitem.setArt({"thumb": item.thumbnail})
-        set_infolabels(xlistitem, item, True)
-        set_player(item, xlistitem, item.url, True, None) # Fix Play From Download Section
-        return
 
-    default_action = config.get_setting("default_action")
-    logger.debug("default_action=%s" % default_action)
-
-    # pass referer
-    if item.referer:
-        from core import httptools
-        httptools.default_headers['Referer'] = item.referer
-
-    # Open the selection dialog to see the available options
-    opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-    if salir: return
-
-    # get default option of addon configuration
-    seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
-    if seleccion < 0: return # Canceled box
-
-    logger.debug("selection=%d" % seleccion)
-    logger.debug("selection=%s" % opciones[seleccion])
-
-    # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
-    salir = set_opcion(item, seleccion, opciones, video_urls)
-    if salir:
-        return
-
-    # we get the selected video
-    mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
-    if not mediaurl: return
-
-    # video information is obtained.
-    xlistitem = xbmcgui.ListItem(path=item.url)
-    xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
-    set_infolabels(xlistitem, item, True)
-
-    # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
-    # from core.support import dbg;dbg()
-    if mpd:
-        if not install_inputstream():
+    def play():
+        if item.channel == 'downloads':
+            logger.debug("Play local video: %s [%s]" % (item.title, item.url))
+            xlistitem = xbmcgui.ListItem(path=item.url)
+            xlistitem.setArt({"thumb": item.thumbnail})
+            set_infolabels(xlistitem, item, True)
+            set_player(item, xlistitem, item.url, True, None) # Fix Play From Download Section
             return
-        xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
-        xlistitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
-        if item.drm and item.license:
-            install_widevine()
-            xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
-            xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
-            xlistitem.setMimeType('application/dash+xml')
 
-    if force_direct: item.play_from = 'window'
+        default_action = config.get_setting("default_action")
+        logger.debug("default_action=%s" % default_action)
 
-    set_player(item, xlistitem, mediaurl, view, strm)
+        # pass referer
+        if item.referer:
+            from core import httptools
+            httptools.default_headers['Referer'] = item.referer
+
+        # Open the selection dialog to see the available options
+        opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
+        if salir: return
+
+        # get default option of addon configuration
+        seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
+        if seleccion < 0: return # Canceled box
+
+        logger.debug("selection=%d" % seleccion)
+        logger.debug("selection=%s" % opciones[seleccion])
+
+        # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
+        salir = set_opcion(item, seleccion, opciones, video_urls)
+        if salir:
+            return
+
+        # we get the selected video
+        mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
+        if not mediaurl: return
+
+        # video information is obtained.
+        xlistitem = xbmcgui.ListItem(path=item.url)
+        xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
+        set_infolabels(xlistitem, item, True)
+
+        # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
+        # from core.support import dbg;dbg()
+        if mpd:
+            if not install_inputstream():
+                return
+            xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
+            xlistitem.setProperty('inputstream.adaptive.manifest_type', 'mpd')
+            if item.drm and item.license:
+                install_widevine()
+                xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
+                xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
+                xlistitem.setMimeType('application/dash+xml')
+
+        if force_direct: item.play_from = 'window'
+
+        set_player(item, xlistitem, mediaurl, view, strm)
+        return True
+
+    if not play():
+        # close db to ensure his thread will stop
+        from core import db
+        db.close()
 
 
 def stop_video():

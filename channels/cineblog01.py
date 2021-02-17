@@ -78,7 +78,7 @@ def search(item, text):
     if item.contentType == 'tvshow': item.url = host + '/serietv/'
     else: item.url = host
     try:
-        item.url = item.url + "?s=" + text.replace(' ', '+')
+        item.url = item.url + "/search/" + text.replace(' ', '+')
         return peliculas(item)
 
     # Continua la ricerca in caso di errore

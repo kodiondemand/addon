@@ -27,6 +27,7 @@ class nested_dict_sqlite(defaultdict):
     def close(self):
         for key in self.keys():
             self[key].close()
+        self.clear()
 
 
 db_name = filetools.join(config.get_data_path(), "db.sqlite")

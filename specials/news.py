@@ -107,11 +107,11 @@ def mainlist(item):
     # itemlist.append(new_item)
 
     #if list_canales['documentales']:
-    thumbnail = get_thumb("documentary.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="documentales", title=config.get_localized_string(60513),
-                    thumbnail=thumbnail)
-    set_category_context(new_item)
-    itemlist.append(new_item)
+    # thumbnail = get_thumb("documentary.png")
+    # new_item = Item(channel=item.channel, action="novedades", extra="documentales", title=config.get_localized_string(60513),
+    #                 thumbnail=thumbnail)
+    # set_category_context(new_item)
+    # itemlist.append(new_item)
     thumbnail = get_thumb("setting_0.png")
     itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=7, setting=1,
                          title=typo(config.get_localized_string(70285), 'bold color kod'), thumbnail=thumbnail))

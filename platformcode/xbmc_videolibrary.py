@@ -102,14 +102,14 @@ def mark_auto_as_watched(item):
             xbmc.sleep(500)
         if next_episode and next_episode.next_ep:
             from platformcode.launcher import play_from_library
-            return play_from_library(next_episode)
+            play_from_library(next_episode)
+        # db need to be closed when not used, it will cause freezes
+        from core import db
+        db.close()
 
     # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
-
-
-
 
 
 def sync_trakt_addon(path_folder):
@@ -661,37 +661,14 @@ def set_content(content_type, silent=False, custom=False):
                 xbmc.executebuiltin('Addon.OpenSettings(metadata.universal)', True)
 
     else:  # SERIES
-        scraper = [config.get_localized_string(70098), config.get_localized_string(70093)]
+        scraper = [config.get_localized_string(70093), config.get_localized_string(70098)]
         if not custom:
-            seleccion = 0 # tvdb
+            seleccion = 0 # tmdb
         else:
             seleccion = platformtools.dialog_select(config.get_localized_string(70107), scraper)
 
-        # Instalar The TVDB
-        if seleccion == -1 or seleccion == 0:
-            if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
-                if not silent:
-                    #Ask if we want to install metadata.tvdb.com
-                    install = platformtools.dialog_yesno(config.get_localized_string(60048),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        # Install metadata.tvdb.com
-                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
-                        logger.debug("The TVDB series Scraper installed ")
-                    except:
-                        pass
-
-                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'))
-                if not continuar:
-                    msg_text = config.get_localized_string(60049)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvdb.com)', True)
-
         # Instalar The Movie Database
-        elif seleccion == 1:
+        if seleccion == -1 or seleccion == 0:
             if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
                 continuar = False
                 if not silent:
@@ -714,6 +691,29 @@ def set_content(content_type, silent=False, custom=False):
                     msg_text = config.get_localized_string(60051)
             if continuar:
                 xbmc.executebuiltin('Addon.OpenSettings(metadata.tvshows.themoviedb.org)', True)
+
+        # Instalar The TVDB
+        elif seleccion == 1:
+            if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
+                if not silent:
+                    #Ask if we want to install metadata.tvdb.com
+                    install = platformtools.dialog_yesno(config.get_localized_string(60048),'')
+                else:
+                    install = True
+
+                if install:
+                    try:
+                        # Install metadata.tvdb.com
+                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
+                        logger.debug("The TVDB series Scraper installed ")
+                    except:
+                        pass
+
+                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'))
+                if not continuar:
+                    msg_text = config.get_localized_string(60049)
+            if continuar:
+                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvdb.com)', True)
 
     idPath = 0
     idParentPath = 0
@@ -788,11 +788,11 @@ def set_content(content_type, silent=False, custom=False):
             strContent = 'tvshows'
             scanRecursive = 0
             if seleccion == -1 or seleccion == 0:
-                strScraper = 'metadata.tvdb.com'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvdb.com/settings.xml")
-            elif seleccion == 1:
                 strScraper = 'metadata.tvshows.themoviedb.org'
                 path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
+            elif seleccion == 1:
+                strScraper = 'metadata.tvdb.com'
+                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvdb.com/settings.xml")
             if not os.path.exists(path_settings):
                 logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
                 return continuar

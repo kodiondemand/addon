@@ -129,13 +129,13 @@ def search(item, text):
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + "?s=" + text
-    # try:
-    item.args = 'search'
-    return peliculas(item)
-    # except:
-    #     import sys
-    #     for line in sys.exc_info():
-    #         info("%s" % line)
+    try:
+        item.args = 'search'
+        return peliculas(item)
+    except:
+        import sys
+        for line in sys.exc_info():
+            info("%s" % line)
 
     return []
 
@@ -169,7 +169,7 @@ def newest(categoria):
 
 def findvideos(item):
     info()
-    matches = support.match(item, patron=[r'class="metaframe rptss" src="([^"]+)"',r' href="#option-\d">([^\s]+)\s*([^\s]+)']).matches
+    matches = support.match(item, patron=[r'var ilinks\s?=\s?([^;]+)',r' href="#option-\d">([^\s]+)\s*([^\s]+)']).matches
     itemlist = []
     list_url = []
     list_quality = []
@@ -179,9 +179,14 @@ def findvideos(item):
             list_servers.append(match[0])
             list_quality.append(match[1])
         else:
-            if 'player.php' in match:
-                match = support.httptools.downloadpage(match, follow_redirect=True).url
-            list_url.append(match)
+            import ast, base64
+            encLinks = ast.literal_eval(match)
+
+            for link in encLinks:
+                linkDec = base64.b64decode(link.encode()).decode()
+                if 'player.php' in linkDec:
+                    linkDec = support.httptools.downloadpage(linkDec, only_headers=True, follow_redirects=False).headers['Location']
+                list_url.append(linkDec)
     if list_servers:
         for i, url in enumerate(list_url):
             itemlist.append(support.Item(

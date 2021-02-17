@@ -255,7 +255,7 @@ def episodios(item):
                 urls.append(key['publicUrl'])
         if urls:
             title = it['title'].split('-')[-1].strip()
-            if it['tvSeasonNumber'] and it['tvSeasonEpisodeNumber']:
+            if it['tvSeasonNumber'] and it['tvSeasonEpisodeNumber'] and 'puntata del' not in title.lower():
                 item.infoLabels['season'] = it['tvSeasonNumber']
                 item.infoLabels['episode'] = it['tvSeasonEpisodeNumber']
                 episode = '%dx%02d - ' % (it['tvSeasonNumber'], it['tvSeasonEpisodeNumber'])
@@ -268,6 +268,7 @@ def episodios(item):
                            plot=it['longDescription'] if 'longDescription' in it else it['description'],
                            urls=urls,
                            url=it['mediasetprogram$pageUrl'],
+                           year=it.get('year',''),
                            forcethumb=True,
                            no_return=True))
     if episode:
@@ -284,10 +285,10 @@ def findvideos(item):
 
 def play(item):
     support.info()
-    if item.filter:
-        d = liveDict()[item.filter]
+    if item.livefilter:
+        d = liveDict()[item.livefilter]
         # support.dbg()
-        item = item.clone(title=support.typo(item.filter, 'bold'), fulltitle=item.filter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
+        item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
         support.thumb(item, live=True)
     if not item.urls: urls = item.url
     else: urls = item.urls

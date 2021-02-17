@@ -35,7 +35,7 @@ def mainlist(item):
 
 
     film = ['/ultimi-film-aggiunti/',
-            ('Lista', ['/lista-film/', 'peliculas', 'lista'])
+            ('A-Z', ['/lista-film/', 'peliculas', 'lista'])
         ]
 
     tvshow = ['',
@@ -65,7 +65,7 @@ def peliculas(item):
 
     if item.args == 'search':
         patronBlock = r'>Lista Serie Tv</a></li></ul></div><div id="box_movies">(?P<block>.*?)<div id="paginador">'
-        patron = r'<div class="movie">[^>]+[^>]+>\s?<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)\s?(?P<year>[\d\-]+)?"[^>]+>\s?<a href="(?P<url>[^"]+)">'
+        patron = r'<div class="movie">[^>]+[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)(?:(?P<year>\d{4})|")[^>]*>\s*<a href="([^"]+)'
     elif item.contentType == 'episode':
         pagination = 35
         action = 'findvideos'
@@ -85,7 +85,7 @@ def peliculas(item):
         pagination = 25
 
         if item.args == 'lista':
-            patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.*?)(?P<year>\d{4})?<'
+            patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)(?:\s(?P<year>\d{4})|<)'
             patronBlock = r'Lista dei film disponibili in streaming e anche in download\.</p>(?P<block>.*?)<div class="footer_c">'
         else:
             patron = r'<tr><td><a href="(?P<url>[^"]+)"(?:|.+?)?>(?:&nbsp;&nbsp;)?[ ]?(?P<title>.*?)[ ]?(?P<quality>HD)?[ ]?(?P<year>\d+)?(?: | HD | Streaming | MD(?: iSTANCE)? )?</a>'

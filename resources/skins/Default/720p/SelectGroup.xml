@@ -37,7 +37,7 @@
             <control type="group">
                 <left>30</left>
                 <top>70</top>
-                <width>595</width>
+                <width>795</width>
                 <height>530</height>
                 <control type="list" id="2">
 					<description>List</description>
@@ -88,16 +88,16 @@
 				</control>
                 <control type="scrollbar" id="4">
                     <description>Scrollbar</description>
-                    <left>595</left>
-                    <top>60</top>
+                    <left>800</left>
+                    <top>0</top>
                     <width>5</width>
-                    <height>100%</height>
+                    <height>470</height>
                     <visible>true</visible>
                     <texturesliderbackground colordiffuse="FF232323">white.png</texturesliderbackground>
                     <texturesliderbar colordiffuse="FFFFFFFF">white.png</texturesliderbar>
                     <texturesliderbarfocus colordiffuse="FF0081C2">white.png</texturesliderbarfocus>
-                    <textureslidernib colordiffuse="FF232323">white.png</textureslidernib>
-                    <textureslidernibfocus colordiffuse="FF232323">white.png</textureslidernibfocus>
+                    <textureslidernib colordiffuse="FFFFFFFF">white.png</textureslidernib>
+                    <textureslidernibfocus colordiffuse="FFFFFFFF">white.png</textureslidernibfocus>
                     <orientation>vertical</orientation>
                     <showonepage>false</showonepage>
                     <onleft>2</onleft>
@@ -106,7 +106,7 @@
             </control>
             <control type="button" id="100">
                     <description>Close Button</description>
-                    <right>30</right>
+                    <right>20</right>
                     <top>10</top>
                     <width>40</width>
                     <height>40</height>

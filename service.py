@@ -22,7 +22,7 @@ except:
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import videolibrarytools, filetools, channeltools, httptools, scrapertools
+from core import videolibrarytools, filetools, channeltools, httptools, scrapertools, db
 from lib import schedule
 from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
@@ -454,21 +454,57 @@ if __name__ == "__main__":
     # port old db to new
     old_db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
     if filetools.isfile(old_db_name):
-        import sqlite3
-        from core import db
+        try:
+            import sqlite3
 
-        old_db_conn = sqlite3.connect(old_db_name, timeout=15)
-        old_db = old_db_conn.cursor()
-        old_db.execute('select * from viewed')
+            old_db_conn = sqlite3.connect(old_db_name, timeout=15)
+            old_db = old_db_conn.cursor()
+            old_db.execute('select * from viewed')
 
-        for ris in old_db.fetchall():
-            if ris[1]:  # tvshow
-                show = db['viewed'].get(ris[0], {})
-                show[str(ris[1]) + 'x' + str(ris[2])] = ris[3]
-                db['viewed'][ris[0]] = show
-            else:  # film
-                db['viewed'][ris[0]] = ris[3]
-        filetools.remove(old_db_name)
+            for ris in old_db.fetchall():
+                if ris[1]:  # tvshow
+                    show = db['viewed'].get(ris[0], {})
+                    show[str(ris[1]) + 'x' + str(ris[2])] = ris[3]
+                    db['viewed'][ris[0]] = show
+                else:  # film
+                    db['viewed'][ris[0]] = ris[3]
+        except:
+            pass
+        finally:
+            filetools.remove(old_db_name, True, False)
+
+    # replace tvdb to tmdb for series
+    if config.get_setting('videolibrary_kodi') and config.get_setting('show_once'):
+        nun_records, records = xbmc_videolibrary.execute_sql_kodi('select * from path where strPath like "' +
+                                           filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) +
+                                           '%" and strScraper="metadata.tvdb.com"')
+        if nun_records:
+            import xbmcaddon
+            # change language
+            tvdbLang = xbmcaddon.Addon(id="metadata.tvdb.com").getSetting('language')
+            newLang = tvdbLang + '-' + tvdbLang.upper()
+            xbmcaddon.Addon(id="metadata.tvshows.themoviedb.org").setSetting('language', newLang)
+            updater.refreshLang()
+
+            # prepare to replace strSettings
+            path_settings = xbmc.translatePath(
+                "special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
+            settings_data = filetools.read(path_settings)
+            strSettings = ' '.join(settings_data.split()).replace("> <", "><")
+            strSettings = strSettings.replace("\"", "\'")
+
+            # update db
+            nun_records, records = xbmc_videolibrary.execute_sql_kodi(
+                'update path set strScraper="metadata.tvshows.themoviedb.org", strSettings="' + strSettings + '" where strPath like "' +
+                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) +
+                '%" and strScraper="metadata.tvdb.com"')
+
+            # scan new info
+            xbmc.executebuiltin('UpdateLibrary(video)')
+            xbmc.executebuiltin('CleanLibrary(video)')
+            while xbmc.getCondVisibility('Library.IsScanningVideo()'):
+                xbmc.sleep(1000)
+
     monitor = AddonMonitor()
 
     # mark as stopped all downloads (if we are here, probably kodi just started)
@@ -485,4 +521,6 @@ if __name__ == "__main__":
             logger.error(traceback.format_exc())
 
         if monitor.waitForAbort(1):  # every second
+            # db need to be closed when not used, it will cause freezes
+            db.close()
             break

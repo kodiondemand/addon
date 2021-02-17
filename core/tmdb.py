@@ -533,8 +533,10 @@ def get_nfo(item, search_groups=False):
         groups = get_groups(item)
 
         if groups:
-            Id = select_group(groups)
-            if Id:
+            Id = select_group(groups, item)
+            if Id == 'original':
+                pass
+            elif Id :
                 info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}\n'.format(item.infoLabels['tmdb_id'], Id)
                 return info_nfo
             else: return
@@ -551,12 +553,14 @@ def get_groups(item):
     groups = requests.get(url).json().get('results',[])
     return groups
 
-def select_group(groups):
+def select_group(groups, item):
     selected = -1
-    selections = []
-    ids = []
+    url = 'https://api.themoviedb.org/3/tv/{}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(item.infoLabels['tmdb_id'], def_lang)
+    res = requests.get(url).json()
+    selections = ['[B]Original[/B] Seasons: {} Episodes: {}'.format(res.get('number_of_seasons',0), res.get('number_of_episodes',0))]
+    ids = ['original']
     for group in groups:
-        name = '[B]{}[/B] Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',''), group.get('episode_count',''))
+        name = '[B]{}[/B] Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',0), group.get('episode_count',0))
         description = group.get('description','')
         if description:
             name = '{}\n{}'.format(name, description)
@@ -1017,6 +1021,11 @@ class Tmdb(object):
                     "The search for '%s' gave %s results for the page %s \n It is impossible to show the result number %s"
                     % (buscando, len(results), page, index_results))
                 return 0
+
+            # We sort result based on fuzzy match to detect most similar
+            if len(results) > 1:
+                from lib.fuzzy_match import algorithims
+                results.sort(key=lambda r: algorithims.trigram(text_simple, r['title'] if self.busqueda_tipo == 'movie' else r['name']), reverse=True)
 
             # We return the number of results of this page
             self.results = results

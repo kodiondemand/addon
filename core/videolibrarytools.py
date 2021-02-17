@@ -235,14 +235,14 @@ def update_renumber_options(item, head_nfo, path):
     if filetools.isfile(tvshow_path) and item.channel_prefs:
         for channel in item.channel_prefs:
             filename = filetools.join(config.get_data_path(), "settings_channels", channel + '_data.json')
-
-            json_file = jsontools.load(filetools.read(filename))
-            if RENUMBER in json_file:
-                json = json_file[RENUMBER]
-                if item.fulltitle in json:
-                    item.channel_prefs[channel][RENUMBER] = json[item.fulltitle]
-                    logger.debug('UPDATED=\n' + str(item.channel_prefs))
-                    filetools.write(tvshow_path, head_nfo + item.tojson())
+            if filetools.isfile(filename):
+                json_file = jsontools.load(filetools.read(filename))
+                if RENUMBER in json_file:
+                    json = json_file[RENUMBER]
+                    if item.fulltitle in json:
+                        item.channel_prefs[channel][RENUMBER] = json[item.fulltitle]
+                        logger.debug('UPDATED=\n' + str(item.channel_prefs))
+                        filetools.write(tvshow_path, head_nfo + item.tojson())
 
 def add_renumber_options(item, head_nfo, path):
     from core import jsontools
@@ -352,7 +352,7 @@ def filter_list(episodelist, action=None, path=None):
         for name, var in quality_dict.items():
             if not episode.quality and 'N/A' not in quality_list:
                 quality_list.append('N/A')
-            if episode.quality.lower() in var and name not in quality_list:
+            elif episode.quality and episode.quality.lower() in var and name not in quality_list:
                 quality_list.append(name)
     quality_list = sorted(quality_list, key=lambda x:quality_order.index(x))
 
@@ -1007,21 +1007,20 @@ def add_movie(item):
     # If you do it in "Enter another name", TMDB will automatically search for the new title
     # If you do it in "Complete Information", it partially changes to the new title, but does not search TMDB. We have to do it
     # If the second screen is canceled, the variable "scraper_return" will be False. The user does not want to continue
-
     item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
     #if item.tmdb_stat:
     #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
-    # if item:
-    new_item = item.clone(action="findvideos")
-    insertados, sobreescritos, fallidos, path = save_movie(new_item)
+    if item:
+        new_item = item.clone(action="findvideos")
+        insertados, sobreescritos, fallidos, path = save_movie(new_item)
 
-    if fallidos == 0:
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
-    else:
-        filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131),
-                                config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+        if fallidos == 0:
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+        else:
+            filetools.rmdirtree(path)
+            platformtools.dialog_ok(config.get_localized_string(30131),
+                                    config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
 
 
 def add_tvshow(item, channel=None):

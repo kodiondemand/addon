@@ -162,8 +162,8 @@ def Type(item):
 def liveDict():
     livedict = OrderedDict({})
     info = {}
-    url = host + '/dl/RaiPlay/2016/PublishingBlock-9a2ff311-fcf0-4539-8f8f-c4fee2a71d58.html?json'
-    json = current_session.get(url).json()['dirette']
+    url = host + '/dirette.json'
+    json = current_session.get(url).json()['contents']
     onAir = current_session.get(onair).json()['on_air']
     for key in onAir:
         channel = key['channel']
@@ -173,7 +173,7 @@ def liveDict():
     for key in json:
         channel = key['channel']
         livedict[channel] = {}
-        livedict[channel]['url'] = key['video']['contentUrl']
+        livedict[channel]['url'] = key['video']['content_url']
         livedict[channel]['plot'] = info[channel]['plot']
         livedict[channel]['fanart'] = info[channel]['fanart']
 
@@ -342,7 +342,7 @@ def findvideos(item):
     else:
         url = item.url
 
-    itemlist.append(item.clone(server = 'directo', title = 'Rai Play', url = getUrl(url), action = 'play'))
+    itemlist.append(item.clone(server = 'directo', title = 'Rai Play', url = getUrl(url)  + '&output=56', action = 'play'))
     return support.server(item, itemlist=itemlist, Download=False)
 
 
@@ -419,9 +419,15 @@ def load_episodes(key, item):
 
 
 def play(item):
-    if item.filter:
+    if item.livefilter:
         d = liveDict()
-        item = item.clone(server='directo', fulltitle=item.filter, url=d[item.filter]['url'], plot=d[item.filter]['plot'], forcethumb=True, no_return=True)
+        item = item.clone(server='directo', fulltitle=item.livefilter, url=d[item.livefilter]['url'], plot=d[item.livefilter]['plot'], forcethumb=True, no_return=True)
         support.thumb(item, live=True)
+    if '&output=56' in item.url:
+        match = support.match(item, patron=r'content"><!\[CDATA\[([^\]]+)(?:.*?"WIDEVINE","licenceUrl":"([^"]+))?').match
+        item.url = match[0]
+        if len(match) == 2:
+            item.drm = 'com.widevine.alpha'
+            item.license = match[1] + '|' + host + '|R{SSM}|'
     logger.debug('PLAY URL', item.url)
     return [item]

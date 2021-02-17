@@ -37,7 +37,14 @@ def menu(item):
 def search(item, texto):
     support.info(texto)
     item.url = host + "/?s=" + texto
-    return peliculas(item)
+    try:
+        return peliculas(item)
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.info('search log:', line)
+        return []
+
 
 def newest(categoria):
     support.info(categoria)

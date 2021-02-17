@@ -162,8 +162,9 @@ def findvideos(item):
 
 def play(item):
     logger.debug()
-    if item.filter:
-        d = liveDict()[item.filter]
-        item = item.clone(title=support.typo(item.filter, 'bold'), fulltitle=item.filter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
+    item.server = 'paramount_server'
+    if item.livefilter:
+        d = liveDict()[item.livefilter]
+        item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
         support.thumb(item, live=True)
-    return support.servertools.find_video_items(item, data=item.url)
+    return [item]

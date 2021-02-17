@@ -200,9 +200,9 @@ class autorenumber():
                 Id = None
                 groups = tmdb.get_groups(self.item)
                 if groups:
-                    Id = tmdb.select_group(groups)
+                    Id = tmdb.select_group(groups, self.item)
 
-            if Id:
+            if Id and Id != 'original':
                 self.group = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(self.item.infoLabels['tmdb_id'], Id)
                 seasons = []
                 groupedSeasons = tmdb.get_group(Id)

@@ -291,25 +291,30 @@ def newest(categoria):
 def search(item, texto):
     info(texto)
     itemlist = []
-
+    try:
     patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
-    matches = support.match(item, patron=patron, headers=headers).matches
-    for i, (scrapedurl, scrapedtitle) in enumerate(matches):
-        if texto.upper() in scrapedtitle.upper():
-            scrapedthumbnail = ""
-            scrapedplot = ""
-            title = cleantitle(scrapedtitle)
-            itemlist.append(
-                item.clone(action="episodios",
-                           title=title,
-                           url=scrapedurl,
-                           thumbnail=scrapedthumbnail,
-                           fulltitle=title,
-                           show=title,
-                           plot=scrapedplot,
-                           contentType='episode',
-                           originalUrl=scrapedurl))
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+        matches = support.match(item, patron=patron, headers=headers).matches
+        for i, (scrapedurl, scrapedtitle) in enumerate(matches):
+            if texto.upper() in scrapedtitle.upper():
+                scrapedthumbnail = ""
+                scrapedplot = ""
+                title = cleantitle(scrapedtitle)
+                itemlist.append(
+                    item.clone(action="episodios",
+                            title=title,
+                            url=scrapedurl,
+                            thumbnail=scrapedthumbnail,
+                            fulltitle=title,
+                            show=title,
+                            plot=scrapedplot,
+                            contentType='episode',
+                            originalUrl=scrapedurl))
+        tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.info('search log:', line)
+        return []
 
     return itemlist
 

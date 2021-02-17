@@ -43,11 +43,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     addon_dir = xbmc.translatePath( my_addon.getAddonInfo('path') )
     sys.path.append(filetools.join( addon_dir, 'resources', 'lib' ) )
     from youtube_resolver import resolve
-    for stream in resolve(page_url):
-        # title = scrapertools.find_single_match(stream['title'], '(\d+p)')
-        if scrapertools.find_single_match(stream['title'], r'(\d+p)'):
-            video_urls.append([re.sub(r'(\[[^\]]+\])', '', stream['title']), stream['url']])
-    video_urls.sort(key=lambda it: int(it[0].split("p", 1)[0]))
+    try:
+        for stream in resolve(page_url):
+            # title = scrapertools.find_single_match(stream['title'], '(\d+p)')
+            if scrapertools.find_single_match(stream['title'], r'(\d+p)'):
+                video_urls.append([re.sub(r'(\[[^\]]+\])', '', stream['title']), stream['url']])
+        video_urls.sort(key=lambda it: int(it[0].split("p", 1)[0]))
+    except:
+        pass
 
     return video_urls
 
