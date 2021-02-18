@@ -33,22 +33,10 @@ def search(item, text):
     support.info(text)
     # item.args='search'
     item.text = text
-    itemlist = []
-    itlist = []
+    item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
 
     try:
-        # item.url = host + '/lista-serie-tv/'
-        # item.contentType = 'tvshow'
-        # itemlist += peliculas(item)
-        with futures.ThreadPoolExecutor() as executor:
-            for par in [['/serie-tv/', 'tvshow', ''],['/anime/', 'tvshow', ''], ['/-anime-sub-ita/', 'tvshow', 'sub'], ['/film-animazione/', 'movie', '']]:
-                item.url = host + par[0]
-                item.contentType = par[1]
-                item.args = par[2]
-                itlist.append(executor.submit(peliculas, item))
-            for res in futures.as_completed(itlist):
-                itemlist += res.result()
-        return itemlist
+        return peliculas(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -75,6 +63,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debugBlock = True
     search = item.text
     if item.contentType != 'movie': anime = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
