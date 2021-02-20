@@ -33,7 +33,7 @@ def search(item, text):
     support.info(text)
     # item.args='search'
     item.text = text
-    item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
+    item.url = item.url + '/?%73=' + text.replace(' ', '+')
 
     try:
         return peliculas(item)
@@ -64,21 +64,25 @@ def newest(categoria):
 @support.scrape
 def peliculas(item):
     # debugBlock = True
-    search = item.text
+    # debug = True
+    # search = item.text
     if item.contentType != 'movie': anime = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if search:
         pagination = ''
-        patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
-        patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
+        #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
+        patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
+        #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+><div'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src(?:set)?="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
-        patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
+        # patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:[Ff]ilm|</art|Serie Tv))'
         typeContentDict={'movie':['film']}
         typeActionDict={'findvideos':['film']}
         patronNext = '<a class="next page-numbers" href="([^"]+)">'
