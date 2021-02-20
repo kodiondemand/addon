@@ -9,14 +9,14 @@ from core import scrapertools, httptools, servertools, support
 from platformcode import logger, config
 
 
-def findhost(url):
-    host = httptools.downloadpage(url, follow_redirect=True).url
-    if host == 'https://cb01.uno/':
-        host = support.match(host, patron=r'<a href="([^"]+)', debug=True).match
-    return host
+# def findhost(url):
+#     host = httptools.downloadpage(url, follow_redirect=True).url
+#     if host == 'https://cb01.uno/':
+#         host = support.match(host, patron=r'<a href="([^"]+)').match
+#     return host
 
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = [['Referer', host]]
 
 
