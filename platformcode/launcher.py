@@ -41,12 +41,7 @@ def run(item=None):
     logger.debug()
     if not item:
         # Extract item from sys.argv
-        if sys.argv[2] and 'play' in sys.argv[2]:
-            sp = sys.argv[2].split('/')
-            if len(sp) == 3:
-                item = Item(channel=sp[1], livefilter=sp[2], action='play')
-        # If no item, this is mainlist
-        elif sys.argv[2]:
+        if sys.argv[2]:
             sp = sys.argv[2].split('&')
             url = sp[0]
             item = Item().fromurl(url)
@@ -54,7 +49,7 @@ def run(item=None):
                 for e in sp[1:]:
                     key, val = e.split('=')
                     item.__setattr__(key, val)
-
+        # If no item, this is mainlist
         else:
             item = Item(channel="channelselector", action="getmainlist", viewmode="movie")
         if not config.get_setting('show_once'):
