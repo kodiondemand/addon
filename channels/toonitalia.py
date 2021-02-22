@@ -5,8 +5,6 @@
 
 from core import support
 import sys
-if sys.version_info[0] >= 3: from concurrent import futures
-else: from concurrent_py2 import futures
 
 host = support.config.get_channel_url()
 
@@ -70,7 +68,7 @@ def peliculas(item):
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
-    if search:
+    if item.action == 'search' and item.channel == 'toonitalia':
         pagination = ''
         #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
         patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
