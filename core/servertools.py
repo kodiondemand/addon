@@ -745,9 +745,9 @@ def check_video_link(item, timeout=3):
     url = item.url
     server = item.server
 
-    NK = "[COLOR 0xFFF9B613][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
-    OK = "[COLOR 0xFF00C289][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
-    KO = "[COLOR 0xFFC20000][B]" + u"\u2022".encode('utf-8') + "[/B][/COLOR]"
+    NK = u"[COLOR 0xFFF9B613][B]\u2022[/B][/COLOR]"
+    OK = u"[COLOR 0xFF00C289][B]\u2022[/B][/COLOR]"
+    KO = u"[COLOR 0xFFC20000][B]\u2022[/B][/COLOR]"
 
     try:
         server_module = __import__('servers.%s' % server, None, None, ["servers.%s" % server])

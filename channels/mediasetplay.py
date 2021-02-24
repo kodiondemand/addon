@@ -174,27 +174,27 @@ def peliculas(item):
     for it in json:
         if item.search.lower() in it['title'].lower() and it['title'] not in titlelist:
             titlelist.append(it['title'])
-            if item.contentType == 'movie':
+            # if item.contentType == 'movie':
+            #     action = 'findvideos'
+            #     urls = []
+            #     if 'media' not in it: it = subBrand(it['mediasetprogram$brandId'])[-1]
+            #     if 'media' in it:
+            #         for key in it['media']:
+            #             urls.append(key['publicUrl'])
+            # elif item.contentType == 'tvshow':
+            #     action = 'epmenu'
+            #     urls = it['mediasetprogram$brandId']
+            # else:
+            if 'media' in it:
                 action = 'findvideos'
+                contentType = 'movie'
                 urls = []
-                if 'media' not in it: it = subBrand(it['mediasetprogram$brandId'])[-1]
-                if 'media' in it:
-                    for key in it['media']:
-                        urls.append(key['publicUrl'])
-            elif item.contentType == 'tvshow':
-                action = 'epmenu'
-                urls = it['mediasetprogram$brandId']
+                for key in it['media']:
+                    urls.append(key['publicUrl'])
             else:
-                if 'media' in it:
-                    action = 'findvideos'
-                    contentType = 'movie'
-                    urls = []
-                    for key in it['media']:
-                        urls.append(key['publicUrl'])
-                else:
-                    action = 'epmenu'
-                    contentType = 'tvshow'
-                    urls = it['mediasetprogram$brandId']
+                action = 'epmenu'
+                contentType = 'tvshow'
+                urls = it['mediasetprogram$brandId']
             if urls:
                 title = it['mediasetprogram$brandTitle'] + ' - ' if 'mediasetprogram$brandTitle' in it and it['mediasetprogram$brandTitle'] != it['title'] else ''
                 itemlist.append(
@@ -254,14 +254,14 @@ def episodios(item):
             for key in it['media']:
                 urls.append(key['publicUrl'])
         if urls:
-            title = it['title'].split('-')[-1].strip()
-            if it['tvSeasonNumber'] and it['tvSeasonEpisodeNumber'] and 'puntata del' not in title.lower():
-                item.infoLabels['season'] = it['tvSeasonNumber']
-                item.infoLabels['episode'] = it['tvSeasonEpisodeNumber']
-                episode = '%dx%02d - ' % (it['tvSeasonNumber'], it['tvSeasonEpisodeNumber'])
+            title = it['title']
+            # if it['tvSeasonNumber'] and it['tvSeasonEpisodeNumber'] and 'puntata del' not in title.lower():
+            #     item.infoLabels['season'] = it['tvSeasonNumber']
+            #     item.infoLabels['episode'] = it['tvSeasonEpisodeNumber']
+            #     episode = '%dx%02d - ' % (it['tvSeasonNumber'], it['tvSeasonEpisodeNumber'])
             itemlist.append(
                 item.clone(action='findvideos',
-                           title=support.typo(episode + title, 'bold'),
+                           title=support.typo(title, 'bold'),
                            contentType='episode',
                            thumbnail=it['thumbnails']['image_vertical-264x396']['url'] if 'image_vertical-264x396' in it['thumbnails'] else '',
                            fanart=it['thumbnails']['image_keyframe_poster-1280x720']['url'] if 'image_keyframe_poster-1280x720' in it['thumbnails'] else '',
@@ -271,9 +271,12 @@ def episodios(item):
                            year=it.get('year',''),
                            forcethumb=True,
                            no_return=True))
-    if episode:
-        itemlist = sorted(itemlist, key=lambda it: it.title)
-        support.videolibrary(itemlist, item)
+    # support.dbg()
+    if 'episodi' in item.title.lower() or 'puntate intere' in item.title.lower():
+        itemlist.reverse()
+    # if episode:
+    #     itemlist = sorted(itemlist, key=lambda it: it.title)
+    #     support.videolibrary(itemlist, item)
     return itemlist
 
 
@@ -304,7 +307,7 @@ def play(item):
                 data = support.match(sec_data, patron=r'<video src="([^"]+)').match
                 break
         else:
-            support.dbg()
+            # support.dbg()
             data = url
 
     return support.servertools.find_video_items(item, data=data)

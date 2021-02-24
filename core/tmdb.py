@@ -269,7 +269,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                         otmdb_global = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo_busqueda,
                                             idioma_busqueda=idioma_busqueda)
                     else:
-                        otmdb_global = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
+                        otmdb_global = Tmdb(texto_buscado=scrapertools.unescape(item.infoLabels['tvshowtitle']), tipo=tipo_busqueda,
                                             idioma_busqueda=idioma_busqueda, year=item.infoLabels['year'])
 
                     __leer_datos(otmdb_global)
@@ -381,7 +381,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     # do it by title
                     if tipo_busqueda == 'tv':
                         # Serial search by title and filtering your results if necessary
-                        otmdb = Tmdb(texto_buscado=item.infoLabels['tvshowtitle'], tipo=tipo_busqueda,
+                        otmdb = Tmdb(texto_buscado=scrapertools.unescape(item.infoLabels['tvshowtitle']), tipo=tipo_busqueda,
                                      idioma_busqueda=idioma_busqueda, filtro=item.infoLabels.get('filtro', {}),
                                      year=item.infoLabels['year'])
                     else:
@@ -389,7 +389,7 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                         # if item.infoLabels['year'] or item.infoLabels['filtro']:
                         # ...and year or filter
                         searched_title = item.contentTitle if item.contentTitle else item.fulltitle
-                        otmdb = Tmdb(texto_buscado=searched_title, tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
+                        otmdb = Tmdb(texto_buscado=scrapertools.unescape(searched_title), tipo=tipo_busqueda, idioma_busqueda=idioma_busqueda,
                                      filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
                     if otmdb is not None:
                         if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
@@ -481,7 +481,7 @@ def find_and_set_infoLabels(item):
 
     if not item.infoLabels.get("tmdb_id") or not item.infoLabels.get("tmdb_id")[0].isdigit():
         if not item.infoLabels.get("imdb_id"):
-            otmdb_global = Tmdb(texto_buscado=title, tipo=tipo_busqueda, year=item.infoLabels['year'])
+            otmdb_global = Tmdb(texto_buscado=scrapertools.unescape(title), tipo=tipo_busqueda, year=item.infoLabels['year'])
         else:
             otmdb_global = Tmdb(external_id=item.infoLabels.get("imdb_id"), external_source="imdb_id", tipo=tipo_busqueda)
     elif not otmdb_global or str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']:
@@ -528,14 +528,17 @@ def get_nfo(item, search_groups=False):
         path = filetools.join(config.get_data_path(), "settings_channels", item.channel + "_data.json")
         if filetools.exists(path): 
             g = jsontools.load(filetools.read(path)).get(RENUMBER,{}).get(item.fulltitle.strip(),{}).get(GROUP,'')
-            if g: return g + '\n'
+            if g:
+                if type(g) == list: g = ', '.join(g)
+                return g + '\n'
 
         groups = get_groups(item)
 
         if groups:
             Id = select_group(groups, item)
             if Id == 'original':
-                pass
+                info_nfo = ', '.join(item.infoLabels['url_scraper']) + "\n"
+                return info_nfo
             elif Id :
                 info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}\n'.format(item.infoLabels['tmdb_id'], Id)
                 return info_nfo

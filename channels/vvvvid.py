@@ -3,7 +3,7 @@
 # Canale per vvvvid
 # ----------------------------------------------------------
 import requests, sys, inspect
-from core import support, tmdb
+from core import jsontools, support, tmdb
 from platformcode import autorenumber, logger, config
 
 host = support.config.get_channel_url()
@@ -135,41 +135,35 @@ def peliculas(item):
 
 def episodios(item):
     itemlist = []
-    json_file = current_session.get(item.url, headers=headers, params=payload).json()
-    for i, block in enumerate(json_file['data']):
-        if len(json_file['data']) > 1:
-            prepend = str(i + 1) + 'x'
+    if item.episodes:
+        episodes = item.episodes
+        show_id = item.show_id 
+        season_id = item.season_id
+    else:
+        json_file = current_session.get(item.url, headers=headers, params=payload).json()['data']
+        if len(json_file) > 1:
+            for key in json_file:
+                itemlist.append(item.clone(title=support.typo(key['name'],'bold'), show_id = str(key['show_id']), season_id = str(key['season_id']), episodes = key['episodes']))
+            return itemlist
         else:
-            prepend = 'Episodio '
-        show_id = str(block['show_id'])
-        season_id = str(block['season_id'])
-        episodes = []
-        support.info('SEASON ID= ',season_id)
-        for episode in json_file['data']:
-            episodes.append(episode['episodes'])
-        for episode in episodes:
-            for key in episode:
-                if 'stagione' in encode(key['title']).lower():
-                    season = support.match(encode(key['title']), patron=r'[Ss]tagione\s*(\d+)').match
-                    episode = support.match(encode(key['title']), patron=r'[Ee]pisodio\s*(\d+)').match
-                    if season and episode:
-                        title = season + 'x' + episode + ' - ' + item.fulltitle
-                    make_item = True
-                elif int(key['season_id']) == int(season_id):
-                    try:
-                        title = prepend + key['number'] + ' - ' + key['title'].encode('utf8')
-                    except:
-                        title = prepend + key['number'] + ' - ' + key['title']
-                    make_item = True
-                else:
-                    make_item = False
-                if make_item == True:
-                    if type(title) == tuple: title = title[0]
-                    itemlist.append(
-                        item.clone(title = title,
-                                url=  host + show_id + '/season/' + str(key['season_id']),
-                                action= 'findvideos',
-                                video_id= key['video_id']))
+            episodes = json_file[0]['episodes']
+            show_id = str(json_file[0]['show_id'])
+            season_id = str(json_file[0]['season_id'])
+
+ 
+    for episode in episodes:
+        try:
+            title = 'Episodio ' + episode['number'] + ' - ' + episode['title'].encode('utf8')
+        except:
+            title = 'Episodio ' + episode['number'] + ' - ' + episode['title']
+
+        if type(title) == tuple: title = title[0]
+        itemlist.append(
+            item.clone(title = support.typo(title, 'bold'),
+                    url=  host + show_id + '/season/' + str(season_id),
+                    action= 'findvideos',
+                    video_id= episode['video_id']))
+
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
     if autorenumber.check(item) == True \

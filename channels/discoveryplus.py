@@ -143,7 +143,8 @@ def episodios(item):
 
     for key in pdict:
         if key['type'] == 'collection' and key.get('attributes',{}).get('component',{}).get('id', '') == 'tabbed-content':
-            mandatory = key['attributes']['component']['mandatoryParams']
+            mandatory = key['attributes']['component'].get('mandatoryParams','')
+            if not mandatory: return [support.Item(title='CONTENUTO PLUS')]
             for option in key['attributes']['component']['filters'][0]['options']:
                 url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}'.format(api, key['id'], mandatory, option['parameter'])
                 seasons = []

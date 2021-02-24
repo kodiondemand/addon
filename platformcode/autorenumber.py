@@ -184,6 +184,28 @@ class autorenumber():
         itemlist = find_episodes(self.item)
         busy(False)
 
+        if not self.group:
+            self.group = tmdb.get_nfo(self.item, search_groups=True)
+
+        if 'episode_group' in self.group:
+            seasons =[]
+            groupedSeasons = tmdb.get_group(self.group.replace('\n','').split('/')[-1])
+            for groupedSeason in groupedSeasons:
+                seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes'])})
+        else:
+            seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
+
+        count = 0
+
+        for season in seasons:
+            s = season['season_number']
+            c = season['episode_count']
+            self.seasonsdict[str(s)] = c
+            if s > 0:
+                for e in range(1, c + 1):
+                    count += 1
+                    self.epdict[count] = '{}x{:02d}'.format(s,e)
+
         if self.item.renumber or self.manual:
             self.item.renumber = False
             self.season, self.episode, self.manual, self.specials, Manual, Exit = SelectreNumeration(self, itemlist)
@@ -194,32 +216,6 @@ class autorenumber():
             self.episodes = Manual
 
         else:
-            if self.group:
-                Id = self.group.split('/')[-1]
-            else:
-                Id = None
-                groups = tmdb.get_groups(self.item)
-                if groups:
-                    Id = tmdb.select_group(groups, self.item)
-
-            if Id and Id != 'original':
-                self.group = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(self.item.infoLabels['tmdb_id'], Id)
-                seasons = []
-                groupedSeasons = tmdb.get_group(Id)
-                for groupedSeason in groupedSeasons:
-                    seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes'])})
-            else:
-                seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
-            count = 0
-            for season in seasons:
-                s = season['season_number']
-                c = season['episode_count']
-                self.seasonsdict[str(s)] = c
-                if s > 0:
-                    for e in range(1, c + 1):
-                        count += 1
-                        self.epdict[count] = '{}x{:02d}'.format(s,e)
-
             firstep = 0
             if self.season > 1:
                 for c in range(1, self.season):

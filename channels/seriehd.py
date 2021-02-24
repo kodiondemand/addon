@@ -31,7 +31,7 @@ def search(item, texto):
 
 
     item.contentType = 'tvshow'
-    item.url = host + "/search/" + texto
+    item.url = host + "/?s=" + texto
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore .

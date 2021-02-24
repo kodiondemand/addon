@@ -132,7 +132,7 @@ def SettingOnPosition(item):
 
 
 def select(item):
-	from core.support import dbg;dbg()
+	# from core.support import dbg;dbg()
 	from platformcode import config, platformtools
 	# item.id = setting ID
 	# item.type = labels or values
