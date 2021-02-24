@@ -122,7 +122,6 @@ def check_for_update(overwrite=True):
     update_when_finished = False
     hoy = datetime.date.today()
     estado_verify_playcount_series = False
-    local_ended = True
 
     try:
         if config.get_setting("update", "videolibrary") != 0 or overwrite:
@@ -132,18 +131,21 @@ def check_for_update(overwrite=True):
             p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), heading)
             p_dialog.update(0, '')
             show_list = []
+            show_ep_num = []
 
             for path, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
-                show_list.extend([filetools.join(path, f) for f in files if f == "tvshow.nfo"])
+                if 'tvshow.nfo' in files:
+                    show_list.extend([filetools.join(path, f) for f in files if f == "tvshow.nfo"])
+                    show_ep_num.append(len([f for f in files if f.endswith('.nfo') and f != 'tvshow.nfo']))
 
             if show_list:
                 t = float(100) / len(show_list)
 
             for i, tvshow_file in enumerate(show_list):
                 head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)
-                if serie.local_episodes_path:
-                    local_ended = True if serie.infoLabels['number_of_episodes'] == len(serie.local_episodes_list) else False
-                if serie.infoLabels['status'].lower() == 'ended' and local_ended:
+                ep_count = show_ep_num[i] + (len(serie.local_episodes_list) if serie.local_episodes_path else 0)
+                if serie.infoLabels['status'].lower() == 'ended' and \
+                        ep_count >= serie.infoLabels['number_of_episodes']:
                     serie.active = 0
                     filetools.write(tvshow_file, head_nfo + serie.tojson())
                 path = filetools.dirname(tvshow_file)
