@@ -7,11 +7,7 @@ from core import support
 import sys
 
 host = support.config.get_channel_url()
-
 headers = [['Referer', host]]
-
-
-
 
 
 @support.menu
@@ -68,7 +64,7 @@ def peliculas(item):
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
-    if item.action == 'search' and item.channel == 'toonitalia':
+    if item.action == 'search':
         pagination = ''
         #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
         patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
