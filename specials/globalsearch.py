@@ -750,6 +750,7 @@ def title_unify(title):
     import unicodedata
 
     u_title = ''
+    if type(title) == str: title = u'' + title
     for c in unicodedata.normalize('NFD', title):
         cat = unicodedata.category(c)
         if cat != 'Mn':

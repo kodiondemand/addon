@@ -70,7 +70,7 @@ def live(item):
     logger.debug()
     itemlist =[]
     for name, values in liveDict().items():
-        itemlist.append(item.clone(title=typo(name), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 

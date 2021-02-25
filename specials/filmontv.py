@@ -249,7 +249,7 @@ def live(item):
         itlist = [executor.submit(load_live, ch.channel) for ch in channels]
         for res in futures.as_completed(itlist):
             if res.result():
-                channel_name, itlist = res.rFesult()
+                channel_name, itlist = res.result()
                 channels_dict[channel_name] = itlist
 
     for ch in channels:
