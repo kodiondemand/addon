@@ -131,27 +131,26 @@ def check_for_update(overwrite=True):
             p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), heading)
             p_dialog.update(0, '')
             show_list = []
-            show_ep_num = []
+            # show_ep_num = []
 
             for path, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
                 if 'tvshow.nfo' in files:
                     show_list.extend([filetools.join(path, f) for f in files if f == "tvshow.nfo"])
-                    show_ep_num.append(len([f for f in files if f.endswith('.nfo') and f != 'tvshow.nfo']))
+                    # show_ep_num.append(len([f for f in files if f.endswith('.nfo') and f != 'tvshow.nfo']))
 
             if show_list:
                 t = float(100) / len(show_list)
 
             for i, tvshow_file in enumerate(show_list):
                 head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)
-                ep_count = show_ep_num[i] + (len(serie.local_episodes_list) if serie.local_episodes_path else 0)
-                if serie.infoLabels['status'].lower() == 'ended' and \
-                        ep_count >= serie.infoLabels['number_of_episodes']:
-                    serie.active = 0
-                    filetools.write(tvshow_file, head_nfo + serie.tojson())
+                # ep_count = show_ep_num[i] + (len(serie.local_episodes_list) if serie.local_episodes_path else 0)
+                # if serie.infoLabels['status'].lower() == 'ended' and \
+                #         ep_count >= serie.infoLabels['number_of_episodes']:
+                #     serie.active = 0
+                #     filetools.write(tvshow_file, head_nfo + serie.tojson())
                 path = filetools.dirname(tvshow_file)
 
                 logger.debug("serie=" + serie.contentSerieName)
-                p_dialog.update(int(math.ceil((i + 1) * t)), heading, serie.contentSerieName)
 
                 # Check the status of the series.library_playcounts of the Series in case it is incomplete
                 try:
@@ -179,7 +178,9 @@ def check_for_update(overwrite=True):
                         except:
                             logger.error(traceback.format_exc())
 
-                        continue
+                    continue
+
+                p_dialog.update(int(math.ceil((i + 1) * t)), heading, serie.contentSerieName)
 
                 # Obtain the update date and the next scheduled for this series
                 update_next = serie.update_next
