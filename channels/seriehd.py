@@ -76,7 +76,7 @@ def peliculas(item):
     else:
         action='episodios'
         # patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
-        patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+?)(?:\[(?P<lang>[^\]]*[IiTtAa]{3})\])?<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*(?:<img src="(?P<thumb>[^"]+)"[^>]+>)?(?:[^>]+>){0,2}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
+        patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+?)(?:\[(?P<lang>[sSuUbB\-IiTtAa]{3,7})\])?<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*(?:<img src="(?P<thumb>[^"]+)"[^>]+>)?(?:[^>]+>){0,2}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
         patronNext=r'next page-numbers" href="([^"]+)"'
 
     return locals()
