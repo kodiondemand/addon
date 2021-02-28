@@ -6149,7 +6149,7 @@ msgid "Notice Activation"
 msgstr ""
 
 msgctxt "#707406"
-msgid "By disabling the alert, you have activated a notice\nthat will appear at the top right in case of problems"
+msgid "By disabling the alert, you have activated a notice\nthat will appear at the top right"
 msgstr ""
 
 msgctxt "#707407"

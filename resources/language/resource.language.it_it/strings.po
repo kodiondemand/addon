@@ -6150,8 +6150,8 @@ msgid "Notice Activation"
 msgstr "Attivazione Notifica"
 
 msgctxt "#707406"
-msgid "By disabling the alert, you have activated a notice\nthat will appear at the top right in case of problems"
-msgstr "Disattivando l'avviso, hai attivato una notifica\nche apparirà in alto a dx in caso di problemi"
+msgid "By disabling the alert, you have activated a notice\nthat will appear at the top right"
+msgstr "Disattivando l'avviso, hai attivato una notifica\nche apparirà in alto a dx"
 
 msgctxt "#707407"
 msgid "For any change to the DNS you MUST restart Kodi!"

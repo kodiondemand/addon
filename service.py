@@ -448,6 +448,10 @@ class AddonMonitor(xbmc.Monitor):
 
 if __name__ == "__main__":
     logger.info('Starting KoD service')
+
+    # Test if all the required directories are created
+    config.verify_directories_created()
+
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
 
@@ -507,6 +511,10 @@ if __name__ == "__main__":
             xbmc.executebuiltin('CleanLibrary(video)')
             while xbmc.getCondVisibility('Library.IsScanningVideo()'):
                 xbmc.sleep(1000)
+
+    # check if the user has any connection problems
+    from platformcode.checkhost import test_conn
+    run_threaded(test_conn, (True, not config.get_setting('resolver_dns'), True, [], [], True))
 
     monitor = AddonMonitor()
 
