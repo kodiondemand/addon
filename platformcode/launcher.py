@@ -22,8 +22,14 @@ def start():
     logger.debug()
 
     if not config.dev_mode():
-        from platformcode import updater
-        updater.showSavedChangelog()
+        try:
+            with open(config.changelogFile, 'r') as fileC:
+                changelog = fileC.read()
+                if changelog.strip():
+                    platformtools.dialog_ok('Kodi on Demand', 'Aggiornamenti applicati:\n' + changelog)
+            os.remove(config.changelogFile)
+        except:
+            pass
 
 
 def run(item=None):
