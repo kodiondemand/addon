@@ -13,7 +13,6 @@ from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
 from core.item import Item
 from platformcode import config, logger, platformtools
-from distutils import dir_util
 if PY3:
     from concurrent import futures
 else:
@@ -605,6 +604,8 @@ def update_videolibrary(item=''):
 
 
 def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
+    from distutils import dir_util
+
     logger.debug()
 
     backup_current_path = current_path

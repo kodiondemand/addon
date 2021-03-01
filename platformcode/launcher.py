@@ -20,21 +20,17 @@ def start():
     functions that we want to execute as soon as we open the plugin.
     """
     logger.debug()
-    # config.set_setting('show_once', True)
-    # Test if all the required directories are created
-    config.verify_directories_created()
-    # check if the user has any connection problems
-    # if it has: it does not enter the addon
-    # if it has DNS problems start but let in
-    # if everything is ok: enter the addon
-
-    from platformcode.checkhost import test_conn
-    import threading
-    threading.Thread(target=test_conn, args=(True, not config.get_setting('resolver_dns'), True, [], [], True)).start()
 
     if not config.dev_mode():
-        from platformcode import updater
-        updater.showSavedChangelog()
+        try:
+            with open(config.changelogFile, 'r') as fileC:
+                changelog = fileC.read()
+                if changelog.strip():
+                    platformtools.dialog_ok('Kodi on Demand', 'Aggiornamenti applicati:\n' + changelog)
+            os.remove(config.changelogFile)
+        except:
+            pass
+
 
 def run(item=None):
     # from core.support import dbg;dbg()

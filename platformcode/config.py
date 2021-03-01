@@ -16,6 +16,8 @@ __version_fix = None
 __dev_mode = None
 
 channels_data = dict()
+changelogFile = xbmc.translatePath("special://profile/addon_data/plugin.video.kod/changelog.txt")
+
 
 def get_addon_core():
     return __settings__

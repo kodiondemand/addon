@@ -9,7 +9,6 @@ from platformcode import config, logger, platformtools
 import json
 import xbmc
 import re
-import xbmcaddon
 from lib import githash
 try:
     import urllib.request as urllib
@@ -18,7 +17,7 @@ except ImportError:
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
-addon = xbmcaddon.Addon('plugin.video.kod')
+addon = config.__settings__
 addonname = addon.getAddonInfo('name')
 
 _hdr_pat = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@.*")
@@ -29,7 +28,6 @@ repo = 'addon'
 addonDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 maxPage = 5  # le api restituiscono 30 commit per volta, quindi se si è rimasti troppo indietro c'è bisogno di andare avanti con le pagine
 trackingFile = "last_commit.txt"
-changelogFile = "special://profile/addon_data/plugin.video.kod/changelog.txt"
 
 
 def loadCommits(page=1):
@@ -106,7 +104,7 @@ def check(background=False):
                 patch_url = commitJson['html_url'] + '.patch'
                 logger.info('applicando ' + patch_url)
                 from lib import patch
-                patch.fromurl(patch_url).apply(root=addonDir)
+                patchOk = patch.fromurl(patch_url).apply(root=addonDir)
 
                 for file in commitJson['files']:
                     if file["filename"] == trackingFile:  # il file di tracking non si modifica
@@ -117,7 +115,7 @@ def check(background=False):
                             poFilesChanged = True
                         if 'service.py' in file["filename"]:
                             serviceChanged = True
-                        if (file['status'] == 'modified' and 'patch' not in file) or file['status'] == 'added':
+                        if (file['status'] == 'modified' and 'patch' not in file) or file['status'] == 'added' or (file['status'] == 'modified' and not patchOk):
                             # è un file NON testuale che è stato modificato, oppure è un file nuovo (la libreria non supporta la creazione di un nuovo file)
                             # lo devo scaricare
                             filename = os.path.join(addonDir, file['filename'])
@@ -162,7 +160,7 @@ def check(background=False):
             if background:
                 platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
                 try:
-                    with open(xbmc.translatePath(changelogFile), 'a+') as fileC:
+                    with open(config.changelogFile, 'a+') as fileC:
                         fileC.write(changelog)
                 except:
                     import traceback
@@ -173,17 +171,6 @@ def check(background=False):
         logger.info('Nessun nuovo aggiornamento')
 
     return updated, serviceChanged
-
-
-def showSavedChangelog():
-    try:
-        with open(xbmc.translatePath(changelogFile), 'r') as fileC:
-            changelog = fileC.read()
-            if changelog.strip():
-                platformtools.dialog_ok('Kodi on Demand', 'Aggiornamenti applicati:\n' + changelog)
-        os.remove(xbmc.translatePath(changelogFile))
-    except:
-        pass
 
 
 def calcCurrHash():
