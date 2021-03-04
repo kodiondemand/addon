@@ -3144,8 +3144,8 @@ msgid "Most Viewed"
 msgstr "Più Viste"
 
 msgctxt "#70078"
-msgid "Show links of "
-msgstr "Mostra link di "
+msgid "Show only links of "
+msgstr "Mostra solo link di "
 
 msgctxt "#70079"
 msgid "Delete channel "
