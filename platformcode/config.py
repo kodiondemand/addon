@@ -3,8 +3,7 @@
 # Configuration parameters (kodi)
 # ------------------------------------------------------------
 
-# from builtins import str
-import sys, os, re, xbmc, xbmcaddon
+import sys, os, xbmc, xbmcaddon
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -69,6 +68,7 @@ def get_platform(full_version=False):
             'plaform': (str) is made up of "kodi-" or "xbmc-" plus the version name as appropriate.
         If the full_version parameter is False (default) the value of the 'plaform' key from the previous dictionary is returned.
     """
+    import re
 
     ret = {}
     codename = {"10": "dharma", "11": "eden", "12": "frodo",

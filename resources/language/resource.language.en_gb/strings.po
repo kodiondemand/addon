@@ -3145,7 +3145,7 @@ msgid "Most Viewed"
 msgstr ""
 
 msgctxt "#70078"
-msgid "Show links of "
+msgid "Show only links of "
 msgstr ""
 
 msgctxt "#70079"

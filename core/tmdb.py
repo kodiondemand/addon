@@ -1454,7 +1454,14 @@ class Tmdb(object):
     def get_list_episodes(self):
         url = 'https://api.themoviedb.org/3/tv/{id}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, lang=self.busqueda_idioma)
         results = requests.get(url).json().get('seasons', [])
-        return results if 'Error' not in results else []
+        seasons = []
+        if results and 'Error' not in results:
+            for season in results:
+                url = 'https://api.themoviedb.org/3/tv/{id}/season/{season}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, season=season['season_number'], lang=self.busqueda_idioma)
+                try: start_from = requests.get(url).json()['episodes'][0]['episode_number']
+                except: start_from = 1
+                seasons.append({'season_number':season['season_number'], 'episode_count':season['episode_count'], 'start_from':start_from})
+        return seasons
 
     def get_videos(self):
         """
