@@ -307,7 +307,7 @@ def play(item):
                 data = support.match(sec_data, patron=r'<video src="([^"]+)').match
                 break
         else:
-            support.dbg()
+            # support.dbg()
             data = url
 
     return support.servertools.find_video_items(item, data=data)

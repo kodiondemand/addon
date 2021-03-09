@@ -104,7 +104,7 @@ def check(background=False):
                 patch_url = commitJson['html_url'] + '.patch'
                 logger.info('applicando ' + patch_url)
                 from lib import patch
-                patch.fromurl(patch_url).apply(root=addonDir)
+                patchOk = patch.fromurl(patch_url).apply(root=addonDir)
 
                 for file in commitJson['files']:
                     if file["filename"] == trackingFile:  # il file di tracking non si modifica
@@ -115,7 +115,7 @@ def check(background=False):
                             poFilesChanged = True
                         if 'service.py' in file["filename"]:
                             serviceChanged = True
-                        if (file['status'] == 'modified' and 'patch' not in file) or file['status'] == 'added':
+                        if (file['status'] == 'modified' and 'patch' not in file) or file['status'] == 'added' or (file['status'] == 'modified' and not patchOk):
                             # è un file NON testuale che è stato modificato, oppure è un file nuovo (la libreria non supporta la creazione di un nuovo file)
                             # lo devo scaricare
                             filename = os.path.join(addonDir, file['filename'])

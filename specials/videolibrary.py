@@ -13,7 +13,6 @@ from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
 from core.item import Item
 from platformcode import config, logger, platformtools
-from distutils import dir_util
 if PY3:
     from concurrent import futures
 else:
@@ -202,14 +201,14 @@ def configure_update_videolibrary(item):
 
     # Select Dialog
     ret = platformtools.dialog_multiselect(config.get_localized_string(60601), lista, preselect=preselect, useDetails=True)
-    if ret < 0:
+    if ret is None:
         return False  # order cancel
-    seleccionados = [ids[i] for i in ret]
+    selection = [ids[i] for i in ret]
 
     for tvshow in ids:
-        if tvshow not in seleccionados:
+        if tvshow not in selection:
             tvshow.active = 0
-        elif tvshow in seleccionados:
+        elif tvshow in selection:
             tvshow.active = 1
         mark_tvshow_as_updatable(tvshow, silent=True)
 
@@ -416,124 +415,129 @@ def findvideos(item):
             itemlist = []
 
     all_videolibrary = []
-    for nom_canal, json_path in list(list_canales.items()):
-        if filtro_canal and filtro_canal != nom_canal.capitalize():
-            continue
-
-        item_canal = Item()
-
-        # We import the channel of the selected part
-        try:
-            if nom_canal == 'community':
-                channel = __import__('specials.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
-            else:
-                channel = __import__('channels.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
-        except ImportError:
-            exec("import channels." + nom_canal + " as channel")
-        except:
-            dead_list = []
-            zombie_list = []
-
-            if nom_canal not in dead_list and nom_canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % nom_canal.upper() + '\n' + config.get_localized_string(30133))
-            elif nom_canal in zombie_list: confirm = False
-            else: confirm = True
-
-            if confirm:
-                # delete the channel from all movie and tvshow
-                from past.utils import old_div
-                num_enlaces = 0
-                dialog = platformtools.dialog_progress(config.get_localized_string(30131), config.get_localized_string(60005) % nom_canal)
-                if not all_videolibrary:
-                    all_videolibrary = list_movies(Item()) + list_tvshows(Item())
-                for n, it in enumerate(all_videolibrary):
-                    if nom_canal in it.library_urls:
-                        dead_item = Item(multichannel=len(it.library_urls) > 1,
-                                         contentType=it.contentType,
-                                         dead=nom_canal,
-                                         path=filetools.split(it.nfo)[0],
-                                         nfo=it.nfo,
-                                         library_urls=it.library_urls,
-                                         infoLabels={'title': it.contentTitle})
-                        num_enlaces += delete(dead_item)
-                    dialog.update(old_div(100*n, len(all_videolibrary)))
-
-                dialog.close()
-                msg_txt = config.get_localized_string(70087) % (num_enlaces, nom_canal)
-                logger.info(msg_txt)
-                platformtools.dialog_notification(config.get_localized_string(30131), msg_txt)
-                platformtools.itemlist_refresh()
-
-                if nom_canal not in dead_list:
-                    dead_list.append(nom_canal)
+    ch_results = []
+    with futures.ThreadPoolExecutor() as executor:
+        for nom_canal, json_path in list(list_canales.items()):
+            if filtro_canal and filtro_canal != nom_canal.capitalize():
                 continue
-            else:
-                if nom_canal not in zombie_list:
-                    zombie_list.append(nom_canal)
 
-            if len(dead_list) > 0:
-                for nom_canal in dead_list:
-                    if nom_canal in item.library_urls:
-                        del item.library_urls[nom_canal]
+            # We import the channel of the selected part
+            try:
+                if nom_canal == 'community':
+                    channel = __import__('specials.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
+                else:
+                    channel = __import__('channels.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
+            except ImportError:
+                exec("import channels." + nom_canal + " as channel")
+            except:
+                dead_list = []
+                zombie_list = []
 
-        item_json = Item().fromjson(filetools.read(json_path))
-        list_servers = []
+                if nom_canal not in dead_list and nom_canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % nom_canal.upper() + '\n' + config.get_localized_string(30133))
+                elif nom_canal in zombie_list: confirm = False
+                else: confirm = True
 
-        try:
-            # FILTERTOOLS
-            # if the channel has a filter, the name it has saved is passed to it so that it filters correctly.
-            if "list_language" in item_json:
-                # if it comes from the addon video library
-                if "library_filter_show" in item:
-                    item_json.show = item.library_filter_show.get(nom_canal, "")
+                if confirm:
+                    # delete the channel from all movie and tvshow
+                    from past.utils import old_div
+                    num_enlaces = 0
+                    dialog = platformtools.dialog_progress(config.get_localized_string(30131), config.get_localized_string(60005) % nom_canal)
+                    if not all_videolibrary:
+                        all_videolibrary = list_movies(Item()) + list_tvshows(Item())
+                    for n, it in enumerate(all_videolibrary):
+                        if nom_canal in it.library_urls:
+                            dead_item = Item(multichannel=len(it.library_urls) > 1,
+                                             contentType=it.contentType,
+                                             dead=nom_canal,
+                                             path=filetools.split(it.nfo)[0],
+                                             nfo=it.nfo,
+                                             library_urls=it.library_urls,
+                                             infoLabels={'title': it.contentTitle})
+                            num_enlaces += delete(dead_item)
+                        dialog.update(old_div(100*n, len(all_videolibrary)))
 
-            # We run find_videos, from the channel or common
-            item_json.contentChannel = 'videolibrary'
-            item_json.play_from = item.play_from
-            item_json.nfo = item.nfo
-            item_json.strm_path = item.strm_path
-            if hasattr(channel, 'findvideos'):
-                from core import servertools
-                if item_json.videolibray_emergency_urls:
-                    del item_json.videolibray_emergency_urls
-                list_servers = getattr(channel, 'findvideos')(item_json)
-            elif item_json.action == 'play':
-                from platformcode import platformtools
-                # autoplay.set_status(True)
-                item_json.contentChannel = item_json.channel
-                item_json.channel = "videolibrary"
-                platformtools.play_video(item_json)
-                return ''
-            else:
-                from core import servertools
-                list_servers = servertools.find_video_items(item_json)
-        except Exception as ex:
-            logger.error("The findvideos function for the channel %s failed" % nom_canal)
-            template = "An exception of type %s occured. Arguments:\n%r"
-            message = template % (type(ex).__name__, ex.args)
-            logger.error(message)
-            logger.error(traceback.format_exc())
+                    dialog.close()
+                    msg_txt = config.get_localized_string(70087) % (num_enlaces, nom_canal)
+                    logger.info(msg_txt)
+                    platformtools.dialog_notification(config.get_localized_string(30131), msg_txt)
+                    platformtools.itemlist_refresh()
 
-        # Change the title to the servers adding the name of the channel in front and the infoLabels and the images of the item if the server does not have
-        for server in list_servers:
-            server.contentChannel = server.channel
-            server.channel = "videolibrary"
-            server.nfo = item.nfo
-            server.strm_path = item.strm_path
-            server.play_from = item.play_from
+                    if nom_canal not in dead_list:
+                        dead_list.append(nom_canal)
+                    continue
+                else:
+                    if nom_canal not in zombie_list:
+                        zombie_list.append(nom_canal)
 
-            # Kodi 18 Compatibility - Prevents wheel from spinning around in Direct Links
-            if server.action == 'play':
-                server.folder = False
+                if len(dead_list) > 0:
+                    for nom_canal in dead_list:
+                        if nom_canal in item.library_urls:
+                            del item.library_urls[nom_canal]
 
-            # Channel name is added if desired
-            if config.get_setting("quit_channel_name", "videolibrary") == 0:
-                server.title = "%s: %s" % (nom_canal.capitalize(), server.title)
+            item_json = Item().fromjson(filetools.read(json_path))
+            list_servers = []
 
-            if not server.thumbnail:
-                server.thumbnail = item.thumbnail
+            try:
+                # FILTERTOOLS
+                # if the channel has a filter, the name it has saved is passed to it so that it filters correctly.
+                if "list_language" in item_json:
+                    # if it comes from the addon video library
+                    if "library_filter_show" in item:
+                        item_json.show = item.library_filter_show.get(nom_canal, "")
 
-            # logger.debug("server:\n%s" % server.tostring('\n'))
-            itemlist.append(server)
+                # We run find_videos, from the channel or common
+                item_json.contentChannel = 'videolibrary'
+                item_json.play_from = item.play_from
+                item_json.nfo = item.nfo
+                item_json.strm_path = item.strm_path
+                if hasattr(channel, 'findvideos'):
+                    from core import servertools
+                    if item_json.videolibray_emergency_urls:
+                        del item_json.videolibray_emergency_urls
+                    ch_results.append(executor.submit(getattr(channel, 'findvideos'), item_json))
+                elif item_json.action == 'play':
+                    from platformcode import platformtools
+                    # autoplay.set_status(True)
+                    item_json.contentChannel = item_json.channel
+                    item_json.channel = "videolibrary"
+                    platformtools.play_video(item_json)
+                    return ''
+                else:
+                    from core import servertools
+                    ch_results.append(executor.submit(servertools.find_video_items, item_json))
+
+            except Exception as ex:
+                logger.error("The findvideos function for the channel %s failed" % nom_canal)
+                template = "An exception of type %s occured. Arguments:\n%r"
+                message = template % (type(ex).__name__, ex.args)
+                logger.error(message)
+                logger.error(traceback.format_exc())
+
+        for ris in futures.as_completed(ch_results):
+            list_servers.extend(ris.result())
+
+
+    # Change the title to the servers adding the name of the channel in front and the infoLabels and the images of the item if the server does not have
+    for server in list_servers:
+        server.contentChannel = server.channel
+        server.channel = "videolibrary"
+        server.nfo = item.nfo
+        server.strm_path = item.strm_path
+        server.play_from = item.play_from
+
+        # Kodi 18 Compatibility - Prevents wheel from spinning around in Direct Links
+        if server.action == 'play':
+            server.folder = False
+
+        # Channel name is added if desired
+        if config.get_setting("quit_channel_name", "videolibrary") == 0:
+            server.title = "%s: %s" % (server.contentChannel.capitalize(), server.title)
+
+        if not server.thumbnail:
+            server.thumbnail = item.thumbnail
+
+        # logger.debug("server:\n%s" % server.tostring('\n'))
+        itemlist.append(server)
 
     if autoplay.play_multi_channel(item, itemlist):  # hideserver
         return []
@@ -605,6 +609,8 @@ def update_videolibrary(item=''):
 
 
 def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
+    from distutils import dir_util
+
     logger.debug()
 
     backup_current_path = current_path

@@ -20,11 +20,17 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("URL", page_url)
     video_urls = []
 
-    h = json.loads(support.match(data, patron='stream="([^"]+)"').match.replace('&quot;','"').replace('\\',''))
-    baseurl = h['host'] + h['hash']
+    h = json.loads(support.match(data, patron='stream="([^"]+)"').match.replace('&quot;','"'))
+    baseurl = decode(h['host']) + h['hash']
     matches = support.match(baseurl + '/index.m3u8', patron=r'RESOLUTION=\d+x(\d+)\s*([^\s]+)').matches
 
     for quality, url in matches:
         video_urls.append(["{} {}p [NinjaStream]".format(url.split('.')[-1], quality), '{}/{}'.format(baseurl, url)])
 
     return video_urls
+
+def decode(host):
+    Host = ''
+    for n in range(len(host)):
+        Host += chr(ord(host[n]) ^ ord('2'))
+    return Host

@@ -2017,7 +2017,7 @@ msgid "Yes, the option to display merged or split results by channels can be fou
 msgstr ""
 
 msgctxt "#60467"
-msgid "To report a problem on'https://t.me/kodiondemand' you need to:|the version you're using of Alpha.|The version you're using of Kodi, mediaserver, etc.|the version and name of the operating system you're using.|The name of the skin (in case you're using Kodi) and whether using the default skin has solved the problem.|Description of the problem and any test cases.To activate the log in detailed mode, go to:|Configuration.|Preferences.|In the General tab - Check the option: Generate detailed log. The detailed log file can be found in the following path: \n\n%s"
+msgid "To report a problem on'https://t.me/kodiondemand' you need to:|the version you're using of Alpha.|The version you're using of Kodi, mediaserver, etc.|the version and name of the operating system you're using.|The name of the skin (in case you're using Kodi) and whether using the default skin has solved the problem.|Description of the problem and any test cases.To activate the log in detailed mode, go to:|Configuration.|Preferences.|In the General tab - Check the option: Generate detailed log. The detailed log file can be found in the following path: \n\n%s"
 msgstr ""
 
 msgctxt "#60468"

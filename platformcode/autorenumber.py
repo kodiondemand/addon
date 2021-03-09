@@ -191,20 +191,20 @@ class autorenumber():
             seasons =[]
             groupedSeasons = tmdb.get_group(self.group.replace('\n','').split('/')[-1])
             for groupedSeason in groupedSeasons:
-                seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes'])})
+                seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes']), 'start_from':groupedSeason['episodes'][0]['episode_number']})
         else:
             seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
 
         count = 0
-
         for season in seasons:
             s = season['season_number']
             c = season['episode_count']
+            fe = season['start_from']
             self.seasonsdict[str(s)] = c
             if s > 0:
                 for e in range(1, c + 1):
                     count += 1
-                    self.epdict[count] = '{}x{:02d}'.format(s,e)
+                    self.epdict[count] = '{}x{:02d}'.format(s, e + fe - 1)
 
         if self.item.renumber or self.manual:
             self.item.renumber = False

@@ -12,9 +12,9 @@
     <controls>
         <control type="group">
             <description>Container</description>
-            <left>200</left>
+            <left>40</left>
             <top>60</top>
-            <width>860</width>
+            <width>1200</width>
             <height>600</height>
             <control type="image">
                 <description>Background</description>
@@ -22,49 +22,56 @@
                 <height>100%</height>
                 <texture colordiffuse="FF232323">white.png</texture>
             </control>
+            <control type="image">
+                <description>Poster</description>
+                <top>0</top>
+                <left>0</left>
+                <height>600</height>
+                <width>400</width>
+                <texture>$INFO[Container(2).ListItem.Property(thumb)]</texture>
+            </control>
             <control type="textbox" id="1">
                 <description>Heading</description>
                 <top>0</top>
-                <left>0</left>
-                <height>60</height>
-                <width>100%</width>
+                <left>460</left>
+                <height>80</height>
+                <width>680</width>
                 <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
-                <align>center</align>
+                <align>left</align>
                 <aligny>center</aligny>
                 <label></label>
             </control>
             <control type="group">
-                <left>30</left>
-                <top>70</top>
-                <width>795</width>
-                <height>530</height>
+                <left>440</left>
+                <top>80</top>
+                <width>720</width>
+                <height>480</height>
                 <control type="list" id="2">
 					<description>List</description>
 					<left>0</left>
 					<top>0</top>
-					<width>795</width>
+					<width>720</width>
 					<height>530</height>
 					<onup>100</onup>
                     <onright>4</onright>
 					<orientation>vertical</orientation>
 					<scrolltime>200</scrolltime>
-					<pagecontrol>4</pagecontrol>
-					<itemlayout height="150" width="795">
+					<itemlayout height="60" width="720">
 						<control type="textbox">
 							<description>Selected Item</description>
 							<left>20</left>
-							<top>20</top>
-							<width>765</width>
-							<height>110</height>
+							<top>0</top>
+							<width>680</width>
+							<height>60</height>
 							<font>font13</font>
 							<textcolor>FFFFFFFF</textcolor>
-							<label>$INFO[ListItem.Property(title)]</label>
-							<align>center</align>
+							<label>[B]$INFO[ListItem.Property(title)][/B] $ADDON[plugin.video.kod 30140]: $INFO[ListItem.Property(seasons)] $ADDON[plugin.video.kod 70362]: $INFO[ListItem.Property(episodes)]</label>
+							<align>left</align>
 							<aligny>center</aligny>
 						</control>
 					</itemlayout>
-					<focusedlayout height="150" width="795">
+					<focusedlayout height="200" width="720">
 						<control type="image">
 							<top>1</top>
 							<width>100%</width>
@@ -75,39 +82,22 @@
 							<description>Selected Item</description>
 							<left>20</left>
 							<top>20</top>
-							<width>765</width>
-							<height>110</height>
+							<width>680</width>
+							<height>160</height>
 							<font>font13</font>
 							<textcolor>FFFFFFFF</textcolor>
-							<label>$INFO[ListItem.Property(title)]</label>
+							<label>[B]$INFO[ListItem.Property(title)][/B] $ADDON[plugin.video.kod 30140]: $INFO[ListItem.Property(seasons)] $ADDON[plugin.video.kod 70362]: $INFO[ListItem.Property(episodes)]$INFO[ListItem.Property(description)]</label>
                             <autoscroll time="3000" delay="3000" repeat="3000">True</autoscroll>
-							<align>center</align>
+							<align>left</align>
 							<aligny>center</aligny>
 						</control>
 					</focusedlayout>
 				</control>
-                <control type="scrollbar" id="4">
-                    <description>Scrollbar</description>
-                    <left>800</left>
-                    <top>0</top>
-                    <width>5</width>
-                    <height>470</height>
-                    <visible>true</visible>
-                    <texturesliderbackground colordiffuse="FF232323">white.png</texturesliderbackground>
-                    <texturesliderbar colordiffuse="FFFFFFFF">white.png</texturesliderbar>
-                    <texturesliderbarfocus colordiffuse="FF0081C2">white.png</texturesliderbarfocus>
-                    <textureslidernib colordiffuse="FFFFFFFF">white.png</textureslidernib>
-                    <textureslidernibfocus colordiffuse="FFFFFFFF">white.png</textureslidernibfocus>
-                    <orientation>vertical</orientation>
-                    <showonepage>false</showonepage>
-                    <onleft>2</onleft>
-                    <onright>3</onright>
-                </control>
             </control>
             <control type="button" id="100">
                     <description>Close Button</description>
                     <right>20</right>
-                    <top>10</top>
+                    <top>20</top>
                     <width>40</width>
                     <height>40</height>
                     <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>

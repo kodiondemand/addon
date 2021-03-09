@@ -1,10 +1,9 @@
 {
   "active": true,
   "find_videos": {
-    "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "ninjastream.to/(?:watch/)?([0-9a-zA-Z]+)",
+        "pattern": "ninjastream\\.to/(?:watch|download)/([0-9a-zA-Z]+)",
         "url": "https://ninjastream.to/watch/\\1"
       }
     ]

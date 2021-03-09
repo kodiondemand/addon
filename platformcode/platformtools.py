@@ -239,9 +239,14 @@ def dialog_select_group(heading, _list, preselect=0):
         def onInit(self):
             self.getControl(1).setText(self.heading)
             itemlist = []
-            for n, text in enumerate(self.list):
+            for n, it in enumerate(self.list):
+                logger.debug(it)
                 item = xbmcgui.ListItem(str(n))
-                item.setProperty('title', text)
+                item.setProperty('title', it[0])
+                item.setProperty('seasons', str(it[1]))
+                item.setProperty('episodes', str(it[2]))
+                item.setProperty('description', '\n' + it[3])
+                item.setProperty('thumb', it[4])
                 itemlist.append(item)
 
             self.getControl(2).addItems(itemlist)
@@ -441,13 +446,13 @@ def set_view_mode(item, parent_item):
 def set_infolabels(listitem, item, player=False):
     """
     Method to pass the information to the listitem (see tmdb.set_InfoLabels())
-    item.infoLabels is a dictionary with the key / value pairs described in:
-    http://mirrors.xbmc.org/docs/python-docs/14.x-helix/xbmcgui.html#ListItem-setInfo
-    https://kodi.wiki/view/InfoLabels
-    @param listitem: xbmcgui.ListItem object
-    @type listitem: xbmcgui.ListItem
-    @param item: Item object that represents a movie, series or chapter
-    @type item: item
+    item.infoLabels is a dictionary with the key / value pairs described in:
+    http://mirrors.xbmc.org/docs/python-docs/14.x-helix/xbmcgui.html#ListItem-setInfo
+    https://kodi.wiki/view/InfoLabels
+    @param listitem: xbmcgui.ListItem object
+    @type listitem: xbmcgui.ListItem
+    @param item: Item object that represents a movie, series or chapter
+    @type item: item
     """
 
     infoLabels_dict = {'aired': 'aired', 'album': 'album', 'artist': 'artist', 'cast': 'cast',
@@ -482,31 +487,30 @@ def set_infolabels(listitem, item, player=False):
 def set_context_commands(item, item_url, parent_item, **kwargs):
     """
     Function to generate context menus.
-        1. Based on the data in item.context
-            a. Old method item.context type str separating options by "|" (example: item.context = "1 | 2 | 3")
-                (only predefined)
-            b. List method: item.context is a list with the different menu options:
-                - Predefined: A predefined option will be loaded with a name.
-                    item.context = ["1", "2", "3"]
+        1. Based on the data in item.context
+            a. Old method item.context type str separating options by "|" (example: item.context = "1 | 2 | 3")
+                (only predefined)
+            b. List method: item.context is a list with the different menu options:
+                - Predefined: A predefined option will be loaded with a name.
+                    item.context = ["1", "2", "3"]
 
-                - dict (): The current item will be loaded modifying the fields included in the dict () in case of
-                    modify the channel and action fields these will be saved in from_channel and from_action.
-                    item.context = [{"title": "Name of the menu", "action": "action of the menu", "channel": "menu channel"}, {...}]
+                - dict (): The current item will be loaded modifying the fields included in the dict () in case of
+                    modify the channel and action fields these will be saved in from_channel and from_action.
+                    item.context = [{"title": "Name of the menu", "action": "action of the menu", "channel": "menu channel"}, {...}]
 
-        2. Adding options according to criteria
-            Options can be added to the context menu to items that meet certain conditions.
+        2. Adding options according to criteria
+            Options can be added to the context menu to items that meet certain conditions.
 
+        3. Adding options to all items
+            Options can be added to the context menu for all items
 
-        3. Adding options to all items
-            Options can be added to the context menu for all items
+        4. You can disable the context menu options by adding a command 'no_context' to the item.context.
+            The options that Kodi, the skin or another added add to the contextual menu cannot be disabled.
 
-        4. You can disable the context menu options by adding a command 'no_context' to the item.context.
-            The options that Kodi, the skin or another added add to the contextual menu cannot be disabled.
-
-    @param item: element that contains the contextual menus
-    @type item: item
-    @param parent_item:
-    @type parent_item: item
+    @param item: element that contains the contextual menus
+    @type item: item
+    @param parent_item:
+    @type parent_item: item
     """
     context_commands = []
     # num_version_xbmc = config.get_platform(True)['num_version']
@@ -821,9 +825,9 @@ def show_channel_settings(**kwargs):
 def show_video_info(*args, **kwargs):
     """
     It shows a window with the info of the video.
-    The parameters passed to it can be seen in the method that is called
+    The parameters passed to it can be seen in the method that is called
 
-    @return: returns the window with the elements
+    @return: returns the window with the elements
     @rtype: InfoWindow
     """
 
@@ -1420,6 +1424,7 @@ def get_played_time(item):
     logger.debug()
     from core import db
 
+    played_time = 0
     if not item.infoLabels:
         return 0
     ID = item.infoLabels.get('tmdb_id', '')
@@ -1430,13 +1435,18 @@ def get_played_time(item):
     E = item.infoLabels.get('episode')
     result = None
 
-    if item.contentType == 'movie':
-        result = db['viewed'].get(ID)
-    elif S and E:
-        result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
+    try:
+        if item.contentType == 'movie':
+            result = db['viewed'].get(ID)
+        elif S and E:
+            result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
 
-    if not result: played_time = 0
-    else: played_time = result
+        if result:
+            played_time = result
+    except:
+        import traceback
+        logger.error(traceback.format_exc())
+        del db['viewed'][ID]
 
     return played_time
 
@@ -1456,13 +1466,17 @@ def set_played_time(item):
     S = item.infoLabels.get('season', 0)
     E = item.infoLabels.get('episode')
 
-
-    if item.contentType == 'movie':
-        db['viewed'][ID] = played_time
-    elif E:
-        newDict = db['viewed'].get(ID, {})
-        newDict[str(S) + 'x' + str(E)] = played_time
-        db['viewed'][ID] = newDict
+    try:
+        if item.contentType == 'movie':
+            db['viewed'][ID] = played_time
+        elif E:
+            newDict = db['viewed'].get(ID, {})
+            newDict[str(S) + 'x' + str(E)] = played_time
+            db['viewed'][ID] = newDict
+    except:
+        import traceback
+        logger.error(traceback.format_exc())
+        del db['viewed'][ID]
 
 
 def prevent_busy(item):

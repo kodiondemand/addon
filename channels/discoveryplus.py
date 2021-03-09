@@ -10,14 +10,7 @@ typo = support.typo
 session = requests.Session()
 host = support.config.get_channel_url()
 
-def getToken():
-    token = config.get_setting('token', 'discoveryplus', None)
-    if not token:
-        token = session.get('https://disco-api.discoveryplus.it/token?realm=dplayit').json()['data']['attributes']['token']
-        config.set_setting('token', token, 'discoveryplus')
-    return token
-
-token = getToken()
+token = session.get('https://disco-api.discoveryplus.it/token?realm=dplayit').json()['data']['attributes']['token']
 
 api = "https://disco-api.discoveryplus.it"
 headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
@@ -70,7 +63,7 @@ def live(item):
     logger.debug()
     itemlist =[]
     for name, values in liveDict().items():
-        itemlist.append(item.clone(title=typo(name), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 

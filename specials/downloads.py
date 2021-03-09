@@ -477,15 +477,15 @@ def get_server_position(server):
 def get_match_list(data, match_list, order_list=None, only_ascii=False, ignorecase=False):
     """
     Search for matches in a text string, with a dictionary of "ID" / "List of search strings":
-    {"ID1": ["String 1", "String 2", "String 3"],
-      "ID2": ["String 4", "String 5", "String 6"]
-    }
+    {"ID1": ["String 1", "String 2", "String 3"],
+      "ID2": ["String 4", "String 5", "String 6"]
+    }
 
-    The dictionary could not contain the same search string in several IDs.
-    The search is performed in order of search string size (from longest to shortest) if a string matches,
-    it is removed from the search string for the following, so that two categories are not detected if one string is part of another:
-    for example: "Spanish Language" and "Spanish" if the first appears in the string "Pablo knows how to speak the Spanish Language"
-    It will match "Spanish Language" but not "Spanish" since the longest match has priority.
+    The dictionary could not contain the same search string in several IDs.
+    The search is performed in order of search string size (from longest to shortest) if a string matches,
+    it is removed from the search string for the following, so that two categories are not detected if one string is part of another:
+    for example: "Spanish Language" and "Spanish" if the first appears in the string "Pablo knows how to speak the Spanish Language"
+    It will match "Spanish Language" but not "Spanish" since the longest match has priority.
 
     """
     match_dict = dict()

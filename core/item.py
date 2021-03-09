@@ -350,7 +350,7 @@ class Item(object):
     def fromurl(self, url):
         """
         Generate an item from a text string. The string can be created by the tourl () function or have
-        the old format: plugin: //plugin.video.kod/? channel = ... (+ other parameters)
+        the old format: plugin: //plugin.video.kod/? channel = ... (+ other parameters)
         Use: item.fromurl("string")
 
         @param url: url

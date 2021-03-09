@@ -12,10 +12,10 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     global data
     data = httptools.downloadpage(page_url, cookies=False).data
-    if 'Video embed restricted for this domain'in data:
-        headers = {'Referer':''}
+    if 'Video embed restricted for this domain' in data:
+        headers = {'Referer': ''}
         data = httptools.downloadpage(page_url, headers=headers, cookies=False).data
-    if 'File is no longer available as it expired or has been deleted' in data:
+    if 'File is no longer available as it expired or has been deleted' in data or 'fake-' in data:
         return False, config.get_localized_string(70449) % "SuperVideo"
 
     return True, ""

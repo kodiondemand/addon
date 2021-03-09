@@ -544,7 +544,7 @@
   episode:
   - 1
   - 7
-  episode_title: FooBar-Group  # Make sure it doesn't conflict with uuid
+  episode_title: FooBar-Group  # Make sure it doesn't conflict with uuid
   season: 1
   title: Test
   type: episode

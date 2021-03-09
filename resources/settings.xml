@@ -90,7 +90,7 @@
         <setting id="search_channels" type="action" label="59994" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWxfbmV3IiwNCiAgICAiY2hhbm5lbCI6InNlYXJjaCINCn0=)"/>
         <setting label="70154" type="lsep"/>
         <setting id="tmdb_active" default="true" visible="false"/>
-        <setting id="tmdb_threads" type="slider" option="int" range="5,5,30" label="70155" default="20"/>
+<!--        <setting id="tmdb_threads" type="slider" option="int" range="5,5,30" label="70155" default="20"/>-->
         <setting id="tmdb_plus_info" type="bool" label="70156" default="false"/>
         <setting id="tmdb_cache" type="bool" label="70157" default="true"/>
         <setting id="tmdb_cache_expire" type="select" lvalues="70158|70159|70160|70161|70170" label="70162" enable="eq(-1,true)" default="4"/>

@@ -5,15 +5,9 @@
 
 from core import support
 import sys
-if sys.version_info[0] >= 3: from concurrent import futures
-else: from concurrent_py2 import futures
 
 host = support.config.get_channel_url()
-
 headers = [['Referer', host]]
-
-
-
 
 
 @support.menu
@@ -33,22 +27,10 @@ def search(item, text):
     support.info(text)
     # item.args='search'
     item.text = text
-    itemlist = []
-    itlist = []
+    item.url = item.url + '/?%73=' + text.replace(' ', '+')
 
     try:
-        # item.url = host + '/lista-serie-tv/'
-        # item.contentType = 'tvshow'
-        # itemlist += peliculas(item)
-        with futures.ThreadPoolExecutor() as executor:
-            for par in [['/serie-tv/', 'tvshow', ''],['/anime/', 'tvshow', ''], ['/-anime-sub-ita/', 'tvshow', 'sub'], ['/film-animazione/', 'movie', '']]:
-                item.url = host + par[0]
-                item.contentType = par[1]
-                item.args = par[2]
-                itlist.append(executor.submit(peliculas, item))
-            for res in futures.as_completed(itlist):
-                itemlist += res.result()
-        return itemlist
+        return peliculas(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -75,21 +57,26 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    search = item.text
+    # debugBlock = True
+    # debug = True
+    # search = item.text
     if item.contentType != 'movie': anime = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
-    if search:
+    if item.action == 'search':
         pagination = ''
-        patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
-        patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
+        #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
+        patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
+        #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+><div'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src(?:set)?="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
-        patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
+        # patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:[Ff]ilm|</art|Serie Tv))'
         typeContentDict={'movie':['film']}
         typeActionDict={'findvideos':['film']}
         patronNext = '<a class="next page-numbers" href="([^"]+)">'

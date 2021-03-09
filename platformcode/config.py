@@ -170,13 +170,13 @@ def enable_disable_autorun(is_enabled):
         set_setting('autostart', True)
     return True
 
+
 def get_all_settings_addon():
     # Read the settings.xml file and return a dictionary with {id: value}
     from core import scrapertools
 
-    infile = open(os.path.join(get_data_path(), "settings.xml"), "r")
-    data = infile.read()
-    infile.close()
+    with open(os.path.join(get_data_path(), "settings.xml"), "rb") as infile:
+        data = infile.read().decode('utf-8')
 
     ret = {}
     matches = scrapertools.find_multiple_matches(data, '<setting id=\"([^\"]+)\"[^>]*>([^<]*)</setting>')

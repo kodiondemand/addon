@@ -134,8 +134,8 @@ def run(item=None):
 
         elif item.action == "script":
             from core import tmdb
-            if tmdb.drop_bd():
-                platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(60011), time=2000, sound=False)
+            tmdb.clean_cache()
+            platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(60011), time=2000, sound=False)
         elif item.action == "itemInfo":
             platformtools.dialog_textviewer('Item info', item.parent)
         elif item.action == "open_browser":
@@ -332,7 +332,7 @@ def run(item=None):
                 platformtools.dialog_ok(config.get_localized_string(60087) % Channel, config.get_localized_string(60014))
         else:
             if platformtools.dialog_yesno(config.get_localized_string(60038), config.get_localized_string(60015)):
-                run(Item(channel="setting", action="report_menu"))
+                platformtools.itemlist_update(Item(channel="setting", action="report_menu"), True)
     finally:
         # db need to be closed when not used, it will cause freezes
         from core import db

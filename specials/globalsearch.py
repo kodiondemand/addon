@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import xbmc, xbmcgui, sys, channelselector, time, os
+from core import support
 from core.support import dbg, tmdb
 from core.item import Item
 from core import channeltools, servertools, scrapertools
@@ -8,8 +9,12 @@ from platformcode import platformtools, config, logger
 from platformcode.launcher import run
 from threading import Thread
 
-if sys.version_info[0] >= 3: from concurrent import futures
-else: from concurrent_py2 import futures
+if sys.version_info[0] >= 3:
+    PY3 = True
+    from concurrent import futures
+else:
+    PY3 = False
+    from concurrent_py2 import futures
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -75,17 +80,14 @@ class SearchWindow(xbmcgui.WindowXML):
         self.channels = []
         self.persons = []
         self.episodes = []
-        self.servers = []
         self.results = {}
         self.focus = SEARCH
-        self.process = True
         self.page = 1
         self.moduleDict = moduleDict
         self.searchActions = searchActions
         self.thread = None
         self.selected = False
         self.pos = 0
-        selfeppos = 0
         self.items = []
 
         if not searchActions:
@@ -116,6 +118,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     from specials.search import save_search
                     save_search(self.item.text)
 
+
     def getActions(self):
         logger.debug()
         count = 0
@@ -144,9 +147,12 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.item.mode == 'movie':
                 title = result['title']
                 result['mode'] = 'movie'
-            else:
+            elif self.item.mode == 'tvshow':
                 title = result['name']
                 result['mode'] = 'tvshow'
+            else:
+                title = result.get('title', '')
+                result['mode'] = result['media_type'].replace('tv', 'tvshow')
 
             thumbnail = result.get('thumbnail', '')
             noThumb = 'Infoplus/' + result['mode'].replace('show','') + '.png'
@@ -304,16 +310,12 @@ class SearchWindow(xbmcgui.WindowXML):
                 logger.debug('end search for:', searchAction.channel)
 
     def get_channel_results(self, searchAction):
-        logger.debug()
-        channel = searchAction.channel
-        results = []
-        valid = []
-        other = []
-
-        try:
-            results = self.moduleDict[channel].search(searchAction, self.item.text)
+        def search(text):
+            valid = []
+            other = []
+            results = self.moduleDict[channel].search(searchAction, text)
             if len(results) == 1:
-                if not results[0].action or config.get_localized_string(70006).lower() in results[0].title.lower():
+                if not results[0].action or results[0].nextPage:
                     results = []
 
             if self.item.mode != 'all':
@@ -324,6 +326,23 @@ class SearchWindow(xbmcgui.WindowXML):
                         valid.append(elem)
                     else:
                         other.append(elem)
+            return results, valid, other
+
+        logger.debug()
+        channel = searchAction.channel
+        results = []
+        valid = []
+        other = []
+
+        try:
+            results, valid, other = search(self.item.text)
+
+            # if we are on movie search but no valid results is found, and there's a lot of results (more pages), try
+            # to add year to search text for better filtering
+            if self.item.contentType == 'movie' and not valid and other and other[-1].nextPage \
+                    and self.item.infoLabels['year']:
+                logger.debug('retring adding year on channel ' + channel)
+                dummy, valid, dummy = search(self.item.text + " " + str(self.item.infoLabels['year']))
         except:
             pass
 
@@ -424,9 +443,15 @@ class SearchWindow(xbmcgui.WindowXML):
             self.channels = []
             self.moduleDict = {}
             self.searchActions = []
-        if percent == 100 and not self.results:
-            self.PROGRESS.setVisible(False)
-            self.NORESULTS.setVisible(True)
+
+            # if no results
+            total = 0
+            for num in self.results.values():
+                total += num
+            if not total:
+                self.PROGRESS.setVisible(False)
+                self.NORESULTS.setVisible(True)
+                self.setFocusId(CLOSE)
 
     def onInit(self):
         self.time = time.time()
@@ -453,7 +478,9 @@ class SearchWindow(xbmcgui.WindowXML):
         if self.type:
             self.type = None
             if self.item.mode in ['all', 'search']:
-                if self.item.type: self.item.mode = self.item.type
+                if self.item.type:
+                    self.item.mode = self.item.type
+                    self.item.text = title_unify(self.item.text)
                 self.thread = Thread(target=self.search)
                 self.thread.start()
             elif self.item.mode in ['movie', 'tvshow', 'person_']:
@@ -507,9 +534,12 @@ class SearchWindow(xbmcgui.WindowXML):
             elif self.EPISODES.isVisible(): self.setFocusId(EPISODESLIST)
             elif self.RESULTS.isVisible(): self.setFocusId(RESULTS)
 
-        elif focus in [RESULTS] and self.item.mode == 'all':
+        elif focus in [RESULTS]:
             pos = self.RESULTS.getSelectedPosition()
-            self.CHANNELS.getSelectedItem().setProperty('position', str(pos))
+            try:
+                self.CHANNELS.getSelectedItem().setProperty('position', str(pos))
+            except:
+                pass
 
         elif action == ENTER and focus in [CHANNELS]:
             self.setFocusId(RESULTS)
@@ -559,25 +589,14 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                # self.close()
                 Search(item, self.moduleDict, self.searchActions)
                 if close_action:
-                    self.close
+                    self.close()
             else:
                 item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item'))
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                self.RESULTS.reset()
-                self.RESULTS.setVisible(False)
-                self.PROGRESS.setVisible(True)
-                self.selected = True
-                self.thActions.join()
-                self.RESULTS.addItems(self.items)
-                self.RESULTS.setVisible(True)
-                self.PROGRESS.setVisible(False)
-
-                # self.close()
                 Search(item, self.moduleDict, self.searchActions)
                 if close_action:
                     self.close()
@@ -589,7 +608,6 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.pos = self.RESULTS.getSelectedPosition()
                 item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item'))
             else:
-                self.eppos = self.EPISODESLIST.getSelectedPosition()
                 item_url = self.EPISODESLIST.getSelectedItem().getProperty('item')
                 if item_url:
                     item = Item().fromurl(item_url)
@@ -706,8 +724,6 @@ class SearchWindow(xbmcgui.WindowXML):
             self.Focus(SEARCH)
             self.setFocusId(RESULTS)
             self.RESULTS.selectItem(self.pos)
-        elif self.item.mode in ['person']:
-            self.actors()
         else:
             self.Close()
 
@@ -746,3 +762,26 @@ class SearchWindow(xbmcgui.WindowXML):
         server.globalsearch = True
         return run(server)
 
+
+def title_unify(title):
+    import unicodedata
+
+    u_title = ''
+    if type(title) == str: title = u'' + title
+    for c in unicodedata.normalize('NFD', title):
+        cat = unicodedata.category(c)
+        if cat != 'Mn':
+            if cat == 'Pd':
+                c_new = '-'
+            elif cat in ['Ll', 'Lu'] or c == ':':
+                c_new = c
+            else:
+                c_new = ' '
+            u_title += c_new
+
+    if (u_title.count(':') + u_title.count('-')) == 1:
+        # subtitle, split but only if there's one, it might be part of title
+        spl = u_title.replace(':', '-').split('-')
+        u_title = spl[0] if len(spl[0]) > 5 else spl[1]
+
+    return u_title.strip()

@@ -1370,13 +1370,13 @@
   video_codec: Xvid
   release_group: Etc-Group
   type: movie
-  # Fallback to movie type because we can't tell it's a series ...
+  # Fallback to movie type because we can't tell it's a series ...
 
 ? Show.Name.Part.1.and.Part.2.Blah-Group
 : part: [1, 2]
   title: Show Name
   type: movie
-  # Fallback to movie type because we can't tell it's a series ...
+  # Fallback to movie type because we can't tell it's a series ...
 
 ? Show Name - 01 - Ep Name
 : episode: 1

@@ -235,23 +235,25 @@ def new_search(item):
 
 def live(item):
     import sys
+    import channelselector
+
     if sys.version_info[0] >= 3:
         from concurrent import futures
     else:
         from concurrent_py2 import futures
     itemlist = []
     channels_dict = {}
-    channels = ['raiplay', 'mediasetplay', 'la7', 'paramount']
+    channels = channelselector.filterchannels('live')
 
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(load_live, channel) for channel in channels]
+        itlist = [executor.submit(load_live, ch.channel) for ch in channels]
         for res in futures.as_completed(itlist):
             if res.result():
                 channel_name, itlist = res.result()
                 channels_dict[channel_name] = itlist
 
-    for channel in channels:
-        itemlist += channels_dict[channel]
+    for ch in channels:
+        itemlist += channels_dict[ch.channel]
     return itemlist
 
 

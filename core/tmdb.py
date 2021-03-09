@@ -66,6 +66,10 @@ otmdb_global = None
 from core import db
 
 
+def clean_cache():
+    db['tmdb_cache'].clear()
+
+
 # The function name is the name of the decorator and receives the function that decorates.
 def cache_response(fn):
     logger.debug()
@@ -180,7 +184,8 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, idioma_busqueda=def_lang,
     """
     Concurrently, it gets the data of the items included in the item_list.
 
-    The API has a limit of 40 requests per IP every 10 '' and that is why the list should not have more than 30 items to ensure the proper functioning of this function.
+    The API in the past had a limit of 40 requests per IP every 10 '', now there's no limit (https://developers.themoviedb.org/3/getting-started/request-rate-limiting)
+    If a limit will be re-added uncomment "tmdb_threads" and related code
 
     @param item_list: list of Item objects that represent movies, series or chapters. The infoLabels attribute of each Item object will be modified including the extra localized data.
     @type item_list: list
@@ -197,18 +202,18 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, idioma_busqueda=def_lang,
         return
     import threading
 
-    threads_num = config.get_setting("tmdb_threads", default=20)
-    semaforo = threading.Semaphore(threads_num)
+    # threads_num = config.get_setting("tmdb_threads", default=20)
+    # semaforo = threading.Semaphore(threads_num)
     lock = threading.Lock()
     r_list = list()
     i = 0
     l_hilo = list()
 
     def sub_thread(_item, _i, _seekTmdb):
-        semaforo.acquire()
+        # semaforo.acquire()
         ret = set_infoLabels_item(_item, _seekTmdb, idioma_busqueda, lock)
         # logger.debug(str(ret) + "item: " + _item.tostring())
-        semaforo.release()
+        # semaforo.release()
         r_list.append((_i, _item, ret))
 
     for item in item_list:
@@ -560,16 +565,14 @@ def select_group(groups, item):
     selected = -1
     url = 'https://api.themoviedb.org/3/tv/{}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(item.infoLabels['tmdb_id'], def_lang)
     res = requests.get(url).json()
-    selections = ['[B]Original[/B] Seasons: {} Episodes: {}'.format(res.get('number_of_seasons',0), res.get('number_of_episodes',0))]
+    selections = [['Original',res.get('number_of_seasons',0), res.get('number_of_episodes',0), '', item.thumbnail]]
     ids = ['original']
     for group in groups:
-        name = '[B]{}[/B] Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',0), group.get('episode_count',0))
-        description = group.get('description','')
-        if description:
-            name = '{}\n{}'.format(name, description)
+        # name = '{} Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',0), group.get('episode_count',0))
+        # description = group.get('description','')
         ID = group.get('id','')
         if ID:
-            selections.append(name)
+            selections.append([group.get('name',''), group.get('group_count',0), group.get('episode_count',0), group.get('description',''), item.thumbnail])
             ids.append(ID)
     if selections and ids:
         selected = platformtools.dialog_select_group(config.get_localized_string(70831), selections)
@@ -1454,7 +1457,14 @@ class Tmdb(object):
     def get_list_episodes(self):
         url = 'https://api.themoviedb.org/3/tv/{id}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, lang=self.busqueda_idioma)
         results = requests.get(url).json().get('seasons', [])
-        return results if 'Error' not in results else []
+        seasons = []
+        if results and 'Error' not in results:
+            for season in results:
+                url = 'https://api.themoviedb.org/3/tv/{id}/season/{season}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={lang}'.format(id=self.busqueda_id, season=season['season_number'], lang=self.busqueda_idioma)
+                try: start_from = requests.get(url).json()['episodes'][0]['episode_number']
+                except: start_from = 1
+                seasons.append({'season_number':season['season_number'], 'episode_count':season['episode_count'], 'start_from':start_from})
+        return seasons
 
     def get_videos(self):
         """
@@ -1617,7 +1627,7 @@ class Tmdb(object):
             elif k == 'credits_cast' or k == 'temporada_cast' or k == 'episodio_guest_stars':
                 dic_aux = dict((name, character) for (name, character) in l_castandrole)
                 l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', '')) \
-                                      for p in v if p['name'] not in list(dic_aux.keys())])
+                                      for p in v if 'name' in p and p['name'] not in list(dic_aux.keys())])
 
             elif k == 'videos':
                 if not isinstance(v, list):
