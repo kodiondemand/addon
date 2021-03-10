@@ -6127,6 +6127,14 @@ msgctxt "#70831"
 msgid "This series has multiple types of numbering, choose the most suitable one "
 msgstr ""
 
+msgctxt "#70832"
+msgid "Disabled"
+msgstr "Disabilitato"
+
+msgctxt "#70833"
+msgid "Automatic"
+msgstr "Automatico"
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"

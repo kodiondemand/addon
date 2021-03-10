@@ -100,7 +100,7 @@ def mark_auto_as_watched(item):
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
             xbmc.sleep(500)
-        if next_episode and next_episode.next_ep:
+        if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
             from platformcode.launcher import play_from_library
             play_from_library(next_episode)
         # db need to be closed when not used, it will cause freezes
