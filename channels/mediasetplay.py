@@ -2,6 +2,7 @@
 # ------------------------------------------------------------
 # Canale per Mediaset Play
 # ------------------------------------------------------------
+from platformcode import logger
 import uuid
 
 import requests, sys
@@ -96,7 +97,7 @@ def mainlist(item):
 
 def search(item, text):
     itemlist = []
-    support.info(text)
+    support.debug(text)
     item.search = text
 
     try:
@@ -110,7 +111,7 @@ def search(item, text):
 
 
 def menu(item):
-    support.info()
+    support.debug()
     itemlist = []
     # itemlist = [item.clone(title=support.typo(item.args[0], 'bullet bold'), url='', action='peliculas')]
     if item.url:
@@ -140,7 +141,7 @@ def liveDict():
     return livedict
 
 def live(item):
-    support.info()
+    support.debug()
     itemlist = []
     for key, value in liveDict().items():
         itemlist.append(item.clone(title=support.typo(key, 'bold'),
@@ -156,7 +157,7 @@ def live(item):
 
 
 def peliculas(item):
-    support.info()
+    support.debug()
     itemlist = []
     titlelist = []
     contentType = ''
@@ -218,12 +219,12 @@ def peliculas(item):
 
 
 def epmenu(item):
-    support.info()
+    support.debug()
     itemlist = []
     if item.seriesid:
         seasons = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-tv-seasons?bySeriesId=' + item.seriesid).json()['entries']
         for season in seasons:
-            if 'mediasettvseason$brandId' in season and 'mediasettvseason$displaySeason' in seasons:
+            if 'mediasettvseason$brandId' in season and 'mediasettvseason$displaySeason' in season:
                 itemlist.append(
                     item.clone(seriesid = '',
                                title=support.typo(season['mediasettvseason$displaySeason'], 'bold'),
@@ -237,17 +238,19 @@ def epmenu(item):
                 itemlist.append(
                     item.clone(action='episodios',
                                title=support.typo(entry['description'], 'bold'),
-                               url=entry['mediasetprogram$subBrandId']))
+                               url=entry['mediasetprogram$subBrandId'],
+                               order=entry.get('mediasetprogram$order',0)))
         if len(itemlist) == 1: return episodios(itemlist[0])
+        itemlist = sorted(itemlist, key=lambda it: it.order)
     return itemlist
 
 
 def episodios(item):
-    support.info()
+    support.debug()
     itemlist = []
-    episode = ''
-
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.url + '}').json()['entries']
+
+ 
     for it in json:
         urls = []
         if 'media' in it:
@@ -255,10 +258,6 @@ def episodios(item):
                 urls.append(key['publicUrl'])
         if urls:
             title = it['title']
-            # if it['tvSeasonNumber'] and it['tvSeasonEpisodeNumber'] and 'puntata del' not in title.lower():
-            #     item.infoLabels['season'] = it['tvSeasonNumber']
-            #     item.infoLabels['episode'] = it['tvSeasonEpisodeNumber']
-            #     episode = '%dx%02d - ' % (it['tvSeasonNumber'], it['tvSeasonEpisodeNumber'])
             itemlist.append(
                 item.clone(action='findvideos',
                            title=support.typo(title, 'bold'),
@@ -269,28 +268,30 @@ def episodios(item):
                            urls=urls,
                            url=it['mediasetprogram$pageUrl'],
                            year=it.get('year',''),
+                           ep= it.get('tvSeasonEpisodeNumber', 0) if it.get('tvSeasonEpisodeNumber', 0) else 0,
                            forcethumb=True,
                            no_return=True))
-    # support.dbg()
-    if 'episodi' in item.title.lower() or 'puntate intere' in item.title.lower():
+
+    if 'episodi' in item.title.lower():
         itemlist.reverse()
-    # if episode:
-    #     itemlist = sorted(itemlist, key=lambda it: it.title)
-    #     support.videolibrary(itemlist, item)
+    elif 'puntate intere' in item.title.lower():
+        itemlist.sort(key=lambda it: it.ep)
+
+    if len(itemlist) == 1: return findvideos(itemlist[0])
+
     return itemlist
 
 
 def findvideos(item):
-    support.info()
+    support.debug()
     itemlist = [support.Item(server='directo', title='Mediaset Play', url=item.urls, action='play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 
 def play(item):
-    support.info()
+    support.debug()
     if item.livefilter:
         d = liveDict()[item.livefilter]
-        # support.dbg()
         item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
         support.thumb(item, live=True)
     if not item.urls: urls = item.url
@@ -307,21 +308,20 @@ def play(item):
                 data = support.match(sec_data, patron=r'<video src="([^"]+)').match
                 break
         else:
-            # support.dbg()
             data = url
 
     return support.servertools.find_video_items(item, data=data)
 
 
 def subBrand(json):
-    support.info()
+    support.debug()
     subBrandId = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + json + '}').json()['entries'][-1]['mediasetprogram$subBrandId']
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + subBrandId + '}').json()['entries']
     return json
 
 
 def get_from_id(item):
-    support.info()
+    support.debug()
     json = current_session.get(entry.format(id=item.url)).json()
     if 'components' in json:
         id = quote(",".join(json["components"]))
@@ -333,7 +333,7 @@ def get_from_id(item):
 
 def get_programs(item, ret=[], args={}):
     hasMore = False
-    support.info('DICT=',item.url)
+    support.debug('DICT=',item.url)
     url = ''
 
     if 'search' in item.args:
@@ -365,7 +365,6 @@ def get_programs(item, ret=[], args={}):
     if url:
         support.logger.info(url)
         json = current_session.get(url).json()
-        # support.logger.debug(json)
         if 'response' in json:
             json = json['response']
         if 'hasMore' in json:
