@@ -11,7 +11,7 @@ else:
     from lib.httplib2 import py2 as httplib2
 import socket
 
-addon = xbmcaddon.Addon()
+addon = xbmcaddon.Addon("plugin.video." + config.PLUGIN_NAME)
 addonname = addon.getAddonInfo('name')
 addonid = addon.getAddonInfo('id')
 
