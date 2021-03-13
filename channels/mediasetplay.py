@@ -97,7 +97,7 @@ def mainlist(item):
 
 def search(item, text):
     itemlist = []
-    support.debug(text)
+    logger.debug(text)
     item.search = text
 
     try:
@@ -111,7 +111,7 @@ def search(item, text):
 
 
 def menu(item):
-    support.debug()
+    logger.debug()
     itemlist = []
     # itemlist = [item.clone(title=support.typo(item.args[0], 'bullet bold'), url='', action='peliculas')]
     if item.url:
@@ -141,7 +141,7 @@ def liveDict():
     return livedict
 
 def live(item):
-    support.debug()
+    logger.debug()
     itemlist = []
     for key, value in liveDict().items():
         itemlist.append(item.clone(title=support.typo(key, 'bold'),
@@ -157,7 +157,7 @@ def live(item):
 
 
 def peliculas(item):
-    support.debug()
+    logger.debug()
     itemlist = []
     titlelist = []
     contentType = ''
@@ -219,7 +219,7 @@ def peliculas(item):
 
 
 def epmenu(item):
-    support.debug()
+    logger.debug()
     itemlist = []
     if item.seriesid:
         seasons = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-tv-seasons?bySeriesId=' + item.seriesid).json()['entries']
@@ -246,7 +246,7 @@ def epmenu(item):
 
 
 def episodios(item):
-    support.debug()
+    logger.debug()
     itemlist = []
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.url + '}').json()['entries']
 
@@ -283,13 +283,13 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.debug()
+    logger.debug()
     itemlist = [support.Item(server='directo', title='Mediaset Play', url=item.urls, action='play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 
 def play(item):
-    support.debug()
+    logger.debug()
     if item.livefilter:
         d = liveDict()[item.livefilter]
         item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
@@ -314,14 +314,14 @@ def play(item):
 
 
 def subBrand(json):
-    support.debug()
+    logger.debug()
     subBrandId = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-brands?byCustomValue={brandId}{' + json + '}').json()['entries'][-1]['mediasetprogram$subBrandId']
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + subBrandId + '}').json()['entries']
     return json
 
 
 def get_from_id(item):
-    support.debug()
+    logger.debug()
     json = current_session.get(entry.format(id=item.url)).json()
     if 'components' in json:
         id = quote(",".join(json["components"]))
@@ -333,7 +333,7 @@ def get_from_id(item):
 
 def get_programs(item, ret=[], args={}):
     hasMore = False
-    support.debug('DICT=',item.url)
+    logger.debug('DICT=',item.url)
     url = ''
 
     if 'search' in item.args:
