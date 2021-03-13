@@ -35,7 +35,7 @@ def peliculas(item):
     # debug = True
     support.info('peliculas',item)
 
-    patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*<div class="[^"]+" style="background-image:url\((?P<thumb>[^\)]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<year>\d{4})[^>]+>[^>]+>(?:\s*(?P<duration>\d+)[^>]+>[^>]+>)?\s*(?P<quality>[a-zA-Z]+) [^>]+>[^>]+> (?P<lang>[^>]+) [^>]+>'
+    patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)(?:[^>]+>){5}\s*<div class="[^"]+" style="background-image:url\((?P<thumb>[^\)]+)(?:[^>]+>){6}\s*(?P<year>\d{4})[^>]+>[^>]+>(?:\s*(?P<duration>\d+))?(?:[^>]+>){0,2}\s+(?P<quality>[a-zA-Z]+)\s+(?:[^>]+>){2}\s*(?P<lang>[^>]+)\s+[^>]+>'
     patronNext = r'<span>\d</span> <a href="([^"]+)">'
     # debug = True
     return locals()
