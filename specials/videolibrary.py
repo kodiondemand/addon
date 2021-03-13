@@ -2,6 +2,7 @@
 
 #from builtins import str
 import sys
+from core import support
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -476,10 +477,12 @@ def findvideos(item):
 
             item_json = Item().fromjson(filetools.read(json_path))
             list_servers = []
-
+            # support.dbg()
             try: from urllib.parse import urlsplit
             except ImportError: from urlparse import urlsplit
-            try: item_json.url = channel.host + urlsplit(item_json.url).path
+            try:
+                if urlsplit(item_json.url).netloc.split('.')[0] in channel.host:
+                    item_json.url = channel.host + urlsplit(item_json.url).path
             except: pass
 
             try:
