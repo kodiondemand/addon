@@ -476,9 +476,11 @@ def findvideos(item):
 
             item_json = Item().fromjson(filetools.read(json_path))
             list_servers = []
+
             try: from urllib.parse import urlsplit
             except ImportError: from urlparse import urlsplit
-            item_json.url = channel.host + urlsplit(item_json.url).path
+            try: item_json.url = channel.host + urlsplit(item_json.url).path
+            except: pass
 
             try:
                 # FILTERTOOLS

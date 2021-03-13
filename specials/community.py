@@ -298,7 +298,7 @@ def episodios(item, json ='', key='', itemlist =[]):
         if 'episodes_list' in json:
             json = json['episodes_list']
         elif 'seasons_list' in json:
-            item.url = json['episodes_list']
+            item.url = json['seasons_list']
             return get_seasons(item)
         elif 'tvshows_list' in json:
             return peliculas(item, json, 'tvshows_list')
