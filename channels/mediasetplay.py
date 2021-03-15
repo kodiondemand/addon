@@ -248,9 +248,9 @@ def epmenu(item):
 def episodios(item):
     logger.debug()
     itemlist = []
-    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{' + item.url + '}').json()['entries']
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{'
+                               + item.url + '}&range=0-10000').json()['entries']
 
- 
     for it in json:
         urls = []
         if 'media' in it:
