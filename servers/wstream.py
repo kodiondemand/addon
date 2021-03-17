@@ -80,6 +80,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                             key['type'] = 'mp4'
                         if not 'src' in key and 'file' in key:
                             key['src'] = key['file']
+                        if '?' in key['src']: key['src'] = key['src'].split('?')[0]
                         video_urls.append(['%s [%s]' % (key['type'].replace('video/', ''), key['label']), key['src'].replace('https', 'http') + '|' + _headers])
                     elif type(key) != dict:
                         filetype = key.split('.')[-1]
@@ -87,6 +88,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                         video_urls.append([filetype, key.replace('https', 'http') + '|' + _headers])
                     else:
                         if not 'src' in key and 'file' in key: key['src'] = key['file']
+                        if '?' in key['src']: key['src'] = key['src'].split('?')[0]
                         if key['src'].split('.')[-1] == 'mpd': pass
                         video_urls.append([key['src'].split('.')[-1], key['src'].replace('https', 'http') + '|' + _headers])
             except:
