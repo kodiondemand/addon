@@ -78,7 +78,7 @@ def episodios(item):
     if item.data: data = item.data
     # debug= True
     title = item.fulltitle
-    patron = r'link-episode">(?:\s*<strong>)?\s*(?P<episode>\d+.\d+(?:.\d+)?)(?:\s*\((?P<lang>[?P<lang>A-Za-z-]+)[^>]+>)?(?:\s*(?P<title>.*?)  )[^>]+<\/span>\s*(?P<url>.*?)</div>'
+    patron = r'link-episode">(?:\s*<strong>)?\s*(?P<episode>\d+.\d+(?:.\d+)?)(?:\s*\((?P<lang>[?P<lang>A-Za-z-]+)[^>]+>)?(?:\s*(?P<title>[^-<]+))[^>]+</span>\s*(?P<url>.*?)</div>'
     def itemHook(item):
         if 'Episodio' in item.title:
             item.title = support.re.sub(r'Episodio [0-9.-]+', title, item.title)

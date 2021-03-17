@@ -261,6 +261,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 infolabels['rating'] = scrapertools.decodeHtmlentities(scraped["rating"])
 
         episode = ''
+
         if not group or item.grouped:
             if scraped['season'] and scraped['episode']:
                 stagione = scraped['season']
@@ -277,7 +278,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             elif item.season:
                 infolabels['season'] = int(item.season)
                 infolabels['episode'] = int(scrapertools.find_single_match(scraped['episode'], r'(\d+)'))
-                episode = item.season +'x'+ scraped['episode']
+                episode = item.season +'x'+ scraped['episode'].zfill(2)
             elif item.contentType == 'tvshow' and (scraped['episode'] == '' and scraped['season'] == '' and stagione == ''):
                 item.news = 'season_completed'
                 episode = ''
