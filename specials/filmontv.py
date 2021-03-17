@@ -237,10 +237,9 @@ def live(item):
     import sys
     import channelselector
 
-    if sys.version_info[0] >= 3:
-        from concurrent import futures
-    else:
-        from concurrent_py2 import futures
+    if sys.version_info[0] >= 3: from concurrent import futures
+    else: from concurrent_py2 import futures
+
     itemlist = []
     channels_dict = {}
     channels = channelselector.filterchannels('live')
@@ -252,8 +251,17 @@ def live(item):
                 channel_name, itlist = res.result()
                 channels_dict[channel_name] = itlist
 
+    # default order
+    channel_list = ['raiplay', 'mediasetplay', 'la7', 'paramount', 'discoveryplus']
+
+    # add channels not in list
     for ch in channels:
-        itemlist += channels_dict[ch.channel]
+        if ch.channel not in channel_list:
+            channel_list.append(ch.channel)
+
+    # make itemlist
+    for ch in channel_list:
+        itemlist += channels_dict[ch]
     return itemlist
 
 
