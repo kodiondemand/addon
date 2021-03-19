@@ -21,9 +21,9 @@ from platformcode import config
 from core.item import Item
 
 
-def findhost(url):
-    host = support.match(url, patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
-    return host
+# def findhost(url):
+#     host = support.match(url, patron=r'href="([^"]+)">\s*cliccando qui').matches[-1]
+#     return host
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -65,7 +65,7 @@ def peliculas(item):
 
     if item.args == 'search':
         patronBlock = r'>Lista Serie Tv</a></li></ul></div><div id="box_movies">(?P<block>.*?)<div id="paginador">'
-        patron = r'<div class="movie">[^>]+[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)(?:(?P<year>\d{4})|")[^>]*>\s*<a href="([^"]+)'
+        patron = r'<div class="movie">[^>]+[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)(?:(?P<year>\d{4})|")[^>]*>\s*<a href="(?P<url>[^"]+)'
     elif item.contentType == 'episode':
         pagination = 35
         action = 'findvideos'
@@ -107,8 +107,8 @@ def peliculas(item):
 def episodios(item):
     support.info()
     action = 'findvideos'
-    patronBlock = r'<table>(?P<block>.*?)<\/table>'
-    patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<url>.*?)</td><tr>'
+    patronBlock = r'<table>(?P<block>.*)<\/table>'
+    patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<data>.*?)<\/td><tr>'
     def itemlistHook(itemlist):
         for i, item in enumerate(itemlist):
             ep = support.match(item.title, patron=r'\d+x(\d+)').match
@@ -165,21 +165,18 @@ def findvideos(item):
     else:
 
         if item.args != 'update':
-            return support.server(item, item.url)
+            return support.server(item, item.data)
         else:
             itemlist = []
             item.infoLabels['mediatype'] = 'episode'
 
-            data = httptools.downloadpage(item.url, headers=headers).data
-            data = re.sub('\n|\t', ' ', data)
-            data = re.sub(r'>\s+<', '> <', data)
-            #support.info("DATA - HTML:\n", data)
+            data = support.match(item.url, headers=headers).data
             url_video = scrapertools.find_single_match(data, r'<tr><td>(.+?)</td><tr>', -1)
             url_serie = scrapertools.find_single_match(data, r'<link rel="canonical" href="([^"]+)"\s?/>')
             goseries = support.typo("Vai alla Serie:", ' bold')
             series = support.typo(item.contentSerieName, ' bold color kod')
             itemlist = support.server(item, data=url_video)
 
-            itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodios', plot = goseries + series + "con tutte le puntate"))
+            itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodios', plot = goseries + series + "con tutte le puntate", args=''))
 
         return itemlist
