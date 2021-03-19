@@ -292,7 +292,7 @@ def search(item, texto):
     info(texto)
     itemlist = []
     try:
-    patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
+        patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
         matches = support.match(item, patron=patron, headers=headers).matches
         for i, (scrapedurl, scrapedtitle) in enumerate(matches):
             if texto.upper() in scrapedtitle.upper():
