@@ -266,6 +266,9 @@ def live(item):
 
 
 def load_live(channel_name):
-    channel = __import__('%s.%s' % ('channels', channel_name), None, None, ['%s.%s' % ('channels', channel_name)])
-    itemlist = channel.live(channel.mainlist(Item())[0])
+    try:
+        channel = __import__('%s.%s' % ('channels', channel_name), None, None, ['%s.%s' % ('channels', channel_name)])
+        itemlist = channel.live(channel.mainlist(Item())[0])
+    except:
+        itemlist = []
     return channel_name, itemlist

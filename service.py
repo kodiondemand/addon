@@ -165,7 +165,10 @@ def check_for_update(overwrite=True):
                     if estado:                                                                      # If the update was successful ...
                         estado_verify_playcount_series = True                                       # ... is checked to change the Video Library option
 
-                interval = int(serie.active)  # Could be the bool type
+                try:
+                    interval = int(serie.active)  # Could be the bool type
+                except:
+                    interval = 1
 
                 if not serie.active:
                     # if the series is not active discard
