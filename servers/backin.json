@@ -4,12 +4,16 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(backin.net/fastids/[0-9]+)",
+        "pattern": "https?://(backin.net/fastid[a-z]+/[0-9]+)",
         "url": "http://\\1"
       },
       {
-        "pattern": "backin.net/([a-zA-Z0-9]{10,})",
-        "url": "\\1"
+        "pattern": "https?://backin.net/([a-zA-Z0-9]{10,})",
+        "url": "http://backin.net/stream-\\1-500x400.html"
+      },
+      {
+        "pattern": "https?://backin.net/s/streams.php?s=([a-zA-Z0-9]{10,})",
+        "url": "http://backin.net/stream-\\1-500x400.html"
       }
     ]
   },

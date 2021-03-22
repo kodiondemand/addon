@@ -11,11 +11,11 @@ except ImportError:
 def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
 
-    if 'http://' in page_url:  # fastids
+    if 'fastid' in page_url:  # fastid
         page_url = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True).headers['location']
-        page_url = scrapertools.find_single_match(page_url, 'backin.net/([a-zA-Z0-9]+)')
+        page_url = "http://backin.net/stream-%s-500x400.html" % scrapertools.find_single_match(page_url, 'backin.net/([a-zA-Z0-9]+)')
     global data
-    data = httptools.downloadpage("http://backin.net/stream-%s-500x400.html" % page_url).data
+    data = httptools.downloadpage(page_url).data
 
     if 'File Not Found' in data:
         return False, config.get_localized_string(70449) % "backin"

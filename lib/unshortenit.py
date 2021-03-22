@@ -506,29 +506,14 @@ class UnshortenIt(object):
                 return uri, 0
             r = None
 
-            def decrypt(str):
-                try:
-                    from Cryptodome.Cipher import AES
-                except:
-                    from Crypto.Cipher import AES
-
-                str = str.replace("_ppl_", "+").replace("_eqq_", "=").replace("_sll_", "/")
-                iv = b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-                key = b"naphajU2usWUswec"
-                decoded = b64decode(str)
-                decoded = decoded + b'\0' * (len(decoded) % 16)
-                crypt_object = AES.new(key, AES.MODE_CBC, iv)
-                decrypted = b''
-                for p in range(0, len(decoded), 16):
-                    decrypted += crypt_object.decrypt(decoded[p:p + 16]).replace(b'\0', b'')
-                return decrypted.decode('ascii')
             if 'shield' in uri.split('/')[-2]:
-                uri = decrypt(uri.split('/')[-1])
+                uri = decrypt_aes(uri.split('/')[-1], b"naphajU2usWUswec")
             else:
                 if 'sb/' in uri or 'akv/' in uri or 'wss/' in uri or 'wsd/' in uri:
                     import datetime, hashlib
                     from base64 import b64encode
-                    ip = urlopen('https://api.ipify.org/').read()
+                    # ip = urlopen('https://api.ipify.org/').read()
+                    ip = b'31.220.1.77'
                     day = datetime.date.today().strftime('%Y%m%d')
                     if PY3: day = day.encode()
                     headers = {
@@ -536,9 +521,9 @@ class UnshortenIt(object):
                     }
                     spl = uri.split('/')
                     spl[3] += '1'
-                    if spl[3] == 'wss1':
+                    if spl[3] in ['wss1', 'sb1']:
                         spl[4] = b64encode(spl[4].encode('utf-8')).decode('utf-8')
-                        uri = '/'.join(spl)
+                    uri = '/'.join(spl)
                 r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, verify=False)
                 if 'Wait 1 hour' in r.data:
                     uri = ''
@@ -656,21 +641,39 @@ class UnshortenIt(object):
         if 'out_generator' in uri:
             uri = re.findall('url=(.*)$', uri)[0]
         elif '/decode/' in uri:
-            scheme, netloc, path, query, fragment = urlsplit(uri)
-            splitted = path.split('/')
-            splitted[1] = 'outlink'
-            r = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]})
-            if 'location' in r.headers and r.headers['location']:
-                new_uri = r.headers['location']
-            else:
-                r = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment,
-                                           follow_redirects=False, post={'url': splitted[2]})
-                if 'location' in r.headers and r.headers['location']:
-                    new_uri = r.headers['location']
-            if new_uri and new_uri != uri:
-                uri = new_uri
+            uri = decrypt_aes(uri.split('/')[-1], b"whdbegdhsnchdbeh")
+
+            # scheme, netloc, path, query, fragment = urlsplit(uri)
+            # splitted = path.split('/')
+            # splitted[1] = 'outlink'
+            # r = httptools.downloadpage(uri, follow_redirects=False, post={'url': splitted[2]})
+            # if 'location' in r.headers and r.headers['location']:
+            #     new_uri = r.headers['location']
+            # else:
+            #     r = httptools.downloadpage(scheme + '://' + netloc + "/".join(splitted) + query + fragment,
+            #                                follow_redirects=False, post={'url': splitted[2]})
+            #     if 'location' in r.headers and r.headers['location']:
+            #         new_uri = r.headers['location']
+            # if new_uri and new_uri != uri:
+            #     uri = new_uri
         return uri, 200
 
+
+def decrypt_aes(text, key):
+    try:
+        from Cryptodome.Cipher import AES
+    except:
+        from Crypto.Cipher import AES
+
+    text = text.replace("_ppl_", "+").replace("_eqq_", "=").replace("_sll_", "/")
+    iv = b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+    decoded = b64decode(text)
+    decoded = decoded + b'\0' * (len(decoded) % 16)
+    crypt_object = AES.new(key, AES.MODE_CBC, iv)
+    decrypted = b''
+    for p in range(0, len(decoded), 16):
+        decrypted += crypt_object.decrypt(decoded[p:p + 16]).replace(b'\0', b'')
+    return decrypted.decode('ascii')
 
 def unwrap_30x_only(uri, timeout=10):
     unshortener = UnshortenIt()
@@ -709,22 +712,22 @@ def findlinks(text):
         text += '\n' + unshorten(matches[0])[0]
     elif matches:
         # non threaded for webpdb
-        # for match in matches:
-        #     sh = unshorten(match)[0]
-        #     text += '\n' + sh
-        import sys
-        if sys.version_info[0] >= 3:
-            from concurrent import futures
-        else:
-            from concurrent_py2 import futures
-        with futures.ThreadPoolExecutor() as executor:
-            unshList = [executor.submit(unshorten, match) for match in matches]
-            for link in futures.as_completed(unshList):
-                if link.result()[0] not in matches:
-                    links = link.result()[0]
-                    if type(links) == list:
-                        for l in links:
-                            text += '\n' + l
-                    else:
-                        text += '\n' + str(link.result()[0])
+        for match in matches:
+            sh = unshorten(match)[0]
+            text += '\n' + sh
+        # import sys
+        # if sys.version_info[0] >= 3:
+        #     from concurrent import futures
+        # else:
+        #     from concurrent_py2 import futures
+        # with futures.ThreadPoolExecutor() as executor:
+        #     unshList = [executor.submit(unshorten, match) for match in matches]
+        #     for link in futures.as_completed(unshList):
+        #         if link.result()[0] not in matches:
+        #             links = link.result()[0]
+        #             if type(links) == list:
+        #                 for l in links:
+        #                     text += '\n' + l
+        #             else:
+        #                 text += '\n' + str(link.result()[0])
     return text

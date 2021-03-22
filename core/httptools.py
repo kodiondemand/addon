@@ -44,7 +44,7 @@ directIP = {
     'akvideo.stream': '31.220.1.77',
     'vcrypt.net': '31.220.1.77',
     'vcrypt.pw': '31.220.1.77',
-    'vidtome.host': '94.75.219.1"',
+    # 'vidtome.host': '94.75.219.1',
     'nored.icu': '31.220.1.77',
     'wstream.icu': '31.220.1.77',
     'wstream.video': '31.220.1.77',

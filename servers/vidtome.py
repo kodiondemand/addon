@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from core import httptools, scrapertools
+from core import httptools, scrapertools, servertools
 from platformcode import logger, config
 from lib import jsunpack
 
@@ -21,7 +21,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     code = scrapertools.find_single_match(data, 'name="code" value="([^"]+)')
     hash = scrapertools.find_single_match(data, 'name="hash" value="([^"]+)')
     post = "op=download1&code=%s&hash=%s&imhuman=Proceed+to+video" %(code, hash)
-    data = httptools.downloadpage("http://vidtome.co/playvideos/%s" %code, post=post).data
+    data = httptools.downloadpage("http://%s/playvideos/%s" % (servertools.get_server_host("vidtome")[0], code), post=post).data
     packed = scrapertools.find_multiple_matches(data, r'(eval\s?\(function\(p,a,c,k,e,d\).*?\n)')
     for p in packed:
         data = jsunpack.unpack(p)
