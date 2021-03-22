@@ -68,7 +68,7 @@ def find_video_items(item=None, data=None):
 
     # Find the links to the videos
     for label, url, server, thumbnail in findvideos(data):
-        title = config.get_localized_string(70206) % label
+        title = label
         itemlist.append(
             item.clone(title=title, action="play", url=url, thumbnail=thumbnail, server=server, folder=False))
 

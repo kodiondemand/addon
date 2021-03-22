@@ -211,5 +211,5 @@ def findvideos(item):
                 json = jsontools.load(dataJson)
                 title = support.match(json['grabber'], patron=r'server\d+.([^.]+)', string=True).match
                 if title: itemlist.append(item.clone(action="play", title=title, url=json['grabber'].split('=')[-1], server='directo'))
-                else: itemlist.append(item.clone(action="play", title=name, url=json['grabber'], server=name))
+                else: urls.append(json['grabber'])
     return support.server(item, urls, itemlist)

@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "vup.to/((?:embed-)?[a-z0-9]+)",
+        "pattern": "(?:vupload.com|vup.to)/((?:embed-)?[a-z0-9]+)",
         "url": "https://vup.to/\\1.html"
       }
     ]

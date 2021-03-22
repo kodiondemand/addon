@@ -133,14 +133,14 @@ def episodios(item):
     action = 'findvideos'
     item.contentType = 'tvshow'
     blacklist = ['']
-    patron = r'(?P<episode>\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+)[;]?(?:(?P<title>[^<]+)<(?P<url>.*?)|(\2[ ])(?:<(\3.*?)))(?:<br />|</p>)'
+    patron = r'(?P<episode>\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+)[;]?(?:(?P<title>[^<]+)<(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:<br />|</p>)'
     patronBlock = r'<strong>(?P<block>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?(?:.+?|</strong>)(/?:</span>)?</p>.*?</p>)'
     return locals()
 
 
 def findvideos(item):
     if item.contentType != 'movie':
-        links = support.match(item.url, patron=r'href="([^"]+)"').matches
+        links = support.match(item.data, patron=r'href="([^"]+)"').matches
     else:
         matchData = item.data if item.data else item
         links = support.match(matchData, patron=r'(?:SRC|href)="([^"]+)"', patronBlock=r'<div class="col-md-10">(.+?)<div class="ads">').matches
