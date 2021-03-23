@@ -208,9 +208,8 @@ def findvideos(item):
         i = 'Yc8U6r8KjAKAepEA'
         t = int(time() + (3600 * o))
         l = '{}{} {}'.format(t, n, i)
-        md5 = hashlib.md5()
-        md5.update(l)
-        s = '?token={}&expires={}'.format(b64(md5.digest()).replace('=', '').replace('+', "-").replace('\\', "_"), t)
+        md5 = hashlib.md5(l.encode())
+        s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
         return s
     token = calculateToken()
 
