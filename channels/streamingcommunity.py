@@ -194,19 +194,35 @@ def episodios(item):
 
 
 def findvideos(item):
-    # getHeaders()
     video_urls = []
     data = support.match(item, headers=headers).data.replace('&quot;','"').replace('\\','')
     url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match
-    def videourls(res):
-        newurl = '{}/{}'.format(url, res)
+
+    def calculateToken():
+        from time import time
+        from base64 import b64encode as b64
+        import hashlib
+        o = 48
+        n = support.match(host + '/client-address').data
+        i = 'Yc8U6r8KjAKAepEA'
+        t = int(time() + (3600 * o))
+        l = '{}{} {}'.format(t, n, i)
+        md5 = hashlib.md5()
+        md5.update(l)
+        s = '?token={}&expires={}'.format(b64(md5.digest()).replace('=', '').replace('+', "-").replace('\\', "_"), t)
+        return s
+    token = calculateToken()
+
+    def videourls(res, token):
+        newurl = '{}/{}{}'.format(url, res, token)
         if requests.head(newurl, headers=headers).status_code == 200:
             video_urls.append(["m3u8 {} [StreamingCommunity]".format(res), newurl])
 
     with futures.ThreadPoolExecutor() as executor:
         for res in ['480p', '720p', '1080p']:
             executor.submit(videourls, res) 
-    if not video_urls: video_urls = [["m3u8 [StreamingCommunity]", url]]
-    else: video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
+
+    if not video_urls: video_urls = [["m3u8 [StreamingCommunity]", url + token]]
+    else: video_urls.sort(key=lambda url: int(support.match(url, patron=r'(\d+)p').match))
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
     return support.server(item, itemlist=itemlist)
