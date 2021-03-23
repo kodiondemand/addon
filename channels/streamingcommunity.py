@@ -186,7 +186,8 @@ def episodios(item):
                              action='findvideos',
                              contentType='episode',
                              contentSerieName=item.fulltitle,
-                             url=host + '/watch/' + str(episodes['title_id']) + '?e=' + str(it['id'])))
+                             url=host + '/watch/' + str(episodes['title_id']),
+                             episodeid= '?e=' + str(it['id'])))
 
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
@@ -195,7 +196,7 @@ def episodios(item):
 
 def findvideos(item):
     video_urls = []
-    data = support.match(item, headers=headers).data.replace('&quot;','"').replace('\\','')
+    data = support.match(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
     url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match
 
     def calculateToken():
@@ -213,7 +214,7 @@ def findvideos(item):
         return s
     token = calculateToken()
 
-    def videourls(res, token):
+    def videourls(res):
         newurl = '{}/{}{}'.format(url, res, token)
         if requests.head(newurl, headers=headers).status_code == 200:
             video_urls.append(["m3u8 {} [StreamingCommunity]".format(res), newurl])
@@ -223,6 +224,6 @@ def findvideos(item):
             executor.submit(videourls, res) 
 
     if not video_urls: video_urls = [["m3u8 [StreamingCommunity]", url + token]]
-    else: video_urls.sort(key=lambda url: int(support.match(url, patron=r'(\d+)p').match))
+    else: video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
     return support.server(item, itemlist=itemlist)
