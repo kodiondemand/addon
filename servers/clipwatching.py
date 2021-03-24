@@ -5,6 +5,7 @@ from core import scrapertools
 from lib import jsunpack
 from platformcode import logger, config
 
+
 def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     global data
@@ -15,8 +16,9 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, user="", password="", video_password=""):
-    logger.debug("(page_url='%s')" % page_url)
+    logger.info("(page_url='%s')" % page_url)
     video_urls = []
+    multires = False
 
     try:
         packed = scrapertools.find_single_match(data, "text/javascript'>(eval.*?)\s*</script>")

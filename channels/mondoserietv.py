@@ -6,13 +6,8 @@
 from core import support
 
 host = support.config.get_channel_url()
-
-IDIOMAS = {'Italiano': 'IT'}
-list_language = IDIOMAS.values()
-
-
-
 headers = {'Referer': host}
+
 
 @support.menu
 def mainlist(item):
