@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "(?:vupload.com|vup.to)/((?:embed-)?[a-z0-9]+)",
-        "url": "https://vup.to/\\1.html"
+        "url": "https://vupload.com/\\1.html"
       }
     ]
   },

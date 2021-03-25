@@ -1346,18 +1346,19 @@ def addQualityTag(item, itemlist, data, patron):
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     video_urls = []
     block = scrapertools.find_single_match(data, r'sources:\s*\[([^\]]+)\]') if not dataIsBlock else data
-    if 'file:' in block:
-        sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
-    elif 'src:' in block:
-        sources = scrapertools.find_multiple_matches(data, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+",[^,]+,\s*label:\s*"([^"]+)"')
-    else:
-        sources =[(block.replace('"',''), '')]
-    for url, quality in sources:
-        quality = 'auto' if not quality else quality
-        if url.split('.')[-1] != 'mpd':
-            video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url if not onlyHttp else url.replace('https://', 'http://')])
+    if block:
+        if 'file:' in block:
+            sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
+        elif 'src:' in block:
+            sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+        else:
+            sources =[(block.replace('"',''), '')]
+        for url, quality in sources:
+            quality = 'auto' if not quality else quality
+            if url.split('.')[-1] != 'mpd':
+                video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url if not onlyHttp else url.replace('https://', 'http://')])
 
-    video_urls.sort(key=lambda x: x[0].split()[1])
+        video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls
 
 

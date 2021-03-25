@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from core import httptools, scrapertools, servertools
+from core import httptools, scrapertools, servertools, support
 from platformcode import logger, config
 from lib import jsunpack
 
@@ -25,7 +25,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     packed = scrapertools.find_multiple_matches(data, r'(eval\s?\(function\(p,a,c,k,e,d\).*?\n)')
     for p in packed:
         data = jsunpack.unpack(p)
-        media_url = scrapertools.find_single_match(data, r"source:\\'([^\\']+)")
-        if media_url:
-            video_urls.append([media_url.split('.')[-1] + ' [Vidto.me]', media_url])
+        video_urls.extend(support.get_jwplayer_mediaurl(data, 'vidtome'))
+        # media_url = scrapertools.find_single_match(data, r"source:\\'([^\\']+)")
+        # if media_url:
+        #     video_urls.append([media_url.split('.')[-1] + ' [Vidto.me]', media_url])
     return video_urls

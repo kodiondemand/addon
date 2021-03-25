@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from core import httptools, scrapertools
+from core import httptools, scrapertools, support
 from platformcode import logger, config
 
 
@@ -18,20 +18,22 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("url=" + page_url)
     video_urls = []
     global data
-    patron = r'sources:\s*\[\{src:\s*"([^"]+)"'
-    matches = scrapertools.find_multiple_matches(data, patron)
-    if not matches:
-        data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
-    if data:
-        from lib import jsunpack
-        data = jsunpack.unpack(data)
-        matches = scrapertools.find_multiple_matches(data, patron)
-    for url in matches:
-        quality = 'm3u8'
-        video_url = url
-        if 'label' in url:
-            url = url.split(',')
-            video_url = url[0]
-            quality = url[1].replace('label:','')
-        video_urls.append(['VUP Player [%s]' % quality, video_url.replace(',','')])
-    return video_urls
+
+    return support.get_jwplayer_mediaurl(data, 'VUP')
+    # patron = r'sources:\s*\[\{src:\s*"([^"]+)"'
+    # matches = scrapertools.find_multiple_matches(data, patron)
+    # if not matches:
+    #     data = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
+    # if data:
+    #     from lib import jsunpack
+    #     data = jsunpack.unpack(data)
+    #     matches = scrapertools.find_multiple_matches(data, patron)
+    # for url in matches:
+    #     quality = 'm3u8'
+    #     video_url = url
+    #     if 'label' in url:
+    #         url = url.split(',')
+    #         video_url = url[0]
+    #         quality = url[1].replace('label:','')
+    #     video_urls.append(['VUP Player [%s]' % quality, video_url.replace(',','')])
+    # return video_urls
