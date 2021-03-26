@@ -129,11 +129,11 @@ def liveDict():
         urls = []
         if it['tuningInstruction'] and not it['mediasetstation$digitalOnly']:
             guide=current_session.get('https://static3.mediasetplay.mediaset.it/apigw/nownext/' + it['callSign'] + '.json').json()['response']
-            if 'restartUrl' in guide['currentListing']:
-                urls = [guide['currentListing']['restartUrl']]
-            else:
-                for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
-                    urls += key['publicUrls']
+            # if 'restartUrl' in guide['currentListing']:
+            #     urls = [guide['currentListing']['restartUrl']]
+            # else:
+            for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
+                urls += key['publicUrls']
             title = it['title']
             livedict[title] = {}
             livedict[title]['urls'] = urls
@@ -221,6 +221,7 @@ def peliculas(item):
 def epmenu(item):
     logger.debug()
     itemlist = []
+    # support.dbg()
     if item.seriesid:
         seasons = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-tv-seasons?bySeriesId=' + item.seriesid).json()['entries']
         for season in seasons:
@@ -284,33 +285,26 @@ def episodios(item):
 
 def findvideos(item):
     logger.debug()
-    itemlist = [support.Item(server='directo', title='Mediaset Play', url=item.urls, action='play')]
+    itemlist = [item.clone(server='directo', title='Mediaset Play', urls=item.urls, action='play')]
     return support.server(item, itemlist=itemlist, Download=False)
 
 
 def play(item):
     logger.debug()
-    if item.livefilter:
-        d = liveDict()[item.livefilter]
-        item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, urls=d['urls'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
-        support.thumb(item, live=True)
-    if not item.urls: urls = item.url
-    else: urls = item.urls
-    data = ''
-    for url in urls:
+    for url in item.urls:
         new_url = support.httptools.downloadpage(url, allow_redirects=True).url
         if '.mpd' in new_url:
-            data = new_url
             sec_data = support.match(url + post_url).data
+            item.url = support.match(sec_data, patron=r'<video src="([^"]+)').match
+            item.manifest = 'mpd'
             if support.match(sec_data, patron=r'(security)').match:
                 item.drm = DRM
                 item.license = lic_url % support.match(sec_data, patron=r'pid=([^|]+)').match
-                data = support.match(sec_data, patron=r'<video src="([^"]+)').match
-                break
+            break
         else:
-            data = url
+            item.url = new_url
 
-    return support.servertools.find_video_items(item, data=data)
+    return [item]
 
 
 def subBrand(json):

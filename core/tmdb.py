@@ -994,10 +994,7 @@ class Tmdb(object):
                    '&include_adult=%s&page=%s' % (self.busqueda_tipo, text_quote, self.busqueda_idioma, True, page))
 
             if self.busqueda_year:
-                if self.busqueda_tipo == 'tv':
-                    url += '&first_air_date_year=%s' % self.busqueda_year
-                else:
-                    url += '&year=%s' % self.busqueda_year
+                url += '&year=%s' % self.busqueda_year
 
             buscando = self.busqueda_texto.capitalize()
             logger.debug("[Tmdb.py] Searching %s on page %s:\n%s" % (buscando, page, url))

@@ -613,7 +613,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
-        if item.channel != "videolibrary":
+        if item.channel != "videolibrary" and item.videolibrary != False:
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
                 context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
