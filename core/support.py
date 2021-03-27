@@ -138,7 +138,7 @@ def scrapeLang(scraped, lang, longtitle):
     # e credo sia utile per filtertools
     language = ''
 
-    if scraped['lang']:
+    if scraped.get('lang'):
         if 'ita' in scraped['lang'].lower(): language = 'ITA'
         if 'sub' in scraped['lang'].lower(): language = 'Sub-' + language
 
@@ -709,10 +709,12 @@ def menu(func):
         item = args['item']
         logger.debug(item.channel + ' menu start')
         host = func.__globals__['host']
+        menuHost = args.get('host','')
+        if menuHost: host = menuHost
         filename = func.__module__.split('.')[1]
         single_search = False
         # listUrls = ['film', 'filmSub', 'tvshow', 'tvshowSub', 'anime', 'animeSub', 'search', 'top', 'topSub']
-        listUrls = ['top', 'film', 'tvshow', 'anime', 'search']
+        listUrls = ['top', 'film', 'tvshow', 'anime', 'search', 'host']
         listUrls_extra = []
         dictUrl = {}
 
@@ -895,12 +897,13 @@ def match(item_url_string, **args):
         matches: all the matches
     '''
 
-    matches = blocks = []
+    matches = []
+    blocks = []
     url = None
     # arguments allowed for scrape
     patron = args.get('patron', None)
     patronBlock = args.get('patronBlock', None)
-    patronBlocks = args.get('patronBlock', None)
+    patronBlocks = args.get('patronBlocks', None)
     debug = args.get('debug', False)
     debugBlock = args.get('debugBlock', False)
     string = args.get('string', False)
@@ -934,8 +937,9 @@ def match(item_url_string, **args):
     if patronBlock:
         blocks = [scrapertools.find_single_match(data, patronBlock)]
     elif patronBlocks:
-        if type(patronBlock) == str:  patron = [patronBlock]
-        for p in patronBlock:
+        if type(patronBlocks) == str: 
+            patronBlocks = [patronBlocks]
+        for p in patronBlocks:
             blocks += scrapertools.find_multiple_matches(data, p)
     else:
         blocks = [data]

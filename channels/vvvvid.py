@@ -29,6 +29,7 @@ main_host =  host + '/vvvvid/ondemand/'
 @support.menu
 def mainlist(item):
     if conn_id:
+        host = main_host
         anime = ['anime/',
                 ('Popolari',['anime/', 'peliculas', 'channel/10002/last/']),
                 ('Nuove Uscite',['anime/', 'peliculas', 'channel/10007/last/']),
