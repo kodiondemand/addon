@@ -127,7 +127,7 @@ def liveDict():
     json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-stations?sort=ShortTitle').json()['entries']
     for it in json:
         urls = []
-        if it['tuningInstruction'] and not it['mediasetstation$digitalOnly']:
+        if it.get('tuningInstruction') and not it.get('mediasetstation$digitalOnly'):
             guide=current_session.get('https://static3.mediasetplay.mediaset.it/apigw/nownext/' + it['callSign'] + '.json').json()['response']
             # if 'restartUrl' in guide['currentListing']:
             #     urls = [guide['currentListing']['restartUrl']]
