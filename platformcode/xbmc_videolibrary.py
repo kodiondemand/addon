@@ -25,8 +25,6 @@ def mark_auto_as_watched(item):
         logger.debug()
         actual_time = 0
         total_time = 0
-        # logger.debug("item:\n" + item.tostring('\n'))
-        # if item.options['continue']: item.played_time = platformtools.resume_playback(platformtools.get_played_time(item))
 
         time_limit = time.time() + 30
         while not platformtools.is_playing() and time.time() < time_limit:
@@ -40,7 +38,7 @@ def mark_auto_as_watched(item):
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
-        if item.contentType != 'movie' and config.get_setting('next_ep'):
+        if item.contentType != 'movie' and config.get_setting('next_ep') < 3:
             next_dialogs = ['NextDialog.xml', 'NextDialogExtended.xml', 'NextDialogCompact.xml']
             next_ep_type = config.get_setting('next_ep_type')
             ND = next_dialogs[next_ep_type]
@@ -49,8 +47,10 @@ def mark_auto_as_watched(item):
             logger.debug(next_episode)
 
         while platformtools.is_playing():
-            actual_time = xbmc.Player().getTime()
-            total_time = xbmc.Player().getTotalTime()
+            try: actual_time = xbmc.Player().getTime()
+            except: pass
+            try: total_time = xbmc.Player().getTotalTime()
+            except: pass
             if item.played_time and xbmcgui.getCurrentWindowId() == 12005:
                 xbmc.Player().seekTime(item.played_time)
                 item.played_time = 0 # Fix for Slow Devices
@@ -75,7 +75,6 @@ def mark_auto_as_watched(item):
             # check for next Episode
             if next_episode and sync and time_from_end >= difference:
                 nextdialog = NextDialog(ND, config.get_runtime_path())
-                nextdialog.show()
                 while platformtools.is_playing() and not nextdialog.is_exit():
                     xbmc.sleep(100)
                 if nextdialog.continuewatching:
@@ -83,10 +82,9 @@ def mark_auto_as_watched(item):
                     xbmc.Player().stop()
                 nextdialog.close()
                 break
-            xbmc.sleep(1000)
 
         # if item.options['continue']:
-        if 10 < actual_time < mark_time:
+        if actual_time < mark_time:
             item.played_time = actual_time
         else: item.played_time = 0
         platformtools.set_played_time(item)
@@ -96,13 +94,16 @@ def mark_auto_as_watched(item):
 
         while platformtools.is_playing():
             xbmc.sleep(100)
+
         if not show_server and item.play_from != 'window' and not item.no_return:
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
             xbmc.sleep(500)
+
         if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
             from platformcode.launcher import play_from_library
             play_from_library(next_episode)
+
         # db need to be closed when not used, it will cause freezes
         from core import db
         db.close()
@@ -1368,7 +1369,6 @@ def next_ep(item):
 
     return item
 
-
 class NextDialog(xbmcgui.WindowXMLDialog):
     item = None
     cancel = False
@@ -1393,6 +1393,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
         self.setProperty("ep_title", "%dx%02d - %s" % (info["season"], info["episode"], info["title"]))
+        self.doModal()
 
     def set_exit(self, EXIT):
         self.EXIT = EXIT

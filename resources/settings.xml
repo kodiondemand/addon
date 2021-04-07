@@ -39,7 +39,7 @@
         <setting id="videolibrary_kodi" type="bool" label="70120" default="false"/>
         <setting label="59997" type="lsep"/>
         <setting id="videolibrary_max_quality" type="bool" label="70729" default="false" visible="true"/>
-        <setting id="next_ep" type="select" label="70748" lvalues="70832|70833|70732" default="1"/>
+        <setting id="next_ep" type="select" label="70748" lvalues="70832|70833|70732|70834" default="1"/>
         <setting id="next_ep_type" type="select" label="70754" lvalues="70755|70756|70757" default="0" visible="!eq(-1,0)" subsetting="true"/>
         <setting id="next_ep_seconds" type="slider" option="int" range="20,10,240" label="70749" default="40" visible="!eq(-2,0)" subsetting="true"/>
         <setting id="watched_setting" type="slider" option="int" range="20,5,90" label="60634" default="80"/>

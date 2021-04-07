@@ -836,9 +836,15 @@ def report_menu(item):
             action = 'call_browser'
             url = item.url
         itemlist.append(Item(channel=item.channel, action=action,
-                    title="**- LOG: [COLOR gold]%s[/COLOR] -**" % item.url, url=url,
+                    title="LOG: [COLOR gold]%s[/COLOR]" % item.url, url=url,
                     thumbnail=thumb_next, unify=False, folder=False))
-
+        if item.one_use:
+            itemlist.append(Item(channel=item.channel, action="",
+                    title=config.get_localized_string(60305),
+                    thumbnail=thumb_next, folder=False))
+            itemlist.append(Item(channel=item.channel, action="",
+                    title=config.get_localized_string(60308),
+                    thumbnail=thumb_next, folder=False))
         itemlist.append(Item(channel=item.channel, action="call_browser",
                              title="su Github (raccomandato)", url='https://github.com/kodiondemand/addon/issues',
                              thumbnail=thumb_next,
@@ -846,14 +852,6 @@ def report_menu(item):
         itemlist.append(Item(channel=item.channel, action="call_browser",
                              url='https://t.me/kodiondemand', title="Su telegram",
                              thumbnail=thumb_next, unify=False, folder=False))
-
-        if item.one_use:
-            itemlist.append(Item(channel=item.channel, action="",
-                    title="[COLOR orange]NO ACCEDA al INFORME: se BORRARÁ[/COLOR]",
-                    thumbnail=thumb_next, folder=False))
-            itemlist.append(Item(channel=item.channel, action="",
-                    title="[COLOR orange]ya que es de un solo uso[/COLOR]",
-                    thumbnail=thumb_next, folder=False))
 
     return itemlist
 
@@ -917,33 +915,34 @@ def report_send(item, description='', fatal=False):
     # directly on the forum. If it is a size problem, you are asked to reset Kodi and redo the fault, to
     # that the LOG is smaller.
 
-
     pastebin_list = {
-    'hastebin': ('1', 'https://hastebin.com/', 'documents', 'random', '', '',
-                'data', 'json', 'key', '', '0.29', '10', True, 'raw/', '', ''),
-    'dpaste': ('1', 'http://dpaste.com/', 'api/v2/', 'random', 'content=',
-                '&syntax=text&title=%s&poster=alfa&expiry_days=7',
-                'headers', '', '', 'location', '0.23', '15', True, '', '.txt', ''),
-    'ghostbin': ('1', 'https://ghostbin.com/', 'paste/new', 'random', 'lang=text&text=',
-                '&expire=2d&password=&title=%s',
-                'data', 'regex', '<title>(.*?)\s*-\s*Ghostbin<\/title>', '',
-                '0.49', '15', False, 'paste/', '', ''),
-    'write.as': ('1', 'https://write.as/', 'api/posts', 'random', 'body=', '&title=%s',
-                'data', 'json', 'data', 'id', '0.018', '15', True, '', '', ''),
-    'oneclickpaste': ('1', 'http://oneclickpaste.com/', 'index.php', 'random', 'paste_data=',
-                '&title=%s&format=text&paste_expire_date=1W&visibility=0&pass=&submit=Submit',
-                'data', 'regex', '<a class="btn btn-primary" href="[^"]+\/(\d+\/)">\s*View\s*Paste\s*<\/a>',
-                '', '0.060', '5', True, '', '', ''),
-    'bpaste': ('1', 'https://bpaste.net/', '', 'random', 'code=', '&lexer=text&expiry=1week',
-                'data', 'regex', 'View\s*<a\s*href="[^*]+/(.*?)">raw<\/a>', '',
-                '0.79', '15', True, 'raw/', '', ''),
-    'dumpz': ('0', 'http://dumpz.org/', 'api/dump', 'random', 'code=', '&lexer=text&comment=%s&password=',
-                'headers', '', '', 'location', '0.99', '15', False, '', '', ''),
-    'file.io': ('1', 'https://file.io/', '', 'random', '', 'expires=1w',
-                'requests', 'json', 'key', '', '99.0', '30', False, '', '.log', ''),
-    'uploadfiles': ('1', 'https://up.uploadfiles.io/upload', '', 'random', '', '',
-                'requests', 'json', 'url', '', '99.0', '30', False, None, '', '')
-                 }
+        'hastebin': ('1', 'https://hastebin.com/', 'documents', 'random', '', '',
+                    'data', 'json', 'key', '', '0.29', '10', True, 'raw/', '', ''),
+        'dpaste': ('1', 'http://dpaste.com/', 'api/v2/', 'random', 'content=',
+                    '&syntax=text&title=%s&poster=alfa&expiry_days=7',
+                    'headers', '', '', 'location', '0.23', '15', True, '', '.txt', ''),
+        'ghostbin': ('1', 'https://ghostbin.com/', 'paste/new', 'random', 'lang=text&text=',
+                    '&expire=2d&password=&title=%s',
+                    'data', 'regex', '<title>(.*?)\s*-\s*Ghostbin<\/title>', '',
+                    '0.49', '15', False, 'paste/', '', ''),
+        'write.as': ('1', 'https://write.as/', 'api/posts', 'random', 'body=', '&title=%s',
+                    'data', 'json', 'data', 'id', '0.018', '15', True, '', '', ''),
+        'oneclickpaste': ('1', 'http://oneclickpaste.com/', 'index.php', 'random', 'paste_data=',
+                    '&title=%s&format=text&paste_expire_date=1W&visibility=0&pass=&submit=Submit',
+                    'data', 'regex', '<a class="btn btn-primary" href="[^"]+\/(\d+\/)">\s*View\s*Paste\s*<\/a>',
+                    '', '0.060', '5', True, '', '', ''),
+        'bpaste': ('1', 'https://bpaste.net/', '', 'random', 'code=', '&lexer=text&expiry=1week',
+                    'data', 'regex', 'View\s*<a\s*href="[^*]+/(.*?)">raw<\/a>', '',
+                    '0.79', '15', True, 'raw/', '', ''),
+        'dumpz': ('0', 'http://dumpz.org/', 'api/dump', 'random', 'code=', '&lexer=text&comment=%s&password=',
+                    'headers', '', '', 'location', '0.99', '15', False, '', '', ''),
+        'file.io': ('1', 'https://file.io/', '', 'random', '', 'expires=1w',
+                    'requests', 'json', 'key', '', '99.0', '30', False, '', '', ''),
+        'uploadfiles': ('0', 'https://up.ufile.io/v1/upload', '', 'random', '', '',
+                    'curl', 'json', 'url', '', '99.0', '30', False, None, '', {'Referer': 'https://ufile.io/'}),
+        'anonfiles': ('1', 'https://api.anonfiles.com/upload', 'upload', 'random', '', '',
+                    'requests', 'json', 'data', 'file,url,short', '99.0', '30', False, None, '', '')
+                     }
     pastebin_list_last = ['hastebin', 'ghostbin', 'file.io']            # We leave these services the last
     pastebin_one_use = ['file.io']                                      # Single-use servers and deletes
     pastebin_dir = []
@@ -994,7 +993,7 @@ def report_send(item, description='', fatal=False):
     random.shuffle(pastebin_dir)
     pastebin_dir.extend(pastebin_list_last)                             # We leave these services the last
 
-    #pastebin_dir = ['uploadfiles']                                      # For testing a service
+    # pastebin_dir = ['file.io']                                      # For testing a service
     #log_data = 'TEST FOR SERVICE TESTS'
 
     # The list of "pastebin" servers is scrolled to locate an active one, with capacity and availability
@@ -1018,7 +1017,7 @@ def report_send(item, description='', fatal=False):
         paste_file_size = float(pastebin_list[paste_name][10])          # Server capacity in MB
         if paste_file_size > 0:                                         # If it is 0, the capacity is unlimited
             if log_size > paste_file_size:                              # Capacity and size verification
-                msg = 'Log file too large. Restart Kodi and retry'
+                msg = config.get_localized_string(60334)
                 continue
         paste_timeout = int(pastebin_list[paste_name][11])              # Timeout for the server
         paste_random_headers = pastebin_list[paste_name][12]            # Do you use RAMDOM headers to mislead the serv?
@@ -1029,15 +1028,12 @@ def report_send(item, description='', fatal=False):
             paste_headers.update(jsontools.load((pastebin_list[paste_name][15])))
 
         if paste_name in pastebin_one_use:
-            pastebin_one_use_msg = 'DO NOT ACCESS THE REPORT: it will be DELETED'
             item.one_use = True
-        else:
-            pastebin_one_use_msg = ''
 
         try:
             # POST is created with server options "pastebin"
             # This is the "requests" format
-            if paste_type == 'requests':
+            if paste_type in ['requests', 'curl']:
                 paste_file = {'file': (paste_title+'.log', log_data)}
                 if paste_post1:
                     paste_file.update(paste_post1)
@@ -1079,8 +1075,50 @@ def report_send(item, description='', fatal=False):
                 data = httptools.downloadpage(paste_host, params=paste_params, file=log_data,
                             file_name=paste_title+'.log', timeout=paste_timeout,
                             random_headers=paste_random_headers, headers=paste_headers)
+
+            elif paste_type == 'curl':
+                paste_sufix = '/create_session'
+                data_post = {'file_size': len(log_data)}
+                logger.error(data_post)
+                data = httptools.downloadpage(paste_host+paste_sufix, params=paste_params,
+                            ignore_response_code=True, post=data_post, timeout=paste_timeout, alfa_s=True,
+                            random_headers=paste_random_headers, headers=paste_headers).data
+                data = jsontools.load(data)
+                if not data.get("fuid", ""):
+                    logger.error("fuid: %s" % str(data))
+                    raise
+                fuid = data["fuid"]
+
+                paste_sufix = '/chunk'
+                log_data_chunks = log_data
+                i = 0
+                chunk_len = 1024
+                while len(log_data_chunks) > 0:
+                    i += 1
+                    chunk = log_data_chunks[:chunk_len]
+                    log_data_chunks = log_data_chunks[chunk_len:]
+                    data_post = {'fuid': fuid, 'chunk_index': i}
+                    data = httptools.downloadpage(paste_host+paste_sufix, params=paste_params, file=chunk, alfa_s=True,
+                                ignore_response_code=True, post=data_post, timeout=paste_timeout, CF_test=False,
+                                random_headers=paste_random_headers, headers=paste_headers).data
+                    if not 'successful' in data:
+                        logger.error("successful: %s" % str(data))
+                        raise
+
+                data = {}
+                paste_sufix = '/finalise'
+                data_post = {'fuid': fuid, 'total_chunks': i, 'file_name': paste_title+'.log', 'file_type': 'doc'}
+                resp = httptools.downloadpage(paste_host+paste_sufix, params=paste_params,
+                            ignore_response_code=True, post=data_post, timeout=paste_timeout,
+                            random_headers=paste_random_headers, headers=paste_headers)
+                if not resp.data:
+                    logger.error("resp.content: %s" % str(resp.data))
+                    raise
+                data['data'] = resp.data
+                data = type('HTTPResponse', (), data)
+
         except:
-            msg = 'Inténtelo más tarde'
+            msg = 'Try later'
             logger.error('Failed to save report. ' + msg)
             logger.error(traceback.format_exc())
             continue
@@ -1093,16 +1131,20 @@ def report_send(item, description='', fatal=False):
                 paste_host_return = ''
 
             # Responses to REQUESTS requests
-            if paste_type == 'requests':                                # Response of request type "requests"?
+            if paste_type in ['requests', 'curl']:                                # Response of request type "requests"?
                 if paste_resp == 'json':                                                # Answer in JSON format?
                     if paste_resp_key in data.data:
-                        if not paste_url:
-                            key = jsontools.load(data.data)[paste_resp_key]             # with a label
-                        else:
-                            key = jsontools.load(data.data)[paste_resp_key][paste_url]  # with two nested tags
-                        item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key,
-                                    paste_host_return_tail)
-                    else:
+                        key = jsontools.load(data.data)[paste_resp_key]
+                        if paste_url and key:                                   # hay etiquetas adicionales?
+                            try:
+                                for key_part in paste_url.split(','):
+                                    key = key[key_part]                         # por cada etiqueta adicional
+                            except:
+                                key = ''
+                        if key:
+                            item.url = "%s%s%s" % (paste_host_resp+paste_host_return, key,
+                                                   paste_host_return_tail)
+                    if not key:
                         logger.error('ERROR in data return format. data.data=' + str(data.data))
                         continue
 

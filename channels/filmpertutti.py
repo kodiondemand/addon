@@ -115,7 +115,6 @@ def select(item):
 def search(item, texto):
     support.info()
     item.url = host + "/?s=" + texto
-    item.contentType = 'episode'
     item.args = 'search'
     try:
         return peliculas(item)

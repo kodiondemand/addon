@@ -417,6 +417,8 @@ def findvideos(item):
 
     all_videolibrary = []
     ch_results = []
+    list_servers = []
+
     with futures.ThreadPoolExecutor() as executor:
         for nom_canal, json_path in list(list_canales.items()):
             if filtro_canal and filtro_canal != nom_canal.capitalize():
@@ -476,7 +478,6 @@ def findvideos(item):
                             del item.library_urls[nom_canal]
 
             item_json = Item().fromjson(filetools.read(json_path))
-            list_servers = []
             # support.dbg()
             try: from urllib.parse import urlsplit
             except ImportError: from urlparse import urlsplit

@@ -315,6 +315,7 @@ class GenericServerTest(unittest.TestCase):
     def test_get_video_url(self):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
+        httptools.default_headers['Referer'] = self.server.referer
         print('testing ' + page_url)
         print('Found on ' + self.server.foundOn)
         print()
@@ -342,10 +343,10 @@ class GenericServerTest(unittest.TestCase):
                     print(headers)
                 if 'magnet:?' in directUrl:  # check of magnet links not supported
                     continue
-                if directUrl.split('.')[-1] == 'm3u8':  # m3u8 is a text file and HEAD may be forbidden
+                page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True, verify=False)
+                if not page.success and directUrl.split('.')[-1] == 'm3u8':  # m3u8 is a text file and HEAD may be forbidden
                     page = downloadpage(directUrl, headers=headers, use_requests=True, verify=False)
-                else:
-                    page = downloadpage(directUrl, headers=headers, only_headers=True, use_requests=True, verify=False)
+
                 self.assertTrue(page.success, self.name + ' scraper returned an invalid link')
                 self.assertLess(page.code, 400, self.name + ' scraper returned a ' + str(page.code) + ' link')
                 contentType = page.headers['Content-Type']
@@ -356,10 +357,7 @@ class GenericServerTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    if 'KOD_TST_CH' not in os.environ:
-        unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(report_name='report', add_timestamp=False, combine_reports=True,
-                     report_title='KoD Test Suite', template=os.path.join(config.get_runtime_path(), 'tests', 'template.html')), exit=False)
-        import webbrowser
-        webbrowser.open(os.path.join(outDir, 'report.html'))
-    else:
-        unittest.main()
+    unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(report_name='report', add_timestamp=False, combine_reports=True,
+                 report_title='KoD Test Suite', template=os.path.join(config.get_runtime_path(), 'tests', 'template.html')), exit=False)
+    import webbrowser
+    webbrowser.open(os.path.join(outDir, 'report.html'))

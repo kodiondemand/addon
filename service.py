@@ -458,9 +458,6 @@ if __name__ == "__main__":
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
 
-    # handling old autoexec method
-    if config.is_autorun_enabled():
-        config.enable_disable_autorun(True)
     # port old db to new
     old_db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
     if filetools.isfile(old_db_name):

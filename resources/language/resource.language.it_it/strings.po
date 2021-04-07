@@ -1424,8 +1424,8 @@ msgid "The unzipped %s file already exists, or you want to overwrite it.?"
 msgstr "il file %s da decomprimere esiste già, vuoi sovrascriverlo?"
 
 msgctxt "#60305"
-msgid ""
-msgstr ""
+msgid "[COLOR red]Do not open this link[/COLOR]"
+msgstr "[COLOR red]NON aprire questo link[/COLOR]"
 
 msgctxt "#60306"
 msgid "The fields 'New password' and 'Confirm new password' do not match"
@@ -1436,8 +1436,8 @@ msgid "Use 'Preferences' to change your password"
 msgstr "Entra in 'Preferenze' per cambiare la password"
 
 msgctxt "#60308"
-msgid ""
-msgstr ""
+msgid "[COLOR red]It's one use, so write it[/COLOR]"
+msgstr "[COLOR red]Funziona una volta sola, quindi scrivilo[/COLOR]"
 
 msgctxt "#60309"
 msgid "The password is not correct."
@@ -1540,8 +1540,8 @@ msgid "Configuration"
 msgstr "Configurazione"
 
 msgctxt "#60334"
-msgid ""
-msgstr ""
+msgid "Log file too large. Restart Kodi and retry"
+msgstr "File di log troppo pesante. Riapri kodi e riprova"
 
 msgctxt "#60335"
 msgid "Watch in..."
@@ -4808,8 +4808,8 @@ msgid "Notification(Update Kodi to its latest version, for best info,8000, 'http
 msgstr "Notification(Aggiorna Kodi alla sua ultima versione, per migliori info,8000, 'http://i.imgur.com/mHgwcn3.png')"
 
 msgctxt "#70501"
-msgid "Search did not match (%s)"
-msgstr "La ricerca non ha dato risultati (%s)"
+msgid "Search did not match"
+msgstr "La ricerca non ha dato risultati"
 
 msgctxt "#70502"
 msgid ">> Next"
@@ -4840,24 +4840,24 @@ msgid "Search in Mymovies"
 msgstr "Ricerca in Mymovies"
 
 msgctxt "#70510"
-msgid "Manual Search in Youtube"
-msgstr "Ricerca Manuale in Youtube"
+msgid "Manual Search"
+msgstr "Ricerca Manuale"
 
 msgctxt "#70511"
-msgid "Manual Search in Mymovies"
-msgstr "Ricerca Manuale in Mymovies"
+msgid ""
+msgstr ""
 
 msgctxt "#70512"
 msgid "Searching in Mymovies"
 msgstr "Ricerca in Mymovies"
 
 msgctxt "#70513"
-msgid "Manual Searching in Filmaffinity"
-msgstr "Ricerca Manuale in Filmaffinity"
+msgid ""
+msgstr ""
 
 msgctxt "#70514"
-msgid "Manual Search in Jayhap"
-msgstr "Ricerca Manuale in Jayhap"
+msgid ""
+msgstr ""
 
 msgctxt "#70515"
 msgid "Completed %s"
@@ -6135,6 +6135,10 @@ msgstr "Disabilitato"
 msgctxt "#70833"
 msgid "Automatic"
 msgstr "Automatico"
+
+msgctxt "#70834"
+msgid "Playlist"
+msgstr "Playlist"
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

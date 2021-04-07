@@ -23,7 +23,7 @@ except:
     conn_id = ''
 
 
-main_host =  host + '/vvvvid/ondemand/'
+main_host = host + '/vvvvid/ondemand/'
 
 
 @support.menu

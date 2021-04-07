@@ -1,0 +1,11 @@
+{
+  "id": "accuradio",
+  "name": "AccuRadio",
+  "active": true,
+  "language": ["*"],
+  "thumbnail": "accuradio.png",
+  "banner": "accuradio.png",
+  "categories": ["music"],
+  "not_active":["include_in_global_search"],
+  "settings" :[]
+}

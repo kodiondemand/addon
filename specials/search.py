@@ -749,6 +749,10 @@ def from_context(item):
     else:
         return
 
+    if config.get_setting('new_search'):
+        from specials import globalsearch
+        return globalsearch.Search(item)
+
     if 'list_type' not in item:
         if 'wanted' in item:
             item.title = item.wanted

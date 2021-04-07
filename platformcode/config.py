@@ -119,7 +119,7 @@ def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
         name = os.path.basename(frame[0].f_code.co_filename).replace('.py', '')
     if findhostMethod:
         url = jsontools.get_node_from_file(name, 'url')
-        if not url or 'web.archive.org' in url or forceFindhost:  # per eliminare tutti i webarchive salvati causa bug httptools CF, eliminare in futuro
+        if not url or forceFindhost:
             url = findhostMethod(channels_data['findhost'][name])
             jsontools.update_node(url, name, 'url')
         return url
@@ -137,38 +137,6 @@ def get_system_platform():
     elif xbmc.getCondVisibility("system.platform.osx"):
         platform = "osx"
     return platform
-
-
-def is_autorun_enabled():
-    try:
-        if "xbmc.executebuiltin('RunAddon(plugin.video.kod)')" in open(os.path.join(xbmc.translatePath('special://userdata'),'autoexec.py')).read():
-            return True
-        else:
-            return False
-    except:
-        # if error in reading from file autoexec doesnt exists
-        return False 
-
-
-def enable_disable_autorun(is_enabled):
-    # old method, now using service.py
-
-    path = os.path.join(xbmc.translatePath('special://userdata'),'autoexec.py')
-    append_write = 'a' if os.path.exists(path) else 'w'
-
-    if is_enabled is False:
-        with open(path, append_write) as file: 
-            file.write("import xbmc\nxbmc.executebuiltin('RunAddon(plugin.video.kod)')")
-        set_setting('autostart', 'On')
-    else:
-        file = open(path, "r")
-        old_content = file.read() 
-        new_content = old_content.replace("xbmc.executebuiltin('RunAddon(plugin.video.kod)')", "")
-        file.close()
-        with open(path, "w") as file:
-            file.write(new_content)
-        set_setting('autostart', True)
-    return True
 
 
 def get_all_settings_addon():

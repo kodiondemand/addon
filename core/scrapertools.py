@@ -104,6 +104,7 @@ def unescape(text):
     from Fredrik Lundh
     http://effbot.org/zone/re-sub.htm#unescape-html
     """
+
     if not ('&' in text and ';' in text):
         return text
 
@@ -129,13 +130,16 @@ def unescape(text):
                     import html.entities as htmlentitydefs
                 else:
                     import htmlentitydefs
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]]).encode("utf-8")
+                ret = unichr(htmlentitydefs.name2codepoint[text[1:-1]]).encode("utf-8")
             except KeyError:
                 logger.error("keyerror")
                 pass
             except:
                 pass
-        return text  # leave as is
+        # from core.support import dbg;dbg()
+        if type(ret) != str:
+            ret = ret.decode()
+        return ret  # leave as is
 
     return re.sub("&#?\w+;", fixup, str(text))
 

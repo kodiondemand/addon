@@ -186,9 +186,10 @@ def play(item):
     if item.contentType == 'episode': data = session.get('{}/playback/v2/videoPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     else: data = session.get('{}/playback/v2/channelPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     if data.get('protection', {}).get('drm_enabled',True):
-        url = data['streaming']['dash']['url']
+        item.url = data['streaming']['dash']['url']
         item.drm = 'com.widevine.alpha'
         item.license = data['protection']['schemes']['widevine']['licenseUrl'] + '|PreAuthorization=' + data['protection']['drmToken'] + '|R{SSM}|'
     else:
-        url = data['streaming']['hls']['url']
-    return support.servertools.find_video_items(item, data=url)
+        item.url = data['streaming']['hls']['url']
+        item.manifest = 'hls'
+    return [item]

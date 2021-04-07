@@ -1,4 +1,4 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.6.1" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.6.2" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
@@ -23,12 +23,14 @@
     <assets>
       <icon>resources/media/logo.png</icon>
       <fanart>resources/media/fanart.jpg</fanart>
-      <screenshot>resources/media/themes/ss/1.png</screenshot>
-      <screenshot>resources/media/themes/ss/2.png</screenshot>
-      <screenshot>resources/media/themes/ss/3.png</screenshot>
+      <screenshot>resources/media/screenshot-1.png</screenshot>
+      <screenshot>resources/media/screenshot-2.png</screenshot>
+      <screenshot>resources/media/screenshot-3.png</screenshot>
     </assets>
-      <news>-Migliorata l'efficacia del riconoscimento dei contenuti in ricerca film/serie
-          - corretti alcuni bug e fatti alcuni fix per i soliti cambi di struttura</news>
+      <news>- Migliorata funzione &quot;cerca trailer&quot;
+- Episodio successivo: è ora disponibile la modalità playlist (puoi usare il tasto riproduci successivo di kodi)
+- aggiunto www.accuradio.com
+- migliorie varie</news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]
     [COLOR yellow]Kodi © is a registered trademark of the XBMC Foundation. We are not connected to or in any other way affiliated with Kodi, Team Kodi, or the XBMC Foundation. Furthermore, any software, addons, or products offered by us will receive no support in official Kodi channels, including the Kodi forums and various social networks.[/COLOR]</disclaimer>

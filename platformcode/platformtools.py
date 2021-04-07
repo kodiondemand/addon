@@ -294,6 +294,10 @@ def render_items(itemlist, parent_item):
     """
     Function used to render itemlist on kodi
     """
+    # if it's not a list, do nothing
+    if not isinstance(itemlist, list):
+        return
+
     logger.debug('START render_items')
     thumb_type = config.get_setting('video_thumbnail_type')
     from platformcode import shortcuts
@@ -309,9 +313,6 @@ def render_items(itemlist, parent_item):
     check_sf = os.path.exists(sf_file_path)
     superfavourites = check_sf and xbmc.getCondVisibility('System.HasAddon("plugin.program.super.favourites")')
 
-    # if it's not a list, do nothing
-    if not isinstance(itemlist, list):
-        return
     # if there's no item, add "no elements" item
     if not len(itemlist):
         itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
@@ -583,7 +584,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
                 context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
 
-        # Go to the Main Menu (channel.mainlist)
+        # Open in browser and previous menu
         if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
             if parent_item.action != "mainlist":
                 context_commands.insert(0, (config.get_localized_string(60349), "Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
@@ -609,8 +610,10 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             else:
                 mediatype = item.contentType
 
-            context_commands.append((config.get_localized_string(60350), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
-
+            if config.get_setting('new_search'):
+                context_commands.append((config.get_localized_string(60350), "RunPlugin (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True}))))
+            else:
+                context_commands.append((config.get_localized_string(60350), "Container.Refresh (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
         if item.channel != "videolibrary" and item.videolibrary != False:
@@ -642,7 +645,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
         # Search trailer...
         if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
-            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s)" % (sys.argv[0], urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
+            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         if kwargs.get('superfavourites'):
             context_commands.append((config.get_localized_string(60361), "RunScript(special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py)"))
@@ -936,8 +939,8 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
         if default_action == 3:
             seleccion = len(opciones) - 1
 
-        # Search for trailers on youtube
-        if item.channel not in ["Trailer", "ecarteleratrailers"]:
+        # Search for trailers
+        if item.channel not in ["trailertools"]:
             # "Search Trailer"
             opciones.append(config.get_localized_string(30162))
 
@@ -1094,6 +1097,7 @@ def set_player(item, xlistitem, mediaurl, view, strm):
             playlist.add(mediaurl, xlistitem)
             # Reproduce
             xbmc_player.play(playlist, xlistitem)
+            add_next_to_playlist(item)
 
             if config.get_setting('trakt_sync'):
                 from core import trakt_tools
@@ -1127,6 +1131,29 @@ def set_player(item, xlistitem, mediaurl, view, strm):
             continue
         xbmc.sleep(500)
         xbmcgui.Window(12005).show()
+
+
+def add_next_to_playlist(item):
+    import threading
+    from core import filetools, videolibrarytools
+    from platformcode import xbmc_videolibrary
+    def add_to_playlist(item):
+        if item.contentType != 'movie' and item.strm_path:
+            next= xbmc_videolibrary.next_ep(item)
+            if next:
+                next.back = True
+                nfo_path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"), next.strm_path.replace('strm','nfo'))
+                if nfo_path and filetools.isfile(nfo_path):
+                    head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
+                nextItem = xbmcgui.ListItem(path=item_nfo.url)
+                nextItem.setArt({"thumb": item_nfo.contentThumbnail if item_nfo.contentThumbnail else item_nfo.thumbnail})
+                set_infolabels(nextItem, item_nfo, True)
+                nexturl = "plugin://plugin.video.kod/?" + next.tourl()
+                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                playlist.add(nexturl, nextItem)
+                add_to_playlist(next)
+    if item.contentType != 'movie' and config.get_setting('next_ep') == 3:
+        threading.Thread(target=add_to_playlist, args=[item]).start()
 
 
 def torrent_client_installed(show_tuple=False):
@@ -1216,7 +1243,8 @@ def resume_playback(played_time):
             if action in self.action_exitkeys_id:
                 self.set_values(False)
                 self.close()
-    if played_time:
+
+    if played_time and played_time > 30:
         Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
         Dialog.show()
         t = 0

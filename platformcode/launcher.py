@@ -151,10 +151,6 @@ def run(item=None):
                         import urllib
                     short = urllib.urlopen('https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read().decode('utf-8')
                     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % short)
-        # Action in certain channel specified in "action" and "channel" parameters
-        elif item.action == "check_channels":
-            from platformcode import checkhost
-            checkhost.check_channels()
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
@@ -461,7 +457,8 @@ def play_from_library(item):
     # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
     item.action = "findvideos"
 
-    window_type = config.get_setting("window_type", "videolibrary")
+    window_type = config.get_setting("window_type", "videolibrary") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 1
+
     # and launch kodi again
     if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")

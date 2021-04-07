@@ -327,8 +327,8 @@ def filter_list(episodelist, action=None, path=None):
 
     # Make Language List
     for episode in episodelist:
+        if not episode.contentLanguage: episode.contentLanguage = 'ITA'
         if type(episode.contentLanguage) == list and episode.contentLanguage not in lang_list:
-           #lang_list = episode.contentLanguage
            pass
         else:
             if episode.contentLanguage and episode.contentLanguage not in lang_list:
@@ -338,6 +338,7 @@ def filter_list(episodelist, action=None, path=None):
                     if sub not in sub_list: sub_list.append(sub)
                 else:
                     lang_list.append(episode.contentLanguage)
+
     # add to Language List subtitled languages
     if sub_list:
         for sub in sub_list:

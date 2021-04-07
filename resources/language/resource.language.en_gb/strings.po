@@ -1425,7 +1425,7 @@ msgid "The unzipped %s file already exists, or you want to overwrite it.?"
 msgstr ""
 
 msgctxt "#60305"
-msgid ""
+msgid "[COLOR red]Do not open this link[/COLOR]"
 msgstr ""
 
 msgctxt "#60306"
@@ -1437,7 +1437,7 @@ msgid "Use 'Preferences' to change your password"
 msgstr ""
 
 msgctxt "#60308"
-msgid ""
+msgid "[COLOR red]It's one use, so write it[/COLOR]"
 msgstr ""
 
 msgctxt "#60309"
@@ -1541,7 +1541,7 @@ msgid "Configuration"
 msgstr ""
 
 msgctxt "#60334"
-msgid ""
+msgid "Log file too large. Restart Kodi and retry"
 msgstr ""
 
 msgctxt "#60335"
@@ -4809,7 +4809,7 @@ msgid "Notification(Update Kodi to its latest version, for best info,8000, 'http
 msgstr ""
 
 msgctxt "#70501"
-msgid "Search did not match (%s)"
+msgid "Search did not match"
 msgstr ""
 
 msgctxt "#70502"
@@ -4841,11 +4841,11 @@ msgid "Search in Mymovies"
 msgstr ""
 
 msgctxt "#70510"
-msgid "Manual Search in Youtube"
+msgid "Manual Search"
 msgstr ""
 
 msgctxt "#70511"
-msgid "Manual Search in Mymovies"
+msgid ""
 msgstr ""
 
 msgctxt "#70512"
@@ -4853,11 +4853,11 @@ msgid "Searching in Mymovies"
 msgstr ""
 
 msgctxt "#70513"
-msgid "Manual Searching in Filmaffinity"
+msgid ""
 msgstr ""
 
 msgctxt "#70514"
-msgid "Manual Search in Jayhap"
+msgid ""
 msgstr ""
 
 msgctxt "#70515"
@@ -6129,11 +6129,15 @@ msgstr ""
 
 msgctxt "#70832"
 msgid "Disabled"
-msgstr "Disabilitato"
+msgstr ""
 
 msgctxt "#70833"
 msgid "Automatic"
-msgstr "Automatico"
+msgstr ""
+
+msgctxt "#70834"
+msgid "Playlist"
+msgstr ""
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
