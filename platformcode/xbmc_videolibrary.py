@@ -1393,7 +1393,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
         self.setProperty("ep_title", "%dx%02d - %s" % (info["season"], info["episode"], info["title"]))
-        self.doModal()
+        self.show()
 
     def set_exit(self, EXIT):
         self.EXIT = EXIT
