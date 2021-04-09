@@ -3285,7 +3285,7 @@ msgid "Only until Kodi restarts"
 msgstr ""
 
 msgctxt "#70115"
-msgid ""
+msgid "Trailer search in progress"
 msgstr ""
 
 msgctxt "#70116"

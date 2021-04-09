@@ -106,7 +106,8 @@ def buscartrailer(item, trailers=[]):
             import traceback
             logger.error(traceback.format_exc())
 
-        multi_search(item, itemlist, tipo)
+        if multi_search(item, itemlist, tipo):
+            return
     if not itemlist:
         itemlist.append(item.clone(title=config.get_localized_string(70501), title2=item.contentTitle,
                                    action="", thumbnail=get_thumb('nofolder.png'), text_color=""))
@@ -128,13 +129,23 @@ def buscartrailer(item, trailers=[]):
 
 def multi_search(item, itemlist, tipo):
     ris = []
+    dialog = platformtools.dialog_progress('Trailer', config.get_localized_string(70115))
+    perc = 0
+    canceled = False
     with futures.ThreadPoolExecutor() as executor:
+        ris.append(executor.submit(tmdb_trailers, item, dialog, tipo))
         ris.append(executor.submit(mymovies_search, item))
         ris.append(executor.submit(youtube_search, item))
-        ris.append(executor.submit(tmdb_trailers, item, tipo))
 
         for r in futures.as_completed(ris):
+            if dialog.iscanceled():
+                dialog.close()
+                canceled = True
+            perc += 33
+            dialog.update(perc)
             itemlist.extend(r.result())
+    dialog.close()
+    return canceled
 
 
 def manual_search(item, tipo):
@@ -142,11 +153,12 @@ def manual_search(item, tipo):
     itemlist = []
     texto = platformtools.dialog_input(default=item.contentTitle, heading=config.get_localized_string(30112))
     if texto is not None:
-        multi_search(item.clone(contentTitle=texto), itemlist, tipo)
+        if multi_search(item.clone(contentTitle=texto), itemlist, tipo):
+            return
     return itemlist
 
 
-def tmdb_trailers(item, tipo="movie"):
+def tmdb_trailers(item, dialog, tipo="movie"):
     logger.debug()
 
     from core.tmdb import Tmdb
@@ -158,16 +170,17 @@ def tmdb_trailers(item, tipo="movie"):
         tmdb_search = Tmdb(texto_buscado=item.contentTitle, tipo=tipo, year=item.infoLabels['year'])
 
     if tmdb_search:
+        found = False
         for vid in tmdb_search.get_videos():
-            found = False
             if vid['type'].lower() == 'trailer':
                 title = vid['name']
-                it = item.clone(action="play", title=title, title2="TMDB(youtube) - " + vid['language'].replace("en", "ING").replace("it", "ITA") + " [" + vid['size'] + "p]", url=vid['url'], server="youtube")
+                it = del_id(item.clone(action="play", title=title, title2="TMDB(youtube) - " + vid['language'].replace("en", "ING").replace("it", "ITA") + " [" + vid['size'] + "p]", url=vid['url'], server="youtube"))
                 itemlist.append(it)
 
                 if vid['language'] == def_lang and not found:  # play now because lang is correct and TMDB is trusted
                     found = True
                     launcher.run(it)
+                    dialog.close()
                     while platformtools.is_playing():
                         xbmc.sleep(100)
 
@@ -197,8 +210,8 @@ def youtube_search(item):
         if item.contextual:
             scrapedtitle = "%s" % scrapedtitle
         url = urlparse.urljoin('https://www.youtube.com/', scrapedurl)
-        itemlist.append(item.clone(title=scrapedtitle, title2='Youtube - ' + scrapedduration, action="play", server="youtube",
-                                   url=url, thumbnail=scrapedthumbnail))
+        itemlist.append(del_id(item.clone(title=scrapedtitle, title2='Youtube - ' + scrapedduration, action="play", server="youtube",
+                                   url=url, thumbnail=scrapedthumbnail)))
     # next_page = scrapertools.find_single_match(data, '<a href="([^"]+)"[^>]+><span class="yt-uix-button-content">')
     # if next_page != "":
     #     next_page = urlparse.urljoin("https://www.youtube.com", next_page)
@@ -234,11 +247,15 @@ def search_links_mymovies(item):
     logger.debug()
     trailer_url = match(item, patron=r'<source src="([^"]+)').match
     if trailer_url:
-        it = item.clone(url=trailer_url, server='directo', action="play")
-        if 'tmdb_id' in it.infoLabels:
-            del it.infoLabels['tmdb_id']  # for not saving watch time
+        it = del_id(item.clone(url=trailer_url, server='directo', action="play"))
         return it
 
+
+def del_id(it):
+    """for not saving watch time"""
+    if 'tmdb_id' in it.infoLabels:
+        del it.infoLabels['tmdb_id']
+    return it
 
 try:
     import xbmcgui
