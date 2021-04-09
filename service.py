@@ -402,7 +402,7 @@ class AddonMonitor(xbmc.Monitor):
                     config.set_setting('elementum_on_seed', False)
             if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
                 xbmc.executebuiltin('Action(reloadkeymaps)')
-            self.settings_pre = settings_post
+            self.settings_pre.update(settings_post)
 
     def onNotification(self, sender, method, data):
         if method == 'VideoLibrary.OnUpdate':

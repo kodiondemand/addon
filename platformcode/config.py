@@ -147,9 +147,9 @@ def get_all_settings_addon():
         data = infile.read().decode('utf-8')
 
     ret = {}
-    matches = scrapertools.find_multiple_matches(data, '<setting id=\"([^\"]+)\"[^>]*>([^<]*)</setting>')
+    matches = scrapertools.find_multiple_matches(data, '<setting id=\"([^\"]+)\"[^>]*>')
 
-    for _id, value in matches:
+    for _id in matches:
         ret[_id] = get_setting(_id)
 
     return ret
