@@ -14,20 +14,17 @@ else: from concurrent_py2 import futures
 from collections import OrderedDict
 
 host = ''
-DRM = 'com.widevine.alpha'
-post_url = '?assetTypes=HD,browser,widevine:HD,browser:SD,browser,widevine:SD,browser:SD&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
+post_url = '?assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
 deviceid = '61d27df7-5cbf-4419-ba06-cfd27ecd4588'
 loginUrl = 'https://api-ott-prod-fe.mediaset.net/PROD/play/idm/anonymous/login/v1.0'
 loginData = {"cid": deviceid, "platform": "pc", "appName": "web/mediasetplay-web/d667681"}
-lic_url = 'https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid=%s&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token={token}' + \
-          '|Accept=*/*&Content-Type=&User-Agent=' + support.httptools.get_user_agent() + '|R{{SSM}}|'
+lic_url = 'https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid=%s&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token={token}|Accept=*/*&Content-Type=&User-Agent=' + support.httptools.get_user_agent() + '|R{{SSM}}|'
 entry = 'https://api.one.accedo.tv/content/entry/{id}?locale=it'
 entries = 'https://api.one.accedo.tv/content/entries?id={id}&locale=it'
 sessionUrl = "https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid={uuid}&gid=default"
 
 current_session = requests.Session()
-current_session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(),
-                                'Referer': support.config.get_channel_url()})
+current_session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(), 'Referer': support.config.get_channel_url()})
 
 # login anonimo
 res = current_session.post(loginUrl, json=loginData, verify=False)
@@ -113,12 +110,11 @@ def search(item, text):
 def menu(item):
     logger.debug()
     itemlist = []
-    # itemlist = [item.clone(title=support.typo(item.args[0], 'bullet bold'), url='', action='peliculas')]
     if item.url:
         json = get_from_id(item)
         for it in json:
             if 'uxReference' in it: itemlist.append(
-                item.clone(title=support.typo(it['title'], 'bullet bold'), url=it['uxReference'], args='', action='peliculas'))
+                item.clone(title=support.typo(it['title'], 'bullet bold'), url= it['landingUrl'], ref=it['uxReference'], args='', action='peliculas'))
     return itemlist
 
 
@@ -129,9 +125,6 @@ def liveDict():
         urls = []
         if it.get('tuningInstruction') and not it.get('mediasetstation$digitalOnly'):
             guide=current_session.get('https://static3.mediasetplay.mediaset.it/apigw/nownext/' + it['callSign'] + '.json').json()['response']
-            # if 'restartUrl' in guide['currentListing']:
-            #     urls = [guide['currentListing']['restartUrl']]
-            # else:
             for key in it['tuningInstruction']['urn:theplatform:tv:location:any']:
                 urls += key['publicUrls']
             title = it['title']
@@ -139,6 +132,7 @@ def liveDict():
             livedict[title]['urls'] = urls
             livedict[title]['plot'] = support.typo(guide['currentListing']['mediasetlisting$epgTitle'],'bold') + '\n' + guide['currentListing']['mediasetlisting$shortDescription'] + '\n' + guide['currentListing']['description'] + '\n\n' + support.typo('A Seguire:' + guide['nextListing']['mediasetlisting$epgTitle'], 'bold')
     return livedict
+
 
 def live(item):
     logger.debug()
@@ -175,23 +169,13 @@ def peliculas(item):
     for it in json:
         if item.search.lower() in it['title'].lower() and it['title'] not in titlelist:
             titlelist.append(it['title'])
-            # if item.contentType == 'movie':
-            #     action = 'findvideos'
-            #     urls = []
-            #     if 'media' not in it: it = subBrand(it['mediasetprogram$brandId'])[-1]
-            #     if 'media' in it:
-            #         for key in it['media']:
-            #             urls.append(key['publicUrl'])
-            # elif item.contentType == 'tvshow':
-            #     action = 'epmenu'
-            #     urls = it['mediasetprogram$brandId']
-            # else:
             if 'media' in it:
                 action = 'findvideos'
                 contentType = 'movie'
                 urls = []
                 for key in it['media']:
                     urls.append(key['publicUrl'])
+
             else:
                 action = 'epmenu'
                 contentType = 'tvshow'
@@ -221,7 +205,7 @@ def peliculas(item):
 def epmenu(item):
     logger.debug()
     itemlist = []
-    # support.dbg()
+
     if item.seriesid:
         seasons = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-tv-seasons?bySeriesId=' + item.seriesid).json()['entries']
         for season in seasons:
@@ -249,8 +233,7 @@ def epmenu(item):
 def episodios(item):
     logger.debug()
     itemlist = []
-    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{'
-                               + item.url + '}&range=0-1000').json()['entries']
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{'+ item.url + '}&range=0-1000').json()['entries']
 
     for it in json:
         urls = []
@@ -273,11 +256,6 @@ def episodios(item):
                            forcethumb=True,
                            no_return=True))
 
-    if 'episodi' in item.title.lower():
-        itemlist.reverse()
-    elif 'puntate intere' in item.title.lower():
-        itemlist.sort(key=lambda it: it.ep)
-
     if len(itemlist) == 1: return findvideos(itemlist[0])
 
     return itemlist
@@ -292,17 +270,15 @@ def findvideos(item):
 def play(item):
     logger.debug()
     for url in item.urls:
-        new_url = support.httptools.downloadpage(url, allow_redirects=True).url
-        if '.mpd' in new_url:
-            sec_data = support.match(url + post_url).data
-            item.url = support.match(sec_data, patron=r'<video src="([^"]+)').match
-            item.manifest = 'mpd'
-            if support.match(sec_data, patron=r'(security)').match:
-                item.drm = DRM
-                item.license = lic_url % support.match(sec_data, patron=r'pid=([^|]+)').match
-            break
-        else:
-            item.url = new_url
+        sec_data = support.match(url + post_url).data
+        item.url = support.match(sec_data, patron=r'<video src="([^"]+)').match
+        pid = support.match(sec_data, patron=r'pid=([^|]+)').match
+        item.manifest = 'mpd'
+
+        if pid:
+            item.drm = 'com.widevine.alpha'
+            item.license = lic_url % pid
+        break
 
     return [item]
 
@@ -327,7 +303,6 @@ def get_from_id(item):
 
 def get_programs(item, ret=[], args={}):
     hasMore = False
-    logger.debug('DICT=',item.url)
     url = ''
 
     if 'search' in item.args:
@@ -340,8 +315,8 @@ def get_programs(item, ret=[], args={}):
         args['hitsPerPage'] = 500
         url = 'https://api-ott-prod-fe.mediaset.net/PROD/play/rec2/search/v1.0?' + urlencode(args)
     elif not args:
-        if item.url in cdict:
-            args['uxReference'] = cdict[item.url]
+        if item.ref in cdict:
+            args['uxReference'] = cdict[item.ref]
             args['platform'] = 'pc'
         else:
             args = {"query": "*:*"}
@@ -357,7 +332,6 @@ def get_programs(item, ret=[], args={}):
 
     # if 'all' in item.args: url = 'https://api-ott-prod-fe.mediaset.net/PROD/play/rec/azlisting/v1.0?' + urlencode(args)
     if url:
-        support.logger.info(url)
         json = current_session.get(url).json()
         if 'response' in json:
             json = json['response']
