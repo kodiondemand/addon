@@ -38,7 +38,7 @@ def mark_auto_as_watched(item):
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
-        if item.contentType != 'movie' and config.get_setting('next_ep') < 3:
+        if item.contentType != 'movie' and 0 < config.get_setting('next_ep') < 3:
             next_dialogs = ['NextDialog.xml', 'NextDialogExtended.xml', 'NextDialogCompact.xml']
             next_ep_type = config.get_setting('next_ep_type')
             ND = next_dialogs[next_ep_type]
