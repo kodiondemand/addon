@@ -751,6 +751,9 @@ def from_context(item):
 
     if config.get_setting('new_search'):
         from specials import globalsearch
+        if item.infoLabels['tmdb_id']:
+            item.type = item.mode
+            item.mode = 'search'
         return globalsearch.Search(item)
 
     if 'list_type' not in item:
