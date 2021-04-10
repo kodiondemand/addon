@@ -3,10 +3,10 @@
     "find_videos": {
         "ignore_urls": [],
         "patterns": [{
-            "pattern": "https?://streamtape\\.com/(?:e|v)/(\\w+)",
+            "pattern": "streamtape\\.com/(?:e|v)/(\\w+)",
             "url": "https://streamta.pe/e/\\1"
         },{
-            "pattern": "https?://streamta\\.pe/(?:e|v)/(\\w+)",
+            "pattern": "streamta\\.pe/(?:e|v)/(\\w+)",
             "url": "https://streamta.pe/e/\\1"
         }]
     },

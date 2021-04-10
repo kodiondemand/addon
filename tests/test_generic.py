@@ -68,7 +68,7 @@ chBlackList = ['url', 'mediasetplay']
 srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {
-        'Film': 20
+        'Film': 30
     },
     'altadefinizione01_link': {
         'Film': 16,

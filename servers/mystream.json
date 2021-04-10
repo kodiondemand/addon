@@ -4,7 +4,7 @@
     "ignore_urls": ["https://embed.mystream.to/span"],
     "patterns": [
       {
-        "pattern": "my?stream\\.(?:\\w+\\.)?[^/]+/(?:external|watch/|embed-)?([0-9a-zA-Z_]+)",
+        "pattern": "my?stream\\.(?:\\w+\\.)?[^/ <>]+/(?:external|watch/|embed-)?([0-9a-zA-Z_]+)",
         "url": "https://embed.mystream.to/\\1"
       }
     ]

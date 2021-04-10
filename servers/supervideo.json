@@ -8,7 +8,7 @@
         "url": "https://supervideo.tv/embed-\\1.html"
       },
       {
-        "pattern": "supervideo.tv/([a-z0-9]{12})",
+        "pattern": "supervideo.tv/(?:e/)?([a-z0-9]{12})",
         "url": "https://supervideo.tv/embed-\\1.html"
       }
     ]
