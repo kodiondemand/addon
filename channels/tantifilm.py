@@ -3,19 +3,18 @@
 # Canale per Tantifilm
 # ------------------------------------------------------------
 
-import re
-
 from core import scrapertools, httptools, support
 from core.item import Item
 from core.support import info
 from platformcode import logger
-from platformcode import config, unify
+from platformcode import config
 
 
 def findhost(url):
     permUrl = httptools.downloadpage(url).data
-    host = scrapertools.find_single_match(permUrl, r'Nuovo indirizzo: <a href="([^"]+)')
+    host = scrapertools.find_single_match(permUrl, r'<a href="([^"]+)')
     return host
+
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
@@ -210,6 +209,10 @@ def findvideos(item):
                 urls.remove(u)
                 itemlist.extend(support.server(item, itemlist=hdpass(Item(url=u))))
                 break
+            if 'protectlink.stream' in u:
+                import base64
+                urls.remove(u)
+                urls.append(base64.b64decode(u.split('?data=')[1]))
         else:
             itemlist.extend(support.server(item, urls))
         support.addQualityTag(item, itemlist, data, 'Keywords:\s*(?:<span>)?([^<]+)')

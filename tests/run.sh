@@ -1,3 +1,4 @@
+#!/bin/bash
 rm tests/home/userdata/addon_data/plugin.video.kod/settings_channels/*.json
 rm tests/home/userdata/addon_data/plugin.video.kod/settings_servers/*.json
 rm tests/home/userdata/addon_data/plugin.video.kod/cookies.dat
