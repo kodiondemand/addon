@@ -95,6 +95,9 @@ def encode(path, _samba=False):
         if fs_encoding and not PY3:
             path = path.encode(fs_encoding, "ignore")
 
+    if PY3 and isinstance(path, bytes):
+        path = path.decode(fs_encoding)
+
     return path
 
 
