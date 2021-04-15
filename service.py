@@ -361,11 +361,7 @@ class AddonMonitor(xbmc.Monitor):
         logger.debug('settings changed')
         settings_post = config.get_all_settings_addon()
         if settings_post:
-            # backup settings
-            filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
-                           os.path.join(config.get_data_path(), "settings.bak"), True)
-            logger.debug({k: self.settings_pre[k] for k in self.settings_pre
-                          if k in settings_post and self.settings_pre[k] != settings_post[k]})
+
             from platformcode import xbmc_videolibrary
 
             if self.settings_pre.get('downloadpath', None) != settings_post.get('downloadpath', None):
@@ -402,7 +398,15 @@ class AddonMonitor(xbmc.Monitor):
                     config.set_setting('elementum_on_seed', False)
             if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
                 xbmc.executebuiltin('Action(reloadkeymaps)')
-            self.settings_pre.update(settings_post)
+
+            # backup settings
+            xbmc.sleep(2000)
+            filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
+                           os.path.join(config.get_data_path(), "settings.bak"), True)
+            logger.debug({k: self.settings_pre[k] for k in self.settings_pre
+                          if k in settings_post and self.settings_pre[k] != settings_post[k]})
+
+            self.settings_pre = config.get_all_settings_addon()
 
     def onNotification(self, sender, method, data):
         if method == 'VideoLibrary.OnUpdate':

@@ -122,8 +122,9 @@ def SettingOnPosition(item):
 	# This will open settings dialog focusing on fourth setting (control) inside the third category (tab)
 
 	import xbmc
+	from platformcode import config
 
-	xbmc.executebuiltin('Addon.OpenSettings(plugin.video.kod)')
+	config.open_settings()
 	category = item.category if item.category else 0
 	setting = item.setting if item.setting else 0
 	logger.debug('SETTING= ' + str(setting))

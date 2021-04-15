@@ -156,7 +156,7 @@ def get_all_settings_addon():
 
 
 def open_settings():
-    __settings__.openSettings()
+    xbmc.executebuiltin('Addon.OpenSettings(plugin.video.%s)' % PLUGIN_NAME)
 
 
 def get_setting(name, channel="", server="", default=None):
