@@ -86,7 +86,10 @@ def peliculas(item):
             new_data = load_more(more)
             data += new_data
         for it in data:
-            title = it['meta']['header']['title']
+            try:
+                title = it['meta']['header']['title']
+            except:
+                continue
             if item.text.lower() in title.lower():
                 itemlist.append(
                     item.clone(title=support.typo(title,'bold'),

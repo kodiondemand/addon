@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # Canale per cineblog01
 # ------------------------------------------------------------
-
+import datetime
 import re
 
 from core import scrapertools, httptools, servertools, support
@@ -91,11 +91,12 @@ def search(item, text):
 @support.scrape
 def peliculas(item):
     # esclusione degli articoli 'di servizio'
+    curYear = datetime.date.today().year
     blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
-                 'Aggiornamento Quotidiano Serie TV', 'OSCAR 2019 ▶ CB01.UNO: Vota il tuo film preferito! 🎬',
+                 'Aggiornamento Quotidiano Serie TV',
                  'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
-                 'OSCAR 2020 &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
-                 'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; 2021!']
+                 'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
+                 'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
     # debug= True
     if 'newest' in item.args:
         if '/serietv/' not in item.url:

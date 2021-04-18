@@ -33,7 +33,7 @@ def radio(item):
     data = support.match(item, patron= r'text="(?P<title>[^\("]+)(?:\((?P<location>[^\)]+)\))?" URL="(?P<url>[^"]+)" bitrate="(?P<quality>[^"]+)" reliability="[^"]+" guide_id="[^"]+" subtext="(?P<song>[^"]+)" genre_id="[^"]+" formats="(?P<type>[^"]+)" (?:playing="[^"]+" )?(?:playing_image="[^"]+" )?(?:show_id="[^"]+" )?(?:item="[^"]+" )?image="(?P<thumb>[^"]+)"')
     if data.matches:
         for title, location, url, quality, song, type, thumbnail in data.matches:
-            title = scrapertools.unescape(title)
+            title = scrapertools.decodeHtmlentities(title)
             itemlist.append(
                 item.clone(title = support.typo(title, 'bold') + support.typo(quality + ' kbps','_ [] bold color kod'),
                            thumbnail = thumbnail,

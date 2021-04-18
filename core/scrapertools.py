@@ -110,6 +110,7 @@ def unescape(text):
 
     def fixup(m):
         text = m.group(0)
+        ret = text
         if text[:2] == "&#":
             # character reference
             try:
@@ -136,7 +137,6 @@ def unescape(text):
                 pass
             except:
                 pass
-        # from core.support import dbg;dbg()
         if type(ret) != str:
             ret = ret.decode()
         return ret  # leave as is
