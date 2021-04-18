@@ -32,6 +32,8 @@ addon_icon = os.path.join( addon.getAddonInfo( "path" ),'resources', 'media', "l
 
 xbmc_player = xbmc.Player()
 
+play_canceled = False
+
 
 def dialog_ok(heading, message):
     dialog = xbmcgui.Dialog()
@@ -135,22 +137,25 @@ def dialog_register(heading, user=False, email=False, password=False, user_defau
                 height += 70
             else:
                 self.getControl(10003).setVisible(False)
+
             if self.email:
                 self.getControl(10004).setText(self.email_default)
                 height += 70
             else:
                 self.getControl(10004).setVisible(False)
+
             if self.password:
                 self.getControl(10005).setText(self.password_default)
                 height += 70
             else:
                 self.getControl(10005).setVisible(False)
-            if self.captcha_img:
 
+            if self.captcha_img:
                 self.getControl(10007).setImage(self.captcha_img)
                 height += 240
             else:
-                self.getControl(10005).setVisible(False)
+                self.getControl(10006).setVisible(False)
+                self.getControl(10007).setVisible(False)
             height += 40
             if height < 250: height = 250
             self.getControl(10000).setHeight(height)
@@ -913,6 +918,9 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
     else:
         video_urls, puedes, motivo = servertools.resolve_video_urls_for_playing(
             item.server, item.url, item.password, muestra_dialogo)
+
+    if play_canceled:
+        return opciones, [], 0, True
 
     seleccion = 0
     # If you can see the video, present the options

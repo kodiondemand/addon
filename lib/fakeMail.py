@@ -122,7 +122,13 @@ class Gmailnator(Mailbox):
     def readLast(self):
         inbox = self.inbox()
         if inbox:
-            self.user, id = support.match(inbox[0]['content'], patron='([^\/]+)\/messageid\/#([a-z0-9]+)').match
+            for m in inbox:
+                email = support.match(m['content'], patron='([^\/]+)\/messageid\/#([a-z0-9]+)').match
+                if email:
+                    break
+            else:
+                return
+            self.user, id = email
             #<b>subject<\/b><div>2 minutes ago</div><hr \/><div dir="ltr">body</div>
             html = httptools.downloadpage(self.baseUrl + 'mailbox/get_single_message/', post={'csrf_gmailnator_token': self.csrf, 'action': 'get_message', 'message_id': id, 'email': self.user}).data
             html = literal_eval('"""' + html + '"""')

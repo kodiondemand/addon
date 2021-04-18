@@ -36,9 +36,10 @@ def registerOrLogin(page_url):
         if login():
             return True
 
-    if platformtools.dialog_yesno('HDmario',
+    action = platformtools.dialog_yesno('HDmario',
                                   'Questo server necessita di un account, ne hai già uno oppure vuoi tentare una registrazione automatica?',
-                                  yeslabel='Accedi', nolabel='Tenta registrazione'):
+                                  yeslabel='Accedi', nolabel='Tenta registrazione', customlabel='Annulla')
+    if action == 1:  # accedi
         from specials import setting
         from core.item import Item
         user_pre = config.get_setting('username', server='hdmario')
@@ -51,24 +52,24 @@ def registerOrLogin(page_url):
             return registerOrLogin(page_url)
         else:
             return []
-    else:
+    elif action == 0:  # tenta registrazione
         import random
         import string
         logger.debug('Registrazione automatica in corso')
         mailbox = Gmailnator()
         randPsw = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(10))
-        captcha = httptools.downloadpage(baseUrl + '/captchaInfo').json
+        # captcha = httptools.downloadpage(baseUrl + '/captchaInfo').json
         logger.debug('email: ' + mailbox.address)
         logger.debug('pass: ' + randPsw)
-        reg = platformtools.dialog_register(baseUrl + '/register/', email=True, password=True, email_default=mailbox.address, password_default=randPsw, captcha_img=captcha['captchaUrl'])
+        reg = platformtools.dialog_register(baseUrl + '/register/', email=True, password=True, email_default=mailbox.address, password_default=randPsw)
         if not reg:
             return False
         regPost = httptools.downloadpage(baseUrl + '/register/',
                                                   post={'email': reg['email'], 'email_confirmation': reg['email'],
                                                         'password': reg['password'],
-                                                        'password_confirmation': reg['password'],
-                                                        'captchaUuid': captcha['captchaUuid'],
-                                                        'captcha': reg['captcha']})
+                                                        'password_confirmation': reg['password']})
+                                                        # 'captchaUuid': captcha['captchaUuid'],
+                                                        # 'captcha': reg['captcha']})
         if '/register' in regPost.url:
             error = scrapertools.htmlclean(scrapertools.find_single_match(regPost.data, 'Impossibile proseguire.*?</div>'))
             error = scrapertools.unescape(scrapertools.re.sub('\n\s+', ' ', error))
@@ -95,6 +96,8 @@ def registerOrLogin(page_url):
             platformtools.dialog_ok('HDmario', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
                                     + ' e clicca sul link. Premi ok quando fatto')
         logger.debug('Registrazione completata')
+    else:
+        return False
 
     return True
 
@@ -122,6 +125,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if '/unauthorized' in page.url or '/not-active' in page.url:
         httptools.set_cookies({'domain': 'hdmario.live'}, True)  # clear cookies
         if not registerOrLogin(page_url):
+            platformtools.play_canceled = True
             return []
         page = httptools.downloadpage(page_url)
         data = page.data
