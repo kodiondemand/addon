@@ -225,9 +225,6 @@ def run(item=None):
                 if config.get_setting("max_links", "videolibrary") != 0:
                     itemlist = limit_itemlist(itemlist)
 
-                from platformcode import subtitletools
-                subtitletools.saveSubtitleName(item)
-
                 platformtools.render_items(itemlist, item)
 
             # Special action for adding a movie to the library

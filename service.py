@@ -360,7 +360,8 @@ class AddonMonitor(xbmc.Monitor):
     def onSettingsChanged(self):
         logger.debug('settings changed')
         settings_post = config.get_all_settings_addon()
-        if settings_post:
+        # sometimes kodi randomly return default settings (rare but happens), this if try to workaround this
+        if settings_post and settings_post.get('show_once', True):
 
             from platformcode import xbmc_videolibrary
 
