@@ -101,6 +101,7 @@ def newest(categoria):
 
 def peliculas(item):
     itemlist = []
+    # support.dbg()
     if not item.args:
         json_file =loadjs(item.url + 'channel/10005/last/')
         support.logger.debug(json_file)
@@ -124,6 +125,7 @@ def peliculas(item):
 
     else :
         json_file=loadjs(item.url)
+        item.args=''
         make_itemlist(itemlist, item, json_file)
     if 'category' in item.args:
         support.thumb(itemlist,genre=True)
