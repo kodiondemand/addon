@@ -98,13 +98,11 @@ def peliculas(item):
 def episodios(item):
     info()
 
-    patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" '\
-                  'style="display:block"><ul class="episodios">(?P<block>.*?)</ul>'\
-                  '</div></div></div></div></div>'
+    patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" style="display:block">\s*<ul class="episodios">(?P<block>.*?)</ul>\s*</div>\s*</div>\s*</div>\s*</div>\s*</div>'
     patron = r'<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)">.*?'\
              '<div class="numerando">(?P<episode>[^<]+).*?<div class="episodiotitle">'\
              '[^>]+>(?P<title>[^<]+)<\/a>'
-#   debug = True
+    # debugBlock = True
     return locals()
 
 @support.scrape
@@ -128,7 +126,7 @@ def search(item, text):
     info(text)
     itemlist = []
     text = text.replace(' ', '+')
-    item.url = host + "?s=" + text
+    item.url = host + '/?a=b&s=' + text
     try:
         item.args = 'search'
         return peliculas(item)
