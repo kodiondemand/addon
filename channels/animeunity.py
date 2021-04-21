@@ -121,15 +121,14 @@ def news(item):
 
     for it in js:
         itemlist.append(
-            support.Item(channel=item.channel,
-                         title= support.typo(it['anime']['title'] + ' - EP. ' + it['number'], 'bold'),
-                         fulltitle=it['anime']['title'],
-                         server='directo',
-                         thumbnail=it['anime']['imageurl'],
-                         forcethumb = True,
-                         url=it['link'],
-                         plot=it['anime']['plot'],
-                         action='play')
+            item.clone(title= support.typo(it['anime']['title'] + ' - EP. ' + it['number'], 'bold'),
+                       fulltitle=it['anime']['title'],
+                       server='directo',
+                       thumbnail=it['anime']['imageurl'],
+                       forcethumb = True,
+                       video_url=it['link'],
+                       plot=it['anime']['plot'],
+                       action='play')
         )
     if 'next_page_url' in fullJs:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),thumbnail=support.thumb(), url=fullJs['next_page_url']))
@@ -154,6 +153,7 @@ def peliculas(item):
     # support.info(records)
     # for record in records:
     #     js += record
+    
     for it in records:
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
@@ -166,13 +166,14 @@ def peliculas(item):
         itm.type = it['type']
         itm.thumbnail = it['imageurl']
         itm.plot = it['plot']
+        itm.url = item.url
 
         if it['episodes_count'] == 1:
             itm.contentType = 'movie'
             itm.fulltitle = itm.show = itm.contentTitle = title
             itm.contentSerieName = ''
             itm.action = 'findvideos'
-            itm.url = it['episodes'][0]['link']
+            itm.video_url = it['episodes'][0]['link']
 
         else:
             itm.contentType = 'tvshow'
@@ -180,7 +181,7 @@ def peliculas(item):
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodios'
             itm.episodes = it['episodes'] if 'episodes' in it else it['link']
-            itm.url = item.url
+            itm.video_url = item.url
 
         itemlist.append(itm)
 
@@ -196,18 +197,17 @@ def episodios(item):
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
     for it in item.episodes:
         itemlist.append(
-            support.Item(channel=item.channel,
-                         title=support.typo(title + it['number'], 'bold'),
-                         episode = it['number'],
-                         fulltitle=item.title,
-                         show=item.title,
-                         contentTitle='',
-                         contentSerieName=item.contentSerieName,
-                         thumbnail=item.thumbnail,
-                         plot=item.plot,
-                         action='findvideos',
-                         contentType='episode',
-                         url=it['link']))
+            item.clone(title=support.typo(title + it['number'], 'bold'),
+                       episode = it['number'],
+                       fulltitle=item.title,
+                       show=item.title,
+                       contentTitle='',
+                       contentSerieName=item.contentSerieName,
+                       thumbnail=item.thumbnail,
+                       plot=item.plot,
+                       action='findvideos',
+                       contentType='episode',
+                       video_url=it['link']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -218,7 +218,7 @@ def episodios(item):
 
 def findvideos(item):
     support.info()
-    if not 'vvvvid' in item.url:
-        return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), server='directo', action='play')])
+    if not 'vvvvid' in item.video_url:
+        return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')])
     else:
-        return support.server(item, item.url)
+        return support.server(item, item.video_url)
