@@ -30,7 +30,7 @@ from past.utils import old_div
 import sys
 PY3 = False
 VFS = True
-if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int; VFS = False
+if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 import urllib.request, urllib.parse, urllib.error
 
