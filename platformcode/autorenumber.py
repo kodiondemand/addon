@@ -182,19 +182,24 @@ class autorenumber():
         self.group = self.renumberdict[self.title].get(GROUP, None)
         busy(True)
         itemlist = find_episodes(self.item)
-        busy(False)
+
 
         if not self.group:
-            self.group = tmdb.get_nfo(self.item, search_groups=True)
+            self.group = tmdb.get_nfo(self.item)
 
-        if 'episode_group' in self.group:
-            seasons =[]
-            groupedSeasons = tmdb.get_group(self.group.replace('\n','').split('/')[-1])
-            for groupedSeason in groupedSeasons:
-                seasons.append({'season_number':groupedSeason['order'], 'episode_count':len(groupedSeason['episodes']), 'start_from':groupedSeason['episodes'][0]['episode_number']})
-        else:
-            seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
+        if not self.group:
+            busy(False)
+            return
 
+        # if 'episode_group' in self.group:
+        #     seasons =[]
+        #     groupedSeasons = tmdb.get_group(self.group.replace('\n','').split('/')[-1])
+        #     for groupedSeason in groupedSeasons:
+        #         if groupedSeason['episodes'][0]['season_number'] > 0:
+        #             seasons.append({'season_number':groupedSeason['episodes'][0]['season_number'], 'episode_count':len(groupedSeason['episodes']), 'start_from':groupedSeason['episodes'][0]['episode_number']})
+        # else:
+        seasons = tmdb.Tmdb(id_Tmdb=self.id).get_list_episodes()
+        busy(False)
         count = 0
         for season in seasons:
             s = season['season_number']

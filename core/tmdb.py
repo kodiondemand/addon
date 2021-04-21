@@ -18,7 +18,7 @@ from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools
+from core import filetools, httptools, jsontools, scrapertools, support
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 
@@ -527,6 +527,7 @@ def get_nfo(item, search_groups=False):
     @rtype: str
     @return:
     """
+    # from core.support import dbg;dbg()
 
     if search_groups:
         from platformcode.autorenumber import RENUMBER, GROUP
@@ -542,24 +543,42 @@ def get_nfo(item, search_groups=False):
         if groups:
             Id = select_group(groups, item)
             if Id == 'original':
-                info_nfo = ', '.join(item.infoLabels['url_scraper']) + "\n"
-                return info_nfo
+                info_nfo = ', '.join(item.infoLabels['url_scraper'])
+                return info_nfo + '\n'
             elif Id :
-                info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}\n'.format(item.infoLabels['tmdb_id'], Id)
-                return info_nfo
+                info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(item.infoLabels['tmdb_id'], Id)
+                return info_nfo + '\n'
             else: return
 
     if "season" in item.infoLabels and "episode" in item.infoLabels:
-        info_nfo = "https://www.themoviedb.org/tv/%s/season/%s/episode/%s\n" % (item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
+        info_nfo = "https://www.themoviedb.org/tv/%s/season/%s/episode/%s" % (item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
     else:
-        info_nfo = ', '.join(item.infoLabels['url_scraper']) + "\n"
+        info_nfo = ', '.join(item.infoLabels['url_scraper'])
 
-    return info_nfo
+    return info_nfo + '\n'
 
 def get_groups(item):
+    valid_groups = []
+
     url = 'https://api.themoviedb.org/3/tv/{}/episode_groups?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(item.infoLabels['tmdb_id'], def_lang)
     groups = requests.get(url).json().get('results',[])
-    return groups
+
+    for g in groups:
+        seasons = []
+        add = False
+        Id = g.get('id','')
+        group = get_group(Id)
+        for gr in group:
+            if gr['episodes']:
+                season = gr['episodes'][0]['season_number']
+                if season not in seasons:
+                    seasons.append(season)
+                    add = True
+                else:
+                    add = False
+                    break
+        if add: valid_groups.append(g)
+    return valid_groups
 
 def select_group(groups, item):
     selected = -1
@@ -568,8 +587,6 @@ def select_group(groups, item):
     selections = [['Original',res.get('number_of_seasons',0), res.get('number_of_episodes',0), '', item.thumbnail]]
     ids = ['original']
     for group in groups:
-        # name = '{} Seasons: {} Episodes: {}'.format(group.get('name',''), group.get('group_count',0), group.get('episode_count',0))
-        # description = group.get('description','')
         ID = group.get('id','')
         if ID:
             selections.append([group.get('name',''), group.get('group_count',0), group.get('episode_count',0), group.get('description',''), item.thumbnail])
@@ -581,6 +598,7 @@ def select_group(groups, item):
     return ''
 
 def get_group(Id):
+    # from core.support import dbg;dbg()
     url = 'https://api.themoviedb.org/3/tv/episode_group/{}?api_key=a1ab8b8669da03637a4b98fa39c39228&language={}'.format(Id, def_lang)
     group = requests.get(url).json().get('groups',[])
     return group
@@ -884,7 +902,7 @@ class Tmdb(object):
             result = httptools.downloadpage(url, cookies=False, ignore_response_code=True)
 
             res_headers = result.headers
-            dict_data = jsontools.load(result.data)
+            dict_data = result.json
             #logger.debug("result_data es %s" % dict_data)
 
             if "status_code" in dict_data:
@@ -900,7 +918,7 @@ class Tmdb(object):
 
                         res_headers = result.headers
                         # logger.debug("res_headers es %s" % res_headers)
-                        dict_data = jsontools.load(result.data)
+                        dict_data = result.json
                         # logger.debug("result_data es %s" % dict_data)
 
         # error getting data
@@ -1006,7 +1024,8 @@ class Tmdb(object):
             total_pages = resultado.get("total_pages", 0)
 
             if total_results > 0:
-                results = resultado["results"]
+                results = [r for r in resultado["results"] if r['first_air_date']]
+                # results = resultado["results"]
 
             if self.busqueda_filtro and total_results > 1:
                 for key, value in list(dict(self.busqueda_filtro).items()):
@@ -1136,20 +1155,22 @@ class Tmdb(object):
         num_result = min([num_result, self.total_results])
 
         cr = 0
+        # support.dbg()
         for p in range(1, self.total_pages + 1):
             for r in range(0, len(self.results)):
                 try:
                     if self.load_resultado(r, p):
                         result = self.result.copy()
+                        if result['first_air_date']:
 
-                        result['thumbnail'] = self.get_poster(size="w300")
-                        result['fanart'] = self.get_backdrop()
+                            result['thumbnail'] = self.get_poster(size="w300")
+                            result['fanart'] = self.get_backdrop()
 
-                        res.append(result)
-                        cr += 1
+                            res.append(result)
+                            cr += 1
 
-                        if cr >= num_result:
-                            return res
+                            if cr >= num_result:
+                                return res
                 except:
                     continue
 
@@ -1346,9 +1367,11 @@ class Tmdb(object):
             # append_to_response=credits
             url = "http://api.themoviedb.org/3/tv/%s/season/%s?api_key=a1ab8b8669da03637a4b98fa39c39228&language=%s" \
                   "&append_to_response=credits" % (self.result["id"], numtemporada, self.busqueda_idioma)
+            logger.debug('TMDB URL', url)
 
             buscando = "id_Tmdb: " + str(self.result["id"]) + " season: " + str(numtemporada) + "\nURL: " + url
             logger.debug("[Tmdb.py] Searcing " + buscando)
+
             try:
                 self.temporada[numtemporada] = self.get_json(url)
                 if not isinstance(self.temporada[numtemporada], dict):
@@ -1382,6 +1405,7 @@ class Tmdb(object):
         # "episode_crew" and "episode_guest_stars",
         # With chapter == -1 the dictionary will only have the elements referring to the season
         # --------------------------------------------------------------------------------------------------------------------------------------------
+
         if not self.result["id"] or self.busqueda_tipo != "tv":
             return {}
 
@@ -1392,22 +1416,40 @@ class Tmdb(object):
             logger.debug("The episode or season number is not valid")
             return {}
 
+        # from core.support import dbg;dbg()
         temporada = self.get_temporada(numtemporada)
         if not isinstance(temporada, dict):
             temporada = ast.literal_eval(temporada.decode('utf-8'))
         if not temporada:
             # An error has occurred
             return {}
-
-        if len(temporada["episodes"]) == 0 or len(temporada["episodes"]) < capitulo:
+        # if capitulo == 9: from core.support import dbg;dbg()
+        if len(temporada["episodes"]) == 0:
             # An error has occurred
             logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
             return {}
+
+
+        elif len(temporada["episodes"]) < capitulo and temporada["episodes"][-1]['episode_number'] >= capitulo:
+            n = None
+            for i, chapters in enumerate(temporada["episodes"]):
+                if chapters['episode_number'] == capitulo:
+                    n = i
+                    break
+            if n != None:
+                capitulo = n
+            else:
+                logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
+                return {}
+        # else:
+        #     logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
+        #     return {}
 
         ret_dic = dict()
         # Get data for this season
         ret_dic["temporada_nombre"] = temporada["name"]
         ret_dic["temporada_sinopsis"] = temporada["overview"]
+        ret_dic["temporada_id"] = temporada["id"]
         ret_dic["temporada_num_episodios"] = len(temporada["episodes"])
         if temporada["air_date"]:
             date = temporada["air_date"].split("-")
@@ -1431,9 +1473,10 @@ class Tmdb(object):
             ret_dic["temporada_crew"] = list(dic_aux.values())
 
         # Obtain chapter data if applicable
+
         if capitulo != -1:
             episodio = temporada["episodes"][capitulo - 1]
-            ret_dic["episodio_titulo"] = episodio.get("name", "")
+            ret_dic["episodio_titulo"] = episodio.get("name", )
             ret_dic["episodio_sinopsis"] = episodio["overview"]
             if episodio["air_date"]:
                 date = episodio["air_date"].split("-")
@@ -1444,6 +1487,7 @@ class Tmdb(object):
             ret_dic["episodio_guest_stars"] = episodio["guest_stars"]
             ret_dic["episodio_vote_count"] = episodio["vote_count"]
             ret_dic["episodio_vote_average"] = episodio["vote_average"]
+            ret_dic["episodio_id"] = episodio["id"]
             if episodio["still_path"]:
                 ret_dic["episodio_imagen"] = 'https://image.tmdb.org/t/p/original' + episodio["still_path"]
             else:
