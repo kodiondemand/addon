@@ -86,17 +86,21 @@ def encode(path, _samba=False):
     @rtype: str
     @return path encoded in system character set or utf-8 if samba
     """
+    # from core.support import dbg;dbg()
     if not isinstance(path, unicode):
         path = unicode(path, "utf-8", "ignore")
 
-    if scrapertools.find_single_match(path, r'(^\w+:\/\/)') or _samba:
+    if scrapertools.find_single_match(path, r'(^\w+:\/\/)') or _samba and not PY3:
         path = path.encode("utf-8", "ignore")
     else:
         if fs_encoding and not PY3:
             path = path.encode(fs_encoding, "ignore")
 
-    if PY3 and isinstance(path, bytes):
-        path = path.decode(fs_encoding)
+    # if PY3 and isinstance(path, bytes):
+    #     if fs_encoding:
+    #         path = path.decode(fs_encoding)
+    #     else:
+    #         path = path.decode()
 
     return path
 
