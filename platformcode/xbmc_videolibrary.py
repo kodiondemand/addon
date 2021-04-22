@@ -100,7 +100,7 @@ def mark_auto_as_watched(item):
             xbmc.executebuiltin('Action(ParentDir)')
             xbmc.sleep(500)
 
-        if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
+        if next_episode and next_episode.next_ep and config.get_setting('next_ep') < 3:
             from platformcode.launcher import play_from_library
             play_from_library(next_episode)
 

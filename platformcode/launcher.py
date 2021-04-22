@@ -478,15 +478,22 @@ def play_from_library(item):
         # from core.support import dbg;dbg()
         if len(itemlist) > 0:
             reopen = False
+            # from core.support import dbg;dbg()
             while not xbmc.Monitor().abortRequested():
                 played = True
+                # if config.get_setting('next_ep') == 3 and xbmc.Player().playnext:
+                #     return
                 # The user chooses the mirror
                 if not platformtools.is_playing():
-                    # from core.support import dbg;dbg()
+                    if config.get_setting('next_ep') == 3:
+                        xbmc.sleep(500)
+                        if platformtools.is_playing():
+                            return
                     if config.get_setting('autoplay') or reopen:
                         played_time = get_played_time(item)
                         if not played_time and played:
                             return
+
                     options = []
                     selection_implementation = 0
                     for item in itemlist:
