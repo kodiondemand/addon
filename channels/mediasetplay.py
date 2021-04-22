@@ -13,6 +13,8 @@ if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
 from collections import OrderedDict
 
+PAGINATION_SIZE = 100
+
 host = ''
 post_url = '?assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
 deviceid = '61d27df7-5cbf-4419-ba06-cfd27ecd4588'
@@ -231,9 +233,20 @@ def epmenu(item):
 
 
 def episodios(item):
+    # support.dbg()
+    current_pagination_index = 0
+    if 'currentPaginationIndex' in item.infoLabels:
+        try:
+            current_pagination_index = int(item.infoLabels['currentPaginationIndex'])
+        except:
+            current_pagination_index = 0
+
+
+    next_pagination_end_index = current_pagination_index + PAGINATION_SIZE
+
     logger.debug()
     itemlist = []
-    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{'+ item.url + '}&range=0-1000').json()['entries']
+    json = current_session.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs?byCustomValue={subBrandId}{'+ item.url + '}&range=' + str(current_pagination_index) + '-' + str(next_pagination_end_index)).json()['entries']
 
     for it in json:
         urls = []
@@ -257,6 +270,19 @@ def episodios(item):
                            no_return=True))
 
     if len(itemlist) == 1: return findvideos(itemlist[0])
+
+    if ( len(json) >= PAGINATION_SIZE):
+        # Show `pagination item` in case of we have more results
+        pagination_item = item.clone(
+            action='episodios',
+            title="Pagina successiva >>",
+            url= item.url,
+            order= None,
+            infoLabels= {
+                'currentPaginationIndex': next_pagination_end_index + 1
+            })
+
+        itemlist.append( pagination_item )
 
     return itemlist
 
