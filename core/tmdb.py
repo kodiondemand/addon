@@ -18,7 +18,7 @@ from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools, support
+from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 
@@ -1024,8 +1024,9 @@ class Tmdb(object):
             total_pages = resultado.get("total_pages", 0)
 
             if total_results > 0:
-                results = [r for r in resultado["results"] if r['first_air_date']]
+                results = [r for r in resultado["results"] if r.get('first_air_date', r.get('release_date', ''))]
                 # results = resultado["results"]
+                # logger.debug('RISULTATI', results)
 
             if self.busqueda_filtro and total_results > 1:
                 for key, value in list(dict(self.busqueda_filtro).items()):
@@ -1155,7 +1156,7 @@ class Tmdb(object):
         num_result = min([num_result, self.total_results])
 
         cr = 0
-        # support.dbg()
+
         for p in range(1, self.total_pages + 1):
             for r in range(0, len(self.results)):
                 try:
@@ -1416,7 +1417,6 @@ class Tmdb(object):
             logger.debug("The episode or season number is not valid")
             return {}
 
-        # from core.support import dbg;dbg()
         temporada = self.get_temporada(numtemporada)
         if not isinstance(temporada, dict):
             temporada = ast.literal_eval(temporada.decode('utf-8'))
