@@ -13,7 +13,7 @@ if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
 from collections import OrderedDict
 
-PAGINATION_SIZE = 8
+PAGINATION_SIZE = 100
 
 host = ''
 post_url = '?assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
