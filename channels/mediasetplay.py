@@ -13,7 +13,7 @@ if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
 from collections import OrderedDict
 
-PAGINATION_SIZE = 100
+PAGINATION_SIZE = 8
 
 host = ''
 post_url = '?assetTypes=HD,browser,widevine,geoIT|geoNo:HD,browser,geoIT|geoNo:HD,geoIT|geoNo:SD,browser,widevine,geoIT|geoNo:SD,browser,geoIT|geoNo:SD,geoIT|geoNo&auto=true&balance=true&format=smil&formats=MPEG-DASH,MPEG4,M3U&tracking=true'
@@ -235,8 +235,11 @@ def epmenu(item):
 def episodios(item):
     # support.dbg()
     current_pagination_index = 0
+
+    # Check presence of the current `pagination-index`
     if 'currentPaginationIndex' in item.infoLabels:
         try:
+            # force using try/catch to avoid errors
             current_pagination_index = int(item.infoLabels['currentPaginationIndex'])
         except:
             current_pagination_index = 0
@@ -271,13 +274,19 @@ def episodios(item):
 
     if len(itemlist) == 1: return findvideos(itemlist[0])
 
+    """
+    Show pagination item in case of we have more result
+    """
     if ( len(json) >= PAGINATION_SIZE):
-        # Show `pagination item` in case of we have more results
         pagination_item = item.clone(
             action='episodios',
-            title="Pagina successiva >>",
+            title= support.config.get_localized_string(70065),
             url= item.url,
             order= None,
+            thumbnail= None,
+            fanart= None,
+            plot= 70065,
+            forcethumb= False,
             infoLabels= {
                 'currentPaginationIndex': next_pagination_end_index + 1
             })
