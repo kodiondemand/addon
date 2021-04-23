@@ -172,7 +172,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
     matches = scrapertools.find_multiple_matches_groups(block, patron)
     logger.debug('MATCHES =', matches)
 
-    known_keys = ['url', 'title', 'title2', 'season', 'episode', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang', 'other', 'size', 'seed']
+    known_keys = ['url', 'title', 'title2', 'season', 'episode', 'episode2', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang', 'other', 'size', 'seed']
     # Legenda known_keys per i groups nei patron
     # known_keys = ['url', 'title', 'title2', 'season', 'episode', 'thumb', 'quality',
     #                'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang']
@@ -290,11 +290,14 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                         episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
                         infolabels['season'] = int(ep[0])
                         infolabels['episode'] = int(ep[1])
-                    second_episode = scrapertools.find_single_match(episode, r'x\d+x(\d+)')
+                    second_episode = scrapertools.find_single_match(episode, r'x\d+x-\d+)')
                     if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
                 except:
                     logger.debug('invalid episode: ' + episode)
                     pass
+
+        if scraped['episode2']:
+            episode += '-' + scrapertools.find_single_match(scraped['episode2'], r'(\d+)')
 
         # make formatted Title [longtitle]
         s = ' - '

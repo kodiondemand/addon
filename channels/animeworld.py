@@ -177,7 +177,7 @@ def episodios(item):
     pagination = 50
     # data = get_data(item)
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
-    patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^<]+)<'
+    patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^-<]+)(?:-(?P<episode2>[^<]+))?'
     def itemHook(item):
         item.number = support.re.sub(r'\[[^\]]+\]', '', item.title)
         item.title += support.typo(item.fulltitle,'-- bold')
@@ -200,9 +200,9 @@ def findvideos(item):
         match = support.match(data, patronBlock=r'data-name="' + ID + r'"[^>]+>(.*?)(?:<div class="(?:server|download)|link)', patron=r'data-id="([^"]+)" data-episode-num="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
         if match:
             epID, epurl = match
-            if 'vvvvid' in name.lower():
-                urls.append(support.match(host + '/api/episode/ugly/serverPlayerAnimeWorld?id=' + epID, headers=headers, patron=r'<a.*?href="([^"]+)"').match)
-            elif 'animeworld' in name.lower():
+            # if 'vvvvid' in name.lower():
+            #     urls.append(support.match(host + '/api/episode/ugly/serverPlayerAnimeWorld?id=' + epID, headers=headers, patron=r'<a.*?href="([^"]+)"', debug=True).match)
+            if 'animeworld' in name.lower():
                 url = support.match(data, patron=r'href="([^"]+)"\s*id="alternativeDownloadLink"', headers=headers).match
                 title = support.match(url, patron=r'http[s]?://(?:www.)?([^.]+)', string=True).match
                 itemlist.append(item.clone(action="play", title=title, url=url, server='directo'))
