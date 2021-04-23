@@ -128,7 +128,7 @@ def cache_response(fn):
             else:
 
                 url = re.sub('&year=-', '', args[0])
-                if PY3: url = str.encode(url)
+                # if PY3: url = str.encode(url)
 
                 row = db['tmdb_cache'].get(url)
 
@@ -898,6 +898,7 @@ class Tmdb(object):
     @staticmethod
     @cache_response
     def get_json(url, cache=True):
+        # from core.support import dbg;dbg()
         try:
             result = httptools.downloadpage(url, cookies=False, ignore_response_code=True)
 
@@ -954,6 +955,7 @@ class Tmdb(object):
                 logger.error(traceback.format_exc())
 
     def __by_id(self, source='tmdb'):
+        # from core.support import dbg;dbg()
 
         if self.busqueda_id:
             if source == "tmdb":
@@ -1162,16 +1164,15 @@ class Tmdb(object):
                 try:
                     if self.load_resultado(r, p):
                         result = self.result.copy()
-                        if result['first_air_date']:
 
-                            result['thumbnail'] = self.get_poster(size="w300")
-                            result['fanart'] = self.get_backdrop()
+                        result['thumbnail'] = self.get_poster(size="w300")
+                        result['fanart'] = self.get_backdrop()
 
-                            res.append(result)
-                            cr += 1
+                        res.append(result)
+                        cr += 1
 
-                            if cr >= num_result:
-                                return res
+                        if cr >= num_result:
+                            return res
                 except:
                     continue
 
@@ -1228,6 +1229,7 @@ class Tmdb(object):
         :rtype: str
         """
         ret = ""
+        # from core.support import dbg;dbg()
 
         if 'id' in self.result:
             ret = self.result.get('overview')
