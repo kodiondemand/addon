@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import xbmc, xbmcgui, sys, channelselector, time, os
-from core import support
 from core.support import dbg, tmdb
 from core.item import Item
 from core import channeltools, servertools, scrapertools
@@ -72,7 +71,7 @@ EPISODESLIST = 200
 SERVERLIST = 300
 
 class SearchWindow(xbmcgui.WindowXML):
-    def start(self, item, moduleDict={}, searchActions=[]):
+    def start(self, item, moduleDict={}, searchActions=[], thActions=None):
         logger.debug()
         self.exit = False
         self.item = item
@@ -89,12 +88,13 @@ class SearchWindow(xbmcgui.WindowXML):
         self.selected = False
         self.pos = 0
         self.items = []
+        self.search_threads = []
 
         if not searchActions:
             self.thActions = Thread(target=self.getActions)
             self.thActions.start()
         else:
-            self.thActions = None
+            self.thActions = thActions
 
         self.lastSearch()
         if not self.item.text: return
@@ -292,7 +292,24 @@ class SearchWindow(xbmcgui.WindowXML):
 
     def timer(self):
         while self.searchActions:
-            self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time) ))
+            if self.exit: return
+            percent = (float(self.count) / len(self.searchActions)) * 100
+            self.LOADING.setVisible(False)
+            self.PROGRESS.setPercent(percent)
+            self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
+            if percent == 100:
+                self.channels = []
+                self.moduleDict = {}
+                self.searchActions = []
+
+                # if no results
+                total = 0
+                for num in self.results.values():
+                    total += num
+                if not total:
+                    self.PROGRESS.setVisible(False)
+                    self.NORESULTS.setVisible(True)
+                    self.setFocusId(CLOSE)
             time.sleep(1)
 
     def search(self):
@@ -303,11 +320,21 @@ class SearchWindow(xbmcgui.WindowXML):
             self.thActions.join()
         Thread(target=self.timer).start()
 
-        with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
-            for searchAction in self.searchActions:
-                if self.exit: return
-                executor.submit(self.get_channel_results, searchAction)
-                logger.debug('end search for:', searchAction.channel)
+        try:
+            with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
+                for searchAction in self.searchActions:
+                    if self.exit: return
+                    self.search_threads.append(executor.submit(self.get_channel_results, searchAction))
+                for ch in futures.as_completed(self.search_threads):
+                    self.count += 1
+                    if self.exit: return
+                    if ch.result():
+                        channel, valid, other = ch.result()
+                        self.update(channel, valid, other)
+        except:
+            import traceback
+            logger.error(traceback.format_exc())
+        self.count = len(self.searchActions)
 
     def get_channel_results(self, searchAction):
         def search(text):
@@ -320,7 +347,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
             if self.item.mode != 'all':
                 for elem in results:
-                    if elem.infoLabels['tmdb_id'] == self.item.infoLabels['tmdb_id']:
+                    if elem.infoLabels.get('tmdb_id') == self.item.infoLabels.get('tmdb_id'):
                         elem.from_channel = channel
                         elem.verified = 1
                         valid.append(elem)
@@ -349,10 +376,10 @@ class SearchWindow(xbmcgui.WindowXML):
                 logger.debug('retring with original title on channel ' + channel)
                 dummy, valid, dummy = search(self.item.infoLabels.get('originaltitle'))
         except:
-            pass
+            import traceback
+            logger.error(traceback.format_exc())
 
-        self.count += 1
-        return self.update(channel, valid, other if other else results)
+        return channel, valid, other if other else results
 
     def makeItem(self, url):
         item = Item().fromurl(url)
@@ -388,21 +415,27 @@ class SearchWindow(xbmcgui.WindowXML):
             pos = self.CHANNELS.getSelectedPosition()
             self.CHANNELS.addItems(self.channels)
             self.CHANNELS.selectItem(pos)
-            self.setFocusId(CHANNELS)
-        if valid:
+            self.setFocusId(RESULTS)
+
+        if valid and self.CHANNELS.size():
             item = self.CHANNELS.getListItem(0)
             resultsList = item.getProperty('items')
             for result in valid:
                 resultsList += result.tourl() + '|'
             item.setProperty('items', resultsList)
-            self.channels[0].setProperty('results', str(len(resultsList.split('|'))))
+            self.channels[0].setProperty('results', str(len(resultsList.split('|')) - 1 ))
+
             if self.CHANNELS.getSelectedPosition() == 0:
                 items = []
                 for result in valid:
                     if result: items.append(self.makeItem(result.tourl()))
                 pos = self.RESULTS.getSelectedPosition()
                 self.RESULTS.addItems(items)
+                if pos < 0:
+                    self.setFocusId(RESULTS)
+                    pos = 0
                 self.RESULTS.selectItem(pos)
+
         if results:
             resultsList = ''
             channelParams = channeltools.get_channel_parameters(channel)
@@ -440,24 +473,6 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.RESULTS.reset()
                 self.RESULTS.addItems(items)
 
-        percent = (float(self.count) / len(self.searchActions)) * 100
-        self.LOADING.setVisible(False)
-        self.PROGRESS.setPercent(percent)
-        self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time) ))
-        if percent == 100:
-            self.channels = []
-            self.moduleDict = {}
-            self.searchActions = []
-
-            # if no results
-            total = 0
-            for num in self.results.values():
-                total += num
-            if not total:
-                self.PROGRESS.setVisible(False)
-                self.NORESULTS.setVisible(True)
-                self.setFocusId(CLOSE)
-
     def onInit(self):
         self.time = time.time()
 
@@ -485,7 +500,7 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.item.mode in ['all', 'search']:
                 if self.item.type:
                     self.item.mode = self.item.type
-                    self.item.text = title_unify(self.item.text)
+                    self.item.text = scrapertools.title_unify(self.item.text)
                 self.thread = Thread(target=self.search)
                 self.thread.start()
             elif self.item.mode in ['movie', 'tvshow', 'person_']:
@@ -537,7 +552,8 @@ class SearchWindow(xbmcgui.WindowXML):
         elif (action in [DOWN] and focus in [BACK, CLOSE, MENU]) or focus not in [BACK, CLOSE, MENU, SERVERLIST, EPISODESLIST, RESULTS, CHANNELS]:
             if self.SERVERS.isVisible(): self.setFocusId(SERVERLIST)
             elif self.EPISODES.isVisible(): self.setFocusId(EPISODESLIST)
-            elif self.RESULTS.isVisible(): self.setFocusId(RESULTS)
+            elif self.RESULTS.isVisible() and self.RESULTS.size() > 0: self.setFocusId(RESULTS)
+            elif self.CHANNELS.isVisible(): self.setFocusId(CHANNELS)
 
         elif focus in [RESULTS]:
             pos = self.RESULTS.getSelectedPosition()
@@ -594,7 +610,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                Search(item, self.moduleDict, self.searchActions)
+                Search(item, self.moduleDict, self.searchActions, self.thActions)
                 if close_action:
                     self.close()
             else:
@@ -602,7 +618,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                Search(item, self.moduleDict, self.searchActions)
+                Search(item, self.moduleDict, self.searchActions, self.thActions)
                 if close_action:
                     self.close()
 
@@ -736,6 +752,8 @@ class SearchWindow(xbmcgui.WindowXML):
         self.exit = True
         if self.thread:
             busy(True)
+            for th in self.search_threads:
+                th.cancel()
             self.thread.join()
             busy(False)
         self.close()
@@ -766,27 +784,3 @@ class SearchWindow(xbmcgui.WindowXML):
         server.window = True
         server.globalsearch = True
         return run(server)
-
-
-def title_unify(title):
-    import unicodedata
-
-    u_title = ''
-    if type(title) == str: title = u'' + title
-    for c in unicodedata.normalize('NFD', title):
-        cat = unicodedata.category(c)
-        if cat != 'Mn':
-            if cat == 'Pd':
-                c_new = '-'
-            elif cat in ['Ll', 'Lu'] or c == ':':
-                c_new = c
-            else:
-                c_new = ' '
-            u_title += c_new
-
-    if (u_title.count(':') + u_title.count('-')) == 1:
-        # subtitle, split but only if there's one, it might be part of title
-        spl = u_title.replace(':', '-').split('-')
-        u_title = spl[0] if len(spl[0]) > 5 else spl[1]
-
-    return u_title.strip()

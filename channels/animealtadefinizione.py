@@ -116,11 +116,14 @@ def findvideos(item):
 
 
 def get_video_list(item, url, title, itemlist):
-    from requests import get
-    if not url.startswith('http'): url = host + url
+    if 'vvvvid' in url:
+        itemlist.append(item.clone(title='VVVVID', url=url, server='vvvvid', action='play'))
+    else:
+        from requests import get
+        if not url.startswith('http'): url = host + url
 
-    url = support.match(get(url).url, string=True, patron=r'file=([^$]+)').match
-    if 'http' not in url: url = 'http://' + url
-    itemlist.append(item.clone(title=title, url=url, server='directo', action='play'))
+        url = support.match(get(url).url, string=True, patron=r'file=([^$]+)').match
+        if 'http' not in url: url = 'http://' + url
+        itemlist.append(item.clone(title=title, url=url, server='directo', action='play'))
 
     return itemlist

@@ -558,7 +558,7 @@ def scrape(func):
 
         if anime and inspect.stack()[1][3] not in ['find_episodes']:
             from platformcode import autorenumber
-            if (function == 'episodios' or item.action == 'episodios'): autorenumber.start(itemlist, item)
+            if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
         # if anime and autorenumber.check(item) == False and len(itemlist)>0 and not scrapertools.find_single_match(itemlist[0].title, r'(\d+.\d+)'):
         #     pass
@@ -1123,6 +1123,15 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
     # If the call is direct, leave it blank
     logger.debug()
     action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level
+
+    if not data and not patron and not next_page:
+        itemlist.append(
+            item.clone(action = action,
+                       title=typo(config.get_localized_string(30992), 'color kod bold'),
+                       nextPage=True,
+                       thumbnail=thumb()))
+        return itemlist[-1]
+
     if next_page == '':
         next_page = scrapertools.find_single_match(data, patron)
 
@@ -1133,14 +1142,11 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
         next_page = next_page.replace('&amp;', '&')
         logger.debug('NEXT= ', next_page)
         itemlist.append(
-            item.clone(channel=item.channel,
-                 action = action,
-                 contentType=item.contentType,
-                 title=typo(config.get_localized_string(30992), 'color kod bold'),
-                 url=next_page,
-                 args=item.args,
-                 nextPage=True,
-                 thumbnail=thumb()))
+            item.clone(action = action,
+                       title=typo(config.get_localized_string(30992), 'color kod bold'),
+                       url=next_page,
+                       nextPage=True,
+                       thumbnail=thumb()))
         return itemlist[-1]
 
 def pagination(itemlist, item, page, perpage, function_level=1):
@@ -1190,12 +1196,16 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.title = findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
-
+        logger.debug(videoitem)
         if videoitem.video_urls or srv_param.get('active', False):
             item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
-            videoitem.title = (item.title if item.channel not in ['url'] else '') + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "") + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")
+            videoitem.title = (item.title if item.channel not in ['url'] else '')\
+                + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
+                + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
+                + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\
+                + (typo(videoitem.extraInfo, '_ color kod []') if videoitem.extraInfo else "")
             videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle

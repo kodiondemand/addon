@@ -478,3 +478,27 @@ def get_md5(cadena):
         devuelve = binascii.hexlify(md5.new(cadena).digest())
 
     return devuelve
+
+
+def title_unify(title):
+    import unicodedata
+
+    u_title = ''
+    if type(title) == str: title = u'' + title
+    for c in unicodedata.normalize('NFD', title):
+        cat = unicodedata.category(c)
+        if cat != 'Mn':
+            if cat == 'Pd':
+                c_new = '-'
+            elif cat in ['Ll', 'Lu'] or c == ':':
+                c_new = c
+            else:
+                c_new = ' '
+            u_title += c_new
+
+    if (u_title.count(':') + u_title.count('-')) == 1:
+        # subtitle, split but only if there's one, it might be part of title
+        spl = u_title.replace(':', '-').split('-')
+        u_title = spl[0] if len(spl[0]) > 5 else spl[1]
+
+    return u_title.strip()

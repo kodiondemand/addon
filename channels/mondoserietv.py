@@ -36,7 +36,7 @@ def search(item, text):
     else:
         action = 'episodios'
     item.args = 'search'
-    item.url = host + "/?s=" + text
+    item.url = host + "?a=b&s=" + text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore .

@@ -27,7 +27,7 @@ def search(item, text):
     support.info(text)
     # item.args='search'
     item.text = text
-    item.url = item.url + '/?%73=' + text.replace(' ', '+')
+    item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
 
     try:
         return peliculas(item)
@@ -69,7 +69,7 @@ def peliculas(item):
         #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
         patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
         #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
-        patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+><div'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+>\s*<div'
     elif item.args == 'last':
         patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
         patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'

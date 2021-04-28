@@ -88,20 +88,20 @@ def process_request_proxy(url):
             time.sleep(0.5)
             result = requests.get(
                 url_request_proxy,
-                timeout=20,
-                headers={'User-Agent': 'android'}
+                timeout=20
+                # headers={'User-Agent': 'android'}
             )
             data = result.content.decode('utf-8', 'ignore')
             if not PY3:
                 data = data.encode('utf-8')
             if logger:
-                logger.debug()
+                logger.debug(url_request_proxy)
 
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
-        data = re.sub('https?://[a-zA-Z0-9]+--' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
+        data = re.sub('https?://[a-zA-Z0-9-]+' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
         data = re.sub('\s+<', '<', data)
-        data = data.replace('&amp;', '&').replace('https://translate.google.com/website?sl=' + SL + '&tl=' + TL + '&u=', '')
+        data = data.replace('&amp;', '&').replace('https://translate.google.com/website?sl=' + SL + '&tl=' + TL + '&ajax=1&u=', '')
 
         return {'url': url.strip(), 'result': result, 'data': data}
     except Exception as e:

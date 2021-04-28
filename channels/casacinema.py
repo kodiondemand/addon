@@ -120,8 +120,8 @@ def peliculas(item):
             item.title += support.typo(item.lang2, '_ [] color kod')
         if item.args == 'novita':
             item.title = item.title
-        if 'wp-content' in item.thumbnail and not item.infoLabels['year']:
-            item.infoLabels['year'] = item.thumbnail.split('/')[5]
+        # if 'wp-content' in item.thumbnail and not item.infoLabels['year']:
+        #     item.infoLabels['year'] = item.thumbnail.split('/')[5]
         return item
     return locals()
 

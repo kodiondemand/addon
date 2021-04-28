@@ -57,6 +57,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     support.info()
+    anime = True
 
     blacklist = ['DMCA', 'Contatti', 'Attenzione NON FARTI OSCURARE', 'Lista Cartoni Animati e Anime']
     patronBlock = r'<h1>.+?</h1>(?P<block>.*?)<div class="footer_c">'
@@ -106,6 +107,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     support.info()
+    anime = True
     action = 'findvideos'
     patronBlock = r'<table>(?P<block>.*)<\/table>'
     patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<data>.*?)<\/td><tr>'

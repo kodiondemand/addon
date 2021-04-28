@@ -24,12 +24,12 @@ except:
 
 
 main_host = host + '/vvvvid/ondemand/'
+host = main_host
 
 
 @support.menu
 def mainlist(item):
     if conn_id:
-        host = main_host
         anime = ['anime/',
                 ('Popolari',['anime/', 'peliculas', 'channel/10002/last/']),
                 ('Nuove Uscite',['anime/', 'peliculas', 'channel/10007/last/']),
@@ -220,8 +220,8 @@ def make_itemlist(itemlist, item, data):
             if item.contentType != 'movie': infoLabels['tvshowtitle'] = fulltitle
             itemlist.append(
                 item.clone(title = support.typo(title, 'bold'),
-                           fulltitle= fulltitle,
-                           show= fulltitle,
+                           fulltitle= title,
+                           show= title,
                            url= main_host + str(key['show_id']) + '/seasons/',
                            action= 'findvideos' if item.contentType == 'movie' else 'episodios',
                            contentType = item.contentType,

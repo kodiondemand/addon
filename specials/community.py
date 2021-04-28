@@ -19,9 +19,6 @@ defp = defpage[config.get_setting('pagination','community')]
 disable_pagination = False
 show_seasons = config.get_setting('show_seasons','community')
 
-list_servers = ['directo', 'akstream', 'wstream', 'backin', 'cloudvideo', 'clipwatching', 'fembed', 'gounlimited', 'mega', 'mixdrop']
-list_quality = ['SD', '720', '1080', '4k']
-
 tmdb_api = 'a1ab8b8669da03637a4b98fa39c39228'
 
 def mainlist(item):
@@ -401,14 +398,16 @@ def findvideos(item):
         json = item.url['links']
     else:
         json = item.url
-
+    # support.dbg()
     for option in json:
         extra = set_extra_values(item, option, item.path)
-        title = item.fulltitle + (' - '+option['title'] if 'title' in option else '')
-        title = set_title(title, extra.language, extra.quality)
 
-        itemlist.append(item.clone(channel=item.channel, title=title, url=option['url'], action='play', quality=extra.quality,
-                             language=extra.language, infoLabels=item.infoLabels))
+        itemlist.append(
+            item.clone(url=option['url'],
+                       action='play',
+                       quality=extra.quality,
+                       contentLanguage=extra.language,
+                       extraInfo=extra.info))
 
     item.url = ''  # do not pass referer
     return support.server(item, itemlist=itemlist)
@@ -673,7 +672,8 @@ def set_extra_values(item, json, path):
     ret = Item()
     for key in json:
         if key == 'quality':
-            ret.quality = json[key].upper()
+            ret.quality = json[key]
+            if ret.quality and not ret.quality[0].isdigit(): ret.quality = ret.quality.upper()
         elif key ==  'language':
             ret.language = json[key].upper()
         elif key ==  'plot':
@@ -699,6 +699,8 @@ def set_extra_values(item, json, path):
             ret.filterkey = filterkey
         elif key == 'description':
             ret.description = json[key]
+        elif key == 'info':
+            ret.info = json[key]
 
     if not ret.thumb:
         if 'get_search_menu' in inspect.stack()[1][3]:
@@ -714,7 +716,7 @@ def set_extra_values(item, json, path):
 
 
 # format titles
-def set_title(title, language='', quality=''):
+def set_title(title, language='', quality='', info=''):
     logger.debug()
 
     t = support.match(title, patron=r'\{([^\}]+)\}').match
@@ -729,7 +731,9 @@ def set_title(title, language='', quality=''):
             title += support.typo(language.upper(), '_ [] color kod bold')
         else:
             for lang in language:
-                title += support.typo(lang.upper(), '_ [] color kod bold')
+                title += support.typo(language.upper(), '_ [] color kod bold')
+    if info:
+        title += support.typo(info.upper(), '_ [] color kod bold')
 
     return title
 

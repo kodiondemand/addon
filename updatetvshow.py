@@ -107,7 +107,8 @@ if __name__ == '__main__':
     path = search_paths(sys.listitem.getVideoInfoTag().getDbId())
     if path:
         item = Item(action="update_tvshow", channel="videolibrary", path=path)
-        item.tourl()
+        # Why? I think it is not necessary, just commented
+        # item.tourl()
         xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
     else:
         dialog = xbmcgui.Dialog()

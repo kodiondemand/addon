@@ -3974,7 +3974,7 @@ msgstr "Errore, in conversione"
 msgctxt "#70292"
 msgid "[%s] File no longer exist on this server."
 msgstr "[%s] Il file non è più presente nel server."
- 
+
 msgctxt "#70293"
 msgid "[%s] The file is processing or has been deleted."
 msgstr "[%s] Il file video è ancora in elaborazione o è stato rimosso."
@@ -6480,3 +6480,8 @@ msgstr "Rimuovi episodi in locale"
 msgctxt "#80050"
 msgid "Downloading..."
 msgstr "Download in corso..."
+
+
+msgctxt "#90001"
+msgid "Search on KOD"
+msgstr "Cerca con KOD..."

@@ -15,12 +15,7 @@ assignees: ''
 Inserisci il nome del canale
 
 
-- Il tipo di problema riscontrato, sii il più esauriente possibile. Che azione ha portato all'errore
+- Indica il tipo di problema riscontrato, sii il più esauriente possibile. Che azione ha portato all'errore (Es. non riesco ad aggiungere film nella videoteca, ne dal menu contestuale, ne dalla voce in fondo alla lista dei server)
 
-Es. non riesco ad aggiungere film nella videoteca, ne dal menu contestuale, ne dalla voce in fondo alla lista dei server.
-
-Se faccio ricerca globale, non riesco ad aggiungere film/serie/anime nella videoteca o a scaricare il video.
-
-
-- Allega il file di log nella sua completezza. Non cancellarne delle parti.
+- Ottieni il log seguendo le istruzioni: https://telegra.ph/LOG-11-20 e invialo qui.
 

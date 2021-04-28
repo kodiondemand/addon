@@ -21,9 +21,11 @@ import ast, copy, re, time
 from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
+import threading
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
+lock = threading.Lock()
 
 # ------------------------------------------------- -------------------------------------------------- --------
 # Set of functions related to infoLabels.
@@ -200,18 +202,22 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, idioma_busqueda=def_lang,
 
     if not config.get_setting('tmdb_active') and not forced:
         return
-    import threading
-
     # threads_num = config.get_setting("tmdb_threads", default=20)
     # semaforo = threading.Semaphore(threads_num)
-    lock = threading.Lock()
     r_list = list()
     i = 0
     l_hilo = list()
 
     def sub_thread(_item, _i, _seekTmdb):
         # semaforo.acquire()
-        ret = set_infoLabels_item(_item, _seekTmdb, idioma_busqueda, lock)
+        ret = 0
+        try:
+            ret = set_infoLabels_item(_item, _seekTmdb, idioma_busqueda, lock)
+        except:
+            import traceback
+            logger.error(traceback.format_exc(1))
+        if lock and lock.locked():
+            lock.release()
         # logger.debug(str(ret) + "item: " + _item.tostring())
         # semaforo.release()
         r_list.append((_i, _item, ret))
@@ -298,16 +304,18 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     if episodio:
                         # Update data
                         __leer_datos(otmdb_global)
-                        item.infoLabels['title'] = episodio['episodio_titulo']
-                        if episodio['episodio_sinopsis']:
+                        if episodio.get('episodio_titulo'):
+                            item.infoLabels['title'] = episodio['episodio_titulo']
+                        if episodio.get('episodio_sinopsis'):
                             item.infoLabels['plot'] = episodio['episodio_sinopsis']
-                        if episodio['episodio_imagen']:
+                        if episodio.get('episodio_imagen'):
                             item.infoLabels['poster_path'] = episodio['episodio_imagen']
                             item.thumbnail = item.infoLabels['poster_path']
-                        if episodio['episodio_air_date']:
+                        if episodio.get('episodio_air_date'):
                             item.infoLabels['aired'] = episodio['episodio_air_date']
-                        if episodio['episodio_vote_average']:
+                        if episodio.get('episodio_vote_average'):
                             item.infoLabels['rating'] = episodio['episodio_vote_average']
+                        if episodio.get('episodio_vote_count'):
                             item.infoLabels['votes'] = episodio['episodio_vote_count']
 
                         # 4l3x87 - fix for overlap infoLabels if there is episode or season
@@ -411,51 +419,24 @@ def set_infoLabels_item(item, seekTmdb=True, idioma_busqueda=def_lang, lock=None
                     __leer_datos(otmdb)
                     return len(item.infoLabels)
 
-        # title might contain - or : --> try to search only second title
-        def splitTitle():
-            if '-' in item.fulltitle:
-                item.infoLabels['tvshowtitle'] = item.fulltitle.split('-')[1]
-                item.infoLabels['title'] = item.infoLabels['tvshowtitle']
-            elif ':' in item.fulltitle:
-                item.infoLabels['tvshowtitle'] = item.fulltitle.split(':')[1]
-                item.infoLabels['title'] = item.infoLabels['tvshowtitle']
-            else:
-                return False
-            return True
+        def unify():
+            new_title = scrapertools.title_unify(item.fulltitle)
+            if new_title != item.fulltitle:
+                item.infoLabels['tvshowtitle'] = scrapertools.title_unify(item.infoLabels['tvshowtitle'])
+                item.infoLabels['title'] = scrapertools.title_unify(item.infoLabels['title'])
+                item.fulltitle = new_title
+                return True
         # We check what type of content it is...
         if item.contentType == 'movie':
             tipo_busqueda = 'movie'
         elif item.contentType == 'undefined':  # don't know
-            def detect():
-                # try movie first
-                results = search(otmdb_global, 'movie')
-                if results:
-                    item.contentType = 'movie'
-                infoMovie = item.infoLabels
-                if infoMovie['title'] == item.fulltitle:  # exact match -> it's probably correct
-                    return results
-
-                # try tvshow then
-                item.infoLabels = {'tvshowtitle': item.infoLabels['tvshowtitle']}  # reset infolabels
-                results = search(otmdb_global, 'tv')
-                if results:
-                    item.contentType = 'tvshow'
-                else:
-                    item.infoLabels = infoMovie
-
-                return results
-
-            results = detect()
-            if not results:
-                if splitTitle():
-                    results = detect()
-            return results
+            tipo_busqueda = 'multi'
         else:
             tipo_busqueda = 'tv'
 
         ret = search(otmdb_global, tipo_busqueda)
-        if not ret:
-            if splitTitle():
+        if not ret:  # try with unified title
+            if unify():
                 ret = search(otmdb_global, tipo_busqueda)
         return ret
     # Search in tmdb is deactivated or has not given result
@@ -1050,7 +1031,7 @@ class Tmdb(object):
             # We sort result based on fuzzy match to detect most similar
             if len(results) > 1:
                 from lib.fuzzy_match import algorithims
-                results.sort(key=lambda r: algorithims.trigram(text_simple, r['title'] if self.busqueda_tipo == 'movie' else r['name']), reverse=True)
+                results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.busqueda_tipo == 'tv' else r.get('title', '')), reverse=True)
 
             # We return the number of results of this page
             self.results = results
@@ -1064,7 +1045,6 @@ class Tmdb(object):
             msg = "The search for '%s' gave no results for page %s" % (buscando, page)
             logger.error(msg)
             return 0
-
 
     def __discover(self, index_results=0):
         self.result = ResultDictDefault()
@@ -1425,27 +1405,27 @@ class Tmdb(object):
         if not temporada:
             # An error has occurred
             return {}
-        # if capitulo == 9: from core.support import dbg;dbg()
+
         if len(temporada["episodes"]) == 0:
             # An error has occurred
             logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
             return {}
 
-
         elif len(temporada["episodes"]) < capitulo and temporada["episodes"][-1]['episode_number'] >= capitulo:
             n = None
             for i, chapters in enumerate(temporada["episodes"]):
                 if chapters['episode_number'] == capitulo:
-                    n = i
+                    n = i + 1
                     break
             if n != None:
                 capitulo = n
             else:
                 logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
                 return {}
-        # else:
-        #     logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
-        #     return {}
+
+        elif len(temporada["episodes"]) < capitulo:
+            logger.error("Episode %d of the season %d not found." % (capitulo, numtemporada))
+            return {}
 
         ret_dic = dict()
         # Get data for this season
@@ -1465,7 +1445,7 @@ class Tmdb(object):
         dic_aux = temporada.get('credits', {})
         ret_dic["temporada_cast"] = dic_aux.get('cast', [])
         ret_dic["temporada_crew"] = dic_aux.get('crew', [])
-        if capitulo == -1:
+        if capitulo == 0:
             # If we only look for season data, include the technical team that has intervened in any chapter
             dic_aux = dict((i['id'], i) for i in ret_dic["temporada_crew"])
             for e in temporada["episodes"]:
@@ -1475,8 +1455,7 @@ class Tmdb(object):
             ret_dic["temporada_crew"] = list(dic_aux.values())
 
         # Obtain chapter data if applicable
-
-        if capitulo != -1:
+        if capitulo > 0:
             episodio = temporada["episodes"][capitulo - 1]
             ret_dic["episodio_titulo"] = episodio.get("name", )
             ret_dic["episodio_sinopsis"] = episodio["overview"]

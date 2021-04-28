@@ -4,6 +4,7 @@
 # --------------------------------------------------------------------------------
 
 
+from core import support
 import xbmc, xbmcgui, re, base64, inspect, sys
 from core import jsontools, tmdb, scrapertools, filetools
 from core.item import Item
@@ -99,11 +100,11 @@ class autorenumber():
     def __init__(self, itemlist, item=None):
         self.item = item
         self.itemlist = itemlist
-        self.renumberdict = load(self.itemlist[0]) if self.itemlist else load(item) if item else {}
         self.selectspecials = False
         self.manual = False
         self.auto = False
         if self.item:
+            self.renumberdict = load(item)
             self.auto = config.get_setting('autorenumber', item.channel)
             self.title = self.item.fulltitle.strip()
             if match(self.itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
@@ -129,6 +130,7 @@ class autorenumber():
                 self.episodes = {}
                 self.config()
         else:
+            self.renumberdict = {}
             for item in self.itemlist:
                 item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
                                  "action": "start",
@@ -140,16 +142,19 @@ class autorenumber():
         # Pulizia del Titolo
         if any( word in self.title.lower() for word in ['specials', 'speciali']):
             self.title = re.sub(r'\s*specials|\s*speciali', '', self.title.lower())
-        elif not self.item.infoLabels['tvdb_id']:
+        elif not self.item.infoLabels['tmdb_id']:
             self.item.contentSerieName = self.title.rstrip('123456789 ')
 
+        self.item.infoLabels['imdb_id'] = ''
+        self.item.infoLabels['tvdb_id'] = ''
+        self.item.infoLabels['tmdb_id'] = ''
+        self.item.infoLabels['year'] = '-'
+        self.item.contentType = 'tvshow'
+
         while not self.item.exit:
-            self.item.infoLabels['tmdb_id'] = ''
-            self.item.infoLabels['year'] = '-'
-            self.item.contentType ='tvshow'
             tmdb.find_and_set_infoLabels(self.item)
             if self.item.infoLabels['tmdb_id']: self.item.exit = True
-            else: self.item = platformtools.dialog_info(self.item, 'tmdb')
+            else:self.item = platformtools.dialog_info(self.item, 'tmdb')
 
         # Rinumerazione Automatica
         if (not self.id and self.auto) or self.item.renumber:

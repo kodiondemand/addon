@@ -42,51 +42,55 @@ if __name__ == '__main__':
     with open(fileJson) as f:
         data = json.load(f)
 
-    result = data['direct']
+    chList = os.listdir('channels')
 
-    for chann, host in sorted(data['direct'].items()):
-        # to get an idea of the timing
-        # useful only if you control all channels
-        # for channels with error 522 about 40 seconds are lost ...
-        print("check #### INIZIO #### channel - host :%s - %s " % (chann, host))
+    for k in data.keys():
+        for chann, host in sorted(data[k].items()):
+            if chann + '.json' not in chList:
+                print(chann + ' not exists anymore')
+                del data[k][chann]
+                continue
+            # to get an idea of the timing
+            # useful only if you control all channels
+            # for channels with error 522 about 40 seconds are lost ...
+            print("check #### INIZIO #### channel - host :%s - %s " % (chann, host))
 
-        rslt = http_Resp([host])
+            rslt = http_Resp([host])
 
-        # all right
-        if rslt['code'] == 200:
-            result[chann] = host
-        # redirect
-        elif str(rslt['code']).startswith('3'):
-            # result[chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
-            result[chann] = rslt['redirect']
-        # cloudflare...
-        elif rslt['code'] in [429, 503, 403]:
-            from lib import proxytranslate
-            import re
+            # all right
+            if rslt['code'] == 200:
+                data[k][chann] = host
+            # redirect
+            elif str(rslt['code']).startswith('3'):
+                # data[k][chann] = str(rslt['code']) +' - '+ rslt['redirect'][:-1]
+                data[k][chann] = rslt['redirect']
+            # cloudflare...
+            elif rslt['code'] in [429, 503, 403]:
+                from lib import proxytranslate
+                import re
 
-            print('Cloudflare riconosciuto')
-            try:
-                page_data = proxytranslate.process_request_proxy(host).get('data', '')
-                result[chann] = re.search('<base href="([^"]+)', page_data).group(1)
-                rslt['code_new'] = 200
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-        # non-existent site
-        elif rslt['code'] == -2:
-            print('Host Sconosciuto - '+ str(rslt['code']) +' - '+ host)
-        # site not reachable
-        elif rslt['code'] == 111:
-            print('Host non raggiungibile - '+ str(rslt['code']) +' - ' + host)
-        else:
-            # other types of errors
-            print('Errore Sconosciuto - '+str(rslt['code']) +' - '+ host)
+                print('Cloudflare riconosciuto')
+                try:
+                    page_data = proxytranslate.process_request_proxy(host).get('data', '')
+                    data[k][chann] = re.search('<base href="([^"]+)', page_data).group(1)
+                    rslt['code_new'] = 200
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+            # non-existent site
+            elif rslt['code'] == -2:
+                print('Host Sconosciuto - '+ str(rslt['code']) +' - '+ host)
+            # site not reachable
+            elif rslt['code'] == 111:
+                print('Host non raggiungibile - '+ str(rslt['code']) +' - ' + host)
+            else:
+                # other types of errors
+                print('Errore Sconosciuto - '+str(rslt['code']) +' - '+ host)
 
-        print("check #### FINE #### rslt :%s  " % (rslt))
-        if result[chann].endswith('/'):
-            result[chann] = result[chann][:-1]
+            print("check #### FINE #### rslt :%s  " % (rslt))
+            if data[k][chann].endswith('/'):
+                data[k][chann] = data[k][chann][:-1]
 
-    result = {'findhost': data['findhost'], 'direct': result}
     # I write the updated file
     with open(fileJson, 'w') as f:
-        json.dump(result, f, sort_keys=True, indent=4)
+        json.dump(data, f, sort_keys=True, indent=4)

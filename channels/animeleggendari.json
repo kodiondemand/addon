@@ -1,7 +1,7 @@
 {
     "id": "animeleggendari",
     "name": "AnimePerTutti",
-    "active": true,
+    "active": false,
     "language": ["ita", "sub-ita"],
     "thumbnail": "animepertutti.png",
     "bannermenu": "animepertutti.png",
