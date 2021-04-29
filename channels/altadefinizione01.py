@@ -73,7 +73,6 @@ def peliculas(item):
 @support.scrape
 def genres(item):
     support.info('genres',item)
-    
     action = "peliculas"
 
     blacklist = ['Altadefinizione01']
@@ -81,7 +80,7 @@ def genres(item):
         patronBlock = r'<ul class="kategori_list">(?P<block>.*?)<div class="tab-pane fade" id="wtab2">'
         patronMenu = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
     elif item.args == 'years':
-        patronBlock = r'<ul class="anno_list">(?P<block>.*?)</a></li> </ul> </div>'
+        patronBlock = r'<ul class="anno_list">(?P<block>.*?)</li> </ul> </div>'
         patronMenu = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
     elif item.args == 'orderalf':
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'

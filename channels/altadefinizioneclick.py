@@ -47,7 +47,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     # debug=True
-    patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</h2> )'
+    patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</div>)'
     # patronBlock = r'h1>(?P<block>.*?)</section'
 
     if item.args == 'az':
