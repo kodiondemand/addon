@@ -113,7 +113,7 @@ def newest(categoria):
 
 def news(item):
     support.info()
-    item.contentType = 'tvshow'
+    item.contentType = 'episode'
     itemlist = []
 
     fullJs = json.loads(support.match(item, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
@@ -123,12 +123,11 @@ def news(item):
         itemlist.append(
             item.clone(title= support.typo(it['anime']['title'] + ' - EP. ' + it['number'], 'bold'),
                        fulltitle=it['anime']['title'],
-                       server='directo',
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
                        video_url=it['link'],
                        plot=it['anime']['plot'],
-                       action='play')
+                       action='findvideos')
         )
     if 'next_page_url' in fullJs:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),thumbnail=support.thumb(), url=fullJs['next_page_url']))
@@ -149,11 +148,7 @@ def peliculas(item):
 
     payload = json.dumps(item.args)
     records = requests.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
-    # js = []
-    # support.info(records)
-    # for record in records:
-    #     js += record
-    
+
     for it in records:
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
