@@ -273,7 +273,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if config.get_setting("include_in_global_search", channel) and ch_param.get("active", False):
                     channels_list.append(channel)
 
-        logger.debug('search in channels:',channels_list)
+        logger.debug('search in channels:', channels_list)
 
         return channels_list
 
