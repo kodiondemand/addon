@@ -19,8 +19,7 @@ LIST_SITE = ['http://www.ansa.it/', 'https://www.google.it']#, 'https://www.goog
 
 # list of sites that will not be reached with the manager's DNS
 
-LST_SITE_CHCK_DNS = ['https://www.casacinema.me/', 'https://cb01-nuovo-indirizzo.info/']
-                     #'https://www.italia-film.pw', 'https://www.cb01.uno/',] # tolti
+LST_SITE_CHCK_DNS = ['https://cb01.uno/']
 
 class Kdicc():
 
