@@ -6,9 +6,25 @@
 import traceback
 
 from platformcode import logger
-from inspect import stack
 
-import json
+try:
+    import json
+except:
+    logger.info("json incluso nell'interprete **NON** disponibile")
+    try:
+        import simplejson as json
+    except:
+        logger.info("simplejson incluso nell'interprete **NON** disponibile")
+        try:
+            from lib import simplejson as json
+        except:
+            logger.info("simplejson nella cartella lib **NON** disponibile")
+            logger.error("Nessun parser JSON valido trovato")
+            json = None
+        else:
+            logger.info("Utilizzoo simplejson nella cartella lib")
+    else:
+        logger.info("Utilizzo simplejson incluso nell'interprete")
 
 import sys
 PY3 = False
@@ -24,7 +40,7 @@ def load(*args, **kwargs):
     except:
         logger.error("**NOT** able to load the JSON")
         logger.error(traceback.format_exc())
-        logger.error('ERROR STACK ' + str(stack()[1][3]))
+        # logger.error('ERROR STACK ' + str(stack()[1][3]))
         value = {}
 
     return value
