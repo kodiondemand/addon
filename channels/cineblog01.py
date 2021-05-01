@@ -135,9 +135,9 @@ def episodios(item):
         addVideolibrary = False
         downloadEnabled = False
 
-        folderUrl = scrapertools.find_single_match(data, r'TUTTA LA \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)').replace(
+        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)').replace(
             '.net/', '.pw/')  # vcrypt.pw non ha CF
-        data = httptools.downloadpage(folderUrl).data
+        data = httptools.downloadpage(folderUrl, disable_directIP=True).data
         patron = r'><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
         sceneTitle = True
 
@@ -148,7 +148,7 @@ def episodios(item):
 
     # debug=True
     data = support.match(item.url, headers=headers).data
-    folderItemlist = folder(item, data) if 'TUTTA LA ' in data else []
+    folderItemlist = folder(item, data) if '<p>TUTTA L' in data else []
 
     patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
     patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'

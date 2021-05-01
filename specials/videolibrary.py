@@ -515,15 +515,18 @@ def findvideos(item):
                     from core import servertools
                     ch_results.append(executor.submit(servertools.find_video_items, item_json))
 
-            except Exception as ex:
+            except:
+                import traceback
                 logger.error("The findvideos function for the channel %s failed" % nom_canal)
-                template = "An exception of type %s occured. Arguments:\n%r"
-                message = template % (type(ex).__name__, ex.args)
-                logger.error(message)
                 logger.error(traceback.format_exc())
 
         for ris in futures.as_completed(ch_results):
-            list_servers.extend(ris.result())
+            try:
+                list_servers.extend(ris.result())
+            except:
+                import traceback
+                logger.error("The findvideos function for a channel failed")
+                logger.error(traceback.format_exc())
 
 
     # Change the title to the servers adding the name of the channel in front and the infoLabels and the images of the item if the server does not have

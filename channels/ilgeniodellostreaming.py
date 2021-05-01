@@ -183,8 +183,9 @@ def findvideos(item):
             for link in encLinks:
                 linkDec = base64.b64decode(link.encode()).decode()
                 if 'player.php' in linkDec:
-                    linkDec = support.httptools.downloadpage(linkDec, only_headers=True, follow_redirects=False).headers['Location']
-                list_url.append(linkDec)
+                    linkDec = support.httptools.downloadpage(linkDec, only_headers=True, follow_redirects=False).headers.get('Location')
+                if linkDec:
+                    list_url.append(linkDec)
     if list_servers:
         for i, url in enumerate(list_url):
             itemlist.append(support.Item(
