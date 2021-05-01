@@ -602,7 +602,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if parent_item.channel == 'globalsearch':
             context_commands.append( (config.get_localized_string(30155), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "favorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Search in other channels
-        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel != 'search' and item.action not in ['play'] and parent_item.action != 'mainlist':
+        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play'] and parent_item.action != 'mainlist':
 
             # Search in other channels
             if item.contentSerieName != '':

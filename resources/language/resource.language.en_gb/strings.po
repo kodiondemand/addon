@@ -1838,7 +1838,7 @@ msgstr ""
 
 msgctxt "#60422"
 msgid "Channels search"
-msgstr "Ricerca canali"
+msgstr ""
 
 msgctxt "#60423"
 msgid "Search"

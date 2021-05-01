@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import threading
 
 import xbmc, xbmcgui, sys, channelselector, time, os
 from core.support import dbg, tmdb
@@ -18,6 +19,7 @@ else:
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 close_action = False
+update_lock = threading.Lock()
 
 
 def busy(state):
@@ -90,8 +92,8 @@ class SearchWindow(xbmcgui.WindowXML):
         self.items = []
         self.search_threads = []
 
-        if not searchActions:
-            self.thActions = Thread(target=self.getActions)
+        if not thActions:
+            self.thActions = Thread(target=self.getActionsThread)
             self.thActions.start()
         else:
             self.thActions = thActions
@@ -119,17 +121,37 @@ class SearchWindow(xbmcgui.WindowXML):
                     save_search(self.item.text)
 
 
-    def getActions(self):
+    def getActionsThread(self):
         logger.debug()
-        count = 0
         self.channelsList = self.get_channels()
         for channel in self.channelsList:
-            self.getModule(channel)
-            count += 1
-            percent = (float(count) / len(self.channelsList)) * 100
-            if self.thread or self.selected:  # window started
-                self.PROGRESS.setPercent(percent)
-                self.COUNT.setText('%s/%s' % (count, len(self.channelsList)))
+            logger.debug(channel)
+            try:
+                module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
+                mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
+                action = [elem for elem in mainlist if elem.action == "search" and (
+                            self.item.mode in ['all', 'person'] or elem.contentType in [self.item.mode, 'undefined'])]
+                self.moduleDict[channel] = module
+                self.searchActions += action
+            except:
+                import traceback
+                logger.error('error importing/getting search items of ' + channel)
+                logger.error(traceback.format_exc())
+
+    def getActions(self):
+        # return immediately all actions that are already loadead
+        for action in self.searchActions:
+            yield action
+
+        # wait and return as getActionsThread load
+        lastLen = len(self.searchActions)
+        while self.thActions.is_alive():
+            while len(self.searchActions) == lastLen:
+                if not self.thActions.is_alive():
+                    return
+                time.sleep(0.1)
+            yield self.searchActions[lastLen]
+            lastLen = len(self.searchActions)
 
     def select(self):
         logger.debug()
@@ -269,26 +291,13 @@ class SearchWindow(xbmcgui.WindowXML):
                 n = list_cat.index('anime')
                 list_cat[n] = 'tvshow'
 
-            if self.item.mode == 'all' or self.item.mode in list_cat or self.item.type in list_cat:
+            if self.item.mode in ['all', 'person'] or self.item.mode in list_cat or self.item.type in list_cat:
                 if config.get_setting("include_in_global_search", channel) and ch_param.get("active", False):
                     channels_list.append(channel)
 
         logger.debug('search in channels:', channels_list)
 
         return channels_list
-
-    def getModule(self, channel):
-        logger.debug()
-        try:
-            module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
-            mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
-            action = [elem for elem in mainlist if elem.action == "search" and (self.item.mode == 'all' or elem.contentType in [self.item.mode, 'undefined'])]
-            self.moduleDict[channel] = module
-            self.searchActions += action
-        except:
-            import traceback
-            logger.error('error importing/getting search items of ' + channel)
-            logger.error(traceback.format_exc())
 
     def timer(self):
         while self.searchActions:
@@ -316,21 +325,13 @@ class SearchWindow(xbmcgui.WindowXML):
         logger.debug()
         self.count = 0
         self.LOADING.setVisible(True)
-        if self.thActions:
-            self.thActions.join()
         Thread(target=self.timer).start()
 
         try:
             with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
-                for searchAction in self.searchActions:
+                for searchAction in self.getActions():
                     if self.exit: return
                     self.search_threads.append(executor.submit(self.get_channel_results, searchAction))
-                for ch in futures.as_completed(self.search_threads):
-                    self.count += 1
-                    if self.exit: return
-                    if ch.result():
-                        channel, valid, other = ch.result()
-                        self.update(channel, valid, other)
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -379,7 +380,12 @@ class SearchWindow(xbmcgui.WindowXML):
             import traceback
             logger.error(traceback.format_exc())
 
-        return channel, valid, other if other else results
+        if self.exit:
+            return
+        update_lock.acquire()
+        self.count += 1
+        self.update(channel, valid, other if other else results)
+        update_lock.release()
 
     def makeItem(self, url):
         item = Item().fromurl(url)
