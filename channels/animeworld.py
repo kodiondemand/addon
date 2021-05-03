@@ -5,13 +5,15 @@
 # ----------------------------------------------------------
 
 from core import support, jsontools
-from platformcode import config
+from platformcode import config, logger
 from lib import js2py
 
 host = support.config.get_channel_url()
 headers = {}
 
 __channel__ = 'animeworld'
+cookie = support.match(host, patron=r'document.cookie="([^\s]+)').match
+headers = [['Referer', host], ['Cookie', cookie]]
 
 
 def order():
