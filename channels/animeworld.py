@@ -4,7 +4,7 @@
 # thanks to fatshotty
 # ----------------------------------------------------------
 
-from core import support, jsontools
+from core import httptools, support, jsontools
 from platformcode import config, logger
 from lib import js2py
 
@@ -12,52 +12,20 @@ host = support.config.get_channel_url()
 headers = {}
 
 __channel__ = 'animeworld'
-cookie = support.match(host, patron=r'document.cookie="([^\s]+)').match
-headers = [['Referer', host], ['Cookie', cookie]]
+res = httptools.downloadpage(host)
+cookie = support.match(res.data, patron=r'document.cookie="([^\s]+)').match
+headers = [['Cookie', cookie]]
+
+
+def get_data(item):
+    url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
+    data = support.match(url, headers=headers, follow_redirects=True).data
+    return data
 
 
 def order():
     # Seleziona l'ordinamento dei risultati
     return str(support.config.get_setting("order", __channel__))
-
-# def get_data(item, head=[]):
-#     global headers
-#     jstr = ''
-#     for h in head:
-#         headers[h[0]] = h[1]
-#     if not item.count: item.count = 0
-#     if not config.get_setting('key', item.channel):
-#         matches = support.match(item, patron=r'<script>(.*?location.href=".*?(http[^"]+)";)</').match
-#         if matches:
-#             jstr, location = matches
-#             item.url=support.re.sub(r':\d+', '', location).replace('http://','https://')
-#         if jstr:
-#             jshe = 'var document = {}, location = {}'
-#             aesjs = str(support.match(host + '/aes.min.js').data)
-#             js_fix = 'window.toHex = window.toHex || function(){for(var d=[],d=1==arguments.length&&arguments[0].constructor==Array?arguments[0]:arguments,e="",f=0;f<d.length;f++)e+=(16>d[f]?"0":"")+d[f].toString(16);return e.toLowerCase()}'
-#             jsret =  'return document.cookie'
-#             key_data = js2py.eval_js( 'function (){ ' + jshe + '\n' + aesjs + '\n' + js_fix + '\n' + jstr + '\n' + jsret + '}' )()
-#             key = key_data.split(';')[0]
-
-#             # save Key in settings
-#             config.set_setting('key', key, item.channel)
-
-#     # set cookie
-#     headers['cookie'] = config.get_setting('key', item.channel)
-#     res = support.match(item, headers=headers, patron=r';\s*location.href=".*?(http[^"]+)"')
-#     if res.match:
-#         item.url= res.match.replace('http://','https://')
-#         data = support.match(item, headers=headers).data
-#     else:
-#         data = res.data
-
-
-#     #check that the key is still valid
-#     if 'document.cookie=' in data and item.count < 3:
-#         item.count += 1
-#         config.set_setting('key', '', item.channel)
-#         return get_data(item)
-#     return data
 
 
 @support.menu
@@ -175,6 +143,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    data = get_data(item)
     anime=True
     pagination = 50
     # data = get_data(item)
