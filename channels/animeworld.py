@@ -5,16 +5,22 @@
 # ----------------------------------------------------------
 
 from core import httptools, support, jsontools
-from platformcode import config, logger
-from lib import js2py
 
 host = support.config.get_channel_url()
-headers = {}
-
 __channel__ = 'animeworld'
-res = httptools.downloadpage(host)
-cookie = support.match(res.data, patron=r'document.cookie="([^\s]+)').match
+cookie = support.config.get_setting('cookie', __channel__)
 headers = [['Cookie', cookie]]
+
+
+def get_cookie():
+    global cookie, headers
+    cookie = support.match(host, patron=r'document.cookie="([^\s]+)').match
+    support.config.set_setting('cookie', cookie, __channel__)
+    headers = [['Cookie', cookie]]
+
+
+if not cookie:
+    get_cookie()
 
 
 def get_data(item):
@@ -115,7 +121,11 @@ def peliculas(item):
     anime=True
     # debug =True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
-    # data = get_data(item)
+    data = support.httptools.downloadpage(item.url, headers=headers).data
+    if 'AWCookietest' in data:
+        get_cookie()
+        data = support.match(item.url).data
+
     if item.args == 'updated':
         # data = get_data(item)
         item.contentType='episode'
@@ -144,9 +154,8 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = get_data(item)
-    anime=True
+    anime = True
     pagination = 50
-    # data = get_data(item)
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^-<]+)(?:-(?P<episode2>[^<]+))?'
     def itemHook(item):
