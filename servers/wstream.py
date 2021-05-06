@@ -24,7 +24,7 @@ def test_video_exists(page_url):
     resp = httptools.downloadpage(page_url, verify=False, disable_directIP=disable_directIP, follow_redirects=False)
     while resp.headers.get('location'):
         page_url = resp.headers.get('location')
-        resp = httptools.downloadpage(page_url, verify=False, disable_directIP=disable_directIP, follow_redirects=False)
+        resp = httptools.downloadpage(page_url.replace('https:', 'http:'), verify=False, disable_directIP=disable_directIP, follow_redirects=False)
 
     global data, real_url
     data = resp.data
@@ -32,7 +32,7 @@ def test_video_exists(page_url):
     if '/streaming.php' in page_url in page_url:
         code = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True, verify=False).headers['location'].split('/')[-1].replace('.html', '')
         # logger.debug('WCODE=' + code)
-        page_url = 'https://wstream.video/video.php?file_code=' + code
+        page_url = 'http://wstream.video/video.php?file_code=' + code
         data = httptools.downloadpage(page_url, follow_redirects=True, verify=False).data
 
     if 'nored.icu' in page_url:
@@ -42,7 +42,7 @@ def test_video_exists(page_url):
             dec = ''
             for v in var.split(','):
                 dec += chr(int(v) - int(value))
-            page_url = 'https://wstream.video/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
+            page_url = 'http://wstream.video/video.php?file_code=' + scrapertools.find_single_match(dec, "src='([^']+)").split('/')[-1].replace('.html','')
             new_data = httptools.downloadpage(page_url, follow_redirects=True, verify=False).data
             logger.debug('NEW DATA: \n' + new_data)
             if new_data:
@@ -64,7 +64,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         if not page_url:
             page_url = scrapertools.find_single_match(data, r"""<form action=['"]([^'"]+)['"]""")
         if page_url.startswith('/'):
-            page_url = 'https://wstream.video' + page_url
+            page_url = 'http://wstream.video' + page_url
         if page_url:
             data = httptools.downloadpage(page_url, follow_redirects=True, post={'g-recaptcha-response': captcha}, verify=False).data
 

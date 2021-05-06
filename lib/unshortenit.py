@@ -509,7 +509,10 @@ class UnshortenIt(object):
             if 'shield' in uri.split('/')[-2]:
                 uri = decrypt_aes(uri.split('/')[-1], b"naphajU2usWUswec")
             else:
-                if 'sb/' in uri or 'akv/' in uri or 'wss/' in uri or 'wsd/' in uri:
+                spl = uri.split('/')
+                spl[0] = 'http:'
+
+                if 'sb/' in uri or 'akv/' in uri or 'wss/' in uri:
                     import datetime, hashlib
                     from base64 import b64encode
                     # ip = urlopen('https://api.ipify.org/').read()
@@ -519,11 +522,11 @@ class UnshortenIt(object):
                     headers = {
                         "Cookie": hashlib.md5(ip+day).hexdigest() + "=1;saveMe=1"
                     }
-                    spl = uri.split('/')
                     spl[3] += '1'
                     if spl[3] in ['wss1', 'sb1']:
                         spl[4] = b64encode(spl[4].encode('utf-8')).decode('utf-8')
-                    uri = '/'.join(spl)
+
+                uri = '/'.join(spl)
                 r = httptools.downloadpage(uri, timeout=self._timeout, headers=headers, follow_redirects=False, verify=False)
                 if 'Wait 1 hour' in r.data:
                     uri = ''
@@ -637,10 +640,12 @@ class UnshortenIt(object):
             return uri, str(e)
 
     def _unshorten_snip(self, uri):
-        new_uri = ''
         if 'out_generator' in uri:
-            uri = re.findall('url=(.*)$', uri)[0]
-        elif '/decode/' in uri:
+            new_uri = re.findall('url=(.*)$', uri)[0]
+            if not new_uri.startswith('http'):
+                new_uri = httptools.downloadpage(uri, follow_redirects=False).headers['Location']
+            uri = new_uri
+        if '/decode/' in uri:
             uri = decrypt_aes(uri.split('/')[-1], b"whdbegdhsnchdbeh")
 
             # scheme, netloc, path, query, fragment = urlsplit(uri)
@@ -712,22 +717,22 @@ def findlinks(text):
         text += '\n' + unshorten(matches[0])[0]
     elif matches:
         # non threaded for webpdb
-        for match in matches:
-            sh = unshorten(match)[0]
-            text += '\n' + sh
-        # import sys
-        # if sys.version_info[0] >= 3:
-        #     from concurrent import futures
-        # else:
-        #     from concurrent_py2 import futures
-        # with futures.ThreadPoolExecutor() as executor:
-        #     unshList = [executor.submit(unshorten, match) for match in matches]
-        #     for link in futures.as_completed(unshList):
-        #         if link.result()[0] not in matches:
-        #             links = link.result()[0]
-        #             if type(links) == list:
-        #                 for l in links:
-        #                     text += '\n' + l
-        #             else:
-        #                 text += '\n' + str(link.result()[0])
+        # for match in matches:
+        #     sh = unshorten(match)[0]
+        #     text += '\n' + sh
+        import sys
+        if sys.version_info[0] >= 3:
+            from concurrent import futures
+        else:
+            from concurrent_py2 import futures
+        with futures.ThreadPoolExecutor() as executor:
+            unshList = [executor.submit(unshorten, match) for match in matches]
+            for link in futures.as_completed(unshList):
+                if link.result()[0] not in matches:
+                    links = link.result()[0]
+                    if type(links) == list:
+                        for l in links:
+                            text += '\n' + l
+                    else:
+                        text += '\n' + str(link.result()[0])
     return text
