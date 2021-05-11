@@ -10,15 +10,17 @@ import sys
 if sys.version_info[0] >= 3:
     PY3 = True
     import urllib.parse as urllib
+    from concurrent import futures
 else:
     PY3 = False
     import urllib
+    from concurrent_py2 import futures
 
 import os, xbmc, xbmcgui, xbmcplugin
 from past.utils import old_div
 from channelselector import get_thumb
 from core import scrapertools
-from core.item import Item
+from core.item import InfoLabels, Item
 from platformcode import logger, config
 
 addon = config.__settings__
@@ -323,8 +325,9 @@ def render_items(itemlist, parent_item):
         itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
 
     dirItems = []
-    for n, item in enumerate(itemlist):
-        # item.itemlistPosition = n + 1
+    # for n, item in enumerate(itemlist):
+    def set_item(n ,item):
+        item.itemlistPosition = n + 1
         item_url = item.tourl()
 
         if item.category == "":
@@ -359,13 +362,26 @@ def render_items(itemlist, parent_item):
 
         set_infolabels(listitem, item)
 
+        if item.infoLabels.get('castandrole'):
+            cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
+            listitem.setCast(cast)
+
         # context menu
         if parent_item.channel != 'special':
             context_commands = def_context_commands + set_context_commands(item, item_url, parent_item, has_extendedinfo=has_extendedinfo, superfavourites=superfavourites)
         else:
             context_commands = def_context_commands
         listitem.addContextMenuItems(context_commands)
+        return item, item_url, listitem
 
+        # dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder))
+    r_list = []
+    with futures.ThreadPoolExecutor() as executor:
+        searchList = [executor.submit(set_item, i, item) for i, item in enumerate(itemlist)]
+        for res in futures.as_completed(searchList):
+            r_list.append(res.result())
+    r_list.sort(key=lambda it: it[0].itemlistPosition)
+    for item, item_url, listitem in r_list:
         dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
@@ -503,11 +519,14 @@ def set_infolabels(listitem, item, player=False):
                        'url_scraper': 'None', 'votes': 'votes', 'writer': 'writer', 'year': 'year'}
     if item.infoLabels:
         try:
-            infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None'}
+            infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None' and label_tag in infoLabels_dict}
             listitem.setInfo("video", infoLabels_kodi)
         except:
             listitem.setInfo("video", item.infoLabels)
             # logger.error(item.infoLabels)
+        # if item.infoLabels.get('castandrole'):
+        #     cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
+        #     listitem.setCast(cast)
 
 
 def set_context_commands(item, item_url, parent_item, **kwargs):

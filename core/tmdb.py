@@ -404,6 +404,10 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                             # carry out another search to expand the information
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
+                    if otmdb:
+                        info = otmdb.get_infoLabels(item.infoLabels)
+                        otmdb = Tmdb(id_Tmdb=info['tmdb_id'], search_type=search_type,
+                                 search_language=search_language)
 
                 if otmdb is not None and otmdb.get_id():
                     # The search has found a valid result
