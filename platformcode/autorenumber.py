@@ -11,6 +11,10 @@ from core.item import Item
 from core.support import typo, match, dbg, Item
 from platformcode import config, platformtools, logger
 PY3 = True if sys.version_info[0] >= 3 else False
+if PY3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 # Json Var
 RENUMBER = 'TVSHOW_AUTORENUMBER'
@@ -171,15 +175,18 @@ class autorenumber():
 
 
     def renumber(self):
+        def sub_thread(item):
+            if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
+                number = match(item.title, patron=r'(\d+)').match.lstrip('0')
+                if number:
+                    if not number in self.episodes: self.makelist()
+                    item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
+                    item.contentSeason = int(self.episodes[number].split('x')[0])
+                    item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
         if not self.item.renumber and self.itemlist:
-            for item in self.itemlist:
-                if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
-                    number = match(item.title, patron=r'(\d+)').match.lstrip('0')
-                    if number:
-                        if not number in self.episodes: self.makelist()
-                        item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
-                        item.contentSeason = int(self.episodes[number].split('x')[0])
-                        item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
+            with futures.ThreadPoolExecutor() as executor:
+                renumber_list = [executor.submit(sub_thread, item,) for item in self.itemlist]
+
         else:
             self.makelist()
 

@@ -384,7 +384,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 args=item.args,
                 contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
                 contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
-                contentLanguage = lang1,
+                contentLanguage = lang1 if lang1 else item.contentLanguage,
                 contentSeason= infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news= item.news if item.news else '',
@@ -529,14 +529,14 @@ def scrape(func):
                 nextArgs['groupExplode'] = False
                 nextArgs['item'] = item
                 itemlist = newFunc()
-            itemlist = [i for i in itemlist if i.action not in ['add_pelicula_to_library', 'add_serie_to_library']]
+            itemlist = [i for i in itemlist if i.action not in ['add_movie_to_library', 'add_serie_to_library']]
 
         if anime and inspect.stack()[1][3] not in ['find_episodes']:
             from platformcode import autorenumber
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and not disabletmdb: # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
+        if action != 'play' and 'patronMenu' not in args and not disabletmdb and inspect.stack()[1][3] not in ['add_tvshow'] or (function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
@@ -568,7 +568,7 @@ def scrape(func):
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
 
-        if inspect.stack()[1][3] not in ['find_episodes']:
+        if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
             if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
                 # item.fulltitle = item.infoLabels["title"]
                 videolibrary(itemlist, item, function=function)
@@ -1078,7 +1078,7 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
     logger.debug()
 
     if item.contentType == 'movie':
-        action = 'add_pelicula_to_library'
+        action = 'add_movie_to_library'
         extra = 'findvideos'
         contentType = 'movie'
     else:
@@ -1203,9 +1203,11 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
         logger.debug(videoitem)
         if videoitem.video_urls or srv_param.get('active', False):
-            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+            # dbg()
+            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.title) else item.title
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
+            videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage
             videoitem.title = (item.title if item.channel not in ['url'] else '')\
                 + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
                 + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\

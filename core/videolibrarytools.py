@@ -4,17 +4,24 @@
 # ------------------------------------------------------------
 
 #from builtins import str
+# from specials import videolibrary
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
+if PY3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
+
 import errno, math, traceback, re, os
 
-from core import filetools, scraper, scrapertools
-from core.item import Item
+from core import filetools, jsontools, scraper, scrapertools, support, db, httptools, tmdb
+from core.item import InfoLabels, Item
 from lib import generictools
 from platformcode import config, logger, platformtools
 from platformcode.autorenumber import RENUMBER
+from core.videolibrarydb import videolibrarydb
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -22,11 +29,19 @@ VIDEOLIBRARY_PATH = config.get_videolibrary_path()
 MOVIES_PATH = filetools.join(VIDEOLIBRARY_PATH, FOLDER_MOVIES)
 TVSHOWS_PATH = filetools.join(VIDEOLIBRARY_PATH, FOLDER_TVSHOWS)
 
-if not FOLDER_MOVIES or not FOLDER_TVSHOWS or not VIDEOLIBRARY_PATH \
-        or not filetools.exists(MOVIES_PATH) or not filetools.exists(TVSHOWS_PATH):
+if not FOLDER_MOVIES or not FOLDER_TVSHOWS or not VIDEOLIBRARY_PATH or not filetools.exists(MOVIES_PATH) or not filetools.exists(TVSHOWS_PATH):
     config.verify_directories_created()
 
 addon_name = "plugin://plugin.video.%s/" % config.PLUGIN_NAME
+
+quality_order = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
+                 'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
+                 'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
+                 'sd', '480p', '480', '360p', '360', '240p', '240']
+
+video_extensions = ['3g2', '3gp', '3gp2', 'asf', 'avi', 'divx', 'flv', 'iso', 'm4v', 'mk2', 'mk3d', 'mka', 'mkv', 'mov', 'mp4', 'mp4a', 'mpeg', 'mpg', 'ogg', 'ogm', 'ogv', 'qt', 'ra', 'ram', 'rm', 'ts', 'vob', 'wav', 'webm', 'wma', 'wmv']
+subtitle_extensions = ['srt', 'idx', 'sub', 'ssa', 'ass']
+immage_extensions = ['jpg', 'png']
 
 
 def read_nfo(path_nfo, item=None):
@@ -69,64 +84,23 @@ def read_nfo(path_nfo, item=None):
     return head_nfo, it
 
 
-def save_movie(item, silent=False):
-    """
-    saves the item element in the movie library, with the values ​​it contains.
-    @type item: item
-    @param item: item to be saved.
-    @rtype insertados: int
-    @return: the number of elements inserted
-    @rtype sobreescritos: int
-    @return: the number of overwritten elements
-    @rtype fallidos: int
-    @return: the number of failed items or -1 if all failed
-    """
+def set_base_name(item, _id):
+    # set base_name for videolibrary
     logger.debug()
-    # logger.debug(item.tostring('\n'))
-    insertados = 0
-    sobreescritos = 0
-    fallidos = 0
-    path = ""
-
-    # We try to obtain the correct title:
-    # 1. contentTitle: This should be the correct site, since the title usually contains "Add to the video library..."
-    # 2. fulltitle
-    # 3. title
-    # if item.contentTitle: item.title = item.contentTitle
-    # elif item.fulltitle: item.title = item.fulltitle
-
-    if not item.contentTitle:
-        # We put the correct title on your site so that scraper can locate it
-        if item.fulltitle:
-            item.contentTitle = item.fulltitle
+    if item.contentType == 'movie':
+        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+            base_name = item.infoLabels['originaltitle']
         else:
-            item.contentTitle = item.title
-
-    # If at this point we do not have a title, we leave
-    if not item.contentTitle or not item.channel:
-        logger.debug("contentTitle NOT FOUND")
-        return 0, 0, -1, path  # Salimos sin guardar
-
-    scraper_return = scraper.find_and_set_infoLabels(item)
-
-    # At this point we can have:
-    #  scraper_return = True: An item with infoLabels with the updated information of the movie
-    #  scraper_return = False: An item without movie information (it has been canceled in the window)
-    #  item.infoLabels['code'] == "" : The required IMDB identifier was not found to continue, we quit
-    if not scraper_return or not item.infoLabels['code']:
-        logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
-        return 0, 0, -1, path
-
-    _id = item.infoLabels['code'][0]
-
-    # progress dialog
-    if not silent:
-        p_dialog = platformtools.dialog_progress(config.get_localized_string(20000), config.get_localized_string(60062))
-
-    if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
-        base_name = item.infoLabels['originaltitle']
+            base_name = item.contentTitle
     else:
-        base_name = item.contentTitle
+        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+            base_name = item.infoLabels['originaltitle']
+        elif item.infoLabels['tvshowtitle']:
+            base_name = item.infoLabels['tvshowtitle']
+        elif item.infoLabels['title']:
+            base_name = item.infoLabels['title']
+        else:
+            base_name = item.contentSerieName
 
     if not PY3:
         base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
@@ -136,90 +110,171 @@ def save_movie(item, silent=False):
     if config.get_setting("lowerize_title", "videolibrary"):
         base_name = base_name.lower()
 
-    for raiz, subcarpetas, ficheros in filetools.walk(MOVIES_PATH):
-        for c in subcarpetas:
-            code = scrapertools.find_single_match(c, r'\[(.*?)\]')
-            if code and code in item.infoLabels['code']:
-                path = filetools.join(raiz, c)
-                _id = code
-                break
+    return '{} [{}]'.format(base_name, _id)
 
-    if not path:
-        # Create folder
-        path = filetools.join(MOVIES_PATH, ("%s [%s]" % (base_name, _id)).strip())
+
+def save_movie(item, silent=False):
+    """
+    saves the item element in the movie library, with the values ​​it contains.
+    @type item: item
+    @param item: item to be saved.
+    @rtype inserted: int
+    @return: the number of elements inserted
+    @rtype overwritten: int
+    @return: the number of overwritten elements
+    @rtype failed: int
+    @return: the number of failed items or -1 if all failed
+    """
+
+    logger.debug()
+    # logger.debug(item.tostring('\n'))
+    inserted = 0
+    overwritten = 0
+    failed = 0
+    path = ""
+
+    # Put the correct title on your site so that scraper can locate it
+    if not item.contentTitle:
+        if item.fulltitle: item.contentTitle = item.fulltitle
+        else: item.contentTitle = re.sub(r'\[\s*[^\]]+\]', '', item.title).strip()
+
+    # If at this point we do not have a title, we leave
+    if not item.contentTitle or not item.channel:
+        logger.debug("contentTitle NOT FOUND")
+        return 0, 0, -1, path  # Salimos sin guardar
+
+    scraper_return = scraper.find_and_set_infoLabels(item)
+    # support.dbg()
+
+    # At this point we can have:
+    #  scraper_return = True: An item with infoLabels with the updated information of the movie
+    #  scraper_return = False: An item without movie information (it has been canceled in the window)
+    #  item.infoLabels['code'] == "" : The required IMDB identifier was not found to continue, we quit
+    if not scraper_return or not item.infoLabels['code']:
+        logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
+        return 0, 0, -1, path
+
+    # Get ID from infoLabels
+    _id = get_id(item)
+    if not _id:
+        logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
+        return 0, 0, -1, path
+
+    # get parameters from db
+    try:
+        moviedb = videolibrarydb['movie'].get(_id, {})
+        movie_item = moviedb.get('item', Item())
+        head_nfo = movie_item.head_nfo
+        channels = moviedb.get('channels',{})
+    except:
+        logger.debug("The film cannot be added to the database")
+        videolibrarydb.close()
+        return 0, 0, -1, path
+
+    # progress dialog
+    if not silent: p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60062))
+
+    base_name = set_base_name(item, _id)
+    path = filetools.join(MOVIES_PATH, base_name)
+
+    # check if path already exist
+    if not filetools.exists(path):
         logger.debug("Creating movie directory:" + path)
         if not filetools.mkdir(path):
             logger.debug("Could not create directory")
+            videolibrarydb.close()
             return 0, 0, -1, path
+    try:
+        # set nfo and strm paths
+        nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
+        strm_path = filetools.join(base_name, "{}.strm".format(base_name))
 
-    nfo_path = filetools.join(path, "%s [%s].nfo" % (base_name, _id))
-    strm_path = filetools.join(path, "%s.strm" % base_name)
-    json_path = filetools.join(path, ("%s [%s].json" % (base_name, item.channel.lower())))
+        # check if nfo and strm file exist
+        nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
+        strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
 
-    nfo_exists = filetools.exists(nfo_path)
-    strm_exists = filetools.exists(strm_path)
-    json_exists = filetools.exists(json_path)
+        if not head_nfo:
+            head_nfo = scraper.get_nfo(item)
 
-    if not nfo_exists:
-        # We create .nfo if it doesn't exist
-        logger.debug("Creating .nfo: " + nfo_path)
-        head_nfo = scraper.get_nfo(item)
+        # Make or update Videolibrary Movie Item
+        movie_item.channel = "videolibrary"
+        movie_item.action = 'findvideos'
+        movie_item.infoLabels = item.infoLabels
+        if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
+        if not movie_item.title: movie_item.title = item.contentTitle
+        if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
+        if not movie_item.strm_path: movie_item.strm_path = strm_path
+        if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
+        if not movie_item.base_name: movie_item.base_name = base_name
+        if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
+        if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
+        if not movie_item.playtime: movie_item.playtime = 0,
+        if not movie_item.playcounts: movie_item.playcounts = 0,
+        if not movie_item.prefered_lang: movie_item.prefered_lang = ''
+        if not movie_item.lang_list: movie_item.lang_list = []
+        # if not movie_item.info: movie_item.info = extra_info(_id)
 
-        item_nfo = Item(title=item.contentTitle, channel="videolibrary", action='findvideos',
-                        library_playcounts={"%s [%s]" % (base_name, _id): 0}, infoLabels=item.infoLabels,
-                        library_urls={})
+        if not item.contentLanguage: item.contentLanguage = 'ITA'
+        if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
 
-    else:
-        # If .nfo exists, but we are adding a new channel we open it
-        head_nfo, item_nfo = read_nfo(nfo_path)
-
-    if not strm_exists:
-        # Create base_name.strm if you do not exist
-        item_strm = Item(channel='videolibrary', action='play_from_library',
-                         strm_path=strm_path.replace(MOVIES_PATH, ""), contentType='movie',
-                         contentTitle=item.contentTitle)
-        strm_exists = filetools.write(strm_path, '%s?%s' % (addon_name, item_strm.tourl()))
-        item_nfo.strm_path = strm_path.replace(MOVIES_PATH, "")
-
-    # Only if item_nfo and .strm exist we continue
-    if item_nfo and strm_exists:
-
-        if json_exists:
-            logger.debug("The file exists. Is overwritten")
-            sobreescritos += 1
+        if len(movie_item.lang_list) > 1:
+            movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
         else:
-            insertados += 1
+            movie_item.prefered_lang = movie_item.lang_list[0]
 
-        # If the emergency url option has been checked, it is added to the movie after running Findvideos from the channel
-        try:
-            headers = {}
-            if item.headers:
-                headers = item.headers
-            channel = item.channel
-            if config.get_setting("emergency_urls", channel) in [1, 3]:
-                item = emergency_urls(item, None, json_path, headers=headers)
-                if item_nfo.emergency_urls and not isinstance(item_nfo.emergency_urls, dict):
-                    del item_nfo.emergency_urls
-                if not item_nfo.emergency_urls:
-                    item_nfo.emergency_urls = dict()
-                item_nfo.emergency_urls.update({item.channel: True})
-        except:
-            logger.error("Unable to save %s emergency urls in the video library" % item.contentTitle)
-            logger.error(traceback.format_exc())
+        # create nfo file if it does not exist
+        # support.dbg()
+        if not nfo_exists:
+            # data = dicttoxml(movie_item)
+            filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
 
-        if filetools.write(json_path, item.tojson()):
-            if not silent: p_dialog.update(100, item.contentTitle)
-            item_nfo.library_urls[item.channel] = item.url
+        # create strm file if it does not exist
+        if not strm_exists:
+            logger.debug("Creating .strm: " + strm_path)
+            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibraryd_id=item.videolibrary_id)
+            strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
-            if filetools.write(nfo_path, head_nfo + item_nfo.tojson()):
-                #logger.debug("FOLDER_MOVIES : %s" % FOLDER_MOVIES)
-                # We update the Kodi video library with the movie
-                if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:
-                    from platformcode import xbmc_videolibrary
-                    xbmc_videolibrary.update()
+        # checks if the content already exists
+        if videolibrarydb['movie'].get(_id, {}):
+            logger.debug("The file exists. Is overwritten")
+            overwritten += 1
+        else:
+            logger.debug("Creating .nfo: " + nfo_path)
+            inserted += 1
 
-                if not silent: p_dialog.close()
-                return insertados, sobreescritos, fallidos, path
+        item = remove_host(item)
+        # write on db
+        if item.channel in channels and item.channel != 'download':
+            channels_url = [u.url for u in channels[item.channel]]
+            if item.url not in channels_url:
+                channels[item.channel].append(item)
+            else:
+                del channels[item.channel][channels_url.index(item.url)]
+                channels[item.channel].append(item)
+        else:
+            channels[item.channel] = [item]
+
+        moviedb['item'] = movie_item
+        moviedb['channels'] = channels
+
+        videolibrarydb['movie'][_id] = moviedb
+    except:
+        failed += 1
+
+    videolibrarydb.close()
+
+    # Only if movie_item and .strm exist we continue
+    if movie_item and strm_exists:
+        if not silent:
+            p_dialog.update(100, item.contentTitle)
+            p_dialog.close()
+        # Update Kodi Library
+        if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
+            from platformcode.xbmc_videolibrary import update
+            update(MOVIES_PATH)
+            # from platformcode.xbmc_videolibrary import update_moviedb
+            # update_moviedb(movie_item)
+        return inserted, overwritten, failed, path
 
     # If we get to this point it is because something has gone wrong
     logger.error("Could not save %s in the video library" % item.contentTitle)
@@ -228,23 +283,19 @@ def save_movie(item, silent=False):
         p_dialog.close()
     return 0, 0, -1, path
 
-def update_renumber_options(item, head_nfo, path):
+def update_renumber_options(item):
     from core import jsontools
-    # from core.support import dbg;dbg()
-    tvshow_path = filetools.join(path, 'tvshow.nfo')
-    if filetools.isfile(tvshow_path) and item.channel_prefs:
-        for channel in item.channel_prefs:
-            filename = filetools.join(config.get_data_path(), "settings_channels", channel + '_data.json')
-            if filetools.isfile(filename):
-                json_file = jsontools.load(filetools.read(filename))
-                if RENUMBER in json_file:
-                    json = json_file[RENUMBER]
-                    if item.fulltitle in json:
-                        item.channel_prefs[channel][RENUMBER] = json[item.fulltitle]
-                        logger.debug('UPDATED=\n' + str(item.channel_prefs))
-                        filetools.write(tvshow_path, head_nfo + item.tojson())
 
-def add_renumber_options(item, head_nfo, path):
+    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
+    if filetools.isfile(filename):
+        json_file = jsontools.load(filetools.read(filename))
+        json = json_file.get(RENUMBER,{}).get(item.fulltitle,{})
+    if json:
+        logger.debug('UPDATED=\n' + item.fulltitle)
+        item.renumber = json
+    return item
+
+def add_renumber_options(item):
     from core import jsontools
     # from core.support import dbg;dbg()
     ret = None
@@ -270,150 +321,6 @@ def check_renumber_options(item):
     # if tvshow_item['channel_prefs'][item.fullti]
 
 
-def filter_list(episodelist, action=None, path=None):
-    # if path: path = path.decode('utf8')
-    # import xbmc
-    # if xbmc.getCondVisibility('system.platform.windows') > 0: path = path.replace('smb:','').replace('/','\\')
-    channel_prefs = {}
-    lang_sel = quality_sel = show_title = channel =''
-
-    if action:
-        tvshow_path = filetools.join(path, "tvshow.nfo")
-        head_nfo, tvshow_item = read_nfo(tvshow_path)
-        channel = episodelist[0].channel
-        show_title = tvshow_item.infoLabels['tvshowtitle']
-        if not tvshow_item.channel_prefs:
-            tvshow_item.channel_prefs={channel:{}}
-            list_item = filetools.listdir(path)
-            for File in list_item:
-                if (File.endswith('.strm') or File.endswith('.json') or File.endswith('.nfo')):
-                    filetools.remove(filetools.join(path, File))
-        if channel not in tvshow_item.channel_prefs:
-            tvshow_item.channel_prefs[channel] = {}
-
-        channel_prefs = tvshow_item.channel_prefs[channel]
-
-        renumber = add_renumber_options(episodelist[0], head_nfo, tvshow_path)
-        if renumber:
-            channel_prefs[RENUMBER] = renumber
-
-        if action == 'get_seasons':
-            if 'favourite_language' not in channel_prefs:
-                channel_prefs['favourite_language'] = ''
-            if 'favourite_quality' not in channel_prefs:
-                channel_prefs['favourite_quality'] = ''
-            if channel_prefs['favourite_language']:
-                lang_sel = channel_prefs['favourite_language']
-            if channel_prefs['favourite_quality']:
-                quality_sel = channel_prefs['favourite_quality']
-    # if Download
-        if not show_title: show_title = episodelist[0].fulltitle
-        if not channel: channel= episodelist[0].channel
-    # SELECT EISODE BY LANG AND QUALITY
-    quality_dict = {'N/A': ['n/a'],
-                    'BLURAY': ['br', 'bluray'],
-                    'FULLHD': ['fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p'],
-                    'HD': ['hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv'],
-                    '480P': ['sd', '480p', '480'],
-                    '360P': ['360p', '360'],
-                    '240P': ['240p', '240'],
-                    'MAX':['MAX']}
-    quality_order = ['N/A', '240P', '360P','480P', 'HD', 'FULLHD', 'BLURAY', 'MAX']
-
-
-    lang_list = []
-    sub_list = []
-    quality_list = ['MAX']
-
-    # Make Language List
-    for episode in episodelist:
-        if not episode.contentLanguage: episode.contentLanguage = 'ITA'
-        if type(episode.contentLanguage) == list and episode.contentLanguage not in lang_list:
-           pass
-        else:
-            if episode.contentLanguage and episode.contentLanguage not in lang_list:
-                # Make list of subtitled languages
-                if 'sub' in episode.contentLanguage.lower():
-                    sub = re.sub('Sub-','', episode.contentLanguage)
-                    if sub not in sub_list: sub_list.append(sub)
-                else:
-                    lang_list.append(episode.contentLanguage)
-
-    # add to Language List subtitled languages
-    if sub_list:
-        for sub in sub_list:
-            if sub in lang_list:
-                lang_list.insert(lang_list.index(sub) + 1, 'Sub-' + sub)
-                lang_list.insert(lang_list.index(sub) + 2, sub + ' + Sub-' + sub)
-            else:
-                lang_list.append('Sub-' + sub)
-
-    # Make Quality List
-    for episode in episodelist:
-        for name, var in quality_dict.items():
-            if not episode.quality and 'N/A' not in quality_list:
-                quality_list.append('N/A')
-            elif episode.quality and episode.quality.lower() in var and name not in quality_list:
-                quality_list.append(name)
-    quality_list = sorted(quality_list, key=lambda x:quality_order.index(x))
-
-    # if more than one language
-    if len(lang_list) > 1:
-        selection = lang_list.index(lang_sel) if lang_sel else platformtools.dialog_select(config.get_localized_string(70725) % (show_title, channel),lang_list)
-        if action: lang_sel = channel_prefs['favourite_language'] = lang_list[selection]
-        langs = lang_list[selection].split(' + ')
-
-        ep_list = []
-        count = 0
-        stop = False
-        while not stop:
-            for episode in episodelist:
-                title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
-                if not any(title in word for word in ep_list) and episode.contentLanguage == langs[count]:
-                    ep_list.append(episode.title)
-            if count < len(langs)-1: count += 1
-            else: stop = True
-        it = []
-        for episode in episodelist:
-            if episode.title in ep_list:
-                it.append(episode)
-        episodelist = it
-
-    else: channel_prefs['favourite_language'] = ''
-
-    # if more than one quality
-    if len(quality_list) > 2:
-        if config.get_setting('videolibrary_max_quality'): selection = favourite_quality_selection = len(quality_list)-1
-        else: selection = favourite_quality_selection = quality_list.index(quality_sel) if quality_sel else platformtools.dialog_select(config.get_localized_string(70726) % (show_title, channel) ,quality_list)
-
-        ep_list = []
-        stop = False
-        while not stop:
-            for episode in episodelist:
-                title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
-                if not any(title in word for word in ep_list) and episode.quality.lower() in quality_dict[quality_list[selection]]:
-                    ep_list.append(episode.title)
-            if selection != 0: selection = selection - 1
-            else: stop = True
-            if quality_list[selection] == 'N/A':
-                for episode in episodelist:
-                    title = scrapertools.find_single_match(episode.title, r'(\d+x\d+)')
-                    if not any(title in word for word in ep_list):
-                        ep_list.append(episode.title)
-
-        it = []
-        for episode in episodelist:
-            if episode.title in ep_list:
-                if action: channel_prefs['favourite_quality'] = quality_list[favourite_quality_selection]
-                it.append(episode)
-        episodelist = it
-
-    else:channel_prefs['favourite_quality'] = ''
-
-    if action: filetools.write(tvshow_path, head_nfo + tvshow_item.tojson())
-
-    return episodelist
-
 def save_tvshow(item, episodelist, silent=False):
     """
     stores in the series library the series with all the chapters included in the episodelist
@@ -421,19 +328,21 @@ def save_tvshow(item, episodelist, silent=False):
     @param item: item that represents the series to save
     @type episodelist: list
     @param episodelist: list of items that represent the episodes to be saved.
-    @rtype insertados: int
+    @rtype inserted: int
     @return: the number of episodes inserted
-    @rtype sobreescritos: int
+    @rtype overwritten: int
     @return: the number of overwritten episodes
-    @rtype fallidos: int
+    @rtype failed: int
     @return: the number of failed episodes or -1 if the entire series has failed
     @rtype path: str
     @return: serial directory
     """
     logger.debug()
-    # logger.debug(item.tostring('\n'))
+    inserted = 0
+    overwritten = 0
+    failed = 0
     path = ""
-
+    # support.dbg()
     # If at this point we do not have a title or code, we leave
     if not (item.contentSerieName or item.infoLabels['code']) or not item.channel:
         logger.debug("NOT FOUND contentSerieName or code")
@@ -445,6 +354,7 @@ def save_tvshow(item, episodelist, silent=False):
     else:
         scraper_return = True
     item.contentType = contentTypeBackup  # Fix errors in some channels
+
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the series
     #  scraper_return = False: An item without movie information (it has been canceled in the window)
@@ -453,113 +363,111 @@ def save_tvshow(item, episodelist, silent=False):
         logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
         return 0, 0, -1, path
 
-    _id = item.infoLabels['code'][0]
-    if not item.infoLabels['code'][0] or item.infoLabels['code'][0] == 'None': 
-        if item.infoLabels['code'][1] and item.infoLabels['code'][1] != 'None':
-            _id = item.infoLabels['code'][1]
-        elif item.infoLabels['code'][2] and item.infoLabels['code'][2] != 'None':
-            _id = item.infoLabels['code'][2]
-        else:
-            logger.error("NOT FOUND IN SCRAPER OR HAS NO CODE: " + item.url  + ' / ' + item.infoLabels['code'])
+    # Get ID from infoLabels
+    _id = get_id(item)
+    if not _id:
+        logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
+        return 0, 0, -1, path
+
+    # get parameters from db
+    try:
+        tvshowdb = videolibrarydb['tvshow'].get(_id, {})
+        tvshow_item = tvshowdb.get('item', Item())
+        head_nfo = tvshow_item.head_nfo
+        channels = tvshowdb.get('channels',{})
+
+    except:
+        logger.debug("The tv show cannot be added to the database")
+        videolibrarydb.close()
+        return 0, 0, -1, path
+
+    # set base name
+
+    base_name = set_base_name(item, _id)
+    path = filetools.join(TVSHOWS_PATH, base_name)
+
+    # check if path already exist
+    if not filetools.exists(path):
+        logger.debug("Creating tv show directory:" + path)
+        if not filetools.mkdir(path):
+            logger.debug("Could not create directory")
             return 0, 0, -1, path
 
-    if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
-        base_name = item.infoLabels['originaltitle']
-    elif item.infoLabels['tvshowtitle']:
-        base_name = item.infoLabels['tvshowtitle']
-    elif item.infoLabels['title']:
-        base_name = item.infoLabels['title']
-    else:
-        base_name = item.contentSerieName
+    nfo_path = filetools.join(base_name, "tvshow.nfo")
+    nfo_exists = filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path))
 
-    if not PY3:
-        base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
-    else:
-        base_name = filetools.validate_path(base_name.replace('/', '-'))
+    # get parameters
+    if not item.head_nfo:
+        head_nfo = scraper.get_nfo(item)
+    if not head_nfo: return 0, 0, -1, ''
 
-    if config.get_setting("lowerize_title", "videolibrary"):
-        base_name = base_name.lower()
 
-    for raiz, subcarpetas, ficheros in filetools.walk(TVSHOWS_PATH):
-        for c in subcarpetas:
-            code = scrapertools.find_single_match(c, r'\[(.*?)\]')
-            if code and code != 'None' and code in item.infoLabels['code']:
-                path = filetools.join(raiz, c)
-                _id = code
-                break
+    item.infoLabels['mediatype'] = 'tvshow'
+    item.contentType = 'tvshow'
+    item.infoLabels['title'] = item.contentSerieName
+    tvshow_item.infoLabels = item.infoLabels
+    tvshow_item.channel = 'videolibrary'
+    tvshow_item.action = 'get_seasons'
+    tvshow_item.nfo_path = nfo_path
+    if not tvshow_item.head_nfo:
+        tvshow_item.head_nfo = head_nfo
+    if not tvshow_item.title:
+        tvshow_item.title = item.contentSerieName
+    if not tvshow_item.videolibrary_id:
+        tvshow_item.videolibrary_id = _id
+    if not tvshow_item.fanart:
+        tvshow_item.fanart = item.infoLabels['fanart']
+    if not tvshow_item.thumbnail:
+        tvshow_item.thumbnail = item.infoLabels['thumbnail']
+    if not tvshow_item.base_name:
+        tvshow_item.base_name = base_name
+    if tvshow_item.active == '':
+        tvshow_item.active = True
+    if not tvshow_item.playcounts:
+        tvshow_item.playcounts = 0,
+    if not tvshow_item.prefered_lang:
+        tvshow_item.prefered_lang = ''
+    if not tvshow_item.lang_list:
+        tvshow_item.lang_list = []
 
-    if not path:
-        path = filetools.join(TVSHOWS_PATH, ("%s [%s]" % (base_name, _id)).strip())
-        logger.debug("Creating series directory: " + path)
-        try:
-            filetools.mkdir(path)
-        except OSError as exception:
-            if exception.errno != errno.EEXIST:
-                raise
 
-    tvshow_path = filetools.join(path, "tvshow.nfo")
-    if not filetools.exists(tvshow_path):
-        # We create tvshow.nfo, if it does not exist, with the head_nfo, series info and watched episode marks
-        logger.debug("Creating tvshow.nfo: " + tvshow_path)
-        head_nfo = scraper.get_nfo(item, search_groups=True)
-        if not head_nfo:
-            return 0, 0, 0, ''
-        item.infoLabels['mediatype'] = "tvshow"
-        item.infoLabels['title'] = item.contentSerieName
-        item_tvshow = Item(title=item.contentSerieName, channel="videolibrary", action="get_seasons",
-                           fanart=item.infoLabels['fanart'], thumbnail=item.infoLabels['thumbnail'],
-                           infoLabels=item.infoLabels, path=path.replace(TVSHOWS_PATH, ""), fulltitle=item.fulltitle)
-        item_tvshow.library_playcounts = {}
-        item_tvshow.library_urls = {item.channel: item.url}
-
-    else:
-        # If tvshow.nfo exists, but we are adding a new channel we update the list of urls
-        head_nfo, item_tvshow = read_nfo(tvshow_path)
-        item_tvshow.fulltitle = item.fulltitle
-        item_tvshow.channel = "videolibrary"
-        item_tvshow.action = "get_seasons"
-        item_tvshow.library_urls[item.channel] = item.url
-
-    # FILTERTOOLS
-    # if the channel has a language filter, we add the channel and the show
-    if episodelist and "list_language" in episodelist[0]:
-        # if we have already added a previously filtered channel, we add or update the channel and show
-        if "library_filter_show" in item_tvshow:
-            if item.title_from_channel:
-                item_tvshow.library_filter_show[item.channel] = item.title_from_channel
-            else:
-                item_tvshow.library_filter_show[item.channel] = item.show
-        # there was no filter channel and we generated it for the first time
+    item = remove_host(item)
+    item.renumber = add_renumber_options(item)
+    # write on db
+    if item.channel in channels and item.channel != 'download':
+        channels_url = [u.url for u in channels[item.channel]]
+        if item.url not in channels_url:
+            channels[item.channel].append(item)
         else:
-            if item.title_from_channel:
-                item_tvshow.library_filter_show = {item.channel: item.title_from_channel}
-            else:
-                item_tvshow.library_filter_show = {item.channel: item.show}
+            del channels[item.channel][channels_url.index(item.url)]
+            channels[item.channel].append(item)
+    else:
+        channels[item.channel] = [item]
+    tvshowdb['item'] = tvshow_item
+    tvshowdb['channels'] = channels
+    videolibrarydb['tvshow'][_id] = tvshowdb
 
-    if item.channel != "downloads":
-        item_tvshow.active = 1  # to be updated daily when service is called
-
-    filetools.write(tvshow_path, head_nfo + item_tvshow.tojson())
-
+    if not nfo_exists:
+        filetools.write(filetools.join(TVSHOWS_PATH, tvshow_item.nfo_path), head_nfo + ', kod:' + _id)
+    # support.dbg()
     if not episodelist:
         # The episode list is empty
-        return 0, 0, 0, path
+        return 0, 0, -1, path
 
     # Save the episodes
-    '''import time
-    start_time = time.time()'''
-    insertados, sobreescritos, fallidos = save_episodes(path, episodelist, item, silent=silent)
-    '''msg = "Insertados: %d | Sobreescritos: %d | Fallidos: %d | Tiempo: %2.2f segundos" % \
-          (insertados, sobreescritos, fallidos, time.time() - start_time)
-    logger.debug(msg)'''
+    inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, silent=silent)
+    videolibrarydb.close()
+    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
+        from platformcode.xbmc_videolibrary import update
+        update(TVSHOWS_PATH, tvshow_item.basename)
 
-    return insertados, sobreescritos, fallidos, path
+    return inserted, overwritten, failed, path
 
 
-def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
+def save_episodes(item, episodelist, silent=False, overwrite=True):
     """
     saves in the indicated path all the chapters included in the episodelist
-    @type path: str
+    @type Item: str
     @param path: path to save the episodes
     @type episodelist: list
     @param episodelist: list of items that represent the episodes to be saved.
@@ -569,334 +477,167 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
     @param silent: sets whether notification is displayed
     @param overwrite: allows to overwrite existing files
     @type overwrite: bool
-    @rtype insertados: int
+    @rtype inserted: int
     @return: the number of episodes inserted
-    @rtype sobreescritos: int
+    @rtype overwritten: int
     @return: the number of overwritten episodes
-    @rtype fallidos: int
+    @rtype failed: int
     @return: the number of failed episodes
     """
+    def save_episode(item, seasons, episodes, e, inserted, overwritten, failed):
+        season_episode = scrapertools.get_season_and_episode(e.title)
+
+
+        if season_episode:
+            # local = True if season_episode in included_files else False
+            # if local:
+            #     strm_path = filetools.join(item.base_name, included_files[season_episode])
+            # else:
+            strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
+            nfo_path = filetools.join(item.base_name, "{}.nfo".format(season_episode))
+
+            e.contentSeason = int(season_episode.split('x')[0])
+            e.contentEpisodeNumber = int(season_episode.split('x')[1])
+            tmdb.set_infoLabels_item(e)
+            playcount = db['viewed'].get(e.infoLabels['tmdb_id'], {}).get('{}x{}'.format(e.contentSeason, e.contentEpisodeNumber), 0)
+            head_nfo = scraper.get_nfo(e)
+
+            episode_item = Item(action='findvideos',
+                                channel='videolibrary',
+                                strm_path=strm_path,
+                                contentSeason = e.contentSeason,
+                                contentEpisodeNumber = e.contentEpisodeNumber,
+                                contentType = e.contentType,
+                                infoLabels = e.infoLabels,
+                                head_nfo = head_nfo,
+                                videolibrary_id = item.videolibrary_id,
+                                thumbnail = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.thumbnail,
+                                fanart = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.fanart,
+                                title = '{}. {}'.format(e.contentEpisodeNumber, e.infoLabels['title']))
+
+            episode = episodes.get(season_episode, {})
+
+            try:
+                # e.infoLabels['episode'] = ''
+
+                if e.contentSeason not in seasons:
+                    # season_item = Item(infoLabels = e.infoLabels)
+                    tmdb_info = tmdb.Tmdb(id_Tmdb = e.infoLabels['tmdb_id'], search_type='tv')
+                    seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(e.contentSeason))
+                    infoLabels = {}
+                    if seasoninfo.get('season_posters'): infoLabels['posters'] = seasoninfo.get('season_posters')
+                    if seasoninfo.get('season_fanarts'): infoLabels['fanarts'] = seasoninfo.get('season_fanarts')
+                    if seasoninfo.get('season_trailer'): infoLabels['trailer'] = seasoninfo.get('season_trailer')
+
+                    season_item = Item(action="get_episodes",
+                                       channel='videolibrary',
+                                       title=seasoninfo.get('season_title'),
+                                       thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
+                                       fanart = item.fanart,
+                                       plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
+                                       contentType = 'season',
+                                       infoLabels = infoLabels,
+                                       contentSeason = e.contentSeason,
+                                       videolibrary_id = item.videolibrary_id,
+                                       playcount=0)
+
+                    logger.debug(season_item)
+
+                    seasons[e.contentSeason] = season_item
+
+                if not episode:
+                    inserted += 1
+                    episode['item'] = episode_item
+
+                # else:
+                epchannels = episode.get('channels',{})
+
+                e = remove_host(e)
+                e.contentTitle = e.infoLabels['title']
+                e.infoLabels = {}
+
+                if e.channel in epchannels and e.channel != 'download':
+                    channels_url = [u.url for u in epchannels[e.channel]]
+                    if e.url not in channels_url:
+                        epchannels[e.channel].append(e)
+                    else:
+                        del epchannels[e.channel][channels_url.index(e.url)]
+                        epchannels[e.channel].append(e)
+                        overwritten += 1
+                else:
+                    epchannels[e.channel] = [e]
+
+                episode['channels'] = epchannels
+                episodes[season_episode] = episode
+
+                if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
+                    logger.debug("Creating .strm: " + strm_path)
+                    item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibraryd_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                    filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+                # if not filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path)):
+                #     filetools.write(filetools.join(TVSHOWS_PATH, nfo_path), head_nfo)
+            except:
+                failed += 1
+        return item, seasons, episodes, e, inserted, overwritten, failed
     logger.debug()
-    episodelist = filter_list(episodelist, serie.action, path)
+
+    # from core import tmdb
     # No episode list, nothing to save
     if not len(episodelist):
         logger.debug("There is no episode list, we go out without creating strm")
         return 0, 0, 0
 
-    # process local episodes
-    local_episodes_path = ''
-    local_episodelist = []
-    update = False
-    nfo_path = filetools.join(path, "tvshow.nfo")
-    head_nfo, item_nfo = read_nfo(nfo_path)
-
-    if item_nfo.update_last:
-        local_episodes_path = item_nfo.local_episodes_path
-    elif config.get_setting("local_episodes", "videolibrary"):
-        done, local_episodes_path = config_local_episodes_path(path, serie)
-        if done < 0:
-            logger.debug("An issue has occurred while configuring local episodes, going out without creating strm")
-            return 0, 0, done
-        item_nfo.local_episodes_path = local_episodes_path
-        filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-    if local_episodes_path:
-        from platformcode.xbmc_videolibrary import check_db, clean
-        # check if the local episodes are in the Kodi video library
-        if check_db(local_episodes_path):
-            local_episodelist += get_local_content(local_episodes_path)
-            clean_list = []
-            for f in filetools.listdir(path):
-                match = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\s+)?[Ee]?[Pp]?(\d+)')
-                if match:
-                    ep = '%dx%02d' % (int(match[0]), int(match[1]))
-                    if ep in local_episodelist:
-                        del_file = filetools.join(path, f)
-                        filetools.remove(del_file)
-                        if f.endswith('strm'):
-                            sep = '\\' if '\\' in path else '/'
-                            clean_path = path[:-len(sep)] if path.endswith(sep) else path
-                            clean_path = '%/' + clean_path.split(sep)[-1] + '/' + f
-                            clean_list.append(clean_path)
-                            clean_list.append(clean_path.replace('/','\\'))
-
-            if clean_list:
-                clean(clean_list)
-                update = True
-
-            if item_nfo.local_episodes_list:
-                difference = [x for x in item_nfo.local_episodes_list if (x not in local_episodelist)]
-                if len(difference) > 0:
-                    clean_list = []
-                    for f in difference:
-                        sep = '\\' if '\\' in local_episodes_path else '/'
-                        clean_path = local_episodes_path[:-len(sep)] if local_episodes_path.endswith(sep) else local_episodes_path
-                        clean_path = '%/' + clean_path.split(sep)[-1] + '/%' + f.replace('x','%') + '%'
-                        clean_list.append(clean_path)
-                        clean_list.append(clean_path.replace('/','\\'))
-                    clean(clean_list)
-                    update = True
-
-            item_nfo.local_episodes_list = sorted(local_episodelist)
-            filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-        # the local episodes are not in the Kodi video library
-        else:
-            process_local_episodes(local_episodes_path, path)
-
-    insertados = 0
-    sobreescritos = 0
-    fallidos = 0
-    news_in_playcounts = {}
-    # We list all the files in the series, so we avoid having to check if they exist one by one
-    raiz, carpetas_series, ficheros = next(filetools.walk(path))
-    ficheros = [filetools.join(path, f) for f in ficheros]
-
     # Silent is to show no progress (for service)
     if not silent:
         # progress dialog
-        p_dialog = platformtools.dialog_progress(config.get_localized_string(60064) ,'')
-        # p_dialog.update(0, config.get_localized_string(60065))
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(60064) ,'')
 
-    channel_alt = serie.channel                                                    # We prepare to add the emergency urls
-    emergency_urls_stat = config.get_setting("emergency_urls", channel_alt)         # Does the channel want emergency urls?
-    emergency_urls_succ = False
-    try: channel = __import__('specials.%s' % channel_alt, fromlist=["specials.%s" % channel_alt])
-    except: channel = __import__('channels.%s' % channel_alt, fromlist=["channels.%s" % channel_alt])
-    if serie.torrent_caching_fail:                                                  # If the conversion process has failed, they are not cached
-        emergency_urls_stat = 0
-        del serie.torrent_caching_fail
+    inserted = 0
+    overwritten = 0
+    failed = 0
+    seasons = videolibrarydb['season'].get(item.videolibrary_id, {})
+    episodes = videolibrarydb['episode'].get(item.videolibrary_id, {})
+    videolibrarydb.close()
 
-    new_episodelist = []
-    # We obtain the season and episode number and discard those that are not
+    try: t = float(100) / len(episodelist)
+    except: t = 0
 
-    for e in episodelist:
-        headers = {}
-        if e.headers:
-            headers = e.headers
-
-        try:
-            season_episode = scrapertools.get_season_and_episode(e.title)
-
-            # If the emergency url option has been checked, it is added to each episode after running Findvideos from the channel
-            if e.emergency_urls and isinstance(e.emergency_urls, dict): del e.emergency_urls    # We erase previous traces
-            json_path = filetools.join(path, ("%s [%s].json" % (season_episode, e.channel)).lower())    # Path of the episode .json
-            if emergency_urls_stat == 1 and not e.emergency_urls and e.contentType == 'episode':     # Do we keep emergency urls?
+    # for i, e in enumerate(episodelist):
+    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, seasons, episodes, e, inserted, overwritten, failed)
+    #     if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
+    #     if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
+    #     if not silent:
+    #         p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
+    i = 0
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(save_episode, item, seasons, episodes, e, inserted, overwritten, failed) for e in episodelist]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                item, seasons, episodes, e, inserted, overwritten, failed = res.result()
+                if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
+                if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
                 if not silent:
-                    p_dialog.update(0, 'Caching links and .torren filest...\n' + e.title)     # progress dialog
-                if json_path in ficheros:                                   # If there is the .json we get the urls from there
-                    if overwrite:                                           # but only if .json are overwritten
-                        json_epi = Item().fromjson(filetools.read(json_path))                   #We read the .json
-                        if json_epi.emergency_urls:                         # if there are emergency urls ...
-                            e.emergency_urls = json_epi.emergency_urls      # ... we copy them
-                        else:                                               # if not...
-                            e = emergency_urls(e, channel, json_path, headers=headers)  # ... we generate them
-                else:
-                    e = emergency_urls(e, channel, json_path, headers=headers)  # If the episode does not exist, we generate the urls
-                if e.emergency_urls:                                        #If we already have urls...
-                    emergency_urls_succ = True                              # ... is a success and we are going to mark the .nfo
-            elif emergency_urls_stat == 2 and e.contentType == 'episode':   # Do we delete emergency urls?
-                if e.emergency_urls: del e.emergency_urls
-                emergency_urls_succ = True                                  # ... is a success and we are going to mark the .nfo
-            elif emergency_urls_stat == 3 and e.contentType == 'episode':   # Do we update emergency urls?
-                if not silent:
-                    p_dialog.update(0, 'Caching links and .torrent files...\n' + e.title)     # progress dialog
-                e = emergency_urls(e, channel, json_path, headers=headers)  # we generate the urls
-                if e.emergency_urls:                                        # If we already have urls...
-                    emergency_urls_succ = True                              # ... is a success and we are going to mark the .nfo
+                    i += 1
+                    p_dialog.update(int(math.ceil(i * t)), e.title)
 
-            if not e.infoLabels["tmdb_id"] or (serie.infoLabels["tmdb_id"] and e.infoLabels["tmdb_id"] != serie.infoLabels["tmdb_id"]):                                                    #en series multicanal, prevalece el infolabels...
-                e.infoLabels = serie.infoLabels                             # ... dthe current channel and not the original one
-            e.contentSeason, e.contentEpisodeNumber = season_episode.split("x")
-            if e.videolibray_emergency_urls:
-                del e.videolibray_emergency_urls
-            if e.channel_redir:
-                del e.channel_redir                                         # ... and redirect marks are erased
-            new_episodelist.append(e)
-        except:
-            if e.contentType == 'episode':
-                logger.error("Unable to save %s emergency urls in the video library" % e.contentTitle)
-            continue
-
-    # No episode list, nothing to save
-    if not len(new_episodelist):
-        logger.debug("There is no episode list, we go out without creating strm")
-        return 0, 0, 0
-
-    local_episodelist += get_local_content(path)
-
-    # fix float because division is done poorly in python 2.x
-    try:
-        t = float(100) / len(new_episodelist)
-    except:
-        t = 0
-    for i, e in enumerate(scraper.sort_episode_list(new_episodelist)):
-        if not silent:
-            p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
-
-        high_sea = e.contentSeason
-        high_epi = e.contentEpisodeNumber
-        if scrapertools.find_single_match(e.title, r'[a|A][l|L]\s*(\d+)'):
-            high_epi = int(scrapertools.find_single_match(e.title, r'al\s*(\d+)'))
-        max_sea = e.infoLabels["number_of_seasons"]
-        max_epi = 0
-        if e.infoLabels["number_of_seasons"] and (e.infoLabels["temporada_num_episodios"] or e.infoLabels["number_of_seasons"] == 1):
-            if e.infoLabels["number_of_seasons"] == 1 and e.infoLabels["number_of_episodes"]:
-                max_epi = e.infoLabels["number_of_episodes"]
-            else:
-                max_epi = e.infoLabels["temporada_num_episodios"]
-
-        season_episode = "%sx%s" % (e.contentSeason, str(e.contentEpisodeNumber).zfill(2))
-        strm_path = filetools.join(path, "%s.strm" % season_episode)
-        nfo_path = filetools.join(path, "%s.nfo" % season_episode)
-        json_path = filetools.join(path, ("%s [%s].json" % (season_episode, e.channel)).lower())
-
-        if season_episode in local_episodelist:
-            logger.debug('Skipped: Serie ' + serie.contentSerieName + ' ' + season_episode + ' available as local content')
-            continue
-
-        # check if the episode has been downloaded
-        if filetools.join(path, "%s [downloads].json" % season_episode) in ficheros:
-            logger.debug('INFO: "%s" episode %s has been downloaded, skipping it' % (serie.contentSerieName, season_episode))
-            continue
-
-        strm_exists = strm_path in ficheros
-        nfo_exists = nfo_path in ficheros
-        json_exists = json_path in ficheros
-
-        if not strm_exists:
-            # If there is no season_episode.strm add it
-            item_strm = Item(action='play_from_library', channel='videolibrary', strm_path=strm_path.replace(TVSHOWS_PATH, ""), infoLabels={})
-            item_strm.contentSeason = e.contentSeason
-            item_strm.contentEpisodeNumber = e.contentEpisodeNumber
-            item_strm.contentType = e.contentType
-            item_strm.contentTitle = season_episode
-
-            # FILTERTOOLS
-            if item_strm.list_language:
-                # if tvshow.nfo has a filter it is passed to the item_strm to be generated
-                if "library_filter_show" in serie:
-                    item_strm.library_filter_show = serie.library_filter_show
-
-                if item_strm.library_filter_show == "":
-                    logger.error("There was an error getting the name of the series to filter")
-
-            # logger.debug("item_strm" + item_strm.tostring('\n'))
-            # logger.debug("serie " + serie.tostring('\n'))
-            strm_exists = filetools.write(strm_path, '%s?%s' % (addon_name, item_strm.tourl()))
-
-        item_nfo = None
-        if not nfo_exists and e.infoLabels["code"]:
-            # If there is no season_episode.nfo add it
-            if serie.infoLabels["code"]:
-                e.infoLabels["code"] = serie.infoLabels["code"]
-            else:
-                scraper.find_and_set_infoLabels(e)
-            head_nfo = scraper.get_nfo(e)
-
-            item_nfo = e.clone(channel="videolibrary", url="", action='findvideos', strm_path=strm_path.replace(TVSHOWS_PATH, ""))
-            if item_nfo.emergency_urls:
-                del item_nfo.emergency_urls                     # It only stays in the episode's .json
-
-            nfo_exists = filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-        # Only if there are season_episode.nfo and season_episode.strm we continue
-        if nfo_exists and strm_exists:
-            if not json_exists or overwrite:
-                # We get infoLabel from the episode
-                if not item_nfo:
-                    head_nfo, item_nfo = read_nfo(nfo_path)
-
-                # In multichannel series, the infolabels of the current channel prevail and not that of the original
-                if not e.infoLabels["tmdb_id"] or (item_nfo.infoLabels["tmdb_id"] and e.infoLabels["tmdb_id"] != item_nfo.infoLabels["tmdb_id"]): 
-                    e.infoLabels = item_nfo.infoLabels
-
-                if filetools.write(json_path, e.tojson()):
-                    if not json_exists:
-                        logger.debug("Inserted: %s" % json_path)
-                        insertados += 1
-                        # We mark episode as unseen
-                        news_in_playcounts[season_episode] = 0
-                        # We mark the season as unseen
-                        news_in_playcounts["season %s" % e.contentSeason] = 0
-                        # We mark the series as unseen
-                        # logger.debug("serie " + serie.tostring('\n'))
-                        news_in_playcounts[serie.contentSerieName] = 0
-
-                    else:
-                        logger.debug("Overwritten: %s" % json_path)
-                        sobreescritos += 1
-                else:
-                    logger.debug("Failed: %s" % json_path)
-                    fallidos += 1
-
-        else:
-            logger.debug("Failed: %s" % json_path)
-            fallidos += 1
-
-        if not silent and p_dialog.iscanceled():
-            break
-
-    #logger.debug('high_sea x high_epi: %sx%s' % (str(high_sea), str(high_epi)))
-    #logger.debug('max_sea x max_epi: %sx%s' % (str(max_sea), str(max_epi)))
     if not silent:
-        p_dialog.close()
-
-    if news_in_playcounts or emergency_urls_succ or serie.infoLabels["status"] == "Ended" or serie.infoLabels["status"] == "Canceled":
-        # If there are new episodes we mark them as unseen on tvshow.nfo ...
-        tvshow_path = filetools.join(path, "tvshow.nfo")
-        try:
-            import datetime
-            head_nfo, tvshow_item = read_nfo(tvshow_path)
-            tvshow_item.library_playcounts.update(news_in_playcounts)
-
-            # If the emergency url insert / delete operation in the .jsons of the episodes was successful, the .nfo is checked
-            if emergency_urls_succ:
-                if tvshow_item.emergency_urls and not isinstance(tvshow_item.emergency_urls, dict):
-                    del tvshow_item.emergency_urls
-                if emergency_urls_stat in [1, 3]:                               # Save / update links operation
-                    if not tvshow_item.emergency_urls:
-                        tvshow_item.emergency_urls = dict()
-                    if tvshow_item.library_urls.get(serie.channel, False):
-                        tvshow_item.emergency_urls.update({serie.channel: True})
-                elif emergency_urls_stat == 2:                                  # Delete links operation
-                    if tvshow_item.emergency_urls and tvshow_item.emergency_urls.get(serie.channel, False):
-                        tvshow_item.emergency_urls.pop(serie.channel, None)     # delete the entry of the .nfo
-
-            if tvshow_item.active == 30:
-                tvshow_item.active = 1
-            if tvshow_item.infoLabels["tmdb_id"] == serie.infoLabels["tmdb_id"]:
-                tvshow_item.infoLabels = serie.infoLabels
-                tvshow_item.infoLabels["title"] = tvshow_item.infoLabels["tvshowtitle"] 
-
-            if max_sea == high_sea and max_epi == high_epi and (tvshow_item.infoLabels["status"] == "Ended" or tvshow_item.infoLabels["status"] == "Canceled") and insertados == 0 and fallidos == 0 and not tvshow_item.local_episodes_path:
-                tvshow_item.active = 0                                          # ... nor we will update it more
-                logger.debug("%s [%s]: 'Finished' or 'Canceled' series. Periodic update is disabled" %  (serie.contentSerieName, serie.channel))
-
-            update_last = datetime.date.today()
-            tvshow_item.update_last = update_last.strftime('%Y-%m-%d')
-            update_next = datetime.date.today() + datetime.timedelta(days=int(tvshow_item.active))
-            tvshow_item.update_next = update_next.strftime('%Y-%m-%d')
-
-            filetools.write(tvshow_path, head_nfo + tvshow_item.tojson())
-        except:
-            logger.error("Error updating tvshow.nfo")
-            logger.error("Unable to save %s emergency urls in the video library" % serie.contentSerieName)
-            logger.error(traceback.format_exc())
-            fallidos = -1
+        if len(item.lang_list) > 1:
+            item.prefered_lang = item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), item.lang_list)]
         else:
-            # ... if it was correct we update the Kodi video library
-            if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:
-                update = True
+            item.prefered_lang = item.lang_list[0]
+        tvshowdb = videolibrarydb['tvshow'][item.videolibrary_id]
+        tvshowdb['item'] = item
+        videolibrarydb['tvshow'][item.videolibrary_id] = tvshowdb
+        videolibrarydb.close()
 
-    if update:
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.update()
+    videolibrarydb['episode'][item.videolibrary_id] = episodes
+    videolibrarydb['season'][item.videolibrary_id] = seasons
 
-    if fallidos == len(episodelist):
-        fallidos = -1
+    videolibrarydb.close()
+    p_dialog.close()
 
-    logger.debug("%s [%s]: inserted= %s, overwritten= %s, failed= %s" % (serie.contentSerieName, serie.channel, insertados, sobreescritos, fallidos))
-    return insertados, sobreescritos, fallidos
+    return inserted, overwritten, failed
+
 
 
 def config_local_episodes_path(path, item, silent=False):
@@ -904,7 +645,7 @@ def config_local_episodes_path(path, item, silent=False):
     from platformcode.xbmc_videolibrary import search_local_path
     local_episodes_path=search_local_path(item)
     if not local_episodes_path:
-        title = item.contentSerieName if item.contentSerieName else item.show
+        title = item.contentSerieName if item.contentSerieName else item.fulltitle
         if not silent:
             silent = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % title)
         if silent:
@@ -1013,10 +754,10 @@ def add_movie(item):
     #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
     if item:
         new_item = item.clone(action="findvideos")
-        insertados, sobreescritos, fallidos, path = save_movie(new_item)
+        inserted, overwritten, failed, path = save_movie(new_item)
 
-        if fallidos == 0:
-            platformtools.dialog_ok(config.get_localized_string(30131),
+        if failed == 0:
+            platformtools.dialog_notification(config.get_localized_string(30131),
                                     config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
         else:
             filetools.rmdirtree(path)
@@ -1083,8 +824,8 @@ def add_tvshow(item, channel=None):
         #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
 
         # Get the episode list
-        # from core.support import dbg;dbg()
-        itemlist = getattr(channel, item.action)(item)
+        it = item.clone()
+        itemlist = getattr(channel, it.action)(it)
         if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)'):
             from platformcode.autorenumber import start, check
             if not check(item):
@@ -1101,31 +842,31 @@ def add_tvshow(item, channel=None):
 
     global magnet_caching
     magnet_caching = False
-    insertados, sobreescritos, fallidos, path = save_tvshow(item, itemlist)
+    inserted, overwritten, failed, path = save_tvshow(item, itemlist)
 
     if not path:
         pass
 
-    elif not insertados and not sobreescritos and not fallidos:
+    elif not inserted and not overwritten and not failed:
         filetools.rmdirtree(path)
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.show)
         logger.error("The string %s could not be added to the video library. Could not get any episode" % item.show)
 
-    elif fallidos == -1:
+    elif failed == -1:
         filetools.rmdirtree(path)
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60068) % item.show)
         logger.error("The string %s could not be added to the video library" % item.show)
 
-    elif fallidos == -2:
+    elif failed == -2:
         filetools.rmdirtree(path)
 
-    elif fallidos > 0:
+    elif failed > 0:
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60069) % item.show)
-        logger.error("Could not add %s episodes of series %s to the video library" % (fallidos, item.show))
+        logger.error("Could not add %s episodes of series %s to the video library" % (failed, item.show))
 
     else:
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60070) % item.show)
-        logger.debug("%s episodes of series %s have been added to the video library" % (insertados, item.show))
+        platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(60070) % item.show)
+        logger.debug("%s episodes of series %s have been added to the video library" % (inserted, item.show))
         if config.is_xbmc():
             if config.get_setting("sync_trakt_new_tvshow", "videolibrary"):
                 import xbmc
@@ -1140,94 +881,36 @@ def add_tvshow(item, channel=None):
                 xbmc_videolibrary.sync_trakt_addon(path)
 
 
-def emergency_urls(item, channel=None, path=None, headers={}):
-    logger.debug()
-    import re
-    from servers import torrent
-    try:
-        magnet_caching_e = magnet_caching
+def remove_host(item):
+    try :
+        channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
     except:
-        magnet_caching_e = True
+        channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
 
-    """
-    We call Findvideos of the channel with the variable "item.videolibray_emergency_urls = True" to get the variable
-    "item.emergency_urls" with the list of tuple lists of torrent links and direct servers for that episode or movie
-    Torrents should always go in list [0], if any. If you want to cache the .torrents, the search goes against that list.
-    List two will include direct server links, but also magnet links (which are not cacheable).
-    """
-    # we launched a "lookup" in the "findvideos" of the channel to obtain the emergency links
-    try:
-        if channel == None:                             # If the caller has not provided the channel structure, it is created
-            channel = item.channel                      # It is verified if it is a clone, which returns "newpct1"
-            #channel = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
-            channel = __import__('specials.%s' % channel_alt, fromlist=["specials.%s" % channel_alt])
-        if hasattr(channel, 'findvideos'):                                  # If the channel has "findvideos" ...
-            item.videolibray_emergency_urls = True                          # ... marks itself as "lookup"
-            channel_save = item.channel                 # ... save the original channel in case of fail-over in Newpct1
-            category_save = item.category               # ... save the original category in case of fail-over or redirection in Newpct1
-            if item.channel_redir:                      # ... if there is a redir, the alternate channel is temporarily restored
-                item.channel = scrapertools.find_single_match(item.url, r'http.?\:\/\/(?:www.)?(\w+)\.\w+\/').lower()
-                item.category = scrapertools.find_single_match(item.url, r'http.?\:\/\/(?:www.)?(\w+)\.\w+\/').capitalize()
-            item_res = getattr(channel, 'findvideos')(item)                 # ... the process of Findvideos
-            item_res.channel = channel_save             # ... restore the original channel in case there is a fail-over in Newpct1
-            item_res.category = category_save           # ... restore the original category in case there is a fail-over or redirection in Newpct1
-            item.category = category_save               # ... restore the original category in case there is a fail-over or redirection in Newpct1
-            del item_res.videolibray_emergency_urls                         # ... and the lookup mark is erased
-            if item.videolibray_emergency_urls:
-                del item.videolibray_emergency_urls                         # ... and the original lookup mark is erased
-    except:
-        logger.error('ERROR when processing the title in Findvideos del Canal: ' + item.channel + ' / ' + item.title)
-        logger.error(traceback.format_exc())
-        item.channel = channel_save                     # ... restore the original channel in case of fail-over or redirection in Newpct1
-        item.category = category_save                   # ... restore the original category in case there is a fail-over or redirection in Newpct1
-        item_res = item.clone()                         # If there has been an error, the original Item is returned
-        if item_res.videolibray_emergency_urls:
-            del item_res.videolibray_emergency_urls                         # ... and the lookup mark is erased
-        if item.videolibray_emergency_urls:
-            del item.videolibray_emergency_urls                             # ... and the original lookup mark is erased
-    
-    # If the user has activated the option "emergency_urls_torrents", the .torrent files of each title will be downloaded
-    else:                                                                   # If the links have been successfully cached ...
-        try:
-            referer = None
-            post = None
-            channel_bis =item.channel
-            if config.get_setting("emergency_urls_torrents", channel_bis) and item_res.emergency_urls and path != None:
-                videolibrary_path = config.get_videolibrary_path()          # we detect the absolute path of the title
-                movies = config.get_setting("folder_movies")
-                series = config.get_setting("folder_tvshows")
-                if movies in path:
-                    folder = movies
-                else:
-                    folder = series
-                videolibrary_path = filetools.join(videolibrary_path, folder)
-                i = 1
-                if item_res.referer: referer = item_res.referer
-                if item_res.post: post = item_res.post
-                for url in item_res.emergency_urls[0]:                      # We go through the emergency urls ...
-                    torrents_path = re.sub(r'(?:\.\w+$)', '_%s.torrent' % str(i).zfill(2), path)
-                    path_real = ''
-                    if magnet_caching_e or not url.startswith('magnet'):
-                        path_real = torrent.caching_torrents(url, referer, post, torrents_path=torrents_path, headers=headers)  # ... to download the .torrents
-                    if path_real:                                           # If you have been successful ...
-                        item_res.emergency_urls[0][i-1] = path_real.replace(videolibrary_path, '')  # if it looks at the relative "path"
-                    i += 1
+    host = httptools.downloadpage(channel.host, only_headers=True).url
 
-                # We restore original variables
-                if item.referer:
-                    item_res.referer = item.referer
-                elif item_res.referer:
-                    del item_res.referer
-                if item.referer:
-                    item_res.referer = item.referer
-                elif item_res.referer:
-                    del item_res.referer
-                item_res.url = item.url
+    if host.endswith('/'): host = host[:-1]
+    item.url = item.url.replace(host, '')
 
-        except:
-            logger.error('ERROR when caching the .torrent of: ' + item.channel + ' / ' + item.title)
-            logger.error(traceback.format_exc())
-            item_res = item.clone()                             # If there has been an error, the original Item is returned
+    return item
 
-    #logger.debug(item_res.emergency_urls)
-    return item_res                                             # We return the updated Item with the emergency links
+def get_id(item):
+    _id = ''
+    for i in item.infoLabels['code']:
+        if i or i != 'None':
+            _id = i
+            break
+    return _id
+
+
+def get_local_files(item):
+    included_files = {}
+    # search media files in Videolibrary Folder
+    for root, folder, files in filetools.walk(filetools.join(TVSHOWS_PATH,item.base_name)):
+        # for folder in folders:
+        for f in files:
+            if f.split('.')[-1] in video_extensions:
+                s, e = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)')
+                included_files['{}x{}'.format(s,e.zfill(2))] = f
+    if included_files:
+        return included_files, 1

@@ -6140,6 +6140,18 @@ msgctxt "#70834"
 msgid "Playlist"
 msgstr "Playlist"
 
+msgctxt "#70835"
+msgid "Episode"
+msgstr "Episodio"
+
+msgctxt "#70836"
+msgid "Season"
+msgstr "Stagione"
+
+msgctxt "#70837"
+msgid "Enable/Disable Channels"
+msgstr "Abilita/Disabilita Canali"
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"

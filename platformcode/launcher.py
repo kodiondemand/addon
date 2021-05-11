@@ -231,7 +231,7 @@ def run(item=None):
                 platformtools.render_items(itemlist, item)
 
             # Special action for adding a movie to the library
-            elif item.action == "add_pelicula_to_library":
+            elif item.action == "add_movie_to_library":
                 from core import videolibrarytools
                 videolibrarytools.add_movie(item)
 

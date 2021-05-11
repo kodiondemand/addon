@@ -642,7 +642,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     busy(False)
                     return
 
-                if item.action in ['add_pelicula_to_library', 'add_serie_to_library','save_download']:  # special items (add to videolibrary, download ecc.)
+                if item.action in ['add_movie_to_library', 'add_serie_to_library','save_download']:  # special items (add to videolibrary, download ecc.)
                     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item_url + ")")
                     busy(False)
                     return

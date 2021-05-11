@@ -2,7 +2,7 @@
 
 #from builtins import str
 import sys
-from core import support
+from core import httptools, support
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -11,13 +11,17 @@ import xbmc, os, traceback
 from time import time
 
 from core import filetools, scrapertools, videolibrarytools
-from core.support import typo, thumb
+from core.support import typo, thumb, videolibrary
 from core.item import Item
-from platformcode import config, logger, platformtools
+from platformcode import config, launcher, logger, platformtools
 if PY3:
     from concurrent import futures
+    import urllib.parse as urlparse
 else:
     from concurrent_py2 import futures
+    import urlparse
+
+from core.videolibrarytools import videolibrarydb
 
 
 def mainlist(item):
@@ -38,28 +42,48 @@ def channel_config(item):
 
 
 def list_movies(item, silent=False):
+    from core import jsontools
     logger.debug()
+
     itemlist = []
     movies_path = []
-    for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
-        for f in folders:
-            movies_path += [filetools.join(root, f, f + ".nfo")]
-            local = False
-            for f in filetools.listdir(filetools.join(root, f)):
-                if f.split('.')[-1] not in ['nfo','json','strm']:
-                    local= True
-                    break
+    ids = []
 
-    # from core.support import dbg;dbg()
-    # for movie_path in movies_path:
-    #     get_results(movie_path, root, 'movie', local)
-    with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(get_results, movie_path, root, 'movie', local) for movie_path in movies_path]
-        for res in futures.as_completed(itlist):
-            item_movie, value = res.result()
-            # verify the existence of the channels
-            if item_movie.library_urls and len(item_movie.library_urls) > 0:
-                itemlist += [item_movie]
+    # for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
+    #     for f in folders:
+    #         ID = scrapertools.find_single_match(f, r'\[([^\]]+)')
+    #         if ID:
+    #             ids.append(ID)
+    #             if ID not in videolibrarydb['movie']:
+    #                 ids.append(ID)
+    #                 movies_path += [filetools.join(root, f, f + ".nfo")]
+    #                 local = False
+    #                 for f in filetools.listdir(filetools.join(root, f)):
+    #                     if f.split('.')[-1] not in ['nfo','json','strm']:
+    #                         local= True
+    #                         break
+
+    # with futures.ThreadPoolExecutor() as executor:
+    #     itlist = [executor.submit(get_results, movie_path, root, 'movie', local) for movie_path in movies_path]
+    #     for res in futures.as_completed(itlist):
+    #         item_movie, value = res.result()
+    #         # verify the existence of the channels
+    #         if item_movie.library_urls and len(item_movie.library_urls) > 0:
+    #             code = scrapertools.find_single_match(item_movie.strm_path, r'\[([^\]]+)')
+    #             videolibrarydb['movie'][code] = {'item':jsontools.load(item_movie.tojson())}
+    movies = dict(videolibrarydb['movie'])
+    videolibrarydb.close()
+    for key, value in movies.items():
+        # if key not in ids:
+        #     del videolibrarydb['movie'][key]
+        # else:
+        item = value['item']
+        item.context = [{'title':config.get_localized_string(70084),'channel':'videolibrary', 'action':'delete'}]
+        if len(item.lang_list) > 1:
+            item.context += [{"title": config.get_localized_string(70246),
+                                "action": "prefered_lang",
+                                "channel": "videolibrary"}]
+        itemlist.append(item)
 
     if silent == False: return sorted(itemlist, key=lambda it: it.title.lower())
     else: return
@@ -68,26 +92,98 @@ def list_movies(item, silent=False):
 def list_tvshows(item):
     logger.debug()
     itemlist = []
-    lista = []
+    tvshows_path = []
+    ids = []
+    # lista = []
 
     root = videolibrarytools.TVSHOWS_PATH
-    start = time()
-    with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
-        for res in futures.as_completed(itlist):
-            item_tvshow, value = res.result()
-            # verify the existence of the channels
-            if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
-                itemlist += [item_tvshow]
-                lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':item_tvshow.nfo}]
-    logger.debug('load list',time() - start)
+    # start = time()
+    # for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
+    #     for f in folders:
+    #         ID = scrapertools.find_single_match(f, r'\[([^\]]+)')
+    #         if ID:
+    #             ids.append(ID)
+    #             if ID not in videolibrarydb['movie']:
+    #                 ids.append(ID)
+    #                 tvshows_path += [filetools.join(root, f, f + ".nfo")]
+    #                 local = False
+    #                 for f in filetools.listdir(filetools.join(root, f)):
+    #                     if f.split('.')[-1] not in ['nfo','json','strm']:
+    #                         local= True
+    #                         break
+    # with futures.ThreadPoolExecutor() as executor:
+    #     itlist = [executor.submit(get_results, tvshow_path, root, 'tvshow', local) for tvshow_path in tvshows_path]
+    #     itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
+    #     for res in futures.as_completed(itlist):
+    #         item_tvshow, value = res.result()
+    #         # verify the existence of the channels
+    #         if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
+    #             code = scrapertools.find_single_match(item_tvshow.strm_path, r'\[([^\]]+)')
+    #             db['tvshow'][code] = {'item':jsontools.load(item_tvshow.tojson())}
+    #             # itemlist += [item_tvshow]
+    #             lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':item_tvshow.nfo}]
+    # logger.debug('load list',time() - start)
+
+
+    series = dict(videolibrarydb['tvshow'])
+    videolibrarydb.close()
+
+    for key, value in series.items():
+
+        item = value['item']
+        item.contentType = 'tvshow'
+
+        item.context = [{'title':config.get_localized_string(70085),'channel':'videolibrary', 'action':'delete'}]
+
+        if len(item.lang_list) > 1:
+            item.context += [{"title": config.get_localized_string(70246),
+                              "action": "prefered_lang",
+                              "channel": "videolibrary"}]
+        if len(value['channels'].keys()) > 1:
+            item.context += [{"title": config.get_localized_string(70837),
+                              "action": "disable_channels",
+                              "channel": "videolibrary"}]
+        watched = item.infoLabels.get("playcount", 0)
+        if watched > 0:
+            title = config.get_localized_string(60020)
+            value = 0
+        else:
+            title = config.get_localized_string(60021)
+            value = 1
+
+        item.context += [{"title": title,
+                          "action": "mark_content_as_watched",
+                          "channel": "videolibrary",
+                          "playcount": value,
+                          "videolibrary_id": item.videolibrary_id}]
+        if not item.active:
+            item.title = '{} {}'.format(item.title, support.typo('','bullet bold'))
+            title = config.get_localized_string(60023)
+        else:
+            title = config.get_localized_string(60022)
+        item.context += [{"title": title,
+                          "action": "set_active",
+                          "channel": "videolibrary",
+                          "playcount": value,
+                          "videolibrary_id": item.videolibrary_id}]
+        item.context += [{"title": 'Poster',
+                                 "action": "change_poster",
+                                 "channel": "videolibrary",
+                                 "playcount": value,
+                                 "videolibrary_id": item.videolibrary_id}]
+        item.context += [{"title": 'fanart',
+                                 "action": "change_fanart",
+                                 "channel": "videolibrary",
+                                 "playcount": value,
+                                 "videolibrary_id": item.videolibrary_id}]
+
+        itemlist.append(item)
+
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
 
         itemlist += [Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
-                          title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False),
-                     Item(channel=item.channel, action="configure_update_videolibrary", thumbnail=item.thumbnail,
-                          title=typo(config.get_localized_string(60599), 'bold color kod'), lista=lista, folder=False)]
+                          title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     return itemlist
 
 
@@ -220,56 +316,51 @@ def configure_update_videolibrary(item):
 
 def get_seasons(item):
     logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
+
     itemlist = []
     dict_temp = {}
 
-    videolibrarytools.check_renumber_options(item)
-
-    raiz, carpetas_series, ficheros = next(filetools.walk(item.path))
-
-    # Menu contextual: Releer tvshow.nfo
-    head_nfo, item_nfo = videolibrarytools.read_nfo(item.nfo)
 
     if config.get_setting("no_pile_on_seasons", "videolibrary") == 2:  # Ever
         return get_episodes(item)
 
-    for f in ficheros:
-        if f.endswith('.json'):
-            season = f.split('x')[0]
-            dict_temp[season] = config.get_localized_string(60027) % season
-
-    if config.get_setting("no_pile_on_seasons", "videolibrary") == 1 and len(
-            dict_temp) == 1:  # Only if there is a season
+    if config.get_setting("no_pile_on_seasons", "videolibrary") == 1 and len(dict_temp) == 1:  # Only if there is a season
+        item.from_library = True
         return get_episodes(item)
     else:
+        from core import tmdb
+        seasons = videolibrarydb['season'][item.videolibrary_id]
+        videolibrarydb.close()
         # We create one item for each season
-        for season, title in list(dict_temp.items()):
-            new_item = item.clone(action="get_episodes", title=title, contentSeason=season,
-                                  filtrar_season=True, channel='videolibrary')
+        for season in seasons.values():
+            new_item = season
+            new_item.contentType = 'season'
 
             #Contextual menu: Mark the season as viewed or not
-            visto = item_nfo.library_playcounts.get("season %s" % season, 0)
-            new_item.infoLabels["playcount"] = visto
-            if visto > 0:
-                texto = config.get_localized_string(60028)
+            watched = new_item.infoLabels.get("playcount", 0)
+            if watched > 0:
+                title = config.get_localized_string(60028)
                 value = 0
             else:
-                texto = config.get_localized_string(60029)
+                title = config.get_localized_string(60029)
                 value = 1
-            new_item.context = [{"title": texto,
-                                 "action": "mark_season_as_watched",
+
+            new_item.context = [{"title": title,
+                                 "action": "mark_content_as_watched",
                                  "channel": "videolibrary",
-                                 "playcount": value}]
+                                 "playcount": value,
+                                 "videolibrary_id": item.videolibrary_id}]
 
             # logger.debug("new_item:\n" + new_item.tostring('\n'))
             itemlist.append(new_item)
 
         if len(itemlist) > 1:
             itemlist = sorted(itemlist, key=lambda it: int(it.contentSeason))
+        else:
+            return get_episodes(itemlist[0])
 
         if config.get_setting("show_all_seasons", "videolibrary"):
-            new_item = item.clone(action="get_episodes", title=config.get_localized_string(60030))
+            new_item = item.clone(action="get_episodes", title=config.get_localized_string(60030), all=True)
             new_item.infoLabels["playcount"] = 0
             itemlist.insert(0, new_item)
 
@@ -279,61 +370,34 @@ def get_seasons(item):
 
 def get_episodes(item):
     logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
     itemlist = []
 
-    # We get the archives of the episodes
-    raiz, carpetas_series, ficheros = next(filetools.walk(item.path))
+    episodes = videolibrarydb['episode'][item.videolibrary_id]
+    videolibrarydb.close()
 
-    # Menu contextual: Releer tvshow.nfo
-    head_nfo, item_nfo = videolibrarytools.read_nfo(item.nfo)
+    for title, ep in episodes.items():
+        it = ep['item']
 
-    # Create an item in the list for each strm found
-    for i in ficheros:
-        ext = i.split('.')[-1]
-        if ext not in ['json','nfo']:
-            season_episode = scrapertools.get_season_and_episode(i)
-            if not season_episode:
-                # The file does not include the season and episode number
-                continue
-            season, episode = season_episode.split("x")
-            # If there is a filter by season, we ignore the chapters of other seasons
-            if item.filtrar_season and int(season) != int(item.contentSeason):
-                continue
-            # Get the data from the season_episode.nfo
-            nfo_path = filetools.join(raiz, '%sx%s.nfo' % (season, episode))
-            if filetools.isfile(nfo_path):
-                head_nfo, epi = videolibrarytools.read_nfo(nfo_path)
+        if it.contentSeason == item.contentSeason or item.all:
+            if config.get_setting("no_pile_on_seasons", "videolibrary") == 2 or item.all:
+                it.title = '{}x{}'.format(it.contentSeason, it.title)
+            it = get_host(it)
+            it.from_library = item.from_library
+            watched = it.infoLabels.get("playcount", 0)
+            if watched > 0:
+                title = config.get_localized_string(60032)
+                value = 0
+            else:
+                title = config.get_localized_string(60033)
+                value = 1
 
-                # Set the chapter title if possible
-                if epi.contentTitle and epi.contentTitle != epi.fulltitle:
-                    title_episodie = epi.contentTitle.strip()
-                else:
-                    title_episodie = config.get_localized_string(60031) %  (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2))
-
-                epi.contentTitle = "%sx%s" % (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2))
-                epi.title = "%sx%s - %s" % (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2), title_episodie)
-
-                if item_nfo.library_filter_show:
-                    epi.library_filter_show = item_nfo.library_filter_show
-
-                # Contextual menu: Mark episode as seen or not
-                visto = item_nfo.library_playcounts.get(season_episode, 0)
-                epi.infoLabels["playcount"] = visto
-                if visto > 0:
-                    texto = config.get_localized_string(60032)
-                    value = 0
-                else:
-                    texto = config.get_localized_string(60033)
-                    value = 1
-                epi.context = [{"title": texto,
-                                "action": "mark_content_as_watched",
-                                "channel": "videolibrary",
-                                "playcount": value,
-                                "nfo": item.nfo}]
-                if ext != 'strm':
-                    epi.local = True
-                itemlist.append(epi)
+            it.context = [{"title": title,
+                           "action": "mark_content_as_watched",
+                           "channel": "videolibrary",
+                           "playcount": value,
+                           'allep': True,
+                           "videolibrary_id": item.videolibrary_id}]
+            itemlist.append(it)
 
     itemlist = sorted(itemlist, key=lambda it: (int(it.contentSeason), int(it.contentEpisodeNumber)))
     add_download_items(item, itemlist)
@@ -345,235 +409,110 @@ def findvideos(item):
     from platformcode import platformtools
 
     logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
     videolibrarytools.check_renumber_options(item)
     itemlist = []
-    list_canales = {}
-    item_local = None
 
-    # Disable autoplay
-    # autoplay.set_status(False)
-
-    if not item.contentTitle or not item.strm_path:
+    if not item.strm_path:
         logger.debug("Unable to search for videos due to lack of parameters")
         return []
-
-    if item.contentEpisodeNumber:
-        content_title = str(item.contentSeason) + 'x' + (str(item.contentEpisodeNumber) if item.contentEpisodeNumber > 9 else '0' + str(item.contentEpisodeNumber))
-    else:
-        content_title = item.contentTitle.strip().lower()
+    if not item.videolibrary_id: item.videolibrary_id = scrapertools.find_single_match(item.strm_path , r'\[([^\]]+)')
     if item.contentType == 'movie':
-        item.strm_path = filetools.join(videolibrarytools.MOVIES_PATH, item.strm_path)
-        path_dir = filetools.dirname(item.strm_path)
-        item.nfo = filetools.join(path_dir, filetools.basename(path_dir) + ".nfo")
+        videolibrary_items = videolibrarydb['movie'][item.videolibrary_id]['channels']
+        prefered_lang = videolibrarydb['movie'].get(item.videolibrary_id, {}).get('item', Item()).prefered_lang
+        disabled = videolibrarydb['movie'].get(item.videolibrary_id, {}).get('item', Item()).disabled
     else:
-        item.strm_path = filetools.join(videolibrarytools.TVSHOWS_PATH, item.strm_path)
-        path_dir = filetools.dirname(item.strm_path)
-        item.nfo = filetools.join(path_dir, 'tvshow.nfo')
+        ep = '{:d}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
+        videolibrary_items = videolibrarydb['episode'][item.videolibrary_id][ep]['channels']
+        prefered_lang = videolibrarydb['tvshow'].get(item.videolibrary_id, {}).get('item', Item()).prefered_lang
+        disabled = videolibrarydb['tvshow'].get(item.videolibrary_id, {}).get('item', Item()).disabled
+    videolibrarydb.close()
+    if 'local' in videolibrary_items:
+        try:
+            item.channel = 'local'
+            item.url = filetools.join(videolibrarytools.TVSHOWS_PATH, videolibrary_items['local'])
+            return play(item)
+        except: pass
+    else:
+        if prefered_lang:
+            for key, values in videolibrary_items.items():
+                if len(values) > 1:
+                    allowed = []
+                    for v in values:
+                        v.contentTitle = item.title
+                        if v.contentLanguage == prefered_lang:
+                            allowed.append(v)
+                    if allowed:
+                        videolibrary_items[key] = allowed
+                    else:
+                        videolibrary_items[key] = values
+                else:
+                    videolibrary_items[key] = values
 
-    for fd in filetools.listdir(path_dir):
-        if fd.endswith('.json'):
-            contenido, nom_canal = fd[:-6].split('[')
-            if (contenido.startswith(content_title) or item.contentType == 'movie') and nom_canal not in list(list_canales.keys()):
-                list_canales[nom_canal] = filetools.join(path_dir, fd)
+        with futures.ThreadPoolExecutor() as executor:
+            itlist = [executor.submit(servers, ch, value) for ch, value in videolibrary_items.items() if ch not in disabled]
+            for res in futures.as_completed(itlist):
+                itemlist += res.result()
 
-    num_canales = len(list_canales)
+        if len(itlist) > 1:
+            for it in itemlist:
+                it.title = '[{}] {}'.format(it.ch_name, it.title)
 
-    if 'downloads' in list_canales:
-        json_path = list_canales['downloads']
-        item_json = Item().fromjson(filetools.read(json_path))
-        item_json.contentChannel = "local"
-        # Support for relative paths in downloads
-        if filetools.is_relative(item_json.url):
-            item_json.url = filetools.join(videolibrarytools.VIDEOLIBRARY_PATH, item_json.url)
-
-        del list_canales['downloads']
-
-        # Check that the video has not been deleted
-        if filetools.exists(item_json.url):
-            item_local = item_json.clone(action='play')
-            itemlist.append(item_local)
-        else:
-            num_canales -= 1
-
-    filtro_canal = ''
-    if num_canales > 1 and config.get_setting("ask_channel", "videolibrary"):
-        opciones = [config.get_localized_string(70089) % k.capitalize() for k in list(list_canales.keys())]
-        opciones.insert(0, config.get_localized_string(70083))
-        if item_local:
-            opciones.append(item_local.title)
-
-        index = platformtools.dialog_select(config.get_localized_string(30163), opciones)
-        if index < 0:
+        if autoplay.play_multi_channel(item, itemlist):  # hideserver
             return []
 
-        elif item_local and index == len(opciones) - 1:
-            filtro_canal = 'downloads'
-            platformtools.play_video(item_local)
-
-        elif index > 0:
-            filtro_canal = opciones[index].replace(config.get_localized_string(70078), "").strip()
-            itemlist = []
-
-    all_videolibrary = []
-    ch_results = []
-    list_servers = []
-
-    with futures.ThreadPoolExecutor() as executor:
-        for nom_canal, json_path in list(list_canales.items()):
-            if filtro_canal and filtro_canal != nom_canal.capitalize():
-                continue
-
-            # We import the channel of the selected part
-            try:
-                if nom_canal == 'community':
-                    channel = __import__('specials.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
-                else:
-                    channel = __import__('channels.%s' % nom_canal, fromlist=["channels.%s" % nom_canal])
-            except ImportError:
-                exec("import channels." + nom_canal + " as channel")
-            except:
-                dead_list = []
-                zombie_list = []
-
-                if nom_canal not in dead_list and nom_canal not in zombie_list: confirm = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(30132) % nom_canal.upper() + '\n' + config.get_localized_string(30133))
-                elif nom_canal in zombie_list: confirm = False
-                else: confirm = True
-
-                if confirm:
-                    # delete the channel from all movie and tvshow
-                    from past.utils import old_div
-                    num_enlaces = 0
-                    dialog = platformtools.dialog_progress(config.get_localized_string(30131), config.get_localized_string(60005) % nom_canal)
-                    if not all_videolibrary:
-                        all_videolibrary = list_movies(Item()) + list_tvshows(Item())
-                    for n, it in enumerate(all_videolibrary):
-                        if nom_canal in it.library_urls:
-                            dead_item = Item(multichannel=len(it.library_urls) > 1,
-                                             contentType=it.contentType,
-                                             dead=nom_canal,
-                                             path=filetools.split(it.nfo)[0],
-                                             nfo=it.nfo,
-                                             library_urls=it.library_urls,
-                                             infoLabels={'title': it.contentTitle})
-                            num_enlaces += delete(dead_item)
-                        dialog.update(old_div(100*n, len(all_videolibrary)))
-
-                    dialog.close()
-                    msg_txt = config.get_localized_string(70087) % (num_enlaces, nom_canal)
-                    logger.info(msg_txt)
-                    platformtools.dialog_notification(config.get_localized_string(30131), msg_txt)
-                    platformtools.itemlist_refresh()
-
-                    if nom_canal not in dead_list:
-                        dead_list.append(nom_canal)
-                    continue
-                else:
-                    if nom_canal not in zombie_list:
-                        zombie_list.append(nom_canal)
-
-                if len(dead_list) > 0:
-                    for nom_canal in dead_list:
-                        if nom_canal in item.library_urls:
-                            del item.library_urls[nom_canal]
-
-            item_json = Item().fromjson(filetools.read(json_path))
-            # support.dbg()
-            try: from urllib.parse import urlsplit
-            except ImportError: from urlparse import urlsplit
-            try:
-                if urlsplit(item_json.url).netloc.split('.')[0] in channel.host:
-                    item_json.url = channel.host + urlsplit(item_json.url).path
-            except: pass
-
-            try:
-                # FILTERTOOLS
-                # if the channel has a filter, the name it has saved is passed to it so that it filters correctly.
-                if "list_language" in item_json:
-                    # if it comes from the addon video library
-                    if "library_filter_show" in item:
-                        item_json.show = item.library_filter_show.get(nom_canal, "")
-
-                # We run find_videos, from the channel or common
-                item_json.contentChannel = 'videolibrary'
-                item_json.play_from = item.play_from
-                item_json.nfo = item.nfo
-                item_json.strm_path = item.strm_path
-                if hasattr(channel, 'findvideos'):
-                    from core import servertools
-                    if item_json.videolibray_emergency_urls:
-                        del item_json.videolibray_emergency_urls
-                    ch_results.append(executor.submit(getattr(channel, 'findvideos'), item_json))
-                elif item_json.action == 'play':
-                    from platformcode import platformtools
-                    # autoplay.set_status(True)
-                    item_json.contentChannel = item_json.channel
-                    item_json.channel = "videolibrary"
-                    platformtools.play_video(item_json)
-                    return ''
-                else:
-                    from core import servertools
-                    ch_results.append(executor.submit(servertools.find_video_items, item_json))
-
-            except:
-                import traceback
-                logger.error("The findvideos function for the channel %s failed" % nom_canal)
-                logger.error(traceback.format_exc())
-
-        for ris in futures.as_completed(ch_results):
-            try:
-                list_servers.extend(ris.result())
-            except:
-                import traceback
-                logger.error("The findvideos function for a channel failed")
-                logger.error(traceback.format_exc())
-
-
-    # Change the title to the servers adding the name of the channel in front and the infoLabels and the images of the item if the server does not have
-    for server in list_servers:
-        server.contentChannel = server.channel
-        server.channel = "videolibrary"
-        server.nfo = item.nfo
-        server.strm_path = item.strm_path
-        server.play_from = item.play_from
-
-        # Kodi 18 Compatibility - Prevents wheel from spinning around in Direct Links
-        if server.action == 'play':
-            server.folder = False
-
-        # Channel name is added if desired
-        if config.get_setting("quit_channel_name", "videolibrary") == 0:
-            server.title = "%s: %s" % (server.contentChannel.capitalize(), server.title)
-
-        if not server.thumbnail:
-            server.thumbnail = item.thumbnail
-
-        # logger.debug("server:\n%s" % server.tostring('\n'))
-        itemlist.append(server)
-
-    if autoplay.play_multi_channel(item, itemlist):  # hideserver
-        return []
-
+    itemlist.sort(key=lambda it: (videolibrarytools.quality_order.index(it.quality.lower()) if it.quality and it.quality.lower() in videolibrarytools.quality_order else 999, it.server))
     add_download_items(item, itemlist)
+
     return itemlist
+
+
+def servers(ch, items):
+    serverlist = []
+    from core import channeltools
+    ch_params = channeltools.get_channel_parameters(ch)
+    ch_name = ch_params.get('title', '')
+
+    if ch_params.get('active', False):
+
+        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + ".py")): CHANNELS = 'channels'
+        else: CHANNELS = 'specials'
+        try: channel = __import__('%s.%s' % (CHANNELS, ch), None, None, ['%s.%s' % (CHANNELS, ch)])
+        except ImportError: exec("import " + CHANNELS + "." + ch + " as channel")
+        with futures.ThreadPoolExecutor() as executor:
+            itlist = [executor.submit(channel_servers, it, channel, ch_name) for it in items]
+            for res in futures.as_completed(itlist):
+                serverlist += res.result()
+    return serverlist
+
+def channel_servers(it, channel, ch_name):
+    serverlist = []
+    it.contentChannel = 'videolibrary'
+    it = get_host(it, channel)
+    for item in getattr(channel, it.action)(it):
+        if item.server and item.channel:
+            item.ch_name = ch_name
+            serverlist.append(item)
+    return serverlist
 
 
 def play(item):
     logger.debug()
+
+    itemlist = []
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    if not item.contentChannel == "local":
-        if item.contentChannel == 'community':
-            channel = __import__('specials.%s' % item.contentChannel, fromlist=["channels.%s" % item.contentChannel])
-        else:
-            channel = __import__('channels.%s' % item.contentChannel, fromlist=["channels.%s" % item.contentChannel])
+    if not item.channel == "local":
+        try:
+            channel = __import__('specials.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+        except:
+            channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
         if hasattr(channel, "play"):
             itemlist = getattr(channel, "play")(item)
 
         else:
             itemlist = [item.clone()]
     else:
-        itemlist = [item.clone(url=item.url, server="local")]
+        itemlist = [item]
 
     if not itemlist:
         return []
@@ -582,20 +521,20 @@ def play(item):
         item.video_urls = itemlist
         itemlist = [item]
 
-    # This is necessary in case the channel play deletes the data
-    for v in itemlist:
-        if isinstance(v, Item):
-            v.nfo = item.nfo
-            v.strm_path = item.strm_path
-            v.infoLabels = item.infoLabels
-            if item.contentTitle:
-                v.title = item.contentTitle
-            else:
-                if item.contentType == "episode":
-                    v.title = config.get_localized_string(60036) % item.contentEpisodeNumber
-            v.thumbnail = item.thumbnail
-            v.contentThumbnail = item.thumbnail
-            v.contentChannel = item.contentChannel
+    # # This is necessary in case the channel play deletes the data
+    # for v in itemlist:
+    #     if isinstance(v, Item):
+    #         v.nfo = item.nfo
+    #         v.strm_path = item.strm_path
+    #         v.infoLabels = item.infoLabels
+    #         if item.contentTitle:
+    #             v.title = item.contentTitle
+    #         else:
+    #             if item.contentType == "episode":
+    #                 v.title = config.get_localized_string(60036) % item.contentEpisodeNumber
+    #         v.thumbnail = item.thumbnail
+    #         v.contentThumbnail = item.thumbnail
+    #         v.channel = item.channel
 
     return itemlist
 
@@ -604,20 +543,114 @@ def update_videolibrary(item=''):
     logger.debug()
 
     # Update active series by overwriting
-    import service
-    service.check_for_update(overwrite=True)
+    # import service
+    # service.check_for_update(overwrite=True)
+    check_for_update(item)
 
     # Delete movie folders that do not contain strm file
-    for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.MOVIES_PATH):
-        strm = False
-        for f in ficheros:
-            if f.endswith(".strm"):
-                strm = True
-                break
+    # for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.MOVIES_PATH):
+    #     strm = False
+    #     for f in ficheros:
+    #         if f.endswith(".strm"):
+    #             strm = True
+    #             break
 
-        if ficheros and not strm:
-            logger.debug("Deleting deleted movie folder: %s" % raiz)
-            filetools.rmdirtree(raiz)
+    #     if ficheros and not strm:
+    #         logger.debug("Deleting deleted movie folder: %s" % raiz)
+    #         filetools.rmdirtree(raiz)
+
+
+def check_for_update(ITEM = None):
+    logger.debug("Update Series...")
+
+    import datetime
+    p_dialog = None
+    update_when_finished = False
+    now = datetime.date.today()
+
+    try:
+        if config.get_setting("update", "videolibrary") != 0:
+            config.set_setting("updatelibrary_last_check", now.strftime('%Y-%m-%d'), "videolibrary")
+
+            heading = config.get_localized_string(60389)
+            p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60037))
+            p_dialog.update(0, '')
+            show_list = []
+
+            if ITEM:
+                show = videolibrarydb['tvshow'][ITEM.videolibrary_id]
+                videolibrarydb.close()
+                for s in show['channels'].values():
+                    show_list += s
+            else:
+                shows = dict(videolibrarydb['tvshow']).values()
+                videolibrarydb.close()
+
+                for show in shows:
+                    if show['item'].active:
+                        for s in show['channels'].values():
+                            show_list += s
+
+            t = float(100) / len(show_list)
+            i = 0
+            for item in show_list:
+                i += 1
+                p_dialog.update(int(i * t), heading % (item.fulltitle, item.channel) )
+                item = get_host(item)
+                try: channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+                except: channel = __import__('specials.%s' % item.channel, fromlist=["specials.%s" % item.channel])
+                itemlist = getattr(channel, item.action)(item)
+                videolibrarytools.save_tvshow(item, itemlist, silent=True)
+            p_dialog.close()
+    except:
+        p_dialog.close()
+        logger.error(traceback.format_exc())
+
+    if ITEM:
+        update_when_finished = set_active_tvshow(show)
+    else:
+        for show in shows:
+            update_when_finished = set_active_tvshow(show)
+
+    if update_when_finished:
+        platformtools.itemlist_refresh()
+
+
+
+    # if config.get_setting('trakt_sync'):
+    #     from core import trakt_tools
+    #     trakt_tools.update_all()
+
+def set_active_tvshow(show):
+    update_when_finished = False
+    if show['item'].active:
+        prefered_lang = show['item'].prefered_lang
+        active = False if show['item'].infoLabels['status'].lower() == 'ended' else True
+        episodes = videolibrarydb['episode'][show['item'].videolibrary_id]
+        videolibrarydb.close()
+        if not active:
+            total_episodes = show['item'].infoLabels['number_of_episodes']
+            episodes_list = []
+            for episode in episodes.values():
+                for ep in episode['channels'].values():
+                    ep_list = [e for e in ep if e.contentLanguage == prefered_lang]
+                    if ep_list: episodes_list.append(ep_list)
+
+            if len(episodes_list) == total_episodes:
+                a = False
+                update_when_finished = True
+                for i in range(len(episodes_list) - 1):
+                    if len(episodes_list[i]) == len(episodes_list[i + 1]):
+                        a = False
+                        update_when_finished = True
+                    else:
+                        a = True
+                        break
+                if not a:
+                    show['item'].active = a
+                    videolibrarydb['tvshow'][show['item'].videolibrary_id] = show
+                    videolibrarydb.close()
+    return update_when_finished
 
 
 def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
@@ -848,135 +881,77 @@ def verify_playcount_series(item, path):
     return (item, False)
 
 
-def mark_content_as_watched2(item):
-    logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
-    if filetools.isfile(item.nfo):
-        head_nfo, it = videolibrarytools.read_nfo(item.nfo)
-        name_file = ""
-        if item.contentType == 'movie' or item.contentType == 'tvshow':
-            name_file = os.path.splitext(filetools.basename(item.nfo))[0]
-
-            if name_file != 'tvshow' :
-                it.library_playcounts.update({name_file: item.playcount})
-
-        if item.contentType == 'episode' or item.contentType == 'tvshow' or item.contentType == 'list' or name_file == 'tvshow':
-            name_file = os.path.splitext(filetools.basename(item.strm_path))[0]
-            num_season = name_file [0]
-            item.__setattr__('contentType', 'episode')
-            item.__setattr__('contentSeason', num_season)
-
-        else:
-            name_file = item.contentTitle
-
-        if not hasattr(it, 'library_playcounts'):
-            it.library_playcounts = {}
-        it.library_playcounts.update({name_file: item.playcount})
-
-        # it is verified that if all the episodes of a season are marked, tb the season is marked
-        if item.contentType != 'movie':
-            it = check_season_playcount(it, item.contentSeason)
-
-        # We save the changes to item.nfo
-        if filetools.write(item.nfo, head_nfo + it.tojson()):
-            item.infoLabels['playcount'] = item.playcount
-
-            if config.is_xbmc():
-                from platformcode import xbmc_videolibrary
-                xbmc_videolibrary.mark_content_as_watched_on_kodi(item , item.playcount)
-
-
 def mark_content_as_watched(item):
     logger.debug()
-    #logger.debug("item:\n" + item.tostring('\n'))
 
-    if filetools.exists(item.nfo):
-        head_nfo, it = videolibrarytools.read_nfo(item.nfo)
+    if not item.videolibrary_id:
+        for code in item.infoLabels['code']:
+            if code and code != 'None':
+                break
+        item.videolibrary_id=code
+    if item.contentType == 'episode':
+        episodes = videolibrarydb['episode'][item.videolibrary_id]
+        episodes['{}x{}'.format(item.contentSeason, str(item.contentEpisodeNumber).zfill(2))]['item'].infoLabels['playcount'] = item.playcount
+        videolibrarydb['episode'][item.videolibrary_id] = episodes
+        videolibrarydb.close()
 
-        if item.contentType == 'movie':
-            name_file = os.path.splitext(filetools.basename(item.nfo))[0]
-        elif item.contentType == 'episode':
-            name_file = "%sx%s" % (item.contentSeason, str(item.contentEpisodeNumber).zfill(2))
+        season_episodes = [ep for ep in episodes.values() if ep['item'].contentSeason == item.contentSeason]
+        watched = [ep for ep in season_episodes if ep['item'].infoLabels['playcount'] > 0]
+        if len(watched) == len(season_episodes):
+            item.playcount = 1
         else:
-            name_file = item.contentTitle
+            item.playcount = 0
+        mark_season_as_watched(item)
 
-        if not hasattr(it, 'library_playcounts'):
-            it.library_playcounts = {}
-        it.library_playcounts.update({name_file: item.playcount})
+    elif item.contentType == 'season':
+        mark_season_as_watched(item)
 
-        # it is verified that if all the episodes of a season are marked, tb the season is marked
-        if item.contentType != 'movie':
-            it = check_season_playcount(it, item.contentSeason)
+    else:
+        content = videolibrarydb[item.contentType][item.videolibrary_id]
+        content['item'].infoLabels['playcount'] = item.playcount
+        videolibrarydb[item.contentType][item.videolibrary_id] = content
+        seasons = videolibrarydb['season'][item.videolibrary_id]
+        videolibrarydb.close()
+        item.all_ep = True
+        if item.contentType == 'tvshow':
+            for season in seasons.keys():
+                item.contentSeason = season
+                mark_season_as_watched(item)
 
-        # We save the changes to item.nfo
-        if filetools.write(item.nfo, head_nfo + it.tojson()):
-            item.infoLabels['playcount'] = item.playcount
-
-            if item.contentType == 'tvshow' and item.type != 'episode' :
-                # Update entire series
-                new_item = item.clone(contentSeason=-1)
-                mark_season_as_watched(new_item)
-
-            if config.is_xbmc():
-                from platformcode import xbmc_videolibrary
-                xbmc_videolibrary.mark_content_as_watched_on_kodi(item, item.playcount)
-
-            platformtools.itemlist_refresh()
+    if config.is_xbmc() and not item.not_update:
+        from platformcode import xbmc_videolibrary
+        xbmc_videolibrary.mark_content_as_watched_on_kodi(item, item.playcount)
 
 
 def mark_season_as_watched(item):
     logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
 
-    # Get dictionary of marked episodes
-    if not item.path: f = item.nfo
-    else: f = filetools.join(item.path, 'tvshow.nfo')
+    seasons = videolibrarydb['season'][item.videolibrary_id]
+    seasons[item.contentSeason].infoLabels['playcount'] = item.playcount
+    videolibrarydb['season'][item.videolibrary_id] = seasons
+    episodes = videolibrarydb['episode'][item.videolibrary_id]
+    videolibrarydb.close()
 
-    head_nfo, it = videolibrarytools.read_nfo(f)
-    if not hasattr(it, 'library_playcounts'):
-        it.library_playcounts = {}
+    for n, ep in episodes.items():
+        if ep['item'].contentSeason == item.contentSeason:
+            episodes[n]['item'].infoLabels['playcount'] = item.playcount
 
-    # We get the archives of the episodes
-    raiz, carpetas_series, ficheros = next(filetools.walk(item.path))
+    videolibrarydb['episode'][item.videolibrary_id] = episodes
+    videolibrarydb.close()
 
-    # We mark each of the episodes found this season
-    episodios_marcados = 0
-    for i in ficheros:
-        if i.endswith(".strm"):
-            season_episode = scrapertools.get_season_and_episode(i)
-            if not season_episode:
-                # The file does not include the season and episode number
-                continue
-            season, episode = season_episode.split("x")
+    watched = True
+    for season in seasons.values():
+        if season.infoLabels['playcount'] != item.playcount:
+            watched = False
 
-            if int(item.contentSeason) == -1 or int(season) == int(item.contentSeason):
-                name_file = os.path.splitext(filetools.basename(i))[0]
-                it.library_playcounts[name_file] = item.playcount
-                episodios_marcados += 1
+    if watched or item.playcount == 0:
+        tvshow = videolibrarydb['tvshow'][item.videolibrary_id]
+        it = videolibrarydb['tvshow'][item.videolibrary_id]['item']
+        it.infoLabels['playcount'] = item.playcount
+        tvshow['item'] = it
+        videolibrarydb['tvshow'][item.videolibrary_id] = tvshow
+        videolibrarydb.close()
 
-    if episodios_marcados:
-        if int(item.contentSeason) == -1:
-            # We add all seasons to the dictionary item.library_playcounts
-            for k in list(it.library_playcounts.keys()):
-                if k.startswith("season"):
-                    it.library_playcounts[k] = item.playcount
-        else:
-            # Add season to dictionary item.library_playcounts
-            it.library_playcounts["season %s" % item.contentSeason] = item.playcount
-
-            # it is verified that if all the seasons are seen, the series is marked as view
-            it = check_tvshow_playcount(it, item.contentSeason)
-
-        # We save the changes to tvshow.nfo
-        filetools.write(f, head_nfo + it.tojson())
-        item.infoLabels['playcount'] = item.playcount
-
-        if config.is_xbmc():
-            # We update the Kodi database
-            from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.mark_season_as_watched_on_kodi(item, item.playcount)
-
-    platformtools.itemlist_refresh()
 
 
 def mark_tvshow_as_updatable(item, silent=False):
@@ -990,105 +965,76 @@ def mark_tvshow_as_updatable(item, silent=False):
 
 
 def delete(item):
-    def delete_all(_item):
-        for file in filetools.listdir(_item.path):
-            if file.endswith(".strm") or file.endswith(".nfo") or file.endswith(".json")or file.endswith(".torrent"):
-                filetools.remove(filetools.join(_item.path, file))
+    from platformcode import xbmc_videolibrary
+    select = None
+    delete = None
+    if item.contentType == 'movie':
+        library_path = videolibrarytools.MOVIES_PATH
+        head = 70084
+    else:
+        library_path = videolibrarytools.TVSHOWS_PATH
+        head = 70085
+    from core import channeltools
 
-        if _item.contentType == 'movie':
-            heading = config.get_localized_string(70084)
-        else:
-            heading = config.get_localized_string(70085)
+    channels = [c for c in videolibrarydb[item.contentType].get(item.videolibrary_id,{}).get('channels',{}).keys()]
+    channels.sort()
+    option_list = [config.get_localized_string(head)]
+    for channel in channels:
+        option_list.append(channeltools.get_channel_parameters(channel)['title'])
 
+    if len(option_list) > 2:
+        select = platformtools.dialog_select(config.get_localized_string(70088) % item.infoLabels['title'], option_list)
+    else:
+        delete = platformtools.dialog_yesno(config.get_localized_string(head), config.get_localized_string(70088) % item.infoLabels['title'])
+    if select == 0 or delete:
+        del videolibrarydb[item.contentType][item.videolibrary_id]
+        if item.contentType == 'tvshow':
+            del videolibrarydb['season'][item.videolibrary_id]
+            del videolibrarydb['episode'][item.videolibrary_id]
+        path = filetools.join(library_path, item.base_name)
+
+        filetools.rmdirtree(path)
         if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
             from platformcode import xbmc_videolibrary
-            if _item.local_episodes_path:
-                platformtools.dialog_ok(heading, config.get_localized_string(80047) % _item.infoLabels['title'])
-            path_list = [_item.extra]
-            xbmc_videolibrary.clean(path_list)
-
-        raiz, carpeta_serie, ficheros = next(filetools.walk(_item.path))
-        if ficheros == []:
-            filetools.rmdir(_item.path)
-        elif platformtools.dialog_yesno(heading, config.get_localized_string(70081) % filetools.basename(_item.path)):
-            filetools.rmdirtree(_item.path)
-
-        logger.info("All links removed")
-        xbmc.sleep(1000)
+            xbmc_videolibrary.clean_by_id(item)
         platformtools.itemlist_refresh()
+    if select and select > 0:
 
-    # logger.debug(item.tostring('\n'))
+        channel_name = channels[select - 1]
 
-    if item.contentType == 'movie':
-        heading = config.get_localized_string(70084)
-    else:
-        heading = config.get_localized_string(70085)
-    if item.multichannel:
-        # Get channel list
-        channels = []
-        opciones = []
-        for k in list(item.library_urls.keys()):
-            if k != "downloads":
-                opciones.append(config.get_localized_string(70086) % k.capitalize())
-                channels.append(k)
-        if item.dead == '':
-            opciones.insert(0, heading)
+        if item.contentType != 'movie':
+            episodes = videolibrarydb['episode'][item.videolibrary_id]
+            seasons = videolibrarydb['season'][item.videolibrary_id]
+            episodes_dict = dict(episodes)
+            seasons_dict = dict(seasons)
 
-            index = platformtools.dialog_select(config.get_localized_string(30163), opciones)
+            for key, episode in episodes_dict.items():
+                if len(episode['channels']) > 1:
+                    del episode['channels'][channel_name]
+                elif channel_name in episode['channels']:
+                    xbmc_videolibrary.clean_by_id(episodes[key]['item'])
+                    del episodes[key]
+            videolibrarydb['episode'][item.videolibrary_id] = episodes
+            seasons_list = []
 
-            if index == 0:
-                # Selected Delete movie / series
-                delete_all(item)
-                return
+            for episode in episodes:
+                season = int(episode.split('x')[0])
+                if season not in seasons_list:
+                    seasons_list.append(season)
 
-            elif index > 0:
-                # Selected Delete channel X
-                canal = opciones[index].replace(config.get_localized_string(70079), "").lower()
-                channels.remove(canal)
-            else:
-                return
-        else:
-            canal = item.dead
+            for season in seasons_dict.keys():
+                if season not in seasons_list:
+                    xbmc_videolibrary.clean_by_id(seasons[season])
+                    del seasons[season]
+            videolibrarydb['season'][item.videolibrary_id] = seasons
+        channel = videolibrarydb[item.contentType][item.videolibrary_id]
+        channels = channel['channels']
+        del channels[channel_name]
+        channel['channels'] = channels
+        videolibrarydb[item.contentType][item.videolibrary_id] = channel
 
-        num_enlaces = 0
-        path_list = []
-        for fd in filetools.listdir(item.path):
-            if fd.endswith(canal + '].json') or scrapertools.find_single_match(fd, r'%s]_\d+.torrent' % canal):
-                if filetools.remove(filetools.join(item.path, fd)):
-                    num_enlaces += 1
-                    # Remove strm and nfo if no other channel
-                    episode = fd.replace(' [' + canal + '].json', '')
-                    found_ch = False
-                    for ch in channels:
-                        if filetools.exists(filetools.join(item.path, episode + ' [' + ch + '].json')):
-                            found_ch = True
-                            break
-                    if found_ch == False:
-                        filetools.remove(filetools.join(item.path, episode + '.nfo'))
-                        strm_path = filetools.join(item.path, episode + '.strm')
-                        # if it is a local episode, do not delete the strm
-                        if 'plugin://plugin.video.kod/?' in filetools.read(strm_path):
-                            filetools.remove(strm_path)
-                            path_list.append(filetools.join(item.extra, episode + '.strm'))
+    videolibrarydb.close()
 
-        if config.is_xbmc() and config.get_setting("videolibrary_kodi") and path_list:
-            from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.clean(path_list)
-
-        if num_enlaces > 0:
-            # Update .nfo
-            head_nfo, item_nfo = videolibrarytools.read_nfo(item.nfo)
-            del item_nfo.library_urls[canal]
-            if item_nfo.emergency_urls and item_nfo.emergency_urls.get(canal, False):
-                del item_nfo.emergency_urls[canal]
-            filetools.write(item.nfo, head_nfo + item_nfo.tojson())
-        return num_enlaces
-    else:
-        if platformtools.dialog_yesno(heading, config.get_localized_string(70088) % item.infoLabels['title']):
-            delete_all(item)
-            return 1
-        else:
-            return 0
 
 
 def check_season_playcount(item, season):
@@ -1172,3 +1118,92 @@ def add_download_items(item, itemlist):
                 else:  # tvshow + not seen
                     itemlist.append(downloadItem)
                     itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), "color kod bold"), unseen=True))
+
+
+def prefered_lang(item):
+    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    item = tempdb['item']
+    lang_list = tempdb['item'].lang_list
+    prefered = item.lang_list.index(item.prefered_lang)
+    item.prefered_lang = lang_list[platformtools.dialog_select(config.get_localized_string(70246), lang_list, prefered)]
+    tempdb['item'] = item
+    videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
+    videolibrarydb.close()
+
+def disable_channels(item):
+    from core import channeltools
+    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    item = tempdb['item']
+    channels_list = list(tempdb['channels'].keys())
+    channels_name = [channeltools.get_channel_parameters(c).get('title', '') for c in channels_list]
+    disabled = [channels_list.index(c) for c in channels_list if c in item.disabled]
+    channels_disabled = platformtools.dialog_multiselect(config.get_localized_string(70837), channels_name, preselect=disabled)
+    if type(channels_disabled) == list:
+        item.disabled = [channels_list[c] for c in channels_disabled]
+        videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
+        videolibrarydb.close()
+
+def get_host(item , channel=None):
+    if item.url.startswith('//'): item.url = 'https:' + item.url
+    if not item.url.startswith('/') and not httptools.downloadpage(item.url, only_headers=True).success:
+        item.url = urlparse.urlparse(item.url).path
+    if item.url.startswith('/'):
+        if not channel:
+            try : channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
+            except: channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
+
+        host = channel.host
+        if host.endswith('/'): host = host[:-1]
+        item.url = host + item.url
+
+    return item
+
+def set_active(item):
+    show = videolibrarydb['tvshow'][item.videolibrary_id]
+    videolibrarydb.close()
+    show['item'].active = False if item.active else True
+    videolibrarydb['tvshow'][item.videolibrary_id] = show
+    videolibrarydb.close()
+    platformtools.itemlist_refresh()
+
+def change_poster(item):
+    import xbmcgui
+    video = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    options = []
+    it = xbmcgui.ListItem('Corrente')
+    it.setArt({'thumb':item.thumbnail})
+    options.append(it)
+    posters = video['item'].infoLabels.get('posters',[])
+    for n, poster in enumerate(posters):
+        it = xbmcgui.ListItem(str(n))
+        it.setArt({'thumb':poster})
+        options.append(it)
+    selection = platformtools.dialog_select('',options, 0, True)
+    if selection > 0:
+        video['item'].thumbnail = video['item'].infoLabels['thumbnail'] = posters[selection]
+        videolibrarydb[item.contentType][item.videolibrary_id] = video
+        videolibrarydb.close()
+        platformtools.itemlist_refresh()
+
+def change_fanart(item):
+    import xbmcgui
+    video = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    options = []
+    it = xbmcgui.ListItem('Corrente')
+    it.setArt({'thumb':item.fanart})
+    options.append(it)
+    fanarts = video['item'].infoLabels.get('fanarts',[])
+    for n, poster in enumerate(fanarts):
+        it = xbmcgui.ListItem(str(n))
+        it.setArt({'thumb':poster})
+        options.append(it)
+    selection = platformtools.dialog_select('',options, 0, True)
+    if selection > 0:
+        video['item'].fanart = video['item'].infoLabels['fanart'] = fanarts[selection]
+        videolibrarydb[item.contentType][item.videolibrary_id] = video
+        videolibrarydb.close()
+        platformtools.itemlist_refresh()

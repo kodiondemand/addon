@@ -1204,7 +1204,7 @@ def post_tmdb_findvideos(item, itemlist):
         itemlist.append(item.clone(title="** [COLOR yelow]Actualizar Títulos - vista previa videoteca[/COLOR] **", action="actualizar_titulos", extra="peliculas", tmdb_stat=False, from_action=item.action, from_title_tmdb=item.title, from_update=True))
 
     if item.contentType == 'movie' and item.contentChannel != "videolibrary":
-        itemlist.append(item.clone(title="**-[COLOR yellow] Añadir a la videoteca [/COLOR]-**", action="add_pelicula_to_library", extra="peliculas", from_action=item.action, from_title_tmdb=item.title))
+        itemlist.append(item.clone(title="**-[COLOR yellow] Añadir a la videoteca [/COLOR]-**", action="add_movie_to_library", extra="peliculas", from_action=item.action, from_title_tmdb=item.title))
 
     # We added the option to watch trailers
     if item.contentChannel != "videolibrary":

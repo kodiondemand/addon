@@ -7,22 +7,23 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 if PY3:
     import urllib.parse as urllib                               # It is very slow in PY2. In PY3 it is native
+    from concurrent import futures
 else:
     import urllib                                               # We use the native of PY2 which is faster
+    from concurrent_py2 import futures
 
 from future.builtins import range
 from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools
+from core import filetools, httptools, jsontools, scrapertools, support
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 import threading
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
-lock = threading.Lock()
 
 host = 'https://api.themoviedb.org/3'
 api = 'a1ab8b8669da03637a4b98fa39c39228'
@@ -201,45 +202,35 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, search_language=def_lang,
 
     if not config.get_setting('tmdb_active') and not forced:
         return
-    # threads_num = config.get_setting("tmdb_threads", default=20)
-    # semaphore = threading.Semaphore(threads_num)
+
     r_list = list()
-    i = 0
-    l_thread = list()
 
     def sub_thread(_item, _i, _seekTmdb):
-        # semaphore.acquire()
         ret = 0
         try:
-            ret = set_infoLabels_item(_item, _seekTmdb, search_language, lock)
+            ret = set_infoLabels_item(_item, _seekTmdb, search_language)
         except:
             import traceback
             logger.error(traceback.format_exc(1))
-        if lock and lock.locked():
-            lock.release()
-        # logger.debug(str(ret) + "item: " + _item.tostring())
-        # semaphore.release()
-        r_list.append((_i, _item, ret))
 
-    for item in item_list:
-        sub_thread(item, i, seekTmdb)
-        # t = threading.Thread(target=sub_thread, args=(item, i, seekTmdb))
-        # t.start()
-        # i += 1
-        # l_thread.append(t)
+        return (_i, _item, ret)
 
-    # wait for all the threads to end
-    for x in l_thread:
-        x.join()
+    # for i, item in enumerate(item_list):
+    #     r_list.append(sub_thread(item, i, seekTmdb))
+    with futures.ThreadPoolExecutor() as executor:
+        searchList = [executor.submit(sub_thread, item, i, seekTmdb) for i, item in enumerate(item_list)]
+        for res in futures.as_completed(searchList):
+            r_list.append(res.result())
+
 
     # Sort results list by call order to keep the same order q item_list
     r_list.sort(key=lambda i: i[0])
 
     # Rebuild and return list only with results of individual calls
-    return [ii[2] for ii in r_list]
+    return [it[2] for it in r_list]
 
 
-def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None):
+def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
     """
     Gets and sets (item.infoLabels) the extra data of a series, chapter or movie.
 
@@ -249,7 +240,6 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
     @type seekTmdb: bool
     @param search_language: Language code according to ISO 639-1, in case of search at www.themoviedb.org.
     @type search_language: str
-    @param lock: For use of threads when calling the 'set_infoLabels_itemlist' method
     @return: A number whose absolute value represents the number of elements included in the item.infoLabels attribute. This number will be positive if the data has been obtained from www.themoviedb.org and negative otherwise.
     @rtype: int
     """
@@ -257,7 +247,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
 
     def read_data(otmdb_aux):
         infoLabels = otmdb_aux.get_infoLabels(item.infoLabels)
-        if not infoLabels['plot']: infoLabels['plot'] = otmdb_aux.get_plot('en-US')
+        if not infoLabels['plot']: infoLabels['plot'] = otmdb_aux.get_plot('en')
         item.infoLabels = infoLabels
         if item.infoLabels.get('thumbnail'):
             item.thumbnail = item.infoLabels['thumbnail']
@@ -273,9 +263,6 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                     logger.debug("The season number is not valid.")
                     return -1 * len(item.infoLabels)
 
-                if lock:
-                    lock.acquire()
-
                 if not otmdb_global or (item.infoLabels['tmdb_id'] and str(otmdb_global.result.get("id")) != item.infoLabels['tmdb_id']) \
                         or (otmdb_global.searched_text and otmdb_global.searched_text != item.infoLabels['tvshowtitle']):
                     if item.infoLabels['tmdb_id']:
@@ -286,10 +273,6 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                                             search_language=search_language, year=item.infoLabels['year'])
 
                     read_data(otmdb_global)
-
-                # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                # if lock and lock.locked():
-                #     lock.release()
 
                 if item.infoLabels['episode']:
                     try:
@@ -319,10 +302,12 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                             item.infoLabels['rating'] = episode['episode_vote_average']
                         if episode.get('episode_vote_count'):
                             item.infoLabels['votes'] = episode['episode_vote_count']
-
-                        # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                        if lock and lock.locked():
-                            lock.release()
+                        if episode.get('episode_id'):
+                            item.infoLabels['episode_id'] = episode['episode_id']
+                        if episode.get('episode_imdb_id'):
+                            item.infoLabels['episode_imdb_id'] = episode['episode_imdb_id']
+                        if episode.get('episode_tvdb_id'):
+                            item.infoLabels['episode_tvdb_id'] = episode['episode_tvdb_id']
 
                         return len(item.infoLabels)
 
@@ -331,11 +316,11 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                     # ... search season data
                     item.infoLabels['mediatype'] = 'season'
                     season = otmdb_global.get_season(seasonNumber)
-                    enseason = otmdb_global.get_season(seasonNumber, language='en-US')
+                    # enseason = otmdb_global.get_season(seasonNumber, language='en')
                     if not isinstance(season, dict):
                         season = ast.literal_eval(season.decode('utf-8'))
-                    if not isinstance(enseason, dict):
-                        enseason = ast.literal_eval(enseason.decode('utf-8'))
+                    # if not isinstance(enseason, dict):
+                    #     enseason = ast.literal_eval(enseason.decode('utf-8'))
 
                     if season:
                         # Update data
@@ -344,32 +329,25 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                         seasonPlot = season.get("overview" , '')
                         seasonDate = season.get("air_date", '')
                         seasonPoster = season.get('poster_path', '')
+                        seasonPosters = []
+                        for image in season['images']['posters']:
+                            seasonPosters.append('https://image.tmdb.org/t/p/original' + image['file_path'])
 
-                        seasonTitleEN = enseason.get("name", '')
-                        seasonPlotEN = enseason.get("overview" , '')
-                        seasonDateEN = enseason.get("air_date", '')
-                        seasonPosterEN = enseason.get('poster_path', '')
-
-                        item.infoLabels['title'] = seasonTitle if seasonTitle else seasonTitleEN if seasonTitleEN else config.get_localized_string(60027) % seasonNumber
-                        item.infoLabels['plot'] = seasonPlot if seasonPlot else seasonPlotEN if seasonPlotEN else ''
-                        date = seasonDate if seasonDate else seasonDateEN if seasonDateEN else ''
+                        item.infoLabels['title'] = seasonTitle
+                        item.infoLabels['plot'] = seasonPlot
+                        date = seasonDate
                         if date:
                             date.split('-')
                             item.infoLabels['aired'] = date[2] + "/" + date[1] + "/" + date[0]
-                        poster = seasonPoster if seasonPoster else seasonPosterEN if seasonPosterEN else ''
-                        if poster:
-                            item.infoLabels['poster_path'] = 'https://image.tmdb.org/t/p/original' + poster
-                            item.thumbnail = item.infoLabels['poster_path']
 
-                        # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                        if lock and lock.locked():
-                            lock.release()
+                        if seasonPoster:
+                            item.infoLabels['poster_path'] = 'https://image.tmdb.org/t/p/original' + seasonPoster
+                            item.thumbnail = item.infoLabels['poster_path']
+                        if seasonPosters:
+                            if seasonPoster: seasonPosters.insert(0, seasonPoster)
+                            item.infoLabels['posters'] = seasonPosters
 
                         return len(item.infoLabels)
-
-                # 4l3x87 - fix for overlap infoLabels if there is episode or season
-                if lock and lock.locked():
-                    lock.release()
 
             # Search...
             else:
@@ -426,9 +404,6 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                             # carry out another search to expand the information
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
-
-                if lock and lock.locked():
-                    lock.release()
 
                 if otmdb is not None and otmdb.get_id():
                     # The search has found a valid result
@@ -524,7 +499,6 @@ def get_nfo(item, search_groups=False):
     @rtype: str
     @return:
     """
-    # from core.support import dbg;dbg()
 
     if search_groups:
         from platformcode.autorenumber import RENUMBER, GROUP
@@ -859,7 +833,7 @@ class Tmdb(object):
         self.search_text = re.sub('\[\\\?(B|I|COLOR)\s?[^\]]*\]', '', self.searched_text).strip()
         self.search_type = kwargs.get('search_type', '')
         self.search_language = kwargs.get('search_language', def_lang)
-        self.fallback_language = kwargs.get('search_language', 'en-US')
+        self.fallback_language = kwargs.get('search_language', 'en')
         # self.search_include_adult = kwargs.get('include_adult', False)
         self.search_year = kwargs.get('year', '')
         self.search_filter = kwargs.get('filtro', {})
@@ -958,14 +932,9 @@ class Tmdb(object):
 
         if self.search_id:
             if source == "tmdb":
-                # http://api.themoviedb.org/3/movie/1924?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es
-                #   &append_to_response=images,videos,external_ids,credits&include_image_language=es,null
-                # http://api.themoviedb.org/3/tv/1407?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es
-                #   &append_to_response=images,videos,external_ids,credits&include_image_language=es,null
-                url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
+                url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},en,null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
                 searching = "id_Tmdb: " + self.search_id
             else:
-                # http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=a1ab8b8669da03637a4b98fa39c39228
                 url = ('{}/find/{}?external_source={}&api_key={}8&language={}'.format(host, self.search_id, source, api, self.search_language))
                 searching = "{}: {}".format(source.capitalize(), self.search_id)
 
@@ -1005,8 +974,6 @@ class Tmdb(object):
         searching = ""
 
         if self.search_text:
-            # http://api.themoviedb.org/3/search/movie?api_key=a1ab8b8669da03637a4b98fa39c39228&query=superman&language=es
-            # &include_adult=false&page=1
             url = ('{}/search/{}?api_key={}&query={}&language={}&include_adult={}&page={}'.format(host, self.search_type, api, text_quote, self.search_language, True, page))
 
             if self.search_year:
@@ -1023,8 +990,6 @@ class Tmdb(object):
 
             if total_results > 0:
                 results = [r for r in result["results"] if r.get('first_air_date', r.get('release_date', ''))]
-                # results = result["results"]
-                # logger.debug('RISULTATI', results)
 
             if self.search_filter and total_results > 1:
                 for key, value in list(dict(self.search_filter).items()):
@@ -1067,7 +1032,7 @@ class Tmdb(object):
         total_results = 0
         total_pages = 0
 
-        # Ejemplo self.discover: {'url': 'discover/movie', 'with_cast': '1'}
+        # Exampleself.discover: {'url': 'discover/movie', 'with_cast': '1'}
         # url: API method to run
         # rest of keys: Search parameters concatenated to the url
         type_search = self.discover.get('url', '')
@@ -1076,7 +1041,7 @@ class Tmdb(object):
             for key, value in list(self.discover.items()):
                 if key != "url":
                     params.append(key + "=" + str(value))
-            # http://api.themoviedb.org/3/discover/movie?api_key=a1ab8b8669da03637a4b98fa39c39228&query=superman&language=es
+
             url = ('{}/{}?api_key={}&{}'.format(host, type_search, api, "&".join(params)))
 
             logger.debug("[Tmdb.py] Searching %s:\n%s" % (type_search, url))
@@ -1247,11 +1212,11 @@ class Tmdb(object):
 
         return ret
 
-    def get_poster(self, tipo_respuesta="str", size="original"):
+    def get_poster(self, response_type="str", size="original"):
         """
 
-        @param tipo_respuesta: Data type returned by this method. Default "str"
-        @type tipo_respuesta: list, str
+        @param response_type: Data type returned by this method. Default "str"
+        @type response_type: list, str
         @param size: ("w45", "w92", "w154", "w185", "w300", "w342", "w500", "w600", "h632", "w780", "w1280", "original")
             Indicates the width (w) or height (h) of the image to download. Default "original"
         @return: If the response_type is "list" it returns a list with all the urls of the poster images of the specified size.
@@ -1268,7 +1233,7 @@ class Tmdb(object):
         else:
             poster_path = 'https://image.tmdb.org/t/p/' + size + self.result["poster_path"]
 
-        if tipo_respuesta == 'str':
+        if response_type == 'str':
             return poster_path
         elif not self.result["id"]:
             return []
@@ -1293,11 +1258,11 @@ class Tmdb(object):
 
         return ret
 
-    def get_backdrop(self, tipo_respuesta="str", size="original"):
+    def get_backdrop(self, response_type="str", size="original"):
         """
         Returns the images of type backdrop
-        @param tipo_respuesta: Data type returned by this method. Default "str"
-        @type tipo_respuesta: list, str
+        @param response_type: Data type returned by this method. Default "str"
+        @type response_type: list, str
         @param size: ("w45", "w92", "w154", "w185", "w300", "w342", "w500", "w600", "h632", "w780", "w1280", "original")
             Indicates the width (w) or height (h) of the image to download. Default "original"
         @type size: str
@@ -1313,9 +1278,9 @@ class Tmdb(object):
         if self.result["backdrop_path"] is None or self.result["backdrop_path"] == "":
             backdrop_path = ""
         else:
-            backdrop_path = 'https://image.tmdb.org/t/p/' + size + self.result["backdrop_path"]
+            backdrop_path = 'get_posterget_poster' + size + self.result["backdrop_path"]
 
-        if tipo_respuesta == 'str':
+        if response_type == 'str':
             return backdrop_path
         elif self.result["id"] == "":
             return []
@@ -1363,14 +1328,20 @@ class Tmdb(object):
 
             # http://api.themoviedb.org/3/tv/1407/season/1?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es&
             # append_to_response=credits
-            url = "{}/tv/{}/season/{}?api_key={}&language={}&append_to_response=credits".format(host, self.result["id"], seasonNumber, api, search_language)
+            url = "{}/tv/{}/season/{}?api_key={}&language={}&append_to_response=videos,images,credits,external_ids&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, api, search_language, search_language)
+            fallbackUrl = "{}/tv/{}/season/{}?api_key={}&language=en&append_to_response=videos,images,credits&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, api, search_language)
             logger.debug('TMDB URL', url)
 
             searching = "id_Tmdb: " + str(self.result["id"]) + " season: " + str(seasonNumber) + "\nURL: " + url
             logger.debug("[Tmdb.py] Searching " + searching)
-
+            # from core.support import dbg;dbg()
             try:
-                self.season[seasonNumber] = self.get_json(url)
+                info = self.get_json(url)
+                if not language:
+                    fallbackInfo = self.get_json(fallbackUrl)
+                    self.season[seasonNumber] = parse_fallback_info(info, fallbackInfo)
+                else:
+                    self.season[seasonNumber] = self.get_json(url)
                 if not isinstance(self.season[seasonNumber], dict):
                     self.season[seasonNumber] = ast.literal_eval(self.season[seasonNumber].decode('utf-8'))
 
@@ -1388,6 +1359,29 @@ class Tmdb(object):
                 self.season[seasonNumber] = {}
 
         return self.season[seasonNumber]
+
+    def get_collection(self, _id=''):
+        ret = {}
+        if not _id:
+            collection = self.result.get('belongs_to_collection', {})
+            if collection:
+                _id = collection.get('id')
+        if _id:
+            url = '{}/collection/{}?api_key={}&language={}&append_to_response=images'.format(host, _id, api, self.search_language)
+            fallbackUrl = '{}/collection/{}?api_key={}&language=en&append_to_response=images'.format(host, _id, api)
+            info = self.get_json(url)
+            fallbackInfo = self.get_json(fallbackUrl)
+            ret['set'] = info.get('name') if info.get('name') else fallbackInfo.get('name')
+            ret['setoverview'] = info.get('overview') if info.get('overview') else fallbackInfo.get('overview')
+            posters = ['https://image.tmdb.org/t/p/original' + (info.get('poster_path') if info.get('poster_path') else fallbackInfo.get('poster_path'))]
+            fanarts = ['https://image.tmdb.org/t/p/original' + (info.get('backdrop_path') if info.get('backdrop_path') else fallbackInfo.get('backdrop_path'))]
+            for image in info['images']['posters'] + fallbackInfo['images']['posters']:
+                posters.append('https://image.tmdb.org/t/p/original' + image['file_path'])
+            for image in info['images']['backdrops'] + fallbackInfo['images']['backdrops']:
+                fanarts.append('https://image.tmdb.org/t/p/original' + image['file_path'])
+            ret['setposters'] = posters
+            ret['setfanarts'] = fanarts
+        return ret
 
     def get_episode(self, seasonNumber=1, chapter=1):
         # --------------------------------------------------------------------------------------------------------------------------------------------
@@ -1408,92 +1402,62 @@ class Tmdb(object):
 
         try:
             chapter = int(chapter)
-            seasonNumber = int(seasonNumber)
+            season = int(seasonNumber)
         except ValueError:
             logger.debug("The episode or season number is not valid")
             return {}
 
-        season = self.get_season(seasonNumber)
-        enseason = self.get_season(seasonNumber, language='en-US')
-        if not isinstance(season, dict):
-            season = ast.literal_eval(season.decode('utf-8'))
-        if not isinstance(enseason, dict):
-            enseason = ast.literal_eval(enseason.decode('utf-8'))
-        if not season and not enseason:
-            # An error has occurred
-            return {}
+        # season = self.get_season(seasonNumber)
+        # # enseason = self.get_season(seasonNumber, language='en')
+        # # if not isinstance(season, dict):
+        # #     season = ast.literal_eval(season.decode('utf-8'))
+        # # if not isinstance(enseason, dict):
+        # #     enseason = ast.literal_eval(enseason.decode('utf-8'))
+        # if not season:
+        #     # An error has occurred
+        #     return {}
 
-        if len(season["episodes"]) == 0 and len(enseason["episodes"]) == 0:
-            # An error has occurred
-            logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
-            return {}
+        # if len(season["episodes"]) == 0:
+        #     # An error has occurred
+        #     logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
+        #     return {}
 
-        elif len(season["episodes"]) < chapter and season["episodes"][-1]['episode_number'] >= chapter:
-            n = None
-            for i, chapters in enumerate(season["episodes"]):
-                if chapters['episode_number'] == chapter:
-                    n = i + 1
-                    break
-            if n != None:
-                chapter = n
-            else:
-                logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
-                return {}
+        # elif len(season["episodes"]) < chapter and season["episodes"][-1]['episode_number'] >= chapter:
+        #     n = None
+        #     for i, chapters in enumerate(season["episodes"]):
+        #         if chapters['episode_number'] == chapter:
+        #             n = i + 1
+        #             break
+        #     if n != None:
+        #         chapter = n
+        #     else:
+        #         logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
+        #         return {}
 
-        elif len(season["episodes"]) < chapter:
-            logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
-            return {}
+        # elif len(season["episodes"]) < chapter:
+        #     logger.error("Episode %d of the season %d not found." % (chapter, seasonNumber))
+        #     return {}
 
-        ret_dic = dict()
-        # Get data for this season
-        seasonTitle = season.get("name", '')
-        seasonPlot = season.get("overview" , '')
-        seasonId = season.get("id", '')
-        seasonEpisodes = len(season.get("episodes",[]))
-        seasonDate = season.get("air_date", '')
-        seasonPoster = season.get('poster_path', '')
-        seasonCredits = season.get('credits', {})
+        # ret_dic = get_season_dic(season)
 
-        seasonTitleEN = enseason.get("name", '')
-        seasonPlotEN = enseason.get("overview" , '')
-        seasonIdEN = enseason.get("id", '')
-        seasonEpisodesEN = len(enseason.get("episodes",[]))
-        seasonDateEN = enseason.get("air_date", '')
-        seasonPosterEN = enseason.get('poster_path', '')
-        seasonCreditsEN = enseason.get('credits', {})
+        # if chapter == 0:
+        #     # If we only look for season data, include the technical team that has intervened in any chapter
+        #     dic_aux = dict((i['id'], i) for i in ret_dic["season_crew"])
+        #     for e in season["episodes"]:
+        #         for crew in e['crew']:
+        #             if crew['id'] not in list(dic_aux.keys()):
+        #                 dic_aux[crew['id']] = crew
+        #     ret_dic["season_crew"] = list(dic_aux.values())
 
-        ret_dic["season_title"] = seasonTitle if seasonTitle else seasonTitleEN if seasonTitleEN else config.get_localized_string(60027) % seasonNumber
-        ret_dic["season_plot"] = seasonPlot if seasonPlot else seasonPlotEN if seasonPlotEN else ''
-        ret_dic["season_id"] = seasonId if seasonId else seasonIdEN if seasonIdEN else ''
-        ret_dic["season_episodes_number"] = seasonEpisodes if seasonEpisodes else seasonEpisodesEN if seasonEpisodesEN else 0
-        date = seasonDate if seasonDate else seasonDateEN if seasonDateEN else ''
-        if date:
-            date = date.split("-")
-            ret_dic["season_air_date"] = date[2] + "/" + date[1] + "/" + date[0]
-        else:
-            ret_dic["season_air_date"] = ''
-        poster = seasonPoster if seasonPoster else seasonPosterEN if seasonPosterEN else ''
-        if poster:
-            ret_dic["season_poster"] = 'https://image.tmdb.org/t/p/original' + poster
-        else:
-            ret_dic["season_poster"] = ''
-        dic_aux = seasonCredits if seasonCredits else seasonCreditsEN if seasonCreditsEN else {}
-        ret_dic["season_cast"] = dic_aux.get('cast', [])
-        ret_dic["season_crew"] = dic_aux.get('crew', [])
-        if chapter == 0:
-            # If we only look for season data, include the technical team that has intervened in any chapter
-            dic_aux = dict((i['id'], i) for i in ret_dic["season_crew"])
-            for e in season["episodes"]:
-                for crew in e['crew']:
-                    if crew['id'] not in list(dic_aux.keys()):
-                        dic_aux[crew['id']] = crew
-            ret_dic["season_crew"] = list(dic_aux.values())
 
         # Obtain chapter data if applicable
         # from core.support import dbg;dbg()
+        ret_dic = {}
         if chapter > 0:
-            episode = season["episodes"][chapter - 1]
-            enepisode = enseason["episodes"][chapter - 1]
+            # episode = season["episodes"][chapter - 1]
+            url = "{}/tv/{}/season/{}/episode/{}?api_key={}&language={}&append_to_response=videos,images,credits,external_ids&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, chapter, api, self.search_language, self.search_language)
+            episode = self.get_json(url)
+            # logger.debug('EPISODE', jsontools.dump(episode))
 
             episodeTitle = episode.get("name", '')
             episodeId = episode.get('id', '')
@@ -1504,40 +1468,37 @@ class Tmdb(object):
             episodeStars = episode.get('guest_stars', [])
             episodeVoteCount = episode.get('vote_count', 0)
             episodeVoteAverage = episode.get('vote_average', 0)
+            externalIds = episode.get('external_ids', {})
+            imdb_id = externalIds.get('imdb_id')
+            tvdb_id = externalIds.get('tvdb_id')
 
-            episodeTitleEN = enepisode.get("name", '')
-            episodeIdEN = enepisode.get('id', '')
-            episodePlotEN = enepisode.get('overview', '')
-            episodeDateEN = enepisode.get('air_date', '')
-            episodeImageEN = enepisode.get('still_path', '')
-            episodeCrewEN = enepisode.get('crew', [])
-            episodeStarsEN = enepisode.get('guest_stars', [])
-            episodeVoteCountEN = enepisode.get('vote_count', 0)
-            episodeVoteAverageEN = enepisode.get('vote_average', 0)
+            ret_dic["episode_title"] = episodeTitle
+            ret_dic["episode_plot"] = episodePlot
 
-            ret_dic["episode_title"] = episodeTitle if episodeTitle and not episodeTitle.startswith(config.get_localized_string(70677)) else episodeTitleEN if episodeTitleEN and not episodeTitleEN.startswith('Episode') else episodeTitle if episodeTitle else ''
-            ret_dic["episode_plot"] = episodePlot if episodePlot else episodePlotEN if episodePlotEN else ''
-            date = episodeDate if episodeDate else episodeDateEN if episodeDateEN else ''
-            image = episodeImage if episodeImage else episodeImageEN if episodeImageEN else ''
-            if image:
-                ret_dic["episode_image"] = 'https://image.tmdb.org/t/p/original' + image
+            if episodeImage:
+                ret_dic["episode_image"] = 'https://image.tmdb.org/t/p/original' + episodeImage
             else:
                 ret_dic["episode_image"] = ""
-            if date:
-                date = date.split("-")
+            if episodeDate:
+                date = episodeDate.split("-")
                 ret_dic["episode_air_date"] = date[2] + "/" + date[1] + "/" + date[0]
             else:
                 ret_dic["episode_air_date"] = ""
-            ret_dic["episode_crew"] = episodeCrew if episodeCrew else episodeCrewEN if episodeCrewEN else []
-            ret_dic["episode_guest_stars"] = episodeStars if episodeStars else episodeStarsEN if episodeStarsEN else []
-            ret_dic["episode_vote_count"] = episodeVoteCount if episodeVoteCount else episodeVoteCountEN if episodeVoteCountEN else 0
-            ret_dic["episode_vote_average"] = episodeVoteAverage if episodeVoteAverage else episodeVoteAverageEN if episodeVoteAverageEN else 0
-            ret_dic["episode_id"] = episodeId if episodeId else episodeIdEN if episodeIdEN else ''
+
+            ret_dic["episode_crew"] = episodeCrew
+            if episodeStars:
+                ret_dic["episode_actors"] = [[k['name'], k['character'], 'https://image.tmdb.org/t/p/original/' + k['profile_path'] if k['profile_path'] else '', k['order']] for k in episodeStars]
+            ret_dic["episode_vote_count"] = episodeVoteCount
+            ret_dic["episode_vote_average"] = episodeVoteAverage
+            ret_dic["episode_id"] = episodeId
+            ret_dic["episode_imdb_id"] = imdb_id
+            ret_dic["episode_tvdb_id"] = tvdb_id
+
 
         return ret_dic
 
     def get_list_episodes(self):
-        url = '{}/tv/{}?api_key={}&language={}'.format(host=host, id=self.search_id, api=api, lang=self.search_language)
+        url = '{}/tv/{}?api_key={}&language={}'.format(host, self.search_id, api, self.search_language)
         results = requests.get(url).json().get('seasons', [])
         seasons = []
         if results and 'Error' not in results:
@@ -1622,18 +1583,24 @@ class Tmdb(object):
             origen['credits_crew'] = dic_origen_credits.get('crew', [])
             del origen['credits']
 
+        if 'images' in list(origen.keys()):
+            dic_origen_credits = origen['images']
+            origen['posters'] = dic_origen_credits.get('posters', [])
+            origen['fanarts'] = dic_origen_credits.get('backdrops', [])
+            del origen['images']
+
         items = list(origen.items())
 
         # Season / episode information
         if ret_infoLabels['season'] and self.season.get(ret_infoLabels['season']):
             # If there is data loaded for the indicated season
+
             episodio = -1
             if ret_infoLabels['episode']:
                 episodio = ret_infoLabels['episode']
 
             items.extend(list(self.get_episode(ret_infoLabels['season'], episodio).items()))
 
-        # logger.debug("ret_infoLabels" % ret_infoLabels)
 
         for k, v in items:
             if not v:
@@ -1662,7 +1629,7 @@ class Tmdb(object):
 
             elif k == 'release_date':
                 ret_infoLabels['year'] = int(v[:4])
-                ret_infoLabels['release_date'] = v.split("-")[2] + "/" + v.split("-")[1] + "/" + v.split("-")[0]
+                ret_infoLabels['premiered'] = v.split("-")[2] + "/" + v.split("-")[1] + "/" + v.split("-")[0]
 
             elif k == 'first_air_date':
                 ret_infoLabels['year'] = int(v[:4])
@@ -1702,21 +1669,35 @@ class Tmdb(object):
             elif k == 'name' or k == 'title':
                 ret_infoLabels['title'] = v
 
+            elif k == 'tagline':
+                ret_infoLabels['tagline'] = v
+
             elif k == 'production_companies':
                 ret_infoLabels['studio'] = ", ".join(i['name'] for i in v)
 
             elif k == 'credits_cast' or k == 'season_cast' or k == 'episode_guest_stars':
-                dic_aux = dict((name, character) for (name, character) in l_castandrole)
-                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', '')) \
+                dic_aux = dict((name, [character, thumb, order]) for (name, character, thumb, order) in l_castandrole)
+                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', ''), 'https://image.tmdb.org/t/p/original' + p.get('profile_path', '') if p.get('profile_path', '') else '', p.get('order')) \
                                       for p in v if 'name' in p and p['name'] not in list(dic_aux.keys())])
 
             elif k == 'videos':
                 if not isinstance(v, list):
-                    v = v.get('result', [])
+                    v = v.get('results', [])
                 for i in v:
                     if i.get("site", "") == "YouTube":
-                        ret_infoLabels['trailer'] = "https://www.youtube.com/watch?v=" + v[0]["key"]
+                        ret_infoLabels['trailer'] = "plugin://plugin.video.youtube/play/?video_id=" + v[0]["key"]
                         break
+
+            elif k == 'posters':
+                ret_infoLabels['posters'] = ['https://image.tmdb.org/t/p/original' + p["file_path"] for p in v]
+
+            elif k == 'fanarts':
+                ret_infoLabels['fanarts'] = ['https://image.tmdb.org/t/p/original' + p["file_path"] for p in v]
+
+            elif k == 'belongs_to_collection':
+                c = Tmdb.get_collection(self, v.get('id',''))
+                for k, v in c.items():
+                    ret_infoLabels[k] = v
 
             elif k == 'production_countries' or k == 'origin_country':
                 if isinstance(v, str):
@@ -1744,12 +1725,20 @@ class Tmdb(object):
                 for crew in v:
                     l_writer = list(set(l_writer + [crew['name']]))
 
+
             elif isinstance(v, str) or isinstance(v, int) or isinstance(v, float):
                 ret_infoLabels[k] = v
 
             else:
                 # logger.debug("Atributos no añadidos: " + k +'= '+ str(v))
                 pass
+
+        Mpaaurl = '{}/{}/{}/content_ratings?api_key={}'.format(host, self.search_type, ret_infoLabels['tmdb_id'], api)
+        Mpaas = self.get_json(Mpaaurl).get('results',[])
+        for m in Mpaas:
+            if m.get('iso_3166_1','').lower() == 'us':
+                ret_infoLabels['Mpaa'] = m['rating']
+                break
 
         # Sort the lists and convert them to str if necessary
         if l_castandrole:
@@ -1762,3 +1751,71 @@ class Tmdb(object):
             ret_infoLabels['writer'] = ', '.join(sorted(l_writer))
 
         return ret_infoLabels
+
+
+def get_season_dic(season):
+    ret_dic = dict()
+    # logger.debug(jsontools.dump(season))
+    # Get data for this season
+
+    seasonTitle = season.get("name", '')
+    seasonPlot = season.get("overview" , '')
+    seasonId = season.get("id", '')
+    seasonEpisodes = len(season.get("episodes",[]))
+    seasonDate = season.get("air_date", '')
+    seasonPoster = season.get('poster_path', '')
+    seasonCredits = season.get('credits', {})
+    seasonPosters = season.get('images',{}).get('posters',{})
+    seasonFanarts = season.get('images',{}).get('backdrops',{})
+    seasonTrailers = season.get('videos',[]).get('results',[])
+
+    ret_dic["season_title"] = seasonTitle
+    ret_dic["season_plot"] = seasonPlot
+    ret_dic["season_id"] = seasonId
+    ret_dic["season_episodes_number"] = seasonEpisodes
+
+    if seasonDate:
+        date = seasonDate.split("-")
+        ret_dic["season_air_date"] = date[2] + "/" + date[1] + "/" + date[0]
+    else:
+        ret_dic["season_air_date"] = ''
+    if seasonPoster:
+        ret_dic["season_poster"] = 'https://image.tmdb.org/t/p/original' + seasonPoster
+    else:
+        ret_dic["season_poster"] = ''
+
+    if seasonPosters:
+        ret_dic['season_posters'] = ['https://image.tmdb.org/t/p/original' + p["file_path"] for p in seasonPosters]
+    if seasonFanarts:
+        ret_dic['season_fanarts'] = ['https://image.tmdb.org/t/p/original' + p["file_path"] for p in seasonFanarts]
+    if seasonTrailers:
+        ret_dic['season_trailer'] = []
+        for i in seasonTrailers:
+            if i.get("site", "") == "YouTube":
+                ret_dic['season_trailer'] = "plugin://plugin.video.youtube/play/?video_id=" + seasonTrailers[0]["key"]
+                break
+
+    dic_aux = seasonCredits if seasonCredits else {}
+    ret_dic["season_cast"] = dic_aux.get('cast', [])
+    ret_dic["season_crew"] = dic_aux.get('crew', [])
+    return ret_dic
+
+def parse_fallback_info(info, fallbackInfo):
+    info_dict = {}
+    for key, value in info.items():
+        if not value:
+            value = fallbackInfo[key]
+        info_dict[key] = value
+    episodes = info_dict['episodes']
+
+    episodes_list = []
+    for i, episode in enumerate(episodes):
+        episode_dict = {}
+        for key, value in episode.items():
+            if not value:
+                value = fallbackInfo['episodes'][i][key]
+            episode_dict[key] = value
+        episodes_list.append(episode_dict)
+
+    info_dict['episodes'] = episodes_list
+    return info_dict

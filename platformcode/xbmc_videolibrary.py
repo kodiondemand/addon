@@ -5,6 +5,7 @@
 # from future import standard_library
 # standard_library.install_aliases()
 #from builtins import str
+from core.item import Item
 import sys, os, threading, time, re, math, xbmc, xbmcgui
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -14,7 +15,7 @@ if PY3:
 else:
     import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
-from core import filetools, jsontools
+from core import filetools, jsontools, support
 from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
@@ -67,8 +68,8 @@ def mark_auto_as_watched(item):
                 platformtools.set_played_time(item)
                 if item.options['strm'] : sync = True
                 show_server = False
-                from specials import videolibrary
-                videolibrary.mark_content_as_watched2(item)
+                # from specials import videolibrary
+                # videolibrary.mark_content_as_watched(item)
                 if not next_episode:
                     break
 
@@ -98,9 +99,13 @@ def mark_auto_as_watched(item):
         if not show_server and item.play_from != 'window' and not item.no_return:
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
-            xbmc.sleep(500)
+            # xbmc.sleep(500)
+            
+        if marked:
+            from specials import videolibrary
+            videolibrary.mark_content_as_watched(item)
 
-        if next_episode and next_episode.next_ep and config.get_setting('next_ep') < 3:
+        if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
             from platformcode.launcher import play_from_library
             play_from_library(next_episode)
 
@@ -258,8 +263,14 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
+    
     # logger.debug("item:\n" + item.tostring('\n'))
     payload_f = ''
+    pos = item.itemlistPosition
+    winid = xbmcgui.getCurrentWindowId()
+    win = xbmcgui.Window(winid)
+    cid = win.getFocusId()
+    ctl = win.getControl(cid)
 
     if item.contentType == "movie":
         movieid = 0
@@ -300,8 +311,8 @@ def mark_content_as_watched_on_kodi(item, value=1):
                 filename = filetools.basename(item.strm_path)
                 head, tail = filetools.split(filetools.split(item.strm_path)[0])
             else:                           # If Item is from the Series
-                filename = filetools.basename(item.path)
-                head, tail = filetools.split(filetools.split(item.path)[0])
+                filename = filetools.basename(item.base_name)
+                head, tail = filetools.split(filetools.split(item.base_name)[0])
             path = filetools.join(tail, filename)
 
             for d in data['result']['episodes']:
@@ -313,12 +324,16 @@ def mark_content_as_watched_on_kodi(item, value=1):
         if episodeid != 0:
             payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": episodeid, "playcount": value}, "id": 1}
 
+
     if payload_f:
         # Mark as seen
         data = get_data(payload_f)
         # logger.debug(str(data))
         if data['result'] != 'OK':
             logger.error("ERROR putting content as viewed")
+
+    xbmc.sleep(700)
+    ctl.selectItem(pos)
 
 
 def mark_season_as_watched_on_kodi(item, value=1):
@@ -330,6 +345,7 @@ def mark_season_as_watched_on_kodi(item, value=1):
         @param value: > 0 for seen, 0 for not seen
         """
     logger.debug()
+    # support.dbg()
     # logger.debug("item:\n" + item.tostring('\n'))
 
     # We can only mark the season as seen in the Kodi database if the database is local, in case of sharing database this functionality will not work
@@ -344,7 +360,7 @@ def mark_season_as_watched_on_kodi(item, value=1):
         request_season = ' and c12= %s' % item.contentSeason
 
     tvshows_path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"))
-    item_path1 = "%" + item.path.replace("\\\\", "\\").replace(tvshows_path, "")
+    item_path1 = "%" + item.base_name.replace("\\\\", "\\").replace(tvshows_path, "")
     if item_path1[:-1] != "\\":
         item_path1 += "\\"
     item_path2 = item_path1.replace("\\", "/")
@@ -354,37 +370,64 @@ def mark_season_as_watched_on_kodi(item, value=1):
     execute_sql_kodi(sql)
 
 def set_watched_on_kod(data):
+    # support.dbg()
     from specials import videolibrary
-    from core import videolibrarytools
+    from core.videolibrarytools import videolibrarydb
+
     data = jsontools.load(data)
     Type = data.get('item', {}).get('type','')
     ID = data.get('item', {}).get('id','')
     if not Type or not ID:
         return
     playcount = data.get('playcount',0)
-    for Type in ['movie', 'episode']:
-        sql = 'select strFileName, strPath, uniqueid_value from %s_view where (id%s like "%s")' % (Type, Type.capitalize(), ID)
+    if Type in ['episode']:
+        sql = 'select c18 from {}_view where (id{} like "{}")'.format(Type, Type.capitalize(), ID)
         n, records = execute_sql_kodi(sql)
         if records:
-            for filename, path, uniqueid_value in records:
-                if Type in ['movie']:
-                    title = filename.replace('.strm', ' [' + uniqueid_value + ']')
-                    filename = title +'.nfo'
-                else:
-                    title = filename.replace('.strm', '')
-                    filename = 'tvshow.nfo'
+            _id = scrapertools.find_single_match(records[0][0], r'\[([^\]]+)')
+            episode = scrapertools.find_single_match(records[0][0], r'(\d+x\d+)')
+            season = episode.split('x')[0]
+            episodes = videolibrarydb['episodes'].get(_id, {})
+            item = episodes.get(episode, {}).get('item', None)
 
-                path = filetools.join(path, filename)
-                head_nfo, item = videolibrarytools.read_nfo(path)
-                item.library_playcounts.update({title: playcount})
-                filetools.write(path, head_nfo + item.tojson())
+    if Type in ['season']:
+        sql = 'select season, strPath from {}_view where (id{} like "{}")'.format(Type, Type.capitalize(), ID)
+        n, records = execute_sql_kodi(sql)
+        if records:
+            logger.debug('RECORDS' , records)
+            _id = scrapertools.find_single_match(records[0][1], r'\[([^\]]+)')
+            season = records[0][0]
+            seasons = videolibrarydb['seasons'].get(_id, {})
+            item = seasons.get(season, None)
+            item.all_ep
 
-                if item.infoLabels['mediatype'] == "tvshow":
-                    for season in item.library_playcounts:
-                        if "season" in season:
-                            season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))
-                            item = videolibrary.check_season_playcount(item, season_num)
-                            filetools.write(path, head_nfo + item.tojson())
+    else:
+        # support.dbg()
+        sql = 'select strPath from {}_view where (id{} like "{}")'.format(Type, Type.replace('tv','').capitalize(), ID)
+        n, records = execute_sql_kodi(sql)
+        if records:
+            logger.debug('RECORDS' , records)
+            _id = scrapertools.find_single_match(records[0][0], r'\[([^\]]+)')
+            contents = videolibrarydb[Type].get(_id, {})
+            item = contents.get('item', None)
+    if item:
+        item.playcount = playcount
+        item.not_update = True
+        videolibrary.mark_content_as_watched(item)
+
+
+    videolibrarydb.close()
+                # path = filetools.join(path, filename)
+                # head_nfo, item = videolibrarytools.read_nfo(path)
+                # item.library_playcounts.update({title: playcount})
+                # filetools.write(path, head_nfo + item.tojson())
+
+                # if item.infoLabels['mediatype'] == "tvshow":
+                #     for season in item.library_playcounts:
+                #         if "season" in season:
+                #             season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))
+                #             item = videolibrary.check_season_playcount(item, season_num)
+                #             filetools.write(path, head_nfo + item.tojson())
 
 def mark_content_as_watched_on_kod(path):
     from specials import videolibrary
@@ -1072,6 +1115,47 @@ def clean(path_list=[]):
     progress.close()
 
 
+def clean_by_id(item):
+    logger.debug()
+
+    # imdb_id = item.infoLabels.get('imdb_id', '')
+    tmdb_id = item.infoLabels.get('tmdb_id', '')
+    season_id = item.infoLabels.get('temporada_id', '')
+    episode_id = item.infoLabels.get('episodio_id', '')
+    # support.dbg()
+
+    # search movie ID
+    if item.contentType == 'movie':
+        nun_records, records = execute_sql_kodi('SELECT idMovie FROM movie_view WHERE uniqueid_value LIKE "%s"' % tmdb_id)
+        # delete movie
+        if records:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveMovie", "id": 1, "params": {"movieid": records[0][0]}}
+            data = get_data(payload)
+            return
+
+    # search tvshow ID
+    elif item.contentType == 'tvshow':
+        nun_records, records = execute_sql_kodi('SELECT idShow FROM tvshow_view WHERE uniqueid_value LIKE "%s"' % tmdb_id)
+        # delete TV show
+        if records:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveTVShow", "id": 1, "params": {"tvshowid": records[0][0]}}
+            data = get_data(payload)
+
+    elif item.contentType == 'episode':
+        nun_records, records = execute_sql_kodi('SELECT idEpisode FROM episode_view WHERE uniqueid_value LIKE "%s"' % episode_id)
+        # delete TV show
+        if records:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveEpisode", "id": 1, "params": {"episodeid": records[0][0]}}
+            data = get_data(payload)
+
+    elif item.contentType == 'season':
+        nun_records, records = execute_sql_kodi('SELECT idSeason FROM season_view WHERE uniqueid_value LIKE "%s"' % season_id)
+        # delete TV show
+        if records:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveSeason", "id": 1, "params": {"seasonid": records[0][0]}}
+            data = get_data(payload)
+
+
 def check_db(path):
     if '\\' in path: sep = '\\'
     else: sep = '/'
@@ -1428,3 +1512,4 @@ class NextDialog(xbmcgui.WindowXMLDialog):
             self.set_exit(True)
             self.set_continue_watching(False)
             self.close()
+

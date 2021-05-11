@@ -185,7 +185,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                     self.close()
                     modal()
             for item in itemlist:
-                if item.action not in ['save_download', 'add_pelicula_to_library', 'add_serie_to_library', ''] and item.infoLabels['title']:
+                if item.action not in ['save_download', 'add_movie_to_library', 'add_serie_to_library', ''] and item.infoLabels['title']:
                     if item.action == 'findvideos' and item.contentType in ['episode', 'tvshow']:
                         it = xbmcgui.ListItem(re.sub(r'\[[^\]]+\]', '', item.title))
                         self.getControl(NUMBER).setText(support.typo(config.get_localized_string(70362),'uppercase bold'))
@@ -204,7 +204,7 @@ class SearchWindow(xbmcgui.WindowXMLDialog):
                     self.itemlist.append(item)
             if itemlist[0].contentType == 'movie':
                 if not itemlist[0].server:
-                    self.commands.append(itemlist[0].clone(action='add_pelicula_to_library',  thumbnail=support.thumb('add_to_videolibrary')))
+                    self.commands.append(itemlist[0].clone(action='add_movie_to_library',  thumbnail=support.thumb('add_to_videolibrary')))
                     self.commands.append(itemlist[0].clone(channel='downloads', action='save_download', from_channel=itemlist[0].channel, from_action=itemlist[0].action, thumbnail=support.thumb('downloads')))
                 else:
                     self.commands.append(Info.clone(channel='downloads', action='save_download', from_channel=Info.channel, from_action=Info.action, thumbnail=support.thumb('downloads')))

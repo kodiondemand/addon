@@ -12,6 +12,7 @@
         <setting id="resolver_dns" type="bool" label="707408" default="true" enable="true" visible="true"/>
         <setting id="checkdns" type="bool" default="true" visible="false"/>
         <setting label="70788" type="lsep"/>
+        <setting id="episode_info" type="bool" label="Infornmazioni episodio (non consigliato in dispositivi lenti)" default="false"/>
         <setting id="debug" type="bool" label="30003" default="false"/>
         <setting id="chrome_ua_version" type="text" default="87.0.4280.88" visible="False"/>
     </category>

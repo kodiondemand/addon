@@ -918,7 +918,7 @@ def get_episodes(item):
             info("Omitiendo item no válido:", episode.tostring())
 
     # Any other result is not worth it, we ignore it...
-    itemlist = videolibrarytools.filter_list(itemlist)
+    # itemlist = videolibrarytools.filter_list(itemlist)
 
     return itemlist
 

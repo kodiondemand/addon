@@ -578,7 +578,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
     if parent_item.channel == 'kodfavorites':
         return context_commands
         # Options according to criteria, only if the item is not a tag, nor is it "Add to the video library", etc...
-    if item.action and item.action not in ["add_pelicula_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
+    if item.action and item.action not in ["add_movie_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
@@ -647,7 +647,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
             # Add Movie to Video Library
             elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_movie_to_library&from_action=' + item.action)))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
             # Download movie
