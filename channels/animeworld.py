@@ -19,13 +19,13 @@ def get_cookie():
     headers = [['Cookie', cookie]]
 
 
-if not cookie:
-    get_cookie()
-
-
 def get_data(item):
+    support.dbg()
     url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
     data = support.match(url, headers=headers, follow_redirects=True).data
+    if 'AWCookieVerify' in data:
+        get_cookie()
+        get_data(item)
     return data
 
 
@@ -49,7 +49,7 @@ def mainlist(item):
 @support.scrape
 def genres(item):
     action = 'peliculas'
-    # data = get_data(item)
+    data = get_data(item)
     patronBlock = r'dropdown[^>]*>\s*Generi\s*<span.[^>]+>(?P<block>.*?)</ul>'
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
 
@@ -62,7 +62,7 @@ def genres(item):
 @support.scrape
 def menu(item):
     action = 'submenu'
-    # data = get_data(item)
+    data = get_data(item)
     patronMenu=r'<button[^>]+>\s*(?P<title>[A-Za-z0-9]+)\s*<span.[^>]+>(?P<other>.*?)</ul>'
     def itemlistHook(itemlist):
         itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), action='peliculas'))
@@ -121,13 +121,9 @@ def peliculas(item):
     anime=True
     # debug =True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
-    data = support.httptools.downloadpage(item.url, headers=headers).data
-    if 'AWCookietest' in data:
-        get_cookie()
-        data = support.match(item.url).data
+    data = get_data(item)
 
     if item.args == 'updated':
-        # data = get_data(item)
         item.contentType='episode'
         patron=r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<lang>[^\)]+)\))?"[^>]+>[^>]+>\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?[^>]+>[^>]+>\s*<div class="ep">[^\d]+(?P<episode>\d+)[^<]*</div>'
         action='findvideos'
@@ -172,7 +168,7 @@ def findvideos(item):
     itemlist = []
     urls = []
     # resp = support.match(get_data(item), headers=headers, patron=r'data-name="(\d+)">([^<]+)<')
-    resp = support.match(item, headers=headers, patron=r'data-name="(\d+)">([^<]+)<')
+    resp = support.match(get_data(item), headers=headers, patron=r'data-name="(\d+)">([^<]+)<')
     data = resp.data
 
     for ID, name in resp.matches:
