@@ -17,7 +17,7 @@ from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools, support
+from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 import threading
@@ -246,6 +246,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
     global otmdb_global
 
     def read_data(otmdb_aux):
+        # item.infoLabels = otmdb_aux.get_infoLabels(item.infoLabels)
         infoLabels = otmdb_aux.get_infoLabels(item.infoLabels)
         if not infoLabels['plot']: infoLabels['plot'] = otmdb_aux.get_plot('en')
         item.infoLabels = infoLabels
@@ -404,7 +405,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                             # carry out another search to expand the information
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
-                    if otmdb:
+                    if otmdb and config.get_setting('tmdb_plus_info'):
                         info = otmdb.get_infoLabels(item.infoLabels)
                         otmdb = Tmdb(id_Tmdb=info['tmdb_id'], search_type=search_type,
                                  search_language=search_language)
@@ -837,7 +838,7 @@ class Tmdb(object):
         self.search_text = re.sub('\[\\\?(B|I|COLOR)\s?[^\]]*\]', '', self.searched_text).strip()
         self.search_type = kwargs.get('search_type', '')
         self.search_language = kwargs.get('search_language', def_lang)
-        self.fallback_language = kwargs.get('search_language', 'en')
+        self.fallback_language = 'en'
         # self.search_include_adult = kwargs.get('include_adult', False)
         self.search_year = kwargs.get('year', '')
         self.search_filter = kwargs.get('filtro', {})
@@ -937,7 +938,7 @@ class Tmdb(object):
         if self.search_id:
             if source == "tmdb":
                 url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},en,null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
-                searching = "id_Tmdb: " + self.search_id
+                searching = "id_Tmdb: {}".format(self.search_id)
             else:
                 url = ('{}/find/{}?external_source={}&api_key={}8&language={}'.format(host, self.search_id, source, api, self.search_language))
                 searching = "{}: {}".format(source.capitalize(), self.search_id)
@@ -956,6 +957,13 @@ class Tmdb(object):
                             result = result["tv_results"][0]
                         else:
                             result = result['tv_episode_results'][0]
+
+                Mpaaurl = '{}/{}/{}/{}?api_key={}'.format(host, self.search_type, result['id'], 'release_dates' if self.search_type == 'movie' else 'content_ratings', api)
+                Mpaas = self.get_json(Mpaaurl).get('results',[])
+                for m in Mpaas:
+                    if m.get('iso_3166_1','').lower() == 'us':
+                        result['mpaa'] = m.get('rating', m.get('release_dates', [{}])[0].get('certification'))
+                        break
 
                 self.results = [result]
                 self.total_results = 1
@@ -1333,19 +1341,14 @@ class Tmdb(object):
             # http://api.themoviedb.org/3/tv/1407/season/1?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es&
             # append_to_response=credits
             url = "{}/tv/{}/season/{}?api_key={}&language={}&append_to_response=videos,images,credits,external_ids&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, api, search_language, search_language)
-            fallbackUrl = "{}/tv/{}/season/{}?api_key={}&language=en&append_to_response=videos,images,credits&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, api, search_language)
+            # fallbackUrl = "{}/tv/{}/season/{}?api_key={}&language=en&append_to_response=videos,images,credits&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, api, search_language)
             logger.debug('TMDB URL', url)
 
             searching = "id_Tmdb: " + str(self.result["id"]) + " season: " + str(seasonNumber) + "\nURL: " + url
             logger.debug("[Tmdb.py] Searching " + searching)
             # from core.support import dbg;dbg()
             try:
-                info = self.get_json(url)
-                if not language:
-                    fallbackInfo = self.get_json(fallbackUrl)
-                    self.season[seasonNumber] = parse_fallback_info(info, fallbackInfo)
-                else:
-                    self.season[seasonNumber] = self.get_json(url)
+                self.season[seasonNumber] = self.get_json(url)
                 if not isinstance(self.season[seasonNumber], dict):
                     self.season[seasonNumber] = ast.literal_eval(self.season[seasonNumber].decode('utf-8'))
 
@@ -1372,16 +1375,19 @@ class Tmdb(object):
                 _id = collection.get('id')
         if _id:
             url = '{}/collection/{}?api_key={}&language={}&append_to_response=images'.format(host, _id, api, self.search_language)
-            fallbackUrl = '{}/collection/{}?api_key={}&language=en&append_to_response=images'.format(host, _id, api)
+            tanslationurl = '{}/collection/{}/translations?api_key={}'.format(host, _id, api)
             info = self.get_json(url)
-            fallbackInfo = self.get_json(fallbackUrl)
-            ret['set'] = info.get('name') if info.get('name') else fallbackInfo.get('name')
-            ret['setoverview'] = info.get('overview') if info.get('overview') else fallbackInfo.get('overview')
-            posters = ['https://image.tmdb.org/t/p/original' + (info.get('poster_path') if info.get('poster_path') else fallbackInfo.get('poster_path'))]
-            fanarts = ['https://image.tmdb.org/t/p/original' + (info.get('backdrop_path') if info.get('backdrop_path') else fallbackInfo.get('backdrop_path'))]
-            for image in info['images']['posters'] + fallbackInfo['images']['posters']:
+            for t in self.get_json(tanslationurl).get('translations'):
+                if t.get('iso_639_1') == self.fallback_language:
+                    translation = t.get('data',{})
+                    break
+            ret['set'] = info.get('name') if info.get('name') else translation.get('name')
+            ret['setoverview'] = info.get('overview') if info.get('overview') else translation.get('overview')
+            posters = ['https://image.tmdb.org/t/p/original' + info.get('poster_path')] if info.get('poster_path') else []
+            fanarts = ['https://image.tmdb.org/t/p/original' + info.get('backdrop_path')] if info.get('backdrop_path') else []
+            for image in info['images']['posters']:
                 posters.append('https://image.tmdb.org/t/p/original' + image['file_path'])
-            for image in info['images']['backdrops'] + fallbackInfo['images']['backdrops']:
+            for image in info['images']['backdrops']:
                 fanarts.append('https://image.tmdb.org/t/p/original' + image['file_path'])
             ret['setposters'] = posters
             ret['setfanarts'] = fanarts
@@ -1633,11 +1639,11 @@ class Tmdb(object):
 
             elif k == 'release_date':
                 ret_infoLabels['year'] = int(v[:4])
-                ret_infoLabels['premiered'] = v.split("-")[2] + "/" + v.split("-")[1] + "/" + v.split("-")[0]
+                ret_infoLabels['premiered'] = v
 
             elif k == 'first_air_date':
                 ret_infoLabels['year'] = int(v[:4])
-                ret_infoLabels['aired'] = v.split("-")[2] + "/" + v.split("-")[1] + "/" + v.split("-")[0]
+                ret_infoLabels['aired'] = v
                 ret_infoLabels['premiered'] = ret_infoLabels['aired']
 
             elif k == 'original_title' or k == 'original_name':
@@ -1704,6 +1710,7 @@ class Tmdb(object):
                     ret_infoLabels[k] = v
 
             elif k == 'production_countries' or k == 'origin_country':
+                # support.dbg()
                 if isinstance(v, str):
                     l_country = list(set(l_country + v.split(',')))
 
@@ -1713,9 +1720,9 @@ class Tmdb(object):
                     elif isinstance(v[0], dict):
                         # {'iso_3166_1': 'FR', 'name':'France'}
                         for i in v:
-                            if 'iso_3166_1' in i:
-                                pais = Tmdb.dic_country.get(i['iso_3166_1'], i['iso_3166_1'])
-                                l_country = list(set(l_country + [pais]))
+                            if 'name' in i:
+                                # pais = Tmdb.dic_country.get(i['iso_3166_1'], i['iso_3166_1'])
+                                l_country = list(set(l_country + [i['name']]))
 
             elif k == 'credits_crew' or k == 'episode_crew' or k == 'season_crew':
                 for crew in v:
@@ -1736,13 +1743,6 @@ class Tmdb(object):
             else:
                 # logger.debug("Atributos no añadidos: " + k +'= '+ str(v))
                 pass
-
-        Mpaaurl = '{}/{}/{}/content_ratings?api_key={}'.format(host, self.search_type, ret_infoLabels['tmdb_id'], api)
-        Mpaas = self.get_json(Mpaaurl).get('results',[])
-        for m in Mpaas:
-            if m.get('iso_3166_1','').lower() == 'us':
-                ret_infoLabels['Mpaa'] = m['rating']
-                break
 
         # Sort the lists and convert them to str if necessary
         if l_castandrole:

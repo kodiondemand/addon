@@ -1372,8 +1372,8 @@ msgid "More than 17 years old"
 msgstr "Più di 17 anni"
 
 msgctxt "#60292"
-msgid "Searching for TV show information"
-msgstr "Ricerca informazioni sulla serie TV"
+msgid "Search for information on episodes"
+msgstr "Cerca informazioni sugli episodi"
 
 msgctxt "#60293"
 msgid "Please wait..."

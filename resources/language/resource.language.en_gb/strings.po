@@ -1373,7 +1373,7 @@ msgid "More than 17 years old"
 msgstr ""
 
 msgctxt "#60292"
-msgid "Searching for TV show information"
+msgid "Search for information on episodes"
 msgstr ""
 
 msgctxt "#60293"
