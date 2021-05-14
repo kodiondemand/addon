@@ -300,10 +300,12 @@ class SearchWindow(xbmcgui.WindowXML):
         return channels_list
 
     def timer(self):
-        while self.searchActions:
+        while self.searchActions or self.thActions.is_alive():
             if self.exit: return
-            percent = (float(self.count) / len(self.searchActions)) * 100
-            self.LOADING.setVisible(False)
+            try:
+                percent = (float(self.count) / len(self.searchActions)) * 100
+            except ZeroDivisionError:
+                percent = 0
             self.PROGRESS.setPercent(percent)
             self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
             if percent == 100:
@@ -408,6 +410,7 @@ class SearchWindow(xbmcgui.WindowXML):
         return it
 
     def update(self, channel, valid, results):
+        self.LOADING.setVisible(False)
         if self.exit:
             return
         logger.debug('Search on channel', channel)
