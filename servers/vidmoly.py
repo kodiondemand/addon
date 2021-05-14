@@ -9,7 +9,7 @@ def test_video_exists(page_url):
     global data
     resp = httptools.downloadpage(page_url)
     data = resp.data
-    if resp.code == 404:
+    if resp.code == 404 or 'Video is processing now' in data:
         return False, config.get_localized_string(70449) % "Vidmoly"
     return True, ""
 

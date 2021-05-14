@@ -118,8 +118,8 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
-    anime=True
-    # debug =True
+    anime = True
+    # debug = True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
     data = get_data(item)
 

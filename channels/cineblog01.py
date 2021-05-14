@@ -27,14 +27,14 @@ def mainlist(item):
         ('Generi', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
         ('Paese', ['', 'menu', 'Film per Paese']),
-        ('Ultimi Aggiornati', ['/lista-film-ultimi-100-film-aggiornati/', 'peliculas', 'newest']),
+        ('Ultimi Aggiornati', ['/ultimi-100-film-aggiornati/', 'peliculas', 'newest']),
         ('Ultimi Aggiunti', ['/lista-film-ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
     ]
     tvshow = ['/serietv/',
               ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
               ('Per Genere', ['/serietv/', 'menu', 'Serie-Tv per Genere']),
               ('Per anno', ['/serietv/', 'menu', 'Serie-Tv per Anno']),
-              ('Ultime Aggiornate', ['/serietv/', 'peliculas', 'newest'])
+              ('Ultime Aggiornate', ['/serietv/ultime-100-serie-tv-aggiornate/', 'peliculas', 'newest'])
               ]
     docu = [('Documentari {bullet bold}', ['/category/documentario/', 'peliculas']),
             ('HD {submenu} {documentari}', ['/category/hd-alta-definizione/documentario-hd/', 'peliculas'])
@@ -97,16 +97,14 @@ def peliculas(item):
                  'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
                  'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
                  'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
-    # debug= True
+    # debug = True
     if 'newest' in item.args:
+        pagination = ''
+        patronBlock = r'sequex-page-left(?P<block>.*?)sequex-page-right'
         if '/serietv/' not in item.url:
-            # debug = True
-            pagination = ''
-            patronBlock = r'Ultimi 100 film [^:]+:(?P<block>.*?)<\/td>'
-            patron = r'<a href="?(?P<url>[^">]+)"?>(?P<title>[^<([]+)(?:\[(?P<lang>Sub-ITA|B/N|SUB-ITA)\])?\s*(?:\[(?P<quality>HD|SD|HD/3D)\])?\s*\((?P<year>[0-9]{4})\)<\/a>'
+            patron = r'src="?(?P<thumb>[^ "]+)"? alt="?(?P<title>.*?\((?P<year>\d{4})[^\)]*\))(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>\w+) [^ ]+ DURATA (?P<duration>[0-9]+)(?P<plot>[^<]+)<'
             action = 'findvideos'
         else:
-            patronBlock = r'Ultime SerieTv aggiornate(?P<block>.*?)Lista'
             patron = r'src=(?:")?(?P<thumb>[^ "]+)(?:")? alt=(?:")?(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>[^\(]*)\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
             action = 'episodios'
 
