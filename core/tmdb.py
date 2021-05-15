@@ -1374,7 +1374,7 @@ class Tmdb(object):
             if collection:
                 _id = collection.get('id')
         if _id:
-            url = '{}/collection/{}?api_key={}&language={}&append_to_response=images'.format(host, _id, api, self.search_language)
+            url = '{}/collection/{}?api_key={}&language={}&append_to_response=images&include_image_language={},en,null'.format(host, _id, api, self.search_language, self.search_language)
             tanslationurl = '{}/collection/{}/translations?api_key={}'.format(host, _id, api)
             info = self.get_json(url)
             for t in self.get_json(tanslationurl).get('translations'):
@@ -1382,6 +1382,7 @@ class Tmdb(object):
                     translation = t.get('data',{})
                     break
             ret['set'] = info.get('name') if info.get('name') else translation.get('name')
+            ret['setid'] = _id
             ret['setoverview'] = info.get('overview') if info.get('overview') else translation.get('overview')
             posters = ['https://image.tmdb.org/t/p/original' + info.get('poster_path')] if info.get('poster_path') else []
             fanarts = ['https://image.tmdb.org/t/p/original' + info.get('backdrop_path')] if info.get('backdrop_path') else []
@@ -1577,11 +1578,12 @@ class Tmdb(object):
             ret_infoLabels = InfoLabels(infoLabels)
         else:
             ret_infoLabels = InfoLabels()
-
         # Start Listings
         l_country = [i.strip() for i in ret_infoLabels['country'].split(',') if ret_infoLabels['country']]
         l_director = [i.strip() for i in ret_infoLabels['director'].split(',') if ret_infoLabels['director']]
+        l_director_image = ret_infoLabels.get('director_image', [])
         l_writer = [i.strip() for i in ret_infoLabels['writer'].split(',') if ret_infoLabels['writer']]
+        l_writer_image = ret_infoLabels.get('writer_image', [])
         l_castandrole = ret_infoLabels.get('castandrole', [])
 
         if not origen:
@@ -1728,9 +1730,11 @@ class Tmdb(object):
                 for crew in v:
                     if crew['job'].lower() == 'director':
                         l_director = list(set(l_director + [crew['name']]))
+                        l_director_image += ['https://image.tmdb.org/t/p/original' + crew['profile_path'] if crew['profile_path'] else '']
 
                     elif crew['job'].lower() in ('screenplay', 'writer'):
                         l_writer = list(set(l_writer + [crew['name']]))
+                        l_writer_image += ['https://image.tmdb.org/t/p/original' + crew['profile_path'] if crew['profile_path'] else '']
 
             elif k == 'created_by':
                 for crew in v:
@@ -1750,9 +1754,11 @@ class Tmdb(object):
         if l_country:
             ret_infoLabels['country'] = ', '.join(sorted(l_country))
         if l_director:
-            ret_infoLabels['director'] = ', '.join(sorted(l_director))
+            ret_infoLabels['director'] = ', '.join(l_director)
+            ret_infoLabels['director_image'] = l_director_image
         if l_writer:
-            ret_infoLabels['writer'] = ', '.join(sorted(l_writer))
+            ret_infoLabels['writer'] = ', '.join(l_writer)
+            ret_infoLabels['writer_image'] = l_writer_image
 
         return ret_infoLabels
 

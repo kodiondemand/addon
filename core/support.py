@@ -1201,7 +1201,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.title = findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
-        logger.debug(videoitem)
+        # logger.debug(videoitem)
         if videoitem.video_urls or srv_param.get('active', False):
             # dbg()
             item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.title) else item.title

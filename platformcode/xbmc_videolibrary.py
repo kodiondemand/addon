@@ -1170,7 +1170,7 @@ def check_db(path):
     return ret
 
 
-def execute_sql_kodi(sql):
+def execute_sql_kodi(sql, params=None):
     """
     Run sql query against kodi database
     @param sql: Valid sql query
@@ -1209,7 +1209,13 @@ def execute_sql_kodi(sql):
             cursor = conn.cursor()
 
             logger.debug("Running sql: %s" % sql)
-            cursor.execute(sql)
+            if params:
+                if type(params) == list:
+                    cursor.executemany(sql, params)
+                else:
+                    cursor.execute(sql, params)
+            else:
+                cursor.execute(sql)
             conn.commit()
 
             records = cursor.fetchall()
