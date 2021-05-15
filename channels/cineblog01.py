@@ -88,6 +88,7 @@ def search(item, text):
             logger.error("%s" % line)
         return []
 
+
 @support.scrape
 def peliculas(item):
     # esclusione degli articoli 'di servizio'
@@ -102,7 +103,7 @@ def peliculas(item):
         pagination = ''
         patronBlock = r'sequex-page-left(?P<block>.*?)sequex-page-right'
         if '/serietv/' not in item.url:
-            patron = r'src="?(?P<thumb>[^ "]+)"? alt="?(?P<title>.*?\((?P<year>\d{4})[^\)]*\))(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>\w+) [^ ]+ DURATA (?P<duration>[0-9]+)(?P<plot>[^<]+)<'
+            patron = r'src="?(?P<thumb>[^ "]+)"? alt="?(?P<title>.*?)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?\((?P<year>\d{4})[^\)]*\)[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>\w+) [^ ]+ DURATA (?P<duration>[0-9]+)[^ ]+ [^ ]+ [A-Z ]+ (?P<plot>[^<]+)<'
             action = 'findvideos'
         else:
             patron = r'src=(?:")?(?P<thumb>[^ "]+)(?:")? alt=(?:")?(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>[^\(]*)\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
