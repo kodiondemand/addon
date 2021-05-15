@@ -41,13 +41,13 @@ class addVideo(object):
             self.set_actors()
             self.message += ', actors:{}'.format(time() - start)
             start = time()
-            self.set_country()
+            self.set_info('country')
             self.message += ', country:{}'.format(time() - start)
             start = time()
-            self.set_genre()
+            self.set_info('genre')
             self.message += ', genre:{}'.format(time() - start)
             start = time()
-            self.set_studio()
+            self.set_info('studio')
             self.message += ', studio:{}'.format(time() - start)
             start = time()
             if self.item.contentType == 'movie': self.set_movie()
@@ -72,7 +72,7 @@ class addVideo(object):
 
     def get_id(self):
         Type = 'id' + self.item.contentType.replace('tv','').capitalize()
-        sql = 'select {} from {}_view where (uniqueid_value like "{}" and uniqueid_type like "kod")'.format(Type, self.item.contentType, self.item.videolibrary_id)
+        sql = 'select {} from {}_view where (uniqueid_value = "{}" and uniqueid_type = "kod")'.format(Type, self.item.contentType, self.item.videolibrary_id)
         n, records = execute_sql_kodi(sql, conn=conn)
         if n: return True, records[0][0]
 
@@ -83,14 +83,14 @@ class addVideo(object):
         return False, _id
 
     def set_path(self):
-        sql = 'select idPath from path where (strPath like "{}")'.format(self.parentPath)
+        sql = 'select idPath from path where (strPath = "{}") limit 1'.format(self.parentPath)
         nun_records, records = execute_sql_kodi(sql, conn=conn)
         if records:
             self.idParentPath = records[0][0]
         else:
             return
 
-        sql = 'select idPath from path where (strPath like "{}")'.format(self.strPath)
+        sql = 'select idPath from path where (strPath = "{}") limit 1'.format(self.strPath)
         nun_records, records = execute_sql_kodi(sql, conn=conn)
         if records:
             self.idPath = records[0][0]
@@ -104,7 +104,7 @@ class addVideo(object):
     def set_sets(self):
         self.idSet = None
         if self.info.get('set'):
-            sql = 'SELECT idSet from sets where (strSet like "{}")'.format(self.info.get('set'))
+            sql = 'SELECT idSet from sets where (strSet = "{}") limit 1'.format(self.info.get('set'))
             # params = self.info.get('set')
             n, records = execute_sql_kodi(sql, conn=conn)
             if records:
@@ -154,72 +154,52 @@ class addVideo(object):
             n, records = execute_sql_kodi(sql, params, conn)
 
     def set_actors(self):
-        actor_id = get_id('actor_id', 'actor')
-        actors = self.info.get('castandrole',[])
+        actors = self.info.get('castandrole', [])
         if actors: actors.sort(key=lambda a: a[3])
-        l_actors = []
-        sql = 'select actor_id, name from actor'
-        n, current_actors = execute_sql_kodi(sql, conn=conn)
-        if current_actors: l_actors = [a[1] for a in current_actors]
         actor_params = []
         actor_link_params = []
-        actor_sql = 'INSERT OR IGNORE INTO actor (actor_id, name, art_urls) VALUES (?, ?, ?)'
+        director_link_params = []
+        writer_params = []
+        writer_link_params = []
+        directors = self.info.get('director', '').split(', ')
+        directors_image = self.info.get('director_image', ['' for d in directors])
+        writers = self.info.get('writer', '').split(', ')
+        writers_image = self.info.get('writer_image', ['' for w in writers])
+
+        actor_sql = 'INSERT OR IGNORE INTO actor (name, art_urls) VALUES (?, ?)'
         actor_link_sql = 'INSERT OR IGNORE INTO actor_link (actor_id, media_id, media_type, role, cast_order) VALUES (?, ?, ?, ?, ?)'
         for actor in actors:
-            if actor[0] not in l_actors:
-                actor_params.append((actor_id, actor[0], actor[2]))
-                actor_link_params.append((actor_id, self.VideoId, self.item.contentType, actor[1], actor[3]))
-                if actor[2]:
-                    self.art.append({'media_id':actor_id, 'media_type': 'actor', 'type':'thumb', 'url':actor[2]})
-                actor_id += 1
-            else:
-                a_id = current_actors[actors.index(actor)][0]
-                actor_link_params.append((a_id, self.VideoId, self.item.contentType, actor[1], actor[3]))
-        # support.dbg()
+            actor_params.append((actor[0], actor[2]))
+        for d, director in enumerate(directors):
+            actor_params.append((director, directors_image[d]))
+        for w, writer in enumerate(writers):
+            actor_params.append((writer, writers_image[w]))
+
         if actor_params:
             n, records = execute_sql_kodi(actor_sql, actor_params)
+
+        for actor in actors:
+            actor_id = execute_sql_kodi('select actor_id from actor where name="{}" limit 1'.format(actor[0]))[1][0][0]
+            actor_link_params.append((actor_id, self.VideoId, self.item.contentType, actor[1], actor[3]))
+            if actor[2]:
+                self.art.append({'media_id': actor_id, 'media_type': 'actor', 'type': 'thumb', 'url': actor[2]})
+
+        for d, director in enumerate(directors):
+            actor_id = execute_sql_kodi('select actor_id from actor where name="{}" limit 1'.format(director))[1][0][0]
+            director_link_params.append((actor_id, self.VideoId, self.item.contentType))
+            if directors_image[d]:
+                self.art.append(
+                    {'media_id': actor_id, 'media_type': 'director', 'type': 'thumb', 'url': directors_image[d]})
+
+        for w, writer in enumerate(writers):
+            actor_id = execute_sql_kodi('select actor_id from actor where name="{}" limit 1'.format(writer))[1][0][0]
+            writer_link_params.append((actor_id, self.VideoId, self.item.contentType))
+
         if actor_link_params:
             n, records = execute_sql_kodi(actor_link_sql, actor_link_params)
-
-        directors = self.info.get('director','').split(', ')
-        directors_image = self.info.get('director_image',['' for d in directors])
-
-        director_params = []
-        director_link_params = []
-        for d, director in enumerate(directors):
-            if director not in l_actors:
-                director_params.append((actor_id, director, directors_image[d]))
-                if directors_image[d]:
-                    self.art.append({'media_id':actor_id, 'media_type': 'director', 'type':'thumb', 'url':directors_image[d]})
-                d_id = actor_id
-                l_actors.append(director)
-                current_actors.append((d_id, director))
-                actor_id += 1
-            else:
-                d_id = current_actors[l_actors.index(director)][0]
-                director_link_params.append((d_id, self.VideoId, self.item.contentType))
-        if director_params:
-            n, records = execute_sql_kodi(actor_sql, director_params)
         if director_link_params:
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
             n, records = execute_sql_kodi(sql, director_link_params)
-
-        writers = self.info.get('writer','').split(', ')
-        writers_image = self.info.get('writer_image',['' for w in writers])
-
-        writer_params = []
-        writer_link_params = []
-
-        for w, writer in enumerate(writers):
-            if writer not in l_actors:
-                writer_params.append((actor_id, writer, writers_image[w]))
-                d_id = actor_id
-                l_actors.append(writer)
-                current_actors.append((d_id, writer))
-                actor_id += 1
-            else:
-                d_id = current_actors[l_actors.index(writer)][0]
-                writer_link_params.append((d_id, self.VideoId, self.item.contentType))
 
         if writer_params:
             n, records = execute_sql_kodi(actor_sql, writer_params)
@@ -227,56 +207,16 @@ class addVideo(object):
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
             n, records = execute_sql_kodi(sql, writer_link_params)
 
-    def set_country(self):
-        countrys = self.info.get('country','').split(', ')
-        if countrys:
-            for country in countrys:
-                sql = 'select country_id from country where name = "{}"'.format(country)
-                n, records = execute_sql_kodi(sql, conn=conn)
-                if records:
-                    _id = records[0][0]
-                else:
-                    _id = get_id('country_id', 'country')
-                    sql = 'INSERT OR IGNORE INTO country (country_id, name) VALUES (?, ?)'
-                    params = (_id, country)
-                    n, records = execute_sql_kodi(sql, params, conn)
-                sql = 'INSERT OR IGNORE INTO country_link (country_id, media_id, media_type) VALUES (?, ?, ?)'
-                params = (_id, self.VideoId, self.item.contentType)
-                n, records = execute_sql_kodi(sql, params, conn)
-
-    def set_genre(self):
-        genres = self.info.get('genre','').split(', ')
-        if genres:
-            for genre in genres:
-                sql = 'select genre_id from genre where name = "{}"'.format(genre)
-                n, records = execute_sql_kodi(sql, conn=conn)
-                if records:
-                    _id = records[0][0]
-                else:
-                    _id = get_id('genre_id', 'genre')
-                    sql = 'INSERT OR IGNORE INTO genre (genre_id, name) VALUES (?, ?)'
-                    params = (_id, genre)
-                    n, records = execute_sql_kodi(sql, params, conn)
-                sql = 'INSERT OR IGNORE INTO genre_link (genre_id, media_id, media_type) VALUES (?, ?, ?)'
-                params = (_id, self.VideoId, self.item.contentType)
-                n, records = execute_sql_kodi(sql, params, conn)
-
-    def set_studio(self):
-        studios = self.info.get('studio','').split(', ')
-        if studios:
-            for studio in studios:
-                sql = 'select studio_id from studio where name = "{}"'.format(studio)
-                n, records = execute_sql_kodi(sql, conn=conn)
-                if records:
-                    _id = records[0][0]
-                else:
-                    _id = get_id('studio_id', 'studio')
-                    sql = 'INSERT OR IGNORE INTO studio (studio_id, name) VALUES (?, ?)'
-                    params = (_id, studio)
-                    n, records = execute_sql_kodi(sql, params, conn)
-                sql = 'INSERT OR IGNORE INTO studio_link (studio_id, media_id, media_type) VALUES (?, ?, ?)'
-                params = (_id, self.VideoId, self.item.contentType)
-                n, records = execute_sql_kodi(sql, params, conn)
+    def set_info(self, info_name):
+        info_list = self.info.get(info_name, '').split(', ')
+        if info_list:
+            sql = 'INSERT OR IGNORE INTO {} (name) VALUES (?)'.format(info_name)
+            params = [(info,) for info in info_list]
+            n, records = execute_sql_kodi(sql, params, conn)
+            sql = 'INSERT OR IGNORE INTO {}_link ({}_id, media_id, media_type) VALUES (?, ?, ?)'.format(info_name, info_name)
+            params = [(execute_sql_kodi('select {}_id from {} where name = "{}" limit 1'.format(info_name, info_name, info))[1][0][0],
+                       self.VideoId, self.item.contentType) for info in info_list]
+            n, records = execute_sql_kodi(sql, params, conn)
 
     def set_movie(self):
         posters, fanarts = get_images(self.item)
