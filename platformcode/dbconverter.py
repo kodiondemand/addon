@@ -17,49 +17,33 @@ class addVideo(object):
         self.info = self.item.infoLabels
         self.videoExist, self.VideoId = self.get_id()
         self.message = ''
+        self.sql_actions = []
 
         if not self.videoExist:
             logger.debug('Add {}: {} to Kodi Library'.format(self.item.contentType, self.item.title))
             self.strPath, self.parentPath, self.strFilename, self.path = get_path(self.item)
             self.date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
-            ini = start = time()
+
             self.set_path()
-            self.message += 'path:{}'.format(time() - start)
-            start = time()
             self.set_sets()
-            self.message += ', sets:{}'.format(time() - start)
-            start = time()
             self.set_files()
-            self.message += ', files:{}'.format(time() - start)
-            start = time()
             self.set_rating()
-            self.message += ', rating:{}'.format(time() - start)
-            start = time()
             self.set_ids()
-            self.message += ', ids:{}'.format(time() - start)
-            start = time()
             self.set_actors()
-            self.message += ', actors:{}'.format(time() - start)
-            start = time()
             self.set_info('country')
-            self.message += ', country:{}'.format(time() - start)
-            start = time()
             self.set_info('genre')
-            self.message += ', genre:{}'.format(time() - start)
-            start = time()
             self.set_info('studio')
-            self.message += ', studio:{}'.format(time() - start)
-            start = time()
+
             if self.item.contentType == 'movie': self.set_movie()
             elif self.item.contentType == 'tvshow': self.set_tvshow()
             elif self.item.contentType == 'season': self.set_season()
             else: self.set_episode()
-            self.message += ', video:{}'.format(time() - start)
-            start = time()
+
             self.set_art()
-            self.message += ', art:{}'.format(time() - start)
-            # platformtools.dialog_ok('',self.message)
-            logger.debug('TEMPO TOTALE:',time() - ini, self.message)
+            for sql, params in self.sql_actions:
+                nun_records, records = execute_sql_kodi(sql, params, conn)
+
+
             payload = {
                 "jsonrpc": "2.0",
                 "method": "VideoLibrary.Scan",
@@ -67,14 +51,13 @@ class addVideo(object):
                 "id": 1
             }
             get_data(payload)
-        
         conn.close()
 
     def get_id(self):
         Type = 'id' + self.item.contentType.replace('tv','').capitalize()
         sql = 'select {} from {}_view where (uniqueid_value = "{}" and uniqueid_type = "kod")'.format(Type, self.item.contentType, self.item.videolibrary_id)
-        n, records = execute_sql_kodi(sql, conn=conn)
-        if n: return True, records[0][0]
+        nun_records, records = execute_sql_kodi(sql, conn=conn)
+        if nun_records: return True, records[0][0]
 
         sql = 'SELECT MAX({}) FROM {}_view'.format(Type, self.item.contentType)
         nun_records, records = execute_sql_kodi(sql, conn=conn)
@@ -99,21 +82,21 @@ class addVideo(object):
 
             sql = 'INSERT OR IGNORE INTO path (idPath, strPath, dateAdded, idParentPath, noUpdate) VALUES ( ?,  ?,  ?,  ?, ?)'
             params = (self.idPath, self.strPath, self.date, self.idParentPath, 1)
-            n, records = execute_sql_kodi(sql, params, conn)
+            self.sql_actions.append([sql, params])
 
     def set_sets(self):
         self.idSet = None
         if self.info.get('set'):
             sql = 'SELECT idSet from sets where (strSet = "{}") limit 1'.format(self.info.get('set'))
             # params = self.info.get('set')
-            n, records = execute_sql_kodi(sql, conn=conn)
+            nun_records, records = execute_sql_kodi(sql, conn=conn)
             if records:
                 self.idSet = records[0][0]
             else:
                 self.idSet = get_id('idSet', 'sets')
                 sql = 'INSERT OR IGNORE INTO sets (idSet, strSet, strOvervieW) VALUES ( ?,  ?,  ?)'
                 params = (self.idSet, self.info.get('set'), self.info.get('setoverview'))
-                n, records = execute_sql_kodi(sql, params, conn)
+                self.sql_actions.append([sql, params])
                 if self.info.get('setposters'):
                     self.art.append({'media_id':self.idSet, 'media_type': 'set', 'type':'poster', 'url':self.info.get('setposters')[0]})
                 if self.info.get('setfanarts'):
@@ -127,7 +110,7 @@ class addVideo(object):
         else:
             sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
             params = (self.idFile, self.idPath, self.strFilename, self.date)
-        n, records = execute_sql_kodi(sql, params, conn)
+        self.sql_actions.append([sql, params])
 
     def set_rating(self):
         self.rating_id = get_id('rating_id', 'rating')
@@ -136,7 +119,7 @@ class addVideo(object):
         media_type = self.item.contentType
         sql = 'INSERT OR IGNORE INTO rating (rating_id, media_id, media_type, rating_type, rating, votes) VALUES ( ?,  ?,  ?, ?,  ?,  ?)'
         params = (self.rating_id, self.VideoId, media_type, 'tmdb', rating, votes)
-        n, records = execute_sql_kodi(sql, params, conn)
+        self.sql_actions.append([sql, params])
 
     def set_ids(self):
         self.uniqueID = get_id('uniqueid_id', 'uniqueid')
@@ -144,14 +127,13 @@ class addVideo(object):
         self.uniqueIDType = 'kod'
         sql = 'INSERT OR IGNORE INTO uniqueid (uniqueid_id, media_id, media_type, value, type) VALUES ( ?,  ?,  ?,  ?,  ?)'
         params = [(self.uniqueID, self.VideoId, self.item.contentType, self.uniqueIdValue, self.uniqueIDType)]
-        n, records = execute_sql_kodi(sql, params, conn)
+        nun_records, records = execute_sql_kodi(sql, params, conn)
 
         i = self.uniqueID + 1
         for _id in ['imdb', 'tmdb', 'tvdb']:
             if _id +'_id' in self.info:
                 params.append((i, self.VideoId, self.item.contentType, self.info[_id + '_id'], _id))
-        if params:
-            n, records = execute_sql_kodi(sql, params, conn)
+        self.sql_actions.append([sql, params])
 
     def set_actors(self):
         actors = self.info.get('castandrole', [])
@@ -199,13 +181,13 @@ class addVideo(object):
             n, records = execute_sql_kodi(actor_link_sql, actor_link_params)
         if director_link_params:
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
-            n, records = execute_sql_kodi(sql, director_link_params)
+            self.sql_actions.append([sql, director_link_params])
 
         if writer_params:
-            n, records = execute_sql_kodi(actor_sql, writer_params)
+            self.sql_actions.append([actor_sql, writer_params])
         if writer_link_params:
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
-            n, records = execute_sql_kodi(sql, writer_link_params)
+            self.sql_actions.append([sql, writer_link_params])
 
     def set_info(self, info_name):
         info_list = self.info.get(info_name, '').split(', ')
@@ -244,16 +226,13 @@ class addVideo(object):
                   self.idPath, # c23
                   self.idSet, # idSet
                   self.info.get('premiered')) # premiered
-        n, records = execute_sql_kodi(sql, params, conn)
+
         if self.item.thumbnail:
             self.art.append({'media_id':self.VideoId, 'media_type': 'movie', 'type':'poster', 'url':self.item.thumbnail})
         if self.item.fanart:
             self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'fanart', 'url':self.item.fanart})
-        # payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": self.VideoId, "thumbnail":self.item.thumbnail, "art":{"poster": self.item.thumbnail, "fanart":self.item.fanart}}, "id": 1}
-        # get_data(payload)
-        # if self.idSet:
-        #     payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieSetDetails", "params": {"setid": self.idSet, "art":{"poster": self.info['setposters'][0], "fanart":self.info['setfanarts'][0]}}, "id": 1}
-        #     get_data(payload)
+
+        self.sql_actions.append([sql, params])
 
 
 
@@ -283,14 +262,14 @@ class addVideo(object):
                   self.idPath, # c23
                   self.idSet, # idSet
                   self.info.get('premiered')) # premiered
-        n, records = execute_sql_kodi(sql, params, conn)
+        nun_records, records = execute_sql_kodi(sql, params, conn)
 
     def set_art(self):
         params = []
         art_urls = []
         _id = get_id('art_id', 'art')
         sql = 'select media_id, media_type, type from art'
-        n, records = execute_sql_kodi(sql, conn=conn)
+        nun_records, records = execute_sql_kodi(sql, conn=conn)
         if records:
             art_urls = [[u[0], u[1], u[2]] for u in records]
         for art in self.art:
@@ -299,12 +278,14 @@ class addVideo(object):
                 _id += 1
         if params:
             sql = 'INSERT OR IGNORE INTO art (art_id, media_id, media_type, type, url) VALUES (?, ?, ?, ?, ?)'
-            n, records = execute_sql_kodi(sql, params, conn)
+            self.sql_actions.append([sql, params])
 
 
 def add_video(item):
     if item.contentType == 'movie':
+        start = time()
         addVideo(item=item)
+        logger.debug('TOTAL TIME:', time() - start)
     else:
         i = 0
         seasons = videolibrarydb['season'][item.videolibrary_id]
