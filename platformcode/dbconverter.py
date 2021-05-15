@@ -62,7 +62,7 @@ class addVideo(object):
         conn.close()
 
     def get_id(self):
-        Type = 'id' + self.item.contentType.replace('tv','').capitalize()
+        Type = 'id' + self.item.contentType.replace('tv', '').capitalize()
         sql = 'select {} from {}_view where (uniqueid_value = "{}" and uniqueid_type = "kod")'.format(Type, self.item.contentType, self.item.videolibrary_id)
         nun_records, records = execute_sql_kodi(sql, conn=conn)
         if nun_records: return True, records[0][0]

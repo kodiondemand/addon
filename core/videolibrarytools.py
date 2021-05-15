@@ -143,14 +143,11 @@ def save_movie(item, silent=False):
         logger.debug("contentTitle NOT FOUND")
         return 0, 0, -1, path  # Salimos sin guardar
 
-    scraper_return = scraper.find_and_set_infoLabels(item)
-    # support.dbg()
-
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the movie
     #  scraper_return = False: An item without movie information (it has been canceled in the window)
     #  item.infoLabels['code'] == "" : The required IMDB identifier was not found to continue, we quit
-    if not scraper_return or not item.infoLabels['code']:
+    if not item.infoLabels['code']:
         logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
         return 0, 0, -1, path
 
@@ -242,7 +239,7 @@ def save_movie(item, silent=False):
             logger.debug("Creating .nfo: " + nfo_path)
             inserted += 1
 
-        item = remove_host(item)
+        remove_host(item)
         # write on db
         if item.channel in channels and item.channel != 'download':
             channels_url = [u.url for u in channels[item.channel]]
@@ -349,17 +346,13 @@ def save_tvshow(item, episodelist, silent=False):
         return 0, 0, -1, path  # Salimos sin guardar
 
     contentTypeBackup = item.contentType  # Fix errors in some channels
-    if not item.infoLabels['code']:
-        scraper_return = scraper.find_and_set_infoLabels(item)
-    else:
-        scraper_return = True
     item.contentType = contentTypeBackup  # Fix errors in some channels
 
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the series
     #  scraper_return = False: An item without movie information (it has been canceled in the window)
     #  item.infoLabels['code'] == "" :T he required IMDB identifier was not found to continue, we quit
-    if not scraper_return or not item.infoLabels['code']:
+    if not item.infoLabels['code']:
         logger.debug("NOT FOUND IN SCRAPER OR DO NOT HAVE code")
         return 0, 0, -1, path
 
@@ -431,7 +424,7 @@ def save_tvshow(item, episodelist, silent=False):
         tvshow_item.lang_list = []
 
 
-    item = remove_host(item)
+    remove_host(item)
     item.renumber = add_renumber_options(item)
     # write on db
     if item.channel in channels and item.channel != 'download':
@@ -552,7 +545,7 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
                 # else:
                 epchannels = episode.get('channels',{})
 
-                e = remove_host(e)
+                remove_host(e)
                 e.contentTitle = e.infoLabels['title']
                 e.infoLabels = {}
 
@@ -882,17 +875,13 @@ def add_tvshow(item, channel=None):
 
 
 def remove_host(item):
-    try :
-        channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
-    except:
-        channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
+    if PY3:
+        import urllib.parse as urlparse  # It is very slow in PY2. In PY3 it is native
+    else:
+        import urlparse  # We use the native of PY2 which is faster
+    parsed_url = urlparse.urlparse(item.url)
+    item.url = urlparse.urlunparse(('', '', parsed_url.path, parsed_url.params, parsed_url.query, parsed_url.fragment))
 
-    host = httptools.downloadpage(channel.host, only_headers=True).url
-
-    if host.endswith('/'): host = host[:-1]
-    item.url = item.url.replace(host, '')
-
-    return item
 
 def get_id(item):
     _id = ''

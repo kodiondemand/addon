@@ -460,6 +460,7 @@ def scrape(func):
             logger.debug('PATRON= ', patron)
             if not data:
                 page = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True)
+                item.url = page.url  # might be a redirect
                 data = page.data
             data = html_uniform(data)
             scrapingTime = time()

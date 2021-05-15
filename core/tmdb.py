@@ -471,6 +471,9 @@ def find_and_set_infoLabels(item):
 
     results = otmdb_global.get_list_results()
     if len(results) > 1:
+        # select tmdb_id at the first position
+        if item.infoLabels['selected_tmdb_id']:
+            results.insert(0, results.pop([r.get('id') for r in results].index(int(item.infoLabels['selected_tmdb_id']))))
         tmdb_result = platformtools.show_video_info(results, item=item, caption= content_type % title)
     elif len(results) > 0:
         tmdb_result = results[0]

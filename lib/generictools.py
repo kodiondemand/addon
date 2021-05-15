@@ -26,7 +26,7 @@ intervenido_sucuri = 'Access Denied - Sucuri Website Firewall'
 
 def update_title(item):
     logger.debug()
-    from core import scraper,support
+    from core import scraper
 
 
     """
@@ -104,7 +104,7 @@ def update_title(item):
             if item.channel == channel_py:  # If it is a NewPct1 movie, we put the name of the clone
                 item.channel = scrapertools.find_single_match(item.url, r'http.?\:\/\/(?:www.)?(\w+)\.\w+\/')
         # We delete the IDs and the year to force TMDB to ask us
-        if item.infoLabels['tmdb_id'] or item.infoLabels['tmdb_id'] == None: item.infoLabels['tmdb_id'] = ''
+        if item.infoLabels['tmdb_id'] or item.infoLabels['tmdb_id'] == None: item.infoLabels['selected_tmdb_id'] = item.infoLabels['tmdb_id']; item.infoLabels['tmdb_id'] = ''
         if item.infoLabels['tvdb_id'] or item.infoLabels['tvdb_id'] == None: item.infoLabels['tvdb_id'] = ''
         if item.infoLabels['imdb_id'] or item.infoLabels['imdb_id'] == None: item.infoLabels['imdb_id'] = ''
         if item.infoLabels['season']: del item.infoLabels['season'] # It works wrong with num. seasonal. Then we restore it

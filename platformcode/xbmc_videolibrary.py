@@ -1230,15 +1230,15 @@ def execute_sql_kodi(sql, params=None, conn=None):
                     cursor.execute(sql, params)
             else:
                 cursor.execute(sql)
-            conn_internal.commit()
 
-            records = cursor.fetchall()
             if sql.lower().startswith("select"):
+                records = cursor.fetchall()
                 nun_records = len(records)
                 if nun_records == 1 and records[0][0] is None:
                     nun_records = 0
                     records = []
             else:
+                conn_internal.commit()
                 nun_records = conn.total_changes
 
             if not conn:

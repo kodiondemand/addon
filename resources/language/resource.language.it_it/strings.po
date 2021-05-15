@@ -4852,8 +4852,8 @@ msgid "Searching in Mymovies"
 msgstr "Ricerca in Mymovies"
 
 msgctxt "#70513"
-msgid ""
-msgstr ""
+msgid "Choose another content, if it was wrongly identified"
+msgstr "Scegli un altro contenuto, se è stato erroneamente identificato"
 
 msgctxt "#70514"
 msgid ""
