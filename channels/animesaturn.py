@@ -8,7 +8,27 @@ from core import support
 from platformcode import config
 
 host = support.config.get_channel_url()
-headers={'X-Requested-With': 'XMLHttpRequest'}
+__channel__ = 'animesaturn'
+cookie = support.config.get_setting('cookie', __channel__)
+headers = {'X-Requested-With': 'XMLHttpRequest', 'Cookie': cookie}
+
+
+def get_cookie(data):
+    global cookie, headers
+    cookie = support.match(data, patron=r'document.cookie="([^\s]+)').match
+    support.config.set_setting('cookie', cookie, __channel__)
+    headers = [['Cookie', cookie]]
+
+
+def get_data(item):
+    # support.dbg()
+    # url = support.match(item.url, headers=headers, follow_redirects=True, only_headers=True).url
+    data = support.match(item.url, headers=headers, follow_redirects=True).data
+    if 'ASCookie' in data:
+        get_cookie(data)
+        data = get_data(item)
+    return data
+
 
 @support.menu
 def mainlist(item):
@@ -96,6 +116,9 @@ def peliculas(item):
     action = 'check'
     page = None
     post = "page=" + str(item.page if item.page else 1) if item.page and int(item.page) > 1 else None
+    data = get_data(item)
+
+    # debug = True
 
     if item.args == 'top':
         data = item.other

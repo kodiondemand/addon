@@ -12,9 +12,9 @@ cookie = support.config.get_setting('cookie', __channel__)
 headers = [['Cookie', cookie]]
 
 
-def get_cookie():
+def get_cookie(data):
     global cookie, headers
-    cookie = support.match(host, patron=r'document.cookie="([^\s]+)').match
+    cookie = support.match(data, patron=r'document.cookie="([^\s]+)').match
     support.config.set_setting('cookie', cookie, __channel__)
     headers = [['Cookie', cookie]]
 
@@ -24,8 +24,8 @@ def get_data(item):
     url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
     data = support.match(url, headers=headers, follow_redirects=True).data
     if 'AWCookieVerify' in data:
-        get_cookie()
-        get_data(item)
+        get_cookie(data)
+        data = get_data(item)
     return data
 
 
