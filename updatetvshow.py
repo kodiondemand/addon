@@ -55,23 +55,9 @@ def search_paths(Id):
 
 def execute_sql(sql):
     logger.debug()
-    file_db = ""
+    from platformcode.xbmc_videolibrary import get_file_db
+    file_db = get_file_db()
     records = None
-
-    # We look for the archive of the video database according to the version of kodi
-    video_db = config.get_platform(True)['video_db']
-    if video_db:
-        file_db = os.path.join(xbmc.translatePath("special://userdata/Database"), video_db)
-
-    # alternative method to locate the database
-    if not file_db or not os.path.exists(file_db):
-        file_db = ""
-        for f in os.path.listdir(xbmc.translatePath("special://userdata/Database")):
-            path_f = os.path.join(xbmc.translatePath("special://userdata/Database"), f)
-
-            if os.path.pathoos.pathols.isfile(path_f) and f.lower().startswith('myvideos') and f.lower().endswith('.db'):
-                file_db = path_f
-                break
 
     if file_db:
         logger.debug("DB file: %s" % file_db)

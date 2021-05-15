@@ -506,7 +506,7 @@ def play_from_library(item):
                             path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
                             name = jsontools.load(open(path, "rb").read())['name']
                             if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-                            it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s [%s]' % (name, quality, item.contentTitle, get_channel_parameters(item.contentChannel)['title']))
+                            it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s [%s]' % (name, quality, item.contentTitle, get_channel_parameters(item.channel).get('title', '')))
                             it.setArt({'thumb':item.thumbnail})
                             options.append(it)
                         else:

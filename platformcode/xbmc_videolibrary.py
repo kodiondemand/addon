@@ -399,7 +399,7 @@ def set_watched_on_kod(data):
             season = records[0][0]
             seasons = videolibrarydb['seasons'].get(_id, {})
             item = seasons.get(season, None)
-            item.all_ep
+            # item.all_ep
 
     else:
         # support.dbg()
@@ -1170,21 +1170,11 @@ def check_db(path):
     return ret
 
 
-def execute_sql_kodi(sql, params=None):
+def get_file_db():
     """
-    Run sql query against kodi database
-    @param sql: Valid sql query
-    @type sql: str
-    @return: Number of records modified or returned by the query
-    @rtype nun_records: int
-    @return: list with the query result
-    @rtype records: list of tuples
+    Return the path of MyVideos kodi db
     """
-    logger.debug()
-    file_db = ""
-    nun_records = 0
-    records = None
-
+    file_db = ''
     # We look for the archive of the video database according to the version of kodi
     video_db = config.get_platform(True)['video_db']
     if video_db:
@@ -1199,14 +1189,38 @@ def execute_sql_kodi(sql, params=None):
             if filetools.isfile(path_f) and f.lower().startswith('myvideos') and f.lower().endswith('.db'):
                 file_db = path_f
                 break
+    return file_db
+
+
+def execute_sql_kodi(sql, params=None, conn=None):
+    """
+    Run sql query against kodi database
+    @param sql: Valid sql query
+    @type sql: str
+    @param params: Parameters to insert instead of ? in sql
+    @type params: list, tuple
+    @param conn: sqlite3 connection to use, reusing same one increase performance on multiple calls
+    @type conn: sqlite3.Connection
+    @return: Number of records modified or returned by the query
+    @rtype nun_records: int
+    @return: list with the query result
+    @rtype records: list of tuples
+    """
+    logger.debug()
+    file_db = get_file_db()
+    nun_records = 0
+    records = None
 
     if file_db:
         logger.debug("DB file: %s" % file_db)
-        conn = None
+        conn_internal = None
         try:
-            import sqlite3
-            conn = sqlite3.connect(file_db)
-            cursor = conn.cursor()
+            if not conn:
+                import sqlite3
+                conn_internal = sqlite3.connect(file_db)
+            else:
+                conn_internal = conn
+            cursor = conn_internal.cursor()
 
             logger.debug("Running sql: %s" % sql)
             if params:
@@ -1216,7 +1230,7 @@ def execute_sql_kodi(sql, params=None):
                     cursor.execute(sql, params)
             else:
                 cursor.execute(sql)
-            conn.commit()
+            conn_internal.commit()
 
             records = cursor.fetchall()
             if sql.lower().startswith("select"):
@@ -1227,13 +1241,14 @@ def execute_sql_kodi(sql, params=None):
             else:
                 nun_records = conn.total_changes
 
-            conn.close()
+            if not conn:
+                conn_internal.close()
             logger.debug("Query executed. Records: %s" % nun_records)
 
         except:
             logger.error("Error executing sql query")
-            if conn:
-                conn.close()
+            if not conn and conn_internal:
+                conn_internal.close()
 
     else:
         logger.debug("Database not found")
