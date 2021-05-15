@@ -40,9 +40,14 @@ class addVideo(object):
             else: self.set_episode()
 
             self.set_art()
-            for sql, params in self.sql_actions:
-                nun_records, records = execute_sql_kodi(sql, params, conn)
 
+            cursor = conn.cursor()
+            for sql, params in self.sql_actions:
+                if type(params) == list:
+                    cursor.executemany(sql, params)
+                else:
+                    cursor.execute(sql, params)
+            conn.commit()
 
             payload = {
                 "jsonrpc": "2.0",
