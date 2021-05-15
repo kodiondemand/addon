@@ -269,11 +269,11 @@ def save_movie(item, silent=False):
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
         # Update Kodi Library
-        if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
-            from platformcode.xbmc_videolibrary import update
-            update(MOVIES_PATH)
-            # from platformcode.xbmc_videolibrary import update_moviedb
-            # update_moviedb(movie_item)
+        from platformcode.dbconverter import add_video
+        add_video(movie_item)
+        # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
+            # from platformcode.xbmc_videolibrary import update
+            # update(MOVIES_PATH)
         return inserted, overwritten, failed, path
 
     # If we get to this point it is because something has gone wrong
