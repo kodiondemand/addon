@@ -49,13 +49,15 @@ class addVideo(object):
                     cursor.execute(sql, params)
             conn.commit()
 
-            payload = {
-                "jsonrpc": "2.0",
-                "method": "VideoLibrary.Scan",
-                "directory": self.strPath,
-                "id": 1
-            }
-            get_data(payload)
+            xbmc.executebuiltin('ReloadSkin()')
+
+            # payload = {
+            #     "jsonrpc": "2.0",
+            #     "method": "VideoLibrary.Scan",
+            #     "directory": self.strPath,
+            #     "id": 1
+            # }
+            # get_data(payload)
         conn.close()
 
     def get_id(self):
