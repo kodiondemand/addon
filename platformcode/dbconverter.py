@@ -24,8 +24,9 @@ class addVideo(object):
             self.strPath, self.parentPath, self.strFilename, self.path = get_path(self.item)
             self.date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
 
-            self.set_path()
-            self.set_sets()
+            if self.item.contentType == 'movie':
+                self.set_path()
+                self.set_sets()
             self.set_files()
             self.set_rating()
             self.set_ids()
@@ -134,12 +135,13 @@ class addVideo(object):
         self.uniqueIDType = 'kod'
         sql = 'INSERT OR IGNORE INTO uniqueid (uniqueid_id, media_id, media_type, value, type) VALUES ( ?,  ?,  ?,  ?,  ?)'
         params = [(self.uniqueID, self.VideoId, self.item.contentType, self.uniqueIdValue, self.uniqueIDType)]
-        nun_records, records = execute_sql_kodi(sql, params, conn)
 
         i = self.uniqueID + 1
+
         for _id in ['imdb', 'tmdb', 'tvdb']:
             if _id +'_id' in self.info:
                 params.append((i, self.VideoId, self.item.contentType, self.info[_id + '_id'], _id))
+                i += 1
         self.sql_actions.append([sql, params])
 
     def set_actors(self):
@@ -182,16 +184,16 @@ class addVideo(object):
             writer_link_params.append((actor_id, self.VideoId, self.item.contentType))
 
         if actor_link_params:
-            self.sql_actions.append((actor_link_sql, actor_link_params))
+            self.sql_actions.append([actor_link_sql, actor_link_params])
         if director_link_params:
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
-            self.sql_actions.append((sql, director_link_params))
+            self.sql_actions.append([sql, director_link_params])
 
         if writer_params:
-            self.sql_actions.append((actor_sql, writer_params))
+            self.sql_actions.append([actor_sql, writer_params])
         if writer_link_params:
             sql = 'INSERT OR IGNORE INTO director_link (actor_id, media_id, media_type) VALUES (?, ?, ?)'
-            self.sql_actions.append((sql, writer_link_params))
+            self.sql_actions.append([sql, writer_link_params])
 
     def set_info(self, info_name):
         info_list = self.info.get(info_name, '').split(', ')
@@ -202,7 +204,7 @@ class addVideo(object):
             sql = 'INSERT OR IGNORE INTO {}_link ({}_id, media_id, media_type) VALUES (?, ?, ?)'.format(info_name, info_name)
             params = [(execute_sql_kodi('select {}_id from {} where name = "{}" limit 1'.format(info_name, info_name, info))[1][0][0],
                        self.VideoId, self.item.contentType) for info in info_list]
-            self.sql_actions.append((sql, params))
+            self.sql_actions.append([sql, params])
 
     def set_movie(self):
         posters, fanarts = get_images(self.item)
