@@ -389,6 +389,8 @@ def downloadpage(url, **opt):
             req = requests.Response()
             if not opt.get('ignore_response_code', False) and not proxy_data.get('stat', ''):
                 response['data'] = ''
+                response['url'] = ''
+                response['headers'] = {}
                 response['success'] = False
                 info_dict.append(('Success', 'False'))
                 import traceback
