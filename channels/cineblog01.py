@@ -63,7 +63,7 @@ def newest(categoria):
         else:
             item.contentType = 'movie'
             item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
-        item.args = "newest"
+            item.args = "newest"
         return peliculas(item)
     # Continua la ricerca in caso di errore
     except:

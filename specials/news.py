@@ -285,7 +285,7 @@ def novedades(item):
             else:
                 if mode == 'normal':
                     logger.debug("Obteniendo novedades de channel_id=" + channel_id)
-                    progreso.update(percentage, "", config.get_localized_string(60520) % channel_title)
+                    progreso.update(percentage, config.get_localized_string(60520) % channel_title)
                 get_newest(channel_id, item.extra)
 
         # Multi Thread mode: wait for all threads to finish
