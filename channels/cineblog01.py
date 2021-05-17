@@ -98,19 +98,19 @@ def peliculas(item):
                  'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
                  'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
                  'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
-    # debug = True
+
     if 'newest' in item.args:
         pagination = ''
         patronBlock = r'sequex-page-left(?P<block>.*?)sequex-page-right'
         if '/serietv/' not in item.url:
-            patron = r'src="?(?P<thumb>[^ "]+)"? alt="?(?P<title>.*?)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?\((?P<year>\d{4})[^\)]*\)[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>\w+) [^ ]+ DURATA (?P<duration>[0-9]+)[^ ]+ [^ ]+ [A-Z ]+ (?P<plot>[^<]+)<'
+            patron = r'src="?(?P<thumb>[^ "]+)"? alt="?(?P<title>.*?)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?(?:\[(?P<quality2>[a-zA-Z/]+)\]\s*)?\((?P<year>\d{4})[^\)]*\)[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>\w+) [^ ]+ DURATA (?P<duration>[0-9]+)[^ ]+ [^ ]+ [A-Z ]+ (?P<plot>[^<]+)<'
             action = 'findvideos'
         else:
             patron = r'src=(?:")?(?P<thumb>[^ "]+)(?:")? alt=(?:")?(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>[^\(]*)\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
             action = 'episodios'
 
     elif '/serietv/' not in item.url:
-        patron = r'<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[A-Za-z0-9/-]+)])? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
+        patron = r'<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?(?:\[(?P<quality2>[a-zA-Z/]+)\]\s*)? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
         action = 'findvideos'
 
     else:
@@ -119,6 +119,12 @@ def peliculas(item):
         item.contentType = 'tvshow'
 
     patronNext = '<a class="?page-link"? href="?([^>"]+)"?><i class="fa fa-angle-right">'
+
+    def itemHook(item):
+        if item.quality2:
+            item.quality = item.quality2
+            item.title += support.typo(item.quality2, '_ [] color kod')
+        return item
 
     return locals()
 
