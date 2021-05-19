@@ -149,7 +149,7 @@
         <setting label="30024" type="lsep"/>
         <setting id="quick_menu" type="bool" label="60360" default="true"/>
         <!-- <setting id="side_menu" type="bool" label="70737" default="false"/> -->
-        <setting id="kod_menu" type="bool" label="60026" default="true"/>
+<!--        <setting id="kod_menu" type="bool" label="60026" default="true"/>-->
         <setting id="infoplus" type="bool" label="70151" default="false"/>
         <!-- <setting id="infoplus_set" type="bool" label="70128" visible="eq(-1,true)" default="false" subsetting="true"/> -->
         <setting id="extended_info" type="bool" label="70152" default="false"/>
