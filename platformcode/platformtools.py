@@ -317,13 +317,6 @@ def render_items(itemlist, parent_item):
     default_fanart = config.get_fanart()
     def_context_commands = shortcuts.context()
 
-    # for adding extendedinfo to contextual menu, if it's used
-    has_extendedinfo = xbmc.getCondVisibility('System.HasAddon(script.extendedinfo)')
-    # for adding superfavourites to contextual menu, if it's used
-    sf_file_path = xbmc.translatePath("special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py")
-    check_sf = os.path.exists(sf_file_path)
-    superfavourites = check_sf and xbmc.getCondVisibility('System.HasAddon("plugin.program.super.favourites")')
-
     # if there's no item, add "no elements" item
     if not len(itemlist):
         itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
@@ -339,8 +332,11 @@ def render_items(itemlist, parent_item):
         if not item.title:
             item.title = ''
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
-        if item.action in ['play', '']:
-            item.folder = False
+        if item.folder == "":  # not set
+            if item.action in ['play', '']:
+                item.folder = False
+            else:
+                item.folder = True
         if item.fanart == "":
             item.fanart = parent_item.fanart
         if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
@@ -365,8 +361,7 @@ def render_items(itemlist, parent_item):
         if item.banner: art['banner'] = item.banner
         listitem.setArt(art)
 
-        if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
-            listitem.setProperty('IsPlayable', 'true')
+        listitem.setProperty('IsPlayable', str(config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo).lower())
 
         if item.infoLabels.get('castandrole'):
             cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
@@ -379,7 +374,7 @@ def render_items(itemlist, parent_item):
 
         # context menu
         if parent_item.channel != 'special':
-            context_commands = def_context_commands + set_context_commands(item, item_url, parent_item, has_extendedinfo=has_extendedinfo, superfavourites=superfavourites)
+            context_commands = def_context_commands + set_context_commands(item, item_url, parent_item)
         else:
             context_commands = def_context_commands
         listitem.addContextMenuItems(context_commands)
@@ -528,13 +523,12 @@ def set_infolabels(listitem, item, player=False):
                        'top250': 'top250', 'tracknumber': 'tracknumber', 'trailer': 'trailer', 'thumbnail': 'None',
                        'tvdb_id': 'None', 'tvshowtitle': 'tvshowtitle', 'type': 'None', 'userrating': 'userrating',
                        'url_scraper': 'None', 'votes': 'votes', 'writer': 'writer', 'year': 'year'}
-
-    if item.infoLabels:
-        try:
-            infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None' and label_tag in infoLabels_dict}
-            listitem.setInfo("video", infoLabels_kodi)
-        except:
-            listitem.setInfo("video", item.infoLabels)
+    # if item.infoLabels:
+    try:
+        infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None' and label_tag in infoLabels_dict}
+        listitem.setInfo("video", infoLabels_kodi)
+    except:
+        listitem.setInfo("video", item.infoLabels)
             # logger.error(item.infoLabels)
         # if item.infoLabels.get('castandrole'):
         #     cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
@@ -614,25 +608,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
-        # ExtendedInfo: If the addon is installed and a series of conditions are met
-        if kwargs.get('has_extendedinfo') \
-                and config.get_setting("extended_info") == True:
-            if item.contentType == "episode" and item.contentEpisodeNumber and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
-                param = "tvshow_id =%s, tvshow=%s, season=%s, episode=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason, item.contentEpisodeNumber)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedepisodeinfo,%s)" % param))
-
-            elif item.contentType == "season" and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
-                param = "tvshow_id =%s,tvshow=%s, season=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=seasoninfo,%s)" % param))
-
-            elif item.contentType == "tvshow" and (item.infoLabels['tmdb_id'] or item.infoLabels['tvdb_id'] or item.infoLabels['imdb_id'] or item.contentSerieName):
-                param = "id =%s,tvdb_id=%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['tvdb_id'], item.infoLabels['imdb_id'], item.contentSerieName)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedtvinfo,%s)" % param))
-
-            elif item.contentType == "movie" and (item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.contentTitle):
-                param = "id =%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['imdb_id'], item.contentTitle)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedinfo,%s)" % param))
-
         # InfoPlus
         if config.get_setting("infoplus"):
             #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
@@ -642,8 +617,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
         # Open in browser and previous menu
         if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
-            if parent_item.action != "mainlist":
-                context_commands.insert(0, (config.get_localized_string(60349), "Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
             context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         # Add to kodfavoritos (My links)
@@ -702,9 +675,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # Search trailer...
         if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
-
-        if kwargs.get('superfavourites'):
-            context_commands.append((config.get_localized_string(60361), "RunScript(special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py)"))
 
     if config.dev_mode():
         context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
