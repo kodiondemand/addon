@@ -6,7 +6,7 @@
 # standard_library.install_aliases()
 #from builtins import str
 from core.item import Item
-import sys, os, threading, time, re, math, xbmc, xbmcgui
+import sys, os, threading, time, re, math, xbmc, xbmcgui, sqlite3
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -263,78 +263,30 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
-    
-    # logger.debug("item:\n" + item.tostring('\n'))
-    payload_f = ''
-    pos = item.itemlistPosition
-    winid = xbmcgui.getCurrentWindowId()
-    win = xbmcgui.Window(winid)
-    cid = win.getFocusId()
-    ctl = win.getControl(cid)
+    view = 'episode' if item.contentType != 'movie' else 'movie'
+    path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
 
-    if item.contentType == "movie":
-        movieid = 0
-        payload = {"jsonrpc": "2.0", "method": "VideoLibrary.GetMovies",
-                   "params": {"properties": ["title", "playcount", "originaltitle", "file"]},
-                   "id": 1}
+    request_season = ''
+    request_episode = ''
+    if item.contentSeason: request_season = ' and c12= {}'.format(item.contentSeason)
+    if item.contentEpisodeNumber: request_episode = ' and strFileName= "{}"'.format(item.strm_path.split('\\')[-1].split('/')[-1])
+    sql = 'select idFile from {}_view where strPath like "{}"{}{}'.format(view, path, request_episode, request_season)
 
-        data = get_data(payload)
-        if 'result' in data and "movies" in data['result']:
+    n, r = execute_sql_kodi(sql)
+    if r:
+        sql = 'update files set playCount= {} where idFile= {}'
+        sql_actions = [sql.format(value, i[0]) for i in r]
+        conn = sqlite3.connect(get_file_db())
+        cursor = conn.cursor()
 
-            if item.strm_path:              # If Item is from an episode
-                filename = filetools.basename(item.strm_path)
-                head, tail = filetools.split(filetools.split(item.strm_path)[0])
-            else:                           # If Item is from the Series
-                filename = filetools.basename(item.path)
-                head, tail = filetools.split(filetools.split(item.path)[0])
-            path = filetools.join(tail, filename)
-
-            for d in data['result']['movies']:
-                if d['file'].replace("/", "\\").endswith(path.replace("/", "\\")):
-                    # logger.debug("I mark the movie as a view")
-                    movieid = d['movieid']
-                    break
-
-        if movieid != 0:
-            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": movieid, "playcount": value}, "id": 1}
-
-    else:  # item.contentType != 'movie'
-        episodeid = 0
-        payload = {"jsonrpc": "2.0", "method": "VideoLibrary.GetEpisodes",
-                   "params": {"properties": ["title", "playcount", "showtitle", "file", "tvshowid"]},
-                   "id": 1}
-
-        data = get_data(payload)
-        if 'result' in data and "episodes" in data['result']:
-
-            if item.strm_path:              # If Item is from an episode
-                filename = filetools.basename(item.strm_path)
-                head, tail = filetools.split(filetools.split(item.strm_path)[0])
-            else:                           # If Item is from the Series
-                filename = filetools.basename(item.base_name)
-                head, tail = filetools.split(filetools.split(item.base_name)[0])
-            path = filetools.join(tail, filename)
-
-            for d in data['result']['episodes']:
-                if d['file'].replace("/", "\\").endswith(path.replace("/", "\\")):
-                    # logger.debug("I mark the episode as seen")
-                    episodeid = d['episodeid']
-                    break
-
-        if episodeid != 0:
-            payload_f = {"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": episodeid, "playcount": value}, "id": 1}
-
-
-    if payload_f:
-        # Mark as seen
-        data = get_data(payload_f)
-        # logger.debug(str(data))
-        if data['result'] != 'OK':
-            logger.error("ERROR putting content as viewed")
-
-    xbmc.sleep(700)
-    ctl.selectItem(pos)
-
+        for sql in sql_actions:
+            if type(sql) == list:
+                cursor.executemany(sql)
+            else:
+                cursor.execute(sql)
+        conn.commit()
+        conn.close()
+    platformtools.itemlist_refresh()
 
 def mark_season_as_watched_on_kodi(item, value=1):
     """
@@ -359,20 +311,16 @@ def mark_season_as_watched_on_kodi(item, value=1):
     if item.contentSeason > -1:
         request_season = ' and c12= %s' % item.contentSeason
 
-    tvshows_path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"))
-    item_path1 = "%" + item.base_name.replace("\\\\", "\\").replace(tvshows_path, "")
-    if item_path1[:-1] != "\\":
-        item_path1 += "\\"
-    item_path2 = item_path1.replace("\\", "/")
+    tvshows_path = filetools.join(config.config.get_videolibrary_config_path(), config.get_setting("folder_tvshows"))
 
-    sql = 'update files set playCount= %s where idFile in (select idfile from episode_view where (strPath like "%s" or strPath like "%s")%s)' % (value, item_path1, item_path2, request_season)
+    sql = 'update files set playCount= %s where idFile in (select idfile from episode_view where (strPath like "%s" or strPath like "%s")%s)' % (value, request_season)
 
     execute_sql_kodi(sql)
 
 def set_watched_on_kod(data):
-    # support.dbg()
     from specials import videolibrary
     from core.videolibrarytools import videolibrarydb
+    # support.dbg()
 
     data = jsontools.load(data)
     Type = data.get('item', {}).get('type','')
@@ -387,17 +335,17 @@ def set_watched_on_kod(data):
             _id = scrapertools.find_single_match(records[0][0], r'\[([^\]]+)')
             episode = scrapertools.find_single_match(records[0][0], r'(\d+x\d+)')
             season = episode.split('x')[0]
-            episodes = videolibrarydb['episodes'].get(_id, {})
+            episodes = videolibrarydb['episode'].get(_id, {})
             item = episodes.get(episode, {}).get('item', None)
 
-    if Type in ['season']:
+    elif Type in ['season']:
         sql = 'select season, strPath from {}_view where (id{} like "{}")'.format(Type, Type.capitalize(), ID)
         n, records = execute_sql_kodi(sql)
         if records:
             logger.debug('RECORDS' , records)
             _id = scrapertools.find_single_match(records[0][1], r'\[([^\]]+)')
             season = records[0][0]
-            seasons = videolibrarydb['seasons'].get(_id, {})
+            seasons = videolibrarydb['season'].get(_id, {})
             item = seasons.get(season, None)
             # item.all_ep
 
@@ -432,6 +380,7 @@ def set_watched_on_kod(data):
 def mark_content_as_watched_on_kod(path):
     from specials import videolibrary
     from core import videolibrarytools
+    
 
     """
         mark the entire series or movie as viewed or unseen in the Alpha Video Library based on their status in the Kodi Video Library
@@ -446,7 +395,7 @@ def mark_content_as_watched_on_kod(path):
     VIDEOLIBRARY_PATH = config.get_videolibrary_config_path()
     if not VIDEOLIBRARY_PATH:
         return
-
+    # set_watched_on_kod
     # We can only mark the content as a view in the Kodi database if the database is local, in case of sharing database this functionality will not work
     # if config.get_setting("db_mode", "videolibrary"):
     #    return

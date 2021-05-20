@@ -193,18 +193,39 @@ def save_movie(item, silent=False):
         if not head_nfo:
             head_nfo = scraper.get_nfo(item)
 
+        # get extra info from fanart tv
+        # support.dbg()
+        extra_info = get_fanart_tv(item)
+        if not item.infoLabels.get('posters'): item.infoLabels['posters'] = []
+        item.infoLabels['posters'] += extra_info['poster']
+        if not item.infoLabels.get('fanarts'): item.infoLabels['fanarts'] = []
+        item.infoLabels['fanarts'] += extra_info['fanart']
+        if not item.infoLabels.get('clearlogos'): item.infoLabels['clearlogos'] = []
+        item.infoLabels['clearlogos'] += extra_info['clearlogo']
+        if not item.infoLabels.get('cleararts'): item.infoLabels['cleararts'] = []
+        item.infoLabels['cleararts'] += extra_info['clearart']
+        if not item.infoLabels.get('landscapes'): item.infoLabels['landscapes'] = []
+        item.infoLabels['landscapes'] += extra_info['landscape']
+        if not item.infoLabels.get('banners'): item.infoLabels['banners'] = []
+        item.infoLabels['banners'] += extra_info['banner']
+
         # Make or update Videolibrary Movie Item
         movie_item.channel = "videolibrary"
         movie_item.action = 'findvideos'
         movie_item.infoLabels = item.infoLabels
+        movie_item.infoLabels['playcount'] = 0
         if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
         if not movie_item.title: movie_item.title = item.contentTitle
         if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
         if not movie_item.strm_path: movie_item.strm_path = strm_path
         if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
         if not movie_item.base_name: movie_item.base_name = base_name
-        if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
         if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
+        if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
+        if not movie_item.landscape: movie_item.landscape = item.infoLabels['landscapes'][0] if item.infoLabels['landscapes'] else item.infoLabels['fanart']
+        if not movie_item.banner and item.infoLabels['banners']: movie_item.clearart = item.infoLabels['banners'][0]
+        if not movie_item.clearart and item.infoLabels['cleararts']: movie_item.clearart = item.infoLabels['cleararts'][0]
+        if not movie_item.clearlogo and item.infoLabels['clearlogos']: movie_item.clearlogo = item.infoLabels['clearlogos'][0]
         if not movie_item.playtime: movie_item.playtime = 0,
         if not movie_item.playcounts: movie_item.playcounts = 0,
         if not movie_item.prefered_lang: movie_item.prefered_lang = ''
@@ -266,8 +287,8 @@ def save_movie(item, silent=False):
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
         # Update Kodi Library
-        from platformcode.dbconverter import add_video
-        add_video(movie_item)
+        # from platformcode.dbconverter import add_video
+        # add_video(movie_item)
         # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
@@ -334,7 +355,7 @@ def save_tvshow(item, episodelist, silent=False):
     @rtype path: str
     @return: serial directory
     """
-    logger.debug()
+
     inserted = 0
     overwritten = 0
     failed = 0
@@ -394,35 +415,42 @@ def save_tvshow(item, episodelist, silent=False):
         head_nfo = scraper.get_nfo(item)
     if not head_nfo: return 0, 0, -1, ''
 
+    extra_info = get_fanart_tv(item)
+    if not item.infoLabels.get('posters'): item.infoLabels['posters'] = []
+    item.infoLabels['posters'] += extra_info['poster'].get('all',[])
+    if not item.infoLabels.get('fanarts'): item.infoLabels['fanarts'] = []
+    item.infoLabels['fanarts'] += extra_info['fanart']
+    if not item.infoLabels.get('clearlogos'): item.infoLabels['clearlogos'] = []
+    item.infoLabels['clearlogos'] += extra_info['clearlogo']
+    if not item.infoLabels.get('cleararts'): item.infoLabels['cleararts'] = []
+    item.infoLabels['cleararts'] += extra_info['clearart']
+    if not item.infoLabels.get('landscapes'): item.infoLabels['landscapes'] = []
+    item.infoLabels['landscapes'] += extra_info['landscape'].get('all',[])
+    if not item.infoLabels.get('banners'): item.infoLabels['banners'] = []
+    item.infoLabels['banners'] += extra_info['banner'].get('all',[])
+
 
     item.infoLabels['mediatype'] = 'tvshow'
     item.contentType = 'tvshow'
     item.infoLabels['title'] = item.contentSerieName
     tvshow_item.infoLabels = item.infoLabels
+    if not tvshow_item.infoLabels.get('playcount'): tvshow_item.infoLabels['playcount'] = 0
     tvshow_item.channel = 'videolibrary'
     tvshow_item.action = 'get_seasons'
     tvshow_item.nfo_path = nfo_path
-    if not tvshow_item.head_nfo:
-        tvshow_item.head_nfo = head_nfo
-    if not tvshow_item.title:
-        tvshow_item.title = item.contentSerieName
-    if not tvshow_item.videolibrary_id:
-        tvshow_item.videolibrary_id = _id
-    if not tvshow_item.fanart:
-        tvshow_item.fanart = item.infoLabels['fanart']
-    if not tvshow_item.thumbnail:
-        tvshow_item.thumbnail = item.infoLabels['thumbnail']
-    if not tvshow_item.base_name:
-        tvshow_item.base_name = base_name
-    if tvshow_item.active == '':
-        tvshow_item.active = True
-    if not tvshow_item.playcounts:
-        tvshow_item.playcounts = 0,
-    if not tvshow_item.prefered_lang:
-        tvshow_item.prefered_lang = ''
-    if not tvshow_item.lang_list:
-        tvshow_item.lang_list = []
-
+    if not tvshow_item.head_nfo: tvshow_item.head_nfo = head_nfo
+    if not tvshow_item.title: tvshow_item.title = item.contentSerieName
+    if not tvshow_item.videolibrary_id: tvshow_item.videolibrary_id = _id
+    if not tvshow_item.thumbnail: tvshow_item.thumbnail = item.infoLabels['thumbnail']
+    if not tvshow_item.fanart: tvshow_item.fanart = item.infoLabels['fanart']
+    if not tvshow_item.landscape: tvshow_item.landscape = item.infoLabels['landscapes'][0] if item.infoLabels['landscapes'] else item.infoLabels['fanart']
+    if not tvshow_item.banner and item.infoLabels['banners']: tvshow_item.clearart = item.infoLabels['banners'][0]
+    if not tvshow_item.clearart and item.infoLabels['cleararts']: tvshow_item.clearart = item.infoLabels['cleararts'][0]
+    if not tvshow_item.clearlogo and item.infoLabels['clearlogos']: tvshow_item.clearlogo = item.infoLabels['clearlogos'][0]
+    if not tvshow_item.base_name: tvshow_item.base_name = base_name
+    if tvshow_item.active == '': tvshow_item.active = True
+    if not tvshow_item.prefered_lang: tvshow_item.prefered_lang = ''
+    if not tvshow_item.lang_list: tvshow_item.lang_list = []
 
     remove_host(item)
     item.renumber = add_renumber_options(item)
@@ -448,16 +476,19 @@ def save_tvshow(item, episodelist, silent=False):
         return 0, 0, -1, path
 
     # Save the episodes
-    inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, silent=silent)
+    logger.debug()
+    inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, silent=silent)
     videolibrarydb.close()
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
-        from platformcode.xbmc_videolibrary import update
-        update(TVSHOWS_PATH, tvshow_item.basename)
+    # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
+    #     # from platformcode.dbconverter import add_video
+    #     # add_video(tvshow_item)
+    #     from platformcode.xbmc_videolibrary import update
+    #     update(TVSHOWS_PATH, tvshow_item.basename)
 
     return inserted, overwritten, failed, path
 
 
-def save_episodes(item, episodelist, silent=False, overwrite=True):
+def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=True):
     """
     saves in the indicated path all the chapters included in the episodelist
     @type Item: str
@@ -477,7 +508,8 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
     @rtype failed: int
     @return: the number of failed episodes
     """
-    def save_episode(item, seasons, episodes, e, inserted, overwritten, failed):
+    # support.dbg()
+    def save_episode(item, seasons, current_seasons, episodes, e, inserted, overwritten, failed):
         season_episode = scrapertools.get_season_and_episode(e.title)
 
 
@@ -491,8 +523,9 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
 
             e.contentSeason = int(season_episode.split('x')[0])
             e.contentEpisodeNumber = int(season_episode.split('x')[1])
+
             tmdb.set_infoLabels_item(e)
-            playcount = db['viewed'].get(e.infoLabels['tmdb_id'], {}).get('{}x{}'.format(e.contentSeason, e.contentEpisodeNumber), 0)
+            if not e.infoLabels.get('playcount'): e.infoLabels['playcount'] = 0
             head_nfo = scraper.get_nfo(e)
 
             episode_item = Item(action='findvideos',
@@ -511,32 +544,39 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
             episode = episodes.get(season_episode, {})
 
             try:
-                # e.infoLabels['episode'] = ''
-
-                if e.contentSeason not in seasons:
-                    # season_item = Item(infoLabels = e.infoLabels)
+                if e.contentSeason not in current_seasons:
                     tmdb_info = tmdb.Tmdb(id_Tmdb = e.infoLabels['tmdb_id'], search_type='tv')
                     seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(e.contentSeason))
                     infoLabels = {}
-                    if seasoninfo.get('season_posters'): infoLabels['posters'] = seasoninfo.get('season_posters')
-                    if seasoninfo.get('season_fanarts'): infoLabels['fanarts'] = seasoninfo.get('season_fanarts')
+
+                    if seasoninfo.get('season_posters'): infoLabels['posters'] = seasoninfo.get('season_posters') + extra_info['poster'].get(str(e.contentSeason), [])
+                    if seasoninfo.get('season_fanarts'): infoLabels['fanarts'] = seasoninfo.get('season_fanarts') + extra_info['fanart'].get(str(e.contentSeason), [])
                     if seasoninfo.get('season_trailer'): infoLabels['trailer'] = seasoninfo.get('season_trailer')
+                    infoLabels['landscapes'] = extra_info['landscape'].get(str(e.contentSeason), [])
+                    infoLabels['banners'] = extra_info['banner'].get(str(e.contentSeason), [])
+                    infoLabels['clearlogos'] = item.infoLabels.get('clearlogos', [])
+                    infoLabels['cleararts'] = item.infoLabels.get('cleararts', [])
+                    if e.contentSeason in seasons: infoLabels['playcount'] = seasons[e.contentSeason].infoLabels.get('playcount', 0)
 
                     season_item = Item(action="get_episodes",
-                                       channel='videolibrary',
-                                       title=seasoninfo.get('season_title'),
-                                       thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
-                                       fanart = item.fanart,
-                                       plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
-                                       contentType = 'season',
-                                       infoLabels = infoLabels,
-                                       contentSeason = e.contentSeason,
-                                       videolibrary_id = item.videolibrary_id,
-                                       playcount=0)
+                                        channel='videolibrary',
+                                        title=seasoninfo.get('season_title'),
+                                        thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
+                                        fanart = item.fanart,
+                                        plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
+                                        contentType = 'season',
+                                        infoLabels = infoLabels,
+                                        contentSeason = e.contentSeason,
+                                        videolibrary_id = item.videolibrary_id,
+                                        playcount=0)
 
-                    logger.debug(season_item)
+                    if infoLabels['clearlogos']: season_item.clearlogo = infoLabels['clearlogos'][0]
+                    if infoLabels['cleararts']: season_item.clearart = infoLabels['cleararts'][0]
+                    if infoLabels['landscapes']: season_item.landscape = infoLabels['landscapes'][0]
+                    if infoLabels['banners']: season_item.banner = infoLabels['banners'][0]
 
                     seasons[e.contentSeason] = season_item
+                    current_seasons.append(e.contentSeason)
 
                 if not episode:
                     inserted += 1
@@ -545,7 +585,9 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
                 # else:
                 epchannels = episode.get('channels',{})
 
-                remove_host(e)
+                if e.url.startswith(host):
+                    remove_host(e)
+
                 e.contentTitle = e.infoLabels['title']
                 e.infoLabels = {}
 
@@ -588,6 +630,7 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
     inserted = 0
     overwritten = 0
     failed = 0
+    current_seasons = []
     seasons = videolibrarydb['season'].get(item.videolibrary_id, {})
     episodes = videolibrarydb['episode'].get(item.videolibrary_id, {})
     videolibrarydb.close()
@@ -595,15 +638,17 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
     try: t = float(100) / len(episodelist)
     except: t = 0
 
+    # support.dbg()
     # for i, e in enumerate(episodelist):
-    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, seasons, episodes, e, inserted, overwritten, failed)
+    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, seasons, current_seasons, episodes, e, inserted, overwritten, failed)
     #     if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
     #     if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
     #     if not silent:
     #         p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
+
     i = 0
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(save_episode, item, seasons, episodes, e, inserted, overwritten, failed) for e in episodelist]
+        itlist = [executor.submit(save_episode, item, seasons, current_seasons, episodes, e, inserted, overwritten, failed) for e in episodelist]
         for res in futures.as_completed(itlist):
             if res.result():
                 item, seasons, episodes, e, inserted, overwritten, failed = res.result()
@@ -627,7 +672,8 @@ def save_episodes(item, episodelist, silent=False, overwrite=True):
     videolibrarydb['season'][item.videolibrary_id] = seasons
 
     videolibrarydb.close()
-    p_dialog.close()
+    if not silent:
+        p_dialog.close()
 
     return inserted, overwritten, failed
 
@@ -819,6 +865,7 @@ def add_tvshow(item, channel=None):
         # Get the episode list
         it = item.clone()
         itemlist = getattr(channel, it.action)(it)
+        item.host = channel.host
         if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)'):
             from platformcode.autorenumber import start, check
             if not check(item):
@@ -875,10 +922,9 @@ def add_tvshow(item, channel=None):
 
 
 def remove_host(item):
-    if PY3:
-        import urllib.parse as urlparse  # It is very slow in PY2. In PY3 it is native
-    else:
-        import urlparse  # We use the native of PY2 which is faster
+    
+    if PY3: import urllib.parse as urlparse  # It is very slow in PY2. In PY3 it is native
+    else: import urlparse  # We use the native of PY2 which is faster
     parsed_url = urlparse.urlparse(item.url)
     item.url = urlparse.urlunparse(('', '', parsed_url.path, parsed_url.params, parsed_url.query, parsed_url.fragment))
 
@@ -903,3 +949,41 @@ def get_local_files(item):
                 included_files['{}x{}'.format(s,e.zfill(2))] = f
     if included_files:
         return included_files, 1
+
+def get_fanart_tv(item):
+    def set_dict(l):
+        d = {}
+        for k in l:
+            o = d.get(k['season'], [])
+            o.append(k['url'])
+            d[k['season']] = o
+        return d
+    # support.dbg()
+    ret = {}
+    _id = item.infoLabels.get('tvdb_id', item.infoLabels.get('tmdb_id'))
+
+    if _id:
+        _type = item.contentType.replace('show','').replace('movie','movies')
+        host = 'http://webservice.fanart.tv/v3/{}/{}?api_key=cab16e262d72fea6a6843d679aa10300'
+        url = host.format(_type, _id)
+        res = httptools.downloadpage(url).json
+        if _type == 'tv':
+            ret['clearlogo'] = [k.get('url') for k in res.get('hdtvlogo', [])]
+            ret['clearart'] = [k.get('url') for k in res.get('hdclearart', [])]
+            ret['fanart'] = set_dict(res.get('showbackground', []))
+            ret['poster'] = set_dict(res.get('seasonposter', []))
+            ret['poster']['all'] = [k.get('url') for k in res.get('tvposter', [])]
+            ret['landscape'] = set_dict(res.get('seasonthumb', []))
+            ret['landscape']['all'] = [k.get('url') for k in res.get('tvthumb', [])]
+            ret['banner'] = set_dict(res.get('seasonbanner', []))
+            ret['banner']['all'] = [k.get('url') for k in res.get('tvbanner', [])]
+
+        elif _type == 'movies':
+            ret['clearlogo'] = [k.get('url') for k in res.get('hdmovielogo', [])]
+            ret['poster'] = [k.get('url') for k in res.get('movieposter', [])]
+            ret['fanart'] = [k.get('url') for k in res.get('moviebackground', [])]
+            ret['clearart'] = [k.get('url') for k in res.get('hdmovieclearart', [])]
+            ret['landscape'] = [k.get('url') for k in res.get('moviethumb', [])]
+            ret['banner'] = [k.get('url') for k in res.get('moviebanner', [])]
+
+    return ret

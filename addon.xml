@@ -14,7 +14,7 @@
     <menu id="kodi.core.main">
       <item library="updatetvshow.py">
         <label>70269</label>
-        <visible>String.IsEqual(ListItem.dbtype,tvshow)</visible>
+        <visible>String.IsEqual(ListItem.dbtype, tvshow) + !String.IsEmpty(ListItem.DBID)</visible>
       </item>
 <!--      <item library="externalsearch.py">-->
 <!--        <label>90001</label>-->

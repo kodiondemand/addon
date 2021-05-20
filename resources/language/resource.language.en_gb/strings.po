@@ -709,11 +709,11 @@ msgid "Do you want to report the issue?\n(Be sure you follow all steps and give 
 msgstr ""
 
 msgctxt "#60016"
-msgid "Segna film come non visto"
+msgid "Mark movie as not watched"
 msgstr ""
 
 msgctxt "#60017"
-msgid "Mark movie as not watched"
+msgid "Mark movie as watched"
 msgstr ""
 
 msgctxt "#60018"

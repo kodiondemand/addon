@@ -960,13 +960,13 @@ class Tmdb(object):
                             result = result["tv_results"][0]
                         else:
                             result = result['tv_episode_results'][0]
-
-                Mpaaurl = '{}/{}/{}/{}?api_key={}'.format(host, self.search_type, result['id'], 'release_dates' if self.search_type == 'movie' else 'content_ratings', api)
-                Mpaas = self.get_json(Mpaaurl).get('results',[])
-                for m in Mpaas:
-                    if m.get('iso_3166_1','').lower() == 'us':
-                        result['mpaa'] = m.get('rating', m.get('release_dates', [{}])[0].get('certification'))
-                        break
+                if result.get('id'):
+                    Mpaaurl = '{}/{}/{}/{}?api_key={}'.format(host, self.search_type, result['id'], 'release_dates' if self.search_type == 'movie' else 'content_ratings', api)
+                    Mpaas = self.get_json(Mpaaurl).get('results',[])
+                    for m in Mpaas:
+                        if m.get('iso_3166_1','').lower() == 'us':
+                            result['mpaa'] = m.get('rating', m.get('release_dates', [{}])[0].get('certification'))
+                            break
 
                 self.results = [result]
                 self.total_results = 1
@@ -1691,8 +1691,8 @@ class Tmdb(object):
                 ret_infoLabels['studio'] = ", ".join(i['name'] for i in v)
 
             elif k == 'credits_cast' or k == 'season_cast' or k == 'episode_guest_stars':
-                dic_aux = dict((name, [character, thumb, order]) for (name, character, thumb, order) in l_castandrole)
-                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', ''), 'https://image.tmdb.org/t/p/original' + p.get('profile_path', '') if p.get('profile_path', '') else '', p.get('order')) \
+                dic_aux = dict((name, [character, thumb, order, id]) for (name, character, thumb, order, id) in l_castandrole)
+                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', ''), 'https://image.tmdb.org/t/p/original' + p.get('profile_path', '') if p.get('profile_path', '') else '', p.get('order'), p.get('credit_id')) \
                                       for p in v if 'name' in p and p['name'] not in list(dic_aux.keys())])
 
             elif k == 'videos':

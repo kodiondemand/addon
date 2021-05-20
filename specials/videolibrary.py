@@ -77,13 +77,25 @@ def list_movies(item, silent=False):
         # if key not in ids:
         #     del videolibrarydb['movie'][key]
         # else:
-        item = value['item']
-        item.context = [{'title':config.get_localized_string(70084),'channel':'videolibrary', 'action':'delete'}]
-        if len(item.lang_list) > 1:
-            item.context += [{"title": config.get_localized_string(70246),
+        it = value['item']
+        it.context = [{'title':config.get_localized_string(70084),'channel':'videolibrary', 'action':'delete'}]
+        if len(it.lang_list) > 1:
+            it.context += [{"title": config.get_localized_string(70246),
                                 "action": "prefered_lang",
                                 "channel": "videolibrary"}]
-        itemlist.append(item)
+        watched = it.infoLabels.get("playcount", 0)
+        if watched > 0:
+            title = config.get_localized_string(60016)
+            value = 0
+        else:
+            title = config.get_localized_string(60017)
+            value = 1
+
+        it.context += [{"title": title,
+                          "action": "mark_content_as_watched",
+                          "channel": "videolibrary",
+                          "playcount": value}]
+        itemlist.append(it)
 
     if silent == False: return sorted(itemlist, key=lambda it: it.title.lower())
     else: return
@@ -128,22 +140,21 @@ def list_tvshows(item):
     series = dict(videolibrarydb['tvshow'])
     videolibrarydb.close()
 
-    for key, value in series.items():
+    def sub_thread(key, value):
+        it = value['item']
+        it.contentType = 'tvshow'
 
-        item = value['item']
-        item.contentType = 'tvshow'
+        it.context = [{'title':config.get_localized_string(70085),'channel':'videolibrary', 'action':'delete'}]
 
-        item.context = [{'title':config.get_localized_string(70085),'channel':'videolibrary', 'action':'delete'}]
-
-        if len(item.lang_list) > 1:
-            item.context += [{"title": config.get_localized_string(70246),
+        if len(it.lang_list) > 1:
+            it.context += [{"title": config.get_localized_string(70246),
                               "action": "prefered_lang",
                               "channel": "videolibrary"}]
         if len(value['channels'].keys()) > 1:
-            item.context += [{"title": config.get_localized_string(70837),
+            it.context += [{"title": config.get_localized_string(70837),
                               "action": "disable_channels",
                               "channel": "videolibrary"}]
-        watched = item.infoLabels.get("playcount", 0)
+        watched = it.infoLabels.get("playcount", 0)
         if watched > 0:
             title = config.get_localized_string(60020)
             value = 0
@@ -151,38 +162,42 @@ def list_tvshows(item):
             title = config.get_localized_string(60021)
             value = 1
 
-        item.context += [{"title": title,
+        it.context += [{"title": title,
                           "action": "mark_content_as_watched",
                           "channel": "videolibrary",
-                          "playcount": value,
-                          "videolibrary_id": item.videolibrary_id}]
-        if not item.active:
-            item.title = '{} {}'.format(item.title, support.typo('','bullet bold'))
+                          "playcount": value}]
+        if not it.active:
+            it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
             title = config.get_localized_string(60023)
         else:
             title = config.get_localized_string(60022)
-        item.context += [{"title": title,
-                          "action": "set_active",
-                          "channel": "videolibrary",
-                          "playcount": value,
-                          "videolibrary_id": item.videolibrary_id}]
-        item.context += [{"title": 'Poster',
+        it.context += [{"title": title,
+                        "action": "set_active",
+                        "channel": "videolibrary",
+                        "playcount": value}]
+        it.context += [{"title": config.get_localized_string(70269),
+                        "action": "update_videolibrary",
+                        "channel": "videolibrary"}]
+        it.context += [{"title": 'Poster',
                                  "action": "change_poster",
                                  "channel": "videolibrary",
-                                 "playcount": value,
-                                 "videolibrary_id": item.videolibrary_id}]
-        item.context += [{"title": 'fanart',
+                                 "playcount": value}]
+        it.context += [{"title": 'fanart',
                                  "action": "change_fanart",
                                  "channel": "videolibrary",
-                                 "playcount": value,
-                                 "videolibrary_id": item.videolibrary_id}]
+                                 "playcount": value}]
+        return it
 
-        itemlist.append(item)
+    with futures.ThreadPoolExecutor() as executor:
+        _list = [executor.submit(sub_thread, key, value) for key, value in series.items()]
+        for res in futures.as_completed(_list):
+            itemlist.append(res.result())
 
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
 
         itemlist += [Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
+                          fanart=item.thumbnail, landscape=item.thumbnail,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     return itemlist
 
@@ -332,12 +347,13 @@ def get_seasons(item):
         seasons = videolibrarydb['season'][item.videolibrary_id]
         videolibrarydb.close()
         # We create one item for each season
-        for season in seasons.values():
-            new_item = season
-            new_item.contentType = 'season'
+
+        def sub_thread(season):
+            it = season
+            it.contentType = 'season'
 
             #Contextual menu: Mark the season as viewed or not
-            watched = new_item.infoLabels.get("playcount", 0)
+            watched = it.infoLabels.get("playcount", 0)
             if watched > 0:
                 title = config.get_localized_string(60028)
                 value = 0
@@ -345,14 +361,16 @@ def get_seasons(item):
                 title = config.get_localized_string(60029)
                 value = 1
 
-            new_item.context = [{"title": title,
+            it.context = [{"title": title,
                                  "action": "mark_content_as_watched",
                                  "channel": "videolibrary",
-                                 "playcount": value,
-                                 "videolibrary_id": item.videolibrary_id}]
+                                 "playcount": value}]
+            return it
 
-            # logger.debug("new_item:\n" + new_item.tostring('\n'))
-            itemlist.append(new_item)
+        with futures.ThreadPoolExecutor() as executor:
+            _list = [executor.submit(sub_thread, season) for season in seasons.values()]
+            for res in futures.as_completed(_list):
+                itemlist.append(res.result())
 
         if len(itemlist) > 1:
             itemlist = sorted(itemlist, key=lambda it: int(it.contentSeason))
@@ -360,9 +378,9 @@ def get_seasons(item):
             return get_episodes(itemlist[0])
 
         if config.get_setting("show_all_seasons", "videolibrary"):
-            new_item = item.clone(action="get_episodes", title=config.get_localized_string(60030), all=True)
-            new_item.infoLabels["playcount"] = 0
-            itemlist.insert(0, new_item)
+            it = item.clone(action="get_episodes", title=config.get_localized_string(60030), all=True)
+            it.infoLabels["playcount"] = 0
+            itemlist.insert(0, it)
 
         add_download_items(item, itemlist)
     return itemlist
@@ -375,7 +393,7 @@ def get_episodes(item):
     episodes = videolibrarydb['episode'][item.videolibrary_id]
     videolibrarydb.close()
 
-    for title, ep in episodes.items():
+    def sub_thread(title, ep):
         it = ep['item']
 
         if it.contentSeason == item.contentSeason or item.all:
@@ -394,10 +412,15 @@ def get_episodes(item):
             it.context = [{"title": title,
                            "action": "mark_content_as_watched",
                            "channel": "videolibrary",
-                           "playcount": value,
-                           'allep': True,
-                           "videolibrary_id": item.videolibrary_id}]
-            itemlist.append(it)
+                           "playcount": value}]
+            return it
+        return
+
+    with futures.ThreadPoolExecutor() as executor:
+        _list = [executor.submit(sub_thread, title, ep) for title, ep in episodes.items()]
+        for res in futures.as_completed(_list):
+            if res.result(): itemlist.append(res.result())
+
 
     itemlist = sorted(itemlist, key=lambda it: (int(it.contentSeason), int(it.contentEpisodeNumber)))
     add_download_items(item, itemlist)
@@ -541,23 +564,7 @@ def play(item):
 
 def update_videolibrary(item=''):
     logger.debug()
-
-    # Update active series by overwriting
-    # import service
-    # service.check_for_update(overwrite=True)
     check_for_update(item)
-
-    # Delete movie folders that do not contain strm file
-    # for raiz, subcarpetas, ficheros in filetools.walk(videolibrarytools.MOVIES_PATH):
-    #     strm = False
-    #     for f in ficheros:
-    #         if f.endswith(".strm"):
-    #             strm = True
-    #             break
-
-    #     if ficheros and not strm:
-    #         logger.debug("Deleting deleted movie folder: %s" % raiz)
-    #         filetools.rmdirtree(raiz)
 
 
 def check_for_update(ITEM = None):
@@ -577,14 +584,14 @@ def check_for_update(ITEM = None):
             p_dialog.update(0, '')
             show_list = []
 
-            if ITEM:
+            if ITEM and ITEM.videolibrary_id:
                 show = videolibrarydb['tvshow'][ITEM.videolibrary_id]
-                videolibrarydb.close()
+
                 for s in show['channels'].values():
                     show_list += s
             else:
                 shows = dict(videolibrarydb['tvshow']).values()
-                videolibrarydb.close()
+
 
                 for show in shows:
                     if show['item'].active:
@@ -600,12 +607,12 @@ def check_for_update(ITEM = None):
                 try: channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
                 except: channel = __import__('specials.%s' % item.channel, fromlist=["specials.%s" % item.channel])
                 itemlist = getattr(channel, item.action)(item)
-                videolibrarytools.save_tvshow(item, itemlist, silent=True)
+                videolibrarytools.save_tvshow(item, itemlist)
             p_dialog.close()
     except:
         p_dialog.close()
         logger.error(traceback.format_exc())
-
+    videolibrarydb.close()
     if ITEM:
         update_when_finished = set_active_tvshow(show)
     else:
@@ -754,204 +761,148 @@ def delete_videolibrary(item):
     platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80039), time=5000, sound=False)
 
 
-# context menu methods
-def update_tvshow(item):
-    logger.debug()
-    # logger.debug("item:\n" + item.tostring('\n'))
+# def add_local_episodes(item):
+#     logger.debug()
 
-    heading = config.get_localized_string(60037)
-    p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), heading)
-    p_dialog.update(0, heading, item.contentSerieName)
+#     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
+#     if done < 0:
+#         logger.debug("An issue has occurred while configuring local episodes")
+#     elif local_episodes_path:
+#         nfo_path = filetools.join(item.path, "tvshow.nfo")
+#         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
+#         item_nfo.local_episodes_path = local_episodes_path
+#         if not item_nfo.active:
+#             item_nfo.active = 1
+#         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
-    import service
-    if service.update(item.path, p_dialog, 0, 100, item, False) and config.is_xbmc() and config.get_setting("videolibrary_kodi"):
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.update(folder=filetools.basename(item.path))
+#         update_tvshow(item)
 
-    p_dialog.close()
-
-    # check if the TV show is ended or has been canceled and ask the user to remove it from the video library update
-    nfo_path = filetools.join(item.path, "tvshow.nfo")
-    head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-    if item.active and not item_nfo.active:
-        # if not platformtools.dialog_yesno(config.get_localized_string(60037).replace('...',''), config.get_localized_string(70268) % item.contentSerieName):
-        item_nfo.active = 1
-        filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-    platformtools.itemlist_refresh()
+#         platformtools.itemlist_refresh()
 
 
-def add_local_episodes(item):
-    logger.debug()
+# def remove_local_episodes(item):
+#     logger.debug()
 
-    done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
-    if done < 0:
-        logger.debug("An issue has occurred while configuring local episodes")
-    elif local_episodes_path:
-        nfo_path = filetools.join(item.path, "tvshow.nfo")
-        head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-        item_nfo.local_episodes_path = local_episodes_path
-        if not item_nfo.active:
-            item_nfo.active = 1
-        filetools.write(nfo_path, head_nfo + item_nfo.tojson())
+#     nfo_path = filetools.join(item.path, "tvshow.nfo")
+#     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
 
-        update_tvshow(item)
+#     for season_episode in item_nfo.local_episodes_list:
+#         filetools.remove(filetools.join(item.path, season_episode + '.strm'))
 
-        platformtools.itemlist_refresh()
+#     item_nfo.local_episodes_list = []
+#     item_nfo.local_episodes_path = ''
+#     filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
+#     update_tvshow(item)
 
-def remove_local_episodes(item):
-    logger.debug()
-
-    nfo_path = filetools.join(item.path, "tvshow.nfo")
-    head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-
-    for season_episode in item_nfo.local_episodes_list:
-        filetools.remove(filetools.join(item.path, season_episode + '.strm'))
-
-    item_nfo.local_episodes_list = []
-    item_nfo.local_episodes_path = ''
-    filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-    update_tvshow(item)
-
-    platformtools.itemlist_refresh()
-
-
-def verify_playcount_series(item, path):
-    logger.debug()
-
-    """
-    This method reviews and repairs the PlayCount of a series that has become out of sync with the actual list of episodes in its folder. Entries for missing episodes, seasons, or series are created with the "not seen" mark. Later it is sent to verify the counters of Seasons and Series
-    On return it sends status of True if updated or False if not, usually by mistake. With this status, the caller can update the status of the "verify_playcount" option in "videolibrary.py". The intention of this method is to give a pass that repairs all the errors and then deactivate it. It can be reactivated in the Alpha Video Library menu.
-
-    """
-    #logger.debug("item:\n" + item.tostring('\n'))
-
-    # If you have never done verification, we force it
-    estado = config.get_setting("verify_playcount", "videolibrary")
-    if not estado or estado == False:
-        estado = True                                                               # If you have never done verification, we force it
-    else:
-        estado = False
-
-    if item.contentType == 'movie':                                                 # This is only for Series
-        return (item, False)
-    if filetools.exists(path):
-        nfo_path = filetools.join(path, "tvshow.nfo")
-        head_nfo, it = videolibrarytools.read_nfo(nfo_path)                         # We get the .nfo of the Series
-        if not hasattr(it, 'library_playcounts') or not it.library_playcounts:      # If the .nfo does not have library_playcounts we will create it for you
-            logger.error('** It does not have PlayCount')
-            it.library_playcounts = {}
-
-        # We get the archives of the episodes
-        raiz, carpetas_series, ficheros = next(filetools.walk(path))
-        # Create an item in the list for each strm found
-        estado_update = False
-        for i in ficheros:
-            if i.endswith('.strm'):
-                season_episode = scrapertools.get_season_and_episode(i)
-                if not season_episode:
-                    # The file does not include the season and episode number
-                    continue
-                season, episode = season_episode.split("x")
-                if season_episode not in it.library_playcounts:                     # The episode is not included
-                    it.library_playcounts.update({season_episode: 0})               # update the .nfo playCount
-                    estado_update = True                                            # We mark that we have updated something
-
-                if 'season %s' % season not in it.library_playcounts:               # Season is not included
-                    it.library_playcounts.update({'season %s' % season: 0})         # update the .nfo playCount
-                    estado_update = True                                            # We mark that we have updated something
-
-                if it.contentSerieName not in it.library_playcounts:                # Series not included
-                    it.library_playcounts.update({item.contentSerieName: 0})        # update the .nfo playCount
-                    estado_update = True                                            # We mark that we have updated something
-
-        if estado_update:
-            logger.error('** Update status: ' + str(estado) + ' / PlayCount: ' + str(it.library_playcounts))
-            estado = estado_update
-        # it is verified that if all the episodes of a season are marked, tb the season is marked
-        for key, value in it.library_playcounts.items():
-            if key.startswith("season"):
-                season = scrapertools.find_single_match(key, r'season (\d+)')        # We obtain in no. seasonal
-                it = check_season_playcount(it, season)
-        # We save the changes to item.nfo
-        if filetools.write(nfo_path, head_nfo + it.tojson()):
-            return (it, estado)
-    return (item, False)
+#     platformtools.itemlist_refresh()
 
 
 def mark_content_as_watched(item):
-    logger.debug()
+    class mark_as_watched(object):
+        def __init__(self, *args, **kwargs):
+            self.item = kwargs.get('item')
+            self.s = self.item.contentSeason
+            self.e = self.item.contentEpisodeNumber
+            self.playcount = self.item.playcount
 
-    if not item.videolibrary_id:
-        for code in item.infoLabels['code']:
-            if code and code != 'None':
-                break
-        item.videolibrary_id=code
-    if item.contentType == 'episode':
-        episodes = videolibrarydb['episode'][item.videolibrary_id]
-        episodes['{}x{}'.format(item.contentSeason, str(item.contentEpisodeNumber).zfill(2))]['item'].infoLabels['playcount'] = item.playcount
-        videolibrarydb['episode'][item.videolibrary_id] = episodes
-        videolibrarydb.close()
+            if self.item.contentType == 'movie':
+                self.movie = videolibrarydb['movie'][self.item.videolibrary_id]
+            else:
+                self.tvshow = videolibrarydb['tvshow'][self.item.videolibrary_id]
+                self.seasons = videolibrarydb['season'][self.item.videolibrary_id]
+                self.episodes = videolibrarydb['episode'][self.item.videolibrary_id]
 
-        season_episodes = [ep for ep in episodes.values() if ep['item'].contentSeason == item.contentSeason]
-        watched = [ep for ep in season_episodes if ep['item'].infoLabels['playcount'] > 0]
-        if len(watched) == len(season_episodes):
-            item.playcount = 1
-        else:
-            item.playcount = 0
-        mark_season_as_watched(item)
+            getattr(self, 'mark_' + self.item.contentType)()
 
-    elif item.contentType == 'season':
-        mark_season_as_watched(item)
+            videolibrarydb.close()
+            # support.dbg()
+            if config.is_xbmc() and not self.item.not_update:
+                from platformcode import xbmc_videolibrary
+                xbmc_videolibrary.mark_content_as_watched_on_kodi(self.item, self.playcount)
+            else:
+                platformtools.itemlist_refresh()
 
-    else:
-        content = videolibrarydb[item.contentType][item.videolibrary_id]
-        content['item'].infoLabels['playcount'] = item.playcount
-        videolibrarydb[item.contentType][item.videolibrary_id] = content
-        seasons = videolibrarydb['season'][item.videolibrary_id]
-        videolibrarydb.close()
-        item.all_ep = True
-        if item.contentType == 'tvshow':
-            for season in seasons.keys():
-                item.contentSeason = season
-                mark_season_as_watched(item)
+        def mark_episode(self):
+            current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount']
 
-    if config.is_xbmc() and not item.not_update:
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.mark_content_as_watched_on_kodi(item, item.playcount)
+            if self.playcount > 0:
+                self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount'] += self.playcount
+            else:
+                self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount'] = 0
 
+            videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
 
-def mark_season_as_watched(item):
-    logger.debug()
+            if current_playcount == 0 or self.playcount == 0:
+                self.check_playcount('episode')
 
-    seasons = videolibrarydb['season'][item.videolibrary_id]
-    seasons[item.contentSeason].infoLabels['playcount'] = item.playcount
-    videolibrarydb['season'][item.videolibrary_id] = seasons
-    episodes = videolibrarydb['episode'][item.videolibrary_id]
-    videolibrarydb.close()
+        def mark_season(self):
+            current_playcount = self.seasons[self.s].infoLabels['playcount']
 
-    for n, ep in episodes.items():
-        if ep['item'].contentSeason == item.contentSeason:
-            episodes[n]['item'].infoLabels['playcount'] = item.playcount
+            if self.playcount > 0:
+                self.seasons[self.s].infoLabels['playcount'] += self.playcount
+            else:
+                self.seasons[self.s].infoLabels['playcount'] = 0
 
-    videolibrarydb['episode'][item.videolibrary_id] = episodes
-    videolibrarydb.close()
+            videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
+            self.mark_all('episodes')
 
-    watched = True
-    for season in seasons.values():
-        if season.infoLabels['playcount'] != item.playcount:
-            watched = False
+            if current_playcount == 0 or self.playcount == 0:
+                self.check_playcount('season')
 
-    if watched or item.playcount == 0:
-        tvshow = videolibrarydb['tvshow'][item.videolibrary_id]
-        it = videolibrarydb['tvshow'][item.videolibrary_id]['item']
-        it.infoLabels['playcount'] = item.playcount
-        tvshow['item'] = it
-        videolibrarydb['tvshow'][item.videolibrary_id] = tvshow
-        videolibrarydb.close()
+        def mark_tvshow(self):
+            if self.playcount > 0:
+                self.tvshow['item'].infoLabels['playcount'] += self.playcount
+            else:
+                self.tvshow['item'].infoLabels['playcount'] = 0
 
+            videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
+            self.mark_all('seasons')
+
+        def mark_movie(self):
+            if self.playcount:
+                self.movie['item'].infoLabels['playcount'] += self.playcount
+            else:
+                self.movie['item'].infoLabels['playcount'] = 0
+            videolibrarydb['movie'][self.item.videolibrary_id] = self.movie
+
+        def check_playcount(self, _type):
+            tv_playcount = 0
+            season_playcount = 0
+
+            if _type == 'episode':
+                episodes = [e for e in self.episodes.values() if e['item'].contentSeason == self.s]
+                watched = [e for e in episodes if e['item'].infoLabels['playcount'] > 0]
+                all_watched  = [e for e in self.episodes.values() if e['item'].infoLabels['playcount'] > 0]
+                if len(all_watched) == len(self.episodes):
+                    tv_playcount = self.playcount
+                if len(watched) == len(episodes):
+                    season_playcount = self.playcount
+                self.tvshow['item'].infoLabels['playcount'] = tv_playcount
+                self.seasons[self.s].infoLabels['playcount'] = season_playcount
+                videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
+            else:
+                watched = [s for s in self.seasons.values() if s.infoLabels['playcount'] > 0]
+                if len(watched) == len(self.seasons):
+                    tv_playcount = self.playcount
+                self.tvshow['item'].infoLabels['playcount'] = tv_playcount
+            videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
+
+        def mark_all(self, _type):
+            episodes = [e for e in self.episodes.values() if e['item'].contentSeason == self.s]
+            if _type == 'episodes':
+                for n, ep in self.episodes.items():
+                    self.episodes[n]['item'].infoLabels['playcount'] = self.playcount
+                # self.check_playcount('season')
+            else:
+                for n, season in self.seasons.items():
+                    self.seasons[n].infoLabels['playcount'] = self.playcount
+                for n, ep in self.episodes.items():
+                    self.episodes[n]['item'].infoLabels['playcount'] = self.playcount
+                videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
+            videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
+    # support.dbg()
+    mark_as_watched(item=item)
 
 
 def mark_tvshow_as_updatable(item, silent=False):
@@ -1036,52 +987,6 @@ def delete(item):
     videolibrarydb.close()
 
 
-
-def check_season_playcount(item, season):
-    logger.debug()
-
-    if season:
-        episodios_temporada = 0
-        episodios_vistos_temporada = 0
-        for key, value in item.library_playcounts.items():
-            if key.startswith("%sx" % season):
-                episodios_temporada += 1
-                if value > 0:
-                    episodios_vistos_temporada += 1
-
-        if episodios_temporada == episodios_vistos_temporada:
-            # it is verified that if all the seasons are seen, the series is marked as view
-            item.library_playcounts.update({"season %s" % season: 1})
-        else:
-            # it is verified that if all the seasons are seen, the series is marked as view
-            item.library_playcounts.update({"season %s" % season: 0})
-
-    return check_tvshow_playcount(item, season)
-
-
-def check_tvshow_playcount(item, season):
-    logger.debug()
-    if season:
-        temporadas_serie = 0
-        temporadas_vistas_serie = 0
-        for key, value in item.library_playcounts.items():
-            if key.startswith("season" ):
-                temporadas_serie += 1
-                if value > 0:
-                    temporadas_vistas_serie += 1
-
-        if temporadas_serie == temporadas_vistas_serie:
-            item.library_playcounts.update({item.title: 1})
-        else:
-            item.library_playcounts.update({item.title: 0})
-
-    else:
-        playcount = item.library_playcounts.get(item.title, 0)
-        item.library_playcounts.update({item.title: playcount})
-
-    return item
-
-
 def add_download_items(item, itemlist):
     if config.get_setting('downloadenabled'):
         localOnly = True
@@ -1131,6 +1036,7 @@ def prefered_lang(item):
     videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
     videolibrarydb.close()
 
+
 def disable_channels(item):
     from core import channeltools
     tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
@@ -1144,6 +1050,7 @@ def disable_channels(item):
         item.disabled = [channels_list[c] for c in channels_disabled]
         videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
         videolibrarydb.close()
+
 
 def get_host(item , channel=None):
     if item.url.startswith('//'): item.url = 'https:' + item.url
@@ -1160,6 +1067,7 @@ def get_host(item , channel=None):
 
     return item
 
+
 def set_active(item):
     show = videolibrarydb['tvshow'][item.videolibrary_id]
     videolibrarydb.close()
@@ -1167,6 +1075,7 @@ def set_active(item):
     videolibrarydb['tvshow'][item.videolibrary_id] = show
     videolibrarydb.close()
     platformtools.itemlist_refresh()
+
 
 def change_poster(item):
     import xbmcgui
@@ -1187,6 +1096,7 @@ def change_poster(item):
         videolibrarydb[item.contentType][item.videolibrary_id] = video
         videolibrarydb.close()
         platformtools.itemlist_refresh()
+
 
 def change_fanart(item):
     import xbmcgui

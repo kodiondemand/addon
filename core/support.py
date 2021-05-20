@@ -1205,7 +1205,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         # logger.debug(videoitem)
         if videoitem.video_urls or srv_param.get('active', False):
             # dbg()
-            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.title) else item.title
+            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage

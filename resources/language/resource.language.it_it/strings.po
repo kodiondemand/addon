@@ -708,11 +708,11 @@ msgid "Do you want to report the issue?\n(Be sure you follow all steps and give 
 msgstr "Vuoi fare una segnalazione agli sviluppatori?\n(Assicurati di seguire bene tutti i punti e dai una spiegazione chiara ed esaustiva di quanto accaduto)"
 
 msgctxt "#60016"
-msgid "Segna film come non visto"
+msgid "Mark movie as not watched"
 msgstr "Segna film come non visto"
 
 msgctxt "#60017"
-msgid "Mark movie as not watched"
+msgid "Mark movie as watched"
 msgstr "Segna film come visto"
 
 msgctxt "#60018"
