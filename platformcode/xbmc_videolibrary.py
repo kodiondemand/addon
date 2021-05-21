@@ -263,6 +263,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
+    conn = sqlite3.connect(get_file_db())
     view = 'episode' if item.contentType != 'movie' else 'movie'
     path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
 
@@ -272,13 +273,12 @@ def mark_content_as_watched_on_kodi(item, value=1):
     if item.contentEpisodeNumber: request_episode = ' and strFileName= "{}"'.format(item.strm_path.split('\\')[-1].split('/')[-1])
     sql = 'select idFile from {}_view where strPath like "{}"{}{}'.format(view, path, request_episode, request_season)
 
-    n, r = execute_sql_kodi(sql)
+    n, r = execute_sql_kodi(sql, conn=conn)
     if r:
         sql = 'update files set playCount= {} where idFile= {}'
         sql_actions = [sql.format(value, i[0]) for i in r]
-        conn = sqlite3.connect(get_file_db())
-        cursor = conn.cursor()
 
+        cursor = conn.cursor()
         for sql in sql_actions:
             if type(sql) == list:
                 cursor.executemany(sql)
@@ -286,36 +286,9 @@ def mark_content_as_watched_on_kodi(item, value=1):
                 cursor.execute(sql)
         conn.commit()
         conn.close()
+
     platformtools.itemlist_refresh()
 
-def mark_season_as_watched_on_kodi(item, value=1):
-    """
-        mark the entire season as seen or unseen in the Kodi library
-        @type item: item
-        @param item: element to mark
-        @type value: int
-        @param value: > 0 for seen, 0 for not seen
-        """
-    logger.debug()
-    # support.dbg()
-    # logger.debug("item:\n" + item.tostring('\n'))
-
-    # We can only mark the season as seen in the Kodi database if the database is local, in case of sharing database this functionality will not work
-    if config.get_setting("db_mode", "videolibrary"):
-        return
-
-    if value == 0:
-        value = 'Null'
-
-    request_season = ''
-    if item.contentSeason > -1:
-        request_season = ' and c12= %s' % item.contentSeason
-
-    tvshows_path = filetools.join(config.config.get_videolibrary_config_path(), config.get_setting("folder_tvshows"))
-
-    sql = 'update files set playCount= %s where idFile in (select idfile from episode_view where (strPath like "%s" or strPath like "%s")%s)' % (value, request_season)
-
-    execute_sql_kodi(sql)
 
 def set_watched_on_kod(data):
     from specials import videolibrary
@@ -380,8 +353,6 @@ def set_watched_on_kod(data):
 def mark_content_as_watched_on_kod(path):
     from specials import videolibrary
     from core import videolibrarytools
-    
-
     """
         mark the entire series or movie as viewed or unseen in the Alpha Video Library based on their status in the Kodi Video Library
         @type str: path

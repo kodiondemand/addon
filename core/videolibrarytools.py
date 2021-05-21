@@ -396,7 +396,6 @@ def save_tvshow(item, episodelist, silent=False):
         return 0, 0, -1, path
 
     # set base name
-
     base_name = set_base_name(item, _id)
     path = filetools.join(TVSHOWS_PATH, base_name)
 
@@ -488,7 +487,7 @@ def save_tvshow(item, episodelist, silent=False):
     return inserted, overwritten, failed, path
 
 
-def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=True):
+def save_episodes(item, episodelist, extra_info, host, silent=False):
     """
     saves in the indicated path all the chapters included in the episodelist
     @type Item: str
@@ -509,20 +508,24 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
     @return: the number of failed episodes
     """
     # support.dbg()
-    def save_episode(item, seasons, current_seasons, episodes, e, inserted, overwritten, failed):
+    def save_episode(item, episodes, e):
+        inserted = 0
+        overwritten = 0
+        failed = 0
+        episode = None
+        season_episode = None
+
         season_episode = scrapertools.get_season_and_episode(e.title)
 
 
         if season_episode:
-            # local = True if season_episode in included_files else False
-            # if local:
-            #     strm_path = filetools.join(item.base_name, included_files[season_episode])
-            # else:
             strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
-            nfo_path = filetools.join(item.base_name, "{}.nfo".format(season_episode))
 
             e.contentSeason = int(season_episode.split('x')[0])
             e.contentEpisodeNumber = int(season_episode.split('x')[1])
+            if item.infoLabels.get('imdb_id'): e.infoLabels['imdb_id'] = item.infoLabels['imdb_id']
+            if item.infoLabels.get('tmdb_id'): e.infoLabels['tmdb_id'] = item.infoLabels['tmdb_id']
+            if item.infoLabels.get('tvdb_id'): e.infoLabels['tvdb_id'] = item.infoLabels['tvdb_id']
 
             tmdb.set_infoLabels_item(e)
             if not e.infoLabels.get('playcount'): e.infoLabels['playcount'] = 0
@@ -544,40 +547,6 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
             episode = episodes.get(season_episode, {})
 
             try:
-                if e.contentSeason not in current_seasons:
-                    tmdb_info = tmdb.Tmdb(id_Tmdb = e.infoLabels['tmdb_id'], search_type='tv')
-                    seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(e.contentSeason))
-                    infoLabels = {}
-
-                    if seasoninfo.get('season_posters'): infoLabels['posters'] = seasoninfo.get('season_posters') + extra_info['poster'].get(str(e.contentSeason), [])
-                    if seasoninfo.get('season_fanarts'): infoLabels['fanarts'] = seasoninfo.get('season_fanarts') + extra_info['fanart'].get(str(e.contentSeason), [])
-                    if seasoninfo.get('season_trailer'): infoLabels['trailer'] = seasoninfo.get('season_trailer')
-                    infoLabels['landscapes'] = extra_info['landscape'].get(str(e.contentSeason), [])
-                    infoLabels['banners'] = extra_info['banner'].get(str(e.contentSeason), [])
-                    infoLabels['clearlogos'] = item.infoLabels.get('clearlogos', [])
-                    infoLabels['cleararts'] = item.infoLabels.get('cleararts', [])
-                    if e.contentSeason in seasons: infoLabels['playcount'] = seasons[e.contentSeason].infoLabels.get('playcount', 0)
-
-                    season_item = Item(action="get_episodes",
-                                        channel='videolibrary',
-                                        title=seasoninfo.get('season_title'),
-                                        thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
-                                        fanart = item.fanart,
-                                        plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
-                                        contentType = 'season',
-                                        infoLabels = infoLabels,
-                                        contentSeason = e.contentSeason,
-                                        videolibrary_id = item.videolibrary_id,
-                                        playcount=0)
-
-                    if infoLabels['clearlogos']: season_item.clearlogo = infoLabels['clearlogos'][0]
-                    if infoLabels['cleararts']: season_item.clearart = infoLabels['cleararts'][0]
-                    if infoLabels['landscapes']: season_item.landscape = infoLabels['landscapes'][0]
-                    if infoLabels['banners']: season_item.banner = infoLabels['banners'][0]
-
-                    seasons[e.contentSeason] = season_item
-                    current_seasons.append(e.contentSeason)
-
                 if not episode:
                     inserted += 1
                     episode['item'] = episode_item
@@ -589,7 +558,9 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
                     remove_host(e)
 
                 e.contentTitle = e.infoLabels['title']
+                contentType = e.contentType
                 e.infoLabels = {}
+                e.contentType = contentType
 
                 if e.channel in epchannels and e.channel != 'download':
                     channels_url = [u.url for u in epchannels[e.channel]]
@@ -603,7 +574,6 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
                     epchannels[e.channel] = [e]
 
                 episode['channels'] = epchannels
-                episodes[season_episode] = episode
 
                 if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
                     logger.debug("Creating .strm: " + strm_path)
@@ -612,8 +582,43 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
                 # if not filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path)):
                 #     filetools.write(filetools.join(TVSHOWS_PATH, nfo_path), head_nfo)
             except:
+                logger.error(traceback.format_exc())
                 failed += 1
-        return item, seasons, episodes, e, inserted, overwritten, failed
+        return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
+
+    def save_season(item, seasons, s):
+        tmdb_info = tmdb.Tmdb(id_Tmdb = item.infoLabels['tmdb_id'], search_type='tv')
+        seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(s))
+        infoLabels = {}
+
+        if seasoninfo.get('season_posters'): infoLabels['posters'] = seasoninfo.get('season_posters') + extra_info['poster'].get(str(s), [])
+        if seasoninfo.get('season_fanarts'): infoLabels['fanarts'] = seasoninfo.get('season_fanarts') + extra_info['fanart'].get(str(s), [])
+        if seasoninfo.get('season_trailer'): infoLabels['trailer'] = seasoninfo.get('season_trailer')
+        infoLabels['landscapes'] = extra_info['landscape'].get(str(s), [])
+        infoLabels['banners'] = extra_info['banner'].get(str(s), [])
+        infoLabels['clearlogos'] = item.infoLabels.get('clearlogos', [])
+        infoLabels['cleararts'] = item.infoLabels.get('cleararts', [])
+        if s in seasons: infoLabels['playcount'] = seasons[s].infoLabels.get('playcount', 0)
+
+        season_item = Item(action="get_episodes",
+                            channel='videolibrary',
+                            title=seasoninfo.get('season_title'),
+                            thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
+                            fanart = item.fanart,
+                            plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
+                            contentType = 'season',
+                            infoLabels = infoLabels,
+                            contentSeason = s,
+                            videolibrary_id = item.videolibrary_id,
+                            playcount=0)
+
+        if infoLabels['clearlogos']: season_item.clearlogo = infoLabels['clearlogos'][0]
+        if infoLabels['cleararts']: season_item.clearart = infoLabels['cleararts'][0]
+        if infoLabels['landscapes']: season_item.landscape = infoLabels['landscapes'][0]
+        if infoLabels['banners']: season_item.banner = infoLabels['banners'][0]
+
+        return s, season_item
+
     logger.debug()
 
     # from core import tmdb
@@ -640,23 +645,37 @@ def save_episodes(item, episodelist, extra_info, host, silent=False, overwrite=T
 
     # support.dbg()
     # for i, e in enumerate(episodelist):
-    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, seasons, current_seasons, episodes, e, inserted, overwritten, failed)
-    #     if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
-    #     if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
-    #     if not silent:
-    #         p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
+    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, episodes, e)
+        # if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
+        # if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
+        # if not silent:
+        #     p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
 
     i = 0
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(save_episode, item, seasons, current_seasons, episodes, e, inserted, overwritten, failed) for e in episodelist]
+        itlist = [executor.submit(save_episode, item, episodes, e) for e in episodelist]
         for res in futures.as_completed(itlist):
             if res.result():
-                item, seasons, episodes, e, inserted, overwritten, failed = res.result()
-                if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
-                if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
-                if not silent:
-                    i += 1
-                    p_dialog.update(int(math.ceil(i * t)), e.title)
+                item, episode, season_episode, lang, I, O, F = res.result()
+                inserted += I
+                overwritten += O
+                failed += F
+                if episode:
+                    episodes[season_episode] = episode
+                    e = episode['item']
+                    if not e.contentSeason in current_seasons: current_seasons.append(e.contentSeason)
+                    if not lang: lang = item.contentLanguage if item.contentLanguage else 'ITA'
+                    if not lang in item.lang_list: item.lang_list.append(lang)
+                    if not silent:
+                        i += 1
+                        p_dialog.update(int(math.ceil(i * t)), message=e.title)
+
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(save_season, item, seasons, s) for s in current_seasons]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                s, season_item = res.result()
+                seasons[s] = season_item
 
     if not silent:
         if len(item.lang_list) > 1:
@@ -882,6 +901,7 @@ def add_tvshow(item, channel=None):
 
     global magnet_caching
     magnet_caching = False
+
     inserted, overwritten, failed, path = save_tvshow(item, itemlist)
 
     if not path:

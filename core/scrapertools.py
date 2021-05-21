@@ -451,7 +451,7 @@ def get_season_and_episode(title):
         except:
             pass
 
-    logger.debug("'" + title + "' -> '" + filename + "'")
+    logger.debug(title, ' -> ', filename)
 
     return filename
 

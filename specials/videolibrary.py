@@ -8,12 +8,13 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 import xbmc, os, traceback
-from time import time
 
 from core import filetools, scrapertools, videolibrarytools
-from core.support import typo, thumb, videolibrary
+from core.support import typo, thumb
 from core.item import Item
 from platformcode import config, launcher, logger, platformtools
+from core.videolibrarytools import videolibrarydb
+
 if PY3:
     from concurrent import futures
     import urllib.parse as urlparse
@@ -21,7 +22,7 @@ else:
     from concurrent_py2 import futures
     import urlparse
 
-from core.videolibrarytools import videolibrarydb
+
 
 
 def mainlist(item):
@@ -31,7 +32,7 @@ def mainlist(item):
                      category=config.get_localized_string(70270), thumbnail=thumb("videolibrary_movie")),
                 Item(channel=item.channel, action="list_tvshows",title=config.get_localized_string(60600),
                      category=config.get_localized_string(70271), thumbnail=thumb("videolibrary_tvshow"),
-                     context=[{"channel":"videolibrary", "action":"update_videolibrary", "title":config.get_localized_string(70269)}]),
+                     context=[{"channel":"videolibrary", "action":"update_videolibrary", "title":config.get_localized_string(70269), 'forced':True}]),
                 Item(channel='shortcuts', action="SettingOnPosition", title=typo(config.get_localized_string(70287),'bold color kod'),
                      category=2, setting=1, thumbnail = thumb("setting_0"),folder=False)]
     return itemlist
@@ -197,7 +198,7 @@ def list_tvshows(item):
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
 
         itemlist += [Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
-                          fanart=item.thumbnail, landscape=item.thumbnail,
+                          fanart=item.thumbnail, landscape=item.thumbnail, forced=True,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     return itemlist
 
@@ -471,14 +472,20 @@ def findvideos(item):
                 else:
                     videolibrary_items[key] = values
 
+
         with futures.ThreadPoolExecutor() as executor:
-            itlist = [executor.submit(servers, ch, value) for ch, value in videolibrary_items.items() if ch not in disabled]
+            itlist = [executor.submit(servers, item, ch, value) for ch, value in videolibrary_items.items() if ch not in disabled]
             for res in futures.as_completed(itlist):
                 itemlist += res.result()
+
+        pl = [s for s in itemlist if s.contentLanguage in [prefered_lang, '']]
+        if pl: itemlist = pl
+
 
         if len(itlist) > 1:
             for it in itemlist:
                 it.title = '[{}] {}'.format(it.ch_name, it.title)
+
 
         if autoplay.play_multi_channel(item, itemlist):  # hideserver
             return []
@@ -489,11 +496,22 @@ def findvideos(item):
     return itemlist
 
 
-def servers(ch, items):
+def servers(item, ch, items):
     serverlist = []
     from core import channeltools
     ch_params = channeltools.get_channel_parameters(ch)
     ch_name = ch_params.get('title', '')
+
+    def channel_servers(item, it, channel, ch_name):
+        serverlist = []
+        it.contentChannel = 'videolibrary'
+        it = get_host(it, channel)
+        it.contentTitle = it.fulltitle = item.title
+        for item in getattr(channel, it.action)(it):
+            if item.server and item.channel:
+                item.ch_name = ch_name
+                serverlist.append(item)
+        return serverlist
 
     if ch_params.get('active', False):
 
@@ -502,19 +520,10 @@ def servers(ch, items):
         try: channel = __import__('%s.%s' % (CHANNELS, ch), None, None, ['%s.%s' % (CHANNELS, ch)])
         except ImportError: exec("import " + CHANNELS + "." + ch + " as channel")
         with futures.ThreadPoolExecutor() as executor:
-            itlist = [executor.submit(channel_servers, it, channel, ch_name) for it in items]
+            itlist = [executor.submit(channel_servers, item, it, channel, ch_name) for it in items]
             for res in futures.as_completed(itlist):
                 serverlist += res.result()
-    return serverlist
 
-def channel_servers(it, channel, ch_name):
-    serverlist = []
-    it.contentChannel = 'videolibrary'
-    it = get_host(it, channel)
-    for item in getattr(channel, it.action)(it):
-        if item.server and item.channel:
-            item.ch_name = ch_name
-            serverlist.append(item)
     return serverlist
 
 
@@ -562,101 +571,112 @@ def play(item):
     return itemlist
 
 
-def update_videolibrary(item=''):
-    logger.debug()
-    check_for_update(item)
-
-
-def check_for_update(ITEM = None):
+def update_videolibrary(item=None):
     logger.debug("Update Series...")
-
+    from core import channeltools
     import datetime
     p_dialog = None
     update_when_finished = False
     now = datetime.date.today()
-
     try:
-        if config.get_setting("update", "videolibrary") != 0:
-            config.set_setting("updatelibrary_last_check", now.strftime('%Y-%m-%d'), "videolibrary")
+        config.set_setting("updatelibrary_last_check", now.strftime('%Y-%m-%d'), "videolibrary")
 
-            heading = config.get_localized_string(60389)
-            p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60037))
-            p_dialog.update(0, '')
-            show_list = []
+        message = config.get_localized_string(60389)
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60037))
+        p_dialog.update(0, '')
+        show_list = []
 
-            if ITEM and ITEM.videolibrary_id:
-                show = videolibrarydb['tvshow'][ITEM.videolibrary_id]
+        if item and item.videolibrary_id:
+            show = videolibrarydb['tvshow'][item.videolibrary_id]
 
-                for s in show['channels'].values():
+            for s in show['channels'].values():
                     show_list += s
-            else:
-                shows = dict(videolibrarydb['tvshow']).values()
+        else:
+            shows = dict(videolibrarydb['tvshow']).values()
 
+            for show in shows:
+                if show['item'].active or item.forced:
+                    for s in show['channels'].values():
+                        show_list += s
 
-                for show in shows:
-                    if show['item'].active:
-                        for s in show['channels'].values():
-                            show_list += s
+        t = float(100) / len(show_list)
+        i = 0
 
-            t = float(100) / len(show_list)
-            i = 0
-            for item in show_list:
-                i += 1
-                p_dialog.update(int(i * t), heading % (item.fulltitle, item.channel) )
-                item = get_host(item)
-                try: channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
-                except: channel = __import__('specials.%s' % item.channel, fromlist=["specials.%s" % item.channel])
-                itemlist = getattr(channel, item.action)(item)
-                videolibrarytools.save_tvshow(item, itemlist)
-            p_dialog.close()
+        for it in show_list:
+            i += 1
+            chname = channeltools.get_channel_parameters(it.channel)['title']
+            p_dialog.update(int(i * t), message=message % (it.fulltitle, chname))
+            it = get_host(it)
+            try: channel = __import__('channels.%s' % it.channel, fromlist=["channels.%s" % it.channel])
+            except: channel = __import__('specials.%s' % it.channel, fromlist=["specials.%s" % it.channel])
+            itemlist = getattr(channel, it.action)(it)
+            videolibrarytools.save_tvshow(it, itemlist, True)
+        p_dialog.close()
+
     except:
         p_dialog.close()
         logger.error(traceback.format_exc())
+
     videolibrarydb.close()
-    if ITEM:
+
+    if item and item.videolibrary_id:
         update_when_finished = set_active_tvshow(show)
-    else:
-        for show in shows:
-            update_when_finished = set_active_tvshow(show)
+    else :
+        update_when_finished = set_active_tvshow(list(shows))
 
     if update_when_finished:
         platformtools.itemlist_refresh()
-
-
 
     # if config.get_setting('trakt_sync'):
     #     from core import trakt_tools
     #     trakt_tools.update_all()
 
-def set_active_tvshow(show):
-    update_when_finished = False
-    if show['item'].active:
-        prefered_lang = show['item'].prefered_lang
-        active = False if show['item'].infoLabels['status'].lower() == 'ended' else True
-        episodes = videolibrarydb['episode'][show['item'].videolibrary_id]
-        videolibrarydb.close()
-        if not active:
-            total_episodes = show['item'].infoLabels['number_of_episodes']
-            episodes_list = []
-            for episode in episodes.values():
-                for ep in episode['channels'].values():
-                    ep_list = [e for e in ep if e.contentLanguage == prefered_lang]
-                    if ep_list: episodes_list.append(ep_list)
 
-            if len(episodes_list) == total_episodes:
-                a = False
-                update_when_finished = True
-                for i in range(len(episodes_list) - 1):
-                    if len(episodes_list[i]) == len(episodes_list[i + 1]):
-                        a = False
-                        update_when_finished = True
-                    else:
-                        a = True
-                        break
-                if not a:
-                    show['item'].active = a
-                    videolibrarydb['tvshow'][show['item'].videolibrary_id] = show
-                    videolibrarydb.close()
+def set_active_tvshow(value):
+    update_when_finished = False
+    def sub_thread(show, update_when_finished):
+        ret = None
+        if show['item'].active:
+            prefered_lang = show['item'].prefered_lang
+            active = False if show['item'].infoLabels['status'].lower() == 'ended' else True
+            episodes = videolibrarydb['episode'][show['item'].videolibrary_id]
+
+            if not active:
+                total_episodes = show['item'].infoLabels['number_of_episodes']
+                episodes_list = []
+                for episode in episodes.values():
+                    for ep in episode['channels'].values():
+                        ep_list = [e for e in ep if e.contentLanguage == prefered_lang]
+                        if ep_list: episodes_list.append(ep_list)
+
+                if len(episodes_list) == total_episodes:
+                    a = False
+                    update_when_finished = True
+                    for i in range(len(episodes_list) - 1):
+                        if len(episodes_list[i]) == len(episodes_list[i + 1]):
+                            a = False
+                            update_when_finished = True
+                        else:
+                            a = True
+                            break
+                    if not a:
+                        show['item'].active = a
+                        ret = show
+        return show, ret, update_when_finished
+
+    if type(value) == list:
+        with futures.ThreadPoolExecutor() as executor:
+            _list = [executor.submit(sub_thread, s, update_when_finished) for s in value]
+            for res in futures.as_completed(_list):
+                if res.result() and res.result()[1]:
+                    videolibrarydb['tvshow'][res.result()[0]['item'].videolibrary_id] = res.result()[1]
+                if res.result()[2]:
+                    update_when_finished = True
+    else:
+        show, ret, update_when_finished = sub_thread(value, update_when_finished)
+        if ret:
+            videolibrarydb['tvshow'][show['item'].videolibrary_id] = ret
+
     return update_when_finished
 
 
@@ -948,7 +968,7 @@ def delete(item):
         if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
             from platformcode import xbmc_videolibrary
             xbmc_videolibrary.clean_by_id(item)
-        platformtools.itemlist_refresh()
+        platformtools.itemlist_refresh(-1)
     if select and select > 0:
 
         channel_name = channels[select - 1]
@@ -960,7 +980,7 @@ def delete(item):
             seasons_dict = dict(seasons)
 
             for key, episode in episodes_dict.items():
-                if len(episode['channels']) > 1:
+                if len(episode['channels']) > 1 and channel_name in episode['channels']:
                     del episode['channels'][channel_name]
                 elif channel_name in episode['channels']:
                     xbmc_videolibrary.clean_by_id(episodes[key]['item'])
