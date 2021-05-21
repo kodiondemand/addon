@@ -244,11 +244,11 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             if scraped["plot"]:
                 infolabels['plot'] = plot
             if scraped['duration']:
-                matches = scrapertools.find_multiple_matches(scraped['duration'],
+                dur = scrapertools.find_multiple_matches(scraped['duration'],
                                                              r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
-                for h, m in matches:
+                for h, m in dur:
                     scraped['duration'] = int(h) * 60 + int(m)
-                if not matches:
+                if not dur:
                     scraped['duration'] = scrapertools.find_single_match(scraped['duration'], r'(\d+)')
                 try:
                     infolabels['duration'] = int(scraped['duration']) * 60

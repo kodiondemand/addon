@@ -35,9 +35,6 @@ def start():
 def run(item=None):
     logger.debug()
 
-    # for saving viewmode for precedent menu
-    platformtools.viewmodeMonitor()
-
     if not item:
         # Extract item from sys.argv
         if sys.argv[2]:

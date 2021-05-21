@@ -21,7 +21,7 @@ def test_video_exists(page_url):
     disable_directIP = False
     # if 'swvideoid' in page_url: disable_directIP = True
 
-    resp = httptools.downloadpage(page_url, verify=False, disable_directIP=disable_directIP, follow_redirects=False)
+    resp = httptools.downloadpage(page_url.replace('https:', 'http:'), verify=False, disable_directIP=disable_directIP, follow_redirects=False)
     while resp.headers.get('location'):
         page_url = resp.headers.get('location')
         resp = httptools.downloadpage(page_url.replace('https:', 'http:'), verify=False, disable_directIP=disable_directIP, follow_redirects=False)

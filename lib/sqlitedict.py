@@ -593,7 +593,7 @@ class SqliteMultithread(Thread):
         while time.time() - start_time < self.timeout:
             if self._sqlitedict_thread_initialized or self.exception:
                 return
-            time.sleep(0.1)
+            time.sleep(0.01)
         raise TimeoutError("SqliteMultithread failed to flag initialization withing %0.0f seconds." % self.timeout)
 
 

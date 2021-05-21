@@ -89,21 +89,18 @@ def update(path, p_dialog, i, t, serie, overwrite):
                         #    serie.infoLabels['playcount'] = serie.playcount
                     insertados_total += insertados
 
-                except Exception as ex:
+                except:
+                    import traceback
                     logger.error("Error when saving the chapters of the series")
-                    template = "An exception of type %s occured. Arguments:\n%r"
-                    message = template % (type(ex).__name__, ex.args)
-                    logger.error(message)
+                    logger.error(traceback.format_exc())
 
-            except Exception as ex:
+            except:
+                import traceback
                 logger.error("Error in obtaining the episodes of: %s" % serie.show)
-                template = "An exception of type %s occured. Arguments:\n%r"
-                message = template % (type(ex).__name__, ex.args)
-                logger.error(message)
+                logger.error(traceback.format_exc())
 
         else:
             logger.debug("Channel %s not active is not updated" % serie.channel)
-
     # Synchronize the episodes seen from the Kodi video library with that of KoD
     try:
         if config.is_xbmc():                # If it's Kodi, we do it
