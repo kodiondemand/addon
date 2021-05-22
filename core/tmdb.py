@@ -309,6 +309,8 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                             item.infoLabels['episode_imdb_id'] = episode['episode_imdb_id']
                         if episode.get('episode_tvdb_id'):
                             item.infoLabels['episode_tvdb_id'] = episode['episode_tvdb_id']
+                        if episode.get('episode_posters'):
+                            item.infoLabels['posters'] = episode['episode_posters']
 
                         return len(item.infoLabels)
 
@@ -1471,7 +1473,7 @@ class Tmdb(object):
             # episode = season["episodes"][chapter - 1]
             url = "{}/tv/{}/season/{}/episode/{}?api_key={}&language={}&append_to_response=videos,images,credits,external_ids&include_image_language={},en,null".format(host, self.result["id"], seasonNumber, chapter, api, self.search_language, self.search_language)
             episode = self.get_json(url)
-            # logger.debug('EPISODE', jsontools.dump(episode))
+            # logger.debug('EPISODE', url)
 
             episodeTitle = episode.get("name", '')
             episodeId = episode.get('id', '')
@@ -1485,6 +1487,9 @@ class Tmdb(object):
             externalIds = episode.get('external_ids', {})
             imdb_id = externalIds.get('imdb_id')
             tvdb_id = externalIds.get('tvdb_id')
+            posters = []
+            for image in episode['images']['stills']:
+                posters.append('https://image.tmdb.org/t/p/original' + image['file_path'])
 
             ret_dic["episode_title"] = episodeTitle
             ret_dic["episode_plot"] = episodePlot
@@ -1498,6 +1503,8 @@ class Tmdb(object):
                 ret_dic["episode_air_date"] = date[2] + "/" + date[1] + "/" + date[0]
             else:
                 ret_dic["episode_air_date"] = ""
+            if posters:
+                ret_dic['episode_posters'] = posters
 
             ret_dic["episode_crew"] = episodeCrew
             if episodeStars:

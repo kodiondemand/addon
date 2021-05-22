@@ -413,7 +413,7 @@ def save_tvshow(item, episodelist, silent=False):
     if not item.head_nfo:
         head_nfo = scraper.get_nfo(item)
     if not head_nfo: return 0, 0, -1, ''
-
+    # support.dbg()
     extra_info = get_fanart_tv(item)
     if not item.infoLabels.get('posters'): item.infoLabels['posters'] = []
     item.infoLabels['posters'] += extra_info['poster'].get('all',[])
@@ -566,12 +566,14 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                     channels_url = [u.url for u in epchannels[e.channel]]
                     if e.url not in channels_url:
                         epchannels[e.channel].append(e)
+                        overwritten += 1
                     else:
                         del epchannels[e.channel][channels_url.index(e.url)]
                         epchannels[e.channel].append(e)
                         overwritten += 1
                 else:
                     epchannels[e.channel] = [e]
+                    overwritten += 1
 
                 episode['channels'] = epchannels
 
@@ -645,11 +647,18 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
 
     # support.dbg()
     # for i, e in enumerate(episodelist):
-    #     item, seasons, episodes, e, inserted, overwritten, failed = save_episode(item, episodes, e)
-        # if not e.contentLanguage: e.contentLanguage = item.contentLanguage if item.contentLanguage else 'ITA'
-        # if not e.contentLanguage in item.lang_list: item.lang_list.append(e.contentLanguage)
-        # if not silent:
-        #     p_dialog.update(int(math.ceil((i + 1) * t)), e.title)
+    #     item, episode, season_episode, lang, I, O, F = save_episode(item, episodes, e)
+    #     inserted += I
+    #     overwritten += O
+    #     failed += F
+    #     if episode:
+    #         episodes[season_episode] = episode
+    #         e = episode['item']
+    #         if not e.contentSeason in current_seasons: current_seasons.append(e.contentSeason)
+    #         if not lang: lang = item.contentLanguage if item.contentLanguage else 'ITA'
+    #         if not lang in item.lang_list: item.lang_list.append(lang)
+    #         if not silent:
+    #             p_dialog.update(int(math.ceil(i * t)), message=e.title)
 
     i = 0
     with futures.ThreadPoolExecutor() as executor:

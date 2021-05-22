@@ -84,109 +84,109 @@ def find_and_set_infoLabels(item):
     logger.error("Error importing the scraper module %s" % scraper_actual)
 
 
-def cuadro_completar(item):
-    logger.debug()
+# def cuadro_completar(item):
+#     logger.debug()
 
-    global dict_default
-    dict_default = {}
+#     global dict_default
+#     dict_default = {}
 
-    COLOR = ["0xFF65B3DA", "0xFFFFFFFF"]
-    # We create the list of infoLabel fields
-    controls = [("title", "text", config.get_localized_string(60230)),
-                ("originaltitle", "text", config.get_localized_string(60231)),
-                ("year", "text", config.get_localized_string(60232)),
-                ("identificadores", "label", config.get_localized_string(60233)),
-                ("tmdb_id", "text", config.get_localized_string(60234)),
-                ("url_tmdb", "text", config.get_localized_string(60235), "+!eq(-1,'')"),
-                ("tvdb_id", "text", config.get_localized_string(60236), "+eq(-7,'Serie')"),
-                ("url_tvdb", "text", config.get_localized_string(60237), "+!eq(-1,'')+eq(-8,'Serie')"),
-                ("imdb_id", "text", config.get_localized_string(60238)),
-                ("otro_id", "text", config.get_localized_string(60239), "+eq(-1,'')"),
-                ("urls", "label", config.get_localized_string(60240)),
-                ("fanart", "text", config.get_localized_string(60241)),
-                ("thumbnail", "text", config.get_localized_string(60242))]
+#     COLOR = ["0xFF65B3DA", "0xFFFFFFFF"]
+#     # We create the list of infoLabel fields
+#     controls = [("title", "text", config.get_localized_string(60230)),
+#                 ("originaltitle", "text", config.get_localized_string(60231)),
+#                 ("year", "text", config.get_localized_string(60232)),
+#                 ("identificadores", "label", config.get_localized_string(60233)),
+#                 ("tmdb_id", "text", config.get_localized_string(60234)),
+#                 ("url_tmdb", "text", config.get_localized_string(60235), "+!eq(-1,'')"),
+#                 ("tvdb_id", "text", config.get_localized_string(60236), "+eq(-7,'Serie')"),
+#                 ("url_tvdb", "text", config.get_localized_string(60237), "+!eq(-1,'')+eq(-8,'Serie')"),
+#                 ("imdb_id", "text", config.get_localized_string(60238)),
+#                 ("otro_id", "text", config.get_localized_string(60239), "+eq(-1,'')"),
+#                 ("urls", "label", config.get_localized_string(60240)),
+#                 ("fanart", "text", config.get_localized_string(60241)),
+#                 ("thumbnail", "text", config.get_localized_string(60242))]
 
-    if item.infoLabels["mediatype"] == "movie":
-        mediatype_default = 0
-    else:
-        mediatype_default = 1
+#     if item.infoLabels["mediatype"] == "movie":
+#         mediatype_default = 0
+#     else:
+#         mediatype_default = 1
 
-    listado_controles = [{'id': "mediatype",
-                          'type': "list",
-                          'label': config.get_localized_string(60243),
-                          'color': COLOR[1],
-                          'default': mediatype_default,
-                          'enabled': True,
-                          'visible': True,
-                          'lvalues': [config.get_localized_string(60244), config.get_localized_string(70136)]
-                          }]
+#     listado_controles = [{'id': "mediatype",
+#                           'type': "list",
+#                           'label': config.get_localized_string(60243),
+#                           'color': COLOR[1],
+#                           'default': mediatype_default,
+#                           'enabled': True,
+#                           'visible': True,
+#                           'lvalues': [config.get_localized_string(60244), config.get_localized_string(70136)]
+#                           }]
 
-    for i, c in enumerate(controls):
-        color = COLOR[0]
-        dict_default[c[0]] = item.infoLabels.get(c[0], '')
+#     for i, c in enumerate(controls):
+#         color = COLOR[0]
+#         dict_default[c[0]] = item.infoLabels.get(c[0], '')
 
-        enabled = True
+#         enabled = True
 
-        if i > 0 and c[1] != 'label':
-            color = COLOR[1]
-            enabled = "!eq(-%s,'')" % i
-            if len(c) > 3:
-                enabled += c[3]
+#         if i > 0 and c[1] != 'label':
+#             color = COLOR[1]
+#             enabled = "!eq(-%s,'')" % i
+#             if len(c) > 3:
+#                 enabled += c[3]
 
-        # default for special cases
-        if c[0] == "url_tmdb" and item.infoLabels["tmdb_id"] and 'tmdb' in item.infoLabels["url_scraper"]:
-            dict_default[c[0]] = item.infoLabels["url_scraper"]
+#         # default for special cases
+#         if c[0] == "url_tmdb" and item.infoLabels["tmdb_id"] and 'tmdb' in item.infoLabels["url_scraper"]:
+#             dict_default[c[0]] = item.infoLabels["url_scraper"]
 
-        elif c[0] == "url_tvdb" and item.infoLabels["tvdb_id"] and 'thetvdb.com' in item.infoLabels["url_scraper"]:
-            dict_default[c[0]] = item.infoLabels["url_scraper"]
+#         elif c[0] == "url_tvdb" and item.infoLabels["tvdb_id"] and 'thetvdb.com' in item.infoLabels["url_scraper"]:
+#             dict_default[c[0]] = item.infoLabels["url_scraper"]
 
-        if not dict_default[c[0]] or dict_default[c[0]] == 'None' or dict_default[c[0]] == 0:
-            dict_default[c[0]] = ''
-        elif isinstance(dict_default[c[0]], (int, float)) or (not PY3 and isinstance(dict_default[c[0]], (int, float, long))):
-            # If it is numerical we convert it into str
-            dict_default[c[0]] = str(dict_default[c[0]])
+#         if not dict_default[c[0]] or dict_default[c[0]] == 'None' or dict_default[c[0]] == 0:
+#             dict_default[c[0]] = ''
+#         elif isinstance(dict_default[c[0]], (int, float)) or (not PY3 and isinstance(dict_default[c[0]], (int, float, long))):
+#             # If it is numerical we convert it into str
+#             dict_default[c[0]] = str(dict_default[c[0]])
 
-        listado_controles.append({'id': c[0],
-                                  'type': c[1],
-                                  'label': c[2],
-                                  'color': color,
-                                  'default': dict_default[c[0]],
-                                  'enabled': enabled,
-                                  'visible': True})
+#         listado_controles.append({'id': c[0],
+#                                   'type': c[1],
+#                                   'label': c[2],
+#                                   'color': color,
+#                                   'default': dict_default[c[0]],
+#                                   'enabled': enabled,
+#                                   'visible': True})
 
-    # logger.debug(dict_default)
-    if platformtools.show_channel_settings(list_controls=listado_controles, caption=config.get_localized_string(60246), item=item,
-                                           callback="core.scraper.callback_cuadro_completar",
-                                           custom_button={"visible": False}):
-        return True
+#     # logger.debug(dict_default)
+#     if platformtools.show_channel_settings(list_controls=listado_controles, caption=config.get_localized_string(60246), item=item,
+#                                            callback="core.scraper.callback_cuadro_completar",
+#                                            custom_button={"visible": False}):
+#         return True
 
-    else:
-        return False
+#     else:
+#         return False
 
 
-def callback_cuadro_completar(item, dict_values):
-    # logger.debug(dict_values)
-    global dict_default
+# def callback_cuadro_completar(item, dict_values):
+#     # logger.debug(dict_values)
+#     global dict_default
 
-    if dict_values.get("title", None):
-        # Adapt dict_values ​​to valid infoLabels
-        dict_values['mediatype'] = ['movie', 'tvshow'][dict_values['mediatype']]
-        for k, v in list(dict_values.items()):
-            if k in dict_default and dict_default[k] == dict_values[k]:
-                del dict_values[k]
+#     if dict_values.get("title", None):
+#         # Adapt dict_values ​​to valid infoLabels
+#         dict_values['mediatype'] = ['movie', 'tvshow'][dict_values['mediatype']]
+#         for k, v in list(dict_values.items()):
+#             if k in dict_default and dict_default[k] == dict_values[k]:
+#                 del dict_values[k]
 
-        if isinstance(item.infoLabels, InfoLabels):
-            infoLabels = item.infoLabels
-        else:
-            infoLabels = InfoLabels()
+#         if isinstance(item.infoLabels, InfoLabels):
+#             infoLabels = item.infoLabels
+#         else:
+#             infoLabels = InfoLabels()
 
-        infoLabels.update(dict_values)
-        item.infoLabels = infoLabels
+#         infoLabels.update(dict_values)
+#         item.infoLabels = infoLabels
 
-        if item.infoLabels['code']:
-            return True
+#         if item.infoLabels['code']:
+#             return True
 
-    return False
+#     return False
 
 
 def get_nfo(item, search_groups=False):

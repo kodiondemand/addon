@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
-import sys
+from platformcode.xbmc_videolibrary import set_content
+import sys, xbmcgui
 from core import httptools, support
 
 PY3 = False
@@ -28,27 +29,44 @@ else:
 def mainlist(item):
     logger.debug()
 
-    itemlist = [Item(channel=item.channel, action="list_movies", title=config.get_localized_string(60509),
-                     category=config.get_localized_string(70270), thumbnail=thumb("videolibrary_movie")),
-                Item(channel=item.channel, action="list_tvshows",title=config.get_localized_string(60600),
-                     category=config.get_localized_string(70271), thumbnail=thumb("videolibrary_tvshow"),
-                     context=[{"channel":"videolibrary", "action":"update_videolibrary", "title":config.get_localized_string(70269), 'forced':True}]),
-                Item(channel='shortcuts', action="SettingOnPosition", title=typo(config.get_localized_string(70287),'bold color kod'),
-                     category=2, setting=1, thumbnail = thumb("setting_0"),folder=False)]
+    itemlist = [Item(channel=item.channel, title='Generi', action='list_genres', contentType='movie', thumbnail=support.thumb('movie_genre')),
+                Item(channel=item.channel, action='list_movies', title=config.get_localized_string(60509), contentType='movie',
+                     category=config.get_localized_string(70270), thumbnail=thumb('videolibrary_movie')),
+                Item(channel=item.channel, action='list_tvshows',title=config.get_localized_string(60600),
+                     category=config.get_localized_string(70271), thumbnail=thumb('videolibrary_tvshow'),
+                     context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269), 'forced':True}]),
+                Item(channel='shortcuts', action='SettingOnPosition', title=typo(config.get_localized_string(70287),'bold color kod'),
+                     category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
     return itemlist
 
 
 def channel_config(item):
-    return platformtools.show_channel_settings(channelpath=os.path.join(config.get_runtime_path(), "channels", item.channel), caption=config.get_localized_string(60598))
+    return platformtools.show_channel_settings(channelpath=os.path.join(config.get_runtime_path(), 'channels', item.channel), caption=config.get_localized_string(60598))
 
+def list_genres(item):
+    # support.dbg()
+    movies = dict(videolibrarydb[item.contentType]).values()
+
+    videolibrarydb.close()
+    genres = []
+    for v in movies:
+        genres += v['item'].infoLabels['genre'].split(',')
+    itemlist = []
+    for g in genres:
+        g = g.strip()
+        if g and g not in [it.genre for it in itemlist]:
+            it = item.clone(title = g, action='list_movies', genre=g)
+            itemlist.append(it)
+    itemlist.sort(key=lambda it: it.genre)
+    support.thumb(itemlist, True)
+    return itemlist
 
 def list_movies(item, silent=False):
     from core import jsontools
     logger.debug()
 
-    itemlist = []
-    movies_path = []
-    ids = []
+    # itemlist = []
+
 
     # for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
     #     for f in folders:
@@ -57,7 +75,7 @@ def list_movies(item, silent=False):
     #             ids.append(ID)
     #             if ID not in videolibrarydb['movie']:
     #                 ids.append(ID)
-    #                 movies_path += [filetools.join(root, f, f + ".nfo")]
+    #                 movies_path += [filetools.join(root, f, f + '.nfo')]
     #                 local = False
     #                 for f in filetools.listdir(filetools.join(root, f)):
     #                     if f.split('.')[-1] not in ['nfo','json','strm']:
@@ -72,34 +90,15 @@ def list_movies(item, silent=False):
     #         if item_movie.library_urls and len(item_movie.library_urls) > 0:
     #             code = scrapertools.find_single_match(item_movie.strm_path, r'\[([^\]]+)')
     #             videolibrarydb['movie'][code] = {'item':jsontools.load(item_movie.tojson())}
+
     movies = dict(videolibrarydb['movie'])
     videolibrarydb.close()
-    for key, value in movies.items():
-        # if key not in ids:
-        #     del videolibrarydb['movie'][key]
-        # else:
-        it = value['item']
-        it.context = [{'title':config.get_localized_string(70084),'channel':'videolibrary', 'action':'delete'}]
-        if len(it.lang_list) > 1:
-            it.context += [{"title": config.get_localized_string(70246),
-                                "action": "prefered_lang",
-                                "channel": "videolibrary"}]
-        watched = it.infoLabels.get("playcount", 0)
-        if watched > 0:
-            title = config.get_localized_string(60016)
-            value = 0
-        else:
-            title = config.get_localized_string(60017)
-            value = 1
+    itemlist = [value['item'] for value in movies.values() if item.genre in value['item'].infoLabels['genre']]
 
-        it.context += [{"title": title,
-                          "action": "mark_content_as_watched",
-                          "channel": "videolibrary",
-                          "playcount": value}]
-        itemlist.append(it)
-
-    if silent == False: return sorted(itemlist, key=lambda it: it.title.lower())
-    else: return
+    add_context(itemlist)
+    if silent == False:
+        itemlist.sort(key=lambda it: it.title.lower())
+    return itemlist
 
 
 def list_tvshows(item):
@@ -118,7 +117,7 @@ def list_tvshows(item):
     #             ids.append(ID)
     #             if ID not in videolibrarydb['movie']:
     #                 ids.append(ID)
-    #                 tvshows_path += [filetools.join(root, f, f + ".nfo")]
+    #                 tvshows_path += [filetools.join(root, f, f + '.nfo')]
     #                 local = False
     #                 for f in filetools.listdir(filetools.join(root, f)):
     #                     if f.split('.')[-1] not in ['nfo','json','strm']:
@@ -126,7 +125,7 @@ def list_tvshows(item):
     #                         break
     # with futures.ThreadPoolExecutor() as executor:
     #     itlist = [executor.submit(get_results, tvshow_path, root, 'tvshow', local) for tvshow_path in tvshows_path]
-    #     itlist = [executor.submit(get_results, filetools.join(root, folder, "tvshow.nfo"), root, 'tvshow') for folder in filetools.listdir(root)]
+    #     itlist = [executor.submit(get_results, filetools.join(root, folder, 'tvshow.nfo'), root, 'tvshow') for folder in filetools.listdir(root)]
     #     for res in futures.as_completed(itlist):
     #         item_tvshow, value = res.result()
     #         # verify the existence of the channels
@@ -141,63 +140,23 @@ def list_tvshows(item):
     series = dict(videolibrarydb['tvshow'])
     videolibrarydb.close()
 
-    def sub_thread(key, value):
-        it = value['item']
+    def sub_thread(it):
+        it = it['item']
         it.contentType = 'tvshow'
 
-        it.context = [{'title':config.get_localized_string(70085),'channel':'videolibrary', 'action':'delete'}]
-
-        if len(it.lang_list) > 1:
-            it.context += [{"title": config.get_localized_string(70246),
-                              "action": "prefered_lang",
-                              "channel": "videolibrary"}]
-        if len(value['channels'].keys()) > 1:
-            it.context += [{"title": config.get_localized_string(70837),
-                              "action": "disable_channels",
-                              "channel": "videolibrary"}]
-        watched = it.infoLabels.get("playcount", 0)
-        if watched > 0:
-            title = config.get_localized_string(60020)
-            value = 0
-        else:
-            title = config.get_localized_string(60021)
-            value = 1
-
-        it.context += [{"title": title,
-                          "action": "mark_content_as_watched",
-                          "channel": "videolibrary",
-                          "playcount": value}]
-        if not it.active:
-            it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
-            title = config.get_localized_string(60023)
-        else:
-            title = config.get_localized_string(60022)
-        it.context += [{"title": title,
-                        "action": "set_active",
-                        "channel": "videolibrary",
-                        "playcount": value}]
-        it.context += [{"title": config.get_localized_string(70269),
-                        "action": "update_videolibrary",
-                        "channel": "videolibrary"}]
-        it.context += [{"title": 'Poster',
-                                 "action": "change_poster",
-                                 "channel": "videolibrary",
-                                 "playcount": value}]
-        it.context += [{"title": 'fanart',
-                                 "action": "change_fanart",
-                                 "channel": "videolibrary",
-                                 "playcount": value}]
+        if not it.active: it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
         return it
 
     with futures.ThreadPoolExecutor() as executor:
-        _list = [executor.submit(sub_thread, key, value) for key, value in series.items()]
+        _list = [executor.submit(sub_thread, it) for it in series.values()]
         for res in futures.as_completed(_list):
             itemlist.append(res.result())
 
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
+        add_context(itemlist)
 
-        itemlist += [Item(channel=item.channel, action="update_videolibrary", thumbnail=item.thumbnail,
+        itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=item.thumbnail,
                           fanart=item.thumbnail, landscape=item.thumbnail, forced=True,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     return itemlist
@@ -219,12 +178,12 @@ def get_results(nfo_path, root, Type, local=False):
 
         # continue loading the elements of the video library
         if Type == 'movie':
-            folder = "folder_movies"
+            folder = 'folder_movies'
             item.path = filetools.split(nfo_path)[0]
             item.nfo = nfo_path
             sep = '/' if '/' in nfo_path else '\\'
-            item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting(folder), item.path.split(sep)[-1])
-            strm_path = item.strm_path.replace("\\", "/").rstrip("/")
+            item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
+            strm_path = item.strm_path.replace('\\', '/').rstrip('/')
             if not item.thumbnail: item.thumbnail = item.infoLabels['thumbnail']
             if '/' in item.path: item.strm_path = strm_path
             # If strm has been removed from kodi library, don't show it
@@ -232,7 +191,7 @@ def get_results(nfo_path, root, Type, local=False):
 
             # Contextual menu: Mark as seen / not seen
             visto = item.library_playcounts.get(strm_path.strip('/').split('/')[0], 0)
-            item.infoLabels["playcount"] = visto
+            item.infoLabels['playcount'] = visto
             if visto > 0:
                 seen_text = config.get_localized_string(60016)
                 counter = 0
@@ -242,23 +201,23 @@ def get_results(nfo_path, root, Type, local=False):
 
             # Context menu: Delete series / channel
             channels_num = len(item.library_urls)
-            if "downloads" in item.library_urls: channels_num -= 1
+            if 'downloads' in item.library_urls: channels_num -= 1
             if channels_num > 1: delete_text = config.get_localized_string(60018)
             else: delete_text = config.get_localized_string(60019)
 
-            item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary",  "playcount": counter},
-                            {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel}]
+            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary',  'playcount': counter},
+                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel}]
         else:
-            folder = "folder_tvshows"
+            folder = 'folder_tvshows'
             try:
                 item.title = item.contentTitle
                 item.path = filetools.split(nfo_path)[0]
                 item.nfo = nfo_path
                 sep = '/' if '/' in nfo_path else '\\'
-                item.extra = filetools.join(config.get_setting("videolibrarypath"), config.get_setting(folder), item.path.split(sep)[-1])
+                item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
                 # Contextual menu: Mark as seen / not seen
                 visto = item.library_playcounts.get(item.contentTitle, 0)
-                item.infoLabels["playcount"] = visto
+                item.infoLabels['playcount'] = visto
                 logger.debug('item\n' + str(item))
                 if visto > 0:
                     seen_text = config.get_localized_string(60020)
@@ -279,20 +238,20 @@ def get_results(nfo_path, root, Type, local=False):
             else:
                 update_text = config.get_localized_string(60023)
                 value = 1
-                item.title += " [B]" + u"\u2022" + "[/B]"
+                item.title += ' [B]' + u'\u2022' + '[/B]'
 
             # Context menu: Delete series / channel
             channels_num = len(item.library_urls)
-            if "downloads" in item.library_urls: channels_num -= 1
+            if 'downloads' in item.library_urls: channels_num -= 1
             if channels_num > 1: delete_text = config.get_localized_string(60024)
             else: delete_text = config.get_localized_string(60025)
 
-            item.context = [{"title": seen_text, "action": "mark_content_as_watched", "channel": "videolibrary", "playcount": counter},
-                            {"title": update_text, "action": "mark_tvshow_as_updatable", "channel": "videolibrary", "active": value},
-                            {"title": delete_text, "action": "delete", "channel": "videolibrary", "multichannel": multichannel},
-                            {"title": config.get_localized_string(70269), "action": "update_tvshow", "channel": "videolibrary"}]
-            if item.local_episodes_path == "": item.context.append({"title": config.get_localized_string(80048), "action": "add_local_episodes", "channel": "videolibrary"})
-            else: item.context.append({"title": config.get_localized_string(80049), "action": "remove_local_episodes", "channel": "videolibrary"})
+            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary', 'playcount': counter},
+                            {'title': update_text, 'action': 'mark_tvshow_as_updatable', 'channel': 'videolibrary', 'active': value},
+                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel},
+                            {'title': config.get_localized_string(70269), 'action': 'update_tvshow', 'channel': 'videolibrary'}]
+            if item.local_episodes_path == '': item.context.append({'title': config.get_localized_string(80048), 'action': 'add_local_episodes', 'channel': 'videolibrary'})
+            else: item.context.append({'title': config.get_localized_string(80049), 'action': 'remove_local_episodes', 'channel': 'videolibrary'})
     else: item = Item()
     return item, value
 
@@ -305,8 +264,8 @@ def configure_update_videolibrary(item):
     preselect = []
 
     for i, item_tvshow in enumerate(item.lista):
-        it = xbmcgui.ListItem(item_tvshow["title"], '')
-        it.setArt({'thumb': item_tvshow["thumbnail"], 'fanart': item_tvshow["fanart"]})
+        it = xbmcgui.ListItem(item_tvshow['title'], '')
+        it.setArt({'thumb': item_tvshow['thumbnail'], 'fanart': item_tvshow['fanart']})
         lista.append(it)
         ids.append(Item(nfo=item_tvshow['nfo']))
         if item_tvshow['active']<=0:
@@ -337,50 +296,26 @@ def get_seasons(item):
     dict_temp = {}
 
 
-    if config.get_setting("no_pile_on_seasons", "videolibrary") == 2:  # Ever
+    if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2:  # Ever
         return get_episodes(item)
 
-    if config.get_setting("no_pile_on_seasons", "videolibrary") == 1 and len(dict_temp) == 1:  # Only if there is a season
+    if config.get_setting('no_pile_on_seasons', 'videolibrary') == 1 and len(dict_temp) == 1:  # Only if there is a season
         item.from_library = True
         return get_episodes(item)
     else:
         from core import tmdb
         seasons = videolibrarydb['season'][item.videolibrary_id]
         videolibrarydb.close()
-        # We create one item for each season
+        if len(seasons) == 1:
+            return get_episodes(list(seasons.values())[0])
 
-        def sub_thread(season):
-            it = season
-            it.contentType = 'season'
+        itemlist = sorted(seasons.values(), key=lambda it: int(it.contentSeason))
 
-            #Contextual menu: Mark the season as viewed or not
-            watched = it.infoLabels.get("playcount", 0)
-            if watched > 0:
-                title = config.get_localized_string(60028)
-                value = 0
-            else:
-                title = config.get_localized_string(60029)
-                value = 1
+        add_context(itemlist)
 
-            it.context = [{"title": title,
-                                 "action": "mark_content_as_watched",
-                                 "channel": "videolibrary",
-                                 "playcount": value}]
-            return it
-
-        with futures.ThreadPoolExecutor() as executor:
-            _list = [executor.submit(sub_thread, season) for season in seasons.values()]
-            for res in futures.as_completed(_list):
-                itemlist.append(res.result())
-
-        if len(itemlist) > 1:
-            itemlist = sorted(itemlist, key=lambda it: int(it.contentSeason))
-        else:
-            return get_episodes(itemlist[0])
-
-        if config.get_setting("show_all_seasons", "videolibrary"):
-            it = item.clone(action="get_episodes", title=config.get_localized_string(60030), all=True)
-            it.infoLabels["playcount"] = 0
+        if config.get_setting('show_all_seasons', 'videolibrary'):
+            it = item.clone(action='get_episodes', title=config.get_localized_string(60030), all=True)
+            it.infoLabels['playcount'] = 0
             itemlist.insert(0, it)
 
         add_download_items(item, itemlist)
@@ -398,22 +333,10 @@ def get_episodes(item):
         it = ep['item']
 
         if it.contentSeason == item.contentSeason or item.all:
-            if config.get_setting("no_pile_on_seasons", "videolibrary") == 2 or item.all:
+            if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
                 it.title = '{}x{}'.format(it.contentSeason, it.title)
             it = get_host(it)
             it.from_library = item.from_library
-            watched = it.infoLabels.get("playcount", 0)
-            if watched > 0:
-                title = config.get_localized_string(60032)
-                value = 0
-            else:
-                title = config.get_localized_string(60033)
-                value = 1
-
-            it.context = [{"title": title,
-                           "action": "mark_content_as_watched",
-                           "channel": "videolibrary",
-                           "playcount": value}]
             return it
         return
 
@@ -424,6 +347,7 @@ def get_episodes(item):
 
 
     itemlist = sorted(itemlist, key=lambda it: (int(it.contentSeason), int(it.contentEpisodeNumber)))
+    add_context(itemlist)
     add_download_items(item, itemlist)
     return itemlist
 
@@ -437,7 +361,7 @@ def findvideos(item):
     itemlist = []
 
     if not item.strm_path:
-        logger.debug("Unable to search for videos due to lack of parameters")
+        logger.debug('Unable to search for videos due to lack of parameters')
         return []
     if not item.videolibrary_id: item.videolibrary_id = scrapertools.find_single_match(item.strm_path , r'\[([^\]]+)')
     if item.contentType == 'movie':
@@ -515,10 +439,10 @@ def servers(item, ch, items):
 
     if ch_params.get('active', False):
 
-        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + ".py")): CHANNELS = 'channels'
+        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + '.py')): CHANNELS = 'channels'
         else: CHANNELS = 'specials'
         try: channel = __import__('%s.%s' % (CHANNELS, ch), None, None, ['%s.%s' % (CHANNELS, ch)])
-        except ImportError: exec("import " + CHANNELS + "." + ch + " as channel")
+        except ImportError: exec('import ' + CHANNELS + '.' + ch + ' as channel')
         with futures.ThreadPoolExecutor() as executor:
             itlist = [executor.submit(channel_servers, item, it, channel, ch_name) for it in items]
             for res in futures.as_completed(itlist):
@@ -531,15 +455,15 @@ def play(item):
     logger.debug()
 
     itemlist = []
-    # logger.debug("item:\n" + item.tostring('\n'))
+    # logger.debug('item:\n' + item.tostring('\n'))
 
-    if not item.channel == "local":
+    if not item.channel == 'local':
         try:
-            channel = __import__('specials.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+            channel = __import__('specials.%s' % item.channel, fromlist=['channels.%s' % item.channel])
         except:
-            channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
-        if hasattr(channel, "play"):
-            itemlist = getattr(channel, "play")(item)
+            channel = __import__('channels.%s' % item.channel, fromlist=['channels.%s' % item.channel])
+        if hasattr(channel, 'play'):
+            itemlist = getattr(channel, 'play')(item)
 
         else:
             itemlist = [item.clone()]
@@ -553,33 +477,18 @@ def play(item):
         item.video_urls = itemlist
         itemlist = [item]
 
-    # # This is necessary in case the channel play deletes the data
-    # for v in itemlist:
-    #     if isinstance(v, Item):
-    #         v.nfo = item.nfo
-    #         v.strm_path = item.strm_path
-    #         v.infoLabels = item.infoLabels
-    #         if item.contentTitle:
-    #             v.title = item.contentTitle
-    #         else:
-    #             if item.contentType == "episode":
-    #                 v.title = config.get_localized_string(60036) % item.contentEpisodeNumber
-    #         v.thumbnail = item.thumbnail
-    #         v.contentThumbnail = item.thumbnail
-    #         v.channel = item.channel
-
     return itemlist
 
 
 def update_videolibrary(item=None):
-    logger.debug("Update Series...")
+    logger.debug('Update Series...')
     from core import channeltools
     import datetime
     p_dialog = None
     update_when_finished = False
     now = datetime.date.today()
     try:
-        config.set_setting("updatelibrary_last_check", now.strftime('%Y-%m-%d'), "videolibrary")
+        config.set_setting('updatelibrary_last_check', now.strftime('%Y-%m-%d'), 'videolibrary')
 
         message = config.get_localized_string(60389)
         p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60037))
@@ -607,8 +516,8 @@ def update_videolibrary(item=None):
             chname = channeltools.get_channel_parameters(it.channel)['title']
             p_dialog.update(int(i * t), message=message % (it.fulltitle, chname))
             it = get_host(it)
-            try: channel = __import__('channels.%s' % it.channel, fromlist=["channels.%s" % it.channel])
-            except: channel = __import__('specials.%s' % it.channel, fromlist=["specials.%s" % it.channel])
+            try: channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
+            except: channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
             itemlist = getattr(channel, it.action)(it)
             videolibrarytools.save_tvshow(it, itemlist, True)
         p_dialog.close()
@@ -718,9 +627,9 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
             filetools.rmdir(new_movies_path)
         if not tvshows_path:
             filetools.rmdir(new_tvshows_path)
-        config.set_setting("videolibrarypath", backup_current_path)
-        config.set_setting("folder_movies", current_movies_folder)
-        config.set_setting("folder_tvshows", current_tvshows_folder)
+        config.set_setting('videolibrarypath', backup_current_path)
+        config.set_setting('folder_movies', current_movies_folder)
+        config.set_setting('folder_tvshows', current_tvshows_folder)
         xbmc_videolibrary.update_sources(backup_current_path, backup_new_path)
         progress.update(100)
         xbmc.sleep(1000)
@@ -742,11 +651,11 @@ def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_
             notify = True
         filetools.rmdirtree(current_tvshows_path)
     progress.update(70)
-    if current_path != new_path and not filetools.listdir(current_path) and not "plugin.video.kod\\videolibrary" in current_path:
+    if current_path != new_path and not filetools.listdir(current_path) and not 'plugin.video.kod\\videolibrary' in current_path:
         filetools.rmdirtree(current_path)
 
     xbmc_videolibrary.update_sources(backup_new_path, backup_current_path)
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
+    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
         xbmc_videolibrary.update_db(backup_current_path, backup_new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder, progress)
     else:
         progress.update(100)
@@ -765,7 +674,7 @@ def delete_videolibrary(item):
     p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80038))
     p_dialog.update(0)
 
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
+    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
         from platformcode import xbmc_videolibrary
         xbmc_videolibrary.clean()
     p_dialog.update(10)
@@ -786,9 +695,9 @@ def delete_videolibrary(item):
 
 #     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
 #     if done < 0:
-#         logger.debug("An issue has occurred while configuring local episodes")
+#         logger.debug('An issue has occurred while configuring local episodes')
 #     elif local_episodes_path:
-#         nfo_path = filetools.join(item.path, "tvshow.nfo")
+#         nfo_path = filetools.join(item.path, 'tvshow.nfo')
 #         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
 #         item_nfo.local_episodes_path = local_episodes_path
 #         if not item_nfo.active:
@@ -803,7 +712,7 @@ def delete_videolibrary(item):
 # def remove_local_episodes(item):
 #     logger.debug()
 
-#     nfo_path = filetools.join(item.path, "tvshow.nfo")
+#     nfo_path = filetools.join(item.path, 'tvshow.nfo')
 #     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
 
 #     for season_episode in item_nfo.local_episodes_list:
@@ -965,7 +874,7 @@ def delete(item):
         path = filetools.join(library_path, item.base_name)
 
         filetools.rmdirtree(path)
-        if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
+        if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
             from platformcode import xbmc_videolibrary
             xbmc_videolibrary.clean_by_id(item)
         platformtools.itemlist_refresh(-1)
@@ -1017,32 +926,32 @@ def add_download_items(item, itemlist):
         if not item.fromLibrary and not localOnly:
             downloadItem = Item(channel='downloads',
                                 from_channel=item.channel,
-                                title=typo(config.get_localized_string(60355), "color kod bold"),
+                                title=typo(config.get_localized_string(60355), 'color kod bold'),
                                 fulltitle=item.fulltitle,
                                 show=item.fulltitle,
                                 contentType=item.contentType,
                                 contentSerieName=item.contentSerieName,
                                 url=item.url,
                                 action='save_download',
-                                from_action="findvideos",
+                                from_action='findvideos',
                                 contentTitle=item.contentTitle,
                                 path=item.path,
                                 thumbnail=thumb('downloads'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
-                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), "color kod bold"), item.title)
+                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
                 else:  # film
-                    downloadItem.title = typo(config.get_localized_string(60354), "color kod bold")
+                    downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
                 downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
                 itemlist.append(downloadItem)
             else:
                 if item.contentSeason:  # season
-                    downloadItem.title = typo(config.get_localized_string(60357), "color kod bold")
+                    downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
                     itemlist.append(downloadItem)
                 else:  # tvshow + not seen
                     itemlist.append(downloadItem)
-                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), "color kod bold"), unseen=True))
+                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), unseen=True))
 
 
 def prefered_lang(item):
@@ -1097,43 +1006,166 @@ def set_active(item):
     platformtools.itemlist_refresh()
 
 
-def change_poster(item):
-    import xbmcgui
-    video = videolibrarydb[item.contentType][item.videolibrary_id]
-    videolibrarydb.close()
-    options = []
-    it = xbmcgui.ListItem('Corrente')
-    it.setArt({'thumb':item.thumbnail})
-    options.append(it)
-    posters = video['item'].infoLabels.get('posters',[])
-    for n, poster in enumerate(posters):
-        it = xbmcgui.ListItem(str(n))
-        it.setArt({'thumb':poster})
-        options.append(it)
-    selection = platformtools.dialog_select('',options, 0, True)
-    if selection > 0:
-        video['item'].thumbnail = video['item'].infoLabels['thumbnail'] = posters[selection]
-        videolibrarydb[item.contentType][item.videolibrary_id] = video
-        videolibrarydb.close()
-        platformtools.itemlist_refresh()
+def add_context(itemlist, title=config.get_localized_string(30052)):
+    title += '...'
+    for item in itemlist:
+        item.context = [{'title':title, 'channel':'videolibrary', 'action':'subcontext'}]
+
+class subcontext(object):
+    def __init__(self, item):
+        self.item = item
+        self.context = []
+        self.commands = []
+        self.titledict = {'movie':{'images':60240, 'notwatched':60016, 'watched':60017, 'delete':70084, 'lang':70246},
+                          'tvshow':{'images':60240, 'notwatched':60020, 'watched':60021, 'delete':70085, 'lang':70246, 'notactive':60022, 'active': 60023, 'update':70269},
+                          'season':{'images':60240, 'notwatched':60028, 'watched':60029},
+                          'episode':{'images':60240, 'notwatched':60032, 'watched':60033}}
+        self.makecontext()
+        self.run()
+
+    def title(self, _type):
+         return config.get_localized_string(self.titledict[self.item.contentType][_type])
+
+    def makecontext(self):
+        # set watched
+        watched = self.item.infoLabels.get('playcount', 0)
+        if watched > 0:
+            title = self.title('notwatched')
+            value = 0
+        else:
+            title = self.title('watched')
+            value = 1
+        self.context.append(title)
+        self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
+
+        if self.item.contentType in ['movie', 'tvshow']:
+            # delete
+            self.context.append(self.title('delete'))
+            self.commands.append(self.item.clone(action='delete'))
+
+            # defalut language
+            if len(self.item.lang_list) > 1:
+                self.context.append(self.title('lang'))
+                self.commands.append(self.item.clone(action='prefered_lang'))
+
+        if self.item.contentType in ['tvshow']:
+            # set active for update
+            if self.item.active: self.context.append(self.title('notactive'))
+            else: self.context.append(self.title('active'))
+            self.commands.append(self.item.clone(action='set_active'))
+
+            # update
+            self.context.append(self.title('update'))
+            self.commands.append(self.item.clone(action='update_videolibrary'))
+
+        self.context.append(self.title('images'))
+        self.commands.append(self.item.clone(action='set_images'))
 
 
-def change_fanart(item):
-    import xbmcgui
-    video = videolibrarydb[item.contentType][item.videolibrary_id]
-    videolibrarydb.close()
-    options = []
-    it = xbmcgui.ListItem('Corrente')
-    it.setArt({'thumb':item.fanart})
-    options.append(it)
-    fanarts = video['item'].infoLabels.get('fanarts',[])
-    for n, poster in enumerate(fanarts):
-        it = xbmcgui.ListItem(str(n))
-        it.setArt({'thumb':poster})
-        options.append(it)
-    selection = platformtools.dialog_select('',options, 0, True)
-    if selection > 0:
-        video['item'].fanart = video['item'].infoLabels['fanart'] = fanarts[selection]
-        videolibrarydb[item.contentType][item.videolibrary_id] = video
+    def run(self):
+        index = xbmcgui.Dialog().contextmenu(self.context)
+        if index >= 0: xbmc.executebuiltin('RunPlugin({}?{})'.format(sys.argv[0], self.commands[index].tourl()))
+
+
+class set_images(object):
+    def __init__(self, item):
+        self.item = item
+        self.type_dict = {'posters':'Poster', 'fanarts':'Fanart', 'banners':'Banner', 'landscapes':'Landscape', 'clearlogos':'ClearLogo'}
+        self.video = videolibrarydb[self.item.contentType][self.item.videolibrary_id]
+        self.select_type()
         videolibrarydb.close()
+
+    def select_type(self):
+        types = []
+        self.types = []
+        self.list = []
+        for k, v in self.type_dict.items():
+            if self.item.infoLabels.get(k):
+                it = xbmcgui.ListItem(v)
+                it.setArt({'thumb': self.item.infoLabels[k][0]})
+                types.append(it)
+                self.types.append(k)
+                self.list.append(self.item.infoLabels[k])
+        selection = platformtools.dialog_select(self.item.contentTitle, types, 0, True)
+        if selection >= 0:
+            self.set_art(self.types[selection])
+
+
+    def set_art(self, n):
+        images = []
+        items = []
+        t = n[:-1].replace('poster', 'thumbnail')
+
+        for i, a in enumerate(self.item.infoLabels[n]):
+            title = 'Remote' if i > 0 else 'Current'
+            it = xbmcgui.ListItem(title)
+            it.setArt({'thumb': a})
+            items.append(it)
+            images.append(a)
+
+        selection = platformtools.dialog_select(self.item.contentTitle, items, 0, True)
+        if selection > 0:
+            selected = images[selection]
+
+            index = None
+            if self.item.contentType == 'episode':
+                index = '{}x{:02d}'.format(self.item.contentSeason, self.item.contentEpisodeNumber)
+                self.video[index]['item'].infoLabels[t] = selected
+                if t == 'thumbnail': self.video[index]['item'].thumbnail = selected
+                if t == 'fanart': self.video[index]['item'].fanart = selected
+
+            elif self.item.contentType == 'season':
+                index = self.item.contentSeason
+                self.video[index].infoLabels[t] = selected
+                if t == 'thumbnail': self.video[index].thumbnail = selected
+                if t == 'fanart': self.video[index].fanart = selected
+
+            else:
+                self.video['item'].infoLabels[t] = selected
+                if t == 'thumbnail': self.video['item'].thumbnail = selected
+                if t == 'fanart': self.video['item'].fanart = selected
+
+        videolibrarydb[self.item.contentType][self.item.videolibrary_id] = self.video
         platformtools.itemlist_refresh()
+        # if index:
+        #     video = self.video[index]
+
+    # def change_poster(item):
+    #     import xbmcgui
+    #     video = videolibrarydb[item.contentType][item.videolibrary_id]
+    #     videolibrarydb.close()
+    #     options = []
+    #     posters = [video['item'].thumbnail]
+    #     posters += video['item'].infoLabels.get('posters',[])
+    #     for n, poster in enumerate(posters):
+    #         it = xbmcgui.ListItem(str(n))
+    #         it.setArt({'thumb':poster})
+    #         options.append(it)
+    #     selection = platformtools.dialog_select('',options, 0, True)
+
+    #     if selection > 0:
+    #         video['item'].thumbnail = video['item'].infoLabels['thumbnail'] = posters[selection]
+    #         videolibrarydb[item.contentType][item.videolibrary_id] = video
+    #         videolibrarydb.close()
+    #         platformtools.itemlist_refresh()
+
+
+    # def change_fanart(item):
+    #     import xbmcgui
+    #     video = videolibrarydb[item.contentType][item.videolibrary_id]
+    #     videolibrarydb.close()
+    #     options = []
+    #     it = xbmcgui.ListItem('Corrente')
+    #     it.setArt({'thumb':item.fanart})
+    #     options.append(it)
+    #     fanarts = video['item'].infoLabels.get('fanarts',[])
+    #     for n, poster in enumerate(fanarts):
+    #         it = xbmcgui.ListItem(str(n))
+    #         it.setArt({'thumb':poster})
+    #         options.append(it)
+    #     selection = platformtools.dialog_select('',options, 0, True)
+    #     if selection > 0:
+    #         video['item'].fanart = video['item'].infoLabels['fanart'] = fanarts[selection]
+    #         videolibrarydb[item.contentType][item.videolibrary_id] = video
+    #         videolibrarydb.close()
+    #         platformtools.itemlist_refresh()

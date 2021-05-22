@@ -207,6 +207,10 @@ msgctxt "#30051"
 msgid "Website error message (http code %d)"
 msgstr ""
 
+msgctxt "#30052"
+msgid "Management"
+msgstr ""
+
 msgctxt "#30055"
 msgid "Video not available"
 msgstr ""
@@ -1173,7 +1177,7 @@ msgid "    Other ID"
 msgstr ""
 
 msgctxt "#60240"
-msgid "Images(urls):"
+msgid "Images"
 msgstr ""
 
 msgctxt "#60241"
