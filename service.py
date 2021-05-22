@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-import datetime
-import math
 import os
 import sys
 import threading
 import traceback
 import xbmc
-import xbmcgui
 from platformcode import config
 
 try:
@@ -22,94 +19,11 @@ except:
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import videolibrarytools, filetools, channeltools, httptools, scrapertools, db
+from core import filetools, httptools, scrapertools, db
 from lib import schedule
 from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
 from servers import torrent
-
-
-def update(path, p_dialog, i, t, serie, overwrite):
-    logger.debug("Updating " + path)
-    insertados_total = 0
-    nfo_file = xbmc.translatePath(filetools.join(path, 'tvshow.nfo'))
-
-    head_nfo, it = videolibrarytools.read_nfo(nfo_file)
-    videolibrarytools.update_renumber_options(it, head_nfo, path)
-
-    if not serie.library_url: serie = it
-    category = serie.category
-
-    # logger.debug("%s: %s" %(serie.contentSerieName,str(list_canales) ))
-    for channel, url in serie.library_urls.items():
-        serie.channel = channel
-        module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
-        url = module.host + urlsplit(url).path
-        serie.url = url
-
-        ###### Redirection to the NewPct1.py channel if it is a clone, or to another channel and url if there has been judicial intervention
-        try:
-            head_nfo, it = videolibrarytools.read_nfo(nfo_file)         # Refresh the .nfo to collect updates
-            if it.emergency_urls:
-                serie.emergency_urls = it.emergency_urls
-            serie.category = category
-        except:
-            logger.error(traceback.format_exc())
-
-        channel_enabled = channeltools.is_enabled(serie.channel)
-
-        if channel_enabled:
-
-            heading = config.get_localized_string(20000)
-            p_dialog.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (serie.contentSerieName, serie.channel.capitalize()))
-            try:
-                pathchannels = filetools.join(config.get_runtime_path(), "channels", serie.channel + '.py')
-                logger.debug("loading channel: " + pathchannels + " " + serie.channel)
-
-                if serie.library_filter_show:
-                    serie.show = serie.library_filter_show.get(serie.channel, serie.contentSerieName)
-
-                obj = __import__('channels.%s' % serie.channel, fromlist=[pathchannels])
-
-                itemlist = obj.episodios(serie)
-
-                try:
-                    if int(overwrite) == 3:
-                        # Overwrite all files (tvshow.nfo, 1x01.nfo, 1x01 [channel] .json, 1x01.strm, etc ...)
-                        insertados, sobreescritos, fallidos, notusedpath = videolibrarytools.save_tvshow(serie, itemlist)
-                        #serie= videolibrary.check_season_playcount(serie, serie.contentSeason)
-                        #if filetools.write(path + '/tvshow.nfo', head_nfo + it.tojson()):
-                        #    serie.infoLabels['playcount'] = serie.playcount
-                    else:
-                        insertados, sobreescritos, fallidos = videolibrarytools.save_episodes(path, itemlist, serie,
-                                                                                              silent=True,
-                                                                                              overwrite=overwrite)
-                        #it = videolibrary.check_season_playcount(it, it.contentSeason)
-                        #if filetools.write(path + '/tvshow.nfo', head_nfo + it.tojson()):
-                        #    serie.infoLabels['playcount'] = serie.playcount
-                    insertados_total += insertados
-
-                except:
-                    import traceback
-                    logger.error("Error when saving the chapters of the series")
-                    logger.error(traceback.format_exc())
-
-            except:
-                import traceback
-                logger.error("Error in obtaining the episodes of: %s" % serie.show)
-                logger.error(traceback.format_exc())
-
-        else:
-            logger.debug("Channel %s not active is not updated" % serie.channel)
-    # Synchronize the episodes seen from the Kodi video library with that of KoD
-    try:
-        if config.is_xbmc():                # If it's Kodi, we do it
-            from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.mark_content_as_watched_on_kod(filetools.join(path,'tvshow.nfo'))
-    except:
-        logger.error(traceback.format_exc())
-
-    return insertados_total > 0
 
 
 def check_for_update():
@@ -122,6 +36,7 @@ def updaterCheck():
     updated, needsReload = updater.check(background=True)
     if needsReload:
         xbmc.executescript(__file__)
+        db.close()
         exit(0)
 
 
@@ -276,60 +191,6 @@ if __name__ == "__main__":
 
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
-
-    # port old db to new
-    old_db_name = filetools.join(config.get_data_path(), "kod_db.sqlite")
-    if filetools.isfile(old_db_name):
-        try:
-            import sqlite3
-
-            old_db_conn = sqlite3.connect(old_db_name, timeout=15)
-            old_db = old_db_conn.cursor()
-            old_db.execute('select * from viewed')
-
-            for ris in old_db.fetchall():
-                if ris[1]:  # tvshow
-                    show = db['viewed'].get(ris[0], {})
-                    show[str(ris[1]) + 'x' + str(ris[2])] = ris[3]
-                    db['viewed'][ris[0]] = show
-                else:  # film
-                    db['viewed'][ris[0]] = ris[3]
-        except:
-            pass
-        finally:
-            filetools.remove(old_db_name, True, False)
-
-    # replace tvdb to tmdb for series
-    if config.get_setting('videolibrary_kodi') and config.get_setting('show_once'):
-        nun_records, records = xbmc_videolibrary.execute_sql_kodi('select * from path where strPath like "' +
-                                           filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) +
-                                           '%" and strScraper="metadata.tvdb.com"')
-        if nun_records:
-            import xbmcaddon
-            # change language
-            tvdbLang = xbmcaddon.Addon(id="metadata.tvdb.com").getSetting('language')
-            newLang = tvdbLang + '-' + tvdbLang.upper()
-            xbmcaddon.Addon(id="metadata.tvshows.themoviedb.org").setSetting('language', newLang)
-            updater.refreshLang()
-
-            # prepare to replace strSettings
-            path_settings = xbmc.translatePath(
-                "special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
-            settings_data = filetools.read(path_settings)
-            strSettings = ' '.join(settings_data.split()).replace("> <", "><")
-            strSettings = strSettings.replace("\"", "\'")
-
-            # update db
-            nun_records, records = xbmc_videolibrary.execute_sql_kodi(
-                'update path set strScraper="metadata.tvshows.themoviedb.org", strSettings="' + strSettings + '" where strPath like "' +
-                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) +
-                '%" and strScraper="metadata.tvdb.com"')
-
-            # scan new info
-            xbmc.executebuiltin('UpdateLibrary(video)')
-            xbmc.executebuiltin('CleanLibrary(video)')
-            while xbmc.getCondVisibility('Library.IsScanningVideo()'):
-                xbmc.sleep(1000)
 
     # check if the user has any connection problems
     from platformcode.checkhost import test_conn
