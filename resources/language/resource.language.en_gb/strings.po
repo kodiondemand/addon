@@ -6481,5 +6481,21 @@ msgid "Downloading..."
 msgstr ""
 
 msgctxt "#90001"
+msgid "KOD options"
+msgstr "KOD options..."
+
+msgctxt "#90002"
+msgid "No TMDB found"
+msgstr "No TmdbId found, cannot continue"
+
+msgctxt "#90003"
+msgid "Already on KOD, continue searching on other channels?"
+msgstr "Item is coming from KOD, continue searching on other channels?"
+
+msgctxt "#90004"
+msgid "No contextmenu option"
+msgstr "No options"
+
+msgctxt "#90005"
 msgid "Search on KOD"
-msgstr "Search on KOD..."
+msgstr "Search with KOD"

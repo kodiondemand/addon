@@ -16,10 +16,10 @@
         <label>70269</label>
         <visible>String.IsEqual(ListItem.dbtype,tvshow)</visible>
       </item>
-<!--      <item library="externalsearch.py">-->
-<!--        <label>90001</label>-->
-<!--        <visible>!String.StartsWith(ListItem.FileNameAndPath, plugin://plugin.video.kod/) + [String.IsEqual(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie)]</visible>-->
-<!--      </item>-->
+      <item library="contextmenu.py">
+        <label>90001</label>
+        <visible>!String.Contains(Container.FolderPath, 'plugin.video.kod')</visible>
+      </item>
     </menu>
   </extension>
   <extension point="xbmc.addon.metadata">

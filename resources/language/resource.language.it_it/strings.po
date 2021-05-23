@@ -6481,7 +6481,22 @@ msgctxt "#80050"
 msgid "Downloading..."
 msgstr "Download in corso..."
 
-
 msgctxt "#90001"
+msgid "KOD options"
+msgstr "Opzioni di KOD..."
+
+msgctxt "#90002"
+msgid "No TMDB found"
+msgstr "Non sono riuscito a trovare le informazioni su TMDB"
+
+msgctxt "#90003"
+msgid "Already on KOD, continue searching on other channels?"
+msgstr "Preferisci cercare su altri canali?"
+
+msgctxt "#90004"
+msgid "No contextmenu option"
+msgstr "Nessuna opzione possibile"
+
+msgctxt "#90005"
 msgid "Search on KOD"
-msgstr "Cerca con KOD..."
+msgstr "Cerca con KOD"
