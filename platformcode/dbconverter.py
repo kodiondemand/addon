@@ -24,6 +24,7 @@ class addVideo(object):
             self.strPath, self.parentPath, self.strFilename, self.path = get_path(self.item)
             self.date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
 
+
             if self.item.contentType == 'movie':
                 self.set_path()
                 self.set_sets()
@@ -50,15 +51,17 @@ class addVideo(object):
                     cursor.execute(sql, params)
             conn.commit()
 
-            xbmc.executebuiltin('ReloadSkin()')
-
-            # payload = {
-            #     "jsonrpc": "2.0",
-            #     "method": "VideoLibrary.Scan",
-            #     "directory": self.strPath,
-            #     "id": 1
-            # }
-            # get_data(payload)
+            # need if no movie in kodi library
+            if self.VideoId == 1:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "VideoLibrary.Scan",
+                    "directory": self.strPath,
+                    "id": 1
+                }
+                get_data(payload)
+            else:
+                xbmc.executebuiltin('ReloadSkin()')
         conn.close()
 
     def get_id(self):
@@ -96,7 +99,7 @@ class addVideo(object):
         self.idSet = None
         if self.info.get('set'):
             sql = 'SELECT idSet from sets where (strSet = "{}") limit 1'.format(self.info.get('set'))
-            # params = self.info.get('set')
+            collection_info = videolibrarydb['collection'][self.info.get('setid')].infoLabels
             nun_records, records = execute_sql_kodi(sql, conn=conn)
             if records:
                 self.idSet = records[0][0]
@@ -105,10 +108,20 @@ class addVideo(object):
                 sql = 'INSERT OR IGNORE INTO sets (idSet, strSet, strOvervieW) VALUES ( ?,  ?,  ?)'
                 params = (self.idSet, self.info.get('set'), self.info.get('setoverview'))
                 self.sql_actions.append([sql, params])
-                if self.info.get('setposters'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set', 'type':'poster', 'url':self.info.get('setposters')[0]})
-                if self.info.get('setfanarts'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'fanart', 'url':self.info.get('setfanarts')[0]})
+                if collection_info.get('poster'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set', 'type':'poster', 'url':collection_info.get('poster')})
+                if collection_info.get('fanart'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'fanart', 'url':collection_info.get('fanart')})
+                if collection_info.get('landscape'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'landscape', 'url':collection_info.get('landscape')})
+                if collection_info.get('banner'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'banner', 'url':collection_info.get('banner')})
+                if collection_info.get('clearlogo'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearlogo', 'url':collection_info.get('clearlogo')})
+                if collection_info.get('clearart'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('clearart')})
+                if collection_info.get('disc'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('disc')})
 
     def set_files(self):
         self.idFile = get_id('idFile', 'files')
@@ -237,6 +250,16 @@ class addVideo(object):
             self.art.append({'media_id':self.VideoId, 'media_type': 'movie', 'type':'poster', 'url':self.item.thumbnail})
         if self.item.fanart:
             self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'fanart', 'url':self.item.fanart})
+        if self.info.get('landscape'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'landscape', 'url':self.info.get('landscape')})
+        if self.info.get('banner'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'banner', 'url':self.info.get('banner')})
+        if self.info.get('clearlogo'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearlogo', 'url':self.info.get('clearlogo')})
+        if self.info.get('clearart'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearart', 'url':self.info.get('clearart')})
+        if self.info.get('disc'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'disc', 'url':self.info.get('disc')})
 
         self.sql_actions.append([sql, params])
 
@@ -304,7 +327,7 @@ def add_video(item):
         for episode in episodes:
             addVideo(item=episode['item'])
             # progress.update(int(math.ceil((i + 1) * t)))
-    # progress.close()
+        # progress.close()
 
 def get_path(item):
     filepath = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)), item.strm_path)
@@ -333,17 +356,54 @@ def get_images(item):
     posters = ''
     fanarts = ''
 
-    setposters = item.infoLabels.get('setposters',[])
-    setfanarts = item.infoLabels.get('setfanarts',[])
     videoposters = [item.thumbnail] + item.infoLabels.get('posters',[])
     videofanarts = [item.fanart] + item.infoLabels.get('fanarts',[])
+    videoclearlogos = item.infoLabels.get('clearlogos',[])
+    videocleararts = item.infoLabels.get('cleararts',[])
+    videolanscapes = item.infoLabels.get('lanscapes',[])
+    videobanners = item.infoLabels.get('banners',[])
+    videodiscs = item.infoLabels.get('discs',[])
 
-    for p in setposters:
-        if p: posters += pstring.format('set.poster', p.replace('original', 'w500'), p)
-    for p in setfanarts:
-        if p: posters += pstring.format('set.fanart', p.replace('original', 'w500'), p)
-    for p in videoposters: 
+    for p in videoposters:
         if p: posters += pstring.format('poster', p.replace('original', 'w500'), p)
+    for p in videoclearlogos:
+        if p: posters += pstring.format('clearlogo', '', p)
+    for p in videocleararts:
+        if p: posters += pstring.format('clearart', '', p)
+    for p in videolanscapes:
+        if p: posters += pstring.format('lanscape', '', p)
+    for p in videobanners:
+        if p: posters += pstring.format('banner', '', p)
+    for p in videodiscs:
+        if p: posters += pstring.format('disc', '', p)
+
+    if item.infoLabels['setid']:
+        collection = videolibrarydb['collection'].get(item.infoLabels['setid'], {})
+        setposters = collection.infoLabels.get('posters',[])
+        setfanarts = collection.infoLabels.get('fanarts',[])
+        setclearlogos = collection.infoLabels.get('clearlogos',[])
+        setcleararts = collection.infoLabels.get('cleararts',[])
+        setlanscapes = collection.infoLabels.get('lanscapes',[])
+        setbanners = collection.infoLabels.get('banners',[])
+        setdiscs = collection.infoLabels.get('discs',[])
+
+        for p in setposters:
+            if p: posters += pstring.format('set.poster', p.replace('original', 'w500'), p)
+        for p in setfanarts:
+            if p: posters += pstring.format('set.fanart', p.replace('original', 'w500'), p)
+        for p in setclearlogos:
+            if p: posters += pstring.format('set.clearlogo', '', p)
+        for p in setcleararts:
+            if p: posters += pstring.format('set.clearart', '', p)
+        for p in setlanscapes:
+            if p: posters += pstring.format('set.lanscape', '', p)
+        for p in setbanners:
+            if p: posters += pstring.format('set.banner', '', p)
+        for p in setdiscs:
+            if p: posters += pstring.format('set.disc', '', p)
+
+
+
 
     fanarts += '<fanart>'
     for f in videofanarts:

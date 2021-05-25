@@ -199,6 +199,14 @@ msgctxt "#30046"
 msgid "Resume from start"
 msgstr "Riprendi dall'inizio"
 
+msgctxt "#30047"
+msgid "Group by collection"
+msgstr "Ragruppa per collezione"
+
+msgctxt "#30048"
+msgid "Delete collection"
+msgstr "Elimina collezione"
+
 msgctxt "#30050"
 msgid "Server connection error"
 msgstr "Errore connessione server"

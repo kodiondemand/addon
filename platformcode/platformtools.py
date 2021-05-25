@@ -355,10 +355,11 @@ def render_items(itemlist, parent_item):
         icon_image = "DefaultFolder.png" if item.folder else "DefaultVideo.png"
         listitem = xbmcgui.ListItem(item.title)
         art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
-        if item.landscape: art['landscape'] = item.landscape
-        if item.clearlogo: art['clearlogo'] = item.clearlogo
-        if item.clearart: art['clearart'] = item.clearart
-        if item.banner: art['banner'] = item.banner
+        if item.infoLabels.get('landscape'): art['landscape'] = item.infoLabels['landscape']
+        if item.infoLabels.get('clearlogo'): art['clearlogo'] = item.infoLabels['clearlogo']
+        if item.infoLabels.get('clearart'): art['clearart'] = item.infoLabels['clearart']
+        if item.infoLabels.get('banner'): art['banner'] = item.infoLabels['banner']
+        if item.infoLabels.get('disc'): art['banner'] = item.infoLabels['disc']
         listitem.setArt(art)
 
         listitem.setProperty('IsPlayable', str(config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo).lower())
@@ -524,6 +525,7 @@ def set_infolabels(listitem, item, player=False):
         # if item.infoLabels.get('castandrole'):
         #     cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
         #     listitem.setCast(cast)
+    # listitem.setInfo("video", item.infoLabels)
 
 
 def set_context_commands(item, item_url, parent_item, **kwargs):

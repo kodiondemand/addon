@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
+from logging import RootLogger
 from platformcode.xbmc_videolibrary import set_content
 import sys, xbmcgui
-from core import httptools, support
+from core import httptools, jsontools, support
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -12,7 +13,7 @@ import xbmc, os, traceback
 
 from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
-from core.item import Item
+from core.item import InfoLabels, Item
 from platformcode import config, launcher, logger, platformtools
 from core.videolibrarytools import videolibrarydb
 
@@ -24,131 +25,189 @@ else:
     import urlparse
 
 
-
-
 def mainlist(item):
     logger.debug()
 
-    itemlist = [Item(channel=item.channel, title='Generi', action='list_genres', contentType='movie', thumbnail=support.thumb('movie_genre')),
-                Item(channel=item.channel, action='list_movies', title=config.get_localized_string(60509), contentType='movie',
-                     category=config.get_localized_string(70270), thumbnail=thumb('videolibrary_movie')),
-                Item(channel=item.channel, action='list_tvshows',title=config.get_localized_string(60600),
-                     category=config.get_localized_string(70271), thumbnail=thumb('videolibrary_tvshow'),
-                     context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269), 'forced':True}]),
-                Item(channel='shortcuts', action='SettingOnPosition', title=typo(config.get_localized_string(70287),'bold color kod'),
-                     category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
+    itemlist = [item.clone(title=config.get_localized_string(60509), contentType='movie', action='list_movies', thumbnail=thumb('videolibrary_movie')),
+                item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30122) + '...', 'submenu'), contentType='movie',action='search_list',  thumbnail=thumb('search_movie')),
+                item.clone(title=config.get_localized_string(60600), contentType='tvshow', action='list_tvshows', thumbnail=thumb('videolibrary_tvshow'),
+                           context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269), 'forced':True}]),
+                item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30123) + '...', 'submenu'),contentType='tvshow', action='search_list', thumbnail=thumb('search_tvshow')),
+                item.clone(channel='shortcuts', title=typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
+                           category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
     return itemlist
 
+def search_list(item):
+    itemlist = [item.clone(title=config.get_localized_string(70032), action='list_genres', thumbnail=thumb('{}_genre'.format(item.contentType))),
+                item.clone(title=config.get_localized_string(70042), action='list_years', thumbnail=thumb('{}_year'.format(item.contentType))),
+                item.clone(title=config.get_localized_string(70314), action='list_az', next_action='list_actors', thumbnail=thumb('star')),
+                item.clone(title=config.get_localized_string(70473), action='list_ratings', thumbnail=thumb('{}_top'.format(item.contentType))),
+                item.clone(title='Registi', action='list_az', next_action='list_directors', thumbnail=thumb('directors')),
+                item.clone(title=config.get_localized_string(30980), action='search', thumbnail=thumb('search_{}'.format(item.contentType)))]
+    if item.contentType == 'movie':
+        itemlist.insert(0, item.clone(title='Collezioni', action='list_sets', thumbnail=thumb('{}_genre'.format(item.contentType))))
+    return itemlist
 
 def channel_config(item):
     return platformtools.show_channel_settings(channelpath=os.path.join(config.get_runtime_path(), 'channels', item.channel), caption=config.get_localized_string(60598))
 
-def list_genres(item):
-    # support.dbg()
-    movies = dict(videolibrarydb[item.contentType]).values()
 
+def list_az(item):
+    return [item.clone(title=i, action=item.next_action) for i in ['A','B','C','D','I','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']]
+
+
+def list_genres(item):
+    videos = dict(videolibrarydb[item.contentType]).values()
     videolibrarydb.close()
+
     genres = []
-    for v in movies:
+    for v in videos:
         genres += v['item'].infoLabels['genre'].split(',')
+
     itemlist = []
     for g in genres:
         g = g.strip()
         if g and g not in [it.genre for it in itemlist]:
-            it = item.clone(title = g, action='list_movies', genre=g)
+            it = item.clone(title = g, action='list_{}s'.format(item.contentType), genre=g)
             itemlist.append(it)
+
     itemlist.sort(key=lambda it: it.genre)
-    support.thumb(itemlist, True)
+    thumb(itemlist, True)
     return itemlist
 
+
+def list_sets(item):
+    videos = dict(videolibrarydb['collection']).values()
+    videolibrarydb.close()
+    itemlist = [v for v in videos]
+    itemlist.sort(key=lambda it: it.title)
+    add_context(itemlist)
+    return itemlist
+
+
+def list_directors(item):
+    videos = dict(videolibrarydb[item.contentType]).values()
+    videolibrarydb.close()
+
+    directors = []
+    for v in videos:
+        directors += v['item'].infoLabels['director'].split(',')
+
+    itemlist = []
+    for d in directors:
+        d = d.strip()
+        if d and d[0][0] == item.title and d not in [it.director for it in itemlist]:
+            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d)
+            itemlist.append(it)
+
+    itemlist.sort(key=lambda it: it.director)
+    return itemlist
+
+
+def list_years(item):
+    videos = dict(videolibrarydb[item.contentType]).values()
+    videolibrarydb.close()
+
+    years = [v['item'].infoLabels['year'] for v in videos]
+
+    itemlist = []
+    for y in years:
+        if y and y not in [it.year for it in itemlist]:
+            it = item.clone(title = str(y), action='list_{}s'.format(item.contentType), year=y)
+            itemlist.append(it)
+
+    itemlist.sort(key=lambda it: it.year, reverse=True)
+    return itemlist
+
+
+def list_ratings(item):
+    videos = dict(videolibrarydb[item.contentType]).values()
+    videolibrarydb.close()
+
+    ratings = [int(float(v['item'].infoLabels['rating'])) for v in videos]
+
+    itemlist = []
+    for r in ratings:
+        if r and r not in [it.rating for it in itemlist]:
+            it = item.clone(title = str(r), action='list_{}s'.format(item.contentType), rating=r)
+            itemlist.append(it)
+
+    itemlist.sort(key=lambda it: it.rating, reverse=True)
+    return itemlist
+
+
+def list_actors(item):
+    videos = dict(videolibrarydb[item.contentType]).values()
+    videolibrarydb.close()
+
+    actors = []
+    for v in videos:
+        actors += [[a[0].strip(), a[2].strip(), a[4].strip()] for a in v['item'].infoLabels['castandrole']]
+
+    itemlist = []
+    for a in actors:
+        if a and a[0][0] == item.title and a[0] not in [it.initial for it in itemlist]:
+            it = item.clone(title = a[0], action='list_{}s'.format(item.contentType), initial=a[0], thumbnail=a[1])
+            itemlist.append(it)
+
+    itemlist.sort(key=lambda it: it.actor)
+    return itemlist
+
+
+def search(item, text):
+    item.text = text
+    if item.contentType == 'movie':
+        return list_movies(item)
+    else:
+        return list_tvshows(item)
+
+
 def list_movies(item, silent=False):
-    from core import jsontools
     logger.debug()
 
-    # itemlist = []
+    videos = dict(videolibrarydb['movie']).values()
 
-
-    # for root, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
-    #     for f in folders:
-    #         ID = scrapertools.find_single_match(f, r'\[([^\]]+)')
-    #         if ID:
-    #             ids.append(ID)
-    #             if ID not in videolibrarydb['movie']:
-    #                 ids.append(ID)
-    #                 movies_path += [filetools.join(root, f, f + '.nfo')]
-    #                 local = False
-    #                 for f in filetools.listdir(filetools.join(root, f)):
-    #                     if f.split('.')[-1] not in ['nfo','json','strm']:
-    #                         local= True
-    #                         break
-
-    # with futures.ThreadPoolExecutor() as executor:
-    #     itlist = [executor.submit(get_results, movie_path, root, 'movie', local) for movie_path in movies_path]
-    #     for res in futures.as_completed(itlist):
-    #         item_movie, value = res.result()
-    #         # verify the existence of the channels
-    #         if item_movie.library_urls and len(item_movie.library_urls) > 0:
-    #             code = scrapertools.find_single_match(item_movie.strm_path, r'\[([^\]]+)')
-    #             videolibrarydb['movie'][code] = {'item':jsontools.load(item_movie.tojson())}
-
-    movies = dict(videolibrarydb['movie'])
+    if item.year: itemlist = [v['item'] for v in videos if item.year == v['item'].infoLabels['year']]
+    elif item.rating: itemlist = [v['item'] for v in videos if item.rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.genre: itemlist = [v['item'] for v in videos if item.genre in v['item'].infoLabels['genre']]
+    elif item.actor: itemlist = [v['item'] for v in videos if item.actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.director: itemlist = [v['item'] for v in videos if item.actor in v['item'].infoLabels['director']]
+    elif item.set: itemlist = [v['item'] for v in videos if item.set == v['item'].infoLabels.get('setid', '')]
+    elif config.get_setting('collection') and not item.text: itemlist = [v['item'] for v in videos if (item.text.lower() in v['item'].title.lower() and not 'setid' in v['item'].infoLabels)] + [v for v in dict(videolibrarydb['collection']).values()]
+    else: itemlist = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
     videolibrarydb.close()
-    itemlist = [value['item'] for value in movies.values() if item.genre in value['item'].infoLabels['genre']]
-
     add_context(itemlist)
     if silent == False:
-        itemlist.sort(key=lambda it: it.title.lower())
+        if item.set: itemlist.sort(key=lambda it: it.infoLabels['year'])
+        else: itemlist.sort(key=lambda it: it.title.lower())
     return itemlist
 
 
 def list_tvshows(item):
     logger.debug()
+
     itemlist = []
-    tvshows_path = []
-    ids = []
-    # lista = []
 
-    root = videolibrarytools.TVSHOWS_PATH
-    # start = time()
-    # for root, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
-    #     for f in folders:
-    #         ID = scrapertools.find_single_match(f, r'\[([^\]]+)')
-    #         if ID:
-    #             ids.append(ID)
-    #             if ID not in videolibrarydb['movie']:
-    #                 ids.append(ID)
-    #                 tvshows_path += [filetools.join(root, f, f + '.nfo')]
-    #                 local = False
-    #                 for f in filetools.listdir(filetools.join(root, f)):
-    #                     if f.split('.')[-1] not in ['nfo','json','strm']:
-    #                         local= True
-    #                         break
-    # with futures.ThreadPoolExecutor() as executor:
-    #     itlist = [executor.submit(get_results, tvshow_path, root, 'tvshow', local) for tvshow_path in tvshows_path]
-    #     itlist = [executor.submit(get_results, filetools.join(root, folder, 'tvshow.nfo'), root, 'tvshow') for folder in filetools.listdir(root)]
-    #     for res in futures.as_completed(itlist):
-    #         item_tvshow, value = res.result()
-    #         # verify the existence of the channels
-    #         if item_tvshow.library_urls and len(item_tvshow.library_urls) > 0:
-    #             code = scrapertools.find_single_match(item_tvshow.strm_path, r'\[([^\]]+)')
-    #             db['tvshow'][code] = {'item':jsontools.load(item_tvshow.tojson())}
-    #             # itemlist += [item_tvshow]
-    #             lista += [{'title':item_tvshow.contentTitle,'thumbnail':item_tvshow.thumbnail,'fanart':item_tvshow.fanart, 'active': value, 'nfo':item_tvshow.nfo}]
-    # logger.debug('load list',time() - start)
+    videos = dict(videolibrarydb['tvshow']).values()
 
-
-    series = dict(videolibrarydb['tvshow'])
-    videolibrarydb.close()
+    if item.year: series = [v['item'] for v in videos if item.year == v['item'].infoLabels['year']]
+    elif item.rating: series = [v['item'] for v in videos if item.rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.genre: series = [v['item'] for v in videos if item.genre in v['item'].infoLabels['genre']]
+    elif item.actor: series = [v['item'] for v in videos if item.actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.director: series = [v['item'] for v in videos if item.actor in v['item'].infoLabels['director']]
+    else: series = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
 
     def sub_thread(it):
-        it = it['item']
         it.contentType = 'tvshow'
-
+        seasons = videolibrarydb['season'][it.videolibrary_id]
+        if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or config.get_setting('no_pile_on_seasons', 'videolibrary') == 1 and len(seasons) == 1:
+            it.action = 'get_episodes'
+            it.all = True
         if not it.active: it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
         return it
 
     with futures.ThreadPoolExecutor() as executor:
-        _list = [executor.submit(sub_thread, it) for it in series.values()]
+        _list = [executor.submit(sub_thread, it) for it in series]
         for res in futures.as_completed(_list):
             itemlist.append(res.result())
 
@@ -159,6 +218,7 @@ def list_tvshows(item):
         itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=item.thumbnail,
                           fanart=item.thumbnail, landscape=item.thumbnail, forced=True,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
+    videolibrarydb.close()
     return itemlist
 
 
@@ -292,33 +352,13 @@ def configure_update_videolibrary(item):
 def get_seasons(item):
     logger.debug()
 
-    itemlist = []
-    dict_temp = {}
+    seasons = videolibrarydb['season'][item.videolibrary_id]
+    videolibrarydb.close()
 
+    itemlist = sorted(seasons.values(), key=lambda it: int(it.contentSeason))
 
-    if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2:  # Ever
-        return get_episodes(item)
-
-    if config.get_setting('no_pile_on_seasons', 'videolibrary') == 1 and len(dict_temp) == 1:  # Only if there is a season
-        item.from_library = True
-        return get_episodes(item)
-    else:
-        from core import tmdb
-        seasons = videolibrarydb['season'][item.videolibrary_id]
-        videolibrarydb.close()
-        if len(seasons) == 1:
-            return get_episodes(list(seasons.values())[0])
-
-        itemlist = sorted(seasons.values(), key=lambda it: int(it.contentSeason))
-
-        add_context(itemlist)
-
-        if config.get_setting('show_all_seasons', 'videolibrary'):
-            it = item.clone(action='get_episodes', title=config.get_localized_string(60030), all=True)
-            it.infoLabels['playcount'] = 0
-            itemlist.insert(0, it)
-
-        add_download_items(item, itemlist)
+    add_context(itemlist)
+    add_download_items(item, itemlist)
     return itemlist
 
 
@@ -848,70 +888,104 @@ def delete(item):
     from platformcode import xbmc_videolibrary
     select = None
     delete = None
+
+    # get videolibrary path
     if item.contentType == 'movie':
         library_path = videolibrarytools.MOVIES_PATH
         head = 70084
     else:
         library_path = videolibrarytools.TVSHOWS_PATH
         head = 70085
-    from core import channeltools
 
+    # load channel in videoitem
+    from core import channeltools
     channels = [c for c in videolibrarydb[item.contentType].get(item.videolibrary_id,{}).get('channels',{}).keys()]
     channels.sort()
     option_list = [config.get_localized_string(head)]
     for channel in channels:
         option_list.append(channeltools.get_channel_parameters(channel)['title'])
 
+    # If there are more channels shows the dialogue of choice
     if len(option_list) > 2:
         select = platformtools.dialog_select(config.get_localized_string(70088) % item.infoLabels['title'], option_list)
     else:
         delete = platformtools.dialog_yesno(config.get_localized_string(head), config.get_localized_string(70088) % item.infoLabels['title'])
+
+    # If you have chosen to delete the movie, the collection or the series
     if select == 0 or delete:
-        del videolibrarydb[item.contentType][item.videolibrary_id]
-        if item.contentType == 'tvshow':
-            del videolibrarydb['season'][item.videolibrary_id]
-            del videolibrarydb['episode'][item.videolibrary_id]
-        path = filetools.join(library_path, item.base_name)
+        # delete collection
+        if item.set:
+            del videolibrarydb['collection'][item.set]
+            for k, v in dict(videolibrarydb['movie']).items():
+                if v['item'].infoLabels.get('setid') == item.set:
+                    del videolibrarydb['movie'][k]
+            platformtools.itemlist_refresh(-1)
+        else:
+            # delete movie or series
+            del videolibrarydb[item.contentType][item.videolibrary_id]
 
-        filetools.rmdirtree(path)
-        if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
-            from platformcode import xbmc_videolibrary
-            xbmc_videolibrary.clean_by_id(item)
-        platformtools.itemlist_refresh(-1)
-    if select and select > 0:
+            # check if there is movies in collection
+            if item.contentType == 'movie':
+                if item.infoLabels.get('setid'):
+                    find = 0
+                    for v in dict(videolibrarydb['movie']).values():
+                        if v['item'].infoLabels.get('setid') == item.infoLabels.get('setid'):
+                            find += 1
+                    if find == 0:
+                        del videolibrarydb['collection'][item.infoLabels.get('setid')]
 
-        channel_name = channels[select - 1]
+            # delete seasons and episodes
+            if item.contentType == 'tvshow':
+                del videolibrarydb['season'][item.videolibrary_id]
+                del videolibrarydb['episode'][item.videolibrary_id]
 
-        if item.contentType != 'movie':
-            episodes = videolibrarydb['episode'][item.videolibrary_id]
-            seasons = videolibrarydb['season'][item.videolibrary_id]
-            episodes_dict = dict(episodes)
-            seasons_dict = dict(seasons)
+            # remove files
+            path = filetools.join(library_path, item.base_name)
 
-            for key, episode in episodes_dict.items():
-                if len(episode['channels']) > 1 and channel_name in episode['channels']:
-                    del episode['channels'][channel_name]
-                elif channel_name in episode['channels']:
-                    xbmc_videolibrary.clean_by_id(episodes[key]['item'])
-                    del episodes[key]
-            videolibrarydb['episode'][item.videolibrary_id] = episodes
-            seasons_list = []
+            filetools.rmdirtree(path)
+            if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
+                from platformcode import xbmc_videolibrary
+                xbmc_videolibrary.clean_by_id(item)
+            platformtools.itemlist_refresh(-1)
 
-            for episode in episodes:
-                season = int(episode.split('x')[0])
-                if season not in seasons_list:
-                    seasons_list.append(season)
+        # delete channel from video item
+        if select and select > 0:
+            channel_name = channels[select - 1]
 
-            for season in seasons_dict.keys():
-                if season not in seasons_list:
-                    xbmc_videolibrary.clean_by_id(seasons[season])
-                    del seasons[season]
-            videolibrarydb['season'][item.videolibrary_id] = seasons
-        channel = videolibrarydb[item.contentType][item.videolibrary_id]
-        channels = channel['channels']
-        del channels[channel_name]
-        channel['channels'] = channels
-        videolibrarydb[item.contentType][item.videolibrary_id] = channel
+            if item.contentType != 'movie':
+                episodes = videolibrarydb['episode'][item.videolibrary_id]
+                seasons = videolibrarydb['season'][item.videolibrary_id]
+                episodes_dict = dict(episodes)
+                seasons_dict = dict(seasons)
+
+                # delete episodes if they have no channels
+                for key, episode in episodes_dict.items():
+                    if len(episode['channels']) > 1 and channel_name in episode['channels']:
+                        del episode['channels'][channel_name]
+                    elif channel_name in episode['channels']:
+                        xbmc_videolibrary.clean_by_id(episodes[key]['item'])
+                        del episodes[key]
+
+                videolibrarydb['episode'][item.videolibrary_id] = episodes
+                seasons_list = []
+
+                # delete seasons if they have no channels
+                for episode in episodes:
+                    season = int(episode.split('x')[0])
+                    if season not in seasons_list:
+                        seasons_list.append(season)
+
+                for season in seasons_dict.keys():
+                    if season not in seasons_list:
+                        xbmc_videolibrary.clean_by_id(seasons[season])
+                        del seasons[season]
+                videolibrarydb['season'][item.videolibrary_id] = seasons
+
+            channel = videolibrarydb[item.contentType][item.videolibrary_id]
+            channels = channel['channels']
+            del channels[channel_name]
+            channel['channels'] = channels
+            videolibrarydb[item.contentType][item.videolibrary_id] = channel
 
     videolibrarydb.close()
 
@@ -1009,6 +1083,7 @@ def set_active(item):
 def add_context(itemlist, title=config.get_localized_string(30052)):
     title += '...'
     for item in itemlist:
+        item.infoLabels['title'] = item.infoLabels.get('title', item.title)
         item.context = [{'title':title, 'channel':'videolibrary', 'action':'subcontext'}]
 
 class subcontext(object):
@@ -1019,7 +1094,8 @@ class subcontext(object):
         self.titledict = {'movie':{'images':60240, 'notwatched':60016, 'watched':60017, 'delete':70084, 'lang':70246},
                           'tvshow':{'images':60240, 'notwatched':60020, 'watched':60021, 'delete':70085, 'lang':70246, 'notactive':60022, 'active': 60023, 'update':70269},
                           'season':{'images':60240, 'notwatched':60028, 'watched':60029},
-                          'episode':{'images':60240, 'notwatched':60032, 'watched':60033}}
+                          'episode':{'images':60240, 'notwatched':60032, 'watched':60033},
+                          'list':{'images':60240, 'delete':30048}}
         self.makecontext()
         self.run()
 
@@ -1028,17 +1104,18 @@ class subcontext(object):
 
     def makecontext(self):
         # set watched
-        watched = self.item.infoLabels.get('playcount', 0)
-        if watched > 0:
-            title = self.title('notwatched')
-            value = 0
-        else:
-            title = self.title('watched')
-            value = 1
-        self.context.append(title)
-        self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
+        if not self.item.set:
+            watched = self.item.infoLabels.get('playcount', 0)
+            if watched > 0:
+                title = self.title('notwatched')
+                value = 0
+            else:
+                title = self.title('watched')
+                value = 1
+            self.context.append(title)
+            self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
 
-        if self.item.contentType in ['movie', 'tvshow']:
+        if self.item.contentType in ['movie', 'tvshow', 'list']:
             # delete
             self.context.append(self.title('delete'))
             self.commands.append(self.item.clone(action='delete'))
@@ -1070,8 +1147,9 @@ class subcontext(object):
 class set_images(object):
     def __init__(self, item):
         self.item = item
+        self.item_type = self.item.contentType if self.item.contentType != 'list' else 'collection'
         self.type_dict = {'posters':'Poster', 'fanarts':'Fanart', 'banners':'Banner', 'landscapes':'Landscape', 'clearlogos':'ClearLogo'}
-        self.video = videolibrarydb[self.item.contentType][self.item.videolibrary_id]
+        self.video = videolibrarydb[self.item_type][self.item.videolibrary_id]
         self.select_type()
         videolibrarydb.close()
 
@@ -1082,7 +1160,7 @@ class set_images(object):
         for k, v in self.type_dict.items():
             if self.item.infoLabels.get(k):
                 it = xbmcgui.ListItem(v)
-                it.setArt({'thumb': self.item.infoLabels[k][0]})
+                it.setArt({'thumb': self.item.infoLabels[k[:-1].replace('poster', 'thumbnail')]})
                 types.append(it)
                 self.types.append(k)
                 self.list.append(self.item.infoLabels[k])
@@ -1096,7 +1174,7 @@ class set_images(object):
         items = []
         t = n[:-1].replace('poster', 'thumbnail')
 
-        for i, a in enumerate(self.item.infoLabels[n]):
+        for i, a in enumerate([self.item.infoLabels[t]] + self.item.infoLabels[n]):
             title = 'Remote' if i > 0 else 'Current'
             it = xbmcgui.ListItem(title)
             it.setArt({'thumb': a})
@@ -1108,13 +1186,18 @@ class set_images(object):
             selected = images[selection]
 
             index = None
-            if self.item.contentType == 'episode':
+            if self.item_type == 'collection':
+                self.video.infoLabels[t] = selected
+                if t == 'thumbnail': self.video.thumbnail = selected
+                if t == 'fanart': self.video.fanart = selected
+
+            elif self.item_type == 'episode':
                 index = '{}x{:02d}'.format(self.item.contentSeason, self.item.contentEpisodeNumber)
                 self.video[index]['item'].infoLabels[t] = selected
                 if t == 'thumbnail': self.video[index]['item'].thumbnail = selected
                 if t == 'fanart': self.video[index]['item'].fanart = selected
 
-            elif self.item.contentType == 'season':
+            elif self.item_type == 'season':
                 index = self.item.contentSeason
                 self.video[index].infoLabels[t] = selected
                 if t == 'thumbnail': self.video[index].thumbnail = selected
@@ -1125,7 +1208,7 @@ class set_images(object):
                 if t == 'thumbnail': self.video['item'].thumbnail = selected
                 if t == 'fanart': self.video['item'].fanart = selected
 
-        videolibrarydb[self.item.contentType][self.item.videolibrary_id] = self.video
+        videolibrarydb[self.item_type][self.item.videolibrary_id] = self.video
         platformtools.itemlist_refresh()
         # if index:
         #     video = self.video[index]

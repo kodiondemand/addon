@@ -37,6 +37,7 @@
         <setting id="folder_tvshows" type="text" label="70118" default="Serie TV"/>
         <setting id="folder_movies" type="text" label="70119" default="Film"/>
         <setting id="videolibrary_kodi" type="bool" label="70120" default="false"/>
+        <setting id="collection" type="bool" label="30047" default="false"/>
         <setting label="59997" type="lsep"/>
         <setting id="videolibrary_max_quality" type="bool" label="70729" default="false" visible="true"/>
         <setting id="next_ep" type="select" label="70748" lvalues="70832|70833|70732|70834" default="1"/>

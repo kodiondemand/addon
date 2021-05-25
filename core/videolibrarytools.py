@@ -181,105 +181,143 @@ def save_movie(item, silent=False):
             logger.debug("Could not create directory")
             videolibrarydb.close()
             return 0, 0, -1, path
-    try:
-        # set nfo and strm paths
-        nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
-        strm_path = filetools.join(base_name, "{}.strm".format(base_name))
+    # try:
+    # set nfo and strm paths
+    nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
+    strm_path = filetools.join(base_name, "{}.strm".format(base_name))
 
-        # check if nfo and strm file exist
-        nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
-        strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+    # check if nfo and strm file exist
+    nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
+    strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
 
-        if not head_nfo:
-            head_nfo = scraper.get_nfo(item)
+    if not head_nfo:
+        head_nfo = scraper.get_nfo(item)
 
-        # get extra info from fanart tv
-        # support.dbg()
-        extra_info = get_fanart_tv(item)
-        if not item.infoLabels.get('posters'): item.infoLabels['posters'] = []
-        item.infoLabels['posters'] += extra_info['poster']
-        if not item.infoLabels.get('fanarts'): item.infoLabels['fanarts'] = []
-        item.infoLabels['fanarts'] += extra_info['fanart']
-        if not item.infoLabels.get('clearlogos'): item.infoLabels['clearlogos'] = []
-        item.infoLabels['clearlogos'] += extra_info['clearlogo']
-        if not item.infoLabels.get('cleararts'): item.infoLabels['cleararts'] = []
-        item.infoLabels['cleararts'] += extra_info['clearart']
-        if not item.infoLabels.get('landscapes'): item.infoLabels['landscapes'] = []
-        item.infoLabels['landscapes'] += extra_info['landscape']
-        if not item.infoLabels.get('banners'): item.infoLabels['banners'] = []
-        item.infoLabels['banners'] += extra_info['banner']
+    # get extra info from fanart tv
+    # support.dbg()
+    extra_info = get_fanart_tv(item)
+    if not item.infoLabels.get('posters', []): item.infoLabels['posters'] = []
+    item.infoLabels['posters'] += extra_info['poster']
+    if not item.infoLabels.get('fanarts', []): item.infoLabels['fanarts'] = []
+    item.infoLabels['fanarts'] += extra_info['fanart']
+    if not item.infoLabels.get('clearlogos', []): item.infoLabels['clearlogos'] = []
+    item.infoLabels['clearlogos'] += extra_info['clearlogo']
+    if not item.infoLabels.get('cleararts', []): item.infoLabels['cleararts'] = []
+    item.infoLabels['cleararts'] += extra_info['clearart']
+    if not item.infoLabels.get('landscapes', []): item.infoLabels['landscapes'] = []
+    item.infoLabels['landscapes'] += extra_info['landscape']
+    if not item.infoLabels.get('banners', []): item.infoLabels['banners'] = []
+    item.infoLabels['banners'] += extra_info['banner']
+    if not item.infoLabels.get('discs', []): item.infoLabels['discs'] = []
+    item.infoLabels['discs'] += extra_info['disc']
 
-        # Make or update Videolibrary Movie Item
-        movie_item.channel = "videolibrary"
-        movie_item.action = 'findvideos'
-        movie_item.infoLabels = item.infoLabels
-        movie_item.infoLabels['playcount'] = 0
-        if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
-        if not movie_item.title: movie_item.title = item.contentTitle
-        if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
-        if not movie_item.strm_path: movie_item.strm_path = strm_path
-        if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
-        if not movie_item.base_name: movie_item.base_name = base_name
-        if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
-        if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
-        if not movie_item.landscape: movie_item.landscape = item.infoLabels['landscapes'][0] if item.infoLabels['landscapes'] else item.infoLabels['fanart']
-        if not movie_item.banner and item.infoLabels['banners']: movie_item.clearart = item.infoLabels['banners'][0]
-        if not movie_item.clearart and item.infoLabels['cleararts']: movie_item.clearart = item.infoLabels['cleararts'][0]
-        if not movie_item.clearlogo and item.infoLabels['clearlogos']: movie_item.clearlogo = item.infoLabels['clearlogos'][0]
-        if not movie_item.playtime: movie_item.playtime = 0,
-        if not movie_item.playcounts: movie_item.playcounts = 0,
-        if not movie_item.prefered_lang: movie_item.prefered_lang = ''
-        if not movie_item.lang_list: movie_item.lang_list = []
-        # if not movie_item.info: movie_item.info = extra_info(_id)
+    if 'setid' in item.infoLabels:
+        collection = videolibrarydb['collection'].get(item.infoLabels['setid'], None)
+        if not collection:
+            collection = Item(title=item.infoLabels['set'],
+                                plot=item.infoLabels['setoverview'],
+                                infoLabels={},
+                                thumbnail=item.infoLabels.get('setposters')[0] if item.infoLabels.get('setposters') else item.thumbnail,
+                                fanart=item.infoLabels.get('setfanarts')[0] if item.infoLabels.get('setfanarts') else item.fanart,
+                                videolibrary_id = item.infoLabels['setid'],
+                                set = item.infoLabels['setid'],
+                                channel = "videolibrary",
+                                action='list_movies')
 
-        if not item.contentLanguage: item.contentLanguage = 'ITA'
-        if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
+        if not collection.infoLabels.get('posters') and item.infoLabels.get('setposters'):
+            collection.infoLabels['posters'] = item.infoLabels['setposters']
+        if not collection.infoLabels.get('fanarts') and item.infoLabels.get('fanarts'):
+            collection.infoLabels['fanarts'] = item.infoLabels['setfanarts']
+        if not collection.infoLabels.get('clearlogos') and extra_info.get('setclearlogo'):
+            collection.infoLabels['clearlogos'] = extra_info['setclearlogo']
+            collection.infoLabels['clearlogo'] = extra_info['setclearlogo'][0]
+        if not collection.infoLabels.get('cleararts') and extra_info.get('setclearart'):
+            collection.infoLabels['cleararts'] = extra_info['setclearart']
+            collection.infoLabels['clearart'] = extra_info['setclearart'][0]
+        if not collection.infoLabels.get('landscapes') and extra_info.get('setlandscape'):
+            collection.infoLabels['landscapes'] = extra_info['setlandscape']
+            collection.infoLabels['landscape'] = extra_info['setlandscape'][0]
+        if not collection.infoLabels.get('banners') and extra_info.get('setbanner'):
+            collection.infoLabels['banners'] = extra_info['setbanner']
+            collection.infoLabels['banner'] = extra_info['setbanner'][0]
+        if not collection.infoLabels.get('discs') and extra_info.get('setdisc'):
+            collection.infoLabels['discs'] = extra_info['setdisc']
+            collection.infoLabels['disc'] = extra_info['setdisc'][0]
+        videolibrarydb['collection'][item.infoLabels['setid']] = collection
 
-        if len(movie_item.lang_list) > 1:
-            movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
+    # Make or update Videolibrary Movie Item
+    movie_item.channel = "videolibrary"
+    movie_item.action = 'findvideos'
+    movie_item.infoLabels = item.infoLabels
+    movie_item.infoLabels['playcount'] = 0
+    if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
+    if not movie_item.title: movie_item.title = item.contentTitle
+    if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
+    if not movie_item.strm_path: movie_item.strm_path = strm_path
+    if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
+    if not movie_item.base_name: movie_item.base_name = base_name
+    if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
+    if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
+    if not movie_item.infoLabels['landscape'] and item.infoLabels['landscapes']: movie_item.infoLabels['landscape'] = item.infoLabels['landscapes'][0]
+    if not movie_item.infoLabels['banner'] and item.infoLabels['banners']: movie_item.infoLabels['banner']= item.infoLabels['banners'][0]
+    if not movie_item.infoLabels['clearart'] and item.infoLabels['cleararts']: movie_item.infoLabels['clearart'] = item.infoLabels['cleararts'][0]
+    if not movie_item.infoLabels['clearlogo'] and item.infoLabels['clearlogos']: movie_item.infoLabels['clearlogo'] = item.infoLabels['clearlogos'][0]
+    if not movie_item.infoLabels['disc'] and item.infoLabels['discs']: movie_item.infoLabels['disc'] = item.infoLabels['discs'][0]
+    if not movie_item.playtime: movie_item.playtime = 0,
+    if not movie_item.playcounts: movie_item.playcounts = 0,
+    if not movie_item.prefered_lang: movie_item.prefered_lang = ''
+    if not movie_item.lang_list: movie_item.lang_list = []
+    # if not movie_item.info: movie_item.info = extra_info(_id)
+
+    if not item.contentLanguage: item.contentLanguage = 'ITA'
+    if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
+
+    if len(movie_item.lang_list) > 1:
+        movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
+    else:
+        movie_item.prefered_lang = movie_item.lang_list[0]
+
+    # create nfo file if it does not exist
+    # support.dbg()
+    if not nfo_exists:
+        # data = dicttoxml(movie_item)
+        filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
+
+    # create strm file if it does not exist
+    if not strm_exists:
+        logger.debug("Creating .strm: " + strm_path)
+        item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibraryd_id=item.videolibrary_id)
+        strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+
+    # checks if the content already exists
+    if videolibrarydb['movie'].get(_id, {}):
+        logger.debug("The file exists. Is overwritten")
+        overwritten += 1
+    else:
+        logger.debug("Creating .nfo: " + nfo_path)
+        inserted += 1
+
+    remove_host(item)
+    # write on db
+    if item.channel in channels and item.channel != 'download':
+        channels_url = [u.url for u in channels[item.channel]]
+        if item.url not in channels_url:
+            channels[item.channel].append(item)
         else:
-            movie_item.prefered_lang = movie_item.lang_list[0]
+            del channels[item.channel][channels_url.index(item.url)]
+            channels[item.channel].append(item)
+    else:
+        channels[item.channel] = [item]
 
-        # create nfo file if it does not exist
-        # support.dbg()
-        if not nfo_exists:
-            # data = dicttoxml(movie_item)
-            filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
+    moviedb['item'] = movie_item
+    moviedb['channels'] = channels
 
-        # create strm file if it does not exist
-        if not strm_exists:
-            logger.debug("Creating .strm: " + strm_path)
-            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibraryd_id=item.videolibrary_id)
-            strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
-
-        # checks if the content already exists
-        if videolibrarydb['movie'].get(_id, {}):
-            logger.debug("The file exists. Is overwritten")
-            overwritten += 1
-        else:
-            logger.debug("Creating .nfo: " + nfo_path)
-            inserted += 1
-
-        remove_host(item)
-        # write on db
-        if item.channel in channels and item.channel != 'download':
-            channels_url = [u.url for u in channels[item.channel]]
-            if item.url not in channels_url:
-                channels[item.channel].append(item)
-            else:
-                del channels[item.channel][channels_url.index(item.url)]
-                channels[item.channel].append(item)
-        else:
-            channels[item.channel] = [item]
-
-        moviedb['item'] = movie_item
-        moviedb['channels'] = channels
-
-        videolibrarydb['movie'][_id] = moviedb
-    except:
-        failed += 1
+    videolibrarydb['movie'][_id] = moviedb
+    # except:
+    #     failed += 1
 
     videolibrarydb.close()
+
 
     # Only if movie_item and .strm exist we continue
     if movie_item and strm_exists:
@@ -287,8 +325,8 @@ def save_movie(item, silent=False):
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
         # Update Kodi Library
-        # from platformcode.dbconverter import add_video
-        # add_video(movie_item)
+        from platformcode.dbconverter import add_video
+        add_video(movie_item)
         # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
@@ -979,7 +1017,7 @@ def get_local_files(item):
     if included_files:
         return included_files, 1
 
-def get_fanart_tv(item):
+def get_fanart_tv(item, set='', ret={}):
     def set_dict(l):
         d = {}
         for k in l:
@@ -987,8 +1025,7 @@ def get_fanart_tv(item):
             o.append(k['url'])
             d[k['season']] = o
         return d
-    # support.dbg()
-    ret = {}
+
     _id = item.infoLabels.get('tvdb_id', item.infoLabels.get('tmdb_id'))
 
     if _id:
@@ -997,8 +1034,8 @@ def get_fanart_tv(item):
         url = host.format(_type, _id)
         res = httptools.downloadpage(url).json
         if _type == 'tv':
-            ret['clearlogo'] = [k.get('url') for k in res.get('hdtvlogo', [])]
-            ret['clearart'] = [k.get('url') for k in res.get('hdclearart', [])]
+            ret['clearlogo'] = [k.get('url') for k in res.get('hdtvlogo', [])] + [k.get('url') for k in res.get('tvlogo', [])]
+            ret['clearart'] = [k.get('url') for k in res.get('hdclearart', [])] + [k.get('url') for k in res.get('hdclearart', [])]
             ret['fanart'] = set_dict(res.get('showbackground', []))
             ret['poster'] = set_dict(res.get('seasonposter', []))
             ret['poster']['all'] = [k.get('url') for k in res.get('tvposter', [])]
@@ -1008,11 +1045,15 @@ def get_fanart_tv(item):
             ret['banner']['all'] = [k.get('url') for k in res.get('tvbanner', [])]
 
         elif _type == 'movies':
-            ret['clearlogo'] = [k.get('url') for k in res.get('hdmovielogo', [])]
-            ret['poster'] = [k.get('url') for k in res.get('movieposter', [])]
-            ret['fanart'] = [k.get('url') for k in res.get('moviebackground', [])]
-            ret['clearart'] = [k.get('url') for k in res.get('hdmovieclearart', [])]
-            ret['landscape'] = [k.get('url') for k in res.get('moviethumb', [])]
-            ret['banner'] = [k.get('url') for k in res.get('moviebanner', [])]
+            ret[set + 'clearlogo'] = [k.get('url') for k in res.get('hdmovielogo', [])] + [k.get('url') for k in res.get('movielogo', [])]
+            ret[set + 'poster'] = [k.get('url') for k in res.get('movieposter', [])]
+            ret[set + 'fanart'] = [k.get('url') for k in res.get('moviebackground', [])]
+            ret[set + 'clearart'] = [k.get('url') for k in res.get('hdmovieclearart', [])] + [k.get('url') for k in res.get('movieclearart', [])]
+            ret[set + 'landscape'] = [k.get('url') for k in res.get('moviethumb', [])]
+            ret[set + 'banner'] = [k.get('url') for k in res.get('moviebanner', [])]
+            ret[set + 'disc'] = [k.get('url') for k in res.get('moviedisc', [])]
+            if item.infoLabels.get('setid'):
+                it = item.clone(infoLabels = {'tmdb_id':item.infoLabels['setid']})
+                get_fanart_tv(it, 'set', ret)
 
     return ret
