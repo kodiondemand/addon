@@ -19,12 +19,12 @@ def check_condition():
     folderPath = xbmc.getInfoLabel('Container.FolderPath')
     filePath = xbmc.getInfoLabel('ListItem.FileNameAndPath')
 
-    logger.debug('Container: {}'.format(folderPath) )
-    logger.debug('listitem mediatype: {}'.format(mediatype) )
-    logger.debug('filenamepath: {}'.format(filePath) )
+    logger.debug('Container:',folderPath )
+    logger.debug('listitem mediatype:',mediatype )
+    logger.debug('filenamepath:',filePath )
 
     # we_are_in_kod = folderPath.find( addon_id ) > -1
-    item_is_coming_from_kod = filePath.find( addon_id ) > -1
+    item_is_coming_from_kod = addon_id in filePath
 
     # logger.info('[SOK] container is KOD? {}'.format(we_are_in_kod) )
 
@@ -80,7 +80,7 @@ def execute():
 
     if not tmdbid:
         # We can continue searching by 'title (year)'
-        logger.info( "No TMDB found, proceed with title/year: {} ({})".format(title,  year) )
+        logger.info( "No TMDB found, proceed with title/year:",  title , "(" , year, ")" )
 
 
     logger.info("Search on KOD (gobalsearch)")
@@ -99,7 +99,7 @@ def execute():
     folder= False
     )
 
-    logger.info("Invoking Item: {}".format(item.tostring()))
+    logger.info("Invoking Item:", item.tostring() )
 
     itemurl = item.tourl()
     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + itemurl + ")")

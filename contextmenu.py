@@ -10,7 +10,7 @@ from core import jsontools
 
 addon_id = config.get_addon_core().getAddonInfo('id')
 
-LOCAL_FILE = os.path.join(config.get_runtime_path(), "contextmenu.json")
+LOCAL_FILE = os.path.join(config.get_runtime_path(), "core/contextmenu/contextmenu.json")
 f = open(LOCAL_FILE)
 try:
     contextmenu_settings = jsontools.load( f.read() )
@@ -38,13 +38,13 @@ def build_menu():
 
     contextmenumodules = []
     contextmenu = []
-    
+
     for itemmodule in contextmenu_settings:
-        logger.debug('check contextmenu {}'.format(itemmodule) )
+        logger.debug('check contextmenu', itemmodule )
         module = __import__(itemmodule, None, None, [ itemmodule] )
 
         if module.check_condition():
-            logger.info('Add contextmenu item -> {}'.format(itemmodule) )
+            logger.info('Add contextmenu item ->',itemmodule )
             contextmenumodules.append( module )
 
 
@@ -57,12 +57,12 @@ def build_menu():
     else:
         for itemmodule in contextmenumodules:
             contextmenu.append( itemmodule.get_menu_item() )
-    
+
     ret = xbmcgui.Dialog().contextmenu( contextmenu )
-    
+
     if not empty and ret > -1:
         itemmodule = contextmenumodules[ ret ]
-        logger.info( 'Contextmenu module index {} for -> {}'.format(ret, itemmodule) )
+        logger.info( 'Contextmenu module index', ret,  'for -> {}', itemmodule )
         itemmodule.execute()
 
 
@@ -75,4 +75,3 @@ if __name__ == '__main__':
 
 
 
-    
