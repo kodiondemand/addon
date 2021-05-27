@@ -31,7 +31,6 @@ def mark_auto_as_watched(item):
         while not platformtools.is_playing() and time.time() < time_limit:
             time.sleep(1)
 
-
         marked = False
         sync = False
         next_episode = None
@@ -100,7 +99,7 @@ def mark_auto_as_watched(item):
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
             # xbmc.sleep(500)
-            
+
         if marked:
             from specials import videolibrary
             videolibrary.mark_content_as_watched(item)
@@ -287,7 +286,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
         conn.commit()
         conn.close()
 
-    platformtools.itemlist_refresh()
+    # platformtools.itemlist_refresh()
 
 
 def set_watched_on_kod(data):

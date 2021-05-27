@@ -193,6 +193,7 @@ def save_movie(item, silent=False):
     if not head_nfo:
         head_nfo = scraper.get_nfo(item)
 
+
     # get extra info from fanart tv
     # support.dbg()
     extra_info = get_fanart_tv(item)
@@ -212,17 +213,23 @@ def save_movie(item, silent=False):
     item.infoLabels['discs'] += extra_info['disc']
 
     if 'setid' in item.infoLabels:
+        c_playcount = 0
         collection = videolibrarydb['collection'].get(item.infoLabels['setid'], None)
+        if item.infoLabels.get('playcount') > 0:
+            collections = [c for c in dict(videolibrarydb['collection']).values() if c.infoLabels.get('setid') == item.infoLabels['setid']]
+            viewed = [c for c in collections if c.infoLabels.get('playcount') > 0]
+            if len(collections) == len(viewed):
+                c_playcount = 1
         if not collection:
             collection = Item(title=item.infoLabels['set'],
-                                plot=item.infoLabels['setoverview'],
-                                infoLabels={},
-                                thumbnail=item.infoLabels.get('setposters')[0] if item.infoLabels.get('setposters') else item.thumbnail,
-                                fanart=item.infoLabels.get('setfanarts')[0] if item.infoLabels.get('setfanarts') else item.fanart,
-                                videolibrary_id = item.infoLabels['setid'],
-                                set = item.infoLabels['setid'],
-                                channel = "videolibrary",
-                                action='list_movies')
+                              plot=item.infoLabels['setoverview'],
+                              infoLabels={'playcount':c_playcount},
+                              thumbnail=item.infoLabels.get('setposters')[0] if item.infoLabels.get('setposters') else item.thumbnail,
+                              fanart=item.infoLabels.get('setfanarts')[0] if item.infoLabels.get('setfanarts') else item.fanart,
+                              videolibrary_id = item.infoLabels['setid'],
+                              set = item.infoLabels['setid'],
+                              channel = "videolibrary",
+                              action='list_movies')
 
         if not collection.infoLabels.get('posters') and item.infoLabels.get('setposters'):
             collection.infoLabels['posters'] = item.infoLabels['setposters']
@@ -245,11 +252,12 @@ def save_movie(item, silent=False):
             collection.infoLabels['disc'] = extra_info['setdisc'][0]
         videolibrarydb['collection'][item.infoLabels['setid']] = collection
 
+
     # Make or update Videolibrary Movie Item
     movie_item.channel = "videolibrary"
     movie_item.action = 'findvideos'
     movie_item.infoLabels = item.infoLabels
-    movie_item.infoLabels['playcount'] = 0
+    movie_item.infoLabels['playcount'] = item.infoLabels.get('playcount',0)
     if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
     if not movie_item.title: movie_item.title = item.contentTitle
     if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
@@ -263,8 +271,6 @@ def save_movie(item, silent=False):
     if not movie_item.infoLabels['clearart'] and item.infoLabels['cleararts']: movie_item.infoLabels['clearart'] = item.infoLabels['cleararts'][0]
     if not movie_item.infoLabels['clearlogo'] and item.infoLabels['clearlogos']: movie_item.infoLabels['clearlogo'] = item.infoLabels['clearlogos'][0]
     if not movie_item.infoLabels['disc'] and item.infoLabels['discs']: movie_item.infoLabels['disc'] = item.infoLabels['discs'][0]
-    if not movie_item.playtime: movie_item.playtime = 0,
-    if not movie_item.playcounts: movie_item.playcounts = 0,
     if not movie_item.prefered_lang: movie_item.prefered_lang = ''
     if not movie_item.lang_list: movie_item.lang_list = []
     # if not movie_item.info: movie_item.info = extra_info(_id)
@@ -286,7 +292,7 @@ def save_movie(item, silent=False):
     # create strm file if it does not exist
     if not strm_exists:
         logger.debug("Creating .strm: " + strm_path)
-        item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibraryd_id=item.videolibrary_id)
+        item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=movie_item.videolibrary_id)
         strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
     # checks if the content already exists
@@ -617,7 +623,7 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
 
                 if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
                     logger.debug("Creating .strm: " + strm_path)
-                    item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibraryd_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                    item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
                     filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
                 # if not filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path)):
                 #     filetools.write(filetools.join(TVSHOWS_PATH, nfo_path), head_nfo)
@@ -626,7 +632,7 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                 failed += 1
         return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
 
-    def save_season(item, seasons, s):
+    def save_season(item, seasons, s, w):
         tmdb_info = tmdb.Tmdb(id_Tmdb = item.infoLabels['tmdb_id'], search_type='tv')
         seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(s))
         infoLabels = {}
@@ -638,7 +644,7 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
         infoLabels['banners'] = extra_info['banner'].get(str(s), [])
         infoLabels['clearlogos'] = item.infoLabels.get('clearlogos', [])
         infoLabels['cleararts'] = item.infoLabels.get('cleararts', [])
-        if s in seasons: infoLabels['playcount'] = seasons[s].infoLabels.get('playcount', 0)
+        infoLabels['playcount'] = w
 
         season_item = Item(action="get_episodes",
                             channel='videolibrary',
@@ -649,8 +655,7 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                             contentType = 'season',
                             infoLabels = infoLabels,
                             contentSeason = s,
-                            videolibrary_id = item.videolibrary_id,
-                            playcount=0)
+                            videolibrary_id = item.videolibrary_id)
 
         if infoLabels['clearlogos']: season_item.clearlogo = infoLabels['clearlogos'][0]
         if infoLabels['cleararts']: season_item.clearart = infoLabels['cleararts'][0]
@@ -717,12 +722,34 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                         i += 1
                         p_dialog.update(int(math.ceil(i * t)), message=e.title)
 
+    def watched_season(s):
+        w = 0
+        s_ep = [e['item'] for e in episodes.values() if e['item'].contentSeason == s]
+        w_ep = [e for e in s_ep if e.infoLabels.get('playcount') > 0]
+        if len(s_ep) == len(w_ep): w = 1
+        return s, w
+
+    add_seasons = {}
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(save_season, item, seasons, s) for s in current_seasons]
+        itlist = [executor.submit(watched_season, s) for s in current_seasons]
+        for res in futures.as_completed(itlist):
+            add_seasons[res.result()[0]] = res.result()[1]
+
+    for s in current_seasons:
+        watched = 0
+        s_ep = [e['item'] for e in episodes.values() if e['item'].contentSeason == s]
+        w_ep = [e for e in s_ep if e.infoLabels.get('playcount') > 0]
+        if len(s_ep) == len(w_ep): watched = 1
+        add_seasons[s] = watched
+
+
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(save_season, item, seasons, s, w) for s, w in add_seasons.items()]
         for res in futures.as_completed(itlist):
             if res.result():
                 s, season_item = res.result()
                 seasons[s] = season_item
+
 
     if not silent:
         if len(item.lang_list) > 1:
@@ -989,7 +1016,6 @@ def add_tvshow(item, channel=None):
 
 
 def remove_host(item):
-    
     if PY3: import urllib.parse as urlparse  # It is very slow in PY2. In PY3 it is native
     else: import urlparse  # We use the native of PY2 which is faster
     parsed_url = urlparse.urlparse(item.url)
@@ -997,12 +1023,7 @@ def remove_host(item):
 
 
 def get_id(item):
-    _id = ''
-    for i in item.infoLabels['code']:
-        if i or i != 'None':
-            _id = i
-            break
-    return _id
+    return item.infoLabels.get('tmdb_id')
 
 
 def get_local_files(item):

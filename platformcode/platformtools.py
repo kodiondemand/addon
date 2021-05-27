@@ -284,7 +284,8 @@ def itemlist_refresh(offset=0):
     ctl = win.getControl(cid)
     pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
 
-    xbmc.executebuiltin("Container.Refresh")
+    # xbmc.executebuiltin("Container.Refresh")
+    xbmc.executebuiltin('ReloadSkin()')
 
     while xbmcgui.getCurrentWindowDialogId() != 10138:
         pass
@@ -684,7 +685,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
     def play():
         if item.channel == 'downloads':
-            logger.debug("Play local video: %s [%s]" % (item.title, item.url))
+            logger.debug("Play local video: %s [%s]" % (item.fulltitle, item.url))
             xlistitem = xbmcgui.ListItem(path=item.url)
             xlistitem.setArt({"thumb": item.thumbnail})
             set_infolabels(xlistitem, item, True)
@@ -720,7 +721,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         if not mediaurl: return
 
         # video information is obtained.
-        xlistitem = xbmcgui.ListItem(path=item.url)
+        xlistitem = xbmcgui.ListItem(item.title, path=item.url)
         xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
         set_infolabels(xlistitem, item, True)
 
@@ -1084,6 +1085,7 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
 
 def set_player(item, xlistitem, mediaurl, view, strm):
     logger.debug()
+    # from core.support import dbg;dbg()
     item.options = {'strm':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 
@@ -1538,11 +1540,6 @@ def set_played_time(item):
 def prevent_busy(item):
     logger.debug()
     if not item.autoplay and not item.window:
-        if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
-        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+        xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         xbmc.sleep(200)
         xbmc.Player().stop()
-        # xbmc.executebuiltin('Action(Stop)')
-        # xbmc.sleep(500)
-        # xbmc.Player().stop()
-        # xbmc.sleep(500)

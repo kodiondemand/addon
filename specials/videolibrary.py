@@ -1,20 +1,16 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
-from logging import RootLogger
-from platformcode.xbmc_videolibrary import set_content
-import sys, xbmcgui
+import sys, os, traceback, xbmc, xbmcgui
 from core import httptools, jsontools, support
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import xbmc, os, traceback
-
 from core import filetools, scrapertools, videolibrarytools
 from core.support import typo, thumb
-from core.item import InfoLabels, Item
-from platformcode import config, launcher, logger, platformtools
+from core.item import Item
+from platformcode import config, logger, platformtools
 from core.videolibrarytools import videolibrarydb
 
 if PY3:
@@ -27,7 +23,6 @@ else:
 
 def mainlist(item):
     logger.debug()
-
     itemlist = [item.clone(title=config.get_localized_string(60509), contentType='movie', action='list_movies', thumbnail=thumb('videolibrary_movie')),
                 item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30122) + '...', 'submenu'), contentType='movie',action='search_list',  thumbnail=thumb('search_movie')),
                 item.clone(title=config.get_localized_string(60600), contentType='tvshow', action='list_tvshows', thumbnail=thumb('videolibrary_tvshow'),
@@ -36,6 +31,7 @@ def mainlist(item):
                 item.clone(channel='shortcuts', title=typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
                            category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
     return itemlist
+
 
 def search_list(item):
     itemlist = [item.clone(title=config.get_localized_string(70032), action='list_genres', thumbnail=thumb('{}_genre'.format(item.contentType))),
@@ -47,9 +43,6 @@ def search_list(item):
     if item.contentType == 'movie':
         itemlist.insert(0, item.clone(title='Collezioni', action='list_sets', thumbnail=thumb('{}_genre'.format(item.contentType))))
     return itemlist
-
-def channel_config(item):
-    return platformtools.show_channel_settings(channelpath=os.path.join(config.get_runtime_path(), 'channels', item.channel), caption=config.get_localized_string(60598))
 
 
 def list_az(item):
@@ -204,6 +197,7 @@ def list_tvshows(item):
             it.action = 'get_episodes'
             it.all = True
         if not it.active: it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
+
         return it
 
     with futures.ThreadPoolExecutor() as executor:
@@ -220,100 +214,6 @@ def list_tvshows(item):
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     videolibrarydb.close()
     return itemlist
-
-
-def get_results(nfo_path, root, Type, local=False):
-    value = 0
-
-    if filetools.exists(nfo_path):
-        head_nfo, item = videolibrarytools.read_nfo(nfo_path)
-
-        # If you have not read the .nfo well, we will proceed to the next
-        if not item:
-            logger.error('.nfo erroneous in ' + str(nfo_path))
-            return Item(), 0
-
-        if len(item.library_urls) > 1: multichannel = True
-        else: multichannel = False
-
-        # continue loading the elements of the video library
-        if Type == 'movie':
-            folder = 'folder_movies'
-            item.path = filetools.split(nfo_path)[0]
-            item.nfo = nfo_path
-            sep = '/' if '/' in nfo_path else '\\'
-            item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
-            strm_path = item.strm_path.replace('\\', '/').rstrip('/')
-            if not item.thumbnail: item.thumbnail = item.infoLabels['thumbnail']
-            if '/' in item.path: item.strm_path = strm_path
-            # If strm has been removed from kodi library, don't show it
-            if not filetools.exists(filetools.join(item.path, filetools.basename(strm_path))) and not local: return Item(), 0
-
-            # Contextual menu: Mark as seen / not seen
-            visto = item.library_playcounts.get(strm_path.strip('/').split('/')[0], 0)
-            item.infoLabels['playcount'] = visto
-            if visto > 0:
-                seen_text = config.get_localized_string(60016)
-                counter = 0
-            else:
-                seen_text = config.get_localized_string(60017)
-                counter = 1
-
-            # Context menu: Delete series / channel
-            channels_num = len(item.library_urls)
-            if 'downloads' in item.library_urls: channels_num -= 1
-            if channels_num > 1: delete_text = config.get_localized_string(60018)
-            else: delete_text = config.get_localized_string(60019)
-
-            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary',  'playcount': counter},
-                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel}]
-        else:
-            folder = 'folder_tvshows'
-            try:
-                item.title = item.contentTitle
-                item.path = filetools.split(nfo_path)[0]
-                item.nfo = nfo_path
-                sep = '/' if '/' in nfo_path else '\\'
-                item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
-                # Contextual menu: Mark as seen / not seen
-                visto = item.library_playcounts.get(item.contentTitle, 0)
-                item.infoLabels['playcount'] = visto
-                logger.debug('item\n' + str(item))
-                if visto > 0:
-                    seen_text = config.get_localized_string(60020)
-                    counter = 0
-                else:
-                    seen_text = config.get_localized_string(60021)
-                    counter = 1
-
-            except:
-                logger.error('Not find: ' + str(nfo_path))
-                logger.error(traceback.format_exc())
-                return Item(), 0
-
-            # Context menu: Automatically search for new episodes or not
-            if item.active and int(item.active) > 0:
-                update_text = config.get_localized_string(60022)
-                value = 0
-            else:
-                update_text = config.get_localized_string(60023)
-                value = 1
-                item.title += ' [B]' + u'\u2022' + '[/B]'
-
-            # Context menu: Delete series / channel
-            channels_num = len(item.library_urls)
-            if 'downloads' in item.library_urls: channels_num -= 1
-            if channels_num > 1: delete_text = config.get_localized_string(60024)
-            else: delete_text = config.get_localized_string(60025)
-
-            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary', 'playcount': counter},
-                            {'title': update_text, 'action': 'mark_tvshow_as_updatable', 'channel': 'videolibrary', 'active': value},
-                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel},
-                            {'title': config.get_localized_string(70269), 'action': 'update_tvshow', 'channel': 'videolibrary'}]
-            if item.local_episodes_path == '': item.context.append({'title': config.get_localized_string(80048), 'action': 'add_local_episodes', 'channel': 'videolibrary'})
-            else: item.context.append({'title': config.get_localized_string(80049), 'action': 'remove_local_episodes', 'channel': 'videolibrary'})
-    else: item = Item()
-    return item, value
 
 
 def configure_update_videolibrary(item):
@@ -395,7 +295,6 @@ def get_episodes(item):
 def findvideos(item):
     from core import autoplay
     from platformcode import platformtools
-
     logger.debug()
     videolibrarytools.check_renumber_options(item)
     itemlist = []
@@ -455,9 +354,59 @@ def findvideos(item):
             return []
 
     itemlist.sort(key=lambda it: (videolibrarytools.quality_order.index(it.quality.lower()) if it.quality and it.quality.lower() in videolibrarytools.quality_order else 999, it.server))
-    add_download_items(item, itemlist)
 
-    return itemlist
+
+    if item.window_type == 1 or (config.get_setting("window_type", "videolibrary") == 1):
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
+        p_dialog.update(0, '')
+        item.play_from = 'window'
+        p_dialog.update(100, ''); xbmc.sleep(500); p_dialog.close()
+        played = False
+
+
+        if len(itemlist) > 0:
+            reopen = False
+
+            while not xbmc.Monitor().abortRequested():
+                played = True
+                if not platformtools.is_playing():
+                    if config.get_setting('next_ep') == 3:
+                        xbmc.sleep(500)
+                        if platformtools.is_playing():
+                            return
+                    if config.get_setting('autoplay') or reopen:
+                        played_time = platformtools.get_played_time(item)
+                        if not played_time and played:
+                            return
+
+                    options = []
+                    selection_implementation = 0
+                    for videoitem in itemlist:
+                        videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
+                        quality = ' [B][' + videoitem.quality + '][/B]' if videoitem.quality else ''
+                        if videoitem.server:
+                            path = filetools.join(config.get_runtime_path(), 'servers', videoitem.server.lower() + '.json')
+                            name = jsontools.load(open(path, "rb").read())['name']
+                            if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+                            it = xbmcgui.ListItem('\n[B]%s[/B]%s [%s]' % (name, quality, videoitem.ch_name))
+                            it.setArt({'thumb':videoitem.thumbnail})
+                            options.append(it)
+                        else:
+                            selection_implementation += 1
+
+
+                    head = ('{} - '.format(item.contentSerieName) if item.contentSerieName else '') + item.title
+                    selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
+                    if selection == -1:
+                        return
+                    else:
+                        item = play(itemlist[selection  + selection_implementation])[0].clone(play_from='window')
+                        platformtools.play_video(item)
+                        reopen = True
+
+    else:
+        add_download_items(item, itemlist)
+        return itemlist
 
 
 def servers(item, ch, items):
@@ -468,12 +417,17 @@ def servers(item, ch, items):
 
     def channel_servers(item, it, channel, ch_name):
         serverlist = []
-        it.contentChannel = 'videolibrary'
+        # it.contentChannel = 'videolibrary'
         it = get_host(it, channel)
+        it.infoLabels = item.infoLabels
+        it.videolibrary_id = item.videolibrary_id
         it.contentTitle = it.fulltitle = item.title
         for item in getattr(channel, it.action)(it):
             if item.server and item.channel:
                 item.ch_name = ch_name
+                # item.contentChannel = item.channel
+                # item.play_from = 'videolibrary'
+                # item.channel = 'videolibrary'
                 serverlist.append(item)
         return serverlist
 
@@ -492,32 +446,46 @@ def servers(item, ch, items):
 
 
 def play(item):
-    logger.debug()
+    logger.log()
+    # support.dbg()
+    # logger.debug("item:\n" + item.tostring('\n'))
+    # platformtools.play_video(item)
 
-    itemlist = []
-    # logger.debug('item:\n' + item.tostring('\n'))
-
-    if not item.channel == 'local':
-        try:
-            channel = __import__('specials.%s' % item.channel, fromlist=['channels.%s' % item.channel])
-        except:
-            channel = __import__('channels.%s' % item.channel, fromlist=['channels.%s' % item.channel])
-        if hasattr(channel, 'play'):
-            itemlist = getattr(channel, 'play')(item)
+    if not item.channel == "local":
+        if item.channel == 'community':
+            channel = __import__('specials.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+        else:
+            channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+        if hasattr(channel, "play"):
+            itemlist = getattr(channel, "play")(item)
 
         else:
             itemlist = [item.clone()]
     else:
-        itemlist = [item]
+        itemlist = [item.clone(url=item.url, server="local")]
 
-    if not itemlist:
-        return []
     # For direct links in list format
     if isinstance(itemlist[0], list):
         item.video_urls = itemlist
         itemlist = [item]
 
+    # This is necessary in case the channel play deletes the data
+    for v in itemlist:
+        if isinstance(v, Item):
+            v.nfo = item.nfo
+            v.strm_path = item.strm_path
+            v.infoLabels = item.infoLabels
+            if item.contentTitle:
+                v.title = item.contentTitle
+            else:
+                if item.contentType == "episode":
+                    v.title = config.get_localized_string(60036) % item.contentEpisodeNumber
+            v.thumbnail = item.thumbnail
+            v.contentThumbnail = item.thumbnail
+            v.contentChannel = item.contentChannel
+
     return itemlist
+
 
 
 def update_videolibrary(item=None):
@@ -629,144 +597,6 @@ def set_active_tvshow(value):
     return update_when_finished
 
 
-def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
-    from distutils import dir_util
-
-    logger.debug()
-
-    backup_current_path = current_path
-    backup_new_path = new_path
-
-    logger.info('current_path: ' + current_path)
-    logger.info('new_path: ' + new_path)
-    logger.info('current_movies_folder: ' + current_movies_folder)
-    logger.info('new_movies_folder: ' + new_movies_folder)
-    logger.info('current_tvshows_folder: ' + current_tvshows_folder)
-    logger.info('new_tvshows_folder: ' + new_tvshows_folder)
-
-    notify = False
-    progress = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80011))
-    xbmc.sleep(1000)
-    current_path = u'' + xbmc.translatePath(current_path)
-    new_path = u'' + xbmc.translatePath(new_path)
-    current_movies_path = u'' + filetools.join(current_path, current_movies_folder)
-    new_movies_path = u'' + filetools.join(new_path, new_movies_folder)
-    current_tvshows_path = u'' + filetools.join(current_path, current_tvshows_folder)
-    new_tvshows_path = u'' + filetools.join(new_path, new_tvshows_folder)
-
-    logger.info('current_movies_path: ' + current_movies_path)
-    logger.info('new_movies_path: ' + new_movies_path)
-    logger.info('current_tvshows_path: ' + current_tvshows_path)
-    logger.info('new_tvshows_path: ' + new_tvshows_path)
-
-    from platformcode import xbmc_videolibrary
-    movies_path, tvshows_path = xbmc_videolibrary.check_sources(new_movies_path, new_tvshows_path)
-    logger.info('check_sources: ' + str(movies_path) + ', ' + str(tvshows_path))
-    if movies_path or tvshows_path:
-        if not movies_path:
-            filetools.rmdir(new_movies_path)
-        if not tvshows_path:
-            filetools.rmdir(new_tvshows_path)
-        config.set_setting('videolibrarypath', backup_current_path)
-        config.set_setting('folder_movies', current_movies_folder)
-        config.set_setting('folder_tvshows', current_tvshows_folder)
-        xbmc_videolibrary.update_sources(backup_current_path, backup_new_path)
-        progress.update(100)
-        xbmc.sleep(1000)
-        progress.close()
-        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80028))
-        return
-
-    config.verify_directories_created()
-    progress.update(10, config.get_localized_string(20000), config.get_localized_string(80012))
-    if current_movies_path != new_movies_path:
-        if filetools.listdir(current_movies_path):
-            dir_util.copy_tree(current_movies_path, new_movies_path)
-            notify = True
-        filetools.rmdirtree(current_movies_path)
-    progress.update(40)
-    if current_tvshows_path != new_tvshows_path:
-        if filetools.listdir(current_tvshows_path):
-            dir_util.copy_tree(current_tvshows_path, new_tvshows_path)
-            notify = True
-        filetools.rmdirtree(current_tvshows_path)
-    progress.update(70)
-    if current_path != new_path and not filetools.listdir(current_path) and not 'plugin.video.kod\\videolibrary' in current_path:
-        filetools.rmdirtree(current_path)
-
-    xbmc_videolibrary.update_sources(backup_new_path, backup_current_path)
-    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
-        xbmc_videolibrary.update_db(backup_current_path, backup_new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder, progress)
-    else:
-        progress.update(100)
-        xbmc.sleep(1000)
-        progress.close()
-    if notify:
-        platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80014), time=5000, sound=False)
-
-
-def delete_videolibrary(item):
-    logger.debug()
-
-    if not platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80037)):
-        return
-
-    p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80038))
-    p_dialog.update(0)
-
-    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
-        from platformcode import xbmc_videolibrary
-        xbmc_videolibrary.clean()
-    p_dialog.update(10)
-    filetools.rmdirtree(videolibrarytools.MOVIES_PATH)
-    p_dialog.update(50)
-    filetools.rmdirtree(videolibrarytools.TVSHOWS_PATH)
-    p_dialog.update(90)
-
-    config.verify_directories_created()
-    p_dialog.update(100)
-    xbmc.sleep(1000)
-    p_dialog.close()
-    platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80039), time=5000, sound=False)
-
-
-# def add_local_episodes(item):
-#     logger.debug()
-
-#     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
-#     if done < 0:
-#         logger.debug('An issue has occurred while configuring local episodes')
-#     elif local_episodes_path:
-#         nfo_path = filetools.join(item.path, 'tvshow.nfo')
-#         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-#         item_nfo.local_episodes_path = local_episodes_path
-#         if not item_nfo.active:
-#             item_nfo.active = 1
-#         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-#         update_tvshow(item)
-
-#         platformtools.itemlist_refresh()
-
-
-# def remove_local_episodes(item):
-#     logger.debug()
-
-#     nfo_path = filetools.join(item.path, 'tvshow.nfo')
-#     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-
-#     for season_episode in item_nfo.local_episodes_list:
-#         filetools.remove(filetools.join(item.path, season_episode + '.strm'))
-
-#     item_nfo.local_episodes_list = []
-#     item_nfo.local_episodes_path = ''
-#     filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-#     update_tvshow(item)
-
-#     platformtools.itemlist_refresh()
-
-
 def mark_content_as_watched(item):
     class mark_as_watched(object):
         def __init__(self, *args, **kwargs):
@@ -774,8 +604,18 @@ def mark_content_as_watched(item):
             self.s = self.item.contentSeason
             self.e = self.item.contentEpisodeNumber
             self.playcount = self.item.playcount
+            self.movies = []
 
-            if self.item.contentType == 'movie':
+            if self.item.set:
+                self.mark_collection()
+                for m in dict(videolibrarydb['movie']).values():
+                    if m['item'].infoLabels.get('setid') == self.item.set:
+                        self.movies.append(m['item'])
+                        self.item.videolibrary_id = m['item'].videolibrary_id
+                        self.movie = m
+                        self.mark_movie()
+
+            elif self.item.contentType == 'movie':
                 self.movie = videolibrarydb['movie'][self.item.videolibrary_id]
             else:
                 self.tvshow = videolibrarydb['tvshow'][self.item.videolibrary_id]
@@ -788,9 +628,14 @@ def mark_content_as_watched(item):
             # support.dbg()
             if config.is_xbmc() and not self.item.not_update:
                 from platformcode import xbmc_videolibrary
-                xbmc_videolibrary.mark_content_as_watched_on_kodi(self.item, self.playcount)
-            else:
-                platformtools.itemlist_refresh()
+                if self.movies:
+                    for movie in self.movies:
+                        xbmc_videolibrary.mark_content_as_watched_on_kodi(movie, self.playcount)
+                else:
+                    xbmc_videolibrary.mark_content_as_watched_on_kodi(self.item, self.playcount)
+
+            platformtools.itemlist_refresh()
+
 
         def mark_episode(self):
             current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount']
@@ -828,12 +673,24 @@ def mark_content_as_watched(item):
             videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
             self.mark_all('seasons')
 
+        def mark_collection(self):
+            self.collection = videolibrarydb['collection'][self.item.set]
+            self.collection.infoLabels['playcount'] = self.playcount
+            videolibrarydb['collection'][self.item.set] = self.collection
+
         def mark_movie(self):
             if self.playcount:
                 self.movie['item'].infoLabels['playcount'] += self.playcount
             else:
                 self.movie['item'].infoLabels['playcount'] = 0
             videolibrarydb['movie'][self.item.videolibrary_id] = self.movie
+            movie_collection_id = self.movie['item'].infoLabels.get('setid')
+            if not self.item.set and movie_collection_id:
+                collection_list = [m['item'].infoLabels['playcount'] for m in dict(videolibrarydb['movie']).values() if m['item'].infoLabels.get('setid') == movie_collection_id]
+                if self.playcount == 0 or len(collection_list) == len([v for v in collection_list if v > 0]):
+                    self.item.set = movie_collection_id
+                    self.mark_collection()
+
 
         def check_playcount(self, _type):
             tv_playcount = 0
@@ -870,7 +727,7 @@ def mark_content_as_watched(item):
                     self.episodes[n]['item'].infoLabels['playcount'] = self.playcount
                 videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
             videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
-    # support.dbg()
+
     mark_as_watched(item=item)
 
 
@@ -883,6 +740,238 @@ def mark_tvshow_as_updatable(item, silent=False):
     if not silent:
         platformtools.itemlist_refresh()
 
+
+def prefered_lang(item):
+    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    item = tempdb['item']
+    lang_list = tempdb['item'].lang_list
+    prefered = item.lang_list.index(item.prefered_lang)
+    item.prefered_lang = lang_list[platformtools.dialog_select(config.get_localized_string(70246), lang_list, prefered)]
+    tempdb['item'] = item
+    videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
+    videolibrarydb.close()
+
+
+def disable_channels(item):
+    from core import channeltools
+    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
+    videolibrarydb.close()
+    item = tempdb['item']
+    channels_list = list(tempdb['channels'].keys())
+    channels_name = [channeltools.get_channel_parameters(c).get('title', '') for c in channels_list]
+    disabled = [channels_list.index(c) for c in channels_list if c in item.disabled]
+    channels_disabled = platformtools.dialog_multiselect(config.get_localized_string(70837), channels_name, preselect=disabled)
+    if type(channels_disabled) == list:
+        item.disabled = [channels_list[c] for c in channels_disabled]
+        videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
+        videolibrarydb.close()
+
+
+def get_host(item , channel=None):
+    if item.url.startswith('//'): item.url = 'https:' + item.url
+    if not item.url.startswith('/') and not httptools.downloadpage(item.url, only_headers=True).success:
+        item.url = urlparse.urlparse(item.url).path
+    if item.url.startswith('/'):
+        if not channel:
+            try : channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
+            except: channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
+
+        host = channel.host
+        if host.endswith('/'): host = host[:-1]
+        item.url = host + item.url
+
+    return item
+
+
+def set_active(item):
+    show = videolibrarydb['tvshow'][item.videolibrary_id]
+    videolibrarydb.close()
+    show['item'].active = False if item.active else True
+    videolibrarydb['tvshow'][item.videolibrary_id] = show
+    videolibrarydb.close()
+    platformtools.itemlist_refresh()
+
+
+#-------------- CONTEXT --------------
+
+def add_context(itemlist, title=config.get_localized_string(30052)):
+    title += '...'
+    for item in itemlist:
+        item.infoLabels['title'] = item.infoLabels.get('title', item.title)
+        item.context = [{'title':title, 'channel':'videolibrary', 'action':'subcontext'}]
+
+class subcontext(object):
+    def __init__(self, item):
+        self.item = item
+        self.context = []
+        self.commands = []
+        self.titledict = {'movie':{'images':60240, 'notwatched':60016, 'watched':60017, 'delete':70084, 'lang':70246},
+                          'tvshow':{'images':60240, 'notwatched':60020, 'watched':60021, 'delete':70085, 'lang':70246, 'notactive':60022, 'active': 60023, 'update':70269},
+                          'season':{'images':60240, 'notwatched':60028, 'watched':60029},
+                          'episode':{'images':60240, 'notwatched':60032, 'watched':60033},
+                          'list':{'images':60240, 'notwatched':60016, 'watched':60017, 'delete':30048}}
+        self.makecontext()
+        self.run()
+
+    def title(self, _type):
+         return config.get_localized_string(self.titledict[self.item.contentType][_type])
+
+    def makecontext(self):
+        # set watched
+        # if not self.item.set:
+        watched = self.item.infoLabels.get('playcount', 0)
+        if watched > 0:
+            title = self.title('notwatched')
+            value = 0
+        else:
+            title = self.title('watched')
+            value = 1
+        self.context.append(title)
+        self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
+
+        if self.item.contentType in ['movie', 'tvshow', 'list']:
+            # delete
+            self.context.append(self.title('delete'))
+            self.commands.append(self.item.clone(action='delete'))
+
+            # defalut language
+            if len(self.item.lang_list) > 1:
+                self.context.append(self.title('lang'))
+                self.commands.append(self.item.clone(action='prefered_lang'))
+
+        if self.item.contentType in ['movie', 'tvshow']:
+            if len(videolibrarydb[self.item.contentType].get(self.item.videolibrary_id, {}).get('channels', {}).keys()) > 1:
+                self.context.append(config.get_localized_string(70837))
+                self.commands.append(self.item.clone(action='disable_channels'))
+            videolibrarydb.close()
+
+        if self.item.contentType in ['tvshow']:
+            # set active for update
+            if self.item.active: self.context.append(self.title('notactive'))
+            else: self.context.append(self.title('active'))
+            self.commands.append(self.item.clone(action='set_active'))
+
+            # update
+            self.context.append(self.title('update'))
+            self.commands.append(self.item.clone(action='update_videolibrary'))
+
+        self.context.append(self.title('images'))
+        self.commands.append(self.item.clone(action='set_images'))
+
+
+    def run(self):
+        index = xbmcgui.Dialog().contextmenu(self.context)
+        if index >= 0: xbmc.executebuiltin('RunPlugin({}?{})'.format(sys.argv[0], self.commands[index].tourl()))
+
+
+class set_images(object):
+    def __init__(self, item):
+        self.item = item
+        self.item_type = self.item.contentType if self.item.contentType != 'list' else 'collection'
+        self.type_dict = {'posters':'Poster', 'fanarts':'Fanart', 'banners':'Banner', 'landscapes':'Landscape', 'clearlogos':'ClearLogo'}
+        self.video = videolibrarydb[self.item_type][self.item.videolibrary_id]
+        self.select_type()
+        videolibrarydb.close()
+
+    def select_type(self):
+        types = []
+        self.types = []
+        self.list = []
+        for k, v in self.type_dict.items():
+            if self.item.infoLabels.get(k):
+                it = xbmcgui.ListItem(v)
+                it.setArt({'thumb': self.item.infoLabels[k[:-1].replace('poster', 'thumbnail')]})
+                types.append(it)
+                self.types.append(k)
+                self.list.append(self.item.infoLabels[k])
+        selection = platformtools.dialog_select(self.item.contentTitle, types, 0, True)
+        if selection >= 0:
+            self.set_art(self.types[selection])
+
+
+    def set_art(self, n):
+        images = []
+        items = []
+        t = n[:-1].replace('poster', 'thumbnail')
+
+        for i, a in enumerate([self.item.infoLabels[t]] + self.item.infoLabels[n]):
+            title = 'Remote' if i > 0 else 'Current'
+            it = xbmcgui.ListItem(title)
+            it.setArt({'thumb': a})
+            items.append(it)
+            images.append(a)
+
+        selection = platformtools.dialog_select(self.item.contentTitle, items, 0, True)
+        if selection > 0:
+            selected = images[selection]
+
+            index = None
+            if self.item_type == 'collection':
+                self.video.infoLabels[t] = selected
+                if t == 'thumbnail': self.video.thumbnail = selected
+                if t == 'fanart': self.video.fanart = selected
+
+            elif self.item_type == 'episode':
+                index = '{}x{:02d}'.format(self.item.contentSeason, self.item.contentEpisodeNumber)
+                self.video[index]['item'].infoLabels[t] = selected
+                if t == 'thumbnail': self.video[index]['item'].thumbnail = selected
+                if t == 'fanart': self.video[index]['item'].fanart = selected
+
+            elif self.item_type == 'season':
+                index = self.item.contentSeason
+                self.video[index].infoLabels[t] = selected
+                if t == 'thumbnail': self.video[index].thumbnail = selected
+                if t == 'fanart': self.video[index].fanart = selected
+
+            else:
+                self.video['item'].infoLabels[t] = selected
+                if t == 'thumbnail': self.video['item'].thumbnail = selected
+                if t == 'fanart': self.video['item'].fanart = selected
+
+        videolibrarydb[self.item_type][self.item.videolibrary_id] = self.video
+        platformtools.itemlist_refresh()
+
+#-------------- DOWNLOAD --------------
+
+def add_download_items(item, itemlist):
+    if config.get_setting('downloadenabled'):
+        localOnly = True
+        for i in itemlist:
+            if i.contentChannel != 'local':
+                localOnly = False
+                break
+        if not item.fromLibrary and not localOnly:
+            downloadItem = Item(channel='downloads',
+                                from_channel=item.channel,
+                                title=typo(config.get_localized_string(60355), 'color kod bold'),
+                                fulltitle=item.fulltitle,
+                                show=item.fulltitle,
+                                contentType=item.contentType,
+                                contentSerieName=item.contentSerieName,
+                                url=item.url,
+                                action='save_download',
+                                from_action='findvideos',
+                                contentTitle=item.contentTitle,
+                                path=item.path,
+                                thumbnail=thumb('downloads'),
+                                parent=item.tourl())
+            if item.action == 'findvideos':
+                if item.contentType != 'movie':
+                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
+                else:  # film
+                    downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
+                downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
+                itemlist.append(downloadItem)
+            else:
+                if item.contentSeason:  # season
+                    downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
+                    itemlist.append(downloadItem)
+                else:  # tvshow + not seen
+                    itemlist.append(downloadItem)
+                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), unseen=True))
+
+#-------------- DELETE --------------
 
 def delete(item):
     from platformcode import xbmc_videolibrary
@@ -990,265 +1079,248 @@ def delete(item):
     videolibrarydb.close()
 
 
-def add_download_items(item, itemlist):
-    if config.get_setting('downloadenabled'):
-        localOnly = True
-        for i in itemlist:
-            if i.contentChannel != 'local':
-                localOnly = False
-                break
-        if not item.fromLibrary and not localOnly:
-            downloadItem = Item(channel='downloads',
-                                from_channel=item.channel,
-                                title=typo(config.get_localized_string(60355), 'color kod bold'),
-                                fulltitle=item.fulltitle,
-                                show=item.fulltitle,
-                                contentType=item.contentType,
-                                contentSerieName=item.contentSerieName,
-                                url=item.url,
-                                action='save_download',
-                                from_action='findvideos',
-                                contentTitle=item.contentTitle,
-                                path=item.path,
-                                thumbnail=thumb('downloads'),
-                                parent=item.tourl())
-            if item.action == 'findvideos':
-                if item.contentType != 'movie':
-                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
-                else:  # film
-                    downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
-                downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
-                itemlist.append(downloadItem)
+def delete_videolibrary(item):
+    logger.debug()
+
+    if not platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80037)):
+        return
+
+    p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80038))
+    p_dialog.update(0)
+
+    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
+        from platformcode import xbmc_videolibrary
+        xbmc_videolibrary.clean()
+    p_dialog.update(10)
+    filetools.rmdirtree(videolibrarytools.MOVIES_PATH)
+    p_dialog.update(50)
+    filetools.rmdirtree(videolibrarytools.TVSHOWS_PATH)
+    p_dialog.update(90)
+
+    config.verify_directories_created()
+    p_dialog.update(100)
+    xbmc.sleep(1000)
+    p_dialog.close()
+
+    videolibrarydb['collection'].clear()
+    videolibrarydb['movie'].clear()
+    videolibrarydb['tvshow'].clear()
+    videolibrarydb['season'].clear()
+    videolibrarydb['episode'].clear()
+    videolibrarydb.close()
+
+    platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80039), time=5000, sound=False)
+
+#-------------- MOVE --------------
+
+def move_videolibrary(current_path, new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder):
+    from distutils import dir_util
+
+    logger.debug()
+
+    backup_current_path = current_path
+    backup_new_path = new_path
+
+    logger.info('current_path: ' + current_path)
+    logger.info('new_path: ' + new_path)
+    logger.info('current_movies_folder: ' + current_movies_folder)
+    logger.info('new_movies_folder: ' + new_movies_folder)
+    logger.info('current_tvshows_folder: ' + current_tvshows_folder)
+    logger.info('new_tvshows_folder: ' + new_tvshows_folder)
+
+    notify = False
+    progress = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80011))
+    xbmc.sleep(1000)
+    current_path = u'' + xbmc.translatePath(current_path)
+    new_path = u'' + xbmc.translatePath(new_path)
+    current_movies_path = u'' + filetools.join(current_path, current_movies_folder)
+    new_movies_path = u'' + filetools.join(new_path, new_movies_folder)
+    current_tvshows_path = u'' + filetools.join(current_path, current_tvshows_folder)
+    new_tvshows_path = u'' + filetools.join(new_path, new_tvshows_folder)
+
+    logger.info('current_movies_path: ' + current_movies_path)
+    logger.info('new_movies_path: ' + new_movies_path)
+    logger.info('current_tvshows_path: ' + current_tvshows_path)
+    logger.info('new_tvshows_path: ' + new_tvshows_path)
+
+    from platformcode import xbmc_videolibrary
+    movies_path, tvshows_path = xbmc_videolibrary.check_sources(new_movies_path, new_tvshows_path)
+    logger.info('check_sources: ' + str(movies_path) + ', ' + str(tvshows_path))
+    if movies_path or tvshows_path:
+        if not movies_path:
+            filetools.rmdir(new_movies_path)
+        if not tvshows_path:
+            filetools.rmdir(new_tvshows_path)
+        config.set_setting('videolibrarypath', backup_current_path)
+        config.set_setting('folder_movies', current_movies_folder)
+        config.set_setting('folder_tvshows', current_tvshows_folder)
+        xbmc_videolibrary.update_sources(backup_current_path, backup_new_path)
+        progress.update(100)
+        xbmc.sleep(1000)
+        progress.close()
+        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80028))
+        return
+
+    config.verify_directories_created()
+    progress.update(10, config.get_localized_string(20000), config.get_localized_string(80012))
+    if current_movies_path != new_movies_path:
+        if filetools.listdir(current_movies_path):
+            dir_util.copy_tree(current_movies_path, new_movies_path)
+            notify = True
+        filetools.rmdirtree(current_movies_path)
+    progress.update(40)
+    if current_tvshows_path != new_tvshows_path:
+        if filetools.listdir(current_tvshows_path):
+            dir_util.copy_tree(current_tvshows_path, new_tvshows_path)
+            notify = True
+        filetools.rmdirtree(current_tvshows_path)
+    progress.update(70)
+    if current_path != new_path and not filetools.listdir(current_path) and not 'plugin.video.kod\\videolibrary' in current_path:
+        filetools.rmdirtree(current_path)
+
+    xbmc_videolibrary.update_sources(backup_new_path, backup_current_path)
+    if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
+        xbmc_videolibrary.update_db(backup_current_path, backup_new_path, current_movies_folder, new_movies_folder, current_tvshows_folder, new_tvshows_folder, progress)
+    else:
+        progress.update(100)
+        xbmc.sleep(1000)
+        progress.close()
+    if notify:
+        platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80014), time=5000, sound=False)
+
+#------------------------------------------------
+#                OLD FUNCTIONS
+#------------------------------------------------
+
+def channel_config(item):
+    return platformtools.show_channel_settings(channelpath=os.path.join(config.get_runtime_path(), 'channels', item.channel), caption=config.get_localized_string(60598))
+
+def get_results(nfo_path, root, Type, local=False):
+    value = 0
+
+    if filetools.exists(nfo_path):
+        head_nfo, item = videolibrarytools.read_nfo(nfo_path)
+
+        # If you have not read the .nfo well, we will proceed to the next
+        if not item:
+            logger.error('.nfo erroneous in ' + str(nfo_path))
+            return Item(), 0
+
+        if len(item.library_urls) > 1: multichannel = True
+        else: multichannel = False
+
+        # continue loading the elements of the video library
+        if Type == 'movie':
+            folder = 'folder_movies'
+            item.path = filetools.split(nfo_path)[0]
+            item.nfo = nfo_path
+            sep = '/' if '/' in nfo_path else '\\'
+            item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
+            strm_path = item.strm_path.replace('\\', '/').rstrip('/')
+            if not item.thumbnail: item.thumbnail = item.infoLabels['thumbnail']
+            if '/' in item.path: item.strm_path = strm_path
+            # If strm has been removed from kodi library, don't show it
+            if not filetools.exists(filetools.join(item.path, filetools.basename(strm_path))) and not local: return Item(), 0
+
+            # Contextual menu: Mark as seen / not seen
+            visto = item.library_playcounts.get(strm_path.strip('/').split('/')[0], 0)
+            item.infoLabels['playcount'] = visto
+            if visto > 0:
+                seen_text = config.get_localized_string(60016)
+                counter = 0
             else:
-                if item.contentSeason:  # season
-                    downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
-                    itemlist.append(downloadItem)
-                else:  # tvshow + not seen
-                    itemlist.append(downloadItem)
-                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), unseen=True))
+                seen_text = config.get_localized_string(60017)
+                counter = 1
 
+            # Context menu: Delete series / channel
+            channels_num = len(item.library_urls)
+            if 'downloads' in item.library_urls: channels_num -= 1
+            if channels_num > 1: delete_text = config.get_localized_string(60018)
+            else: delete_text = config.get_localized_string(60019)
 
-def prefered_lang(item):
-    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
-    videolibrarydb.close()
-    item = tempdb['item']
-    lang_list = tempdb['item'].lang_list
-    prefered = item.lang_list.index(item.prefered_lang)
-    item.prefered_lang = lang_list[platformtools.dialog_select(config.get_localized_string(70246), lang_list, prefered)]
-    tempdb['item'] = item
-    videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
-    videolibrarydb.close()
+            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary',  'playcount': counter},
+                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel}]
+        else:
+            folder = 'folder_tvshows'
+            try:
+                item.title = item.contentTitle
+                item.path = filetools.split(nfo_path)[0]
+                item.nfo = nfo_path
+                sep = '/' if '/' in nfo_path else '\\'
+                item.extra = filetools.join(config.get_setting('videolibrarypath'), config.get_setting(folder), item.path.split(sep)[-1])
+                # Contextual menu: Mark as seen / not seen
+                visto = item.library_playcounts.get(item.contentTitle, 0)
+                item.infoLabels['playcount'] = visto
+                logger.debug('item\n' + str(item))
+                if visto > 0:
+                    seen_text = config.get_localized_string(60020)
+                    counter = 0
+                else:
+                    seen_text = config.get_localized_string(60021)
+                    counter = 1
 
+            except:
+                logger.error('Not find: ' + str(nfo_path))
+                logger.error(traceback.format_exc())
+                return Item(), 0
 
-def disable_channels(item):
-    from core import channeltools
-    tempdb = videolibrarydb[item.contentType][item.videolibrary_id]
-    videolibrarydb.close()
-    item = tempdb['item']
-    channels_list = list(tempdb['channels'].keys())
-    channels_name = [channeltools.get_channel_parameters(c).get('title', '') for c in channels_list]
-    disabled = [channels_list.index(c) for c in channels_list if c in item.disabled]
-    channels_disabled = platformtools.dialog_multiselect(config.get_localized_string(70837), channels_name, preselect=disabled)
-    if type(channels_disabled) == list:
-        item.disabled = [channels_list[c] for c in channels_disabled]
-        videolibrarydb[item.contentType][item.videolibrary_id] = tempdb
-        videolibrarydb.close()
-
-
-def get_host(item , channel=None):
-    if item.url.startswith('//'): item.url = 'https:' + item.url
-    if not item.url.startswith('/') and not httptools.downloadpage(item.url, only_headers=True).success:
-        item.url = urlparse.urlparse(item.url).path
-    if item.url.startswith('/'):
-        if not channel:
-            try : channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
-            except: channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
-
-        host = channel.host
-        if host.endswith('/'): host = host[:-1]
-        item.url = host + item.url
-
-    return item
-
-
-def set_active(item):
-    show = videolibrarydb['tvshow'][item.videolibrary_id]
-    videolibrarydb.close()
-    show['item'].active = False if item.active else True
-    videolibrarydb['tvshow'][item.videolibrary_id] = show
-    videolibrarydb.close()
-    platformtools.itemlist_refresh()
-
-
-def add_context(itemlist, title=config.get_localized_string(30052)):
-    title += '...'
-    for item in itemlist:
-        item.infoLabels['title'] = item.infoLabels.get('title', item.title)
-        item.context = [{'title':title, 'channel':'videolibrary', 'action':'subcontext'}]
-
-class subcontext(object):
-    def __init__(self, item):
-        self.item = item
-        self.context = []
-        self.commands = []
-        self.titledict = {'movie':{'images':60240, 'notwatched':60016, 'watched':60017, 'delete':70084, 'lang':70246},
-                          'tvshow':{'images':60240, 'notwatched':60020, 'watched':60021, 'delete':70085, 'lang':70246, 'notactive':60022, 'active': 60023, 'update':70269},
-                          'season':{'images':60240, 'notwatched':60028, 'watched':60029},
-                          'episode':{'images':60240, 'notwatched':60032, 'watched':60033},
-                          'list':{'images':60240, 'delete':30048}}
-        self.makecontext()
-        self.run()
-
-    def title(self, _type):
-         return config.get_localized_string(self.titledict[self.item.contentType][_type])
-
-    def makecontext(self):
-        # set watched
-        if not self.item.set:
-            watched = self.item.infoLabels.get('playcount', 0)
-            if watched > 0:
-                title = self.title('notwatched')
+            # Context menu: Automatically search for new episodes or not
+            if item.active and int(item.active) > 0:
+                update_text = config.get_localized_string(60022)
                 value = 0
             else:
-                title = self.title('watched')
+                update_text = config.get_localized_string(60023)
                 value = 1
-            self.context.append(title)
-            self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
+                item.title += ' [B]' + u'\u2022' + '[/B]'
 
-        if self.item.contentType in ['movie', 'tvshow', 'list']:
-            # delete
-            self.context.append(self.title('delete'))
-            self.commands.append(self.item.clone(action='delete'))
+            # Context menu: Delete series / channel
+            channels_num = len(item.library_urls)
+            if 'downloads' in item.library_urls: channels_num -= 1
+            if channels_num > 1: delete_text = config.get_localized_string(60024)
+            else: delete_text = config.get_localized_string(60025)
 
-            # defalut language
-            if len(self.item.lang_list) > 1:
-                self.context.append(self.title('lang'))
-                self.commands.append(self.item.clone(action='prefered_lang'))
+            item.context = [{'title': seen_text, 'action': 'mark_content_as_watched', 'channel': 'videolibrary', 'playcount': counter},
+                            {'title': update_text, 'action': 'mark_tvshow_as_updatable', 'channel': 'videolibrary', 'active': value},
+                            {'title': delete_text, 'action': 'delete', 'channel': 'videolibrary', 'multichannel': multichannel},
+                            {'title': config.get_localized_string(70269), 'action': 'update_tvshow', 'channel': 'videolibrary'}]
+            if item.local_episodes_path == '': item.context.append({'title': config.get_localized_string(80048), 'action': 'add_local_episodes', 'channel': 'videolibrary'})
+            else: item.context.append({'title': config.get_localized_string(80049), 'action': 'remove_local_episodes', 'channel': 'videolibrary'})
+    else: item = Item()
+    return item, value
 
-        if self.item.contentType in ['tvshow']:
-            # set active for update
-            if self.item.active: self.context.append(self.title('notactive'))
-            else: self.context.append(self.title('active'))
-            self.commands.append(self.item.clone(action='set_active'))
+# def add_local_episodes(item):
+#     logger.debug()
 
-            # update
-            self.context.append(self.title('update'))
-            self.commands.append(self.item.clone(action='update_videolibrary'))
+#     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
+#     if done < 0:
+#         logger.debug('An issue has occurred while configuring local episodes')
+#     elif local_episodes_path:
+#         nfo_path = filetools.join(item.path, 'tvshow.nfo')
+#         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
+#         item_nfo.local_episodes_path = local_episodes_path
+#         if not item_nfo.active:
+#             item_nfo.active = 1
+#         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
-        self.context.append(self.title('images'))
-        self.commands.append(self.item.clone(action='set_images'))
+#         update_tvshow(item)
 
-
-    def run(self):
-        index = xbmcgui.Dialog().contextmenu(self.context)
-        if index >= 0: xbmc.executebuiltin('RunPlugin({}?{})'.format(sys.argv[0], self.commands[index].tourl()))
-
-
-class set_images(object):
-    def __init__(self, item):
-        self.item = item
-        self.item_type = self.item.contentType if self.item.contentType != 'list' else 'collection'
-        self.type_dict = {'posters':'Poster', 'fanarts':'Fanart', 'banners':'Banner', 'landscapes':'Landscape', 'clearlogos':'ClearLogo'}
-        self.video = videolibrarydb[self.item_type][self.item.videolibrary_id]
-        self.select_type()
-        videolibrarydb.close()
-
-    def select_type(self):
-        types = []
-        self.types = []
-        self.list = []
-        for k, v in self.type_dict.items():
-            if self.item.infoLabels.get(k):
-                it = xbmcgui.ListItem(v)
-                it.setArt({'thumb': self.item.infoLabels[k[:-1].replace('poster', 'thumbnail')]})
-                types.append(it)
-                self.types.append(k)
-                self.list.append(self.item.infoLabels[k])
-        selection = platformtools.dialog_select(self.item.contentTitle, types, 0, True)
-        if selection >= 0:
-            self.set_art(self.types[selection])
+#         platformtools.itemlist_refresh()
 
 
-    def set_art(self, n):
-        images = []
-        items = []
-        t = n[:-1].replace('poster', 'thumbnail')
+# def remove_local_episodes(item):
+#     logger.debug()
 
-        for i, a in enumerate([self.item.infoLabels[t]] + self.item.infoLabels[n]):
-            title = 'Remote' if i > 0 else 'Current'
-            it = xbmcgui.ListItem(title)
-            it.setArt({'thumb': a})
-            items.append(it)
-            images.append(a)
+#     nfo_path = filetools.join(item.path, 'tvshow.nfo')
+#     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
 
-        selection = platformtools.dialog_select(self.item.contentTitle, items, 0, True)
-        if selection > 0:
-            selected = images[selection]
+#     for season_episode in item_nfo.local_episodes_list:
+#         filetools.remove(filetools.join(item.path, season_episode + '.strm'))
 
-            index = None
-            if self.item_type == 'collection':
-                self.video.infoLabels[t] = selected
-                if t == 'thumbnail': self.video.thumbnail = selected
-                if t == 'fanart': self.video.fanart = selected
+#     item_nfo.local_episodes_list = []
+#     item_nfo.local_episodes_path = ''
+#     filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
-            elif self.item_type == 'episode':
-                index = '{}x{:02d}'.format(self.item.contentSeason, self.item.contentEpisodeNumber)
-                self.video[index]['item'].infoLabels[t] = selected
-                if t == 'thumbnail': self.video[index]['item'].thumbnail = selected
-                if t == 'fanart': self.video[index]['item'].fanart = selected
+#     update_tvshow(item)
 
-            elif self.item_type == 'season':
-                index = self.item.contentSeason
-                self.video[index].infoLabels[t] = selected
-                if t == 'thumbnail': self.video[index].thumbnail = selected
-                if t == 'fanart': self.video[index].fanart = selected
+#     platformtools.itemlist_refresh()
 
-            else:
-                self.video['item'].infoLabels[t] = selected
-                if t == 'thumbnail': self.video['item'].thumbnail = selected
-                if t == 'fanart': self.video['item'].fanart = selected
-
-        videolibrarydb[self.item_type][self.item.videolibrary_id] = self.video
-        platformtools.itemlist_refresh()
-        # if index:
-        #     video = self.video[index]
-
-    # def change_poster(item):
-    #     import xbmcgui
-    #     video = videolibrarydb[item.contentType][item.videolibrary_id]
-    #     videolibrarydb.close()
-    #     options = []
-    #     posters = [video['item'].thumbnail]
-    #     posters += video['item'].infoLabels.get('posters',[])
-    #     for n, poster in enumerate(posters):
-    #         it = xbmcgui.ListItem(str(n))
-    #         it.setArt({'thumb':poster})
-    #         options.append(it)
-    #     selection = platformtools.dialog_select('',options, 0, True)
-
-    #     if selection > 0:
-    #         video['item'].thumbnail = video['item'].infoLabels['thumbnail'] = posters[selection]
-    #         videolibrarydb[item.contentType][item.videolibrary_id] = video
-    #         videolibrarydb.close()
-    #         platformtools.itemlist_refresh()
-
-
-    # def change_fanart(item):
-    #     import xbmcgui
-    #     video = videolibrarydb[item.contentType][item.videolibrary_id]
-    #     videolibrarydb.close()
-    #     options = []
-    #     it = xbmcgui.ListItem('Corrente')
-    #     it.setArt({'thumb':item.fanart})
-    #     options.append(it)
-    #     fanarts = video['item'].infoLabels.get('fanarts',[])
-    #     for n, poster in enumerate(fanarts):
-    #         it = xbmcgui.ListItem(str(n))
-    #         it.setArt({'thumb':poster})
-    #         options.append(it)
-    #     selection = platformtools.dialog_select('',options, 0, True)
-    #     if selection > 0:
-    #         video['item'].fanart = video['item'].infoLabels['fanart'] = fanarts[selection]
-    #         videolibrarydb[item.contentType][item.videolibrary_id] = video
-    #         videolibrarydb.close()
-    #         platformtools.itemlist_refresh()

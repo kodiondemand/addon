@@ -1224,6 +1224,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             videoitem.quality = quality
             videoitem.referer = item.referer if item.referer else item.url
             videoitem.action = "play"
+            videoitem.videolibrary_id = item.videolibrary_id
             # videoitem.nfo = item.nfo
             # videoitem.strm_path = item.strm_path
             return videoitem
