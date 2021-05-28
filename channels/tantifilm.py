@@ -10,13 +10,13 @@ from platformcode import logger
 from platformcode import config
 
 
-def findhost(url):
-    permUrl = httptools.downloadpage(url).data
-    host = scrapertools.find_single_match(permUrl, r'<a href="([^"]+)')
-    return host
+# def findhost(url):
+#     permUrl = httptools.downloadpage(url).data
+#     host = scrapertools.find_single_match(permUrl, r'<a href="([^"]+)')
+#     return host
 
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = [['Referer', host]]
 
 player_iframe = r'<iframe.*?src="([^"]+)"[^>]+></iframe>\s*<div class="player'
