@@ -496,7 +496,7 @@ def update_videolibrary(item=None):
             shows = dict(videolibrarydb['tvshow']).values()
 
             for show in shows:
-                if show['item'].active or item.forced:
+                if show['item'].active or (item and item.forced):
                     for s in show['channels'].values():
                         show_list += s
 

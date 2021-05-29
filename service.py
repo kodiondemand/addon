@@ -83,7 +83,7 @@ class AddonMonitor(xbmc.Monitor):
         if wait > 0:
             xbmc.sleep(wait)
         if not config.get_setting("update", "videolibrary") == 2:
-            run_threaded(check_for_update, (False,))
+            check_for_update()
         self.scheduleVideolibrary()
         super(AddonMonitor, self).__init__()
 
@@ -167,7 +167,7 @@ class AddonMonitor(xbmc.Monitor):
         # 2= daily 3=daily and when kodi starts
         if self.update_setting == 2 or self.update_setting == 3:
             self.update_hour = config.get_setting("everyday_delay", "videolibrary") * 4
-            schedule.every().day.at(str(self.update_hour).zfill(2) + ':00').do(run_threaded, check_for_update, (False,)).tag('videolibrary')
+            schedule.every().day.at(str(self.update_hour).zfill(2) + ':00').do(check_for_update).tag('videolibrary')
             logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
 
     def scheduleScreenOnJobs(self):
