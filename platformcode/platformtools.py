@@ -744,7 +744,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
 
-        if force_direct: item.play_from = 'window'
+        if force_direct: item.window = True
 
         set_player(item, xlistitem, mediaurl, view, strm)
         return True
@@ -1085,7 +1085,6 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
 
 def set_player(item, xlistitem, mediaurl, view, strm):
     logger.debug()
-    # from core.support import dbg;dbg()
     item.options = {'strm':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 

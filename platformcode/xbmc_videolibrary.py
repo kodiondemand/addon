@@ -95,10 +95,12 @@ def mark_auto_as_watched(item):
         while platformtools.is_playing():
             xbmc.sleep(100)
 
-        if not show_server and item.play_from != 'window' and not item.no_return:
+        if not show_server and not item.window and not item.no_return:
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
-            # xbmc.sleep(500)
+        else:
+            videolibrary.serverwindow.close()
+
 
         if marked:
             from specials import videolibrary
@@ -1384,7 +1386,7 @@ def next_ep(item):
             contentType= 'episode',
             infoLabels= {'episode': episode, 'mediatype': 'episode', 'season': season, 'title': next_ep},
             strm_path= filetools.join(base_path, next_file),
-            play_from = item.play_from)
+            window = item.window)
 
         global INFO
         INFO = filetools.join(path, next_file.replace("strm", "nfo"))

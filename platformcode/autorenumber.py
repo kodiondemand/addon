@@ -94,7 +94,7 @@ def start(itemlist, item=None):
         if item.channel in ['autorenumber']:
             item.channel = item.from_channel
             item.action = item.from_action
-            item.renumber = True
+            item.setrenumber = True
         busy(True)
         itemlist = find_episodes(item)
         busy(False)
@@ -114,11 +114,12 @@ class autorenumber():
             if match(self.itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
                 item.exit = True
                 return 
-            elif self.item.channel in self.item.channel_prefs and RENUMBER in self.item.channel_prefs[item.channel] and self.title not in self.renumberdict:
+            elif (self.item.channel in self.item.channel_prefs and RENUMBER in self.item.channel_prefs[item.channel] and self.title not in self.renumberdict) or self.item.renumber:
                 from core.videolibrarytools import check_renumber_options
                 from specials.videolibrary import update_videolibrary
                 check_renumber_options(self.item)
                 update_videolibrary(self.item)
+
             self.series = self.renumberdict.get(self.title,{})
             self.id = self.series.get(ID, 0)
             self.episodes = self.series.get(EPISODES,{})
@@ -128,9 +129,9 @@ class autorenumber():
             self.manual = self.series.get(MANUALMODE, False)
             self.specials = self.series.get(SPECIALEPISODES, {})
             if self.id and self.episodes and self.season >= 0 and self.episode >= 0: 
-                if self.item.renumber: self.config()
+                if self.item.setrenumber: self.config()
                 else:self.renumber()
-            elif self.auto or self.item.renumber:
+            elif self.auto or self.item.setrenumber:
                 self.episodes = {}
                 self.config()
         else:
@@ -161,7 +162,7 @@ class autorenumber():
             else:self.item = platformtools.dialog_info(self.item, 'tmdb')
 
         # Rinumerazione Automatica
-        if (not self.id and self.auto) or self.item.renumber:
+        if (not self.id and self.auto) or self.item.setrenumber:
             self.id = self.item.infoLabels['tmdb_id'] if 'tmdb_id' in self.item.infoLabels else 0
             if self.id:
                 self.series = {ID: self.id}
@@ -183,7 +184,7 @@ class autorenumber():
                     item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
                     item.contentSeason = int(self.episodes[number].split('x')[0])
                     item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
-        if not self.item.renumber and self.itemlist:
+        if not self.item.setrenumber and self.itemlist:
             with futures.ThreadPoolExecutor() as executor:
                 renumber_list = [executor.submit(sub_thread, item,) for item in self.itemlist]
 
@@ -225,8 +226,8 @@ class autorenumber():
                     count += 1
                     self.epdict[count] = '{}x{:02d}'.format(s, e + fe - 1)
 
-        if self.item.renumber or self.manual:
-            self.item.renumber = False
+        if self.item.setrenumber or self.manual:
+            self.item.setrenumber = False
             self.season, self.episode, self.manual, self.specials, Manual, Exit = SelectreNumeration(self, itemlist)
             if Exit:
                 self.item.exit = True

@@ -74,7 +74,7 @@ class InfoLabels(dict):
             # Complete with the rest of the codes
             for scr in ['tmdb_id', 'tvdb_id', 'noscrap_id']:
                 if scr in list(super(InfoLabels, self).keys()) and super(InfoLabels, self).__getitem__(scr):
-                    value = "%s%s" % (scr[:-2], super(InfoLabels, self).__getitem__(scr))
+                    value = "%s" % (super(InfoLabels, self).__getitem__(scr))
                     code.append(value)
 
             # Option to add a code of the random type

@@ -5,14 +5,15 @@
 
 #from builtins import str
 # from specials import videolibrary
+from specials import videolibrary
+from platformcode.dbconverter import addVideo
+from platformcode.xbmc_videolibrary import execute_sql_kodi
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-if PY3:
-    from concurrent import futures
-else:
-    from concurrent_py2 import futures
+if PY3: from concurrent import futures
+else: from concurrent_py2 import futures
 
 import errno, math, traceback, re, os
 
@@ -22,6 +23,7 @@ from lib import generictools
 from platformcode import config, logger, platformtools
 from platformcode.autorenumber import RENUMBER
 from core.videolibrarydb import videolibrarydb
+from platformcode.dbconverter import add_video
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -41,7 +43,8 @@ quality_order = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 216
 
 video_extensions = ['3g2', '3gp', '3gp2', 'asf', 'avi', 'divx', 'flv', 'iso', 'm4v', 'mk2', 'mk3d', 'mka', 'mkv', 'mov', 'mp4', 'mp4a', 'mpeg', 'mpg', 'ogg', 'ogm', 'ogv', 'qt', 'ra', 'ram', 'rm', 'ts', 'vob', 'wav', 'webm', 'wma', 'wmv']
 subtitle_extensions = ['srt', 'idx', 'sub', 'ssa', 'ass']
-immage_extensions = ['jpg', 'png']
+image_extensions = ['.jpg', '.jpeg', '.png']
+library_extension = ['.nfo', '.strm', '.json']
 
 
 def read_nfo(path_nfo, item=None):
@@ -174,6 +177,8 @@ def save_movie(item, silent=False):
     base_name = set_base_name(item, _id)
     path = filetools.join(MOVIES_PATH, base_name)
 
+    local_files = get_local_files(path, item)
+
     # check if path already exist
     if not filetools.exists(path):
         logger.debug("Creating movie directory:" + path)
@@ -181,158 +186,164 @@ def save_movie(item, silent=False):
             logger.debug("Could not create directory")
             videolibrarydb.close()
             return 0, 0, -1, path
-    # try:
-    # set nfo and strm paths
-    nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
-    strm_path = filetools.join(base_name, "{}.strm".format(base_name))
+    try:
+        # set nfo and strm paths
+        nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
+        strm_path = filetools.join(base_name, "{}.strm".format(base_name))
 
-    # check if nfo and strm file exist
-    nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
-    strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+        # check if nfo and strm file exist
+        nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
+        strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
 
-    if not head_nfo:
-        head_nfo = scraper.get_nfo(item)
-
-
-    # get extra info from fanart tv
-    # support.dbg()
-    extra_info = get_fanart_tv(item)
-    if not item.infoLabels.get('posters', []): item.infoLabels['posters'] = []
-    item.infoLabels['posters'] += extra_info['poster']
-    if not item.infoLabels.get('fanarts', []): item.infoLabels['fanarts'] = []
-    item.infoLabels['fanarts'] += extra_info['fanart']
-    if not item.infoLabels.get('clearlogos', []): item.infoLabels['clearlogos'] = []
-    item.infoLabels['clearlogos'] += extra_info['clearlogo']
-    if not item.infoLabels.get('cleararts', []): item.infoLabels['cleararts'] = []
-    item.infoLabels['cleararts'] += extra_info['clearart']
-    if not item.infoLabels.get('landscapes', []): item.infoLabels['landscapes'] = []
-    item.infoLabels['landscapes'] += extra_info['landscape']
-    if not item.infoLabels.get('banners', []): item.infoLabels['banners'] = []
-    item.infoLabels['banners'] += extra_info['banner']
-    if not item.infoLabels.get('discs', []): item.infoLabels['discs'] = []
-    item.infoLabels['discs'] += extra_info['disc']
-
-    if 'setid' in item.infoLabels:
-        c_playcount = 0
-        collection = videolibrarydb['collection'].get(item.infoLabels['setid'], None)
-        if item.infoLabels.get('playcount') > 0:
-            collections = [c for c in dict(videolibrarydb['collection']).values() if c.infoLabels.get('setid') == item.infoLabels['setid']]
-            viewed = [c for c in collections if c.infoLabels.get('playcount') > 0]
-            if len(collections) == len(viewed):
-                c_playcount = 1
-        if not collection:
-            collection = Item(title=item.infoLabels['set'],
-                              plot=item.infoLabels['setoverview'],
-                              infoLabels={'playcount':c_playcount},
-                              thumbnail=item.infoLabels.get('setposters')[0] if item.infoLabels.get('setposters') else item.thumbnail,
-                              fanart=item.infoLabels.get('setfanarts')[0] if item.infoLabels.get('setfanarts') else item.fanart,
-                              videolibrary_id = item.infoLabels['setid'],
-                              set = item.infoLabels['setid'],
-                              channel = "videolibrary",
-                              action='list_movies')
-
-        if not collection.infoLabels.get('posters') and item.infoLabels.get('setposters'):
-            collection.infoLabels['posters'] = item.infoLabels['setposters']
-        if not collection.infoLabels.get('fanarts') and item.infoLabels.get('fanarts'):
-            collection.infoLabels['fanarts'] = item.infoLabels['setfanarts']
-        if not collection.infoLabels.get('clearlogos') and extra_info.get('setclearlogo'):
-            collection.infoLabels['clearlogos'] = extra_info['setclearlogo']
-            collection.infoLabels['clearlogo'] = extra_info['setclearlogo'][0]
-        if not collection.infoLabels.get('cleararts') and extra_info.get('setclearart'):
-            collection.infoLabels['cleararts'] = extra_info['setclearart']
-            collection.infoLabels['clearart'] = extra_info['setclearart'][0]
-        if not collection.infoLabels.get('landscapes') and extra_info.get('setlandscape'):
-            collection.infoLabels['landscapes'] = extra_info['setlandscape']
-            collection.infoLabels['landscape'] = extra_info['setlandscape'][0]
-        if not collection.infoLabels.get('banners') and extra_info.get('setbanner'):
-            collection.infoLabels['banners'] = extra_info['setbanner']
-            collection.infoLabels['banner'] = extra_info['setbanner'][0]
-        if not collection.infoLabels.get('discs') and extra_info.get('setdisc'):
-            collection.infoLabels['discs'] = extra_info['setdisc']
-            collection.infoLabels['disc'] = extra_info['setdisc'][0]
-        videolibrarydb['collection'][item.infoLabels['setid']] = collection
+        if not head_nfo:
+            head_nfo = scraper.get_nfo(item)
 
 
-    # Make or update Videolibrary Movie Item
-    movie_item.channel = "videolibrary"
-    movie_item.action = 'findvideos'
-    movie_item.infoLabels = item.infoLabels
-    movie_item.infoLabels['playcount'] = item.infoLabels.get('playcount',0)
-    if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
-    if not movie_item.title: movie_item.title = item.contentTitle
-    if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
-    if not movie_item.strm_path: movie_item.strm_path = strm_path
-    if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
-    if not movie_item.base_name: movie_item.base_name = base_name
-    if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
-    if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
-    if not movie_item.infoLabels['landscape'] and item.infoLabels['landscapes']: movie_item.infoLabels['landscape'] = item.infoLabels['landscapes'][0]
-    if not movie_item.infoLabels['banner'] and item.infoLabels['banners']: movie_item.infoLabels['banner']= item.infoLabels['banners'][0]
-    if not movie_item.infoLabels['clearart'] and item.infoLabels['cleararts']: movie_item.infoLabels['clearart'] = item.infoLabels['cleararts'][0]
-    if not movie_item.infoLabels['clearlogo'] and item.infoLabels['clearlogos']: movie_item.infoLabels['clearlogo'] = item.infoLabels['clearlogos'][0]
-    if not movie_item.infoLabels['disc'] and item.infoLabels['discs']: movie_item.infoLabels['disc'] = item.infoLabels['discs'][0]
-    if not movie_item.prefered_lang: movie_item.prefered_lang = ''
-    if not movie_item.lang_list: movie_item.lang_list = []
-    # if not movie_item.info: movie_item.info = extra_info(_id)
+        # get extra info from fanart tv
+        # support.dbg()
+        extra_info = get_fanart_tv(item)
+        if not item.infoLabels.get('posters', []): item.infoLabels['posters'] = []
+        item.infoLabels['posters'] += extra_info['poster']
+        if not item.infoLabels.get('fanarts', []): item.infoLabels['fanarts'] = []
+        item.infoLabels['fanarts'] += extra_info['fanart']
+        if not item.infoLabels.get('clearlogos', []): item.infoLabels['clearlogos'] = []
+        item.infoLabels['clearlogos'] += extra_info['clearlogo']
+        if not item.infoLabels.get('cleararts', []): item.infoLabels['cleararts'] = []
+        item.infoLabels['cleararts'] += extra_info['clearart']
+        if not item.infoLabels.get('landscapes', []): item.infoLabels['landscapes'] = []
+        item.infoLabels['landscapes'] += extra_info['landscape']
+        if not item.infoLabels.get('banners', []): item.infoLabels['banners'] = []
+        item.infoLabels['banners'] += extra_info['banner']
+        if not item.infoLabels.get('discs', []): item.infoLabels['discs'] = []
+        item.infoLabels['discs'] += extra_info['disc']
 
-    if not item.contentLanguage: item.contentLanguage = 'ITA'
-    if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
+        if 'setid' in item.infoLabels:
+            c_playcount = 0
+            collection = videolibrarydb['collection'].get(item.infoLabels['setid'], None)
+            if item.infoLabels.get('playcount') > 0:
+                collections = [c for c in dict(videolibrarydb['collection']).values() if c.infoLabels.get('setid') == item.infoLabels['setid']]
+                viewed = [c for c in collections if c.infoLabels.get('playcount') > 0]
+                if len(collections) == len(viewed):
+                    c_playcount = 1
+            if not collection:
+                collection = Item(title=item.infoLabels['set'],
+                                plot=item.infoLabels['setoverview'],
+                                infoLabels={'playcount':c_playcount},
+                                thumbnail=item.infoLabels.get('setposters')[0] if item.infoLabels.get('setposters') else item.thumbnail,
+                                fanart=item.infoLabels.get('setfanarts')[0] if item.infoLabels.get('setfanarts') else item.fanart,
+                                videolibrary_id = item.infoLabels['setid'],
+                                set = item.infoLabels['setid'],
+                                channel = "videolibrary",
+                                action='list_movies')
 
-    if len(movie_item.lang_list) > 1:
-        movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
-    else:
-        movie_item.prefered_lang = movie_item.lang_list[0]
+            if not collection.infoLabels.get('posters') and item.infoLabels.get('setposters'):
+                collection.infoLabels['posters'] = item.infoLabels['setposters']
+            if not collection.infoLabels.get('fanarts') and item.infoLabels.get('fanarts'):
+                collection.infoLabels['fanarts'] = item.infoLabels['setfanarts']
+            if not collection.infoLabels.get('clearlogos') and extra_info.get('setclearlogo'):
+                collection.infoLabels['clearlogos'] = extra_info['setclearlogo']
+                collection.infoLabels['clearlogo'] = extra_info['setclearlogo'][0]
+            if not collection.infoLabels.get('cleararts') and extra_info.get('setclearart'):
+                collection.infoLabels['cleararts'] = extra_info['setclearart']
+                collection.infoLabels['clearart'] = extra_info['setclearart'][0]
+            if not collection.infoLabels.get('landscapes') and extra_info.get('setlandscape'):
+                collection.infoLabels['landscapes'] = extra_info['setlandscape']
+                collection.infoLabels['landscape'] = extra_info['setlandscape'][0]
+            if not collection.infoLabels.get('banners') and extra_info.get('setbanner'):
+                collection.infoLabels['banners'] = extra_info['setbanner']
+                collection.infoLabels['banner'] = extra_info['setbanner'][0]
+            if not collection.infoLabels.get('discs') and extra_info.get('setdisc'):
+                collection.infoLabels['discs'] = extra_info['setdisc']
+                collection.infoLabels['disc'] = extra_info['setdisc'][0]
+            videolibrarydb['collection'][item.infoLabels['setid']] = collection
 
-    # create nfo file if it does not exist
-    # support.dbg()
-    if not nfo_exists:
-        # data = dicttoxml(movie_item)
-        filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
 
-    # create strm file if it does not exist
-    if not strm_exists:
-        logger.debug("Creating .strm: " + strm_path)
-        item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=movie_item.videolibrary_id)
-        strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+        # Make or update Videolibrary Movie Item
+        movie_item.channel = "videolibrary"
+        movie_item.action = 'findvideos'
+        movie_item.infoLabels = item.infoLabels
+        movie_item.infoLabels['playcount'] = item.infoLabels.get('playcount',0)
+        if not movie_item.head_nfo: movie_item.head_nfo = head_nfo
+        if not movie_item.title: movie_item.title = item.contentTitle
+        if not movie_item.videolibrary_id: movie_item.videolibrary_id = _id
+        if not movie_item.strm_path: movie_item.strm_path = strm_path
+        if not movie_item.nfo_path: movie_item.nfo_path = nfo_path
+        if not movie_item.base_name: movie_item.base_name = base_name
+        if not movie_item.thumbnail: movie_item.thumbnail = item.infoLabels['thumbnail']
+        if not movie_item.fanart: movie_item.fanart = item.infoLabels['fanart']
+        if not movie_item.infoLabels['landscape'] and item.infoLabels['landscapes']: movie_item.infoLabels['landscape'] = item.infoLabels['landscapes'][0]
+        if not movie_item.infoLabels['banner'] and item.infoLabels['banners']: movie_item.infoLabels['banner']= item.infoLabels['banners'][0]
+        if not movie_item.infoLabels['clearart'] and item.infoLabels['cleararts']: movie_item.infoLabels['clearart'] = item.infoLabels['cleararts'][0]
+        if not movie_item.infoLabels['clearlogo'] and item.infoLabels['clearlogos']: movie_item.infoLabels['clearlogo'] = item.infoLabels['clearlogos'][0]
+        if not movie_item.infoLabels['disc'] and item.infoLabels['discs']: movie_item.infoLabels['disc'] = item.infoLabels['discs'][0]
+        if not movie_item.prefered_lang: movie_item.prefered_lang = ''
+        if not movie_item.lang_list: movie_item.lang_list = []
+        # if not movie_item.info: movie_item.info = extra_info(_id)
 
-    # checks if the content already exists
-    if videolibrarydb['movie'].get(_id, {}):
-        logger.debug("The file exists. Is overwritten")
-        overwritten += 1
-    else:
-        logger.debug("Creating .nfo: " + nfo_path)
-        inserted += 1
+        if not item.contentLanguage: item.contentLanguage = 'ITA'
+        if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
 
-    remove_host(item)
-    # write on db
-    if item.channel in channels and item.channel != 'download':
-        channels_url = [u.url for u in channels[item.channel]]
-        if item.url not in channels_url:
-            channels[item.channel].append(item)
+        if len(movie_item.lang_list) > 1:
+            movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
         else:
-            del channels[item.channel][channels_url.index(item.url)]
-            channels[item.channel].append(item)
-    else:
-        channels[item.channel] = [item]
+            movie_item.prefered_lang = movie_item.lang_list[0]
 
-    moviedb['item'] = movie_item
-    moviedb['channels'] = channels
+        # create nfo file if it does not exist
+        # support.dbg()
+        if not nfo_exists:
+            # data = dicttoxml(movie_item)
+            filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
 
-    videolibrarydb['movie'][_id] = moviedb
-    # except:
-    #     failed += 1
+        # create strm file if it does not exist
+        if not strm_exists and not local_files:
+            logger.debug("Creating .strm: " + strm_path)
+            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=movie_item.videolibrary_id)
+            strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+
+        # checks if the content already exists
+        if videolibrarydb['movie'].get(_id, {}):
+            logger.debug("The file exists. Is overwritten")
+            overwritten += 1
+        else:
+            logger.debug("Creating .nfo: " + nfo_path)
+            inserted += 1
+
+        remove_host(item)
+        # write on db
+        if item.channel in channels and item.channel != 'download':
+            channels_url = [u.url for u in channels[item.channel]]
+            if item.url not in channels_url:
+                channels[item.channel].append(item)
+            else:
+                del channels[item.channel][channels_url.index(item.url)]
+                channels[item.channel].append(item)
+        else:
+            channels[item.channel] = [item]
+
+        if local_files.get('db') or local_files.get('internal'):
+            if local_files.get('db'):
+                channels['local'] = local_files['db'][0]
+            elif local_files.get('internal'):
+                channels['local']  = local_files['internal'][0]
+
+        moviedb['item'] = movie_item
+        moviedb['channels'] = channels
+
+        videolibrarydb['movie'][_id] = moviedb
+    except:
+        failed += 1
 
     videolibrarydb.close()
 
 
     # Only if movie_item and .strm exist we continue
-    if movie_item and strm_exists:
+    if failed == 0:
         if not silent:
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
         # Update Kodi Library
-        from platformcode.dbconverter import add_video
-        add_video(movie_item)
+        # from platformcode.dbconverter import add_video
+        # add_video(movie_item)
         # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
@@ -359,10 +370,11 @@ def update_renumber_options(item):
 
 def add_renumber_options(item):
     from core import jsontools
-    # from core.support import dbg;dbg()
     ret = None
     filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
     json_file = jsontools.load(filetools.read(filename))
+    if item.renumber and not json_file.get(RENUMBER,{}).get(item.fulltitle):
+        check_renumber_options(item)
     if RENUMBER in json_file:
         json = json_file[RENUMBER]
         if item.fulltitle in json:
@@ -371,13 +383,11 @@ def add_renumber_options(item):
 
 def check_renumber_options(item):
     from platformcode.autorenumber import load, write
-    for key in item.channel_prefs:
-        if RENUMBER in item.channel_prefs[key]:
-            item.channel = key
-            json = load(item)
-            if not json or item.fulltitle not in json:
-                json[item.fulltitle] = item.channel_prefs[key][RENUMBER]
-                write(item, json)
+    if item.renumber:
+        json = load(item)
+        if not json or item.fulltitle not in json:
+            json[item.fulltitle] = item.renumber
+            write(item, json)
 
     # head_nfo, tvshow_item = read_nfo(filetools.join(item.context[0]['nfo']))
     # if tvshow_item['channel_prefs'][item.fullti]
@@ -404,7 +414,7 @@ def save_tvshow(item, episodelist, silent=False):
     overwritten = 0
     failed = 0
     path = ""
-    # support.dbg()
+
     # If at this point we do not have a title or code, we leave
     if not (item.contentSerieName or item.infoLabels['code']) or not item.channel:
         logger.debug("NOT FOUND contentSerieName or code")
@@ -442,6 +452,8 @@ def save_tvshow(item, episodelist, silent=False):
     # set base name
     base_name = set_base_name(item, _id)
     path = filetools.join(TVSHOWS_PATH, base_name)
+
+    local_files = get_local_files(path, item)
 
     # check if path already exist
     if not filetools.exists(path):
@@ -496,7 +508,9 @@ def save_tvshow(item, episodelist, silent=False):
     if not tvshow_item.lang_list: tvshow_item.lang_list = []
 
     remove_host(item)
+
     item.renumber = add_renumber_options(item)
+
     # write on db
     if item.channel in channels and item.channel != 'download':
         channels_url = [u.url for u in channels[item.channel]]
@@ -520,7 +534,7 @@ def save_tvshow(item, episodelist, silent=False):
 
     # Save the episodes
     logger.debug()
-    inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, silent=silent)
+    inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, local_files, silent=silent)
     videolibrarydb.close()
     # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
     #     # from platformcode.dbconverter import add_video
@@ -531,27 +545,9 @@ def save_tvshow(item, episodelist, silent=False):
     return inserted, overwritten, failed, path
 
 
-def save_episodes(item, episodelist, extra_info, host, silent=False):
-    """
-    saves in the indicated path all the chapters included in the episodelist
-    @type Item: str
-    @param path: path to save the episodes
-    @type episodelist: list
-    @param episodelist: list of items that represent the episodes to be saved.
-    @type serie: item
-    @param serie: series from which to save the episodes
-    @type silent: bool
-    @param silent: sets whether notification is displayed
-    @param overwrite: allows to overwrite existing files
-    @type overwrite: bool
-    @rtype inserted: int
-    @return: the number of episodes inserted
-    @rtype overwritten: int
-    @return: the number of overwritten episodes
-    @rtype failed: int
-    @return: the number of failed episodes
-    """
-    # support.dbg()
+def save_episodes(item, episodelist, extra_info, host, local_files, silent=False):
+    logger.debug()
+
     def save_episode(item, episodes, e):
         inserted = 0
         overwritten = 0
@@ -560,7 +556,6 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
         season_episode = None
 
         season_episode = scrapertools.get_season_and_episode(e.title)
-
 
         if season_episode:
             strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
@@ -619,20 +614,40 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                     epchannels[e.channel] = [e]
                     overwritten += 1
 
+                # add local files
+                if list(local_files.values()):
+                    epchannels['local'] = {}
+                    if season_episode in list(local_files.get('db',{}).keys()):
+                        epchannels['local']['db'] = local_files['db'][season_episode]
+                    if season_episode in list(local_files.get('internal',{}).keys()):
+                        epchannels['local']['internal'] = local_files['db'][season_episode]
+                    logger.debug('LOCALS', epchannels)
+                    # if season_episode in list(local_files.get('external',{}).keys()):
+                    #     epchannels['external'] = local_files['db'][season_episode]
+
+                # Delete the local key if local files no longer exist
+                elif 'local' in epchannels:
+                    del epchannels['local']
+
                 episode['channels'] = epchannels
 
-                if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
-                    logger.debug("Creating .strm: " + strm_path)
-                    item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
-                    filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
-                # if not filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path)):
-                #     filetools.write(filetools.join(TVSHOWS_PATH, nfo_path), head_nfo)
             except:
                 logger.error(traceback.format_exc())
                 failed += 1
+
+            # add strm_file if episode is not present in db or inside videolibrary path
+            if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
+                logger.debug("Creating .strm: " + strm_path)
+                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+
+                # update db if episode added
+                if failed == 0 and config.get_setting('kod_scraper'):
+                    add_video(episode_item)
+
         return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
 
-    def save_season(item, seasons, s, w):
+    def save_season(item, s, w):
         tmdb_info = tmdb.Tmdb(id_Tmdb = item.infoLabels['tmdb_id'], search_type='tv')
         seasoninfo = tmdb.get_season_dic(tmdb_info.get_season(s))
         infoLabels = {}
@@ -647,15 +662,15 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
         infoLabels['playcount'] = w
 
         season_item = Item(action="get_episodes",
-                            channel='videolibrary',
-                            title=seasoninfo.get('season_title'),
-                            thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
-                            fanart = item.fanart,
-                            plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
-                            contentType = 'season',
-                            infoLabels = infoLabels,
-                            contentSeason = s,
-                            videolibrary_id = item.videolibrary_id)
+                           channel='videolibrary',
+                           title=seasoninfo.get('season_title'),
+                           thumbnail = seasoninfo.get('season_poster') if seasoninfo.get('season_poster') else item.thumbnail,
+                           fanart = item.fanart,
+                           plot = seasoninfo.get('season_plot') if seasoninfo.get('season_plot') else item.infoLabels.get('plot'),
+                           contentType = 'season',
+                           infoLabels = infoLabels,
+                           contentSeason = s,
+                           videolibrary_id = item.videolibrary_id)
 
         if infoLabels['clearlogos']: season_item.clearlogo = infoLabels['clearlogos'][0]
         if infoLabels['cleararts']: season_item.clearart = infoLabels['cleararts'][0]
@@ -664,9 +679,14 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
 
         return s, season_item
 
-    logger.debug()
+    def watched_season(s):
+        w = 0
+        s_ep = [e['item'] for e in episodes.values() if e['item'].contentSeason == s]
+        w_ep = [e for e in s_ep if e.infoLabels.get('playcount') > 0]
+        if len(s_ep) == len(w_ep): w = 1
+        return s, w
 
-    # from core import tmdb
+
     # No episode list, nothing to save
     if not len(episodelist):
         logger.debug("There is no episode list, we go out without creating strm")
@@ -688,22 +708,8 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
     try: t = float(100) / len(episodelist)
     except: t = 0
 
-    # support.dbg()
-    # for i, e in enumerate(episodelist):
-    #     item, episode, season_episode, lang, I, O, F = save_episode(item, episodes, e)
-    #     inserted += I
-    #     overwritten += O
-    #     failed += F
-    #     if episode:
-    #         episodes[season_episode] = episode
-    #         e = episode['item']
-    #         if not e.contentSeason in current_seasons: current_seasons.append(e.contentSeason)
-    #         if not lang: lang = item.contentLanguage if item.contentLanguage else 'ITA'
-    #         if not lang in item.lang_list: item.lang_list.append(lang)
-    #         if not silent:
-    #             p_dialog.update(int(math.ceil(i * t)), message=e.title)
-
     i = 0
+    # save episodes Thread
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(save_episode, item, episodes, e) for e in episodelist]
         for res in futures.as_completed(itlist):
@@ -722,40 +728,33 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
                         i += 1
                         p_dialog.update(int(math.ceil(i * t)), message=e.title)
 
-    def watched_season(s):
-        w = 0
-        s_ep = [e['item'] for e in episodes.values() if e['item'].contentSeason == s]
-        w_ep = [e for e in s_ep if e.infoLabels.get('playcount') > 0]
-        if len(s_ep) == len(w_ep): w = 1
-        return s, w
-
+    # set seasons as watched
     add_seasons = {}
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(watched_season, s) for s in current_seasons]
         for res in futures.as_completed(itlist):
             add_seasons[res.result()[0]] = res.result()[1]
 
-    for s in current_seasons:
-        watched = 0
-        s_ep = [e['item'] for e in episodes.values() if e['item'].contentSeason == s]
-        w_ep = [e for e in s_ep if e.infoLabels.get('playcount') > 0]
-        if len(s_ep) == len(w_ep): watched = 1
-        add_seasons[s] = watched
-
-
+    # save seasons
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(save_season, item, seasons, s, w) for s, w in add_seasons.items()]
+        itlist = [executor.submit(save_season, item, s, w) for s, w in add_seasons.items()]
         for res in futures.as_completed(itlist):
             if res.result():
                 s, season_item = res.result()
                 seasons[s] = season_item
 
+                # Add to Kodi DB if Kod is set to add information
+                if config.get_setting('kod_scraper'):
+                    add_video(season_item)
+
 
     if not silent:
+        # update tvshow info if forced
         if len(item.lang_list) > 1:
             item.prefered_lang = item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), item.lang_list)]
         else:
             item.prefered_lang = item.lang_list[0]
+
         tvshowdb = videolibrarydb['tvshow'][item.videolibrary_id]
         tvshowdb['item'] = item
         videolibrarydb['tvshow'][item.videolibrary_id] = tvshowdb
@@ -772,89 +771,7 @@ def save_episodes(item, episodelist, extra_info, host, silent=False):
 
 
 
-def config_local_episodes_path(path, item, silent=False):
-    logger.debug(item)
-    from platformcode.xbmc_videolibrary import search_local_path
-    local_episodes_path=search_local_path(item)
-    if not local_episodes_path:
-        title = item.contentSerieName if item.contentSerieName else item.fulltitle
-        if not silent:
-            silent = platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % title)
-        if silent:
-            if config.is_xbmc() and not config.get_setting("videolibrary_kodi"):
-                platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80043))
-            local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
-            if local_episodes_path == '':
-                logger.debug("User has canceled the dialog")
-                return -2, local_episodes_path
-            elif path in local_episodes_path:
-                platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(80045))
-                logger.debug("Selected folder is the same of the TV show one")
-                return -2, local_episodes_path
 
-    if local_episodes_path:
-        # import artwork
-        artwork_extensions = ['.jpg', '.jpeg', '.png']
-        files = filetools.listdir(local_episodes_path)
-        for file in files:
-            if os.path.splitext(file)[1] in artwork_extensions:
-                filetools.copy(filetools.join(local_episodes_path, file), filetools.join(path, file))
-
-    return 0, local_episodes_path
-
-
-def process_local_episodes(local_episodes_path, path):
-    logger.debug()
-
-    sub_extensions = ['.srt', '.sub', '.sbv', '.ass', '.idx', '.ssa', '.smi']
-    artwork_extensions = ['.jpg', '.jpeg', '.png']
-    extensions = sub_extensions + artwork_extensions
-
-    local_episodes_list = []
-    files_list = []
-    for root, folders, files in filetools.walk(local_episodes_path):
-        for file in files:
-            if os.path.splitext(file)[1] in extensions:
-                continue
-            season_episode = scrapertools.get_season_and_episode(file)
-            if season_episode == "":
-                continue
-            local_episodes_list.append(season_episode)
-            files_list.append(file)
-
-    nfo_path = filetools.join(path, "tvshow.nfo")
-    head_nfo, item_nfo = read_nfo(nfo_path)
-
-    # if a local episode has been added, overwrites the strm
-    for season_episode, file in zip(local_episodes_list, files_list):
-        if not season_episode in item_nfo.local_episodes_list:
-            filetools.write(filetools.join(path, season_episode + '.strm'), filetools.join(root, file))
-
-    # if a local episode has been removed, deletes the strm
-    for season_episode in set(item_nfo.local_episodes_list).difference(local_episodes_list):
-        filetools.remove(filetools.join(path, season_episode + '.strm'))
-
-    # updates the local episodes path and list in the nfo
-    if not local_episodes_list:
-        item_nfo.local_episodes_path = ''
-    item_nfo.local_episodes_list = sorted(set(local_episodes_list))
-
-    filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-
-def get_local_content(path):
-    logger.debug()
-
-    local_episodelist = []
-    for root, folders, files in filetools.walk(path):
-        for file in files:
-            season_episode = scrapertools.get_season_and_episode(file)
-            if season_episode == "" or filetools.exists(filetools.join(path, "%s.strm" % season_episode)):
-                continue
-            local_episodelist.append(season_episode)
-    local_episodelist = sorted(set(local_episodelist))
-
-    return local_episodelist
 
 
 def add_movie(item):
@@ -881,21 +798,24 @@ def add_movie(item):
     # If you do it in "Enter another name", TMDB will automatically search for the new title
     # If you do it in "Complete Information", it partially changes to the new title, but does not search TMDB. We have to do it
     # If the second screen is canceled, the variable "scraper_return" will be False. The user does not want to continue
+
     item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
-    #if item.tmdb_stat:
-    #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library
+
     if item:
         new_item = item.clone(action="findvideos")
         inserted, overwritten, failed, path = save_movie(new_item)
 
         if failed == 0:
-            platformtools.dialog_notification(config.get_localized_string(30131),
-                                    config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+            platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
         else:
             filetools.rmdirtree(path)
-            platformtools.dialog_ok(config.get_localized_string(30131),
-                                    config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
-
+            platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+            movies = videolibrarydb['movie']
+            _id = get_id(item)
+            if _id in list(movies.keys()):
+                del movies[_id]
+                videolibrarydb['movie'] = movies
+            videolibrarydb.close()
 
 def add_tvshow(item, channel=None):
     """
@@ -1026,18 +946,6 @@ def get_id(item):
     return item.infoLabels.get('tmdb_id')
 
 
-def get_local_files(item):
-    included_files = {}
-    # search media files in Videolibrary Folder
-    for root, folder, files in filetools.walk(filetools.join(TVSHOWS_PATH,item.base_name)):
-        # for folder in folders:
-        for f in files:
-            if f.split('.')[-1] in video_extensions:
-                s, e = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)')
-                included_files['{}x{}'.format(s,e.zfill(2))] = f
-    if included_files:
-        return included_files, 1
-
 def get_fanart_tv(item, set='', ret={}):
     def set_dict(l):
         d = {}
@@ -1078,3 +986,40 @@ def get_fanart_tv(item, set='', ret={}):
                 get_fanart_tv(it, 'set', ret)
 
     return ret
+
+
+def get_local_files(path, item):
+    # check if movie or season already exist in path or db
+    excluded_extensions = subtitle_extensions + image_extensions + library_extension
+    local_files = {}
+    if item.contentType == 'movies':
+        # search on path:
+        internal = [f for f in filetools.listdir(path) if not (f.endswith('nfo') or f.endswith('strm') or f.endswith('json'))]
+        if internal:
+            local_files['internal'] = internal
+
+        # search on db:
+        sql = 'SELECT c22, uniqueid_value FROM movie_view WHERE uniqueid_type != "kod"'
+        n, records = execute_sql_kodi(sql)
+        if records:
+            local_files['db']= [r[0] for r in records if r[1] in item.infoLabels['code']]
+
+    else:
+        # search on path:
+        internal = {scrapertools.get_season_and_episode[f]:f for f in filetools.listdir(path) if os.path.splitext(f)[1] not in excluded_extensions}
+        if internal:
+            local_files['internal'] = internal
+
+        # search on db:
+        sql = 'SELECT idShow, uniqueid_value FROM tvshow_view WHERE uniqueid_type != "kod"'
+        n, records = execute_sql_kodi(sql)
+        if records:
+            for r in records:
+                if r[1] in item.infoLabels['code']:
+                    sql = 'SELECT strPath, strFilename From episode_view WHERE idShow = {}'.format(r[0])
+                    n, ep_records = execute_sql_kodi(sql)
+                    if ep_records:
+                        local_files['db'] = {scrapertools.get_season_and_episode(e[1]):e[0]+e[1] for e in ep_records if not e[1].endswith('strm')}
+                        break
+
+    return local_files

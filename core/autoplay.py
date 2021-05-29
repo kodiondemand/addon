@@ -49,16 +49,22 @@ def start(itemlist, item):
         if not blacklisted_servers: blacklisted_servers = []
 
         from core import servertools
+        favorite_servers = config.get_setting('favorites_servers_list', server='servers')
+
         servers_list = list(servertools.get_servers_list().items())
         for server, server_parameters in servers_list:
-            if config.get_setting('favorites_servers_list', server=server):
+            if config.get_setting('favorites_servers_list', server=server) and server.lower() not in favorite_servers:
                 favorite_servers.append(server.lower())
 
         if not favorite_servers:
             config.set_setting('favorites_servers_list', [], server='servers')
             favorite_servers = []
         else:
-            favorite_servers = list(set(favorite_servers) - set(blacklisted_servers))
+            s_list = []
+            for s in favorite_servers:
+                if s not in blacklisted_servers:
+                    s_list.append(s)
+            favorite_servers = s_list
 
         # Save the current value of "Action and Player Mode" in preferences
         user_config_setting_action = config.get_setting("default_action")
@@ -75,6 +81,7 @@ def start(itemlist, item):
         #       2: Servers only
         #       3: Only qualities
         #       4: Do not order
+
         if config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action'):
             priority = 0  # 0: Servers and qualities or 1: Qualities and servers
         elif config.get_setting('favorites_servers') and favorite_servers:
@@ -87,7 +94,6 @@ def start(itemlist, item):
         if config.get_setting('default_action') == 1:
             quality_list.reverse()
         favorite_quality = quality_list
-
         for item in itemlist:
             autoplay_elem = dict()
             b_dict = dict()
@@ -109,7 +115,7 @@ def start(itemlist, item):
                 # if the server and the quality are not in the favorites lists or the url is repeated, we discard the item
                 if item.server.lower() not in favorite_servers or item.quality.lower() not in favorite_quality or item.url in url_list_valid:
                     item.type_b = True
-                    item.play_from = base_item.play_from
+                    item.window = base_item.window
                     b_dict['videoitem']= item
                     autoplay_b.append(b_dict)
                     continue
@@ -121,7 +127,7 @@ def start(itemlist, item):
                 # if the server is not in the favorites list or the url is repeated, we discard the item
                 if item.server.lower() not in favorite_servers or item.url in url_list_valid:
                     item.type_b = True
-                    item.play_from = base_item.play_from
+                    item.window = base_item.window
                     b_dict['videoitem'] = item
                     autoplay_b.append(b_dict)
                     continue
@@ -132,7 +138,7 @@ def start(itemlist, item):
                 # if the quality is not in the favorites list or the url is repeated, we discard the item
                 if item.quality.lower() not in favorite_quality or item.url in url_list_valid:
                     item.type_b = True
-                    item.play_from = base_item.play_from
+                    item.window = base_item.window
                     b_dict['videoitem'] = item
                     autoplay_b.append(b_dict)
                     continue
@@ -141,14 +147,14 @@ def start(itemlist, item):
             else:  # Do not order
 
                 # if the url is repeated, we discard the item
-                item.play_from = base_item.play_from
+                item.window = base_item.window
                 if item.url in url_list_valid:
                     continue
 
             # If the item reaches here we add it to the list of valid urls and to autoplay_list
             url_list_valid.append(item.url)
             item.plan_b=True
-            item.play_from = base_item.play_from
+            item.window = base_item.window
             autoplay_elem['videoitem'] = item
             autoplay_list.append(autoplay_elem)
 
@@ -241,6 +247,7 @@ def start(itemlist, item):
                             play_item = base_item.clone(**videoitem.__dict__)
                             platformtools.play_video(play_item, autoplay=True)
                         else:
+                            videoitem.window = base_item.window
                             # If it doesn't come from the video library, just play
                             platformtools.play_video(videoitem, autoplay=True)
                     except:
@@ -266,6 +273,7 @@ def start(itemlist, item):
                     if autoplay_elem == autoplay_list[-1]:
                         platformtools.dialog_notification('AutoPlay', config.get_localized_string(60072) % name)
 
+            itemlist = [s['videoitem'] for s in autoplay_list]
         else:
             platformtools.dialog_notification(config.get_localized_string(60074), config.get_localized_string(60075))
 

@@ -8,10 +8,10 @@ PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 from core import filetools, scrapertools, videolibrarytools
-from core.support import typo, thumb
+from core.support import typo, thumb, videolibrary
 from core.item import Item
 from platformcode import config, logger, platformtools
-from core.videolibrarytools import videolibrarydb
+from core.videolibrarytools import MOVIES_PATH, videolibrarydb
 
 if PY3:
     from concurrent import futures
@@ -21,12 +21,13 @@ else:
     import urlparse
 
 
+
 def mainlist(item):
     logger.debug()
     itemlist = [item.clone(title=config.get_localized_string(60509), contentType='movie', action='list_movies', thumbnail=thumb('videolibrary_movie')),
                 item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30122) + '...', 'submenu'), contentType='movie',action='search_list',  thumbnail=thumb('search_movie')),
                 item.clone(title=config.get_localized_string(60600), contentType='tvshow', action='list_tvshows', thumbnail=thumb('videolibrary_tvshow'),
-                           context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269), 'forced':True}]),
+                           context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269)}]),
                 item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30123) + '...', 'submenu'),contentType='tvshow', action='search_list', thumbnail=thumb('search_tvshow')),
                 item.clone(channel='shortcuts', title=typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
                            category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
@@ -210,7 +211,7 @@ def list_tvshows(item):
         add_context(itemlist)
 
         itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=item.thumbnail,
-                          fanart=item.thumbnail, landscape=item.thumbnail, forced=True,
+                          fanart=item.thumbnail, landscape=item.thumbnail,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     videolibrarydb.close()
     return itemlist
@@ -276,6 +277,8 @@ def get_episodes(item):
             if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
                 it.title = '{}x{}'.format(it.contentSeason, it.title)
             it = get_host(it)
+            if item.window_type == 1 or (config.get_setting("window_type", "videolibrary") == 1):
+                it.folder = False
             it.from_library = item.from_library
             return it
         return
@@ -296,8 +299,15 @@ def findvideos(item):
     from core import autoplay
     from platformcode import platformtools
     logger.debug()
+
+    popup = True if item.window_type == 1 or (config.get_setting("window_type", "videolibrary") == 1) else False
+
+    if popup:
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
+        p_dialog.update(0, '')
     videolibrarytools.check_renumber_options(item)
     itemlist = []
+
 
     if not item.strm_path:
         logger.debug('Unable to search for videos due to lack of parameters')
@@ -312,12 +322,24 @@ def findvideos(item):
         videolibrary_items = videolibrarydb['episode'][item.videolibrary_id][ep]['channels']
         prefered_lang = videolibrarydb['tvshow'].get(item.videolibrary_id, {}).get('item', Item()).prefered_lang
         disabled = videolibrarydb['tvshow'].get(item.videolibrary_id, {}).get('item', Item()).disabled
+    if not item.infoLabels.get('tmdb_id'):
+        if item.contentType == 'movie':
+            item.infoLabels = videolibrarydb['movie'][item.videolibrary_id]['item'].infoLabels
+        else:
+            ep = '{:d}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
+            item.infoLabels = videolibrarydb['episode'][item.videolibrary_id][ep]['item'].infoLabels
+
     videolibrarydb.close()
+
     if 'local' in videolibrary_items:
         try:
+            item.url = videolibrary_items['local']
+            if not '/' in item.url and not '\\' in item.url:
+                path = videolibrarytools.MOVIES_PATH if item.contentType == 'movie' else videolibrarytools.TVSHOWS_PATH
+                item.url = filetools.join(path, item.url)
             item.channel = 'local'
-            item.url = filetools.join(videolibrarytools.TVSHOWS_PATH, videolibrary_items['local'])
-            return play(item)
+            if filetools.exists(item.url):
+                return play(item)
         except: pass
     else:
         if prefered_lang:
@@ -349,60 +371,23 @@ def findvideos(item):
             for it in itemlist:
                 it.title = '[{}] {}'.format(it.ch_name, it.title)
 
+    if config.get_setting('autoplay'):
+        if popup:
+            item.window = True
+        itemlist = autoplay.start(itemlist, item)
+    else:
+        itemlist.sort(key=lambda it: (videolibrarytools.quality_order.index(it.quality.lower()) if it.quality and it.quality.lower() in videolibrarytools.quality_order else 999, it.server))
 
-        if autoplay.play_multi_channel(item, itemlist):  # hideserver
-            return []
+    if config.get_setting('checklinks') and not config.get_setting('autoplay'):
+        from core import servertools
+        itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))
 
-    itemlist.sort(key=lambda it: (videolibrarytools.quality_order.index(it.quality.lower()) if it.quality and it.quality.lower() in videolibrarytools.quality_order else 999, it.server))
-
-
-    if item.window_type == 1 or (config.get_setting("window_type", "videolibrary") == 1):
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
-        p_dialog.update(0, '')
-        item.play_from = 'window'
+    if popup:
+        item.folder=False
+        item.window = True
         p_dialog.update(100, ''); xbmc.sleep(500); p_dialog.close()
-        played = False
-
-
-        if len(itemlist) > 0:
-            reopen = False
-
-            while not xbmc.Monitor().abortRequested():
-                played = True
-                if not platformtools.is_playing():
-                    if config.get_setting('next_ep') == 3:
-                        xbmc.sleep(500)
-                        if platformtools.is_playing():
-                            return
-                    if config.get_setting('autoplay') or reopen:
-                        played_time = platformtools.get_played_time(item)
-                        if not played_time and played:
-                            return
-
-                    options = []
-                    selection_implementation = 0
-                    for videoitem in itemlist:
-                        videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
-                        quality = ' [B][' + videoitem.quality + '][/B]' if videoitem.quality else ''
-                        if videoitem.server:
-                            path = filetools.join(config.get_runtime_path(), 'servers', videoitem.server.lower() + '.json')
-                            name = jsontools.load(open(path, "rb").read())['name']
-                            if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-                            it = xbmcgui.ListItem('\n[B]%s[/B]%s [%s]' % (name, quality, videoitem.ch_name))
-                            it.setArt({'thumb':videoitem.thumbnail})
-                            options.append(it)
-                        else:
-                            selection_implementation += 1
-
-
-                    head = ('{} - '.format(item.contentSerieName) if item.contentSerieName else '') + item.title
-                    selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
-                    if selection == -1:
-                        return
-                    else:
-                        item = play(itemlist[selection  + selection_implementation])[0].clone(play_from='window')
-                        platformtools.play_video(item)
-                        reopen = True
+        xbmc.executebuiltin('Dialog.Close(all)')
+        serverwindow.start(item, itemlist)
 
     else:
         add_download_items(item, itemlist)
@@ -422,12 +407,10 @@ def servers(item, ch, items):
         it.infoLabels = item.infoLabels
         it.videolibrary_id = item.videolibrary_id
         it.contentTitle = it.fulltitle = item.title
+        it.contentChannel = 'videolibrary'
         for item in getattr(channel, it.action)(it):
             if item.server and item.channel:
                 item.ch_name = ch_name
-                # item.contentChannel = item.channel
-                # item.play_from = 'videolibrary'
-                # item.channel = 'videolibrary'
                 serverlist.append(item)
         return serverlist
 
@@ -495,6 +478,7 @@ def update_videolibrary(item=None):
     p_dialog = None
     update_when_finished = False
     now = datetime.date.today()
+
     try:
         config.set_setting('updatelibrary_last_check', now.strftime('%Y-%m-%d'), 'videolibrary')
 
@@ -507,7 +491,7 @@ def update_videolibrary(item=None):
             show = videolibrarydb['tvshow'][item.videolibrary_id]
 
             for s in show['channels'].values():
-                    show_list += s
+                show_list += s
         else:
             shows = dict(videolibrarydb['tvshow']).values()
 
@@ -854,7 +838,7 @@ class subcontext(object):
 
             # update
             self.context.append(self.title('update'))
-            self.commands.append(self.item.clone(action='update_videolibrary'))
+            self.commands.append(self.item.clone(action='update_videolibrary', forced=True))
 
         self.context.append(self.title('images'))
         self.commands.append(self.item.clone(action='set_images'))
@@ -1324,3 +1308,36 @@ def get_results(nfo_path, root, Type, local=False):
 
 #     platformtools.itemlist_refresh()
 
+
+class ServerWindow(xbmcgui.WindowXML):
+    def start(self, item, itemlist):
+        self.itemlist = itemlist
+        self.item = item
+        self.servers = []
+
+        for videoitem in self.itemlist:
+            videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
+            quality = ' [' + videoitem.quality + ']' if videoitem.quality else ''
+            if videoitem.server:
+                color = scrapertools.find_single_match(videoitem.alive, r'(FF[^\]]+)')
+                path = filetools.join(config.get_runtime_path(), 'servers', videoitem.server.lower() + '.json')
+                name = jsontools.load(open(path, "rb").read())['name']
+                if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+                it = xbmcgui.ListItem('{}{}'.format(name, quality))
+                it.setProperties({'name': self.item.title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
+                it.setArt({'poster':self.item.contentThumbnail, 'thumb':videoitem.thumbnail,  'fanart':self.item.infoLabels.get('fanart','')})
+                self.servers.append(it)
+        self.doModal()
+
+    def onInit(self):
+        self.SERVERS = self.getControl(100)
+        self.SERVERS.reset()
+        self.SERVERS.addItems(self.servers)
+        self.setFocusId(100)
+
+    def onClick(self, control_id):
+        if control_id == 100:
+            from platformcode.launcher import run
+            run(self.itemlist[self.SERVERS.getSelectedPosition()])
+
+serverwindow = ServerWindow('Servers.xml', config.get_runtime_path())

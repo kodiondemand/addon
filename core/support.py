@@ -1255,7 +1255,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
 
     try:
         if AutoPlay and item.contentChannel not in ['downloads', 'videolibrary']:
-            autoplay.start(verifiedItemlist, item)
+            verifiedItemlist = autoplay.start(verifiedItemlist, item)
     except:
         import traceback
         logger.error(traceback.format_exc())
@@ -1265,7 +1265,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         videolibrary(verifiedItemlist, item)
     if Download:
         download(verifiedItemlist, item, function_level=3)
-    # if item.contentChannel == 'videolibrary' or not config.get_setting('autoplay'):
+
     return verifiedItemlist
 
 

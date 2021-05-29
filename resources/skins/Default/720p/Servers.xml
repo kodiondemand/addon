@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<window>
+    <zorder>0.52</zorder>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
+    <controls>
+        <control type="group">
+            <description>Servers Group</description>
+            <animation type="WindowOpen" reversible="false">
+                <effect type="fade" delay="160" end="100" time="200" />
+            </animation>
+            <animation type="WindowClose" reversible="false">
+                <effect type="fade" delay="300" start="100" end="0" time="200" />
+            </animation>
+            <control type="image">
+                <description>Window Background</description>
+                <width>100%</width>
+                <height>100%</height>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+            <control type="image">
+                <description>Fanart</description>
+                <width>100%</width>
+                <height>100%</height>
+                <aspectratio>scale</aspectratio>
+                <texture colordiffuse="FF555555">$INFO[Container(100).ListItem.Art(fanart)]</texture>
+            </control>
+            <control type="image">
+                <description>Poster</description>
+                <top>0</top>
+                <left>0</left>
+                <width>480</width>
+                <height>720</height>
+                <texture>$INFO[Container(100).ListItem.Art(poster)]</texture>
+                <animation type="WindowOpen" reversible="false">
+                    <effect type="slide" delay="160" start="-100,0" end="0,0" time="200" />
+                    <effect type="fade" delay="160" start="0" end="100" time="200" />
+                </animation>
+                <animation type="WindowOpen" reversible="false">
+                    <effect type="slide" delay="160" start="0,0" end="-100,0" time="200" />
+                    <effect type="fade" delay="160" start="100" end="0" time="200" />
+                </animation>
+            </control>
+            <control type="textbox">
+                <description>Main Title</description>
+                <left>520</left>
+                <top>40</top>
+                <width>1150</width>
+                <height>30</height>
+                <font>font13</font>
+                <textcolor>FFFFFFFF</textcolor>
+                <shadowcolor>00000000</shadowcolor>
+                <align>left</align>
+                <aligny>center</aligny>
+                <label>[B]$INFO[Container(100).ListItem.Property(name)][/B]</label>
+            </control>
+            <control type="list" id="100">
+                <description>Servers List</description>
+                <bottom>40</bottom>
+                <left>520</left>
+                <width>700</width>
+                <height>570</height>
+                <onleft>101</onleft>
+                <onright>101</onright>
+                <animation type="WindowOpen" reversible="false">
+                    <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                    <effect type="fade" delay="160" start="0" end="100" time="200" />
+                </animation>
+                <animation type="WindowOpen" reversible="false">
+                    <effect type="slide" delay="160" start="0,0" end="100,0" time="200" />
+                    <effect type="fade" delay="160" start="100" end="0" time="200" />
+                </animation>
+                <scrolltime tween="cubic" easing="out">300</scrolltime>
+                <itemlayout height="140" width="700">
+                    <control type="image">
+                        <description>Servers Icon</description>
+                        <top>5</top>
+                        <left>5</left>
+                        <width>120</width>
+                        <height>120</height>
+                        <texture>$INFO[ListItem.Art(thumb)]</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                    <control type="textbox">
+                        <description>Server Title</description>
+                        <left>150</left>
+                        <top>30</top>
+                        <width>450</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B]$INFO[ListItem.Label][/B]</label>
+                    </control>
+                    <control type="textbox">
+                        <description>Channel</description>
+                        <left>150</left>
+                        <top>60</top>
+                        <width>450</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
+                    </control>
+                </itemlayout>
+                <focusedlayout height="140" width="700">
+                    <control type="image">
+                        <description>Selection Background</description>
+                        <width>700</width>
+                        <height>130</height>
+                        <texture colordiffuse="88000000">white.png</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                    <control type="image">
+                        <description>Servers Color</description>
+                        <top>0</top>
+                        <left>0</left>
+                        <width>130</width>
+                        <height>130</height>
+                        <texture colordiffuse="$INFO[ListItem.Property(color)]">white.png</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                    <control type="image">
+                        <description>Servers Icon</description>
+                        <top>5</top>
+                        <left>5</left>
+                        <width>120</width>
+                        <height>120</height>
+                        <texture>$INFO[ListItem.Art(thumb)]</texture>
+                        <aspectratio>scale</aspectratio>
+                    </control>
+                    <control type="textbox">
+                        <description>Server Title</description>
+                        <left>150</left>
+                        <top>30</top>
+                        <width>450</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B]$INFO[ListItem.Label][/B]</label>
+                    </control>
+                    <control type="textbox">
+                        <description>Channel</description>
+                        <left>150</left>
+                        <top>60</top>
+                        <width>450</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                        <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
+                    </control>
+                </focusedlayout>
+            </control>
+            <!-- END Servers List -->
+            <control type="button" id="101">
+                <description>Close</description>
+                <top>30</top>
+                <right>30</right>
+                <height>40</height>
+                <width>40</width>
+                <onup>100</onup>
+                <ondown>100</ondown>
+                <onleft>100</onleft>
+                <onright>100</onright>
+                <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                <onclick>Action(close)</onclick>
+            </control>
+        </control>
+        <!-- END SERVERS GROUP -->
+    </controls>
+</window>

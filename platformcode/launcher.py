@@ -446,13 +446,11 @@ def play_from_library(item):
 
     # logger.debug("item: \n" + item.tostring('\n'))
     # from core.support import dbg; dbg()
-    import xbmc
+    import xbmc, xbmcgui, xbmcplugin
     item.window_type = config.get_setting("window_type", "videolibrary") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 1
-
+    xbmc.Player().stop()
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
     if xbmc.getCondVisibility('Window.IsMedia') and not item.window_type == 1:
-        import xbmcgui, xbmcplugin
-        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.Player().stop()
         if item.contentType == 'episode':
             it = videolibrarydb.videolibrarydb[item.contentType][item.videolibrary_id]['{}x{:02d}'.format(item.infoLabels['season'], item.infoLabels['episode'])]
         else:
@@ -461,82 +459,3 @@ def play_from_library(item):
         videolibrarydb.videolibrarydb.close()
     else:
         return videolibrary.findvideos(item)
-    # else:
-    #     xbmc.executebuiltin('ActivateWindow(10025,' + sys.argv[0] + "?" + item.tourl() + ")")
-    # itemlist = videolibrary.findvideos(it)
-    # platformtools.render_items(itemlist, item)
-
-    # itemlist=[]
-    # item.fromLibrary = True
-    # item.window = True
-    # logger.debug()
-
-    # # Modify the action (currently the video library needs "findvideos" since this is where the sources are searched
-    # item.action = "findvideos"
-
-    # window_type = config.get_setting("window_type", "videolibrary") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 1
-
-    # # and launch kodi again
-    # if xbmc.getCondVisibility('Window.IsMedia') and not window_type == 1:
-    #     xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
-
-    # else:
-    #     # Pop-up window
-    #     from specials import videolibrary
-    #     from core.channeltools import get_channel_parameters
-    #     p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
-    #     p_dialog.update(0, '')
-    #     item.play_from = 'window'
-    #     itemlist = videolibrary.findvideos(item)
-    #     p_dialog.update(100, ''); sleep(0.5); p_dialog.close()
-    #     played = False
-
-    #     # The number of links to show is limited
-    #     if config.get_setting("max_links", "videolibrary") != 0: itemlist = limit_itemlist(itemlist)
-    #     # The list of links is slightly "cleaned"
-    #     if config.get_setting("replace_VD", "videolibrary") == 1: itemlist = reorder_itemlist(itemlist)
-    #     # from core.support import dbg;dbg()
-    #     if len(itemlist) > 0:
-    #         reopen = False
-    #         # from core.support import dbg;dbg()
-    #         while not xbmc.Monitor().abortRequested():
-    #             played = True
-    #             # if config.get_setting('next_ep') == 3 and xbmc.Player().playnext:
-    #             #     return
-    #             # The user chooses the mirror
-    #             if not platformtools.is_playing():
-    #                 if config.get_setting('next_ep') == 3:
-    #                     xbmc.sleep(500)
-    #                     if platformtools.is_playing():
-    #                         return
-    #                 # if config.get_setting('autoplay') or reopen:
-    #                 #     played_time = get_played_time(item)
-    #                 #     if not played_time and played:
-    #                 #         return
-
-    #                 options = []
-    #                 selection_implementation = 0
-    #                 for item in itemlist:
-    #                     item.thumbnail = config.get_online_server_thumb(item.server)
-    #                     quality = '[B][' + item.quality + '][/B]' if item.quality else ''
-    #                     if item.server:
-    #                         path = filetools.join(config.get_runtime_path(), 'servers', item.server.lower() + '.json')
-    #                         name = jsontools.load(open(path, "rb").read())['name']
-    #                         if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-    #                         it = xbmcgui.ListItem('\n[B]%s[/B] %s - %s [%s]' % (name, quality, item.contentTitle, get_channel_parameters(item.channel).get('title', '')))
-    #                         it.setArt({'thumb':item.thumbnail})
-    #                         options.append(it)
-    #                     else:
-    #                         selection_implementation += 1
-    #                 # The selection window opens
-    #                 if (item.contentSerieName and item.contentSeason and item.contentEpisodeNumber): head = ("%s - %sx%s | %s" % (item.contentSerieName, item.contentSeason, item.contentEpisodeNumber, config.get_localized_string(30163)))
-    #                 else: head = config.get_localized_string(30163)
-    #                 selection = platformtools.dialog_select(head, options, preselect= -1, useDetails=True)
-    #                 if selection == -1:
-    #                     return
-    #                 else:
-    #                     item = videolibrary.play(itemlist[selection  + selection_implementation])[0]
-    #                     platformtools.play_video(item)
-    #                     reopen = True
-                # if (platformtools.is_playing() and item.action) or item.server == 'torrent' or config.get_setting('autoplay'): break
-
