@@ -1,7 +1,7 @@
 {
     "id": "mondoserietv",
     "name": "MondoSerieTV",
-    "active": true,
+    "active": false,
     "language": ["ita"],
     "thumbnail": "mondoserietv.png",
     "bannermenu": "mondoserietv.png",
