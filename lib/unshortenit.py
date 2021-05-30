@@ -36,7 +36,7 @@ class UnshortenIt(object):
     _anonymz_regex = r'anonymz\.com'
     _shrink_service_regex = r'shrink-service\.it'
     _rapidcrypt_regex = r'rapidcrypt\.net'
-    _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
+    # _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
     _linkup_regex = r'linkup\.pro|buckler.link'
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
@@ -85,8 +85,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_rapidcrypt(uri)
             if re.search(self._simple_iframe_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_simple_iframe(uri)
-            if re.search(self._vcrypt_regex, uri, re.IGNORECASE):
-                uri, code = self._unshorten_vcrypt(uri)
+            # if re.search(self._vcrypt_regex, uri, re.IGNORECASE):
+            #     uri, code = self._unshorten_vcrypt(uri)
             if re.search(self._linkup_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_linkup(uri)
             if re.search(self._linkhub_regex, uri, re.IGNORECASE):
