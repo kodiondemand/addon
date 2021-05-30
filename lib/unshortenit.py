@@ -48,7 +48,7 @@ class UnshortenIt(object):
     _simple_redirect = r'streamcrypt\.net/[^/]+'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
-                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _vcrypt_regex, _linkup_regex, _linkhub_regex,
+                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
                  _swzz_regex, _stayonline_regex, _snip_regex, _simple_redirect]
 
     _maxretries = 5
