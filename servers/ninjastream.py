@@ -19,6 +19,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
     logger.debug("URL", page_url)
     video_urls = []
+    # support.dbg()
 
     headers = {'User-Agent': httptools.get_user_agent(),
                'Referer': page_url,
@@ -30,9 +31,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(apiUrl, headers=headers, post=post).json
 
     if data.get('result',{}).get('playlist'):
+        # support.dbg()
         url = data.get('result',{}).get('playlist')
 
-        video_urls.append([url.split('.')[-1], url])
+        video_urls.append([url.split('.')[-1], url + '|Referer:' + page_url])
 
     return video_urls
 

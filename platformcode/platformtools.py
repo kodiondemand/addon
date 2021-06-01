@@ -712,12 +712,6 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
         # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
         # from core.support import dbg;dbg()
-        if item.manifest == 'hls' or mediaurl.endswith('m3u8'):
-            if not install_inputstream():
-                return
-            xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
-            xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
-            xlistitem.setMimeType('application/x-mpegURL')
         if mpd or item.manifest =='mpd':
             if not install_inputstream():
                 return
@@ -728,6 +722,12 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
+        elif item.manifest == 'hls' or mediaurl.split('|')[0].endswith('m3u8'):
+            if not install_inputstream():
+                return
+            xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
+            xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
+            xlistitem.setMimeType('application/x-mpegURL')
 
         if force_direct: item.play_from = 'window'
 
