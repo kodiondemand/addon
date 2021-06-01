@@ -89,4 +89,11 @@ def newest(categoria):
 
 def findvideos(item):
     info()
-    return support.server(item)
+    urls = []
+    data = support.match(item).data
+    urls += support.match(data, patron=r'id="urlEmbed" value="([^"]+)').matches
+    matches = support.match(data, patron=r'<iframe.*?src="([^"]+)').matches
+    for m in matches:
+        if 'youtube' not in m and not m.endswith('.js'):
+            urls += support.match(m, patron=r'data-link="([^"]+)').matches
+    return support.server(item, urls)
