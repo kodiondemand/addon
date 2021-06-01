@@ -556,6 +556,8 @@ class UnshortenIt(object):
                 # fix by greko inizio
                 if not link:
                     link = re.findall('action="(?:[^/]+.*?/[^/]+/([a-zA-Z0-9_]+))">', r.data)
+                if not link:
+                    link = scrapertools.find_single_match(r.data, r'a href="([^"]+)')
                 if link:
                     uri = link
             short = re.findall('^https?://.*?(https?://.*)', uri)
