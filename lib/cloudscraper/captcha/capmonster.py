@@ -36,7 +36,7 @@ class captchaSolver(Captcha):
     def checkErrorStatus(response):
         if response.status_code in [500, 502]:
             raise CaptchaServiceUnavailable(
-                f'CapMonster: Server Side Error {response.status_code}'
+                'CapMonster: Server Side Error {}'.format(response.status_code)
             )
 
         payload = response.json()
@@ -66,7 +66,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/getTaskResult',
+                '{}/getTaskResult'.format(self.host),
                 json={
                     'clientKey': self.clientKey,
                     'taskId': taskID
@@ -113,7 +113,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/createTask',
+                '{}/createTask'.format(self.host),
                 json=data,
                 allow_redirects=False,
                 timeout=30

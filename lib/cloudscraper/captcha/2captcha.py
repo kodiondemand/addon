@@ -103,7 +103,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.get(
-                f'{self.host}/res.php',
+                '{}/res.php'.format(self.host),
                 params={
                     'key': self.api_key,
                     'action': 'reportbad',
@@ -138,7 +138,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.get(
-                f'{self.host}/res.php',
+                '{}/res.php'.format(self.host),
                 params={
                     'key': self.api_key,
                     'action': 'get',
@@ -195,7 +195,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/in.php',
+                '{}/in.php'.format(self.host),
                 data=data,
                 allow_redirects=False,
                 timeout=30

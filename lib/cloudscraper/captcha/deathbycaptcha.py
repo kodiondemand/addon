@@ -68,7 +68,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/user',
+                '{}/user'.format(self.host),
                 headers={'Accept': 'application/json'},
                 data={
                     'username': self.username,
@@ -100,7 +100,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/captcha/{jobID}/report',
+                '{}/captcha/{}/report'.format(self.host, jobID),
                 headers={'Accept': 'application/json'},
                 data={
                     'username': self.username,
@@ -137,7 +137,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.get(
-                f'{self.host}/captcha/{jobID}',
+                '{}/captcha/{}'.format(self.host, jobID),
                 headers={'Accept': 'application/json'}
             ),
             check_success=_checkRequest,
@@ -203,7 +203,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                f'{self.host}/captcha',
+                '{}/captcha'.format(self.host),
                 headers={'Accept': 'application/json'},
                 data=data,
                 allow_redirects=False

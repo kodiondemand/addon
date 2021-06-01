@@ -28,9 +28,9 @@ def _pythonVersion():
 
     if interpreter == 'PyPy':
         interpreter_version = \
-            f'{sys.pypy_version_info.major}.{sys.pypy_version_info.minor}.{sys.pypy_version_info.micro}'
+            '{}.{}.{}'.format(sys.pypy_version_info.major, sys.pypy_version_info.minor, sys.pypy_version_info.micro)
         if sys.pypy_version_info.releaselevel != 'final':
-            interpreter_version = f'{interpreter_version}{sys.pypy_version_info.releaselevel}'
+            interpreter_version = '{}{}'.format(interpreter_version, sys.pypy_version_info.releaselevel)
     return {
         'name': interpreter,
         'version': interpreter_version
