@@ -34,8 +34,9 @@ def hdpass_get_servers(item):
         for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
             mir_url = scrapertools.decodeHtmlentities(mir_url)
             logger.debug(mir_url)
-            it = item.clone(action="play", quality=quality, title=srv, server=srv, url= mir_url)
-            if not servertools.get_server_parameters(srv.lower()): it = hdpass_get_url(it)[0]   # do not exists or it's empty
+            it = hdpass_get_url(item.clone(action='play', quality=quality, url=mir_url))[0]
+            # it = item.clone(action="play", quality=quality, title=srv, server=srv, url= mir_url)
+            # if not servertools.get_server_parameters(srv.lower()): it = hdpass_get_url(it)[0]   # do not exists or it's empty
             ret.append(it)
         return ret
     # Carica la pagina
