@@ -1,6 +1,6 @@
 import xbmc, sys, os
 from platformcode import config, logger
-
+import re
 # incliuding folder libraries
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
@@ -17,14 +17,23 @@ def check_condition():
     mediatype = xbmc.getInfoLabel('ListItem.DBTYPE')
 
     folderPath = xbmc.getInfoLabel('Container.FolderPath')
-    filePath = xbmc.getInfoLabel('ListItem.FileNameAndPath')
+    filePath = xbmc.getInfoLabel('ListItem.Path')
+    fileNameAndPath = xbmc.getInfoLabel('ListItem.FileNameAndPath')
 
-    logger.debug('Container: ', folderPath )
-    logger.debug('listitem mediatype:', mediatype )
-    logger.debug('filenamepath:' , filePath )
-
-    # we_are_in_kod = folderPath.find( addon_id ) > -1
+    logger.debug('Container:',folderPath )
+    logger.debug('listitem mediatype:',mediatype )
+    logger.debug('filenamepath:', fileNameAndPath )
+    logger.info('filepath:', filePath )
+    
     item_is_coming_from_kod = addon_id in filePath
+    if not item_is_coming_from_kod:
+        videolibpath = config.get_setting("videolibrarypath")
+        if filePath.startswith(videolibpath):
+            pattern = re.compile("\[.*\][\\\/]?$")
+            item_is_coming_from_kod = pattern.search(filePath)
+
+    if item_is_coming_from_kod:
+        logger.debug("item IS already managed by KOD", item_is_coming_from_kod)
 
     # logger.info('container is KOD? {}'.format(we_are_in_kod) )
 

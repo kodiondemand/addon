@@ -18,7 +18,7 @@
       </item>
       <item library="contextmenu.py">
         <label>90001</label>
-        <visible>!String.Contains(Container.FolderPath, plugin.video.kod)</visible>
+        <visible>String.IsEqual(ListItem.dbtype, tvshow) | String.IsEqual(ListItem.dbtype, movie)</visible>
       </item>
     </menu>
   </extension>
