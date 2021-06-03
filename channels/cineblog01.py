@@ -151,11 +151,11 @@ def episodios(item):
             return item
         return locals()
 
-    # debug=True
+    # debugBlock=True
     data = support.match(item.url, headers=headers).data
     folderItemlist = folder(item, data) if '<p>TUTTA L' in data else []
 
-    patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:DA\s*[0-9]+\s*A)?\s*[0-9]+|MINISERIE) - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
+    patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:(?:DA)?\s*[0-9]+\s*A)?\s*[0-9]+|MINISSERIE)(?::\s*PARTE\s*[0-9]+)? - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
     patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
     def itemlistHook(itemlist):
         title_dict = {}

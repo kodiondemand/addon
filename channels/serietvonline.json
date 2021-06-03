@@ -1,7 +1,7 @@
 {
     "id": "serietvonline",
     "name": "SerieTvOnline",
-    "active": true,
+    "active": false,
     "language": ["ita"],
     "thumbnail": "serietvonline.png",
     "bannermenu": "serietvonline.png",
