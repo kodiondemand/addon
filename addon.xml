@@ -18,7 +18,7 @@
       </item>
       <item library="contextmenu.py">
         <label>90001</label>
-        <visible>String.IsEqual(ListItem.dbtype, tvshow) | String.IsEqual(ListItem.dbtype, movie)</visible>
+        <visible>String.IsEqual(ListItem.dbtype, tvshow) | String.IsEqual(ListItem.dbtype, movie) | String.IsEqual(ListItem.dbtype, season) | String.IsEqual(ListItem.dbtype, episode)</visible>
       </item>
     </menu>
   </extension>
