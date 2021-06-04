@@ -139,6 +139,7 @@ class AddonMonitor(xbmc.Monitor):
             self.settings_pre = config.get_all_settings_addon()
 
     def onNotification(self, sender, method, data):
+        logger.debug('METODO', method)
         if method == 'VideoLibrary.OnUpdate':
             xbmc_videolibrary.set_watched_on_kod(data)
             logger.debug('AGGIORNO')

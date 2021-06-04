@@ -128,18 +128,6 @@
       ]
     },
     {
-      "id": "window_type",
-      "type": "list",
-      "label": "@60621",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "@60622",
-        "@60623"
-      ]
-    },
-    {
       "id": "max_links",
       "type": "list",
       "label": "@60624",

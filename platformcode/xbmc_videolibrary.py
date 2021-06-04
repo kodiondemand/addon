@@ -27,7 +27,7 @@ def mark_auto_as_watched(item):
         actual_time = 0
         total_time = 0
 
-        time_limit = time.time() + 30
+        time_limit = time.time() + 10
         while not platformtools.is_playing() and time.time() < time_limit:
             time.sleep(1)
 
@@ -38,6 +38,7 @@ def mark_auto_as_watched(item):
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
+
         if item.contentType != 'movie' and 0 < config.get_setting('next_ep') < 3:
             next_dialogs = ['NextDialog.xml', 'NextDialogExtended.xml', 'NextDialogCompact.xml']
             next_ep_type = config.get_setting('next_ep_type')
@@ -46,7 +47,8 @@ def mark_auto_as_watched(item):
             except: next_episode = False
             logger.debug(next_episode)
 
-        while platformtools.is_playing():
+        while not xbmc.Monitor().abortRequested():
+            if not platformtools.is_playing(): break
             try: actual_time = xbmc.Player().getTime()
             except: pass
             try: total_time = xbmc.Player().getTotalTime()
@@ -95,12 +97,9 @@ def mark_auto_as_watched(item):
         while platformtools.is_playing():
             xbmc.sleep(100)
 
-        if not show_server and not item.window and not item.no_return:
+        if not show_server and not item.no_return and not item.window:
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
-        else:
-            videolibrary.serverwindow.close()
-
 
         if marked:
             from specials import videolibrary
@@ -264,14 +263,16 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
+    # from core.support import dbg;dbg()
+
     conn = sqlite3.connect(get_file_db())
     view = 'episode' if item.contentType != 'movie' else 'movie'
     path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
 
     request_season = ''
     request_episode = ''
-    if item.contentSeason: request_season = ' and c12= {}'.format(item.contentSeason)
-    if item.contentEpisodeNumber: request_episode = ' and strFileName= "{}"'.format(item.strm_path.split('\\')[-1].split('/')[-1])
+    if item.contentType in ['season', 'episode'] and item.contentSeason: request_season = ' and c12= {}'.format(item.contentSeason)
+    if item.contentType in ['episode'] and item.contentEpisodeNumber: request_episode = ' and strFileName= "{}"'.format(item.strm_path.split('\\')[-1].split('/')[-1])
     sql = 'select idFile from {}_view where strPath like "{}"{}{}'.format(view, path, request_episode, request_season)
 
     n, r = execute_sql_kodi(sql, conn=conn)
@@ -294,7 +295,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
 def set_watched_on_kod(data):
     from specials import videolibrary
     from core.videolibrarytools import videolibrarydb
-    # support.dbg()
+    # from core.support import dbg;dbg()
 
     data = jsontools.load(data)
     Type = data.get('item', {}).get('type','')
@@ -332,6 +333,7 @@ def set_watched_on_kod(data):
             _id = scrapertools.find_single_match(records[0][0], r'\[([^\]]+)')
             contents = videolibrarydb[Type].get(_id, {})
             item = contents.get('item', None)
+
     if item:
         item.playcount = playcount
         item.not_update = True

@@ -1002,7 +1002,7 @@ def get_local_files(path, item):
         sql = 'SELECT c22, uniqueid_value FROM movie_view WHERE uniqueid_type != "kod"'
         n, records = execute_sql_kodi(sql)
         if records:
-            local_files['db']= [r[0] for r in records if r[1] in item.infoLabels['code']]
+            local_files['db']= [r[0] for r in records if r[1] in item.infoLabels['code'] and not r[0].endswith('strm')]
 
     else:
         # search on path:

@@ -24,6 +24,7 @@
         <setting id="servers_favorites" visible="eq(-1,true)" subsetting="true" type="action" label="60551" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19mYXZvcml0ZXMiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
         <setting id="servers_blacklist" visible="eq(-2,true)" subsetting="true" type="action" label="60550" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19ibGFja2xpc3QiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
 
+        <setting id="window_type" type="select" label="60621"  lvalues="60623|60622" default="0"/>
         <!-- <setting id="hide_servers" type="bool" label="70747" default="false" visible="eq(-1,true)" subsetting="true"/> -->
         <setting id="checklinks" type="bool" label="30020" default="false"/>
         <setting id="checklinks_number" type="slider" option="int" range="5,5,20" label="30021" default="5" visible="eq(-1,true)" subsetting="true"/>

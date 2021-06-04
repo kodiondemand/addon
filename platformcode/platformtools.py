@@ -279,20 +279,24 @@ def dialog_select_group(heading, _list, preselect=0):
 
 
 def itemlist_refresh(offset=0):
-    win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-    cid = win.getFocusId()
-    ctl = win.getControl(cid)
-    pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
+    try:
+        _id = xbmcgui.getCurrentWindowId()
+        win = xbmcgui.Window(_id)
+        cid = win.getFocusId()
+        ctl = win.getControl(cid)
+        pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
+        logger.debug('ID:', _id, 'POSITION:', pos)
+        # xbmc.executebuiltin("Container.Refresh")
+        xbmc.executebuiltin('ReloadSkin()')
 
-    # xbmc.executebuiltin("Container.Refresh")
-    xbmc.executebuiltin('ReloadSkin()')
+        while xbmcgui.getCurrentWindowDialogId() != 10138:
+            pass
+        while xbmcgui.getCurrentWindowDialogId() == 10138:
+            pass
 
-    while xbmcgui.getCurrentWindowDialogId() != 10138:
-        pass
-    while xbmcgui.getCurrentWindowDialogId() == 10138:
-        pass
-
-    ctl.selectItem(pos)
+        ctl.selectItem(pos)
+    except:
+        xbmc.executebuiltin('ReloadSkin()')
 
 
 def itemlist_update(item, replace=False):
@@ -382,16 +386,21 @@ def render_items(itemlist, parent_item):
         listitem.addContextMenuItems(context_commands)
         return item, item_url, listitem
 
-        # dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder))
+
     r_list = []
     with futures.ThreadPoolExecutor() as executor:
         searchList = [executor.submit(set_item, i, item) for i, item in enumerate(itemlist)]
         for res in futures.as_completed(searchList):
             r_list.append(res.result())
     r_list.sort(key=lambda it: it[0].itemlistPosition)
+
     for item, item_url, listitem in r_list:
-        dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder))
+        dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder, len(r_list)))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
+
+    if parent_item.sorted:
+        if parent_item.sorted == 'year': xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+        elif parent_item.sorted == 'name': xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
 
     if parent_item.list_type == '':
         breadcrumb = parent_item.category.capitalize()
@@ -409,6 +418,7 @@ def render_items(itemlist, parent_item):
     set_view_mode(itemlist[0], parent_item)
 
     xbmcplugin.endOfDirectory(_handle)
+
     logger.debug('END render_items')
 
 
@@ -1149,11 +1159,11 @@ def set_player(item, xlistitem, mediaurl, view, strm):
     xbmc_videolibrary.mark_auto_as_watched(item)
 
     # for cases where the audio playback window appears in place of the video one
-    if item.focusOnVideoPlayer:
-        while is_playing() and xbmcgui.getCurrentWindowId() != 12006:
-            continue
-        xbmc.sleep(500)
-        xbmcgui.Window(12005).show()
+    # if item.focusOnVideoPlayer:
+    #     while is_playing() and xbmcgui.getCurrentWindowId() != 12006:
+    #         continue
+    #     xbmc.sleep(500)
+    #     xbmcgui.Window(12005).show()
 
 
 def add_next_to_playlist(item):
@@ -1542,3 +1552,62 @@ def prevent_busy(item):
         xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         xbmc.sleep(200)
         xbmc.Player().stop()
+
+
+def serverwindow(item, itemlist):
+    from core import filetools, jsontools
+    class ServerWindow(xbmcgui.WindowXMLDialog):
+        def start(self, item, itemlist):
+            self.itemlist = itemlist
+            self.item = item
+            self.servers = []
+            self.selection = -1
+
+            for videoitem in self.itemlist:
+                videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
+                quality = ' [' + videoitem.quality + ']' if videoitem.quality else ''
+                if videoitem.server:
+                    color = scrapertools.find_single_match(videoitem.alive, r'(FF[^\]]+)')
+                    path = filetools.join(config.get_runtime_path(), 'servers', videoitem.server.lower() + '.json')
+                    name = jsontools.load(open(path, "rb").read())['name']
+                    if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+                    it = xbmcgui.ListItem('{}{}'.format(name, quality))
+                    it.setProperties({'name': self.item.title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
+                    it.setArt({'poster':self.item.contentThumbnail, 'thumb':videoitem.thumbnail,  'fanart':item.fanart})
+                    self.servers.append(it)
+            self.doModal()
+            return self.selection
+
+        def onInit(self):
+            self.SERVERS = self.getControl(100)
+            self.SERVERS.reset()
+            self.SERVERS.addItems(self.servers)
+            self.setFocusId(100)
+
+        def onClick(self, control_id):
+            if control_id == 100:
+                self.selection = self.itemlist[self.SERVERS.getSelectedPosition()].clone(window=True)
+                self.close()
+
+    reopen = False
+    if len(itemlist) > 0:
+        reopen = False
+        while not xbmc.Monitor().abortRequested():
+            played = True
+            if not is_playing():
+                if config.get_setting('next_ep') == 3:
+                    xbmc.sleep(500)
+                    if is_playing():
+                        return
+                if config.get_setting('autoplay') or reopen:
+                    played_time = get_played_time(item)
+                    if not played_time and played:
+                        return
+
+                selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
+                if selection == -1:
+                    return
+                else:
+                    from platformcode.launcher import run
+                    run(selection)
+                    reopen = True

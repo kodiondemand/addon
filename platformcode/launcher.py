@@ -226,7 +226,10 @@ def run(item=None):
                 if config.get_setting("max_links", "videolibrary") != 0:
                     itemlist = limit_itemlist(itemlist)
 
-                platformtools.render_items(itemlist, item)
+                if item.window:
+                    platformtools.serverwindow(item, itemlist)
+                else:
+                    platformtools.render_items(itemlist, item)
 
             # Special action for adding a movie to the library
             elif item.action == "add_movie_to_library":
@@ -447,9 +450,9 @@ def play_from_library(item):
     # logger.debug("item: \n" + item.tostring('\n'))
     # from core.support import dbg; dbg()
     import xbmc, xbmcgui, xbmcplugin
-    item.window_type = config.get_setting("window_type", "videolibrary") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 1
-    xbmc.Player().stop()
+    item.window_type = config.get_setting("window_type") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 0
     xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    xbmc.Player().stop()
     if xbmc.getCondVisibility('Window.IsMedia') and not item.window_type == 1:
         if item.contentType == 'episode':
             it = videolibrarydb.videolibrarydb[item.contentType][item.videolibrary_id]['{}x{:02d}'.format(item.infoLabels['season'], item.infoLabels['episode'])]

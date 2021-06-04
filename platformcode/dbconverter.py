@@ -267,31 +267,77 @@ class addVideo(object):
 
     def set_tvshow(self):
         posters, fanarts = get_images(self.item)
-        sql = 'INSERT OR IGNORE INTO tvshow (idMovie, idFile, c00, c01, c03, c05, c06, c08, c09, c11, c12, c14, c15, c16, c18, c19, c20, c21, c22, c23, idSet, premiered)'
-        sql += 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        params = (self.VideoId, # idMovie
-                  self.idFile, # idFile
+        sql = 'INSERT OR IGNORE INTO tvshow (idShow, c00, c01, c02, c04, c05, c06, c08, c09, c11, c12, c13, c14, c16)'
+        sql += 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        params = (self.VideoId, # idShow
                   self.item.title, # c00
-                  self.item.plot.replace('"', "'"), # c01
-                  self.info.get('tagline'), # c03
-                  self.rating_id, # c05
-                  self.info.get('writer','').replace(',', ' /'), # c06
-                  posters, # c08
-                  self.uniqueID, #c09
-                  self.info.get('duration', 0), # c11
-                  self.info.get('mpaa'), # c12
-                  self.info.get('genre','').replace(',', ' /') if self.info.get('genre') else None, # c14
-                  self.info.get('director','').replace(',', ' /') if self.info.get('director') else None, # c15
-                  self.info.get('originaltitle'), # c16
-                  self.info.get('studio'), # c18
-                  self.info.get('trailer'), # c19
-                  fanarts, # c20
-                  self.info.get('country','').replace(',', ' /') if self.info.get('country') else None, # c21
-                  self.path, # c22
-                  self.idPath, # c23
-                  self.idSet, # idSet
-                  self.info.get('premiered')) # premiered
-        nun_records, records = execute_sql_kodi(sql, params, conn)
+                  self.item.plot, # c01
+                  self.info.get('status'), # c02
+                  self.rating_id, # c04
+                  self.info.get('premiered'), # c05
+                  posters, # c06
+                  self.info.get('genre','').replace(',', ' /') if self.info.get('genre') else None, # c08
+                  self.info.get('originaltitle'), # c09
+                  fanarts, # c11
+                  self.uniqueID, #c12
+                  self.info.get('mpaa'), # c13
+                  self.info.get('studio'), # c14
+                  self.info.get('trailer'), # c16
+                 )
+
+        if self.item.thumbnail:
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie', 'type':'poster', 'url':self.item.thumbnail})
+        if self.item.fanart:
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'fanart', 'url':self.item.fanart})
+        if self.info.get('landscape'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'landscape', 'url':self.info.get('landscape')})
+        if self.info.get('banner'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'banner', 'url':self.info.get('banner')})
+        if self.info.get('clearlogo'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearlogo', 'url':self.info.get('clearlogo')})
+        if self.info.get('clearart'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearart', 'url':self.info.get('clearart')})
+        if self.info.get('disc'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'disc', 'url':self.info.get('disc')})
+
+        self.sql_actions.append([sql, params])
+    
+    def set_season(self):
+        posters, fanarts = get_images(self.item)
+        sql = 'INSERT OR IGNORE INTO tvshow (idShow, c00, c01, c02, c04, c05, c06, c08, c09, c11, c12, c13, c14, c16)'
+        sql += 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        params = (self.VideoId, # idShow
+                  self.item.title, # c00
+                  self.item.plot, # c01
+                  self.info.get('status'), # c02
+                  self.rating_id, # c04
+                  self.info.get('premiered'), # c05
+                  posters, # c06
+                  self.info.get('genre','').replace(',', ' /') if self.info.get('genre') else None, # c08
+                  self.info.get('originaltitle'), # c09
+                  fanarts, # c11
+                  self.uniqueID, #c12
+                  self.info.get('mpaa'), # c13
+                  self.info.get('studio'), # c14
+                  self.info.get('trailer'), # c16
+                 )
+
+        if self.item.thumbnail:
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie', 'type':'poster', 'url':self.item.thumbnail})
+        if self.item.fanart:
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'fanart', 'url':self.item.fanart})
+        if self.info.get('landscape'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'landscape', 'url':self.info.get('landscape')})
+        if self.info.get('banner'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'banner', 'url':self.info.get('banner')})
+        if self.info.get('clearlogo'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearlogo', 'url':self.info.get('clearlogo')})
+        if self.info.get('clearart'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'clearart', 'url':self.info.get('clearart')})
+        if self.info.get('disc'):
+            self.art.append({'media_id':self.VideoId, 'media_type': 'movie',  'type':'disc', 'url':self.info.get('disc')})
+
+        self.sql_actions.append([sql, params])
 
     def set_art(self):
         params = []
