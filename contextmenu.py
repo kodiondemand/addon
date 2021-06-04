@@ -10,7 +10,7 @@ from core import jsontools
 
 addon_id = config.get_addon_core().getAddonInfo('id')
 
-LOCAL_FILE = os.path.join(config.get_runtime_path(), "core/contextmenu/contextmenu.json")
+LOCAL_FILE = os.path.join(config.get_runtime_path(), "platformcode/contextmenu/contextmenu.json")
 f = open(LOCAL_FILE)
 try:
     contextmenu_settings = jsontools.load( f.read() )
