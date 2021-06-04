@@ -393,9 +393,9 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             )
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
                 it.action = function
-
-            it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
-            if it.window: it.folder = False
+            if it.action == 'play':
+                it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
+                if it.window: it.folder = False
             # for lg in list(set(listGroups).difference(known_keys)):
             #     it.__setattr__(lg, match[listGroups.index(lg)])
             for lg in list(set(match.keys()).difference(known_keys)):
