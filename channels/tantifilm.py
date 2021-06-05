@@ -133,7 +133,7 @@ def search(item, texto):
 @support.scrape
 def newest(categoria):
     if categoria == 'series':
-        item = Item(url=host + '/aggiornamenti-giornalieri-serie-tv-2')
+        item = Item(url=host + '/aggiornamenti-giornalieri-serie-tv')
         data = support.match(item).data.replace('<u>','').replace('</u>','')
         item.contentType = 'episode'
         patronBlock = r'Aggiornamenti Giornalieri Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'

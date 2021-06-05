@@ -557,7 +557,7 @@ class UnshortenIt(object):
                 if not link:
                     link = re.findall('action="(?:[^/]+.*?/[^/]+/([a-zA-Z0-9_]+))">', r.data)
                 if not link:
-                    link = scrapertools.find_single_match(r.data, r'a href="([^"]+)')
+                    link = scrapertools.find_single_match(r.data, '\$\("a\.redirect"\)\.attr\("href",\s*"(http[^"]+)')
                 if link:
                     uri = link
             short = re.findall('^https?://.*?(https?://.*)', uri)
