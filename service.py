@@ -190,6 +190,34 @@ if __name__ == "__main__":
     # Test if all the required directories are created
     config.verify_directories_created()
 
+    import glob, xbmc
+    from core import videolibrarytools
+    from core.item import Item
+    dialog = None
+    path_to_delete = []
+    for film in glob.glob(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'), '*/*.json'))):
+        if not dialog:
+            dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+        path_to_delete.append(filetools.dirname(film))
+        it = Item().fromjson(filetools.read(film))
+        videolibrarytools.save_movie(it)
+    for tvshow in glob.glob(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), '*/1x01*.json'))):
+        if not dialog:
+            dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+        path_to_delete.append(filetools.dirname(tvshow))
+        it = Item().fromjson(filetools.read(tvshow))
+        try:
+            channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
+        except:
+            channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
+        episodes = getattr(channel, it.action)(it)
+
+        videolibrarytools.save_tvshow(it, episodes, True)
+    for path in path_to_delete:
+        filetools.rmdirtree(path, True)
+    if dialog:
+        dialog.close()
+
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
 
