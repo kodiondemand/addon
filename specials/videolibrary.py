@@ -279,7 +279,7 @@ def get_episodes(item):
 
         if it.contentSeason == item.contentSeason or item.all:
             if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
-                it.title = '{}x{}'.format(it.contentSeason, it.title)
+                item.onlyep = True
             it = get_host(it)
             it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
             if it.window:
@@ -934,24 +934,27 @@ def add_download_items(item, itemlist):
                                 url=item.url,
                                 action='save_download',
                                 from_action='findvideos',
-                                contentTitle=item.contentTitle,
+                                contentTitle=config.get_localized_string(60355),
                                 path=item.path,
                                 thumbnail=thumb('downloads'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
                     downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
+                    downloadItem.contentTitle = '{} {}'.format(config.get_localized_string(60356), item.title)
                 else:  # film
                     downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
+                    downloadItem.title = config.get_localized_string(60354)
                 downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
                 itemlist.append(downloadItem)
             else:
                 if item.contentSeason:  # season
                     downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
+                    downloadItem.title = config.get_localized_string(60357)
                     itemlist.append(downloadItem)
                 else:  # tvshow + not seen
                     itemlist.append(downloadItem)
-                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), unseen=True))
+                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), contentTitle=config.get_localized_string(60003), unseen=True))
 
 #-------------- DELETE --------------
 

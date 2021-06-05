@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.kod" name="Kodi on Demand BETA" version="1.6.3" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand ALPHA" version="1.6.3" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>

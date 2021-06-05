@@ -69,7 +69,7 @@ def b64(json, mode = 'encode'):
 
 def find_episodes(item):
     logger.debug()
-    ch = __import__('channels.' + item.channel, fromlist=["channels.%s" % item.channel])
+    ch = __import__('channels.' + item.channel, fromlist=["channels.{}".format(item.channel)])
     itemlist = ch.episodios(item)
     return itemlist
 
@@ -111,14 +111,14 @@ class autorenumber():
             self.renumberdict = load(item)
             self.auto = config.get_setting('autorenumber', item.channel)
             self.title = self.item.fulltitle.strip()
-            if match(self.itemlist[0].title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
+            if item.contentSeason:
                 item.exit = True
                 return 
             elif (self.item.channel in self.item.channel_prefs and RENUMBER in self.item.channel_prefs[item.channel] and self.title not in self.renumberdict) or self.item.renumber:
                 from core.videolibrarytools import check_renumber_options
-                from specials.videolibrary import update_videolibrary
+                # from specials.videolibrary import update_videolibrary
                 check_renumber_options(self.item)
-                update_videolibrary(self.item)
+                # update_videolibrary(self.item)
 
             self.series = self.renumberdict.get(self.title,{})
             self.id = self.series.get(ID, 0)
@@ -177,13 +177,18 @@ class autorenumber():
 
     def renumber(self):
         def sub_thread(item):
-            if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
-                number = match(item.title, patron=r'(\d+)').match.lstrip('0')
+            if not item.contentSeason:
+                number = str(item.contentEpisodeNumber)
                 if number:
                     if not number in self.episodes: self.makelist()
-                    item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
-                    item.contentSeason = int(self.episodes[number].split('x')[0])
-                    item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
+                    if number in self.episodes:
+                        item.contentSeason = int(self.episodes[number].split('x')[0])
+                        item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
+                    
+        # support.dbg()
+        # for i in self.itemlist:
+        #     sub_thread(i)
+
         if not self.item.setrenumber and self.itemlist:
             with futures.ThreadPoolExecutor() as executor:
                 renumber_list = [executor.submit(sub_thread, item,) for item in self.itemlist]
@@ -244,9 +249,9 @@ class autorenumber():
             count = 0
             if self.epdict:
                 for item in itemlist:
-                    if not match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
+                    if not item.contentSeason:
                         # Otiene Numerazione Episodi
-                        scraped_ep = match(re.sub(r'\[[^\]]+\]','',item.title), patron=r'(\d+)').match
+                        scraped_ep = item.contentEpisodeNumber
                         if scraped_ep:
                             episode = int(scraped_ep)
                             if episode == 0:
@@ -325,7 +330,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 ep = '1'
                 position = 0
                 for i, item in enumerate(self.itemlist):
-                    title = match(item.title, patron=r'(\d+)').match.lstrip('0')
+                    title = str(item.contentEpisodeNumber)
                     it = xbmcgui.ListItem(title)
                     if int(title) <= len(self.episodes):
                         se, ep = self.episodes[title].split('x')
@@ -345,10 +350,14 @@ def SelectreNumeration(opt, itemlist, manual=False):
             # MAIN / SPECIALS
             else:
                 for item in self.itemlist:
-                    if not match(item.title, patron=r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)').match:
-                        title = match(item.title, patron=r'(\d+)').match.lstrip('0')
+                    if not item.contentSeason:
+                        title = str(item.contentEpisodeNumber)
                         it = xbmcgui.ListItem(title)
-                        self.items.append(it)
+                        if title not in self.specials.keys():
+                            self.items.append(it)
+                        else:
+                            self.selected.append(it)
+                            it.setProperty('title', title)
 
                 self.getControl(POSTER).setImage(thumb)
                 self.getControl(MPOSTER).setImage(thumb)
@@ -357,6 +366,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     self.getControl(MBACKGROUND).setImage(fanart)
                 self.getControl(INFO).setLabel(typo(config.get_localized_string(70824) + self.title, 'bold'))
                 self.getControl(LIST).addItems(self.items)
+                self.getControl(SELECTED).addItems(self.selected)
 
                 if self.sp:
                     self.getControl(SPECIALS).setVisible(True)
@@ -492,7 +502,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                             ep = str(int(ep) + 1)
                         item.setProperties({'season': se, "episode": ep})
                         items.append(item)
-                        self.seasons[item.getLabel()] = '%sx%s' % (se, ep)
+                        self.seasons[item.getLabel()] = '{}x{}'.format(se, ep)
                     self.items = items
                 else:
                     self.makerenumber()
@@ -520,7 +530,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
             p1 = self.getControl(SELECTED).getSelectedPosition()
             if control_id in [LIST]:
                 item = self.getControl(LIST).getSelectedItem()
-                it = xbmcgui.ListItem(str(len(self.selected) + len(self.specials) + 1))
+                it = xbmcgui.ListItem(str(len(self.selected) + 1))
                 it.setProperty('title', item.getLabel())
                 self.selected.append(it)
                 index = self.getControl(SELECTED).getSelectedPosition()
@@ -541,7 +551,6 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
                     for i, it in enumerate(self.selected):
                         it.setLabel(str(i + 1))
-                        break
                     self.getControl(SELECTED).reset()
                     self.getControl(SELECTED).addItems(self.selected)
                     self.getControl(SELECTED).selectItem(p2)
@@ -552,7 +561,6 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     self.selected[p1], self.selected[p2] = self.selected[p2], self.selected[p1]
                     for i, it in enumerate(self.selected):
                         it.setLabel(str(i + 1))
-                        break
                     self.getControl(SELECTED).reset()
                     self.getControl(SELECTED).addItems(self.selected)
                     self.getControl(SELECTED).selectItem(p2)
@@ -579,19 +587,21 @@ def SelectreNumeration(opt, itemlist, manual=False):
             # RELOAD SPECIALS
             if control_id in [SELECTED]:
                 epnumber = platformtools.dialog_numeric(0, config.get_localized_string(60386))
-                it = self.getControl(SELECTED).getSelectedItem()
-                it.setLabel(str(epnumber))
-                self.selected.sort(key=lambda it: int(it.getLabel()))
-                for i, it in enumerate(self.selected):
-                    if it.getLabel() == epnumber: pos = i
+                if epnumber:
+                    it = self.getControl(SELECTED).getSelectedItem()
+                    it.setLabel(str(epnumber))
                     self.selected.sort(key=lambda it: int(it.getLabel()))
-                    self.getControl(SELECTED).reset()
-                    self.getControl(SELECTED).addItems(self.selected)
-                    self.getControl(SELECTED).selectItem(pos)
-                    break
+                    for i, it in enumerate(self.selected):
+                        if it.getLabel() == epnumber: pos = i
+                        self.selected.sort(key=lambda it: int(it.getLabel()))
+                        self.getControl(SELECTED).reset()
+                        self.getControl(SELECTED).addItems(self.selected)
+                        self.getControl(SELECTED).selectItem(pos)
+                        break
             if len(self.selected) > 0:
                 self.getControl(SPECIALCOMMANDS).setVisible(True)
             else:
+                self.setFocusId(LIST)
                 self.getControl(SPECIALCOMMANDS).setVisible(False)
 
             ## MANUAL SECTION
@@ -619,8 +629,10 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     self.getControl(MLIST).selectItem(pos)
             # OK
             if control_id in [OK]:
+                if not self.selected:
+                    self.specials = {}
                 for it in self.selected:
-                    self.specials[int(it.getProperty('title'))] = '0x' + it.getLabel()
+                    self.specials[it.getProperty('title')] = '0x' + it.getLabel()
                 self.close()
             # CLOSE
             elif control_id in [CLOSE]:
@@ -645,7 +657,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     if i > pos: prevEpisode += 1
                     item.setProperties({'season': self.season, 'episode': prevEpisode})
                 items.append(item)
-                self.seasons[item.getLabel()] = '%sx%s' % (item.getProperty('season'), item.getProperty('episode'))
+                self.seasons[item.getLabel()] = '{}x{}'.format(item.getProperty('season'), item.getProperty('episode'))
             self.items = items
             logger.debug('SELF', self.seasons)
 
@@ -662,7 +674,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 if season in seasonlist:
                     if season not in self.episodes:
                         self.episodes[season] = []
-                    item = xbmcgui.ListItem('%s - Ep. %s' % (value, ep))
+                    item = xbmcgui.ListItem('{} - Ep. {}'.format(value, ep))
                     item.setProperty('episode', ep)
                     self.episodes[season].append(item)
                     logger.log('EPISODES', self.episodes[season])

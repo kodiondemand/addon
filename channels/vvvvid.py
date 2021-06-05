@@ -154,19 +154,22 @@ def episodios(item):
 
     for episode in episodes:
         try:
-            title = 'Episodio ' + episode['number'] + ' - ' + episode['title'].encode('utf8')
+            title = episode['title'].encode('utf8')
         except:
-            title = 'Episodio ' + episode['number'] + ' - ' + episode['title']
+            title = episode['title']
 
         if type(title) == tuple: title = title[0]
         itemlist.append(
-            item.clone(title = support.typo(title, 'bold'),
+            item.clone(title = title,
+                       contentEpisodeNumber = int(episode['number']),
                     url=  main_host + show_id + '/season/' + str(season_id),
                     action= 'findvideos',
                     video_id= episode['video_id']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
+        for i in itemlist:
+            logger.debug(i)
 
     support.videolibrary(itemlist,item)
     return itemlist

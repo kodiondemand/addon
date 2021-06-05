@@ -131,7 +131,7 @@ def regexDbg(item, patron, headers, data=''):
         webbrowser.open(url + "/r/" + permaLink)
 
 
-def scrapeLang(scraped, lang, longtitle):
+def scrapeLang(scraped, lang):
     ##    Aggiunto/modificato per gestire i siti che hanno i video
     ##    in ita e subita delle serie tv nella stessa pagina
     # altrimenti dopo un sub-ita mette tutti quelli a seguire in sub-ita
@@ -143,14 +143,15 @@ def scrapeLang(scraped, lang, longtitle):
         if 'sub' in scraped['lang'].lower(): language = 'Sub-' + language
 
     if not language: language = lang
-    if language: longtitle += typo(language, '_ [] color kod')
-    return language, longtitle
+    # if language: longtitle += typo(language, '_ [] color kod')
+    return language
 
 
 def cleantitle(title):
     cleantitle = ''
     if title:
         if type(title) != str: title.decode('UTF-8')
+        title = scrapertools.unescape(title)
         title = scrapertools.decodeHtmlentities(title)
         cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip()
     return cleantitle
@@ -191,7 +192,10 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
     # lang = lingua del video. Es: ITA, Sub-ITA, Sub, SUB ITA.
     # AVVERTENZE: Se il titolo è trovato nella ricerca TMDB/TVDB/Altro allora le locandine e altre info non saranno quelle recuperate nel sito.!!!!
 
-    stagione = '' # per quei siti che hanno la stagione nel blocco ma non nelle puntate
+    season = '' # per quei siti che hanno la stagione nel blocco ma non nelle puntate
+    episode = ''
+    second_episode = ''
+    extraInfo = ''
     contents = []
 
     for i, match in enumerate(matches):
@@ -221,14 +225,14 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
         title = cleantitle(scraped.get('title', ''))
         if group and scraped.get('title', '') in contents and not item.grouped:  # same title and grouping enabled
             continue
-        if item.grouped and scraped.get('title',
-                                        '') != item.fulltitle:  # inside a group different tvshow should not be included
+        if item.grouped and scraped.get('title', '') != item.fulltitle:  # inside a group different tvshow should not be included
             continue
         contents.append(title)
         title2 = cleantitle(scraped.get('title2', '')) if not group or item.grouped else ''
         quality = scraped.get('quality', '')
         # Type = scraped['type'] if scraped['type'] else ''
         plot = cleantitle(scraped.get("plot", ''))
+
 
         # if title is set, probably this is a list of episodes or video sources
         # necessaria l'aggiunta di == scraped["title"] altrimenti non prende i gruppi dopo le categorie
@@ -244,8 +248,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             if scraped["plot"]:
                 infolabels['plot'] = plot
             if scraped['duration']:
-                dur = scrapertools.find_multiple_matches(scraped['duration'],
-                                                             r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
+                dur = scrapertools.find_multiple_matches(scraped['duration'], r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
                 for h, m in dur:
                     scraped['duration'] = int(h) * 60 + int(m)
                 if not dur:
@@ -260,55 +263,52 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             if scraped["rating"]:
                 infolabels['rating'] = scrapertools.decodeHtmlentities(scraped["rating"])
 
-        episode = ''
 
         if not group or item.grouped:
-            if scraped['season'] and scraped['episode']:
-                stagione = scraped['season']
-                ep = unifyEp(scraped['episode'])
+            # dbg()
+            ep = unifyEp(scraped['episode']) if scraped['episode'] else ''
+            se = scraped['season'] if scraped['season'].isdigit() else ''
+            if ep and se:
+                season = int(se)
                 if 'x' in ep:
-                    episode = ep.split('x')[0].strip()
-                    second_episode = ep.split('x')[1].strip()
+                    ep_list = ep.split('x')
+                    episode = ep_list.strip()
+                    second_episode = ep_list[1:]
                 else:
                     episode = ep
-                    second_episode = ''
-                infolabels['season'] = int(scraped['season'])
-                infolabels['episode'] = int(episode)
-                episode = str(int(scraped['season'])) +'x'+ str(int(episode)).zfill(2) + ('x' + str(int(second_episode)).zfill(2) if second_episode else '')
+
             elif item.season:
-                infolabels['season'] = int(item.season)
-                infolabels['episode'] = int(scrapertools.find_single_match(scraped['episode'], r'(\d+)'))
-                episode = item.season +'x'+ scraped['episode'].zfill(2)
-            elif item.contentType == 'tvshow' and (scraped['episode'] == '' and scraped['season'] == '' and stagione == ''):
+                season = int(item.season)
+                if ep: episode = int(scrapertools.find_single_match(scraped['episode'], r'(\d+)'))
+
+            elif item.contentType == 'tvshow' and (scraped['episode'] == '' and scraped['season'] == '' and season == ''):
                 item.news = 'season_completed'
-                episode = ''
+
             else:
-                episode = unifyEp(scraped['episode']) if scraped['episode'] else ''
                 try:
-                    if 'x' in episode:
-                        ep = episode.split('x')
-                        episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
-                        infolabels['season'] = int(ep[0])
-                        infolabels['episode'] = int(ep[1])
-                    second_episode = scrapertools.find_single_match(episode, r'x\d+x-\d+)')
-                    if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
+                    if 'x' in ep:
+                        ep_list = ep.split('x')
+                        episode = ep_list[1].strip()
+                        season = ep_list[2].strip()
+                        if len(ep_list) > 2:
+                            second_episode = ep_list[2:]
+                    else:
+                        episode = ep
                 except:
                     logger.debug('invalid episode: ' + episode)
                     pass
 
         if scraped['episode2']:
-            episode += '-' + scrapertools.find_single_match(scraped['episode2'], r'(\d+)')
+            ep2 = scrapertools.find_single_match(scraped['episode2'], r'(\d+)')
+            ep_list = ep2.split('x')
+            second_episode = ep_list
 
-        # make formatted Title [longtitle]
-        s = ' - '
-        # title = episode + (s if episode and title else '') + title
-        longtitle = episode + (s if episode and (title or title2) else '') + title + (s if title and title2 else '') + title2
 
         if sceneTitle:
             from lib.guessit import guessit
             try:
                 parsedTitle = guessit(title)
-                title = longtitle = parsedTitle.get('title', '')
+                title = parsedTitle.get('title', '')
                 logger.debug('TITOLO',title)
                 if parsedTitle.get('source'):
                     quality = str(parsedTitle.get('source'))
@@ -316,43 +316,36 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                         quality += ' ' + str(parsedTitle.get('screen_size', ''))
                 if not scraped['year']:
                     if type(parsedTitle.get('year', '')) == list:
-                        infolabels['year'] =parsedTitle.get('year', '')[0]
+                        infolabels['year'] = parsedTitle.get('year', '')[0]
                     else:
                         infolabels['year'] = parsedTitle.get('year', '')
                 if parsedTitle.get('episode') and parsedTitle.get('season'):
-                    longtitle = title + s
-
                     if type(parsedTitle.get('season')) == list:
-                        longtitle += str(parsedTitle.get('season')[0]) + '-' + str(parsedTitle.get('season')[-1])
-                        infolabels['season'] = parsedTitle.get('season')[0]
-                    else:
-                        longtitle += str(parsedTitle.get('season'))
-                        infolabels['season'] = parsedTitle.get('season')
+                        season = parsedTitle.get('season')[0]
+                    elif parsedTitle.get('season'):
+                        season = parsedTitle.get('season')
 
                     if type(parsedTitle.get('episode')) == list:
-                        longtitle += 'x' + str(parsedTitle.get('episode')[0]).zfill(2) + '-' + str(parsedTitle.get('episode')[-1]).zfill(2)
-                        infolabels['episode'] = parsedTitle.get('episode')[0]
+                        episode = parsedTitle.get('episode')[0]
+                        second_episode = parsedTitle.get('episode')[1:]
                     else:
-                        longtitle += 'x' + str(parsedTitle.get('episode')).zfill(2)
                         infolabels['episode'] = parsedTitle.get('episode')
 
                 elif parsedTitle.get('season') and type(parsedTitle.get('season')) == list:
-                    longtitle += s + config.get_localized_string(30140) + " " +str(parsedTitle.get('season')[0]) + '-' + str(parsedTitle.get('season')[-1])
+                    extraInfo = '{}: {}-{}'.format(config.get_localized_string(30140), parsedTitle.get('season')[0], parsedTitle.get('season')[-1])
                 elif parsedTitle.get('season'):
-                    longtitle += s + config.get_localized_string(60027) % str(parsedTitle.get('season'))
-                    infolabels['season'] = parsedTitle.get('season')
+                    season = parsedTitle.get('season')
                 if parsedTitle.get('episode_title'):
-                    longtitle += s + parsedTitle.get('episode_title')
-                    infolabels['episodeName'] = parsedTitle.get('episode_title')
+                    extraInfo += parsedTitle.get('episode_title')
             except:
                 import traceback
                 logger.error(traceback.format_exc())
 
-        longtitle = typo(longtitle, 'bold')
-        lang1, longtitle = scrapeLang(scraped, lang, longtitle)
-        longtitle += typo(quality, '_ [] color kod') if quality else ''
-        longtitle += typo(scraped['size'], '_ [] color kod') if scraped['size'] else ''
-        longtitle += typo(scraped['seed'] + ' SEEDS', '_ [] color kod') if scraped['seed'] else ''
+        if season: infolabels['season'] = int(season)
+        if episode: infolabels['episode'] = int(episode)
+
+        lang1 = scrapeLang(scraped, lang)
+
 
         AC = CT = ''
         if typeContentDict:
@@ -368,29 +361,33 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     break
                 else: AC = action
 
-        if (not scraped['title'] or scraped["title"] not in blacklist) and (search.lower() in longtitle.lower()):
+        if (not scraped['title'] or scraped["title"] not in blacklist) and (search.lower() in title.lower()):
             contentType = 'episode' if function == 'episodios' else CT if CT else item.contentType
             it = Item(
-                channel=item.channel,
-                action=AC if AC else action,
-                contentType=contentType,
-                title=longtitle,
-                fulltitle=item.fulltitle if function == 'episodios' else title,
+                channel = item.channel,
+                action = AC if AC else action,
+                contentType = contentType,
+                title = title,
+                fulltitle = item.fulltitle if function == 'episodios' else title,
                 show=item.show if function == 'episodios' else title,
-                quality=quality,
-                url=scraped["url"] if scraped["url"] else item.url,
-                infoLabels=infolabels,
-                thumbnail=item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
-                args=item.args,
-                contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
-                contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
-                contentLanguage = lang1 if lang1 else item.contentLanguage,
-                contentSeason= infolabels.get('season', ''),
+                quality = quality,
+                url = scraped["url"] if scraped["url"] else item.url,
+                infoLabels = infolabels,
+                thumbnail = item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
+                args = item.args,
+                contentSerieName = title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
+                contentTitle = title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
+                contentLanguage = lang1 if lang1 else item.contentLanguage if item.contentLanguage else 'ITA',
+                contentSeason = infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
-                news= item.news if item.news else '',
+                news = item.news if item.news else '',
                 other = scraped['other'] if scraped['other'] else '',
-                grouped=group
+                grouped = group,
+                title2 = cleantitle(title2) if title2 else '',
+                episode2 = second_episode,
+                extraInfo = extraInfo
             )
+
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
                 it.action = function
             if it.action == 'findvideos':
@@ -478,10 +475,10 @@ def scrape(func):
                                                 typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group)
                     for it in blockItemlist:
                         if 'lang' in bl:
-                            it.contentLanguage, it.title = scrapeLang(bl, it.contentLanguage, it.title)
+                            it.contentLanguage = scrapeLang(bl, it.contentLanguage, it.title)
                         if 'quality' in bl and bl['quality']:
                             it.quality = bl['quality'].strip()
-                            it.title = it.title + typo(bl['quality'].strip(), '_ [] color kod')
+                            # it.title = it.title + typo(bl['quality'].strip(), '_ [] color kod')
                     itemlist.extend(blockItemlist)
                     matches.extend(blockMatches)
             elif patron:
@@ -546,13 +543,13 @@ def scrape(func):
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
-        for it in itemlist:
-            if it.contentEpisodeNumber and it.contentSeason:
-                it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
-                if it.contentLanguage:
-                    it.title += typo(it.contentLanguage, '_ [] color kod')
-                if it.quality:
-                    it.title += typo(it.quality, '_ [] color kod')
+        # for it in itemlist:
+        #     if it.contentEpisodeNumber and it.contentSeason:
+        #         it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
+        #         if it.contentLanguage:
+        #             it.title += typo(it.contentLanguage, '_ [] color kod')
+        #         if it.quality:
+        #             it.title += typo(it.quality, '_ [] color kod')
 
         # next page for pagination
         if pagination and len(matches) > pag * pagination and not search:
@@ -1207,15 +1204,16 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         # logger.debug(videoitem)
         if videoitem.video_urls or srv_param.get('active', False):
             # dbg()
-            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
+            item.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
-            videoitem.title = (item.title if item.channel not in ['url'] else '')\
-                + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
-                + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
-                + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\
-                + (typo(videoitem.extraInfo, '_ color kod []') if videoitem.extraInfo else "")
+            videoitem.title = item.title
+            # videoitem.title = (item.title if item.channel not in ['url'] else '')\
+            #     + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
+            #     + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
+            #     + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\
+            #     + (typo(videoitem.extraInfo, '_ color kod []') if videoitem.extraInfo else "")
             videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle

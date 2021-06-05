@@ -155,8 +155,7 @@ def episodios(item):
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^-<]+)(?:-(?P<episode2>[^<]+))?'
     def itemHook(item):
-        item.number = support.re.sub(r'\[[^\]]+\]', '', item.title)
-        item.title += support.typo(item.fulltitle,'-- bold')
+        item.title = item.fulltitle
         return item
     action='findvideos'
     return locals()
@@ -172,8 +171,8 @@ def findvideos(item):
     data = resp.data
 
     for ID, name in resp.matches:
-        if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
-        match = support.match(data, patronBlock=r'data-name="' + ID + r'"[^>]+>(.*?)(?:<div class="(?:server|download)|link)', patron=r'data-id="([^"]+)" data-episode-num="' + (item.number if item.number else '1') + '"' + r'.*?href="([^"]+)"').match
+        # if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
+        match = support.match(data, patronBlock=r'data-name="{}"[^>]+>(.*?)(?:<div class="(?:server|download)|link)', patron=r'data-id="([^"]+)" data-episode-num="{}".*?href="([^"]+)"'.format(ID, item.contentEpisodeNumber if item.contentEpisodeNumber else 1)).match
         if match:
             epID, epurl = match
             # if 'vvvvid' in name.lower():

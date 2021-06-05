@@ -471,7 +471,7 @@ def save_tvshow(item, episodelist, silent=False):
     if not head_nfo: return 0, 0, -1, ''
     # support.dbg()
     extra_info = get_fanart_tv(item)
-    if not item.infoLabels.get('posters'): item.infoLabels['posters'] = []
+    if not item.infoLabels.get('posters'):item.infoLabels['posters'] = []
     item.infoLabels['posters'] += extra_info['poster'].get('all',[])
     if not item.infoLabels.get('fanarts'): item.infoLabels['fanarts'] = []
     item.infoLabels['fanarts'] += extra_info['fanart']
@@ -481,7 +481,7 @@ def save_tvshow(item, episodelist, silent=False):
     item.infoLabels['cleararts'] += extra_info['clearart']
     if not item.infoLabels.get('landscapes'): item.infoLabels['landscapes'] = []
     item.infoLabels['landscapes'] += extra_info['landscape'].get('all',[])
-    if not item.infoLabels.get('banners'): item.infoLabels['banners'] = []
+    if not item.infoLabels.get('banners'):item.infoLabels['banners'] = []
     item.infoLabels['banners'] += extra_info['banner'].get('all',[])
 
 
@@ -498,10 +498,10 @@ def save_tvshow(item, episodelist, silent=False):
     if not tvshow_item.videolibrary_id: tvshow_item.videolibrary_id = _id
     if not tvshow_item.thumbnail: tvshow_item.thumbnail = item.infoLabels['thumbnail']
     if not tvshow_item.fanart: tvshow_item.fanart = item.infoLabels['fanart']
-    if not tvshow_item.landscape: tvshow_item.landscape = item.infoLabels['landscapes'][0] if item.infoLabels['landscapes'] else item.infoLabels['fanart']
-    if not tvshow_item.banner and item.infoLabels['banners']: tvshow_item.clearart = item.infoLabels['banners'][0]
-    if not tvshow_item.clearart and item.infoLabels['cleararts']: tvshow_item.clearart = item.infoLabels['cleararts'][0]
-    if not tvshow_item.clearlogo and item.infoLabels['clearlogos']: tvshow_item.clearlogo = item.infoLabels['clearlogos'][0]
+    if not tvshow_item.infoLabels.get('landscape'): tvshow_item.infoLabels['landscape'] = item.infoLabels['landscapes'][0] if item.infoLabels['landscapes'] else item.infoLabels['fanart']
+    if not tvshow_item.infoLabels.get('banner') and item.infoLabels['banners']: tvshow_item.infoLabels['banner'] = item.infoLabels['banners'][0]
+    if not tvshow_item.infoLabels.get('clearart') and item.infoLabels['cleararts']: tvshow_item.infoLabels['clearart'] = item.infoLabels['cleararts'][0]
+    if not tvshow_item.infoLabels.get('clearlogo') and item.infoLabels['clearlogos']: tvshow_item.infoLabels['clearlogo'] = item.infoLabels['clearlogos'][0]
     if not tvshow_item.base_name: tvshow_item.base_name = base_name
     if tvshow_item.active == '': tvshow_item.active = True
     if not tvshow_item.prefered_lang: tvshow_item.prefered_lang = ''
@@ -555,13 +555,13 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
         episode = None
         season_episode = None
 
-        season_episode = scrapertools.get_season_and_episode(e.title)
 
-        if season_episode:
+        if e.contentSeason and e.contentEpisodeNumber:
+            season_episode = '{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber)
             strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
 
-            e.contentSeason = int(season_episode.split('x')[0])
-            e.contentEpisodeNumber = int(season_episode.split('x')[1])
+            # e.contentSeason = int(season_episode.split('x')[0])
+            # e.contentEpisodeNumber = int(season_episode.split('x')[1])
             if item.infoLabels.get('imdb_id'): e.infoLabels['imdb_id'] = item.infoLabels['imdb_id']
             if item.infoLabels.get('tmdb_id'): e.infoLabels['tmdb_id'] = item.infoLabels['tmdb_id']
             if item.infoLabels.get('tvdb_id'): e.infoLabels['tvdb_id'] = item.infoLabels['tvdb_id']
@@ -581,7 +581,7 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                                 videolibrary_id = item.videolibrary_id,
                                 thumbnail = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.thumbnail,
                                 fanart = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.fanart,
-                                title = '{}. {}'.format(e.contentEpisodeNumber, e.infoLabels['title']))
+                                title = e.infoLabels['title'])
 
             episode = episodes.get(season_episode, {})
 
@@ -879,7 +879,7 @@ def add_tvshow(item, channel=None):
         it = item.clone()
         itemlist = getattr(channel, it.action)(it)
         item.host = channel.host
-        if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)'):
+        if itemlist:
             from platformcode.autorenumber import start, check
             if not check(item):
                 action = item.action
