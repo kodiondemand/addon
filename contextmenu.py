@@ -2,11 +2,10 @@ import os
 from platformcode import config, logger
 import xbmc, sys, xbmcgui, os
 
-
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import jsontools
+from core import jsontools, support
 
 addon_id = config.get_addon_core().getAddonInfo('id')
 
@@ -43,27 +42,34 @@ def build_menu():
         logger.debug('check contextmenu', itemmodule )
         module = __import__(itemmodule, None, None, [ itemmodule] )
 
-        if module.check_condition():
-            logger.info('Add contextmenu item ->',itemmodule )
-            contextmenumodules.append( module )
+        # if module.check_condition():
+        logger.info('Add contextmenu item ->',itemmodule )
+        contextmenumodules.append( module )
 
 
-    contextmenu = []
+    contextmenuitems = []
+    contextmenuactions = []
     empty = False
     if len(contextmenumodules) == 0:
         logger.info('No contextmodule found, build an empty one')
-        contextmenu.append( empty_item() )
+        contextmenucontextmenuitems.append( empty_item() )
         empty = True
     else:
+        support.dbg()
         for itemmodule in contextmenumodules:
-            contextmenu.append( itemmodule.get_menu_item() )
+            module_item_actions = itemmodule.get_menu_items()
+            contextmenuitems = contextmenuitems + [item for item, fn in module_item_actions ]
+            contextmenuactions = contextmenuactions + [fn for item, fn in module_item_actions ]
 
-    ret = xbmcgui.Dialog().contextmenu( contextmenu )
+    ret = xbmcgui.Dialog().contextmenu( contextmenuitems )
 
     if not empty and ret > -1:
-        itemmodule = contextmenumodules[ ret ]
+        module_function = contextmenuactions[ ret ]
         logger.info( 'Contextmenu module index', ret,  'for -> {}', itemmodule )
-        itemmodule.execute()
+        if module_function:
+            module_function()
+        else:
+            logger.warn('No function for menu item: {}'.format(contextmenuitems[ret]) )
 
 
 def empty_item():

@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 import xbmc, sys, xbmcgui, os, xbmcvfs, traceback
 from platformcode import config, logger
-from core import support
 
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
 from core.item import Item
 from lib.sambatools import libsmb as samba
-from core import scrapertools
+from core import scrapertools, support
 
 
 def exists(path, silent=False, vfs=True):
@@ -115,9 +114,14 @@ def check_condition():
     return False
 
 
-def get_menu_item():
+def get_menu_items():
     logger.debug('get menu item')
-    return config.get_localized_string(70269)
+    if check_condition():
+        return config.get_localized_string(70269) , execute
+    else:
+        return []
+
+
 
 def execute():
     dbid = xbmc.getInfoLabel('ListItem.DBID')

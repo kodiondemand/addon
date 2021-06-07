@@ -40,9 +40,12 @@ def check_condition():
     return mediatype and item_is_coming_from_kod # and not we_are_in_kod
 
 
-def get_menu_item():
+def get_menu_items():
     logger.debug('get menu item')
-    return config.get_localized_string(90003)
+    if check_condition():
+        return config.get_localized_string(90003) , execute
+    else:
+        return []
 
 
 def execute():
