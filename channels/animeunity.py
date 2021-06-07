@@ -3,6 +3,7 @@
 # Canale per AnimeUnity
 # ------------------------------------------------------------
 
+from lib.requests.sessions import session
 import requests, json, copy, inspect
 from core import support
 from platformcode import autorenumber
@@ -115,8 +116,10 @@ def news(item):
     support.info()
     item.contentType = 'episode'
     itemlist = []
+    import cloudscraper
+    session = cloudscraper.create_scraper()
 
-    fullJs = json.loads(support.match(item, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
+    fullJs = json.loads(support.match(session.get(item.url).text, headers=headers, patron=r'items-json="([^"]+)"', debug=True).match.replace('&quot;','"'))
     js = fullJs['data']
 
     for it in js:

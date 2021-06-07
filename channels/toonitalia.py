@@ -3,7 +3,7 @@
 # Canale per ToonItalia
 # ------------------------------------------------------------
 
-from core import support
+from core import scrapertools, support
 import sys
 
 host = support.config.get_channel_url()
@@ -76,7 +76,7 @@ def peliculas(item):
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
         # patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
-        patron = r'<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:[Ff]ilm|</art|Serie Tv))'
+        patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>(:?[^>]+>){3}(?:<img.*?src="(?P<thumb>[^"]+)")?.*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:[Ff]ilm|</art|Serie Tv))'
         typeContentDict={'movie':['film']}
         typeActionDict={'findvideos':['film']}
         patronNext = '<a class="next page-numbers" href="([^"]+)">'
@@ -93,21 +93,27 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime = True
-    data = support.match(item, headers=headers).data
-    if 'https://vcrypt.net' in data:
-        patron = r'(?: /> |<p>)(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)'
-    else:
-        patron = r'<br />\s*<a href="(?P<url>[^"]+)" target="_blank" rel="noopener[^>]+>(?P<episode>\d+.\d+)?(?: &#8211; )?(?P<title>[^<]+)</a>'
+    def get_ep(item):
+        find = ''
+        data = support.match(item, headers=headers).data
+        match = support.match(data, patron=r'(?: /> |<p>)(?:(?P<season>\d+)&#215;)?(?P<episode>\d+)(?:\s+&#8211;\s+)?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)').matches
+        if match:
+            for m in match:
+                find += '{}{:02d}|{}|{}|'.format(m[0]+'x' if m[0] else '', int(m[1]), clean_title(m[2]), m[3])
+        return find
 
-    def itemHook(item):
-        item.title = support.re.sub(r'\[B\]|\[/B\]', '', item.title)
-        item.title = item.title.replace('_',' ').replace('–','-').replace('&#215;','x').replace('-','-').replace('  ',' ')
-        item.title = support.re.sub(item.fulltitle + ' - ','',item.title)
-        item.title = support.typo(item.title.strip(' -'),'bold')
-        return item
+    data = get_ep(item)
+    patron = r'(?P<episode>[^|]+)\|(?P<title>[^|]+)\|(?P<data>[^|]+)\|'
 
     return locals()
 
 
 def findvideos(item):
     return support.server(item, item.data if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
+
+
+def clean_title(title):
+    title = scrapertools.unescape(title)
+    title = title.replace('_',' ').replace('–','-').replace('  ',' ')
+    title = title.strip(' - ')
+    return title
