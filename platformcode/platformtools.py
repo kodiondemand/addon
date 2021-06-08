@@ -363,7 +363,7 @@ def render_items(itemlist, parent_item):
         title = item.title
         episode = ''
 
-        if parent_item.channel not in ['videolibrary']:
+        if parent_item.channel not in ['videolibrary'] and title[:1] not in ['[', '•']:
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not parent_item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:
@@ -374,7 +374,7 @@ def render_items(itemlist, parent_item):
             if episode: title = '{}. {}'.format(episode, title)
             if item.title2: title = '{} - {}'.format(title, item.title2)
 
-            if not config.get_setting('format_title') and title[:1] not in ['[', '•']:
+            if not config.get_setting('format_title'):
                 server =  typo(item.server, '_ []') if item.server else ''
                 quality =  typo(item.quality, '_ [] color kod') if item.quality else ''
                 lang =  typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''

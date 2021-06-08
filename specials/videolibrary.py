@@ -311,7 +311,7 @@ def findvideos(item):
     videolibrarytools.check_renumber_options(item)
     itemlist = []
     if item.window:
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(50003))
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
         p_dialog.update(0)
 
 
@@ -337,7 +337,7 @@ def findvideos(item):
 
     videolibrarydb.close()
     if item.window:
-        p_dialog.update(40)
+        p_dialog.update(50)
 
     if videolibrary_items.get('local'):
         try:
@@ -374,8 +374,7 @@ def findvideos(item):
         pl = [s for s in itemlist if s.contentLanguage in [prefered_lang, '']]
         if pl: itemlist = pl
         if item.window:
-            p_dialog.update(80)
-
+            p_dialog.update(100)
 
         if len(itlist) > 1:
             for it in itemlist:
@@ -391,7 +390,7 @@ def findvideos(item):
         itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))
 
     if item.window:
-        p_dialog.update(100)
+        p_dialog.close()
         platformtools.serverwindow(item, itemlist)
 
     else:
@@ -951,16 +950,13 @@ def add_download_items(item, itemlist):
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
                     downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
-                    downloadItem.contentTitle = '{} {}'.format(config.get_localized_string(60356), item.title)
                 else:  # film
                     downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
-                    downloadItem.title = config.get_localized_string(60354)
                 downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
                 itemlist.append(downloadItem)
             else:
                 if item.contentSeason:  # season
                     downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
-                    downloadItem.title = config.get_localized_string(60357)
                     itemlist.append(downloadItem)
                 else:  # tvshow + not seen
                     itemlist.append(downloadItem)

@@ -213,6 +213,9 @@ def run(item=None):
             # Special action for findvideos, where the plugin looks for known urls
             elif item.action == "findvideos":
                 from core import servertools
+                if item.window and item.channel != 'videolibrary':
+                    p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
+                    p_dialog.update(0)
 
                 # First checks if channel has a "findvideos" function
                 if hasattr(channel, 'findvideos'):
@@ -227,6 +230,9 @@ def run(item=None):
                     itemlist = limit_itemlist(itemlist)
 
                 if item.window:
+                    if item.channel != 'videolibrary':
+                        p_dialog.update(100)
+                        p_dialog.close()
                     platformtools.serverwindow(item, itemlist)
                 else:
                     platformtools.render_items(itemlist, item)
