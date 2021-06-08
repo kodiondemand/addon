@@ -200,6 +200,8 @@ if __name__ == "__main__":
             dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
         path_to_delete.append(filetools.dirname(film))
         it = Item().fromjson(filetools.read(film))
+        it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'movie'}
+        tmdb.find_and_set_infoLabels(it)
         videolibrarytools.save_movie(it)
     for tvshow in glob.glob(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), '*/tvshow.nfo'))):
         if not dialog:
@@ -208,20 +210,24 @@ if __name__ == "__main__":
         channels_dict = js.get('library_urls')
         if channels_dict:
             for ch, url in channels_dict.items():
-                path = xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'], '1x01 [{}].json'.format(ch)))
-
-                if filetools.exists(path):
+                dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
+                json_files = [f for f in dir if f.endswith('.json')]
+                if json_files:
                     path_to_delete.append(filetools.dirname(tvshow))
-                    it = Item().fromjson(filetools.read(path))
-                    it.infoLabels = {'code': it.infoLabels['code'], 'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
+                    nfo, it = videolibrarytools.read_nfo(tvshow)
+                    it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
                     it.contentType = 'tvshow'
+                    it.channel = ch
+                    it.url = channels_dict[ch]
                     tmdb.find_and_set_infoLabels(it)
-                    it.url = channels_dict[it.channel]
                     try:
-                        channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
+                        channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
                     except:
-                        channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
+                        channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
+                    it.host = channel.host
                     episodes = getattr(channel, 'episodios')(it)
+                    for ep in episodes:
+                        logger.debug('EPISODE URL',ep.url)
 
                     videolibrarytools.save_tvshow(it, episodes, True)
     for path in path_to_delete:
