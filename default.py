@@ -29,3 +29,8 @@ if sys.argv[2] == "":
     launcher.start()
 
 launcher.run()
+# import sqlitedict
+#
+# d = sqlitedict.SqliteDict('/home/marco/.kodi/userdata/addon_data/plugin.video.kod/videolibrary/videolibrary.sqlite', 'tvshow')
+# for k, v in d.items():
+#     print(k, v['item'])

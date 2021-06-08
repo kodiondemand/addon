@@ -505,7 +505,7 @@ def update_videolibrary(item=None):
                     for s in show['channels'].values():
                         show_list += s
 
-        t = float(100) / len(show_list)
+        t = float(100) / len(show_list) if len(show_list) > 0 else 1
         i = 0
 
         for it in show_list:

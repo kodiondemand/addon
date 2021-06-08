@@ -475,7 +475,7 @@ def scrape(func):
                                                 typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group)
                     for it in blockItemlist:
                         if 'lang' in bl:
-                            it.contentLanguage = scrapeLang(bl, it.contentLanguage, it.title)
+                            it.contentLanguage = scrapeLang(bl, it.contentLanguage)
                         if 'quality' in bl and bl['quality']:
                             it.quality = bl['quality'].strip()
                             # it.title = it.title + typo(bl['quality'].strip(), '_ [] color kod')
