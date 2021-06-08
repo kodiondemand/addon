@@ -199,7 +199,9 @@ def list_tvshows(item):
         if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or config.get_setting('no_pile_on_seasons', 'videolibrary') == 1 and len(seasons) == 1:
             it.action = 'get_episodes'
             it.all = True
-        if not it.active: it.title = '{} {}'.format(it.title, support.typo('','bullet bold'))
+        if not it.active:
+            it.title += '  [B]•[/B]'
+            it.contentTitle += '  [B]•[/B]'
 
         return it
 
@@ -211,9 +213,9 @@ def list_tvshows(item):
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
         add_context(itemlist)
-
-        itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=item.thumbnail,
-                          fanart=item.thumbnail, landscape=item.thumbnail,
+        thumbnail = thumb('videolibrary_tvshow')
+        itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=thumbnail,
+                          fanart=thumbnail, landscape=thumbnail,
                           title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     videolibrarydb.close()
     return itemlist
@@ -308,6 +310,9 @@ def findvideos(item):
 
     videolibrarytools.check_renumber_options(item)
     itemlist = []
+    if item.window:
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(50003))
+        p_dialog.update(0)
 
 
     if not item.strm_path:
@@ -331,6 +336,8 @@ def findvideos(item):
             item.infoLabels = videolibrarydb['episode'][item.videolibrary_id][ep]['item'].infoLabels
 
     videolibrarydb.close()
+    if item.window:
+        p_dialog.update(40)
 
     if videolibrary_items.get('local'):
         try:
@@ -366,6 +373,8 @@ def findvideos(item):
 
         pl = [s for s in itemlist if s.contentLanguage in [prefered_lang, '']]
         if pl: itemlist = pl
+        if item.window:
+            p_dialog.update(80)
 
 
         if len(itlist) > 1:
@@ -382,6 +391,7 @@ def findvideos(item):
         itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))
 
     if item.window:
+        p_dialog.update(100)
         platformtools.serverwindow(item, itemlist)
 
     else:
@@ -1308,8 +1318,4 @@ def get_results(nfo_path, root, Type, local=False):
 #     update_tvshow(item)
 
 #     platformtools.itemlist_refresh()
-
-
-
-
 

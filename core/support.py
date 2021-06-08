@@ -377,7 +377,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 args = item.args,
                 contentSerieName = title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
                 contentTitle = title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
-                contentLanguage = lang1 if lang1 else item.contentLanguage if item.contentLanguage else 'ITA',
+                contentLanguage = lang1 if lang1 else item.contentLanguage,
                 contentSeason = infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news = item.news if item.news else '',
@@ -1106,18 +1106,18 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
         if config.get_videolibrary_support() and len(itemlist) > 0:
             itemlist.append(
                 item.clone(channel=item.channel,
-                     title=title,
-                     fulltitle=item.fulltitle,
-                     show=item.fulltitle,
-                     contentType=contentType,
-                     contentTitle=contentTitle,
-                     contentSerieName=contentSerieName,
-                     url=item.url,
-                     action=action,
-                     from_action=item.action,
-                     extra=extra,
-                     path=item.path,
-                     thumbnail=thumb('add_to_videolibrary')
+                           title=title,
+                           fulltitle=item.fulltitle,
+                           show=item.fulltitle,
+                           contentType=contentType,
+                           contentTitle=contentTitle,
+                           contentSerieName=contentSerieName,
+                           url=item.url,
+                           action=action,
+                           from_action=item.action,
+                           extra=extra,
+                           path=item.path,
+                           thumbnail=thumb('add_to_videolibrary')
                     ))
 
     return itemlist

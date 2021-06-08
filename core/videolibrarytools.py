@@ -389,9 +389,6 @@ def check_renumber_options(item):
             json[item.fulltitle] = item.renumber
             write(item, json)
 
-    # head_nfo, tvshow_item = read_nfo(filetools.join(item.context[0]['nfo']))
-    # if tvshow_item['channel_prefs'][item.fullti]
-
 
 def save_tvshow(item, episodelist, silent=False):
     """
@@ -420,8 +417,9 @@ def save_tvshow(item, episodelist, silent=False):
         logger.debug("NOT FOUND contentSerieName or code")
         return 0, 0, -1, path  # Salimos sin guardar
 
-    contentTypeBackup = item.contentType  # Fix errors in some channels
-    item.contentType = contentTypeBackup  # Fix errors in some channels
+    # contentTypeBackup = item.contentType  # Fix errors in some channels
+    # item.contentType = contentTypeBackup  # Fix errors in some channels
+    # item.contentType = 'tvshow'
 
     # At this point we can have:
     #  scraper_return = True: An item with infoLabels with the updated information of the series
@@ -469,7 +467,7 @@ def save_tvshow(item, episodelist, silent=False):
     if not item.head_nfo:
         head_nfo = scraper.get_nfo(item)
     if not head_nfo: return 0, 0, -1, ''
-    # support.dbg()
+
     extra_info = get_fanart_tv(item)
     if not item.infoLabels.get('posters'):item.infoLabels['posters'] = []
     item.infoLabels['posters'] += extra_info['poster'].get('all',[])
@@ -487,14 +485,14 @@ def save_tvshow(item, episodelist, silent=False):
 
     item.infoLabels['mediatype'] = 'tvshow'
     item.contentType = 'tvshow'
-    item.infoLabels['title'] = item.contentSerieName
+    if item.contentSerieName: item.infoLabels['title'] = item.contentSerieName
     tvshow_item.infoLabels = item.infoLabels
     if not tvshow_item.infoLabels.get('playcount'): tvshow_item.infoLabels['playcount'] = 0
     tvshow_item.channel = 'videolibrary'
     tvshow_item.action = 'get_seasons'
     tvshow_item.nfo_path = nfo_path
     if not tvshow_item.head_nfo: tvshow_item.head_nfo = head_nfo
-    if not tvshow_item.title: tvshow_item.title = item.contentSerieName
+    if not tvshow_item.title: tvshow_item.title = item.infoLabels['title']
     if not tvshow_item.videolibrary_id: tvshow_item.videolibrary_id = _id
     if not tvshow_item.thumbnail: tvshow_item.thumbnail = item.infoLabels['thumbnail']
     if not tvshow_item.fanart: tvshow_item.fanart = item.infoLabels['fanart']
@@ -636,14 +634,14 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                 failed += 1
 
             # add strm_file if episode is not present in db or inside videolibrary path
-            if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
-                logger.debug("Creating .strm: " + strm_path)
-                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
-                filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+            # if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
+            logger.debug("Creating .strm: " + strm_path)
+            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+            filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
-                # update db if episode added
-                if failed == 0 and config.get_setting('kod_scraper'):
-                    add_video(episode_item)
+            # update db if episode added
+            if failed == 0 and config.get_setting('kod_scraper'):
+                add_video(episode_item)
 
         return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
 
@@ -883,9 +881,9 @@ def add_tvshow(item, channel=None):
             from platformcode.autorenumber import start, check
             if not check(item):
                 action = item.action
-                item.renumber = True
+                item.setrenumber = True
                 start(item)
-                item.renumber = False
+                item.setrenumber = False
                 item.action = action
                 if not item.exit:
                     return add_tvshow(item, channel)
@@ -1023,3 +1021,5 @@ def get_local_files(path, item):
                         break
 
     return local_files
+
+

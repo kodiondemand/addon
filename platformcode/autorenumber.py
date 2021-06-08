@@ -108,17 +108,14 @@ class autorenumber():
         self.manual = False
         self.auto = False
         if self.item:
+            from core.videolibrarytools import check_renumber_options
+            check_renumber_options(self.item)
             self.renumberdict = load(item)
             self.auto = config.get_setting('autorenumber', item.channel)
             self.title = self.item.fulltitle.strip()
             if item.contentSeason:
                 item.exit = True
                 return 
-            elif (self.item.channel in self.item.channel_prefs and RENUMBER in self.item.channel_prefs[item.channel] and self.title not in self.renumberdict) or self.item.renumber:
-                from core.videolibrarytools import check_renumber_options
-                # from specials.videolibrary import update_videolibrary
-                check_renumber_options(self.item)
-                # update_videolibrary(self.item)
 
             self.series = self.renumberdict.get(self.title,{})
             self.id = self.series.get(ID, 0)

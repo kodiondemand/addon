@@ -363,24 +363,25 @@ def render_items(itemlist, parent_item):
         title = item.title
         episode = ''
 
-        if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not parent_item.onlyep:
-            episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
-        elif type(item.contentEpisodeNumber) == int:
-            episode = '{:02d}'.format(item.contentEpisodeNumber)
-        if episode and item.episode2:
-            if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(e) for e in item.episode2))
-            else: episode = '{} -> {:02d}'.format(episode, item.episode2[-1])
-        if episode: title = '{}. {}'.format(episode, title)
-        if item.title2: title = '{} - {}'.format(title, item.title2)
+        if parent_item.channel not in ['videolibrary']:
+            if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not parent_item.onlyep:
+                episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
+            elif type(item.contentEpisodeNumber) == int:
+                episode = '{:02d}'.format(item.contentEpisodeNumber)
+            if episode and item.episode2:
+                if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(e) for e in item.episode2))
+                else: episode = '{} -> {:02d}'.format(episode, item.episode2[-1])
+            if episode: title = '{}. {}'.format(episode, title)
+            if item.title2: title = '{} - {}'.format(title, item.title2)
 
-        if not config.get_setting('format_title') and title[:1] not in ['[', '•']:
-            server =  typo(item.server, '_ []') if item.server else ''
-            quality =  typo(item.quality, '_ [] color kod') if item.quality else ''
-            lang =  typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
-            extra =  typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
+            if not config.get_setting('format_title') and title[:1] not in ['[', '•']:
+                server =  typo(item.server, '_ []') if item.server else ''
+                quality =  typo(item.quality, '_ [] color kod') if item.quality else ''
+                lang =  typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
+                extra =  typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
 
 
-            title = '[B]{}{}[/B]{}{}{}'.format(title, server, quality, lang, extra)
+                title = '[B]{}{}[/B]{}{}{}'.format(title, server, quality, lang, extra)
 
         listitem = xbmcgui.ListItem(title)
         art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
@@ -1614,7 +1615,7 @@ def serverwindow(item, itemlist):
                 self.close()
 
     reopen = False
-    if len(itemlist) > 0:
+    if itemlist:
         reopen = False
         while not xbmc.Monitor().abortRequested():
             played = True

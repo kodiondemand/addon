@@ -19,7 +19,7 @@ except:
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import filetools, httptools, scrapertools, db
+from core import filetools, httptools, jsontools, scrapertools, db, support
 from lib import schedule
 from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     config.verify_directories_created()
 
     import glob, xbmc
-    from core import videolibrarytools
+    from core import videolibrarytools, tmdb
     from core.item import Item
     dialog = None
     path_to_delete = []
@@ -201,18 +201,29 @@ if __name__ == "__main__":
         path_to_delete.append(filetools.dirname(film))
         it = Item().fromjson(filetools.read(film))
         videolibrarytools.save_movie(it)
-    for tvshow in glob.glob(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), '*/1x01*.json'))):
+    for tvshow in glob.glob(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), '*/tvshow.nfo'))):
         if not dialog:
             dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
-        path_to_delete.append(filetools.dirname(tvshow))
-        it = Item().fromjson(filetools.read(tvshow))
-        try:
-            channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
-        except:
-            channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
-        episodes = getattr(channel, it.action)(it)
+        js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
+        channels_dict = js.get('library_urls')
+        if channels_dict:
+            for ch, url in channels_dict.items():
+                path = xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'], '1x01 [{}].json'.format(ch)))
 
-        videolibrarytools.save_tvshow(it, episodes, True)
+                if filetools.exists(path):
+                    path_to_delete.append(filetools.dirname(tvshow))
+                    it = Item().fromjson(filetools.read(path))
+                    it.infoLabels = {'code': it.infoLabels['code'], 'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
+                    it.contentType = 'tvshow'
+                    tmdb.find_and_set_infoLabels(it)
+                    it.url = channels_dict[it.channel]
+                    try:
+                        channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
+                    except:
+                        channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
+                    episodes = getattr(channel, 'episodios')(it)
+
+                    videolibrarytools.save_tvshow(it, episodes, True)
     for path in path_to_delete:
         filetools.rmdirtree(path, True)
     if dialog:
