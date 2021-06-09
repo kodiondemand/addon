@@ -280,8 +280,9 @@ def get_episodes(item):
         it = ep['item']
 
         if it.contentSeason == item.contentSeason or item.all:
+            it.title = '{}. {}'.format(it.contentEpisodeNumber, it.title)
             if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
-                item.onlyep = True
+                it.title = '{}x{}'.format(it.contentSeason, it.title)
             it = get_host(it)
             it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
             if it.window:

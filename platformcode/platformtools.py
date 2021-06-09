@@ -329,7 +329,7 @@ def render_items(itemlist, parent_item):
 
     dirItems = []
     # for n, item in enumerate(itemlist):
-    def set_item(n ,item):
+    def set_item(n, item, parent_item):
         item.itemlistPosition = n + 1
         item_url = item.tourl()
 
@@ -362,9 +362,9 @@ def render_items(itemlist, parent_item):
 
         title = item.title
         episode = ''
-
+        # from core.support import dbg;dbg()
         if parent_item.channel not in ['videolibrary'] and title[:1] not in ['[', '•']:
-            if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not parent_item.onlyep:
+            if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:
                 episode = '{:02d}'.format(item.contentEpisodeNumber)
@@ -411,10 +411,10 @@ def render_items(itemlist, parent_item):
         listitem.addContextMenuItems(context_commands)
         return item, item_url, listitem
 
-
+    # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
     r_list = []
     with futures.ThreadPoolExecutor() as executor:
-        searchList = [executor.submit(set_item, i, item) for i, item in enumerate(itemlist)]
+        searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
         for res in futures.as_completed(searchList):
             r_list.append(res.result())
     r_list.sort(key=lambda it: it[0].itemlistPosition)
@@ -425,7 +425,7 @@ def render_items(itemlist, parent_item):
 
     if parent_item.sorted:
         if parent_item.sorted == 'year': xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
-        elif parent_item.sorted == 'name': xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
+        elif parent_item.sorted == 'name':xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
 
     if parent_item.list_type == '':
         breadcrumb = parent_item.category.capitalize()
