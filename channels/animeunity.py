@@ -220,43 +220,45 @@ def episodios(item):
 
 
 def findvideos(item):
-    def calculateToken():
-        from time import time
-        from base64 import b64encode as b64
-        import hashlib
-        o = 48
-        n = support.match('https://au-1.scws-content.net/get-ip').data
-        i = 'Yc8U6r8KjAKAepEA'
-        t = int(time() + (3600 * o))
-        l = '{}{} {}'.format(t, n, i)
-        md5 = hashlib.md5(l.encode())
-        s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
-        return s
-    token = calculateToken()
+    # def calculateToken():
+    #     from time import time
+    #     from base64 import b64encode as b64
+    #     import hashlib
+    #     o = 48
+    #     n = support.match('https://au-1.scws-content.net/get-ip').data
+    #     i = 'Yc8U6r8KjAKAepEA'
+    #     t = int(time() + (3600 * o))
+    #     l = '{}{} {}'.format(t, n, i)
+    #     md5 = hashlib.md5(l.encode())
+    #     s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
+    #     return s
+    # token = calculateToken()
 
-    url = 'https://streamingcommunityws.com/master/{}{}'.format(item.video_url, token)
+    # url = 'https://streamingcommunityws.com/master/{}{}'.format(item.video_url, token)
 
-    # support.dbg()
+    # # support.dbg()
 
-    m3u8_original = httptools.downloadpage(url, CF=False).data
+    # m3u8_original = httptools.downloadpage(url, CF=False).data
 
-    m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
-    video_res = m_video.group(1)
-    m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
-    audio_res = m_audio.group(1)
+    # m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
+    # video_res = m_video.group(1)
+    # m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
+    # audio_res = m_audio.group(1)
 
-    # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
-    video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
-    audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
+    # # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
+    # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
+    # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
 
-    m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
-    m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
+    # m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
+    # m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
 
-    file_path = 'special://temp/animeunity.m3u8'
+    # file_path = 'special://temp/animeunity.m3u8'
 
-    filetools.write(xbmc.translatePath(file_path), m3u8_original, 'w')
+    # filetools.write(xbmc.translatePath(file_path), m3u8_original, 'w')
 
-    return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=file_path, manifest = 'hls', server='directo', action='play')])
+    # return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=file_path, manifest = 'hls', server='directo', action='play')])
+    # item.url=item.video_url
+    return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
 
 
 

@@ -1,3 +1,3 @@
-from lib.megaserver.client import Client
-from lib.megaserver.server import Server
+from lib.streamingcommunity.client import Client
+from lib.streamingcommunity.server import Server
 __all__ = ['Client', 'Server']

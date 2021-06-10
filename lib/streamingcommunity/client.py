@@ -7,15 +7,15 @@ else:
     PY3 = False
     import urllib
 
-from core import httptools
+from core import httptools, jsontools
 from threading import Thread
 
 import re
 
-from lib.megaserver.file import File
-from lib.megaserver.handler import Handler
+from lib.streamingcommunity.file import File
+from lib.streamingcommunity.handler import Handler
 from platformcode import logger
-from lib.megaserver.server import Server
+from lib.streamingcommunity.server import Server
 
 
 class Client(object):
@@ -23,7 +23,7 @@ class Client(object):
                   '.m4v': 'video/mp4', '.mov': 'video/quicktime', '.mpg': 'video/mpeg','.ogv': 'video/ogg',
                   '.ogg': 'video/ogg', '.webm': 'video/webm', '.ts': 'video/mp2t', '.3gp': 'video/3gpp'}
 
-    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None, video_id):
+    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None, video_id=None):
 
         self.port = port if port else random.randint(8000,8099)
         self.ip = ip if ip else "127.0.0.1"
@@ -31,7 +31,7 @@ class Client(object):
         self.start_time = None
         self.last_connect = None
         self.is_playing_fnc = is_playing_fnc
-        self.auto_shutdown =  auto_shutdown
+        self.auto_shutdown =  False #auto_shutdown
         self.wait_time =  wait_time
         self.timeout =  timeout
         self.running = False
@@ -40,7 +40,8 @@ class Client(object):
 
         self._video_id = video_id
 
-        self._jsonData = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self.video_id), CF=False ).data
+        jsonDataStr = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self._video_id), CF=False ).data
+        self._jsonData = jsontools.load( jsonDataStr )
         self._token, self._expires = self.calculateToken( self._jsonData['client_ip'] )
 
 
@@ -54,7 +55,8 @@ class Client(object):
         t= Thread(target=self._auto_shutdown)
         t.setDaemon(True)
         t.start()
-        logger.info("MEGA Server Started")
+        logger.info("SC Server Started")
+        logger.info("SC Server Started", (self.ip, self.port))
 
     def _auto_shutdown(self):
         while self.running:
@@ -84,7 +86,7 @@ class Client(object):
     def stop(self):
         self.running = False
         self._server.stop()
-        logger.info("MEGA Server Stopped")
+        logger.info("SC Server Stopped")
 
 
     def get_play_list(self):
@@ -96,16 +98,18 @@ class Client(object):
 
 
 
-    def get_manifest_url():
-        return "http://" + self.ip + ":" + str(self.port) + "/manifest"
+    def get_manifest_url(self):
+        return "http://" + self.ip + ":" + str(self.port) + "/manifest.m3u8"
 
 
-    def get_main_manifest_content():
-        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}'.format(video_id, self._token, self._expires)
+    def get_main_manifest_content(self):
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}'.format(self._video_id, self._token, self._expires)
 
         # support.dbg()
 
         m3u8_original = httptools.downloadpage(url, CF=False).data
+
+        logger.info('CLIENT: m3u8:', m3u8_original);
 
         m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
         self._video_res = m_video.group(1)
@@ -115,9 +119,9 @@ class Client(object):
         # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
         # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
         # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
-
-        video_url = "http://" + self.ip + ":" + str(self.port) + "/video/" + self._video_res
-        audio_url = "http://" + self.ip + ":" + str(self.port) + "/audio/" + self._audio_res
+        # "http://" + self.ip + ":" + str(self.port) +
+        video_url = "/video/" + self._video_res + ".m3u8"
+        audio_url = "/audio/" + self._audio_res + ".m3u8"
 
         m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
         m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
@@ -125,8 +129,8 @@ class Client(object):
         return m3u8_original
 
 
-    def get_video_manifest_content():
-        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(video_id, self._token, self._expires, self._video_res)
+    def get_video_manifest_content(self):
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(self._video_id, self._token, self._expires, self._video_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
@@ -155,15 +159,15 @@ class Client(object):
             original_manifest = original_manifest.replace( line, url )
 
             default_start = default_start + 1
-            if default_start > default_count
+            if default_start > default_count:
                 default_start = 1
 
         return original_manifest
 
 
 
-    def get_audio_manifest_content():
-        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(video_id, self._token, self._expires, self._audio_res)
+    def get_audio_manifest_content(self):
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(self._video_id, self._token, self._expires, self._audio_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
@@ -190,7 +194,7 @@ class Client(object):
             original_manifest = original_manifest.replace( line, url )
 
             default_start = default_start + 1
-            if default_start > default_count
+            if default_start > default_count:
                 default_start = 1
 
         return original_manifest
@@ -198,7 +202,7 @@ class Client(object):
 
 
 
-    def get_enc_key(url):
+    def get_enc_key(self, url):
         enckey = httptools.downloadpage('https://streamingcommunityws.com' + url, CF=False).data
         return enckey
 
@@ -320,7 +324,7 @@ class Client(object):
       return json.loads(attr[4:]) if attr[:6] == b'MEGA{"' else False
 
 
-    def calculateToken(ip):
+    def calculateToken(self, ip):
         from time import time
         from base64 import b64encode as b64
         import hashlib

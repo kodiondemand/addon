@@ -11,6 +11,8 @@ else:
     import urlparse
     import urllib
 
+from platformcode import logger
+
 
 class Handler(BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
@@ -48,19 +50,20 @@ class Handler(BaseHTTPRequestHandler):
 
         # playlist +="NumberOfEntries=" + str(len(files))
         # playlist +="Version=2"
+        return False
 
 
 
     def do_HEAD(self):
         url=urlparse.urlparse(self.path).path
 
-        # while not self.server._client.files:
-        #     time.sleep(1)
+        logger.info('HANDLER:', url)
 
         response = None
 
-        if url=="/manifest":
+        if url=="/manifest.m3u8":
             response = self.server._client.get_main_manifest_content()
+            self.send_header("Content-Type", "application/vnd.apple.mpegurl" )
 
         elif url.startswith('/video/'):
             response = self.server._client.get_video_manifest_content()
@@ -77,10 +80,12 @@ class Handler(BaseHTTPRequestHandler):
 
         else:
 
-            self.send_response(200, 'OK')
+            self.send_response(200)
             self.send_header("Content-Length", str( len(response) ) )
-            self.finish_header()
-            self.wfile.write(response)
+            logger.info('HANDLER:', str( len(response) ), response)
+            self.wfile.write( response.encode() )
+            self.end_headers()
+            # self.wfile.close()
 
         # avoid other handlers
         return False
