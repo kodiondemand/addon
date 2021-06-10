@@ -41,58 +41,81 @@ class Handler(BaseHTTPRequestHandler):
                         break
 
     def send_pls(self, files):
-        playlist = "[playlist]\n\n"
-        for x,f in enumerate(files):
-            playlist += "File"+str(x+1)+"=http://" + self.server._client.ip + ":" + str(self.server._client.port) + "/" + urllib.quote(f.name)+"\n"
-            playlist += "Title"+str(x+1)+"=" +f.name+"\n"
+        # playlist = "[playlist]\n\n"
+        # for x,f in enumerate(files):
+        #     playlist += "File"+str(x+1)+"=http://" + self.server._client.ip + ":" + str(self.server._client.port) + "/" + urllib.quote(f.name)+"\n"
+        #     playlist += "Title"+str(x+1)+"=" +f.name+"\n"
 
-        playlist +="NumberOfEntries=" + str(len(files))
-        playlist +="Version=2"
-        self.send_response(200, 'OK')
-        self.send_header("Content-Length", str(len(playlist)))
-        self.finish_header()
-        self.wfile.write(playlist)
+        # playlist +="NumberOfEntries=" + str(len(files))
+        # playlist +="Version=2"
+
+
 
     def do_HEAD(self):
         url=urlparse.urlparse(self.path).path
 
-        while not self.server._client.files:
-            time.sleep(1)
+        # while not self.server._client.files:
+        #     time.sleep(1)
 
-        if url=="/playlist.pls":
-            self.send_pls(self.server._client.files)
-            return False
+        response = None
 
-        if PY3: filename = urllib.unquote(url)[1:]
-        else: filename = urllib.unquote(url)[1:].decode("utf-8")
+        if url=="/manifest":
+            response = self.server._client.get_main_manifest_content()
 
-        if not self.server._client.file or urllib.unquote(url)[1:] != self.server._client.file.name:
-            for f in self.server._client.files:
-                if f.name == filename:
-                    self.server._client.file = f
-                    break
+        elif url.startswith('/video/'):
+            response = self.server._client.get_video_manifest_content()
+
+        elif url.startswith('/audio/'):
+            response = self.server._client.get_audio_manifest_content()
+
+        elif url.endswith('enc.key'):
+            response = self.server._client.get_enc_key( url )
 
 
-        if self.server._client.file and filename == self.server._client.file.name:
-            range = False
-            self.offset = 0
-            size, mime = self._file_info()
-            start, end = self.parse_range(self.headers.get('Range', ""))
-            self.size = size
-
-            if start != None:
-                if end == None: end = size - 1
-                self.offset=int(start)
-                self.size=int(end) - int(start) + 1
-                range=(int(start), int(end), int(size))
-            else:
-                range = None
-
-            self.send_resp_header(mime, size, range)
-            return True
+        if response == None:
+            self.send_error(404, 'Not Found')
 
         else:
-            self.send_error(404, 'Not Found')
+
+            self.send_response(200, 'OK')
+            self.send_header("Content-Length", str( len(response) ) )
+            self.finish_header()
+            self.wfile.write(response)
+
+        # avoid other handlers
+        return False
+
+
+        # if PY3: filename = urllib.unquote(url)[1:]
+        # else: filename = urllib.unquote(url)[1:].decode("utf-8")
+
+        # if not self.server._client.file or urllib.unquote(url)[1:] != self.server._client.file.name:
+        #     for f in self.server._client.files:
+        #         if f.name == filename:
+        #             self.server._client.file = f
+        #             break
+
+
+        # if self.server._client.file and filename == self.server._client.file.name:
+        #     range = False
+        #     self.offset = 0
+        #     size, mime = self._file_info()
+        #     start, end = self.parse_range(self.headers.get('Range', ""))
+        #     self.size = size
+
+        #     if start != None:
+        #         if end == None: end = size - 1
+        #         self.offset=int(start)
+        #         self.size=int(end) - int(start) + 1
+        #         range=(int(start), int(end), int(size))
+        #     else:
+        #         range = None
+
+        #     self.send_resp_header(mime, size, range)
+        #     return True
+
+        # else:
+        #     self.send_error(404, 'Not Found')
 
 
     def _file_info(self):

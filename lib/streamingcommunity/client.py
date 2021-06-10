@@ -10,6 +10,8 @@ else:
 from core import httptools
 from threading import Thread
 
+import re
+
 from lib.megaserver.file import File
 from lib.megaserver.handler import Handler
 from platformcode import logger
@@ -21,7 +23,7 @@ class Client(object):
                   '.m4v': 'video/mp4', '.mov': 'video/quicktime', '.mpg': 'video/mpeg','.ogv': 'video/ogg',
                   '.ogg': 'video/ogg', '.webm': 'video/webm', '.ts': 'video/mp2t', '.3gp': 'video/3gpp'}
 
-    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None):
+    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None, video_id):
 
         self.port = port if port else random.randint(8000,8099)
         self.ip = ip if ip else "127.0.0.1"
@@ -36,8 +38,13 @@ class Client(object):
         self.file = None
         self.files = []
 
+        self._video_id = video_id
+
+        self._jsonData = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self.video_id), CF=False ).data
+        self._token, self._expires = self.calculateToken( self._jsonData['client_ip'] )
+
+
         self._server = Server((self.ip, self.port), Handler, client=self)
-        self.add_url(url)
         self.start()
 
     def start(self):
@@ -79,11 +86,122 @@ class Client(object):
         self._server.stop()
         logger.info("MEGA Server Stopped")
 
+
     def get_play_list(self):
         if len(self.files) > 1:
             return "http://" + self.ip + ":" + str(self.port) + "/playlist.pls"
         else:
             return "http://" + self.ip + ":" + str(self.port) + "/" + urllib.quote(self.files[0].name.encode("utf8"))
+
+
+
+
+    def get_manifest_url():
+        return "http://" + self.ip + ":" + str(self.port) + "/manifest"
+
+
+    def get_main_manifest_content():
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}'.format(video_id, self._token, self._expires)
+
+        # support.dbg()
+
+        m3u8_original = httptools.downloadpage(url, CF=False).data
+
+        m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
+        self._video_res = m_video.group(1)
+        m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
+        self._audio_res = m_audio.group(1)
+
+        # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
+        # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
+        # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
+
+        video_url = "http://" + self.ip + ":" + str(self.port) + "/video/" + self._video_res
+        audio_url = "http://" + self.ip + ":" + str(self.port) + "/audio/" + self._audio_res
+
+        m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
+        m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
+
+        return m3u8_original
+
+
+    def get_video_manifest_content():
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(video_id, self._token, self._expires, self._video_res)
+        original_manifest = httptools.downloadpage(url, CF=False).data
+
+        manifest_to_parse = original_manifest
+
+        r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
+        test2 = re.sub( r, r'http://test.com/\1', test )
+
+        default_start = jsonData[ "proxies" ]["default_start"]
+        default_count = jsonData[ "proxies" ]["default_count"]
+        default_domain = jsonData[ "proxies" ]["default_domain"]
+        storage_id = jsonData[ "storage_id" ]
+        folder_id = jsonData[ "folder_id" ]
+
+        for match in r.finditer(manifest_to_parse):
+            ts, line = match.groups()
+
+            url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/video/{video_res}/{ts}'.format(
+                default_start = default_start,
+                default_domain = default_domain,
+                storage_id = storage_id,
+                folder_id = folder_id,
+                video_res = self._video_res,
+                ts = ts
+            )
+
+            original_manifest = original_manifest.replace( line, url )
+
+            default_start = default_start + 1
+            if default_start > default_count
+                default_start = 1
+
+        return original_manifest
+
+
+
+    def get_audio_manifest_content():
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(video_id, self._token, self._expires, self._audio_res)
+        original_manifest = httptools.downloadpage(url, CF=False).data
+
+        manifest_to_parse = original_manifest
+
+        r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
+
+        default_start = jsonData[ "proxies" ]["default_start"]
+        default_count = jsonData[ "proxies" ]["default_count"]
+        default_domain = jsonData[ "proxies" ]["default_domain"]
+        storage_id = jsonData[ "storage_id" ]
+        folder_id = jsonData[ "folder_id" ]
+
+        for match in r.finditer(manifest_to_parse):
+            ts, line = match.groups()
+            url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/audio/{audio_res}/{ts}'.format(
+                default_start = default_start,
+                default_domain = default_domain,
+                storage_id = storage_id,
+                folder_id = folder_id,
+                audio_res = self._audio_res,
+                ts = ts
+            )
+
+            original_manifest = original_manifest.replace( line, url )
+
+            default_start = default_start + 1
+            if default_start > default_count
+                default_start = 1
+
+        return original_manifest
+
+
+
+
+    def get_enc_key(url):
+        enckey = httptools.downloadpage('https://streamingcommunityws.com' + url, CF=False).data
+        return enckey
+
 
     def get_files(self):
         files = []
@@ -200,3 +318,19 @@ class Client(object):
       if not attr.endswith(b"}"):
         attr = attr.rsplit(b"}", 1)[0] + b"}"
       return json.loads(attr[4:]) if attr[:6] == b'MEGA{"' else False
+
+
+    def calculateToken(ip):
+        from time import time
+        from base64 import b64encode as b64
+        import hashlib
+        o = 48
+        # n = support.match('https://au-1.scws-content.net/get-ip').data
+        i = 'Yc8U6r8KjAKAepEA'
+        t = int(time() + (3600 * o))
+        l = '{}{} {}'.format(t, ip, i)
+        md5 = hashlib.md5(l.encode())
+        #s = '?token={}&expires={}'.format(, t)
+        token = b64( md5.digest() ).decode().replace( '=', '' ).replace( '+', "-" ).replace( '\\', "_" )
+        expires = t
+        return token, expires
