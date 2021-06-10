@@ -131,9 +131,9 @@ def get_menu_items():
     logger.debug('get menu item')
     if check_condition():
         items = [(config.get_localized_string(70269), update)]
-        from core import videolibrarytools
+        from core.videolibrarytools import read_nfo
         nfo = path + 'tvshow.nfo'
-        item = videolibrarytools.read_nfo(nfo)[1]
+        item = read_nfo(nfo)[1]
         if item:
             item.nfo = nfo
             item_url = item.tourl()
@@ -144,49 +144,9 @@ def get_menu_items():
             else:
                 update_text = config.get_localized_string(60023)
                 value = 1
-            items.append((update_text,
-                          lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&title={}&action=mark_tvshow_as_updatable&channel=videolibrary&active={})".format(item_url, update_text, str(value)))))
+            items.append((update_text, lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&title={}&action=mark_tvshow_as_updatable&channel=videolibrary&active={})".format(item_url, update_text, str(value)))))
             if item.local_episodes_path == "":
                 items.append((config.get_localized_string(80048), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&action=add_local_episodes&channel=videolibrary&path={})".format(item_url, path))))
-
-        # if config.get_setting('downloadenabled'):
-        #     from core import videolibrarytools
-        #     from core import filetools
-        #     if xbmc.getInfoLabel('ListItem.FilenameAndPath'):
-        #         item = Item().fromurl(filetools.read(xbmc.getInfoLabel('ListItem.FilenameAndPath')))
-        #     else:
-        #         item = videolibrarytools.read_nfo(path + 'tvshow.nfo')[1]
-        #     if item:
-        #         item_url = item.tourl()
-        #
-        #         Download movie
-                # if mediatype == "movie":
-                #     items.append((config.get_localized_string(60354), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (item_url,
-                #                                                                                                                                    'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action))))
-                #
-                # elif item.contentSerieName:
-                #     Download series
-                    # if mediatype == "tvshow" and item.action not in ['findvideos']:
-                    #     if item.channel == 'videolibrary':
-                    #         items.append((config.get_localized_string(60003), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (
-                    #             item_url,
-                    #             'channel=downloads&action=save_download&unseen=true&from_channel=' + item.channel + '&from_action=' + item.action))))
-                    #     items.append((config.get_localized_string(60355), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (
-                    #         item_url,
-                    #         'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action))))
-                    #     items.append((config.get_localized_string(60357), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (
-                    #         item_url,
-                    #         'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action))))
-                    # Download episode
-                    # elif mediatype == "episode" and item.action in ['findvideos']:
-                    #     items.append((config.get_localized_string(60356), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (
-                    #         item_url,
-                    #         'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action))))
-                    # Download season
-                    # elif mediatype == "season":
-                    #     items.append((config.get_localized_string(60357), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?%s&%s)" % (
-                    #         item_url,
-                    #         'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action))))
 
         return items
     else:

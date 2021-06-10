@@ -3,9 +3,6 @@
 # Common Library Tools
 # ------------------------------------------------------------
 
-#from builtins import str
-# from specials import videolibrary
-from specials import videolibrary
 from platformcode.dbconverter import addVideo
 from platformcode.xbmc_videolibrary import execute_sql_kodi
 import sys
@@ -524,7 +521,7 @@ def save_tvshow(item, episodelist, silent=False):
     videolibrarydb['tvshow'][_id] = tvshowdb
 
     if not nfo_exists:
-        filetools.write(filetools.join(TVSHOWS_PATH, tvshow_item.nfo_path), head_nfo + ', kod:' + _id)
+        filetools.write(filetools.join(TVSHOWS_PATH, tvshow_item.nfo_path), head_nfo)
     # support.dbg()
     if not episodelist:
         # The episode list is empty
