@@ -632,9 +632,10 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
 
             # add strm_file if episode is not present in db or inside videolibrary path
             # if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
-            logger.debug("Creating .strm: " + strm_path)
-            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
-            filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+            if season_episode not in local_files.get('db',{}).keys():
+                logger.debug("Creating .strm: " + strm_path)
+                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
             # update db if episode added
             if failed == 0 and config.get_setting('kod_scraper'):

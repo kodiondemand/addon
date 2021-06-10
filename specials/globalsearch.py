@@ -720,7 +720,11 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.itemsResult = []
                 ep = []
                 for item in self.episodes:
-                    it = xbmcgui.ListItem(item.title)
+                    title = item.title
+                    if item.contentEpisodeNumber: title = '{:02d}. {}'.format(item.contentEpisodeNumber, title)
+                    if item.contentSeason: title = '{}x{}'.format(item.contentSeason, title)
+
+                    it = xbmcgui.ListItem(title)
                     it.setProperty('item', item.tourl())
                     ep.append(it)
 
