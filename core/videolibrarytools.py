@@ -12,10 +12,10 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3: from concurrent import futures
 else: from concurrent_py2 import futures
 
-import errno, math, traceback, re, os
+import math, traceback, re, os
 
-from core import filetools, jsontools, scraper, scrapertools, support, db, httptools, tmdb
-from core.item import InfoLabels, Item
+from core import filetools, scraper, scrapertools, support, httptools, tmdb
+from core.item import Item
 from lib import generictools
 from platformcode import config, logger, platformtools
 from platformcode.autorenumber import RENUMBER
@@ -42,75 +42,6 @@ video_extensions = ['3g2', '3gp', '3gp2', 'asf', 'avi', 'divx', 'flv', 'iso', 'm
 subtitle_extensions = ['srt', 'idx', 'sub', 'ssa', 'ass']
 image_extensions = ['.jpg', '.jpeg', '.png']
 library_extension = ['.nfo', '.strm', '.json']
-
-
-def read_nfo(path_nfo, item=None):
-    """
-    Method to read nfo files.
-        Nfo files have the following structure: url_scraper | xml + item_json [url_scraper] and [xml] are optional, but only one of them must always exist.
-    @param path_nfo: absolute path to nfo file
-    @type path_nfo: str
-    @param item: If this parameter is passed the returned item will be a copy of it with the values ​​of 'infoLabels', 'library_playcounts' and 'path' read from the nfo
-    @type: Item
-    @return: A tuple consisting of the header (head_nfo = 'url_scraper' | 'xml') and the object 'item_json'
-    @rtype: tuple (str, Item)
-    """
-    head_nfo = ""
-    it = None
-
-    data = filetools.read(path_nfo)
-
-    if data:
-        head_nfo = data.splitlines()[0] + "\n"
-        data = "\n".join(data.splitlines()[1:])
-
-        it_nfo = Item().fromjson(data)
-        if not it_nfo.library_playcounts:  # may be corrupted
-            it_nfo.library_playcounts = {}
-
-        if item:
-            it = item.clone()
-            it.infoLabels = it_nfo.infoLabels
-            if 'library_playcounts' in it_nfo:
-                it.library_playcounts = it_nfo.library_playcounts
-            if it_nfo.path:
-                it.path = it_nfo.path
-        else:
-            it = it_nfo
-
-        if 'fanart' in it.infoLabels:
-            it.fanart = it.infoLabels['fanart']
-
-    return head_nfo, it
-
-
-def set_base_name(item, _id):
-    # set base_name for videolibrary
-    logger.debug()
-    if item.contentType == 'movie':
-        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
-            base_name = item.infoLabels['originaltitle']
-        else:
-            base_name = item.contentTitle
-    else:
-        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
-            base_name = item.infoLabels['originaltitle']
-        elif item.infoLabels['tvshowtitle']:
-            base_name = item.infoLabels['tvshowtitle']
-        elif item.infoLabels['title']:
-            base_name = item.infoLabels['title']
-        else:
-            base_name = item.contentSerieName
-
-    if not PY3:
-        base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
-    else:
-        base_name = filetools.validate_path(base_name.replace('/', '-'))
-
-    if config.get_setting("lowerize_title", "videolibrary"):
-        base_name = base_name.lower()
-
-    return '{} [{}]'.format(base_name, _id)
 
 
 def save_movie(item, silent=False):
@@ -319,9 +250,9 @@ def save_movie(item, silent=False):
 
         if local_files.get('db') or local_files.get('internal'):
             if local_files.get('db'):
-                channels['local'] = local_files['db'][0]
+                channels['local']['db'] = local_files['db'][0]
             elif local_files.get('internal'):
-                channels['local']  = local_files['internal'][0]
+                channels['local']['db']  = local_files['internal'][0]
 
         moviedb['item'] = movie_item
         moviedb['channels'] = channels
@@ -352,39 +283,6 @@ def save_movie(item, silent=False):
         p_dialog.update(100, item.contentTitle)
         p_dialog.close()
     return 0, 0, -1, path
-
-def update_renumber_options(item):
-    from core import jsontools
-
-    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
-    if filetools.isfile(filename):
-        json_file = jsontools.load(filetools.read(filename))
-        json = json_file.get(RENUMBER,{}).get(item.fulltitle,{})
-    if json:
-        logger.debug('UPDATED=\n' + item.fulltitle)
-        item.renumber = json
-    return item
-
-def add_renumber_options(item):
-    from core import jsontools
-    ret = None
-    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
-    json_file = jsontools.load(filetools.read(filename))
-    if item.renumber and not json_file.get(RENUMBER,{}).get(item.fulltitle):
-        check_renumber_options(item)
-    if RENUMBER in json_file:
-        json = json_file[RENUMBER]
-        if item.fulltitle in json:
-            ret = json[item.fulltitle]
-    return ret
-
-def check_renumber_options(item):
-    from platformcode.autorenumber import load, write
-    if item.renumber:
-        json = load(item)
-        if not json or item.fulltitle not in json:
-            json[item.fulltitle] = item.renumber
-            write(item, json)
 
 
 def save_tvshow(item, episodelist, silent=False):
@@ -448,7 +346,9 @@ def save_tvshow(item, episodelist, silent=False):
     base_name = set_base_name(item, _id)
     path = filetools.join(TVSHOWS_PATH, base_name)
 
-    local_files = get_local_files(path, item)
+    item.local_episodes_path = tvshow_item.local_episodes_path
+    item, local_files = get_local_files(path, item)
+    tvshow_item.local_episodes_path = item.local_episodes_path
 
     # check if path already exist
     if not filetools.exists(path):
@@ -616,6 +516,8 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                         epchannels['local']['db'] = local_files['db'][season_episode]
                     if season_episode in list(local_files.get('internal',{}).keys()):
                         epchannels['local']['internal'] = local_files['db'][season_episode]
+                    if season_episode in list(local_files.get('connected',{}).keys()):
+                        epchannels['local']['connected'] = local_files['connected'][season_episode]
                     logger.debug('LOCALS', epchannels)
                     # if season_episode in list(local_files.get('external',{}).keys()):
                     #     epchannels['external'] = local_files['db'][season_episode]
@@ -724,6 +626,22 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                         i += 1
                         p_dialog.update(int(math.ceil(i * t)), message=e.title)
 
+    # support.dbg()
+    # for e in episodelist:
+    #     item, episode, season_episode, lang, I, O, F = save_episode(item, episodes, e)
+    #     inserted += I
+    #     overwritten += O
+    #     failed += F
+    #     if episode:
+    #         episodes[season_episode] = episode
+    #         e = episode['item']
+    #         if not e.contentSeason in current_seasons: current_seasons.append(e.contentSeason)
+    #         if not lang: lang = item.contentLanguage if item.contentLanguage else 'ITA'
+    #         if not lang in item.lang_list: item.lang_list.append(lang)
+    #         if not silent:
+    #             i += 1
+    #             p_dialog.update(int(math.ceil(i * t)), message=e.title)
+
     # set seasons as watched
     add_seasons = {}
     with futures.ThreadPoolExecutor() as executor:
@@ -764,10 +682,6 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
         p_dialog.close()
 
     return inserted, overwritten, failed
-
-
-
-
 
 
 def add_movie(item):
@@ -812,6 +726,7 @@ def add_movie(item):
                 del movies[_id]
                 videolibrarydb['movie'] = movies
             videolibrarydb.close()
+
 
 def add_tvshow(item, channel=None):
     """
@@ -1002,7 +917,7 @@ def get_local_files(path, item):
 
     else:
         # search on path:
-        internal = {scrapertools.get_season_and_episode[f]:f for f in filetools.listdir(path) if os.path.splitext(f)[1] not in excluded_extensions}
+        internal = {scrapertools.get_season_and_episode(f):f for f in filetools.listdir(path) if os.path.splitext(f)[1] not in excluded_extensions}
         if internal:
             local_files['internal'] = internal
 
@@ -1018,6 +933,125 @@ def get_local_files(path, item):
                         local_files['db'] = {scrapertools.get_season_and_episode(e[1]):e[0]+e[1] for e in ep_records if not e[1].endswith('strm')}
                         break
 
-    return local_files
+        # search on custom path
+        item = select_local_path(item)
+        if item.local_episodes_path:
+            connected = {scrapertools.get_season_and_episode(f):filetools.join(item.local_episodes_path, f) for f in filetools.listdir(item.local_episodes_path) if os.path.splitext(f)[1] not in excluded_extensions}
+            if connected:
+                local_files['connected'] = connected
+
+    return item, local_files
 
 
+def select_local_path(item):
+    if not item.local_episodes_path and config.get_setting('local_episodes'):
+        if platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % item.title):
+            local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
+            if local_episodes_path:
+                item.local_episodes_path = local_episodes_path
+    return item
+
+
+def update_renumber_options(item):
+    from core import jsontools
+
+    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
+    if filetools.isfile(filename):
+        json_file = jsontools.load(filetools.read(filename))
+        json = json_file.get(RENUMBER,{}).get(item.fulltitle,{})
+    if json:
+        logger.debug('UPDATED=\n' + item.fulltitle)
+        item.renumber = json
+    return item
+
+
+def add_renumber_options(item):
+    from core import jsontools
+    ret = None
+    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
+    json_file = jsontools.load(filetools.read(filename))
+    if item.renumber and not json_file.get(RENUMBER,{}).get(item.fulltitle):
+        check_renumber_options(item)
+    if RENUMBER in json_file:
+        json = json_file[RENUMBER]
+        if item.fulltitle in json:
+            ret = json[item.fulltitle]
+    return ret
+
+
+def check_renumber_options(item):
+    from platformcode.autorenumber import load, write
+    if item.renumber:
+        json = load(item)
+        if not json or item.fulltitle not in json:
+            json[item.fulltitle] = item.renumber
+            write(item, json)
+
+
+def read_nfo(path_nfo, item=None):
+    """
+    Method to read nfo files.
+        Nfo files have the following structure: url_scraper | xml + item_json [url_scraper] and [xml] are optional, but only one of them must always exist.
+    @param path_nfo: absolute path to nfo file
+    @type path_nfo: str
+    @param item: If this parameter is passed the returned item will be a copy of it with the values ​​of 'infoLabels', 'library_playcounts' and 'path' read from the nfo
+    @type: Item
+    @return: A tuple consisting of the header (head_nfo = 'url_scraper' | 'xml') and the object 'item_json'
+    @rtype: tuple (str, Item)
+    """
+    head_nfo = ""
+    it = None
+
+    data = filetools.read(path_nfo)
+
+    if data:
+        head_nfo = data.splitlines()[0] + "\n"
+        data = "\n".join(data.splitlines()[1:])
+
+        it_nfo = Item().fromjson(data)
+        if not it_nfo.library_playcounts:  # may be corrupted
+            it_nfo.library_playcounts = {}
+
+        if item:
+            it = item.clone()
+            it.infoLabels = it_nfo.infoLabels
+            if 'library_playcounts' in it_nfo:
+                it.library_playcounts = it_nfo.library_playcounts
+            if it_nfo.path:
+                it.path = it_nfo.path
+        else:
+            it = it_nfo
+
+        if 'fanart' in it.infoLabels:
+            it.fanart = it.infoLabels['fanart']
+
+    return head_nfo, it
+
+
+def set_base_name(item, _id):
+    # set base_name for videolibrary
+    logger.debug()
+    if item.contentType == 'movie':
+        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+            base_name = item.infoLabels['originaltitle']
+        else:
+            base_name = item.contentTitle
+    else:
+        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+            base_name = item.infoLabels['originaltitle']
+        elif item.infoLabels['tvshowtitle']:
+            base_name = item.infoLabels['tvshowtitle']
+        elif item.infoLabels['title']:
+            base_name = item.infoLabels['title']
+        else:
+            base_name = item.contentSerieName
+
+    if not PY3:
+        base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
+    else:
+        base_name = filetools.validate_path(base_name.replace('/', '-'))
+
+    if config.get_setting("lowerize_title", "videolibrary"):
+        base_name = base_name.lower()
+
+    return '{} [{}]'.format(base_name, _id)

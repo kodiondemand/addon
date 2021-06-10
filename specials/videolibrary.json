@@ -69,12 +69,6 @@
       ]
     },
     {
-      "id": "local_episodes",
-      "type": "bool",
-      "label": "@80042",
-      "default": false
-    },
-    {
       "id": "lab_1",
       "type": "label",
       "label": "@60650",

@@ -339,10 +339,10 @@ def findvideos(item):
     videolibrarydb.close()
     if item.window:
         p_dialog.update(50)
-
     if videolibrary_items.get('local'):
         try:
-            item.url = videolibrary_items['local']
+            local = videolibrary_items['local']
+            item.url = local.get('db', local.get('internal', local.get('connected')))
             if not '/' in item.url and not '\\' in item.url:
                 path = videolibrarytools.MOVIES_PATH if item.contentType == 'movie' else videolibrarytools.TVSHOWS_PATH
                 item.url = filetools.join(path, item.url)
@@ -450,7 +450,8 @@ def play(item):
         else:
             itemlist = [item.clone()]
     else:
-        itemlist = [item.clone(url=item.url, server="local")]
+        return platformtools.play_video(item.clone(url=item.url, server="local"))
+        # itemlist = [item.clone(url=item.url, server="local")]
 
     # For direct links in list format
     if isinstance(itemlist[0], list):

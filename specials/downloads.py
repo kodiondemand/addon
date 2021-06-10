@@ -863,14 +863,14 @@ def get_episodes(item):
             episodes = getattr(channel, item.contentAction)(item)
 
     itemlist = []
-    if episodes and not scrapertools.find_single_match(episodes[0].title, r'(\d+.\d+)') and item.channel not in ['videolibrary'] and item.action != 'season':
-        from platformcode.autorenumber import select_type, renumber, check
-        # support.dbg()
-        if not check(item):
-            select_type(item)
-            return get_episodes(item)
-        else:
-            renumber(episodes, item)
+    # if episodes and not scrapertools.find_single_match(episodes[0].title, r'(\d+.\d+)') and item.channel not in ['videolibrary'] and item.action != 'season':
+    #     from platformcode.autorenumber import select_type, renumber, check
+    #     # support.dbg()
+    #     if not check(item):
+    #         select_type(item)
+    #         return get_episodes(item)
+    #     else:
+    #         renumber(episodes, item)
 
     # We get the list of episodes...
     for episode in episodes:

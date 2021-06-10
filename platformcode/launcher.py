@@ -229,10 +229,9 @@ def run(item=None):
                 if config.get_setting("max_links", "videolibrary") != 0:
                     itemlist = limit_itemlist(itemlist)
 
-                if item.window:
-                    if item.channel != 'videolibrary':
-                        p_dialog.update(100)
-                        p_dialog.close()
+                if item.window and item.channel not in ['videolibrary', 'local']:
+                    p_dialog.update(100)
+                    p_dialog.close()
                     platformtools.serverwindow(item, itemlist)
                 else:
                     platformtools.render_items(itemlist, item)
