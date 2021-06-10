@@ -4,15 +4,18 @@
 from core import httptools, scrapertools
 from platformcode import config, logger
 
+
 def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
 
     data = httptools.downloadpage(page_url).data
 
-    if "File was deleted" in data or "Video is transfer on streaming server now." in data:
+    if "File was deleted" in data or "Video is transfer on streaming server now." in data \
+            or 'Conversione video in corso' in data:
         return False, config.get_localized_string(70449) % "Speedvideo"
 
     return True, ""
+
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)

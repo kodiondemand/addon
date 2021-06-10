@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https?://vidmoly.net/(?:embed-)?(\\w+)\\.html",
+        "pattern": "https?://vidmoly.(?:net|to)/(?:embed-)?(\\w+)\\.html",
         "url": "https://vidmoly.net/embed-\\1.html"
       },
       {

@@ -10,13 +10,13 @@ from platformcode import logger
 from platformcode import config
 
 
-def findhost(url):
-    permUrl = httptools.downloadpage(url).data
-    host = scrapertools.find_single_match(permUrl, r'<a href="([^"]+)')
-    return host
+# def findhost(url):
+#     permUrl = httptools.downloadpage(url).data
+#     host = scrapertools.find_single_match(permUrl, r'<a href="([^"]+)')
+#     return host
 
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 headers = [['Referer', host]]
 
 player_iframe = r'<iframe.*?src="([^"]+)"[^>]+></iframe>\s*<div class="player'
@@ -133,7 +133,7 @@ def search(item, texto):
 @support.scrape
 def newest(categoria):
     if categoria == 'series':
-        item = Item(url=host + '/aggiornamenti-giornalieri-serie-tv-2')
+        item = Item(url=host + '/aggiornamenti-giornalieri-serie-tv')
         data = support.match(item).data.replace('<u>','').replace('</u>','')
         item.contentType = 'episode'
         patronBlock = r'Aggiornamenti Giornalieri Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'

@@ -35,18 +35,17 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     support.info()
-    #debug = True
+    # debug = True
     #debugBlock = True
+    # support.dbg()
 
     if item.args != 'newest':
         patronBlock = r'<ul class="posts">(?P<block>.*)<\/ul>'
         patron = r'<li><a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\[(?P<lang>Sub-ITA)\])?(?:[ ]\[?(?P<quality>[HD]+)?\])?(?:[ ]\((?P<year>\d+)\)?)?<\/div>'
-        patronNext = r'<a href="([^"]+)" >Pagina'
-
+        patronNext = r'<a href="([^"]+)[^>]+>Pagina'
     else:
         patronBlock = r'<ul class="posts">(?P<block>.*)<div class="clear[^"]*">'
         patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\s\[(?P<quality>HD)\])?<\/div><div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
-        pagination = ''
 
     if item.args == 'search':
         action = 'select'
@@ -58,7 +57,7 @@ def peliculas(item):
         action = 'select'
 
     def itemHook(item):
-        item.title = item.title.replace(r'-', ' ')
+        item.title = item.title.replace(' - La Serie', '')
         return item
 
     return locals()

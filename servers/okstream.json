@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "okstream.cc/([0-9a-zA-Z]+)",
+        "pattern": "okstream.cc/(?:e)?/([0-9a-zA-Z]+)",
         "url": "https://www.okstream.cc/e/\\1"
       }
     ]

@@ -6,6 +6,7 @@
 from __future__ import division
 
 # from builtins import str
+import random
 import sys
 
 from channelselector import get_thumb
@@ -199,6 +200,8 @@ def youtube_search(item):
     else:
         title = urllib.quote(title)
         title = title.replace("%20", "+")
+        httptools.set_cookies({'domain': 'youtube.com', 'name': 'CONSENT',
+                               'value': 'YES+cb.20210328-17-p0.en+FX+' + str(random.randint(100, 999))})
         data = httptools.downloadpage("https://www.youtube.com/results?sp=EgIQAQ%253D%253D&search_query=" + title).data
     patron = r'thumbnails":\[\{"url":"(https://i.ytimg.com/vi[^"]+).*?'
     patron += r'text":"([^"]+).*?'

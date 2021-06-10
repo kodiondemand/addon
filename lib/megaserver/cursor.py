@@ -4,6 +4,7 @@ if sys.version_info[0] >= 3:
     from urllib.request import Request, urlopen
 else:
     from urllib2 import Request, urlopen
+    str = unicode
 
 
 class Cursor(object):
@@ -62,6 +63,7 @@ class Cursor(object):
         if len(self._file.cursors) == 0: self._file.cursor = False
 
     def decode(self, data):
+        if type(data) == str: data = data.encode()
         return self.decryptor.decrypt(data)
 
     def prepare_decoder(self,offset):

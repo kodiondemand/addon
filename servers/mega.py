@@ -48,15 +48,15 @@ def test_video_exists(page_url):
              -17: 'The request exceeds your allowable transfer fee',
              -18: types + ' temporarily unavailable, please try again later'
     }
-    api = 'https://g.api.mega.co.nz/cs?id=%d%s' % (seqno, get)
-    req_api = httptools.downloadpage(api, post=json.dumps([post])).data
+    api = 'https://g.api.mega.co.nz/cs?id={}{}'.format(seqno, get)
+    req_api = httptools.downloadpage(api, post=json.dumps([post])).json
     if isfolder:
-        req_api = json.loads(req_api)
+        req_api = req_api
     else:
         try:
-            req_api = json.loads(req_api)[0]
+            req_api = req_api[0]
         except:
-            req_api = json.loads(req_api)
+            req_api = req_api
     logger.error(req_api)
     if isinstance(req_api, (int, long)):
         if req_api in codes:
@@ -82,8 +82,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
-    # si hay mas de 5 archivos crea un playlist con todos
-    # Esta función (la de la playlist) no va, hay que ojear megaserver/handler.py aunque la llamada este en client.py
+    # If there are more than 5 files create a playlist with all
+    # This function (the playlist) does not go, you have to browse megaserver / handler.py although the call is in client.py
     if len(files) > 5:
         media_url = c.get_play_list()
         video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [mega]", media_url])

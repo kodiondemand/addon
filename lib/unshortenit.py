@@ -36,7 +36,7 @@ class UnshortenIt(object):
     _anonymz_regex = r'anonymz\.com'
     _shrink_service_regex = r'shrink-service\.it'
     _rapidcrypt_regex = r'rapidcrypt\.net'
-    _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
+    # _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
     _linkup_regex = r'linkup\.pro|buckler.link'
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
@@ -48,7 +48,7 @@ class UnshortenIt(object):
     _simple_redirect = r'streamcrypt\.net/[^/]+'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
-                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _vcrypt_regex, _linkup_regex, _linkhub_regex,
+                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
                  _swzz_regex, _stayonline_regex, _snip_regex, _simple_redirect]
 
     _maxretries = 5
@@ -85,8 +85,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_rapidcrypt(uri)
             if re.search(self._simple_iframe_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_simple_iframe(uri)
-            if re.search(self._vcrypt_regex, uri, re.IGNORECASE):
-                uri, code = self._unshorten_vcrypt(uri)
+            # if re.search(self._vcrypt_regex, uri, re.IGNORECASE):
+            #     uri, code = self._unshorten_vcrypt(uri)
             if re.search(self._linkup_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_linkup(uri)
             if re.search(self._linkhub_regex, uri, re.IGNORECASE):
@@ -556,6 +556,8 @@ class UnshortenIt(object):
                 # fix by greko inizio
                 if not link:
                     link = re.findall('action="(?:[^/]+.*?/[^/]+/([a-zA-Z0-9_]+))">', r.data)
+                if not link:
+                    link = scrapertools.find_single_match(r.data, '\$\("a\.redirect"\)\.attr\("href",\s*"\s*(http[^"]+)')
                 if link:
                     uri = link
             short = re.findall('^https?://.*?(https?://.*)', uri)

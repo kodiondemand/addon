@@ -12,14 +12,10 @@
   </extension>
   <extension point="kodi.context.item">
     <menu id="kodi.core.main">
-      <item library="updatetvshow.py">
-        <label>70269</label>
-        <visible>String.IsEqual(ListItem.dbtype, tvshow) + !String.IsEmpty(ListItem.DBID)</visible>
+      <item library="contextmenu.py">
+        <label>90001</label>
+        <visible>!String.StartsWith(ListItem.FileNameAndPath, plugin://plugin.video.kod/) + [ String.IsEqual(ListItem.dbtype, tvshow) | String.IsEqual(ListItem.dbtype, movie) | String.IsEqual(ListItem.dbtype, season) | String.IsEqual(ListItem.dbtype, episode) ]</visible>
       </item>
-<!--      <item library="externalsearch.py">-->
-<!--        <label>90001</label>-->
-<!--        <visible>!String.StartsWith(ListItem.FileNameAndPath, plugin://plugin.video.kod/) + [String.IsEqual(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie)]</visible>-->
-<!--      </item>-->
     </menu>
   </extension>
   <extension point="xbmc.addon.metadata">

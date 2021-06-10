@@ -1,7 +1,7 @@
 {
     "id": "wstream",
     "name": "Wstream",
-    "active": true,
+    "active": false,
     "free": true,
     
     "find_videos": {

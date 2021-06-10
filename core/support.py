@@ -34,8 +34,9 @@ def hdpass_get_servers(item):
         for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
             mir_url = scrapertools.decodeHtmlentities(mir_url)
             logger.debug(mir_url)
-            it = item.clone(action="play", quality=quality, title=srv, server=srv, url= mir_url)
-            if not servertools.get_server_parameters(srv.lower()): it = hdpass_get_url(it)[0]   # do not exists or it's empty
+            it = hdpass_get_url(item.clone(action='play', quality=quality, url=mir_url))[0]
+            # it = item.clone(action="play", quality=quality, title=srv, server=srv, url= mir_url)
+            # if not servertools.get_server_parameters(srv.lower()): it = hdpass_get_url(it)[0]   # do not exists or it's empty
             ret.append(it)
         return ret
     # Carica la pagina
@@ -1143,7 +1144,10 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
     if next_page != "":
         if resub: next_page = re.sub(resub[0], resub[1], next_page)
         if 'http' not in next_page:
-            next_page = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (next_page if next_page.startswith('/') else '/' + next_page)
+            if '/' in next_page:
+                next_page = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (next_page if next_page.startswith('/') else '/' + next_page)
+            else:
+                next_page = '/'.join(item.url.split('/')[:-1]) + '/' + next_page
         next_page = next_page.replace('&amp;', '&')
         logger.debug('NEXT= ', next_page)
         itemlist.append(
@@ -1370,15 +1374,27 @@ def addQualityTag(item, itemlist, data, patron):
             info('nessun tag qualità trovato')
 
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
+    from core import jsontools
+
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources:\s*\[([^\]]+)\]') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources:\s*([^\]]+\])') if not dataIsBlock else data
     if block:
-        if 'file:' in block:
-            sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
-        elif 'src:' in block:
-            sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+        json = jsontools.load(block)
+        if json:
+            sources = []
+            for s in json:
+                if 'file' in s.keys():
+                    src = s['file']
+                else:
+                    src = s['src']
+                sources.append((src, s.get('label')))
         else:
-            sources =[(block.replace('"',''), '')]
+            if 'file:' in block:
+                sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
+            elif 'src:' in block:
+                sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+            else:
+                sources =[(block.replace('"',''), '')]
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':

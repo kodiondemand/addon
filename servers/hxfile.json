@@ -1,0 +1,42 @@
+{
+  "active": true,
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "https?://hxfile.co/(?!api)(?:embed-)?([A-z0-9]+)",
+        "url": "https://hxfile.co/embed-\\1.html"
+      }
+    ]
+  },
+  "free": true,
+  "id": "hxfile",
+  "name": "HxFile",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@70708",
+      "type": "bool",
+      "visible": true
+    },
+    {
+      "default": 0,
+      "enabled": true,
+      "id": "favorites_servers_list",
+      "label": "@60655",
+      "lvalues": [
+        "No",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "type": "list",
+      "visible": false
+    }
+  ],
+  "thumbnail": "hxfile.png"
+}

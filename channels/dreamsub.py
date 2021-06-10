@@ -29,6 +29,7 @@ def mainlist(item):
 def menu(item):
     item.contentType = ''
     action = 'peliculas'
+    
 
     patronBlock = r'<div class="filter-header"><b>%s</b>(?P<block>.*?)<div class="filter-box">' % item.args
     patronMenu = r'<a class="[^"]+" data-state="[^"]+" (?P<other>[^>]+)>[^>]+></i>[^>]+></i>[^>]+></i>(?P<title>[^>]+)</a>'
@@ -89,7 +90,7 @@ def peliculas(item):
         patronBlock = r'<div id="%s"[^>]+>(?P<block>.*?)<div class="vistaDettagliata"' % item.args[1]
         patron = r'<li>\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="thumb">[^>]+>[^>]+>[^>]+>\s*[EePp]+\s*(?P<episode>\d+)[^>]+>\s<img src="(?P<thumb>[^"]+)"'
     else:
-        patron = r'<div class="showStreaming"> +<b>(?P<title>[^<]+)[^>]+>[^>]+>\s*<span>Lingua:\s*(?P<lang>[^>]+)?>[<>br\s]+a href="(?P<url>[^"]+)"[^>]+>.*?--image-url:url\(/*(?P<thumb>[^\)]+).*?Anno di inizio</b>:\s*(?P<year>[0-9]{4})'
+        patron = r'<div class="showStreaming">\s*<b>(?P<title>[^<]+)[^>]+>[^>]+>\s*<span>Lingua:\s*(?:DUB|JAP)?\s*(?P<lang>(?:SUB )?ITA)[^>]+>[<>br\s]+a href="(?P<url>[^"]+)"[^>]+>.*?--image-url:url\(/*(?P<thumb>[^\)]+).*?Anno di inizio</b>:\s*(?P<year>[0-9]{4})'
         patronNext = '<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">'
 
     def itemHook(item):
@@ -128,7 +129,6 @@ def findvideos(item):
     if 'vvvvid' in matches.data:
         itemlist.append(item.clone(action="play", title='VVVVID', url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match, server='vvvvid'))
     else:
-    # matches.matches.sort()
         support.info('VIDEO')
         for url in matches.matches:
             lang = url.split('/')[-2]
@@ -139,8 +139,6 @@ def findvideos(item):
             quality = url.split('/')[-1].split('?')[0]
             url += '|User-Agent=' + support.httptools.get_user_agent() + '&Referer=' + url
 
-            itemlist.append(item.clone(action="play", title=language, url=url, contentLanguage = language, quality = quality, order = quality.replace('p','').zfill(4), server='directo',))
-
-    itemlist.sort(key=lambda x: (x.title, x.order), reverse=False)
+            itemlist.append(item.clone(action="play", title='', url=url, contentLanguage = language, quality = quality, order = quality.replace('p','').zfill(4), server='directo',))
     return support.server(item, itemlist=itemlist)
 
