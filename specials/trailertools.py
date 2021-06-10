@@ -6,6 +6,7 @@
 from __future__ import division
 
 # from builtins import str
+import random
 import sys
 
 from channelselector import get_thumb
@@ -165,9 +166,9 @@ def tmdb_trailers(item, dialog, tipo="movie"):
     itemlist = []
     tmdb_search = None
     if item.infoLabels['tmdb_id']:
-        tmdb_search = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo, idioma_busqueda=def_lang)
+        tmdb_search = Tmdb(id_Tmdb=item.infoLabels['tmdb_id'], tipo=tipo, search_language=def_lang)
     elif item.infoLabels['year']:
-        tmdb_search = Tmdb(texto_buscado=item.contentTitle, tipo=tipo, year=item.infoLabels['year'])
+        tmdb_search = Tmdb(searched_text=item.contentTitle, tipo=tipo, year=item.infoLabels['year'])
 
     if tmdb_search:
         found = False
@@ -199,6 +200,8 @@ def youtube_search(item):
     else:
         title = urllib.quote(title)
         title = title.replace("%20", "+")
+        httptools.set_cookies({'domain': 'youtube.com', 'name': 'CONSENT',
+                               'value': 'YES+cb.20210328-17-p0.en+FX+' + str(random.randint(100, 999))})
         data = httptools.downloadpage("https://www.youtube.com/results?sp=EgIQAQ%253D%253D&search_query=" + title).data
     patron = r'thumbnails":\[\{"url":"(https://i.ytimg.com/vi[^"]+).*?'
     patron += r'text":"([^"]+).*?'

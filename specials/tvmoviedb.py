@@ -242,7 +242,7 @@ def mal(item):
 
     itemlist.append(item.clone(title=config.get_localized_string(70058), url="https://myanimelist.net/topanime.php?type=tv&limit=0", action="top_mal", contentType="tvshow", args="tv"))
     itemlist.append(item.clone(title=config.get_localized_string(70059), url="https://myanimelist.net/topanime.php?type=movie&limit=0", action="top_mal", contentType="movie", args="movie"))
-    itemlist.append(item.clone(title=config.get_localized_string(70061), url="https://myanimelist.net/topanime.php?type=ova&limit=0", action="top_mal", contentType="tvshow", args="tv", tipo="ova"))
+    itemlist.append(item.clone(title=config.get_localized_string(70061), url="https://myanimelist.net/topanime.php?type=ova&limit=0", action="top_mal", contentType="tvshow", args="tv", Type="ova"))
     itemlist.append(item.clone(title=config.get_localized_string(70028), url="https://myanimelist.net/topanime.php?type=bypopularity&limit=0", action="top_mal"))
     itemlist.append(item.clone(title=config.get_localized_string(70060), url="https://myanimelist.net/topanime.php?type=upcoming&limit=0", action="top_mal"))
     itemlist.append(item.clone(title=config.get_localized_string(70062), url="", action="indices_mal"))
@@ -267,15 +267,15 @@ def list_tmdb(item):
     # List of actors
     if 'nm' in item.infoLabels['imdb_id']:
         try:
-            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
+            ob_tmdb = Tmdb(discover=item.search, search_type=item.args, search_language=langt)
             id_cast = ob_tmdb.result["person_results"][0]["id"]
             if item.contentType == "movie": item.search = {'url': 'discover/movie', 'with_cast': id_cast, 'page': item.pagina, 'sort_by': 'primary_release_date.desc', 'language': langt}
             else:item.search = {'url': 'person/%s/tv_credits' % id_cast, 'language': langt}
-            ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
+            ob_tmdb = Tmdb(discover=item.search, search_type=item.args, search_language=langt)
         except:
             pass
     else:
-        ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(discover=item.search, search_type=item.args, search_language=langt)
 
     # Sagas and collections
     if "collection" in item.search["url"]:
@@ -307,8 +307,8 @@ def list_tmdb(item):
                 new_item.infoLabels = ob_tmdb.get_infoLabels(new_item.infoLabels, origen=ob_tmdb.results[i])
                 # If there is no synopsis in the chosen language, search in the alternative
                 if not new_item.infoLabels["plot"] and not 'person' in item.search["url"]:
-                    ob_tmdb2 = Tmdb(id_Tmdb=new_item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=langt_alt)
-                    new_item.infoLabels["plot"] = ob_tmdb2.get_sinopsis()
+                    ob_tmdb2 = Tmdb(id_Tmdb=new_item.infoLabels["tmdb_id"], search_type=item.args, search_language=langt_alt)
+                    new_item.infoLabels["plot"] = ob_tmdb2.get_plot()
                 if new_item.infoLabels['thumbnail']:
                     new_item.thumbnail = new_item.infoLabels['thumbnail']
                 elif new_item.infoLabels['profile_path']:
@@ -375,10 +375,10 @@ def details(item):
         pics = match(data, patron=r'showAllVidsAndPics.*?href=".*?(tt\d+)').match
         if pics: images["imdb"] = {'url': 'http://www.imdb.com/_json/title/%s/mediaviewer' % pics}
 
-        ob_tmdb = Tmdb(external_id=item.infoLabels["imdb_id"], external_source="imdb_id", tipo=item.args, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(external_id=item.infoLabels["imdb_id"], external_source="imdb_id", search_type=item.args, search_language=langt)
         item.infoLabels["tmdb_id"] = ob_tmdb.get_id()
 
-    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=langt)
+    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], search_type=item.args, search_language=langt)
 
     try:
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
@@ -420,7 +420,7 @@ def details(item):
             itemlist.append(item.clone(channel='search', action="search", search_text=item.infoLabels['originaltitle'], title=config.get_localized_string(70070) % item.infoLabels['originaltitle'], mode=item.contentType))
 
     # if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-    #     tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=def_lang)
+    #     tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], search_type=item.args, search_language=def_lang)
     #     if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle and tmdb_lang.result["title"] != item.infoLabels['originaltitle']:
     #         tmdb_lang = tmdb_lang.result["title"]
     #         itemlist.append(item.clone(channel='search', action="search", title=config.get_localized_string(70066) % tmdb_lang, contentTitle=tmdb_lang, mode=item.contentType))
@@ -500,7 +500,7 @@ def distribution(item):
     itemlist = []
     item.args=item.contentType.replace('tvshow','tv')
     item.search = {'url': '%s/%s/credits' % (item.args, item.infoLabels['tmdb_id'])}
-    ob_tmdb = Tmdb(discover=item.search, tipo=item.args, idioma_busqueda=langt)
+    ob_tmdb = Tmdb(discover=item.search, search_type=item.args, search_language=langt)
 
     try:
         cast = ob_tmdb.result["cast"]
@@ -545,7 +545,7 @@ def distribution(item):
 def info_seasons(item):
     # Season and episode info
     itemlist = []
-    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo="tv", idioma_busqueda=langt)
+    ob_tmdb = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], search_type="tv", search_language=langt)
     logger.info(item.infoLabels)
 
     for temp in range(int(item.infoLabels["number_of_seasons"]), 0, -1):
@@ -1217,19 +1217,19 @@ def indices_imdb(item):
 #     item_tmdb = item.clone()
 
 #     if item.contentType == "movie":
-#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args,
-#                        idioma_busqueda=langt)
+#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], search_type=item_tmdb.args,
+#                        search_language=langt)
 #         if not ob_tmdb.result:
 #             ob_tmdb = Tmdb(text_buscado=item_tmdb.infoLabels['originaltitle'], year=item_tmdb.infoLabels['year'],
-#                            tipo=item_tmdb.args, idioma_busqueda=langt)
+#                            search_type=item_tmdb.args, search_language=langt)
 #     else:
-#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_busqueda=langt)
+#         ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, search_type=item_tmdb.args, search_language=langt)
 #         if not ob_tmdb.result:
-#             ob_tmdb = Tmdb(text_buscado=item_tmdb.infoLabels['tvshowtitle'], tipo=item_tmdb.args,
-#                            idioma_busqueda=langt)
+#             ob_tmdb = Tmdb(text_buscado=item_tmdb.infoLabels['tvshowtitle'], search_type=item_tmdb.args,
+#                            search_language=langt)
 
 #     if ob_tmdb.result:
-#         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_busqueda=langt)
+#         ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), search_type=item_tmdb.args, search_language=langt)
 #         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
 #         # If there is no synopsis in the chosen language, search in the alternative
@@ -1289,7 +1289,7 @@ def indices_imdb(item):
 #                                    title=config.get_localized_string(70070) % item.infoLabels['originaltitle']))
 
 #     if langt != "es" and langt != "en" and item.infoLabels["tmdb_id"]:
-#         tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], tipo=item.args, idioma_busqueda=def_lang)
+#         tmdb_lang = Tmdb(id_Tmdb=item.infoLabels["tmdb_id"], search_type=item.args, search_language=def_lang)
 #         if tmdb_lang.result.get("title") and tmdb_lang.result["title"] != item.contentTitle:
 #             tmdb_lang = tmdb_lang.result["title"]
 #             itemlist.append(item.clone(action="searching", title=config.get_localized_string(70066) % tmdb_lang,
@@ -1778,11 +1778,11 @@ def imagenes(item):
         for key, value in item.images.items():
             if key == "tmdb" and "Tmdb" in item.title:
                 if item.folder:
-                    for tipo, child in value.iteritems():
+                    for Type, child in value.iteritems():
                         for i, imagen in enumerate(child):
                             thumb = 'https://image.tmdb.org/t/p/w500' + imagen["file_path"]
                             fanart = 'https://image.tmdb.org/t/p/original' + imagen["file_path"]
-                            title = "   %s %s [%sx%s]" % (tipo.capitalize(), i + 1, imagen["width"], imagen["height"])
+                            title = "   %s %s [%sx%s]" % (Type.capitalize(), i + 1, imagen["width"], imagen["height"])
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
                                                  title=title, infoLabels=item.infoLabels))
                 else:
@@ -1790,11 +1790,11 @@ def imagenes(item):
 
             elif key == "fanart.tv":
                 if item.folder:
-                    for tipo, child in value.iteritems():
+                    for Type, child in value.iteritems():
                         for i, imagen in enumerate(child):
                             thumb = imagen["url"].replace("/fanart/", "/preview/")
                             fanart = imagen["url"]
-                            title = "   %s %s [%s]" % (tipo.capitalize(), i + 1, imagen["lang"])
+                            title = "   %s %s [%s]" % (Type.capitalize(), i + 1, imagen["lang"])
                             itemlist.append(Item(channel=item.channel, action="", thumbnail=thumb, fanart=fanart,
                                                  title=title, infoLabels=item.infoLabels))
                 else:
@@ -1838,7 +1838,7 @@ def fanartv(item):
     id_search = item.infoLabels['tmdb_id']
     if item.contentType == "tvshow" and id_search:
         search = {'url': 'tv/%s/external_ids' % item.infoLabels['tmdb_id'], 'language': langt}
-        ob_tmdb = Tmdb(discover=search, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(discover=search, search_language=langt)
         id_search = ob_tmdb.result.get("tvdb_id")
 
     resultado = False
@@ -1869,27 +1869,27 @@ def menu_trakt(item):
     # Menu with trakt account actions (views, watchlist, collection)
     itemlist = []
     token_auth = config.get_setting("token_trakt", "trakt")
-    tipo = item.args.replace("tv", "show") + "s"
+    Type = item.args.replace("tv", "show") + "s"
     title = item.contentType.replace("movie", config.get_localized_string(70283)).replace("tvshow", config.get_localized_string(30123))
     try:
-        result = acciones_trakt(item.clone(url="sync/watched/%s" % tipo))
-        post = {tipo: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
+        result = acciones_trakt(item.clone(url="sync/watched/%s" % Type))
+        post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if '"tmdb":%s' % item.infoLabels["tmdb_id"] in result: itemlist.append(item.clone(title=config.get_localized_string(70341) % title, action="acciones_trakt", url="sync/history/remove", post=post))
         else: itemlist.append(item.clone(title=config.get_localized_string(70342) % title, action="acciones_trakt", url="sync/history", post=post))
     except:
         pass
 
     try:
-        result = acciones_trakt(item.clone(url="sync/watchlist/%s" % tipo))
-        post = {tipo: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
+        result = acciones_trakt(item.clone(url="sync/watchlist/%s" % Type))
+        post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if '"tmdb":%s' % item.infoLabels["tmdb_id"] in result: itemlist.append(item.clone(title=config.get_localized_string(70343) % title, action="acciones_trakt", url="sync/watchlist/remove", post=post))
         else: itemlist.append(item.clone(title=config.get_localized_string(70344) % title, action="acciones_trakt", url="sync/watchlist", post=post))
     except:
         pass
 
     try:
-        result = acciones_trakt(item.clone(url="sync/collection/%s" % tipo))
-        post = {tipo: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
+        result = acciones_trakt(item.clone(url="sync/collection/%s" % Type))
+        post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if '"tmdb":%s' % item.infoLabels["tmdb_id"] in result: itemlist.append(item.clone(title=config.get_localized_string(70345) % title, action="acciones_trakt", url="sync/collection/remove", post=post))
         else: itemlist.append(item.clone(title=config.get_localized_string(70346) % title, action="acciones_trakt", url="sync/collection", post=post))
     except:
@@ -2104,7 +2104,7 @@ def details_mal(item):
     title_mal = item.contentTitle
     if not item.args:
         args = match(data, patron=r'Type:</span>.*?>([^<]+)</a>').match.lower()
-        item.tipo = args
+        item.type = args
         if args == "movie" or args == "special":
             item.args = "movie"
             item.contentType = "movie"
@@ -2124,25 +2124,25 @@ def details_mal(item):
     item_tmdb = item.clone()
 
     if item.contentType == "movie":
-        ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, year=item_tmdb.infoLabels['year'], search_type=item_tmdb.args, search_language=langt)
         if not ob_tmdb.result and eng_title:
-            ob_tmdb = Tmdb(text_buscado=eng_title, year=item_tmdb.infoLabels['year'], tipo=item_tmdb.args, idioma_busqueda=langt)
-        if not ob_tmdb.result and ("Special (" in item.title or item.tipo == "special"):
+            ob_tmdb = Tmdb(text_buscado=eng_title, year=item_tmdb.infoLabels['year'], search_type=item_tmdb.args, search_language=langt)
+        if not ob_tmdb.result and ("Special (" in item.title or item.type == "special"):
             item_tmdb.args = "tv"
             search = {'url': 'search/tv', 'language': langt, 'query': item_tmdb.contentTitle, 'first_air_date': item_tmdb.infoLabels["year"]}
-            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
+            ob_tmdb = Tmdb(discover=search, search_type=item_tmdb.args, search_language=langt)
     else:
         search = {'url': 'search/tv', 'language': langt, 'query': eng_title, 'first_air_date': item_tmdb.infoLabels["year"]}
-        ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(discover=search, search_type=item_tmdb.args, search_language=langt)
         if not ob_tmdb.result and eng_title:
             search['query'] = eng_title
-            ob_tmdb = Tmdb(discover=search, tipo=item_tmdb.args, idioma_busqueda=langt)
-        if not ob_tmdb.result and ("OVA (" in item.title or item.tipo == "ova"):
+            ob_tmdb = Tmdb(discover=search, search_type=item_tmdb.args, search_language=langt)
+        if not ob_tmdb.result and ("OVA (" in item.title or item.type == "ova"):
             item_tmdb.args = "movie"
-            ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, tipo=item_tmdb.args, idioma_busqueda=langt, year=item_tmdb.infoLabels['year'])
+            ob_tmdb = Tmdb(text_buscado=item_tmdb.contentTitle, search_type=item_tmdb.args, search_language=langt, year=item_tmdb.infoLabels['year'])
 
     if ob_tmdb.result:
-        ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), tipo=item_tmdb.args, idioma_busqueda=langt)
+        ob_tmdb = Tmdb(id_Tmdb=ob_tmdb.get_id(), search_type=item_tmdb.args, search_language=langt)
         item.infoLabels = ob_tmdb.get_infoLabels(item.infoLabels)
 
     # Myanimelist synopsis is concatenated with that of tmdb if any
@@ -2389,10 +2389,10 @@ def season_mal(item):
             matches = match(block, patron=patron, debug=True).matches
             if matches:
                 itemlist.append(Item(channel=item.channel, action="", title=head_title, ))
-            for url, scrapedtitle, episode, genres, thumb, plot, tipo, year, score in matches:
+            for url, scrapedtitle, episode, genres, thumb, plot, Type, year, score in matches:
                 if ("Hentai" in genres or "Yaoi" in genres or "Yuri" in genres) and adult_mal: continue
                 scrapedtitle = scrapedtitle.replace("(TV)", "").replace("(Movie)", "")
-                if tipo == "Movie": title = scrapedtitle + "   (%s)" % year
+                if Type == "Movie": title = scrapedtitle + "   (%s)" % year
                 else: title = scrapedtitle + "   %ss (%s)" % (episode, year)
                 infoLabels = {}
                 if score != "N/A":
@@ -2403,23 +2403,23 @@ def season_mal(item):
 
                 genres = match(genres, patron=r'title="([^"]+)"').matches
                 infoLabels["genre"] = ", ".join(genres)
-                tipo = tipo.lower()
-                if tipo == "movie" or tipo == "special":
+                Type = Type.lower()
+                if Type == "movie" or Type == "special":
                     args = "movie"
                     contentType = "movie"
                 else:
                     args = "tv"
                     contentType = "tvshow"
                 thumb = thumb.replace("r/167x242/", "") + "l.jpg"
-                itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title, thumbnail=thumb, infoLabels=infoLabels, args=args, tipo=tipo, contentTitle=scrapedtitle, contentType=contentType, fanart=default_fan))
+                itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title, thumbnail=thumb, infoLabels=infoLabels, args=args, Type=Type, contentTitle=scrapedtitle, contentType=contentType, fanart=default_fan))
     else:
         patron = r'<a href="([^"]+)" class="link-title">([^<]+)</a>.*?<span>(\? ep|\d+ ep).*?<div class="genres-inner js-genre-inner">(.*?)</div>.*?<div class="image".*?src="([^"]+).*?<span class="preline">(.*?)</span>.*?<div class="info">\s*(.*?)\s*-.*?(\d{4}).*?title="Score">\s*(N/A|\d\.\d+)'
         matches = match(data, patron=patron).matches
-        for url, scrapedtitle, epis, scrapedgenres, thumbnail, plot, tipo, year, score in matches:
+        for url, scrapedtitle, epis, scrapedgenres, thumbnail, plot, Type, year, score in matches:
             if ("Hentai" in scrapedgenres or "Yaoi" in scrapedgenres or "Yuri" in scrapedgenres) and not adult_mal:
                 continue
             scrapedtitle = scrapedtitle.replace("(TV)", "").replace("(Movie)", "")
-            if tipo == "Movie":
+            if Type == "Movie":
                 title = scrapedtitle + " (%s)" % year
             else:
                 title = scrapedtitle + " %ss (%s)" % (epis, year)
@@ -2432,8 +2432,8 @@ def season_mal(item):
 
             genres = match(scrapedgenres, patron=r'title="([^"]+)"').matches
             infoLabels["genre"] = ", ".join(genres)
-            tipo = tipo.lower()
-            if tipo == "movie" or tipo == "special":
+            Type = Type.lower()
+            if Type == "movie" or Type == "special":
                 args = "movie"
                 contentType = "movie"
             else:
@@ -2441,7 +2441,7 @@ def season_mal(item):
                 contentType = "tvshow"
             thumbnail = thumbnail.replace(".webp", ".jpg")
             itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title,
-                                 thumbnail=thumbnail, infoLabels=infoLabels, args=args, tipo=tipo,
+                                 thumbnail=thumbnail, infoLabels=infoLabels, args=args, Type=Type,
                                  contentTitle=scrapedtitle, contentType=contentType,
                                  fanart=default_fan))
         next_page = match(data, patron=r'<a class="link current" href.*?href="([^"]+)"').match
@@ -2552,12 +2552,12 @@ def searching_mal(item):
     data = match(item.url, headers=header_mal, cookies=False).data
     patron = r'<a class="hoverinfo_trigger" href="([^"]+)".*?(?:data-src|src)="([^"]+)".*?<div class="hoverinfo".*?href.*?><strong>([^<]+)<.*?<div class="pt4">(.*?)<.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>.*?<td.*?>(.*?)</td>'
     matches = match(data, patron=patron).matches
-    for url, thumb, title, plot, tipo, epis, rating, date in matches:
+    for url, thumb, title, plot, Type, epis, rating, date in matches:
         infolabels = {"mediatype": "tvshow"}
         contentType = "tvshow"
         args = "tv"
         title = title.strip()
-        tipo = tipo.strip()
+        Type = Type.strip()
         rating = rating.strip()
         epis = epis.strip()
         infolabels["plot"] = htmlclean(plot.strip())
@@ -2578,20 +2578,20 @@ def searching_mal(item):
             import traceback
             logger.error(traceback.format_exc())
 
-        if tipo == "Movie" or tipo == "OVA":
+        if Type == "Movie" or Type == "OVA":
             infolabels["mediatype"] = "movie"
             contentType = "movie"
             args = "movie"
             show = ""
 
-        if epis and tipo != "Movie":
+        if epis and Type != "Movie":
             title += "  %s eps" % epis
         if rating != "0.00" and rating != "N/A":
             infolabels["rating"] = float(rating)
             title += "  %s" % (rating)
         itemlist.append(Item(channel=item.channel, title=title, action="details_mal", url=url, show=show,
                              thumbnail=thumb, infoLabels=infolabels, contentTitle=contentitle,
-                             contentType=contentType, tipo=tipo.lower(), args=args))
+                             contentType=contentType, Type=Type.lower(), args=args))
 
     if not "&show=" in item.url:
         next_page = item.url + "&show=50"
@@ -2713,13 +2713,13 @@ def callback_mal(item, values):
 
     genero_ids = "&".join(genero_ids)
     query = values["keyword"].replace(" ", "%20")
-    tipo = item.valores["tipo"][values["tipo"]]
+    Type = item.valores["tipo"][values["tipo"]]
     valoracion = item.valores["valoracion"][values["valoracion"]]
     estado = item.valores["estado"][values["estado"]]
 
     item.url = "https://myanimelist.net/anime.php?q=%s&type=%s&score=%s&status=%s" \
                "&p=0&r=0&sm=0&sd=0&sy=0&em=0&ed=0&ey=0&c[0]=a&c[1]=b&c[2]=c&c[3]=d&c[4]=f&gx=0" \
-               % (query, tipo, valoracion, estado)
+               % (query, Type, valoracion, estado)
     if genero_ids:
         item.url += "&" + genero_ids
 
@@ -2851,14 +2851,14 @@ def items_mal(item):
             title = title.replace("] (TV)", "]")
         elif title.count("(Movie)") == 2:
             title = title.replace("] (Movie)", "]")
-        tipo = "tvshow"
+        Type = "tvshow"
         args = "tv"
         if "Movie" in d["anime_media_type_string"]:
-            tipo = "movie"
+            Type = "movie"
             args = "movie"
         itemlist.append(Item(channel=item.channel, action="details_mal", url=url, title=title, thumbnail=thumbnail,
 
-                             contentTitle=contentTitle, contentType=tipo, args=args, login=True))
+                             contentTitle=contentTitle, contentType=Type, args=args, login=True))
 
     if itemlist:
         itemlist.insert(0, Item(channel=item.channel, action="", title=config.get_localized_string(70387)))

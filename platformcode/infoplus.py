@@ -107,7 +107,7 @@ class MainWindow(xbmcgui.WindowXMLDialog):
             Trailer(info)
         elif control_id in [IMAGES]:
             info = self.getControl(RECOMANDED).getSelectedItem()
-            images = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), tipo='movie' if mode == 'movie' else 'tv').result.get("images", {})
+            images = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), search_type='movie' if mode == 'movie' else 'tv').result.get("images", {})
             for key, value in list(images.items()):
                 if not value: images.pop(key)
             ImagesWindow(tmdb = images).doModal()
@@ -287,7 +287,7 @@ def Trailer(info):
     trailers_list = []
     Type = info.getProperty('mediatype')
     if Type != "movie": Type = "tv"
-    trailers_list = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), tipo=Type).get_videos()
+    trailers_list = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), search_type=Type).get_videos()
     if trailers_list:
         for i, trailer in enumerate(trailers_list):
             item = xbmcgui.ListItem(trailer['name'])
@@ -444,7 +444,7 @@ def get_recomendations(info):
     Type = info.getProperty('mediatype')
     if Type != "movie": Type = "tv"
     search = {'url': '%s/%s/recommendations' % (Type, info.getProperty('tmdb_id')), 'language': 'it', 'page': 1}
-    tmdb_res = tmdb.Tmdb(discover=search, tipo=Type, idioma_Search='it').results
+    tmdb_res = tmdb.Tmdb(discover=search, search_type=Type, idioma_Search='it').results
     for result in tmdb_res:
         if Type == 'movie':
             title = result.get("title", '')
@@ -473,7 +473,7 @@ def get_cast(info):
     cast_list = []
     actors_list = []
     Type = "movie" if info.getProperty('mediatype') == 'movie' else 'tv'
-    otmdb = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), tipo=Type)
+    otmdb = tmdb.Tmdb(id_Tmdb=info.getProperty('tmdb_id'), search_type=Type)
     actors = otmdb.result.get("credits", {}).get("cast", [])
     cast = otmdb.result.get("credits", {}).get("crew", []) if Type == 'movie' else otmdb.result.get("created_by", [])
     for i, crew in enumerate(cast):

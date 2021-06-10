@@ -1,4 +1,4 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.6.3" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.7" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
@@ -11,14 +11,10 @@
   </extension>
   <extension point="kodi.context.item">
     <menu id="kodi.core.main">
-      <item library="updatetvshow.py">
-        <label>70269</label>
-        <visible>String.IsEqual(ListItem.dbtype,tvshow)</visible>
+      <item library="contextmenu.py">
+        <label>90001</label>
+        <visible>!String.StartsWith(ListItem.FileNameAndPath, plugin://plugin.video.kod/) + [ String.IsEqual(ListItem.dbtype, tvshow) | String.IsEqual(ListItem.dbtype, movie) | String.IsEqual(ListItem.dbtype, season) | String.IsEqual(ListItem.dbtype, episode) ]</visible>
       </item>
-<!--      <item library="externalsearch.py">-->
-<!--        <label>90001</label>-->
-<!--        <visible>!String.StartsWith(ListItem.FileNameAndPath, plugin://plugin.video.kod/) + [String.IsEqual(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie)]</visible>-->
-<!--      </item>-->
     </menu>
   </extension>
   <extension point="xbmc.addon.metadata">
@@ -31,8 +27,10 @@
       <screenshot>resources/media/screenshot-2.png</screenshot>
       <screenshot>resources/media/screenshot-3.png</screenshot>
     </assets>
-      <news>- Corretto blocco nella ricerca globale
-          - migliorie e fix vari ai canali e al core</news>
+      <news>- Aggiunto menu globale &quot;opzioni di KoD&quot;
+- Aggiunto canale tapmovie e server annessi
+- Notifica quando il tipo di vista viene salvata (con indicazione del tipo di contenuto)
+</news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]
     [COLOR yellow]Kodi © is a registered trademark of the XBMC Foundation. We are not connected to or in any other way affiliated with Kodi, Team Kodi, or the XBMC Foundation. Furthermore, any software, addons, or products offered by us will receive no support in official Kodi channels, including the Kodi forums and various social networks.[/COLOR]</disclaimer>

@@ -152,6 +152,7 @@ def cleantitle(title):
     cleantitle = ''
     if title:
         if type(title) != str: title.decode('UTF-8')
+        title = scrapertools.unescape(title)
         title = scrapertools.decodeHtmlentities(title)
         cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip()
     return cleantitle
@@ -386,7 +387,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
                 contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
                 contentLanguage = lang1,
-                contentEpisodeNumber=episode if episode else '',
+                contentSeason= infolabels.get('season', ''),
+                contentEpisodeNumber=infolabels.get('episode', ''),
                 news= item.news if item.news else '',
                 other = scraped['other'] if scraped['other'] else '',
                 grouped=group
@@ -531,15 +533,25 @@ def scrape(func):
                 itemlist = newFunc()
             itemlist = [i for i in itemlist if i.action not in ['add_pelicula_to_library', 'add_serie_to_library']]
 
-        if action != 'play' and function != 'episodios' and 'patronMenu' not in args and item.contentType in ['movie', 'tvshow', 'episode', 'undefined'] and not disabletmdb:
+        if anime and inspect.stack()[1][3] not in ['find_episodes']:
+            from platformcode import autorenumber
+            if function == 'episodios': autorenumber.start(itemlist, item)
+            else: autorenumber.start(itemlist)
+
+        if action != 'play' and 'patronMenu' not in args and not disabletmdb and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']:
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
-        # if function == 'episodios':
-        #     scraper.sort_episode_list(itemlist)
+        for it in itemlist:
+            if it.contentEpisodeNumber and it.contentSeason:
+                it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
+                if it.contentLanguage:
+                    it.title += typo(it.contentLanguage, '_ [] color kod')
+                if it.quality:
+                    it.title += typo(it.quality, '_ [] color kod')
 
         # next page for pagination
         if pagination and len(matches) > pag * pagination and not search:
@@ -557,13 +569,7 @@ def scrape(func):
                          thumbnail=thumb(),
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
-        if anime and inspect.stack()[1][3] not in ['find_episodes']:
-            from platformcode import autorenumber
-            if function == 'episodios': autorenumber.start(itemlist, item)
-            else: autorenumber.start(itemlist)
-        # if anime and autorenumber.check(item) == False and len(itemlist)>0 and not scrapertools.find_single_match(itemlist[0].title, r'(\d+.\d+)'):
-        #     pass
-        # else:
+
         if inspect.stack()[1][3] not in ['find_episodes']:
             if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
                 # item.fulltitle = item.infoLabels["title"]
@@ -1139,7 +1145,10 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
     if next_page != "":
         if resub: next_page = re.sub(resub[0], resub[1], next_page)
         if 'http' not in next_page:
-            next_page = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (next_page if next_page.startswith('/') else '/' + next_page)
+            if '/' in next_page:
+                next_page = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+') + (next_page if next_page.startswith('/') else '/' + next_page)
+            else:
+                next_page = '/'.join(item.url.split('/')[:-1]) + '/' + next_page
         next_page = next_page.replace('&amp;', '&')
         logger.debug('NEXT= ', next_page)
         itemlist.append(
@@ -1362,15 +1371,27 @@ def addQualityTag(item, itemlist, data, patron):
             info('nessun tag qualità trovato')
 
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
+    from core import jsontools
+
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources:\s*\[([^\]]+)\]') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources:\s*([^\]]+\])') if not dataIsBlock else data
     if block:
-        if 'file:' in block:
-            sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
-        elif 'src:' in block:
-            sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+        json = jsontools.load(block)
+        if json:
+            sources = []
+            for s in json:
+                if 'file' in s.keys():
+                    src = s['file']
+                else:
+                    src = s['src']
+                sources.append((src, s.get('label')))
         else:
-            sources =[(block.replace('"',''), '')]
+            if 'file:' in block:
+                sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
+            elif 'src:' in block:
+                sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+            else:
+                sources =[(block.replace('"',''), '')]
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':

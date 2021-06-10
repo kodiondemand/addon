@@ -1072,18 +1072,15 @@ def clean(path_list=[]):
     progress.close()
 
 
-def check_db(path):
-    if '\\' in path: sep = '\\'
-    else: sep = '/'
-    if path.endswith(sep): path = path[:-len(sep)]
-    ret = False
-    sql_path = '%' + sep + path.split(sep)[-1] + sep + '%'
-    sql = 'SELECT idShow FROM tvshow_view where strPath LIKE "%s"' % sql_path
-    logger.debug('sql: ' + sql)
-    nun_records, records = execute_sql_kodi(sql)
-    if records:
-        ret = True
-    return ret
+def check_db(code):
+    path_list = []
+    for _id in code:
+        sql = 'SELECT strPath FROM tvshow_view where uniqueid_value = "%s"' % _id.replace('tmdb_','').replace('tvdb_','')
+        logger.debug('sql: ' + sql)
+        nun_records, records = execute_sql_kodi(sql)
+        if records:
+            path_list += [xbmc.translatePath(r[0]) for r in records]
+    return path_list
 
 
 def execute_sql_kodi(sql):

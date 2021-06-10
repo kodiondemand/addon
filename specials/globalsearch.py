@@ -161,7 +161,7 @@ class SearchWindow(xbmcgui.WindowXML):
             tmdb_info = tmdb.discovery(self.item, dict_=self.item.discovery)
             results = tmdb_info.results.get('cast',[])
         else:
-            tmdb_info = tmdb.Tmdb(texto_buscado=self.item.text, tipo=self.item.mode.replace('show', ''))
+            tmdb_info = tmdb.Tmdb(searched_text=self.item.text, search_type=self.item.mode.replace('show', ''))
             results = tmdb_info.results
 
         for result in results:

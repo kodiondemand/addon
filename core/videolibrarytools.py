@@ -585,10 +585,17 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
 
     # process local episodes
     local_episodes_path = ''
-    local_episodelist = []
     update = False
     nfo_path = filetools.join(path, "tvshow.nfo")
     head_nfo, item_nfo = read_nfo(nfo_path)
+    local_episodelist = item_nfo.local_episodes_list if item_nfo.local_episodes_list else []
+
+    if config.get_setting('videolibrary_kodi'):
+        from platformcode.xbmc_videolibrary import check_db
+        for p in check_db(item_nfo.infoLabels['code']):
+            local_episodelist += get_local_content(p)
+        item_nfo.local_episodes_list = local_episodelist
+        filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
     if item_nfo.update_last:
         local_episodes_path = item_nfo.local_episodes_path
@@ -601,47 +608,7 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
 
     if local_episodes_path:
-        from platformcode.xbmc_videolibrary import check_db, clean
-        # check if the local episodes are in the Kodi video library
-        if check_db(local_episodes_path):
-            local_episodelist += get_local_content(local_episodes_path)
-            clean_list = []
-            for f in filetools.listdir(path):
-                match = scrapertools.find_single_match(f, r'[Ss]?(\d+)(?:x|_|\s+)?[Ee]?[Pp]?(\d+)')
-                if match:
-                    ep = '%dx%02d' % (int(match[0]), int(match[1]))
-                    if ep in local_episodelist:
-                        del_file = filetools.join(path, f)
-                        filetools.remove(del_file)
-                        if f.endswith('strm'):
-                            sep = '\\' if '\\' in path else '/'
-                            clean_path = path[:-len(sep)] if path.endswith(sep) else path
-                            clean_path = '%/' + clean_path.split(sep)[-1] + '/' + f
-                            clean_list.append(clean_path)
-                            clean_list.append(clean_path.replace('/','\\'))
-
-            if clean_list:
-                clean(clean_list)
-                update = True
-
-            if item_nfo.local_episodes_list:
-                difference = [x for x in item_nfo.local_episodes_list if (x not in local_episodelist)]
-                if len(difference) > 0:
-                    clean_list = []
-                    for f in difference:
-                        sep = '\\' if '\\' in local_episodes_path else '/'
-                        clean_path = local_episodes_path[:-len(sep)] if local_episodes_path.endswith(sep) else local_episodes_path
-                        clean_path = '%/' + clean_path.split(sep)[-1] + '/%' + f.replace('x','%') + '%'
-                        clean_list.append(clean_path)
-                        clean_list.append(clean_path.replace('/','\\'))
-                    clean(clean_list)
-                    update = True
-
-            item_nfo.local_episodes_list = sorted(local_episodelist)
-            filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-        # the local episodes are not in the Kodi video library
-        else:
-            process_local_episodes(local_episodes_path, path)
+        process_local_episodes(local_episodes_path, path, local_episodelist)
 
     insertados = 0
     sobreescritos = 0
@@ -930,24 +897,22 @@ def config_local_episodes_path(path, item, silent=False):
     return 0, local_episodes_path
 
 
-def process_local_episodes(local_episodes_path, path):
+def process_local_episodes(local_episodes_path, path, local_episodes_list):
     logger.debug()
 
     sub_extensions = ['.srt', '.sub', '.sbv', '.ass', '.idx', '.ssa', '.smi']
     artwork_extensions = ['.jpg', '.jpeg', '.png']
     extensions = sub_extensions + artwork_extensions
 
-    local_episodes_list = []
     files_list = []
     for root, folders, files in filetools.walk(local_episodes_path):
         for file in files:
             if os.path.splitext(file)[1] in extensions:
                 continue
             season_episode = scrapertools.get_season_and_episode(file)
-            if season_episode == "":
-                continue
-            local_episodes_list.append(season_episode)
-            files_list.append(file)
+            if season_episode and season_episode not in local_episodes_list:
+                local_episodes_list.append(season_episode)
+                files_list.append(file)
 
     nfo_path = filetools.join(path, "tvshow.nfo")
     head_nfo, item_nfo = read_nfo(nfo_path)

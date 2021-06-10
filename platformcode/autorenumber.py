@@ -178,6 +178,8 @@ class autorenumber():
                     if number:
                         if not number in self.episodes: self.makelist()
                         item.title = '{} - {}'.format(typo(self.episodes[number], 'bold'), item.title)
+                        item.contentSeason = int(self.episodes[number].split('x')[0])
+                        item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
         else:
             self.makelist()
 

@@ -114,7 +114,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
                 ret = super(CipherSuiteAdapter, self).send(request, **kwargs)
                 if 400 <= ret.status_code < 500:
                     raise Exception
-            except Exception as e:
+            except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
                 logger.info('Request for ' + domain + ' with ip ' + ip + ' failed')
                 logger.info(e)
                 # if 'SSLError' in str(e):

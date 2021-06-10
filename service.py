@@ -89,21 +89,18 @@ def update(path, p_dialog, i, t, serie, overwrite):
                         #    serie.infoLabels['playcount'] = serie.playcount
                     insertados_total += insertados
 
-                except Exception as ex:
+                except:
+                    import traceback
                     logger.error("Error when saving the chapters of the series")
-                    template = "An exception of type %s occured. Arguments:\n%r"
-                    message = template % (type(ex).__name__, ex.args)
-                    logger.error(message)
+                    logger.error(traceback.format_exc())
 
-            except Exception as ex:
+            except:
+                import traceback
                 logger.error("Error in obtaining the episodes of: %s" % serie.show)
-                template = "An exception of type %s occured. Arguments:\n%r"
-                message = template % (type(ex).__name__, ex.args)
-                logger.error(message)
+                logger.error(traceback.format_exc())
 
         else:
             logger.debug("Channel %s not active is not updated" % serie.channel)
-
     # Synchronize the episodes seen from the Kodi video library with that of KoD
     try:
         if config.is_xbmc():                # If it's Kodi, we do it
@@ -127,7 +124,7 @@ def check_for_update(overwrite=True):
         if config.get_setting("update", "videolibrary") != 0 or overwrite:
             config.set_setting("updatelibrary_last_check", hoy.strftime('%Y-%m-%d'), "videolibrary")
 
-            heading = config.get_localized_string(60389)
+            heading = config.get_localized_string(60601)
             p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), heading)
             p_dialog.update(0, '')
             show_list = []
@@ -286,22 +283,6 @@ def check_for_update(overwrite=True):
         trakt_tools.update_all()
 
 
-def viewmodeMonitor():
-    try:
-        currentModeName = xbmc.getInfoLabel('Container.Viewmode')
-        win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-        currentMode = int(win.getFocusId())
-        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
-            content, Type = platformtools.getCurrentView()
-            if content:
-                defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
-                if currentMode != defaultMode:
-                    logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                    config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
-    except:
-        logger.error(traceback.print_exc())
-
-
 def updaterCheck():
     # updater check
     updated, needsReload = updater.check(background=True)
@@ -441,7 +422,7 @@ class AddonMonitor(xbmc.Monitor):
             logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
 
     def scheduleScreenOnJobs(self):
-        schedule.every().second.do(viewmodeMonitor).tag('screenOn')
+        schedule.every().second.do(platformtools.viewmodeMonitor).tag('screenOn')
         schedule.every().second.do(torrent.elementum_monitor).tag('screenOn')
 
     def onDPMSActivated(self):

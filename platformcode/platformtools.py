@@ -67,9 +67,18 @@ def dialog_multiselect(heading, _list, autoclose=0, preselect=[], useDetails=Fal
 
 
 def dialog_progress(heading, message):
-    dialog = xbmcgui.DialogProgress()
-    dialog.create(heading, message)
-    return dialog
+    if get_window() in ('WINDOW_HOME', 'WINDOW_SETTINGS_MENU', 'WINDOW_SETTINGS_INTERFACE', 'WINDOW_SKIN_SETTINGS', 'SKIN'):
+        # in widget, hide any progress
+        class Dummy(object):
+            def __getattr__(self, name):
+                def _missing(*args, **kwargs):
+                    pass
+                return _missing
+        return Dummy()
+    else:
+        dialog = xbmcgui.DialogProgress()
+        dialog.create(heading, message)
+        return dialog
 
 
 def dialog_progress_bg(heading, message=""):
@@ -177,6 +186,7 @@ def dialog_register(heading, user=False, email=False, password=False, user_defau
     dialog = Register('Register.xml', config.get_runtime_path()).Start(heading, user, email, password, user_default, email_default, password_default, captcha_img)
     return dialog
 
+
 def dialog_info(item, scraper):
     class TitleOrIDWindow(xbmcgui.WindowXMLDialog):
         def Start(self, item, scraper):
@@ -230,6 +240,7 @@ def dialog_info(item, scraper):
 
     dialog = TitleOrIDWindow('TitleOrIDWindow.xml', config.get_runtime_path()).Start(item, scraper)
     return dialog
+
 
 def dialog_select_group(heading, _list, preselect=0):
     class SelectGroup(xbmcgui.WindowXMLDialog):
@@ -311,13 +322,6 @@ def render_items(itemlist, parent_item):
     default_fanart = config.get_fanart()
     def_context_commands = shortcuts.context()
 
-    # for adding extendedinfo to contextual menu, if it's used
-    has_extendedinfo = xbmc.getCondVisibility('System.HasAddon(script.extendedinfo)')
-    # for adding superfavourites to contextual menu, if it's used
-    sf_file_path = xbmc.translatePath("special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py")
-    check_sf = os.path.exists(sf_file_path)
-    superfavourites = check_sf and xbmc.getCondVisibility('System.HasAddon("plugin.program.super.favourites")')
-
     # if there's no item, add "no elements" item
     if not len(itemlist):
         itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
@@ -332,8 +336,11 @@ def render_items(itemlist, parent_item):
         if not item.title:
             item.title = ''
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
-        if item.action in ['play', '']:
-            item.folder = False
+        if item.folder == "":  # not set
+            if item.action in ['play', '']:
+                item.folder = False
+            else:
+                item.folder = True
         if item.fanart == "":
             item.fanart = parent_item.fanart
         if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
@@ -354,14 +361,13 @@ def render_items(itemlist, parent_item):
         listitem.setArt({'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail,
                          'fanart': item.fanart if item.fanart else default_fanart})
 
-        if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
-            listitem.setProperty('IsPlayable', 'true')
+        listitem.setProperty('IsPlayable', str(config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo).lower())
 
         set_infolabels(listitem, item)
 
         # context menu
         if parent_item.channel != 'special':
-            context_commands = def_context_commands + set_context_commands(item, item_url, parent_item, has_extendedinfo=has_extendedinfo, superfavourites=superfavourites)
+            context_commands = def_context_commands + set_context_commands(item, item_url, parent_item)
         else:
             context_commands = def_context_commands
         listitem.addContextMenuItems(context_commands)
@@ -388,6 +394,26 @@ def render_items(itemlist, parent_item):
     logger.debug('END render_items')
 
 
+def viewmodeMonitor():
+    try:
+        currentModeName = xbmc.getInfoLabel('Container.Viewmode')
+        win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+        currentMode = int(win.getFocusId())
+        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
+            content, Type = getCurrentView()
+            if content:
+                defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
+                if currentMode != defaultMode:
+                    logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
+                    config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                    dialog_notification(config.get_localized_string(70153),
+                                                      config.get_localized_string(70187) % (content, currentModeName),
+                                                      sound=False)
+    except:
+        import traceback
+        logger.error(traceback.print_exc())
+
+
 def getCurrentView(item=None, parent_item=None):
     if not parent_item:
         info = xbmc.getInfoLabel('Container.FolderPath')
@@ -395,7 +421,7 @@ def getCurrentView(item=None, parent_item=None):
             return None, None
         parent_item = Item().fromurl(info)
     if not item:
-        info = xbmc.getInfoLabel('Container.ListItem(1).FileNameAndPath')
+        info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
         if not info:
             return None, None
         item = Item().fromurl(info) if info else Item()
@@ -424,12 +450,12 @@ def getCurrentView(item=None, parent_item=None):
         return 'episode', 'tvshows'
 
     else:
-        return 'addon', 'addons' if config.get_setting('touch_view') else ''
+        return 'menu', 'addons' if config.get_setting('touch_view') else ''
 
 
 def set_view_mode(item, parent_item):
     def reset_view_mode():
-        for mode in ['addon','channel','movie','tvshow','season','episode','server']:
+        for mode in ['menu','channel','movie','tvshow','season','episode','server']:
             config.set_setting('skin_name', xbmc.getSkinDir())
             config.set_setting('view_mode_%s' % mode, config.get_localized_string(70003) + ' , 0')
 
@@ -481,13 +507,13 @@ def set_infolabels(listitem, item, player=False):
                        'top250': 'top250', 'tracknumber': 'tracknumber', 'trailer': 'trailer', 'thumbnail': 'None',
                        'tvdb_id': 'None', 'tvshowtitle': 'tvshowtitle', 'type': 'None', 'userrating': 'userrating',
                        'url_scraper': 'None', 'votes': 'votes', 'writer': 'writer', 'year': 'year'}
-    if item.infoLabels:
-        try:
-            infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None'}
-            listitem.setInfo("video", infoLabels_kodi)
-        except:
-            listitem.setInfo("video", item.infoLabels)
-            # logger.error(item.infoLabels)
+    # if item.infoLabels:
+    try:
+        infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None'}
+        listitem.setInfo("video", infoLabels_kodi)
+    except:
+        listitem.setInfo("video", item.infoLabels)
+        # logger.error(item.infoLabels)
 
 
 def set_context_commands(item, item_url, parent_item, **kwargs):
@@ -563,25 +589,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
-        # ExtendedInfo: If the addon is installed and a series of conditions are met
-        if kwargs.get('has_extendedinfo') \
-                and config.get_setting("extended_info") == True:
-            if item.contentType == "episode" and item.contentEpisodeNumber and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
-                param = "tvshow_id =%s, tvshow=%s, season=%s, episode=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason, item.contentEpisodeNumber)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedepisodeinfo,%s)" % param))
-
-            elif item.contentType == "season" and item.contentSeason and (item.infoLabels['tmdb_id'] or item.contentSerieName):
-                param = "tvshow_id =%s,tvshow=%s, season=%s" % (item.infoLabels['tmdb_id'], item.contentSerieName, item.contentSeason)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=seasoninfo,%s)" % param))
-
-            elif item.contentType == "tvshow" and (item.infoLabels['tmdb_id'] or item.infoLabels['tvdb_id'] or item.infoLabels['imdb_id'] or item.contentSerieName):
-                param = "id =%s,tvdb_id=%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['tvdb_id'], item.infoLabels['imdb_id'], item.contentSerieName)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedtvinfo,%s)" % param))
-
-            elif item.contentType == "movie" and (item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.contentTitle):
-                param = "id =%s,imdb_id=%s,name=%s" % (item.infoLabels['tmdb_id'], item.infoLabels['imdb_id'], item.contentTitle)
-                context_commands.append(("ExtendedInfo", "RunScript(script.extendedinfo,info=extendedinfo,%s)" % param))
-
         # InfoPlus
         if config.get_setting("infoplus"):
             #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
@@ -591,8 +598,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
         # Open in browser and previous menu
         if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
-            if parent_item.action != "mainlist":
-                context_commands.insert(0, (config.get_localized_string(60349), "Container.Refresh (%s?%s)" % (sys.argv[0], Item(channel=item.channel, action="mainlist").tourl())))
             context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         # Add to kodfavoritos (My links)
@@ -635,7 +640,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append((config.get_localized_string(60354), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
 
             elif item.contentSerieName:
-                # Descargar series
+                # Download series
                 if item.contentType == "tvshow" and item.action not in ['findvideos']:
                     if item.channel == 'videolibrary':
                         context_commands.append((config.get_localized_string(60003), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&unseen=true&from_channel=' + item.channel + '&from_action=' + item.action)))
@@ -652,9 +657,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
-        if kwargs.get('superfavourites'):
-            context_commands.append((config.get_localized_string(60361), "RunScript(special://home/addons/plugin.program.super.favourites/LaunchSFMenu.py)"))
-
     if config.dev_mode():
         context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
     return context_commands
@@ -662,6 +664,265 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
 def is_playing():
     return xbmc_player.isPlaying()
+
+
+def get_window():
+    """
+    Return if addon is used as widget
+    For doing so, it check current window ID (https://kodi.wiki/view/Window_IDs)
+    """
+    winId = xbmcgui.getCurrentWindowId()
+    if winId == 9999:
+        return 'WINDOW_INVALID'
+    elif winId == 10000:
+        return 'WINDOW_HOME'
+    elif winId == 10001:
+        return 'WINDOW_PROGRAMS'
+    elif winId == 10002:
+        return 'WINDOW_PICTURES'
+    elif winId == 10003:
+        return 'WINDOW_FILES'
+    elif winId == 10004:
+        return 'WINDOW_SETTINGS_MENU'
+    elif winId == 10007:
+        return 'WINDOW_SYSTEM_INFORMATION'
+    elif winId == 10011:
+        return 'WINDOW_SCREEN_CALIBRATION'
+
+    elif winId == 10016:
+        return 'WINDOW_SETTINGS_START'
+    elif winId == 10016:
+        return 'WINDOW_SETTINGS_SYSTEM'
+    elif winId == 10018:
+        return 'WINDOW_SETTINGS_SERVICE'
+
+    elif winId == 10021:
+        return 'WINDOW_SETTINGS_MYPVR'
+    elif winId == 10022:
+        return 'WINDOW_SETTINGS_MYGAMES'
+
+    elif winId == 10025:
+        return 'WINDOW_VIDEO_NAV'
+    elif winId == 10028:
+        return 'WINDOW_VIDEO_PLAYLIST'
+
+    elif winId == 10029:
+        return 'WINDOW_LOGIN_SCREEN'
+
+    elif winId == 10030:
+        return 'WINDOW_SETTINGS_PLAYER'
+    elif winId == 10031:
+        return 'WINDOW_SETTINGS_MEDIA'
+    elif winId == 10032:
+        return 'WINDOW_SETTINGS_INTERFACE'
+
+    elif winId == 10034:
+        return 'WINDOW_SETTINGS_PROFILES'
+    elif winId == 10035:
+        return 'WINDOW_SKIN_SETTINGS'
+
+    elif winId == 10040:
+        return 'WINDOW_ADDON_BROWSER'
+
+    elif winId == 10050:
+        return 'WINDOW_EVENT_LOG'
+
+    elif winId == 97:
+        return 'WINDOW_SCREENSAVER_DIM'
+    elif winId == 98:
+        return 'WINDOW_DEBUG_INFO'
+    elif winId == 10099:
+        return 'WINDOW_DIALOG_POINTER'
+    elif winId == 10100:
+        return 'WINDOW_DIALOG_YES_NO'
+    elif winId == 10101:
+        return 'WINDOW_DIALOG_PROGRESS'
+    elif winId == 10103:
+        return 'WINDOW_DIALOG_KEYBOARD'
+    elif winId == 10104:
+        return 'WINDOW_DIALOG_VOLUME_BAR'
+    elif winId == 10105:
+        return 'WINDOW_DIALOG_SUB_MENU'
+    elif winId == 10106:
+        return 'WINDOW_DIALOG_CONTEXT_MENU'
+    elif winId == 10107:
+        return 'WINDOW_DIALOG_KAI_TOAST'
+    elif winId == 10109:
+        return 'WINDOW_DIALOG_NUMERIC'
+    elif winId == 10110:
+        return 'WINDOW_DIALOG_GAMEPAD'
+    elif winId == 10111:
+        return 'WINDOW_DIALOG_BUTTON_MENU'
+    elif winId == 10114:
+        return 'WINDOW_DIALOG_PLAYER_CONTROLS'
+    elif winId == 10115:
+        return 'WINDOW_DIALOG_SEEK_BAR'
+    elif winId == 10116:
+        return 'WINDOW_DIALOG_PLAYER_PROCESS_INFO'
+    elif winId == 10120:
+        return 'WINDOW_DIALOG_MUSIC_OSD'
+    elif winId == 10121:
+        return 'WINDOW_DIALOG_VIS_SETTINGS'
+    elif winId == 10122:
+        return 'WINDOW_DIALOG_VIS_PRESET_LIST'
+    elif winId == 10123:
+        return 'WINDOW_DIALOG_VIDEO_OSD_SETTINGS'
+    elif winId == 10124:
+        return 'WINDOW_DIALOG_AUDIO_OSD_SETTINGS'
+    elif winId == 10125:
+        return 'WINDOW_DIALOG_VIDEO_BOOKMARKS'
+    elif winId == 10126:
+        return 'WINDOW_DIALOG_FILE_BROWSER'
+    elif winId == 10128:
+        return 'WINDOW_DIALOG_NETWORK_SETUP'
+    elif winId == 10129:
+        return 'WINDOW_DIALOG_MEDIA_SOURCE'
+    elif winId == 10130:
+        return 'WINDOW_DIALOG_PROFILE_SETTINGS'
+    elif winId == 10131:
+        return 'WINDOW_DIALOG_LOCK_SETTINGS'
+    elif winId == 10132:
+        return 'WINDOW_DIALOG_CONTENT_SETTINGS'
+    elif winId == 10133:
+        return 'WINDOW_DIALOG_LIBEXPORT_SETTINGS'
+    elif winId == 10134:
+        return 'WINDOW_DIALOG_FAVOURITES'
+    elif winId == 10135:
+        return 'WINDOW_DIALOG_SONG_INFO'
+    elif winId == 10136:
+        return 'WINDOW_DIALOG_SMART_PLAYLIST_EDITOR'
+    elif winId == 10137:
+        return 'WINDOW_DIALOG_SMART_PLAYLIST_RULE'
+    elif winId == 10138:
+        return 'WINDOW_DIALOG_BUSY'
+    elif winId == 10139:
+        return 'WINDOW_DIALOG_PICTURE_INFO'
+    elif winId == 10140:
+        return 'WINDOW_DIALOG_ADDON_SETTINGS'
+    elif winId == 10142:
+        return 'WINDOW_DIALOG_FULLSCREEN_INFO'
+    elif winId == 10145:
+        return 'WINDOW_DIALOG_SLIDER'
+    elif winId == 10146:
+        return 'WINDOW_DIALOG_ADDON_INFO'
+    elif winId == 10147:
+        return 'WINDOW_DIALOG_TEXT_VIEWER'
+    elif winId == 10148:
+        return 'WINDOW_DIALOG_PLAY_EJECT'
+    elif winId == 10149:
+        return 'WINDOW_DIALOG_PERIPHERALS'
+    elif winId == 10150:
+        return 'WINDOW_DIALOG_PERIPHERAL_SETTINGS'
+    elif winId == 10151:
+        return 'WINDOW_DIALOG_EXT_PROGRESS'
+    elif winId == 10152:
+        return 'WINDOW_DIALOG_MEDIA_FILTER'
+    elif winId == 10153:
+        return 'WINDOW_DIALOG_SUBTITLES'
+    elif winId == 10156:
+        return 'WINDOW_DIALOG_KEYBOARD_TOUCH'
+    elif winId == 10157:
+        return 'WINDOW_DIALOG_CMS_OSD_SETTINGS'
+    elif winId == 10158:
+        return 'WINDOW_DIALOG_INFOPROVIDER_SETTINGS'
+    elif winId == 10159:
+        return 'WINDOW_DIALOG_SUBTITLE_OSD_SETTINGS'
+    elif winId == 10160:
+        return 'WINDOW_DIALOG_BUSY_NOCANCEL'
+
+    elif winId == 10500:
+        return 'WINDOW_MUSIC_PLAYLIST'
+    elif winId == 10502:
+        return 'WINDOW_MUSIC_NAV'
+    elif winId == 10503:
+        return 'WINDOW_MUSIC_PLAYLIST_EDITOR'
+
+    elif winId == 10550:
+        return 'WINDOW_DIALOG_OSD_TELETEXT'
+
+    # PVR related Window and Dialog ID's
+
+    elif 10600 < winId < 10613:
+        return 'WINDOW_DIALOG_PVR'
+
+
+    elif 10700 < winId < 10711:
+        return 'WINDOW_PVR_ID'
+
+    # virtual windows for PVR specific keymap bindings in fullscreen playback
+    elif winId == 10800:
+        return 'WINDOW_FULLSCREEN_LIVETV'
+    elif winId == 10801:
+        return 'WINDOW_FULLSCREEN_RADIO'
+    elif winId == 10802:
+        return 'WINDOW_FULLSCREEN_LIVETV_PREVIEW'
+    elif winId == 10803:
+        return 'WINDOW_FULLSCREEN_RADIO_PREVIEW'
+    elif winId == 10804:
+        return 'WINDOW_FULLSCREEN_LIVETV_INPUT'
+    elif winId == 10805:
+        return 'WINDOW_FULLSCREEN_RADIO_INPUT'
+
+    elif winId == 10820:
+        return 'WINDOW_DIALOG_GAME_CONTROLLERS'
+    elif winId == 10821:
+        return 'WINDOW_GAMES'
+    elif winId == 10822:
+        return 'WINDOW_DIALOG_GAME_OSD'
+    elif winId == 10823:
+        return 'WINDOW_DIALOG_GAME_VIDEO_FILTER'
+    elif winId == 10824:
+        return 'WINDOW_DIALOG_GAME_STRETCH_MODE'
+    elif winId == 10825:
+        return 'WINDOW_DIALOG_GAME_VOLUME'
+    elif winId == 10826:
+        return 'WINDOW_DIALOG_GAME_ADVANCED_SETTINGS'
+    elif winId == 10827:
+        return 'WINDOW_DIALOG_GAME_VIDEO_ROTATION'
+    elif 11100 < winId < 11199:
+        return 'SKIN'  # WINDOW_ID's from 11100 to 11199 reserved for Skins
+
+    elif winId == 12000:
+        return 'WINDOW_DIALOG_SELECT'
+    elif winId == 12001:
+        return 'WINDOW_DIALOG_MUSIC_INFO'
+    elif winId == 12002:
+        return 'WINDOW_DIALOG_OK'
+    elif winId == 12003:
+        return 'WINDOW_DIALOG_VIDEO_INFO'
+    elif winId == 12005:
+        return 'WINDOW_FULLSCREEN_VIDEO'
+    elif winId == 12006:
+        return 'WINDOW_VISUALISATION'
+    elif winId == 12007:
+        return 'WINDOW_SLIDESHOW'
+    elif winId == 12600:
+        return 'WINDOW_WEATHER'
+    elif winId == 12900:
+        return 'WINDOW_SCREENSAVER'
+    elif winId == 12901:
+        return 'WINDOW_DIALOG_VIDEO_OSD'
+
+    elif winId == 12902:
+        return 'WINDOW_VIDEO_MENU'
+    elif winId == 12905:
+        return 'WINDOW_VIDEO_TIME_SEEK'  # virtual window for time seeking during fullscreen video
+
+    elif winId == 12906:
+        return 'WINDOW_FULLSCREEN_GAME'
+
+    elif winId == 12997:
+        return 'WINDOW_SPLASH'  # splash window
+    elif winId == 12998:
+        return 'WINDOW_START'  # first window to load
+    elif winId == 12999:
+        return 'WINDOW_STARTUP_ANIM'  # for startup animations
+
+    elif 13000 < winId < 13099:
+        return 'PYTHON'  # WINDOW_ID's from 13000 to 13099 reserved for Python
+
+    elif 14000 < winId < 14099:
+        return 'ADDON'  # WINDOW_ID's from 14000 to 14099 reserved for Addons
 
 
 def play_video(item, strm=False, force_direct=False, autoplay=False):

@@ -23,13 +23,9 @@ from channelselector import get_thumb
 from platformcode import logger, config, platformtools, unify
 from core.support import typo, thumb
 import xbmcgui
-
-import gc
-
 import xbmc
 from threading import Thread
 from core.support import dbg
-gc.disable()
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -38,7 +34,8 @@ def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 def mainlist(item):
     logger.debug()
 
-    if config.get_setting('new_search'):
+    if platformtools.get_window() not in ('WINDOW_SETTINGS_MENU', 'WINDOW_SETTINGS_INTERFACE', 'WINDOW_SKIN_SETTINGS')\
+            and xbmc.getInfoLabel('System.CurrentWindow') in ('Home', '') and config.get_setting('new_search'):
         itemlist = [Item(channel='globalsearch', title=config.get_localized_string(70276), action='Search', mode='all', thumbnail=get_thumb("search.png"), folder=False),
                     Item(channel='globalsearch', title=config.get_localized_string(70741) % config.get_localized_string(30122), action='Search', mode='movie', thumbnail=get_thumb("search_movie.png"),folder=False),
                     Item(channel='globalsearch', title=config.get_localized_string(70741) % config.get_localized_string(30123), action='Search', mode='tvshow', thumbnail=get_thumb("search_tvshow.png"), folder=False),
@@ -135,7 +132,7 @@ def new_search(item):
         return actor_list(item)
 
     if item.mode != 'all':
-        tmdb_info = tmdb.Tmdb(texto_buscado=searched_text, tipo=item.mode.replace('show', ''))
+        tmdb_info = tmdb.Tmdb(searched_text=searched_text, search_type=item.mode.replace('show', ''))
         results = tmdb_info.results
         for result in results:
             result = tmdb_info.get_infoLabels(result, origen=result)
@@ -563,7 +560,7 @@ def genres_menu(item):
     itemlist = []
     mode = item.mode.replace('show', '')
 
-    genres = tmdb.get_genres(mode)
+    genres = tmdb.get_dic_genres(mode)
     for key, value in list(genres[mode].items()):
         discovery = {'url': 'discover/%s' % mode, 'with_genres': key,
                      'language': def_lang, 'page': '1'}

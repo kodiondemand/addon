@@ -33,8 +33,8 @@ def start():
 
 
 def run(item=None):
-    # from core.support import dbg;dbg()
     logger.debug()
+
     if not item:
         # Extract item from sys.argv
         if sys.argv[2]:
