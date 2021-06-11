@@ -22,15 +22,15 @@ class Server(ThreadingMixIn, HTTPServer):
     def stop(self):
         self.running=False
 
-    def serve(self):
-        while self.running:
-            try:
-                self.handle_request()
-            except:
-                logger.error(traceback.format_exc())
+    # def serve(self):
+    #     while self.running:
+    #         try:
+    #             self.handle_request()
+    #         except:
+    #             logger.error(traceback.format_exc())
 
     def run(self):
-        t=Thread(target=self.serve, name='HTTP Server')
+        t=Thread(target=self.serve_forever, name='HTTP Server')
         t.daemon=self.daemon_threads
         t.start()
 

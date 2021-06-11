@@ -12,7 +12,6 @@ from threading import Thread
 
 import re
 
-from lib.streamingcommunity.file import File
 from lib.streamingcommunity.handler import Handler
 from platformcode import logger
 from lib.streamingcommunity.server import Server
@@ -110,36 +109,65 @@ class Client(object):
 
         m3u8_original = httptools.downloadpage(url, CF=False).data
 
-        logger.info('CLIENT: m3u8:', m3u8_original);
+        logger.debug('CLIENT: m3u8:', m3u8_original);
 
         # remap video/audio manifests url
         # they must point to local server:
         # /video/RES.m3u8
         # /audio/RES.m3u8
 
-        m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
-        self._video_res = m_video.group(1)
-        m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
-        self._audio_res = m_audio.group(1)
+        r_video = re.compile(r'(\.\/video\/(\d+p)\/playlist.m3u8)', re.MULTILINE)
+        r_audio = re.compile(r'(\.\/audio\/(\d+k)\/playlist.m3u8)', re.MULTILINE)
 
-        video_url = "/video/" + self._video_res + ".m3u8"
-        audio_url = "/audio/" + self._audio_res + ".m3u8"
 
-        m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
-        m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
+        for match in r_video.finditer(m3u8_original):
+            line = match.groups()[0]
+            res = match.groups()[1]
+            video_url = "/video/" + res + ".m3u8"
+
+            # logger.info('replace', match.groups(), line, res, video_url)
+
+            m3u8_original = m3u8_original.replace( line, video_url )
+
+
+        for match in r_audio.finditer(m3u8_original):
+            line = match.groups()[0]
+            res = match.groups()[1]
+            audio_url = "/audio/" + res + ".m3u8"
+
+            # logger.info('replace', match.groups(), line, res, audio_url)
+
+            m3u8_original = m3u8_original.replace( line, audio_url )
+
+
+        # m_video = re.search(, m3u8_original)
+        # self._video_res = m_video.group(1)
+        # m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
+        # self._audio_res = m_audio.group(1)
+
+        # video_url = "/video/" + self._video_res + ".m3u8"
+        # audio_url = "/audio/" + self._audio_res + ".m3u8"
+
+        # m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
+        # m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
 
         return m3u8_original
 
 
-    def get_video_manifest_content(self):
+    def get_video_manifest_content(self, url):
         """
         " Based on `default_start`, `default_count` and `default_domain`
         " this method remap each video chunks url in order to make them point to
         " the remote domain switching from `default_start` to `default_count` values
         """
 
+        m_video = re.search( r'\/video\/(\d+p)\.m3u8', url)
+        video_res = m_video.groups()[0]
+
+        logger.info('Video res: ', video_res)
+
         # get the original manifest file for video chunks
-        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(self._video_id, self._token, self._expires, self._video_res)
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(self._video_id, self._token, self._expires, video_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
@@ -163,7 +191,7 @@ class Client(object):
                 default_domain = default_domain,
                 storage_id = storage_id,
                 folder_id = folder_id,
-                video_res = self._video_res,
+                video_res = video_res,
                 ts = ts
             )
 
@@ -180,15 +208,19 @@ class Client(object):
 
 
 
-    def get_audio_manifest_content(self):
+    def get_audio_manifest_content(self, url):
         """
         " Based on `default_start`, `default_count` and `default_domain`
         " this method remap each video chunks url in order to make them point to
         " the remote domain switching from `default_start` to `default_count` values
         """
+        m_audio = re.search( r'\/audio\/(\d+k)\.m3u8', url)
+        audio_res = m_audio.groups()[0]
+
+        logger.info('Audio res: ', audio_res)
 
         # get the original manifest file for video chunks
-        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(self._video_id, self._token, self._expires, self._audio_res)
+        url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(self._video_id, self._token, self._expires, audio_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
@@ -212,7 +244,7 @@ class Client(object):
                 default_domain = default_domain,
                 storage_id = storage_id,
                 folder_id = folder_id,
-                audio_res = self._audio_res,
+                audio_res = audio_res,
                 ts = ts
             )
 

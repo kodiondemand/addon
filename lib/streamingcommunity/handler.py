@@ -39,10 +39,10 @@ class Handler(BaseHTTPRequestHandler):
             response = self.server._client.get_main_manifest_content()
 
         elif url.startswith('/video/'):
-            response = self.server._client.get_video_manifest_content()
+            response = self.server._client.get_video_manifest_content(url)
 
         elif url.startswith('/audio/'):
-            response = self.server._client.get_audio_manifest_content()
+            response = self.server._client.get_audio_manifest_content(url)
 
         elif url.endswith('enc.key'):
             # This path should NOT be used, see get_video_manifest_content function
