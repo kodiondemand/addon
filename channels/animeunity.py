@@ -258,7 +258,31 @@ def findvideos(item):
 
     # return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=file_path, manifest = 'hls', server='directo', action='play')])
     # item.url=item.video_url
-    return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
+
+    directLink = False
+    if item.video_url == None:
+        if item.extra == "tvshow":
+            epnum = item.episode
+            logger.info('it is a episode', epnum)
+            episode = None
+            for ep in item.episodes:
+                if ep["number"] == epnum:
+                    episode = ep
+                    break
+            if episode == None:
+                logger.warn('cannot found episode')
+            else:
+                item.url = episode["link"]
+                directLink = True
+
+
+
+
+    if directLink:
+        logger.info('try direct link')
+        return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.url, server='directo', action='play')])
+    else:
+        return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
 
 
 
