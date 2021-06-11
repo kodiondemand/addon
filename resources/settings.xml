@@ -152,7 +152,7 @@
 <!--        <setting id="kod_menu" type="bool" label="60026" default="true"/>-->
         <setting id="infoplus" type="bool" label="70151" default="false"/>
         <!-- <setting id="infoplus_set" type="bool" label="70128" visible="eq(-1,true)" default="false" subsetting="true"/> -->
-        <setting id="extended_info" type="bool" label="70152" default="false"/>
+        <!-- <setting id="extended_info" type="bool" label="70152" default="false"/> -->
         <!-- Shortcut -->
 		<setting label="30998" type="lsep"/>
 		<setting id="shortcut_key" type="action" label="30999" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAia2V5bWFwIg0KfQ==)"/>
