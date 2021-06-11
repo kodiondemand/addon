@@ -28,42 +28,43 @@ class Handler(BaseHTTPRequestHandler):
         return None, None
 
     def do_GET(self):
-        self.server._client.connected = True
+    #     self.server._client.connected = True
 
-        if self.do_HEAD():
-            with self.server._client.file.create_cursor(self.offset) as f:
-                sended = 0
-                while sended < self.size:
-                    buf= f.read(1024*16)
-                    if buf:
-                        if sended + len(buf) > self.size: buf=buf[:self.size-sended]
-                        self.wfile.write(buf)
-                        sended +=len(buf)
-                    else:
-                        break
+    #     if self.do_HEAD():
+    #         with self.server._client.file.create_cursor(self.offset) as f:
+    #             sended = 0
+    #             while sended < self.size:
+    #                 buf= f.read(1024*16)
+    #                 if buf:
+    #                     if sended + len(buf) > self.size: buf=buf[:self.size-sended]
+    #                     self.wfile.write(buf)
+    #                     sended +=len(buf)
+    #                 else:
+    #                     break
 
-    def send_pls(self, files):
-        # playlist = "[playlist]\n\n"
-        # for x,f in enumerate(files):
-        #     playlist += "File"+str(x+1)+"=http://" + self.server._client.ip + ":" + str(self.server._client.port) + "/" + urllib.quote(f.name)+"\n"
-        #     playlist += "Title"+str(x+1)+"=" +f.name+"\n"
+    # def send_pls(self, files):
+    #     # playlist = "[playlist]\n\n"
+    #     # for x,f in enumerate(files):
+    #     #     playlist += "File"+str(x+1)+"=http://" + self.server._client.ip + ":" + str(self.server._client.port) + "/" + urllib.quote(f.name)+"\n"
+    #     #     playlist += "Title"+str(x+1)+"=" +f.name+"\n"
 
-        # playlist +="NumberOfEntries=" + str(len(files))
-        # playlist +="Version=2"
-        return False
+    #     # playlist +="NumberOfEntries=" + str(len(files))
+    #     # playlist +="Version=2"
+    #     return False
 
 
 
-    def do_HEAD(self):
+    # def do_HEAD(self):
         url=urlparse.urlparse(self.path).path
 
         logger.info('HANDLER:', url)
 
         response = None
+        cType = "text/plain"
 
         if url=="/manifest.m3u8":
             response = self.server._client.get_main_manifest_content()
-            self.send_header("Content-Type", "application/vnd.apple.mpegurl" )
+            # self.send_header("Content-Type", "application/vnd.apple.mpegurl" )
 
         elif url.startswith('/video/'):
             response = self.server._client.get_video_manifest_content()
@@ -73,6 +74,7 @@ class Handler(BaseHTTPRequestHandler):
 
         elif url.endswith('enc.key'):
             response = self.server._client.get_enc_key( url )
+            cType = "application/octet-stream"
 
 
         if response == None:
@@ -81,11 +83,15 @@ class Handler(BaseHTTPRequestHandler):
         else:
 
             self.send_response(200)
-            self.send_header("Content-Length", str( len(response) ) )
-            logger.info('HANDLER:', str( len(response) ), response)
-            self.wfile.write( response.encode() )
+            self.send_header("Content-Type", cType )
+            self.send_header("Content-Length", str( len(response.encode('utf-8')) ) )
             self.end_headers()
+
+            self.wfile.write( response.encode() )
             # self.wfile.close()
+            self.wfile.flush()
+
+            logger.info('HANDLER flushed:', cType, str( len(response.encode('utf-8')) ) ) # , response.encode())
 
         # avoid other handlers
         return False

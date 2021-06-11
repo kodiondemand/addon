@@ -25,8 +25,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global c
     c = SCClient("",video_id=page_url, is_playing_fnc=platformtools.is_playing)
 
-    # If there are more than 5 files create a playlist with all
-    # This function (the playlist) does not go, you have to browse megaserver / handler.py although the call is in client.py
     media_url = c.get_manifest_url()
 
     video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [sc]", media_url])

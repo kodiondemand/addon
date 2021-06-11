@@ -7,7 +7,7 @@ else:
     PY3 = False
     import urllib
 
-from core import httptools, jsontools
+from core import httptools, jsontools, support
 from threading import Thread
 
 import re
@@ -31,7 +31,7 @@ class Client(object):
         self.start_time = None
         self.last_connect = None
         self.is_playing_fnc = is_playing_fnc
-        self.auto_shutdown =  False #auto_shutdown
+        self.auto_shutdown =  auto_shutdown
         self.wait_time =  wait_time
         self.timeout =  timeout
         self.running = False
@@ -43,7 +43,6 @@ class Client(object):
         jsonDataStr = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self._video_id), CF=False ).data
         self._jsonData = jsontools.load( jsonDataStr )
         self._token, self._expires = self.calculateToken( self._jsonData['client_ip'] )
-
 
         self._server = Server((self.ip, self.port), Handler, client=self)
         self.start()
@@ -105,8 +104,6 @@ class Client(object):
     def get_main_manifest_content(self):
         url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}'.format(self._video_id, self._token, self._expires)
 
-        # support.dbg()
-
         m3u8_original = httptools.downloadpage(url, CF=False).data
 
         logger.info('CLIENT: m3u8:', m3u8_original);
@@ -136,16 +133,15 @@ class Client(object):
         manifest_to_parse = original_manifest
 
         r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
-        test2 = re.sub( r, r'http://test.com/\1', test )
 
-        default_start = jsonData[ "proxies" ]["default_start"]
-        default_count = jsonData[ "proxies" ]["default_count"]
-        default_domain = jsonData[ "proxies" ]["default_domain"]
-        storage_id = jsonData[ "storage_id" ]
-        folder_id = jsonData[ "folder_id" ]
+        default_start = self._jsonData[ "proxies" ]["default_start"]
+        default_count = self._jsonData[ "proxies" ]["default_count"]
+        default_domain = self._jsonData[ "proxies" ]["default_domain"]
+        storage_id = self._jsonData[ "storage_id" ]
+        folder_id = self._jsonData[ "folder_id" ]
 
         for match in r.finditer(manifest_to_parse):
-            ts, line = match.groups()
+            ts = match.groups()[0]
 
             url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/video/{video_res}/{ts}'.format(
                 default_start = default_start,
@@ -156,11 +152,17 @@ class Client(object):
                 ts = ts
             )
 
-            original_manifest = original_manifest.replace( line, url )
+            original_manifest = original_manifest.replace( ts, url )
 
             default_start = default_start + 1
             if default_start > default_count:
                 default_start = 1
+
+
+        original_manifest = re.sub(r'"(\/.*[enc]?\.key)"', '"https://streamingcommunityws.com\\1"', original_manifest)
+
+        # logger.info("CLIENT manifest", original_manifest)
+
 
         return original_manifest
 
@@ -174,14 +176,14 @@ class Client(object):
 
         r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
 
-        default_start = jsonData[ "proxies" ]["default_start"]
-        default_count = jsonData[ "proxies" ]["default_count"]
-        default_domain = jsonData[ "proxies" ]["default_domain"]
-        storage_id = jsonData[ "storage_id" ]
-        folder_id = jsonData[ "folder_id" ]
+        default_start = self._jsonData[ "proxies" ]["default_start"]
+        default_count = self._jsonData[ "proxies" ]["default_count"]
+        default_domain = self._jsonData[ "proxies" ]["default_domain"]
+        storage_id = self._jsonData[ "storage_id" ]
+        folder_id = self._jsonData[ "folder_id" ]
 
         for match in r.finditer(manifest_to_parse):
-            ts, line = match.groups()
+            ts = match.groups()[0]
             url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/audio/{audio_res}/{ts}'.format(
                 default_start = default_start,
                 default_domain = default_domain,
@@ -191,11 +193,18 @@ class Client(object):
                 ts = ts
             )
 
-            original_manifest = original_manifest.replace( line, url )
+            original_manifest = original_manifest.replace( ts, url )
 
             default_start = default_start + 1
             if default_start > default_count:
                 default_start = 1
+
+
+        #
+        original_manifest = re.sub(r'"(\/.*[enc]?\.key)"', '"https://streamingcommunityws.com\\1"', original_manifest)
+
+        # logger.info("CLIENT manifest", original_manifest)
+
 
         return original_manifest
 
