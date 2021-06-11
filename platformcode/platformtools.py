@@ -336,11 +336,8 @@ def render_items(itemlist, parent_item):
         if not item.title:
             item.title = ''
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
-        if item.folder == "":  # not set
-            if item.action in ['play', '']:
-                item.folder = False
-            else:
-                item.folder = True
+        if item.action in ['play', '']:
+            item.folder = False
         if item.fanart == "":
             item.fanart = parent_item.fanart
         if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
@@ -361,7 +358,8 @@ def render_items(itemlist, parent_item):
         listitem.setArt({'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail,
                          'fanart': item.fanart if item.fanart else default_fanart})
 
-        listitem.setProperty('IsPlayable', str(config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo).lower())
+        if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
+            listitem.setProperty('IsPlayable', 'true')
 
         set_infolabels(listitem, item)
 

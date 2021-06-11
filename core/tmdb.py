@@ -1537,12 +1537,13 @@ class Tmdb(object):
         return ret_dic
 
     def get_list_episodes(self):
-        url = '{}/tv/{}?api_key={}&language={}'.format(host=host, id=self.search_id, api=api, lang=self.search_language)
+        # from core.support import dbg;dbg()
+        url = '{}/tv/{}?api_key={}&language={}'.format(host, self.search_id, api, self.search_language)
         results = requests.get(url).json().get('seasons', [])
         seasons = []
         if results and 'Error' not in results:
             for season in results:
-                url = '{host}/tv/{id}/season/{season}?api_key={api}&language={lang}'.format(host=host, id=self.search_id, season=season['season_number'], api=api, lang=self.search_language)
+                url = '{}/tv/{}/season/{}?api_key={}&language={}'.format(host, self.search_id, season['season_number'], api, self.search_language)
                 try: start_from = requests.get(url).json()['episodes'][0]['episode_number']
                 except: start_from = 1
                 seasons.append({'season_number':season['season_number'], 'episode_count':season['episode_count'], 'start_from':start_from})
