@@ -19,9 +19,6 @@ from lib.streamingcommunity.server import Server
 
 
 class Client(object):
-    VIDEO_EXTS = {'.avi': 'video/x-msvideo', '.mp4': 'video/mp4', '.mkv': 'video/x-matroska',
-                  '.m4v': 'video/mp4', '.mov': 'video/quicktime', '.mpg': 'video/mpeg','.ogv': 'video/ogg',
-                  '.ogg': 'video/ogg', '.webm': 'video/webm', '.ts': 'video/mp2t', '.3gp': 'video/3gpp'}
 
     def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None, video_id=None):
 
@@ -38,23 +35,34 @@ class Client(object):
         self.file = None
         self.files = []
 
+
+        # video_id is the ID in the webpage path
         self._video_id = video_id
 
+        # Get json_data for entire details from video page
         jsonDataStr = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self._video_id), CF=False ).data
         self._jsonData = jsontools.load( jsonDataStr )
+
+        # going to calculate token and expiration time
+        # These values will be used for manifests request
         self._token, self._expires = self.calculateToken( self._jsonData['client_ip'] )
 
+        # Starting web server
         self._server = Server((self.ip, self.port), Handler, client=self)
         self.start()
 
+
+
     def start(self):
+        """
+        " Starting client and server in a separated thread
+        """
         self.start_time = time.time()
         self.running = True
         self._server.run()
         t= Thread(target=self._auto_shutdown)
         t.setDaemon(True)
         t.start()
-        logger.info("SC Server Started")
         logger.info("SC Server Started", (self.ip, self.port))
 
     def _auto_shutdown(self):
@@ -88,35 +96,32 @@ class Client(object):
         logger.info("SC Server Stopped")
 
 
-    def get_play_list(self):
-        if len(self.files) > 1:
-            return "http://" + self.ip + ":" + str(self.port) + "/playlist.pls"
-        else:
-            return "http://" + self.ip + ":" + str(self.port) + "/" + urllib.quote(self.files[0].name.encode("utf8"))
-
-
-
-
     def get_manifest_url(self):
+        # remap request path for main manifest
+        # it must point to local server ip:port
         return "http://" + self.ip + ":" + str(self.port) + "/manifest.m3u8"
 
 
     def get_main_manifest_content(self):
+        # get the manifest file for entire video/audio chunks
+        # it must remap each urls in order to catch all chunks
+
         url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}'.format(self._video_id, self._token, self._expires)
 
         m3u8_original = httptools.downloadpage(url, CF=False).data
 
         logger.info('CLIENT: m3u8:', m3u8_original);
 
+        # remap video/audio manifests url
+        # they must point to local server:
+        # /video/RES.m3u8
+        # /audio/RES.m3u8
+
         m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
         self._video_res = m_video.group(1)
         m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
         self._audio_res = m_audio.group(1)
 
-        # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
-        # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
-        # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
-        # "http://" + self.ip + ":" + str(self.port) +
         video_url = "/video/" + self._video_res + ".m3u8"
         audio_url = "/audio/" + self._audio_res + ".m3u8"
 
@@ -127,11 +132,19 @@ class Client(object):
 
 
     def get_video_manifest_content(self):
+        """
+        " Based on `default_start`, `default_count` and `default_domain`
+        " this method remap each video chunks url in order to make them point to
+        " the remote domain switching from `default_start` to `default_count` values
+        """
+
+        # get the original manifest file for video chunks
         url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=video&rendition={}'.format(self._video_id, self._token, self._expires, self._video_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
 
+        # remap each chunks
         r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
 
         default_start = self._jsonData[ "proxies" ]["default_start"]
@@ -141,8 +154,10 @@ class Client(object):
         folder_id = self._jsonData[ "folder_id" ]
 
         for match in r.finditer(manifest_to_parse):
+            # getting all single chunks and replace in the original manifest file content
             ts = match.groups()[0]
 
+            # compute final url pointing to given domain
             url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/video/{video_res}/{ts}'.format(
                 default_start = default_start,
                 default_domain = default_domain,
@@ -158,22 +173,27 @@ class Client(object):
             if default_start > default_count:
                 default_start = 1
 
-
+        # replace the encryption file url pointing to remote streamingcommunity server
         original_manifest = re.sub(r'"(\/.*[enc]?\.key)"', '"https://streamingcommunityws.com\\1"', original_manifest)
-
-        # logger.info("CLIENT manifest", original_manifest)
-
 
         return original_manifest
 
 
 
     def get_audio_manifest_content(self):
+        """
+        " Based on `default_start`, `default_count` and `default_domain`
+        " this method remap each video chunks url in order to make them point to
+        " the remote domain switching from `default_start` to `default_count` values
+        """
+
+        # get the original manifest file for video chunks
         url = 'https://streamingcommunityws.com/master/{}?token={}&expires={}&type=audio&rendition={}'.format(self._video_id, self._token, self._expires, self._audio_res)
         original_manifest = httptools.downloadpage(url, CF=False).data
 
         manifest_to_parse = original_manifest
 
+        # remap each chunks
         r = re.compile(r'^(\w+\.ts)$', re.MULTILINE)
 
         default_start = self._jsonData[ "proxies" ]["default_start"]
@@ -183,7 +203,10 @@ class Client(object):
         folder_id = self._jsonData[ "folder_id" ]
 
         for match in r.finditer(manifest_to_parse):
+            # getting all single chunks and replace in the original manifest file content
             ts = match.groups()[0]
+
+            # compute final url pointing to given domain
             url = 'https://au-{default_start}.{default_domain}/hls/{storage_id}/{folder_id}/audio/{audio_res}/{ts}'.format(
                 default_start = default_start,
                 default_domain = default_domain,
@@ -200,145 +223,25 @@ class Client(object):
                 default_start = 1
 
 
-        #
+        # replace the encryption file url pointing to remote streamingcommunity server
         original_manifest = re.sub(r'"(\/.*[enc]?\.key)"', '"https://streamingcommunityws.com\\1"', original_manifest)
-
-        # logger.info("CLIENT manifest", original_manifest)
-
 
         return original_manifest
 
 
-
-
-    def get_enc_key(self, url):
-        enckey = httptools.downloadpage('https://streamingcommunityws.com' + url, CF=False).data
-        return enckey
-
-
-    def get_files(self):
-        files = []
-        enc_url = None
-        if self.files:
-            for file in self.files:
-                n = file.name.encode("utf8")
-                u = "http://" + self.ip + ":" + str(self.port) + "/" + urllib.quote(n)
-                s = file.size
-                file_id = file.file_id
-                enc_url = file.url
-                files.append({"name":n,"url":u,"size":s, "id": file_id})
-        if len(self.files) == 1:
-            try:
-                code = httptools.downloadpage(enc_url, only_headers=True).code
-                if code > 300:
-                    return code
-                else:
-                    return files
-
-            except:
-                logger.info(traceback.format_exc())
-                pass
-
-        return files
-
-    def add_url(self, url):
-        url = url.split("#")[1]
-        id_video = None
-        if "|" in url:
-            url, id_video = url.split("|")
-        if url.startswith("F!"):
-            if len(url.split("!")) ==3:
-                folder_id = url.split("!")[1]
-                folder_key = url.split("!")[2]
-                master_key = self.base64_to_a32(folder_key)
-                files = self.api_req({"a":"f","c":1,"r":1},"&n="+folder_id)
-                for file in files["f"]:
-                 if file["t"] == 0:
-                    if id_video and id_video != file["h"]:
-                        continue
-                    key = file['k'][file['k'].index(':') + 1:]
-                    key = self.decrypt_key(self.base64_to_a32(key), master_key)
-                    k = (key[0] ^ key[4], key[1] ^ key[5], key[2] ^ key[6], key[3] ^ key[7])
-                    attributes = self.base64urldecode(file['a'])
-                    attributes = self.dec_attr(attributes, k)
-                    self.files.append(File(info=attributes, file_id=file["h"], key=key, folder_id=folder_id, file= file, client = self ))
-            else:
-                raise Exception("Enlace no valido")
-
-        elif url.startswith("!") or url.startswith("N!"):
-            if len(url.split("!")) ==3:
-                file_id = url.split("!")[1]
-                file_key = url.split("!")[2]
-                file = self.api_req({'a': 'g', 'g': 1, 'p': file_id})
-                key = self.base64_to_a32(file_key)
-                k = (key[0] ^ key[4], key[1] ^ key[5], key[2] ^ key[6], key[3] ^ key[7])
-                attributes = self.base64urldecode(file['at'])
-                attributes = self.dec_attr(attributes, k)
-                self.files.append(File(info=attributes, file_id=file_id, key=key, file= file, client = self))
-            else:
-                raise Exception("Enlace no valido")
-        else:
-            raise Exception("Enlace no valido")
-
-    def api_req(self, req, get=""):
-        seqno = random.randint(0, 0xFFFFFFFF)
-        url = 'https://g.api.mega.co.nz/cs?id=%d%s' % (seqno, get)
-        page = httptools.downloadpage(url, post=json.dumps([req])).data
-        return json.loads(page)[0]
-
-    def base64urldecode(self,data):
-      data += '=='[(2 - len(data) * 3) % 4:]
-      for search, replace in (('-', '+'), ('_', '/'), (',', '')):
-        data = data.replace(search, replace)
-      return base64.b64decode(data)
-
-    def base64urlencode(self,data):
-      data = base64.b64encode(data)
-      for search, replace in (('+', '-'), ('/', '_'), ('=', '')):
-        data = data.replace(search, replace)
-      return data
-
-    def a32_to_str(self,a):
-      return struct.pack('>%dI' % len(a), *a)
-
-    def str_to_a32(self,b):
-      if len(b) % 4: # Add padding, we need a string with a length multiple of 4
-        b += '\0' * (4 - len(b) % 4)
-      return struct.unpack('>%dI' % (len(b) / 4), b)
-
-    def base64_to_a32(self,s):
-      return self.str_to_a32(self.base64urldecode(s))
-
-    def a32_to_base64(self,a):
-      return self.base64urlencode(self.a32_to_str(a))
-
-    def aes_cbc_decrypt(self, data, key):
-        try:
-            from Cryptodome.Cipher import AES
-        except:
-            from Crypto.Cipher import AES
-        decryptor = AES.new(key, AES.MODE_CBC, b'\0' * 16)
-        return decryptor.decrypt(data)
-
-    def aes_cbc_decrypt_a32(self,data, key):
-      return self.str_to_a32(self.aes_cbc_decrypt(self.a32_to_str(data), self.a32_to_str(key)))
-
-    def decrypt_key(self,a, key):
-      return sum((self.aes_cbc_decrypt_a32(a[i:i+4], key) for i in xrange(0, len(a), 4)), ())
-
-    def dec_attr(self, attr, key):
-      attr = self.aes_cbc_decrypt(attr, self.a32_to_str(key)).rstrip(b'\0')
-      if not attr.endswith(b"}"):
-        attr = attr.rsplit(b"}", 1)[0] + b"}"
-      return json.loads(attr[4:]) if attr[:6] == b'MEGA{"' else False
-
-
     def calculateToken(self, ip):
+        """
+        " Compute the `token` and the `expires` values in order to perform each next requests
+        """
+
         from time import time
         from base64 import b64encode as b64
         import hashlib
         o = 48
+
+        # NOT USED: it has been computed by `jsondata` in the constructor method
         # n = support.match('https://au-1.scws-content.net/get-ip').data
+
         i = 'Yc8U6r8KjAKAepEA'
         t = int(time() + (3600 * o))
         l = '{}{} {}'.format(t, ip, i)
