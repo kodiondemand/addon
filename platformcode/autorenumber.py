@@ -145,16 +145,18 @@ class autorenumber():
         elif not self.item.infoLabels['tmdb_id']:
             self.item.contentSerieName = self.title.rstrip('123456789 ')
 
-        self.item.infoLabels['imdb_id'] = ''
-        self.item.infoLabels['tvdb_id'] = ''
-        self.item.infoLabels['tmdb_id'] = ''
-        self.item.infoLabels['year'] = '-'
         self.item.contentType = 'tvshow'
 
-        while not self.item.exit:
-            tmdb.find_and_set_infoLabels(self.item)
-            if self.item.infoLabels['tmdb_id']: self.item.exit = True
-            else:self.item = platformtools.dialog_info(self.item, 'tmdb')
+        if not self.item.disabletmdb:
+            self.item.infoLabels['imdb_id'] = ''
+            self.item.infoLabels['tvdb_id'] = ''
+            self.item.infoLabels['tmdb_id'] = ''
+            self.item.infoLabels['year'] = '-'
+
+            while not self.item.exit:
+                tmdb.find_and_set_infoLabels(self.item)
+                if self.item.infoLabels['tmdb_id']: self.item.exit = True
+                else:self.item = platformtools.dialog_info(self.item, 'tmdb')
 
         # Rinumerazione Automatica
         if (not self.id and self.auto) or self.item.renumber:

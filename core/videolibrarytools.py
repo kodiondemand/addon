@@ -1010,6 +1010,7 @@ def add_tvshow(item, channel=None):
         @param channel: channel from which the series will be saved. By default, item.from_channel or item.channel will be imported.
 
     """
+
     logger.debug("show=#" + item.show + "#")
     from platformcode.launcher import set_search_temp; set_search_temp(item)
 
@@ -1055,6 +1056,7 @@ def add_tvshow(item, channel=None):
             if not check(item):
                 action = item.action
                 item.renumber = True
+                item.disabletmdb = True
                 start(item)
                 item.renumber = False
                 item.action = action
