@@ -40,6 +40,7 @@ class Client(object):
 
         # Get json_data for entire details from video page
         jsonDataStr = httptools.downloadpage('https://streamingcommunityws.com/videos/1/{}'.format(self._video_id), CF=False ).data
+        logger.debug( jsonDataStr )
         self._jsonData = jsontools.load( jsonDataStr )
 
         # going to calculate token and expiration time

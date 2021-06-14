@@ -67,6 +67,7 @@ class Handler(BaseHTTPRequestHandler):
             # force flush just to be sure
             self.wfile.flush()
 
-            logger.debug('HANDLER flushed:', cType ) # , response.encode())
+            logger.info('HANDLER flushed:', cType , str( len(response.encode('utf-8')) ) )
+            logger.debug( response.encode('utf-8') )
 
 
