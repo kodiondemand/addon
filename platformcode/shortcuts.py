@@ -24,7 +24,6 @@ def settings_menu(item):
 	config.open_settings()
 
 def servers_menu(item):
-	# from core.support import dbg; dbg()
 	from core import servertools
 	from core.item import Item
 	from platformcode import config, platformtools
@@ -38,7 +37,7 @@ def servers_menu(item):
 		server_list = list(servertools.get_debriders_list().keys())
 		for server in server_list:
 			server_parameters = servertools.get_server_parameters(server)
-			if server_parameters['has_settings']:
+			if server_parameters['has_settings'] and server_parameters['active']:
 				names.append(server_parameters['name'])
 				ids.append(server)
 
@@ -55,7 +54,7 @@ def servers_menu(item):
 		server_list = list(servertools.get_servers_list().keys())
 		for server in sorted(server_list):
 			server_parameters = servertools.get_server_parameters(server)
-			if server_parameters["has_settings"] and [x for x in server_parameters["settings"] if x["id"] not in ["black_list", "white_list"]]:
+			if server_parameters["has_settings"] and [x for x in server_parameters["settings"]] and server_parameters['active']:
 				names.append(server_parameters['name'])
 				ids.append(server)
 
