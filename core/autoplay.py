@@ -273,7 +273,6 @@ def start(itemlist, item):
                     if autoplay_elem == autoplay_list[-1]:
                         platformtools.dialog_notification('AutoPlay', config.get_localized_string(60072) % name)
 
-            itemlist = [s['videoitem'] for s in autoplay_list]
         else:
             platformtools.dialog_notification(config.get_localized_string(60074), config.get_localized_string(60075))
 

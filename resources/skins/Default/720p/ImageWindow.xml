@@ -1,0 +1,68 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<window>
+    <depth>0.52</depth>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
+    <backgroundcolor>FF232323</backgroundcolor>
+    <animation type="WindowOpen" reversible="false">
+        <effect type="fade" start="0" end="100" time="100" />
+    </animation>
+    <animation type="WindowClose" reversible="false">
+        <effect type="fade" start="100" end="0" time="100" delay='100'/>
+    </animation>
+    <controls>
+        <control type='image'>
+            <description>Fanart</description>
+            <top>0</top>
+            <left>0</left>
+            <width>1280</width>
+            <height>720</height>
+            <texture colordiffuse='FF232323'>white.png</texture>
+            <aspectratio>scale</aspectratio>
+        </control>
+        <control type='fixedlist' id='100'>
+            <description>Fanart List</description>
+            <top>0</top>
+            <onup>202</onup>
+            <orientation>horizontal</orientation>
+            <itemgap>10</itemgap>
+            <itemlayout width='1280' height='720'>
+                <control type='image'>
+                    <texture>$INFO[ListItem.Art(fanart)]</texture>
+                    <aspectratio>scale</aspectratio>
+                </control>
+            </itemlayout>
+            <focusedlayout width='1280' height='720'>
+                <control type='image'>
+                    <texture>$INFO[ListItem.Art(fanart)]</texture>
+                    <aspectratio>scale</aspectratio>
+                </control>
+            </focusedlayout>
+        </control>
+        <control type='textbox'>
+            <description>Count</description>
+            <right>70</right>
+            <top>30</top>
+            <height>40</height>
+            <font>font13</font>
+            <textcolor>ffFFFFFF</textcolor>
+            <shadowcolor>00000000</shadowcolor>
+            <label>$INFO[Container(100).ListItem.Label]/$INFO[Container(100).ListItem.Label2]</label>
+            <align>right</align>
+            <aligny>center</aligny>
+        </control>
+        <control type="button" id="202">
+            <description>Close</description>
+            <top>30</top>
+            <right>20</right>
+            <ondown>100</ondown>
+            <height>40</height>
+            <width>40</width>
+            <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+            <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+            <onclick>Action(close)</onclick>
+        </control>
+    </controls>
+</window>

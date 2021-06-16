@@ -5,6 +5,7 @@
 
 from __future__ import division
 import sys, os, inspect, xbmcgui, xbmc
+from core import support
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 from builtins import range
@@ -363,6 +364,7 @@ class SettingsWindow(xbmcgui.WindowXMLDialog):
 
         control.setVisible(False)
         label.setVisible(False)
+        logger.debug('VALUES',c["lvalues"][self.values[c["id"]]])
         label.setLabel(c["lvalues"][self.values[c["id"]]])
 
         c["control"] = control

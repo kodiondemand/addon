@@ -289,6 +289,11 @@ def dialog_select_group(heading, _list, preselect=0):
     return dialog
 
 
+def dialog_busy(state):
+    if state: xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+    else: xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+
+
 def itemlist_refresh(offset=0):
     try:
         _id = xbmcgui.getCurrentWindowId()
@@ -349,11 +354,8 @@ def render_items(itemlist, parent_item):
         if not item.title:
             item.title = ''
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
-        if item.folder == "":  # not set
-            if item.action in ['play', '']:
-                item.folder = False
-            else:
-                item.folder = True
+        if item.action in ['play', '']:
+            item.folder = False
         if item.fanart == "":
             item.fanart = parent_item.fanart
         if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
@@ -403,7 +405,8 @@ def render_items(itemlist, parent_item):
         if item.infoLabels.get('disc'): art['banner'] = item.infoLabels['disc']
         listitem.setArt(art)
 
-        listitem.setProperty('IsPlayable', str(config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo).lower())
+        if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
+            listitem.setProperty('IsPlayable', 'true')
 
         if item.infoLabels.get('castandrole'):
             cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
@@ -649,11 +652,12 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
         # InfoPlus
-        if config.get_setting("infoplus"):
+        # from core.support import dbg;dbg()
+        # if config.get_setting("infoplus"):
             #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
             #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
-            if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
-                context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
+        if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
+            context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=start&from_channel=' + item.channel)))
 
         # Open in browser and previous menu
         if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:

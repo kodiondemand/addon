@@ -111,7 +111,7 @@ def run(item=None):
 
         elif item.channel == "infoplus":
             from platformcode import infoplus
-            return infoplus.Main(item)
+            return infoplus.start(item)
 
         elif item.channel == "backup":
             from platformcode import backup

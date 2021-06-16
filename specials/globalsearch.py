@@ -22,9 +22,7 @@ close_action = False
 update_lock = threading.Lock()
 
 
-def busy(state):
-    if state: xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
-    else: xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+
 
 def set_workers():
     workers = config.get_setting('thread_number') if config.get_setting('thread_number') > 0 else None
@@ -150,7 +148,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if not self.thActions.is_alive():
                     return
                 time.sleep(0.1)
-            yield self.searchActions[lastLen]
+            yield self.searchActions[lastLen-1]
             lastLen = len(self.searchActions)
 
     def select(self):
@@ -632,7 +630,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     self.close()
 
         elif control_id in [RESULTS, EPISODESLIST]:
-            busy(True)
+            platformtools.dialog_busy(True)
             if control_id in [RESULTS]:
                 name = self.CHANNELS.getSelectedItem().getLabel()
                 self.pos = self.RESULTS.getSelectedPosition()
@@ -642,12 +640,12 @@ class SearchWindow(xbmcgui.WindowXML):
                 if item_url:
                     item = Item().fromurl(item_url)
                 else:  # no results  item
-                    busy(False)
+                    platformtools.dialog_busy(False)
                     return
 
                 if item.action in ['add_movie_to_library', 'add_serie_to_library','save_download']:  # special items (add to videolibrary, download ecc.)
                     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item_url + ")")
-                    busy(False)
+                    platformtools.dialog_busy(False)
                     return
 
             try:
@@ -713,7 +711,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.setFocusId(SERVERLIST)
 
                 if config.get_setting('autoplay'):
-                    busy(False)
+                    platformtools.dialog_busy(False)
 
             else:
                 self.episodes = self.itemsResult if self.itemsResult else []
@@ -737,7 +735,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.EPISODESLIST.addItems(ep)
                 self.setFocusId(EPISODESLIST)
 
-            busy(False)
+            platformtools.dialog_busy(False)
 
         elif control_id in [SERVERLIST]:
             server = Item().fromurl(self.getControl(control_id).getSelectedItem().getProperty('item'))
@@ -764,11 +762,11 @@ class SearchWindow(xbmcgui.WindowXML):
     def Close(self):
         self.exit = True
         if self.thread:
-            busy(True)
+            platformtools.dialog_busy(True)
             for th in self.search_threads:
                 th.cancel()
             self.thread.join()
-            busy(False)
+            platformtools.dialog_busy(False)
         self.close()
 
 
@@ -793,7 +791,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
 
     def play(self, server=None):
-        platformtools.prevent_busy(server)
+        platformtools.prevent_platformtools.dialog_busy(server)
         server.window = True
         server.globalsearch = True
         return run(server)

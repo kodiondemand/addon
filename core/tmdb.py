@@ -147,8 +147,8 @@ def cache_response(fn):
 
         # error getting data
         except Exception as ex:
-            message = "An exception of type %s occured. Arguments:\n%s" % (type(ex).__name__, repr(ex.args))
-            logger.error("error in: %s" % message)
+            message = "An exception of type {} occured. Arguments:\n{}".format(type(ex).__name__, repr(ex.args))
+            logger.error("error in:", message)
 
         return result
 
@@ -175,10 +175,10 @@ def set_infoLabels(source, seekTmdb=True, search_language=def_lang, forced=False
     start_time = time.time()
     if type(source) == list:
         ret = set_infoLabels_itemlist(source, seekTmdb, search_language)
-        logger.debug("The data of %i links were obtained in %f seconds" % (len(source), time.time() - start_time))
+        logger.debug("The data of {} links were obtained in {} seconds".format(len(source), time.time() - start_time))
     else:
         ret = set_infoLabels_item(source, seekTmdb, search_language)
-        logger.debug("The data were obtained in %f seconds" % (time.time() - start_time))
+        logger.debug("The data were obtained in {} seconds".format(time.time() - start_time))
     return ret
 
 
@@ -279,7 +279,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                     try:
                         ep = int(item.infoLabels['episode'])
                     except ValueError:
-                        logger.debug("The episode number (%s) is not valid" % repr(item.infoLabels['episode']))
+                        logger.debug("The episode number ({}) is not valid".format(repr(item.infoLabels['episode'])))
                         return -1 * len(item.infoLabels)
 
                     # We have valid season number and episode number...
@@ -1524,7 +1524,7 @@ class Tmdb(object):
         seasons = []
         if results and 'Error' not in results:
             for season in results:
-                url = '{host}/tv/{id}/season/{season}?api_key={api}&language={lang}'.format(host=host, id=self.search_id, season=season['season_number'], api=api, lang=self.search_language)
+                url = '{}/tv/{}/season/{}?api_key={}&language={}'.format(host, self.search_id, season['season_number'], api, self.search_language)
                 try: start_from = requests.get(url).json()['episodes'][0]['episode_number']
                 except: start_from = 1
                 seasons.append({'season_number':season['season_number'], 'episode_count':season['episode_count'], 'start_from':start_from})
@@ -1567,7 +1567,7 @@ class Tmdb(object):
             for i in self.result['videos']:
                 if i['site'] == "YouTube":
                     ret.append({'name': i['name'],
-                                'url': "https://www.youtube.com/watch?v=%s" % i['key'],
+                                'url': "plugin://plugin.video.youtube/play/?video_id={}".format(i['key']),
                                 'size': str(i['size']),
                                 'type': i['type'],
                                 'language': i['iso_639_1']})
@@ -1592,8 +1592,10 @@ class Tmdb(object):
         l_country = [i.strip() for i in ret_infoLabels['country'].split(',') if ret_infoLabels['country']]
         l_director = [i.strip() for i in ret_infoLabels['director'].split(',') if ret_infoLabels['director']]
         l_director_image = ret_infoLabels.get('director_image', [])
+        l_director_id = ret_infoLabels.get('director_id', [])
         l_writer = [i.strip() for i in ret_infoLabels['writer'].split(',') if ret_infoLabels['writer']]
         l_writer_image = ret_infoLabels.get('writer_image', [])
+        l_writer_id = ret_infoLabels.get('writer_id', [])
         l_castandrole = ret_infoLabels.get('castandrole', [])
 
         if not origen:
@@ -1699,7 +1701,7 @@ class Tmdb(object):
 
             elif k == 'credits_cast' or k == 'season_cast' or k == 'episode_guest_stars':
                 dic_aux = dict((name, [character, thumb, order, id]) for (name, character, thumb, order, id) in l_castandrole)
-                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', ''), 'https://image.tmdb.org/t/p/original' + p.get('profile_path', '') if p.get('profile_path', '') else '', p.get('order'), p.get('credit_id')) \
+                l_castandrole.extend([(p['name'], p.get('character', '') or p.get('character_name', ''), 'https://image.tmdb.org/t/p/original' + p.get('profile_path', '') if p.get('profile_path', '') else '', p.get('order'), p.get('id')) \
                                       for p in v if 'name' in p and p['name'] not in list(dic_aux.keys())])
 
             elif k == 'videos':
@@ -1739,12 +1741,15 @@ class Tmdb(object):
             elif k == 'credits_crew' or k == 'episode_crew' or k == 'season_crew':
                 for crew in v:
                     if crew['job'].lower() == 'director':
+                        # from core.support import dbg;dbg()
                         l_director = list(set(l_director + [crew['name']]))
                         l_director_image += ['https://image.tmdb.org/t/p/original' + crew['profile_path'] if crew['profile_path'] else '']
+                        l_director_id += [crew['id']]
 
                     elif crew['job'].lower() in ('screenplay', 'writer'):
                         l_writer = list(set(l_writer + [crew['name']]))
                         l_writer_image += ['https://image.tmdb.org/t/p/original' + crew['profile_path'] if crew['profile_path'] else '']
+                        l_writer_id += [crew['id']]
 
             elif k == 'created_by':
                 for crew in v:
@@ -1766,9 +1771,11 @@ class Tmdb(object):
         if l_director:
             ret_infoLabels['director'] = ', '.join(l_director)
             ret_infoLabels['director_image'] = l_director_image
+            ret_infoLabels['director_id'] = l_director_id
         if l_writer:
             ret_infoLabels['writer'] = ', '.join(l_writer)
             ret_infoLabels['writer_image'] = l_writer_image
+            ret_infoLabels['writer_id'] = l_writer_id
 
         return ret_infoLabels
 
