@@ -25,22 +25,6 @@
       "label": "$ADDON[plugin.video.kod 70708]",
       "type": "bool",
       "visible": true
-    },
-    {
-      "default": 0,
-      "enabled": true,
-      "id": "favorites_servers_list",
-      "label": "$ADDON[plugin.video.kod 60655]",
-      "lvalues": [
-        "No",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5"
-      ],
-      "type": "list",
-      "visible": false
     }
   ],
   "cloudflare": true

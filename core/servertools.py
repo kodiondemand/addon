@@ -670,7 +670,8 @@ def get_servers_list():
             if server.endswith(".json") and not server == "version.json":
                 server_parameters = get_server_parameters(server)
                 server_list[server.split(".")[0]] = server_parameters
-        if type(server_list) != dict: server_list = sort_servers(server_list)
+
+        # if type(server_list) != dict: server_list = sort_servers(server_list)
     return server_list
 
 
@@ -698,7 +699,7 @@ def sort_servers(servers_list):
     :param servers_list: List of servers to order. The items in the servers_list can be strings or Item objects. In which case it is necessary that they have an item.server attribute of type str.
     :return: List of the same type of objects as servers_list ordered according to the favorite servers.
     """
-    if servers_list and config.get_setting('favorites_servers'):
+    if servers_list:
         if isinstance(servers_list[0], Item):
             servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x.server))
         else:
