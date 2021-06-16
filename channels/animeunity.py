@@ -3,14 +3,18 @@
 # Canale per AnimeUnity
 # ------------------------------------------------------------
 
-from lib.requests.sessions import session
-import requests, json, copy, inspect
-from core import support
-from platformcode import autorenumber
+import cloudscraper, json, copy, inspect
+from core import jsontools, support, httptools, filetools
+from platformcode import autorenumber, logger
+import re
+import xbmc
+
+
+session = cloudscraper.create_scraper()
 
 host = support.config.get_channel_url()
-response = support.httptools.downloadpage(host + '/archivio')
-csrf_token = support.match(response.data, patron='name="csrf-token" content="([^"]+)"').match
+response = session.get(host + '/archivio')
+csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
 headers = {'content-type': 'application/json;charset=UTF-8',
            'x-csrf-token': csrf_token,
            'Cookie' : '; '.join([x.name + '=' + x.value for x in response.cookies])}
@@ -119,7 +123,7 @@ def news(item):
     import cloudscraper
     session = cloudscraper.create_scraper()
 
-    fullJs = json.loads(support.match(session.get(item.url).text, headers=headers, patron=r'items-json="([^"]+)"', debug=True).match.replace('&quot;','"'))
+    fullJs = json.loads(support.match(session.get(item.url).text, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
     js = fullJs['data']
 
     for it in js:
@@ -128,7 +132,7 @@ def news(item):
                        fulltitle=it['anime']['title'],
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
-                       video_url=it['link'],
+                       video_url=it['scws_id'],
                        plot=it['anime']['plot'],
                        action='findvideos')
         )
@@ -150,9 +154,10 @@ def peliculas(item):
         item.args['order'] = order_list[order]
 
     payload = json.dumps(item.args)
-    records = requests.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
+    records = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
 
     for it in records:
+        logger.debug(jsontools.dump(it))
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
 
@@ -171,14 +176,14 @@ def peliculas(item):
             itm.fulltitle = itm.show = itm.contentTitle = title
             itm.contentSerieName = ''
             itm.action = 'findvideos'
-            itm.video_url = it['episodes'][0]['link']
+            itm.video_url = it['episodes'][0]['scws_id']
 
         else:
             itm.contentType = 'tvshow'
             itm.contentTitle = ''
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodios'
-            itm.episodes = it['episodes'] if 'episodes' in it else it['link']
+            itm.episodes = it['episodes'] if 'episodes' in it else it['scws_id']
             itm.video_url = item.url
 
         itemlist.append(itm)
@@ -205,7 +210,7 @@ def episodios(item):
                        plot=item.plot,
                        action='findvideos',
                        contentType='episode',
-                       video_url=it['link']))
+                       video_url=it['scws_id']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -215,8 +220,67 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.info()
-    if not 'vvvvid' in item.video_url:
-        return support.server(item,itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')])
+    # def calculateToken():
+    #     from time import time
+    #     from base64 import b64encode as b64
+    #     import hashlib
+    #     o = 48
+    #     n = support.match('https://au-1.scws-content.net/get-ip').data
+    #     i = 'Yc8U6r8KjAKAepEA'
+    #     t = int(time() + (3600 * o))
+    #     l = '{}{} {}'.format(t, n, i)
+    #     md5 = hashlib.md5(l.encode())
+    #     s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
+    #     return s
+    # token = calculateToken()
+
+    # url = 'https://streamingcommunityws.com/master/{}{}'.format(item.video_url, token)
+
+    # # support.dbg()
+
+    # m3u8_original = httptools.downloadpage(url, CF=False).data
+
+    # m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
+    # video_res = m_video.group(1)
+    # m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
+    # audio_res = m_audio.group(1)
+
+    # # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
+    # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
+    # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
+
+    # m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
+    # m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
+
+    # file_path = 'special://temp/animeunity.m3u8'
+
+    # filetools.write(xbmc.translatePath(file_path), m3u8_original, 'w')
+
+    # return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=file_path, manifest = 'hls', server='directo', action='play')])
+    # item.url=item.video_url
+
+    directLink = False
+    if item.video_url == None:
+        if item.extra == "tvshow":
+            epnum = item.episode
+            logger.info('it is a episode', epnum)
+            episode = None
+            for ep in item.episodes:
+                if ep["number"] == epnum:
+                    episode = ep
+                    break
+            if episode == None:
+                logger.warn('cannot found episode')
+            else:
+                item.url = episode["link"]
+                directLink = True
+
+    if directLink:
+        logger.info('try direct link')
+        return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.url, server='directo', action='play')])
     else:
-        return support.server(item, item.video_url)
+        return support.server(item, itemlist=[item.clone(title="StreamingCommunityWS", url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
+
+
+
+
