@@ -1262,7 +1262,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         logger.error(traceback.format_exc())
         pass
 
-    verifiedItemlist = servertools.sort_servers(verifiedItemlist)
+    # verifiedItemlist = servertools.sort_servers(verifiedItemlist)
 
     if Videolibrary and item.contentChannel != 'videolibrary':
         videolibrary(verifiedItemlist, item)
