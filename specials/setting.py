@@ -310,10 +310,9 @@ def servers_favorites(item):
         server_names.append(server_list[server]['name'])
 
         orden = config.get_setting("favorites_servers_list", server=server, default=999)
-
-        if not orden == None:
-            if orden > 0:
-                dict_values[orden] = len(server_names) - 1
+        if type(orden) != int: orden = 999
+        if orden > 0:
+            dict_values[orden] = len(server_names) - 1
 
     for x in range(1, 12):
         control = {'id': x,
