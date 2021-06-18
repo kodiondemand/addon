@@ -1205,7 +1205,9 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.title = findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
-        # logger.debug(videoitem)
+            else:
+                videoitem.server = videoitem.server.lower()
+
         if videoitem.video_urls or srv_param.get('active', False):
             # dbg()
             item.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
@@ -1243,7 +1245,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     with futures.ThreadPoolExecutor() as executor:
         thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
         for it in futures.as_completed(thL):
-            if it.result() and not config.get_setting("black_list", server=it.result().server.lower()):
+            if it.result():
                 verifiedItemlist.append(it.result())
     try:
         verifiedItemlist.sort(key=lambda it: int(re.sub(r'\D','',it.quality)))
