@@ -3,15 +3,11 @@
 # Configuracion
 # ------------------------------------------------------------
 
-from __future__ import division
-#from builtins import str
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 from builtins import range
-from past.utils import old_div
 
-from channelselector import get_thumb
 from core import filetools, servertools
 from core.item import Item
 from platformcode import config, logger, platformtools
@@ -19,221 +15,13 @@ from platformcode import config, logger, platformtools
 CHANNELNAME = "setting"
 
 
-def menu_channels(item):
-    logger.debug()
-    itemlist = list()
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60545), action="conf_tools", folder=False,
-                         extra="channels_onoff", thumbnail=get_thumb("setting_0.png")))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60546) + ":", action="", folder=False,
-                         text_bold = True, thumbnail=get_thumb("setting_0.png")))
-
-    # Home - Configurable channels
-    import channelselector
-    from core import channeltools
-    channel_list = channelselector.filterchannels("all")
-    for channel in channel_list:
-        if not channel.channel:
-            continue
-        channel_parameters = channeltools.get_channel_parameters(channel.channel)
-        if channel_parameters["has_settings"]:
-            itemlist.append(Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60547) % channel.title,
-                                 action="channel_config", config=channel.channel, folder=False,
-                                 thumbnail=channel.thumbnail))
-    # End - Configurable channels
-    itemlist.append(Item(channel=CHANNELNAME, action="", title="", folder=False, thumbnail=get_thumb("setting_0.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60548) + ":", action="", folder=False,
-                         text_bold=True, thumbnail=get_thumb("channels.png")))
-    itemlist.append(Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60549), action="conf_tools",
-                         folder=True, extra="lib_check_datajson", thumbnail=get_thumb("channels.png")))
-    return itemlist
-
-
 def channel_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels", item.config))
 
 
-# def setting_torrent(item):
-#     logger.debug()
-
-#     LIBTORRENT_PATH = config.get_setting("libtorrent_path", server="torrent", default="")
-#     LIBTORRENT_ERROR = config.get_setting("libtorrent_error", server="torrent", default="")
-#     default = config.get_setting("torrent_client", server="torrent", default=0)
-#     BUFFER = config.get_setting("mct_buffer", server="torrent", default="50")
-#     DOWNLOAD_PATH = config.get_setting("mct_download_path", server="torrent", default=config.get_setting("downloadpath"))
-#     if not DOWNLOAD_PATH: DOWNLOAD_PATH = filetools.join(config.get_data_path(), 'downloads')
-#     BACKGROUND = config.get_setting("mct_background_download", server="torrent", default=True)
-#     RAR = config.get_setting("mct_rar_unpack", server="torrent", default=True)
-#     DOWNLOAD_LIMIT = config.get_setting("mct_download_limit", server="torrent", default="")
-#     BUFFER_BT = config.get_setting("bt_buffer", server="torrent", default="50")
-#     DOWNLOAD_PATH_BT = config.get_setting("bt_download_path", server="torrent", default=config.get_setting("downloadpath"))
-#     if not DOWNLOAD_PATH_BT: DOWNLOAD_PATH_BT = filetools.join(config.get_data_path(), 'downloads')
-#     MAGNET2TORRENT = config.get_setting("magnet2torrent", server="torrent", default=False)
-
-#     torrent_options = [config.get_localized_string(30006), config.get_localized_string(70254), config.get_localized_string(70255)]
-#     torrent_options.extend(platformtools.torrent_client_installed())
-
-
-#     list_controls = [
-#         {
-#             "id": "libtorrent_path",
-#             "type": "text",
-#             "label": "Libtorrent path",
-#             "default": LIBTORRENT_PATH,
-#             "enabled": True,
-#             "visible": False
-#         },
-#         {
-#             "id": "libtorrent_error",
-#             "type": "text",
-#             "label": "libtorrent error",
-#             "default": LIBTORRENT_ERROR,
-#             "enabled": True,
-#             "visible": False
-#         },
-#         {
-#             "id": "list_torrent",
-#             "type": "list",
-#             "label": config.get_localized_string(70256),
-#             "default": default,
-#             "enabled": True,
-#             "visible": True,
-#             "lvalues": torrent_options
-#         },
-#         {
-#             "id": "mct_buffer",
-#             "type": "text",
-#             "label": "MCT - " + config.get_localized_string(70758),
-#             "default": BUFFER,
-#             "enabled": True,
-#             "visible": "eq(-1,%s)" % torrent_options[2]
-#         },
-#         {
-#             "id": "mct_download_path",
-#             "type": "text",
-#             "label": "MCT - " + config.get_localized_string(30017),
-#             "default": DOWNLOAD_PATH,
-#             "enabled": True,
-#             "visible": "eq(-2,%s)" % torrent_options[2]
-#         },
-#         {
-#             "id": "bt_buffer",
-#             "type": "text",
-#             "label": "BT - " + config.get_localized_string(70758),
-#             "default": BUFFER_BT,
-#             "enabled": True,
-#             "visible": "eq(-3,%s)" % torrent_options[1]
-#         },
-#         {
-#             "id": "bt_download_path",
-#             "type": "text",
-#             "label": "BT - " + config.get_localized_string(30017),
-#             "default": DOWNLOAD_PATH_BT,
-#             "enabled": True,
-#             "visible": "eq(-4,%s)" % torrent_options[1]
-#         },
-#         {
-#             "id": "mct_download_limit",
-#             "type": "text",
-#             "label": config.get_localized_string(70759),
-#             "default": DOWNLOAD_LIMIT,
-#             "enabled": True,
-#             "visible": "eq(-5,%s) | eq(-5,%s)" % (torrent_options[1], torrent_options[2])
-#         },
-#         {
-#             "id": "mct_rar_unpack",
-#             "type": "bool",
-#             "label": config.get_localized_string(70760),
-#             "default": RAR,
-#             "enabled": True,
-#             "visible": True
-#         },
-#         {
-#             "id": "mct_background_download",
-#             "type": "bool",
-#             "label": config.get_localized_string(70761),
-#             "default": BACKGROUND,
-#             "enabled": True,
-#             "visible": True
-#         },
-#         {
-#             "id": "magnet2torrent",
-#             "type": "bool",
-#             "label": config.get_localized_string(70762),
-#             "default": MAGNET2TORRENT,
-#             "enabled": True,
-#             "visible": True
-#         }
-#     ]
-
-#     platformtools.show_channel_settings(list_controls=list_controls, callback='save_setting_torrent', item=item,
-#                                         caption=config.get_localized_string(70257), custom_button={'visible': False})
-
-
-# def save_setting_torrent(item, dict_data_saved):
-#     if dict_data_saved and "list_torrent" in dict_data_saved:
-#         config.set_setting("torrent_client", dict_data_saved["list_torrent"], server="torrent")
-#     if dict_data_saved and "mct_buffer" in dict_data_saved:
-#         config.set_setting("mct_buffer", dict_data_saved["mct_buffer"], server="torrent")
-#     if dict_data_saved and "mct_download_path" in dict_data_saved:
-#         config.set_setting("mct_download_path", dict_data_saved["mct_download_path"], server="torrent")
-#     if dict_data_saved and "mct_background_download" in dict_data_saved:
-#         config.set_setting("mct_background_download", dict_data_saved["mct_background_download"], server="torrent")
-#     if dict_data_saved and "mct_rar_unpack" in dict_data_saved:
-#         config.set_setting("mct_rar_unpack", dict_data_saved["mct_rar_unpack"], server="torrent")
-#     if dict_data_saved and "mct_download_limit" in dict_data_saved:
-#         config.set_setting("mct_download_limit", dict_data_saved["mct_download_limit"], server="torrent")
-#     if dict_data_saved and "bt_buffer" in dict_data_saved:
-#         config.set_setting("bt_buffer", dict_data_saved["bt_buffer"], server="torrent")
-#     if dict_data_saved and "bt_download_path" in dict_data_saved:
-#         config.set_setting("bt_download_path", dict_data_saved["bt_download_path"], server="torrent")
-#     if dict_data_saved and "magnet2torrent" in dict_data_saved:
-#         config.set_setting("magnet2torrent", dict_data_saved["magnet2torrent"], server="torrent")
-
-def menu_servers(item):
-    logger.debug()
-    itemlist = list()
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60550), action="servers_blacklist", folder=False,
-                         thumbnail=get_thumb("setting_0.png")))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60551),
-                         action="servers_favorites", folder=False, thumbnail=get_thumb("setting_0.png")))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60552),
-                         action="", folder=False, text_bold = True, thumbnail=get_thumb("setting_0.png")))
-
-    # Home - Configurable servers
-
-    server_list = list(servertools.get_debriders_list().keys())
-    for server in server_list:
-        server_parameters = servertools.get_server_parameters(server)
-        if server_parameters["has_settings"]:
-            itemlist.append(
-                Item(channel=CHANNELNAME, title = ".    " + config.get_localized_string(60553) % server_parameters["name"],
-                     action="server_debrid_config", config=server, folder=False, thumbnail=""))
-
-    itemlist.append(Item(channel=CHANNELNAME, title=config.get_localized_string(60554),
-                         action="", folder=False, text_bold = True, thumbnail=get_thumb("setting_0.png")))
-
-    server_list = list(servertools.get_servers_list().keys())
-
-    for server in sorted(server_list):
-        server_parameters = servertools.get_server_parameters(server)
-        logger.debug(server_parameters)
-        if server_parameters["has_settings"] and [x for x in server_parameters["settings"] if x["id"] not in ["black_list", "white_list"]]:
-            itemlist.append(
-                Item(channel=CHANNELNAME, title=".    " + config.get_localized_string(60553) % server_parameters["name"],
-                     action="server_config", config=server, folder=False, thumbnail=""))
-
-    # End - Configurable servers
-
-    return itemlist
-
-
 def server_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", item.config))
+
 
 def server_debrid_config(item):
     return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", "debriders", item.config))
@@ -252,7 +40,6 @@ def servers_blacklist(item):
         defaults = servertools.get_server_parameters(server)
 
         control = server_parameters["name"]
-        # control.setArt({'thumb:': server_parameters['thumb'] if 'thumb' in server_parameters else config.get_online_server_thumb(server)})
         if not config.get_setting("black_list", server=server):
             list_controls.append(control)
             if defaults.get("black_list", False) or server in black_list:
@@ -261,23 +48,10 @@ def servers_blacklist(item):
     ris = platformtools.dialog_multiselect(config.get_localized_string(60550), list_controls, preselect=blacklisted)
     if ris is not None:
         cb_servers_blacklist({list_servers[n]: True if n in ris else False for n, it in enumerate(list_controls)})
-    # return platformtools.show_channel_settings(list_controls=list_controls, dict_values=dict_values, caption=config.get_localized_string(60550), callback="cb_servers_blacklist")
 
 
 def cb_servers_blacklist(dict_values):
     blaklisted = [k for k in dict_values.keys()]
-    # progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
-    # n = len(dict_values)
-    # i = 1
-    # for k, v in list(dict_values.items()):
-    #     if v:  # If the server is blacklisted it cannot be in the favorites list
-    #         config.set_setting("favorites_servers_list", 0, server=k)
-    #         blaklisted.append(k)
-    #         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
-    #     i += 1
-    # config.set_setting("black_list", blaklisted, server='servers')
-
-    # progreso.close()
 
 
 def servers_favorites(item):
@@ -314,7 +88,7 @@ def servers_favorites(item):
             orden = favorites.index(server) + 1
             dict_values[orden] = len(server_names) - 1
 
-    for x in range(1, 12):
+    for x in range(1, 21):
         control = {'id': x,
                    'type': 'list',
                    'label': config.get_localized_string(60597) % x,
@@ -366,18 +140,6 @@ def check_quickfixes(item):
             platformtools.dialog_ok('Kodi on Demand', config.get_localized_string(70667))
     else:
         return False
-
-
-# def update_quasar(item):
-#     logger.debug()
-
-#     from platformcode import custom_code, platformtools
-#     stat = False
-#     stat = custom_code.update_external_addon("quasar")
-#     if stat:
-#         platformtools.dialog_notification("Actualización Quasar", "Realizada con éxito")
-#     else:
-#         platformtools.dialog_notification("Actualización Quasar", "Ha fallado. Consulte el log")
 
 
 def conf_tools(item):

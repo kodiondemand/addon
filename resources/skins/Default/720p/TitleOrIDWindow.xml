@@ -54,19 +54,19 @@
                 <label/>
             </control>
             <control type="image">
-                <description>Separator</description>
+                <description>Divider</description>
                 <top>80</top>
                 <left>0</left>
                 <height>1</height>
                 <width>480</width>
-                <texture colordiffuse="FFFFFFFF">white.png</texture>
+                <texture colordiffuse="33FFFFFF">white.png</texture>
             </control>
             <control type="button" id="103">
                 <description>CLOSE</description>
-                <top>20</top>
-                <right>20</right>
-                <height>40</height>
-                <width>40</width>
+                <top>10</top>
+                <right>35</right>
+                <height>50</height>
+                <width>50</width>
                 <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
                 <texturenofocus colordiffuse="88FFFFFF">close.png</texturenofocus>
                 <ondown>101</ondown>
@@ -86,8 +86,8 @@
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>
                     <align>center</align>
-                    <texturefocus border="10" colordiffuse="22FFFFFF">white.png</texturefocus>
-                    <texturenofocus border="10"></texturenofocus>
+                    <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF191919">white.png</texturenofocus>
                 </control>
                 <control type="button" id="102">
                     <description>ID</description>
@@ -96,8 +96,8 @@
                     <textcolor>FFFFFFFF</textcolor>
                     <aligny>center</aligny>
                     <align>center</align>
-                    <texturefocus border="10" colordiffuse="22FFFFFF">white.png</texturefocus>
-                    <texturenofocus border="10"></texturenofocus>
+                    <texturefocus colordiffuse="FF0081C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF191919">white.png</texturenofocus>
                 </control>
             </control>
         </control>

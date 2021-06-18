@@ -84,14 +84,16 @@ def list_directors(item):
     videolibrarydb.close()
 
     directors = []
+    director_images = []
     for v in videos:
         directors += v['item'].infoLabels['director'].split(',')
+        director_images += v['item'].infoLabels['director_image']
 
     itemlist = []
-    for d in directors:
+    for i, d in enumerate(directors):
         d = d.strip()
         if d and d[0][0] == item.title and d not in [it.director for it in itemlist]:
-            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d)
+            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d, thumbnail=director_images[i])
             itemlist.append(it)
 
     itemlist.sort(key=lambda it: it.director)
