@@ -21,8 +21,8 @@
         <setting id="player_mode" type="select" lvalues="30026|30027|30028|30029" label="30044" default="1"/>
         <setting id="default_action" type="select" lvalues="30006|30007|30008" label="30005" default="0"/>
         <setting id="autoplay" type="bool" label="70562" default="false" visible="true"/>
-        <setting id="servers_favorites" visible="eq(-1,true)" subsetting="true" type="action" label="60551" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19mYXZvcml0ZXMiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
-        <setting id="servers_blacklist" visible="eq(-2,true)" subsetting="true" type="action" label="60550" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19ibGFja2xpc3QiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
+        <setting id="servers_favorites" visible="true" type="action" label="60551" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19mYXZvcml0ZXMiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
+        <setting id="servers_blacklist" visible="true" type="action" label="60550" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19ibGFja2xpc3QiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
 
         <setting id="window_type" type="select" label="60621"  lvalues="60623|60622" default="0"/>
         <!-- <setting id="hide_servers" type="bool" label="70747" default="false" visible="eq(-1,true)" subsetting="true"/> -->

@@ -265,19 +265,19 @@ def servers_blacklist(item):
 
 
 def cb_servers_blacklist(dict_values):
-    blaklisted = []
-    progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
-    n = len(dict_values)
-    i = 1
-    for k, v in list(dict_values.items()):
-        if v:  # If the server is blacklisted it cannot be in the favorites list
-            config.set_setting("favorites_servers_list", 0, server=k)
-            blaklisted.append(k)
-            progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
-        i += 1
-    config.set_setting("black_list", blaklisted, server='servers')
+    blaklisted = [k for k in dict_values.keys()]
+    # progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
+    # n = len(dict_values)
+    # i = 1
+    # for k, v in list(dict_values.items()):
+    #     if v:  # If the server is blacklisted it cannot be in the favorites list
+    #         config.set_setting("favorites_servers_list", 0, server=k)
+    #         blaklisted.append(k)
+    #         progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % k)
+    #     i += 1
+    # config.set_setting("black_list", blaklisted, server='servers')
 
-    progreso.close()
+    # progreso.close()
 
 
 def servers_favorites(item):
@@ -302,16 +302,16 @@ def servers_favorites(item):
         dict_values['favorites_servers'] = False
 
     server_names = [config.get_localized_string(59992)]
+    favorites = config.get_setting("favorites_servers_list", server='servers', default=[])
+    blacklisted = config.get_setting("black_list", server='servers', default=[])
 
     for server in sorted(server_list.keys()):
-        if config.get_setting("black_list", server=server):
+        if server in blacklisted or config.get_setting("black_list", server=server):
             continue
 
         server_names.append(server_list[server]['name'])
-
-        orden = config.get_setting("favorites_servers_list", server=server)
-
-        if orden > 0:
+        if server in favorites:
+            orden = favorites.index(server) + 1
             dict_values[orden] = len(server_names) - 1
 
     for x in range(1, 12):
@@ -331,7 +331,6 @@ def servers_favorites(item):
 def cb_servers_favorites(server_names, dict_values):
     dict_name = {}
     dict_favorites = {}
-    progreso = platformtools.dialog_progress(config.get_localized_string(60557), config.get_localized_string(60558))
 
     for i, v in list(dict_values.items()):
         if i == "favorites_servers":
@@ -342,29 +341,16 @@ def cb_servers_favorites(server_names, dict_values):
             dict_name[server_names[v]] = int(i)
 
     servers_list = list(servertools.get_servers_list().items())
-    n = len(servers_list)
-    i = 1
     for server, server_parameters in servers_list:
         if server_parameters['name'] in list(dict_name.keys()):
             dict_favorites[dict_name[server_parameters['name']]] = server
-            config.set_setting("favorites_servers_list", dict_name[server_parameters['name']], server=server)
-        else:
-            config.set_setting("favorites_servers_list", 999, server=server)
-        progreso.update(old_div((i * 100), n), config.get_localized_string(60559) % server_parameters['name'])
-        i += 1
 
-    c = 1
-    logger.debug(dict_favorites)
-    favorites_servers_list = []
-    while c in dict_favorites:
-        favorites_servers_list.append(dict_favorites[c])
-        c += 1
+    favorites_servers_list = [dict_favorites[k] for k in sorted(dict_favorites.keys())]
+
     config.set_setting("favorites_servers_list", favorites_servers_list, server='servers')
 
-    if not dict_name:  # If there is no server in the list, deactivate it
+    if not favorites_servers_list:  # If there is no server in the list, deactivate it
         config.set_setting("favorites_servers", False)
-
-    progreso.close()
 
 
 def settings(item):
@@ -706,6 +692,83 @@ def channel_status(item, dict_values):
         import traceback
         logger.error("Error detail: %s" % traceback.format_exc())
         platformtools.dialog_notification(config.get_localized_string(60579), config.get_localized_string(60580))
+
+
+def restore_tools(item):
+    import service
+    from core import videolibrarytools
+    import os
+
+    seleccion = platformtools.dialog_yesno(config.get_localized_string(60581),
+                                           config.get_localized_string(60582) + '\n' +
+                                           config.get_localized_string(60583))
+    if seleccion == 1:
+        # tvshows
+        heading = config.get_localized_string(60584)
+        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(60585), heading)
+        p_dialog.update(0, '')
+
+        show_list = []
+        for path, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
+            show_list.extend([filetools.join(path, f) for f in files if f == "tvshow.nfo"])
+
+        if show_list:
+            t = float(100) / len(show_list)
+
+        for i, tvshow_file in enumerate(show_list):
+            head_nfo, serie = videolibrarytools.read_nfo(tvshow_file)
+            path = filetools.dirname(tvshow_file)
+
+            if not serie.active:
+                # if the series is not active discard
+                continue
+
+            # We delete the folder with the series ...
+            if tvshow_file.endswith('.strm') or tvshow_file.endswith('.json') or tvshow_file.endswith('.nfo'):
+                os.remove(os.path.join(path, tvshow_file))
+            # filetools.rmdirtree(path)
+
+            # ... and we add it again
+            service.update(path, p_dialog, i, t, serie, 3)
+        p_dialog.close()
+
+        # movies
+        heading = config.get_localized_string(60586)
+        p_dialog2 = platformtools.dialog_progress_bg(config.get_localized_string(60585), heading)
+        p_dialog2.update(0, '')
+
+        movies_list = []
+        for path, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
+            movies_list.extend([filetools.join(path, f) for f in files if f.endswith(".json")])
+
+        logger.debug("movies_list %s" % movies_list)
+
+        if movies_list:
+            t = float(100) / len(movies_list)
+
+        for i, movie_json in enumerate(movies_list):
+            try:
+                from core import jsontools
+                path = filetools.dirname(movie_json)
+                movie = Item().fromjson(filetools.read(movie_json))
+
+                # We delete the folder with the movie ...
+                filetools.rmdirtree(path)
+
+                import math
+                heading = config.get_localized_string(20000)
+
+                p_dialog2.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (movie.contentTitle,
+                                                                                   movie.channel.capitalize()))
+                # ... and we add it again
+                videolibrarytools.save_movie(movie)
+            except Exception as ex:
+                logger.error("Error creating movie again")
+                template = "An exception of type %s occured. Arguments:\n%r"
+                message = template % (type(ex).__name__, ex.args)
+                logger.error(message)
+
+        p_dialog2.close()
 
 
 def report_menu(item):
