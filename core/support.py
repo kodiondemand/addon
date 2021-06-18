@@ -266,7 +266,6 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
 
 
         if not group or item.grouped:
-            # dbg()
             ep = unifyEp(scraped['episode']) if scraped['episode'] else ''
             se = scraped['season'] if scraped['season'].isdigit() else ''
             if ep and se:
@@ -290,7 +289,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                     if 'x' in ep:
                         ep_list = ep.split('x')
                         episode = ep_list[1].strip()
-                        season = ep_list[2].strip()
+                        season = ep_list[0].strip()
                         if len(ep_list) > 2:
                             second_episode = ep_list[2:]
                     else:
@@ -544,13 +543,6 @@ def scrape(func):
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
-        # for it in itemlist:
-        #     if it.contentEpisodeNumber and it.contentSeason:
-        #         it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
-        #         if it.contentLanguage:
-        #             it.title += typo(it.contentLanguage, '_ [] color kod')
-        #         if it.quality:
-        #             it.title += typo(it.quality, '_ [] color kod')
 
         # next page for pagination
         if pagination and len(matches) > pag * pagination and not search:
@@ -1183,10 +1175,6 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     verifiedItemlist = []
 
     def getItem(videoitem):
-        # if not videoitem.server:
-        #     s = servertools.get_server_from_url(videoitem.url)
-        #     videoitem.server = s[2] if s else 'directo'
-        #     videoitem.title = s[0] if s else config.get_localized_string(30137)
         if not videoitem.video_urls:
             srv_param = servertools.get_server_parameters(videoitem.server.lower())
             if not srv_param:  # do not exists or it's empty
@@ -1215,11 +1203,6 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
             videoitem.title = item.title
-            # videoitem.title = (item.title if item.channel not in ['url'] else '')\
-            #     + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
-            #     + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
-            #     + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\
-            #     + (typo(videoitem.extraInfo, '_ color kod []') if videoitem.extraInfo else "")
             videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle
@@ -1231,8 +1214,6 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             videoitem.referer = item.referer if item.referer else item.url
             videoitem.action = "play"
             videoitem.videolibrary_id = item.videolibrary_id
-            # videoitem.nfo = item.nfo
-            # videoitem.strm_path = item.strm_path
             return videoitem
 
     # non threaded for webpdb

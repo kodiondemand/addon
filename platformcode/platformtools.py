@@ -352,7 +352,7 @@ def render_items(itemlist, parent_item):
         if item.category == "":
             item.category = parent_item.category
         if not item.title:
-            item.title = ''
+            item.title = item.contentTitle
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
         if item.action in ['play', '']:
             item.folder = False
@@ -360,16 +360,6 @@ def render_items(itemlist, parent_item):
             item.fanart = parent_item.fanart
         if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
             item.thumbnail = config.get_online_server_thumb(item.server)
-
-        # if cloudflare and cloudscraper is used, cookies are needed to display images taken from site
-        # before checking domain (time consuming), checking if tmdb failed (so, images scraped from website are used)
-        # if item.action in ['findvideos'] and not item.infoLabels['tmdb_id']:
-            # faster but ugly way of checking
-            # for d in httptools.FORCE_CLOUDSCRAPER_LIST:
-            #     if d + '/' in item.url:
-            #         item.thumbnail = httptools.get_url_headers(item.thumbnail)
-            #         item.fanart = httptools.get_url_headers(item.fanart)
-            #         break
 
         icon_image = "DefaultFolder.png" if item.folder else "DefaultVideo.png"
 
@@ -426,6 +416,7 @@ def render_items(itemlist, parent_item):
 
     # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
     r_list = []
+
     with futures.ThreadPoolExecutor() as executor:
         searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
         for res in futures.as_completed(searchList):

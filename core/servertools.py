@@ -736,15 +736,16 @@ def sort_servers(servers_list):
             if item.url in url_list_valid:
                 continue
 
+        element['indice_language'] = 0 if item.contentLanguage == 'ITA' else 1
+
         element['videoitem'] = item
         sorted_list.append(element)
 
-
     # We order according to priority
-    if priority == 0: sorted_list.sort(key=lambda orden: ((orden['indice_server'], orden['indice_quality']))) # Servers and qualities
-    elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_server'])) # Servers only
-    elif priority == 3: sorted_list.sort(key=lambda orden: (orden['indice_quality'])) # Only qualities
-
+    if priority == 0: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'], orden['indice_quality'])) # Servers and qualities
+    elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'])) # Servers only
+    elif priority == 2: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
+    else: sorted_list.sort(key=lambda orden: orden['indice_language'])
 
     # if quality priority is active
     if priority == 0 and config.get_setting('quality_priority'):
@@ -760,7 +761,7 @@ def sort_servers(servers_list):
                 element['videoitem'] = item
                 sorted_list.append(element)
 
-        sorted_list.sort(key=lambda orden: (orden['indice_quality'], orden['indice_server']))
+        sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'], orden['indice_server']))
 
     return [v['videoitem'] for v in sorted_list if v]
 
