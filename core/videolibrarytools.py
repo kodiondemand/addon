@@ -105,7 +105,7 @@ def save_movie(item, silent=False):
     base_name = set_base_name(item, _id)
     path = filetools.join(MOVIES_PATH, base_name)
 
-    local_files = get_local_files(path, item)
+    it, local_files = get_local_files(path, item)
 
     # check if path already exist
     if not filetools.exists(path):
@@ -148,7 +148,7 @@ def save_movie(item, silent=False):
         if 'setid' in item.infoLabels:
             c_playcount = 0
             collection = videolibrarydb['collection'].get(item.infoLabels['setid'], None)
-            if item.infoLabels.get('playcount') > 0:
+            if item.infoLabels.get('playcount', 0) > 0:
                 collections = [c for c in dict(videolibrarydb['collection']).values() if c.infoLabels.get('setid') == item.infoLabels['setid']]
                 viewed = [c for c in collections if c.infoLabels.get('playcount') > 0]
                 if len(collections) == len(viewed):
@@ -902,8 +902,9 @@ def get_fanart_tv(item, set='', ret={}):
 def get_local_files(path, item):
     # check if movie or season already exist in path or db
     excluded_extensions = subtitle_extensions + image_extensions + library_extension
+
     local_files = {}
-    if item.contentType == 'movies':
+    if item.contentType == 'movie':
         # search on path:
         internal = [f for f in filetools.listdir(path) if not (f.endswith('nfo') or f.endswith('strm') or f.endswith('json'))]
         if internal:
