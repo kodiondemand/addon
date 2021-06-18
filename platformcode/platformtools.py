@@ -334,7 +334,7 @@ def render_items(itemlist, parent_item):
     thumb_type = config.get_setting('video_thumbnail_type')
     from platformcode import shortcuts
     from core.support import typo
-    # from core import httptools
+    from core import servertools
     _handle = int(sys.argv[1])
     default_fanart = config.get_fanart()
     def_context_commands = shortcuts.context()
@@ -378,10 +378,10 @@ def render_items(itemlist, parent_item):
             if item.title2: title = '{} - {}'.format(title, item.title2)
 
             if not config.get_setting('format_title'):
-                server =  typo(item.server, '_ []') if item.server else ''
-                quality =  typo(item.quality, '_ [] color kod') if item.quality else ''
-                lang =  typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
-                extra =  typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
+                server = typo(servertools.get_server_parameters(item.server).get('name', item.server.capitalize()), '_ []') if item.server else ''
+                quality = typo(item.quality, '_ [] color kod') if item.quality else ''
+                lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
+                extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
 
                 title = '{}{}{}{}{}'.format(title, server, quality, lang, extra)
 
