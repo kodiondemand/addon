@@ -136,7 +136,7 @@ def list_actors(item):
 
     actors = []
     for v in videos:
-        actors += [[a[0].strip(), a[2].strip(), a[4].strip()] for a in v['item'].infoLabels['castandrole']]
+        actors += [[a[0].strip(), a[2].strip(), a[4]] for a in v['item'].infoLabels['castandrole']]
 
     itemlist = []
     for a in actors:
