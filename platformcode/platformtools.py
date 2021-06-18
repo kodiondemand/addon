@@ -375,7 +375,7 @@ def render_items(itemlist, parent_item):
 
         title = item.title
         episode = ''
-        # from core.support import dbg;dbg()
+
         if parent_item.channel not in ['videolibrary'] and title[:1] not in ['[', '•']:
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
@@ -393,8 +393,7 @@ def render_items(itemlist, parent_item):
                 lang =  typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
                 extra =  typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
 
-
-                title = '[B]{}{}[/B]{}{}{}'.format(title, server, quality, lang, extra)
+                title = '{}{}{}{}{}'.format(title, server, quality, lang, extra)
 
         listitem = xbmcgui.ListItem(title)
         art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
