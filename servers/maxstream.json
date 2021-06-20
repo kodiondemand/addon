@@ -1,0 +1,29 @@
+{
+  "active": true,
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "https?://maxstream.video/(?:e/)?([a-z0-9]+)",
+        "url": "https://maxstream.video/\\1"
+      },
+      {
+        "pattern": "https?://maxstream.video/embed-([a-z0-9]+).html",
+        "url": "https://maxstream.video/\\1"
+      }
+    ]
+  },
+  "free": true,
+  "id": "maxstream",
+  "name": "MaxStream",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@70708",
+      "type": "bool",
+      "visible": true
+    }
+  ]
+}

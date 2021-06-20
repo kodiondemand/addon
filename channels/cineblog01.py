@@ -94,7 +94,7 @@ def peliculas(item):
     # esclusione degli articoli 'di servizio'
     curYear = datetime.date.today().year
     blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
-                 'Aggiornamento Quotidiano Serie TV',
+                 'Aggiornamento Quotidiano Serie TV', 'AVVISO!!!',
                  'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
                  'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
                  'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
