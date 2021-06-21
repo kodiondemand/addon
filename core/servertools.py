@@ -695,18 +695,21 @@ def sort_servers(servers_list):
 
     # Priorities when ordering itemlist:
     #       0: Servers and qualities
-    #       1: Servers only
-    #       2: Only qualities
-    #       3: Do not order
+    #       1: Qualities and servers
+    #       2: Servers only
+    #       3: Only qualities
+    #       4: Do not order
 
-    if config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action'):
-        priority = 0  # 0: Servers and qualities
+    if config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and not config.get_setting('quality_priority'):
+        priority = 0  # Servers and qualities
+    elif config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and config.get_setting('quality_priority'):
+        priority = 1  # Qualities and servers
     elif config.get_setting('favorites_servers') and favorite_servers:
-        priority = 1  # Servers only
+        priority = 2  # Servers only
     elif config.get_setting('default_action'):
-        priority = 2  # Only qualities
+        priority = 3  # Only qualities
     else:
-        priority = 3  # Do not order
+        priority = 4  # Do not order
 
     if config.get_setting('default_action') == 1:
         quality_list.reverse()
@@ -743,25 +746,10 @@ def sort_servers(servers_list):
 
     # We order according to priority
     if priority == 0: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'], orden['indice_quality'])) # Servers and qualities
-    elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'])) # Servers only
-    elif priority == 2: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
+    elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'], orden['indice_server'])) # Servers and qualities
+    elif priority == 2: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'])) # Servers only
+    elif priority == 3: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
     else: sorted_list.sort(key=lambda orden: orden['indice_language'])
-
-    # if quality priority is active
-    if priority == 0 and config.get_setting('quality_priority'):
-        max_quality = sorted_list[0]["indice_quality"] if sorted_list and "indice_quality" in sorted_list[0] else 0
-        for n, item in enumerate(servers_list):
-
-            if not item.server or item.server.lower() in blacklisted_servers:
-                continue
-
-            if favorite_quality.index(item.quality.lower()) < max_quality:
-                element["indice_server"] = n
-                element["indice_quality"] = favorite_quality.index(item.quality.lower())
-                element['videoitem'] = item
-                sorted_list.append(element)
-
-        sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'], orden['indice_server']))
 
     return [v['videoitem'] for v in sorted_list if v]
 
