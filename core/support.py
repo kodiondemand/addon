@@ -424,10 +424,14 @@ def scrape(func):
     def wrapper(*args):
         itemlist = []
 
+        dbg()
+
         args = func(*args)
         function = func.__name__ if not 'actLike' in args else args['actLike']
         # info('STACK= ',inspect.stack()[1][3])
         item = args['item']
+
+        response_404_allowed = args.get('response_404_allowed', False)
 
         action = args.get('action', 'findvideos')
         anime = args.get('anime', '')
@@ -461,7 +465,7 @@ def scrape(func):
         for n in range(2):
             logger.debug('PATRON= ', patron)
             if not data:
-                page = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True)
+                page = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True, response_404_allowed = response_404_allowed)
                 data = page.data
             data = html_uniform(data)
             scrapingTime = time()

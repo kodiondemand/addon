@@ -20,7 +20,9 @@ from platformcode import config
 from core.support import info
 
 host = config.get_channel_url()
-headers = [['Referer', host]]
+headers = [
+    #['Referer', host]
+]
 
 
 @support.menu
@@ -82,6 +84,12 @@ def peliculas(item):
     action = 'episodios'
     blacklist = ['DMCA']
 
+    ###
+    # Channel is responding with 404 response error, but HTML in returned-response-content is correctly filled.
+    # This flag makes KOD uses 404 response-content in any case
+    ###
+    response_404_allowed = True
+
     if item.args == 'genres' or item.args == 'search':
         patronBlock = r'<h2 style="color:\s?white !important;?" class="title-typology">(?P<block>.+?)<div class="container-fluid whitebg" style="">'
         patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)</p>'
@@ -116,13 +124,20 @@ def peliculas(item):
 ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
 ##            pagination = 25
     #support.regexDbg(item, patronBlock, headers)
-    #debug = True
+    # debug = True
+    # debugBlock = True
+    
     return locals()
 
 
 @support.scrape
 def episodios(item):
     info()
+
+    support.dbg()
+
+    debug = True
+    debugBlock = True
 
     action = 'findvideos'
     patron = r'<div class="number-episodes-on-img">\s?\d+.\d+\s?(?:\((?P<lang>[a-zA-Z\-]+)\))?</div>.+?(?:<span class="pull-left bottom-year">(?P<title2>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<[^>]+>[^>]+>[^>]+>\s?)?<span(?: meta-nextep="[^"]+")? class="[^"]+" meta-serie="(?P<title>[^"]+)" meta-stag="(?P<season>\d+)" meta-ep="(?P<episode>\d+)" meta-embed="(?P<url>[^>]+)">'
@@ -131,7 +146,7 @@ def episodios(item):
     def itemHook(item):
         item.title = item.title.replace(item.fulltitle, '').replace('-','',1)
         return item
-
+    
     #debug = True
     return locals()
 

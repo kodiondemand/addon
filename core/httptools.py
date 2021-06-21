@@ -15,7 +15,7 @@ import os, time, json
 from threading import Lock
 from core.jsontools import to_utf8
 from platformcode import config, logger
-from core import scrapertools
+from core import scrapertools, responseexception
 
 # to surpress InsecureRequestWarning
 import urllib3
@@ -385,21 +385,34 @@ def downloadpage(url, **opt):
                 req = session.get(url, allow_redirects=opt.get('follow_redirects', True),
                                   timeout=opt['timeout'])
         except Exception as e:
-            from lib import requests
-            req = requests.Response()
-            if not opt.get('ignore_response_code', False) and not proxy_data.get('stat', ''):
-                response['data'] = ''
-                response['success'] = False
-                info_dict.append(('Success', 'False'))
-                import traceback
-                response['code'] = traceback.format_exc()
-                info_dict.append(('Response code', str(e)))
-                info_dict.append(('Finished in', time.time() - inicio))
-                if not opt.get('alfa_s', False):
-                    show_infobox(info_dict)
-                return type('HTTPResponse', (), response)
+
+            if isinstance(e, responseexception.ResponseException) and opt.get('ignore_response_code', False) and opt.get('response_404_allowed', False):
+
+                """
+                " we are considering 404 response as a good response:
+                " Ex:
+                "  guardaserie.support returns a correct html page with 404 response cose :D
+                """
+                req = e._response
+            
             else:
-                req.status_code = str(e)
+
+                import traceback
+                logger.error(traceback.format_exc())
+                from lib import requests
+                req = requests.Response()
+                if not opt.get('ignore_response_code', False) and not proxy_data.get('stat', ''):
+                    response['data'] = ''
+                    response['success'] = False
+                    info_dict.append(('Success', 'False'))
+                    response['code'] = traceback.format_exc()
+                    info_dict.append(('Response code', str(e)))
+                    info_dict.append(('Finished in', time.time() - inicio))
+                    if not opt.get('alfa_s', False):
+                        show_infobox(info_dict)
+                    return type('HTTPResponse', (), response)
+                else:
+                    req.status_code = str(e)
 
     else:
         response['data'] = ''

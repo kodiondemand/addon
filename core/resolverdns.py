@@ -14,7 +14,7 @@ from lib.requests_toolbelt.adapters import host_header_ssl
 from lib import doh
 from platformcode import logger
 import requests
-from core import scrapertools
+from core import scrapertools, responseexception
 from core import db
 
 if 'PROTOCOL_TLS' in ssl.__dict__:
@@ -113,7 +113,8 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
             try:
                 ret = super(CipherSuiteAdapter, self).send(request, **kwargs)
                 if 400 <= ret.status_code < 500:
-                    raise Exception
+                    ex = responseexception.ResponseException(ret)
+                    raise ex
             except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
                 logger.info('Request for ' + domain + ' with ip ' + ip + ' failed')
                 logger.info(e)
