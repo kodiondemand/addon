@@ -71,8 +71,9 @@ def peliculas(item):
         #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
         patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+>\s*<div'
     elif item.args == 'last':
-        patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
+        patronBlock = 'Aggiornamenti|Update</h2>(?P<block>.*?)</ul>'
+        #patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
+        patron = r'<a href="(?P<url>[^"]+)">\s*(?P<title>[^<]+)</a>'
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
         # patron = r'<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>[^>]+>[^>]+>[^>]+><img.*?src="(?P<thumb>[^"]+)".*?<p>(?P<plot>[^<]+)</p>.*?<span class="cat-links">Pubblicato in.*?.*?(?P<type>(?:[Ff]ilm|</artic))[^>]+>'
