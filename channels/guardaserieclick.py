@@ -30,7 +30,7 @@ def mainlist(item):
 
     tvshow = ['/lista-serie-tv',
         ('Aggiornamenti', ['/lista-serie-tv', 'peliculas', 'update']),
-        ('Generi', ['/categorie', 'genres', 'genres']),
+        ('Generi', ['/lista-serie-tv', 'genres', 'genres']),
         ('News Sub-ITA', ['/lista-serie-tv', 'peliculas', 'ined']),
         ('Da non perdere', ['/lista-serie-tv', 'peliculas', 'nolost']),
         ('Classiche', ["/lista-serie-tv", 'peliculas', 'classic']),
@@ -134,10 +134,10 @@ def peliculas(item):
 def episodios(item):
     info()
 
-    support.dbg()
+    # support.dbg()
 
-    debug = True
-    debugBlock = True
+    # debug = True
+    # debugBlock = True
 
     action = 'findvideos'
     patron = r'<div class="number-episodes-on-img">\s?\d+.\d+\s?(?:\((?P<lang>[a-zA-Z\-]+)\))?</div>.+?(?:<span class="pull-left bottom-year">(?P<title2>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<[^>]+>[^>]+>[^>]+>\s?)?<span(?: meta-nextep="[^"]+")? class="[^"]+" meta-serie="(?P<title>[^"]+)" meta-stag="(?P<season>\d+)" meta-ep="(?P<episode>\d+)" meta-embed="(?P<url>[^>]+)">'
@@ -154,10 +154,19 @@ def episodios(item):
 def genres(item):
     info()
 
+    ###
+    # Channel is responding with 404 response error, but HTML in returned-response-content is correctly filled.
+    # This flag makes KOD uses 404 response-content in any case
+    ###
+    response_404_allowed = True
+
     action = 'peliculas'
     patron = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
     patron_block = r'<ul\sclass="dropdown-menu category">(?P<block>.*?)</ul>'
     item.contentType = ''
+
+    # debug = True
+    # debugBlock = True
 
     return locals()
 
