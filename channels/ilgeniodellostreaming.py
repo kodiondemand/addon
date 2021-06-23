@@ -124,9 +124,9 @@ def genres(item):
 
 def search(item, text):
     info(text)
-    itemlist = []
+    import uuid
     text = text.replace(' ', '+')
-    item.url = host + '/?a=b&s=' + text
+    item.url = host + '/?' + uuid.uuid4().hex + '=' + uuid.uuid4().hex + '&s=' + text
     try:
         item.args = 'search'
         return peliculas(item)
