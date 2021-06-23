@@ -6,7 +6,6 @@ import sys
 import threading
 import traceback
 import xbmc
-import xbmcgui
 from platformcode import config
 
 try:
@@ -28,6 +27,11 @@ from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
 from servers import torrent
 
+# if this service need to be reloaded because an update changed it
+needsReload = False
+# list of threads
+threads = []
+
 
 def update(path, p_dialog, i, t, serie, overwrite):
     logger.debug("Updating " + path)
@@ -47,7 +51,6 @@ def update(path, p_dialog, i, t, serie, overwrite):
         url = module.host + urlsplit(url).path
         serie.url = url
 
-        ###### Redirection to the NewPct1.py channel if it is a clone, or to another channel and url if there has been judicial intervention
         try:
             head_nfo, it = videolibrarytools.read_nfo(nfo_file)         # Refresh the .nfo to collect updates
             if it.emergency_urls:
@@ -90,12 +93,10 @@ def update(path, p_dialog, i, t, serie, overwrite):
                     insertados_total += insertados
 
                 except:
-                    import traceback
                     logger.error("Error when saving the chapters of the series")
                     logger.error(traceback.format_exc())
 
             except:
-                import traceback
                 logger.error("Error in obtaining the episodes of: %s" % serie.show)
                 logger.error(traceback.format_exc())
 
@@ -284,11 +285,9 @@ def check_for_update(overwrite=True):
 
 
 def updaterCheck():
+    global needsReload
     # updater check
     updated, needsReload = updater.check(background=True)
-    if needsReload:
-        xbmc.executescript(__file__)
-        exit(0)
 
 
 def get_ua_list():
@@ -315,6 +314,12 @@ def get_ua_list():
 def run_threaded(job_func, args):
     job_thread = threading.Thread(target=job_func, args=args)
     job_thread.start()
+    threads.append(job_thread)
+
+
+def join_threads():
+    for th in threads:
+        th.join()
 
 
 class AddonMonitor(xbmc.Monitor):
@@ -328,14 +333,15 @@ class AddonMonitor(xbmc.Monitor):
         self.scheduleUpdater()
         self.scheduleUA()
 
-        # videolibrary wait
-        update_wait = [0, 10000, 20000, 30000, 60000]
-        wait = update_wait[int(config.get_setting("update_wait", "videolibrary"))]
-        if wait > 0:
-            xbmc.sleep(wait)
-        if not config.get_setting("update", "videolibrary") == 2:
-            run_threaded(check_for_update, (False,))
-        self.scheduleVideolibrary()
+        if not needsReload:  # do not run videolibrary update if service needs to be reloaded
+            # videolibrary wait
+            update_wait = [0, 10000, 20000, 30000, 60000]
+            wait = update_wait[int(config.get_setting("update_wait", "videolibrary"))]
+            if wait > 0:
+                xbmc.sleep(wait)
+            if not config.get_setting("update", "videolibrary") == 2:
+                run_threaded(check_for_update, (False,))
+            self.scheduleVideolibrary()
         super(AddonMonitor, self).__init__()
 
     def onSettingsChanged(self):
@@ -516,7 +522,19 @@ if __name__ == "__main__":
         except:
             logger.error(traceback.format_exc())
 
+        if needsReload:
+            join_threads()
+            db.close()
+            logger.info('Relaunching service.py')
+            xbmc.executeJSONRPC(
+                '{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "plugin.video.kod", "enabled": false }}')
+            xbmc.executeJSONRPC(
+                '{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "plugin.video.kod", "enabled": true }}')
+            logger.debug(threading.enumerate())
+            break
+
         if monitor.waitForAbort(1):  # every second
+            join_threads()
             # db need to be closed when not used, it will cause freezes
             db.close()
             break
