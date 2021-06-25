@@ -4,12 +4,8 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https?://maxstream.video/(?:e/)?([a-z0-9]+)",
-        "url": "https://maxstream.video/\\1"
-      },
-      {
-        "pattern": "https?://maxstream.video/embed-([a-z0-9]+).html",
-        "url": "https://maxstream.video/\\1"
+        "pattern": "https?://maxstream.video/(?:e/|embed-|cast/)?([a-z0-9]+)",
+        "url": "https://maxstream.video/cast/\\1"
       }
     ]
   },
