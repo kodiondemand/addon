@@ -24,43 +24,43 @@ except:
 
 
 main_host = host + '/vvvvid/ondemand/'
-host = main_host
+# host = main_host
 
 
 @support.menu
 def mainlist(item):
     if conn_id:
-        anime = ['anime/',
-                ('Popolari',['anime/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['anime/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['anime/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['anime/', 'peliculas', 'channel/10003/last/?filter='])
+        anime = ['/vvvvid/ondemand/anime/',
+                ('Popolari',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10003/last/?filter='])
                 ]
-        film =  ['film/',
-                ('Popolari',['film/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['film/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['film/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['film/', 'peliculas', 'channel/10003/last/?filter=']),
+        film =  ['/vvvvid/ondemand/film/',
+                ('Popolari',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10003/last/?filter=']),
                 ]
-        tvshow = ['series/',
-                ('Popolari',['series/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['series/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['series/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['series/', 'peliculas', 'channel/10003/last/?filter='])
+        tvshow = ['/vvvvid/ondemand/series/',
+                ('Popolari',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10003/last/?filter='])
                 ]
-        show = [('Show {bold} {tv}',['show/', 'peliculas', '', 'tvshow']),
-                ('Popolari {submenu} {tv}',['show/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite {submenu} {tv}',['show/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi {submenu} {tv}',['show/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z {submenu} {tv}',['show/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
-                ('Cerca Show... {bold submenu} {tv}', ['show/', 'search', '', 'tvshow'])
+        show = [('Show {bold} {tv}',['/vvvvid/ondemand/show/', 'peliculas', '', 'tvshow']),
+                ('Popolari {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+                ('Cerca Show... {bold submenu} {tv}', ['/vvvvid/ondemand/show/', 'search', '', 'tvshow'])
                 ]
-        kids = [('Kids {bold}',['kids/', 'peliculas', '', 'tvshow']),
-                ('Popolari {submenu} {kids}',['kids/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite {submenu} {kids}',['kids/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi {submenu} {kids}',['kids/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z {submenu} {kids}',['kids/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
-                ('Cerca Kids... {bold submenu} {kids}', ['kids/', 'search', '', 'tvshow'])
+        kids = [('Kids {bold}',['/vvvvid/ondemand/kids/', 'peliculas', '', 'tvshow']),
+                ('Popolari {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+                ('Cerca Kids... {bold submenu} {kids}', ['/vvvvid/ondemand/kids/', 'search', '', 'tvshow'])
                 ]
     else:
         Top = [("Visibile solo dall'Italia {bold}",[])]
