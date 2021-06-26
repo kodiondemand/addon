@@ -2,12 +2,10 @@
 # --------------------------------------------------------
 # Conector playtube By Alfa development Group
 # --------------------------------------------------------
-import re
-import codecs
 from core import httptools
 from core import scrapertools
 from lib import jsunpack
-from platformcode import logger
+from platformcode import logger, config
 
 
 def test_video_exists(page_url):
@@ -24,6 +22,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     pack = scrapertools.find_single_match(data.data, 'p,a,c,k,e,d.*?</script>')
     unpacked = jsunpack.unpack(pack)
-    url = scrapertools.find_single_match(unpacked, 'file:"([^"]+)') + "|referer=%s" %(page_url)
+    url = scrapertools.find_single_match(unpacked, 'file:"([^"]+)') + "|Referer=%s" % page_url
     video_urls.append(['m3u8 [PlayTube]', url] )
     return video_urls

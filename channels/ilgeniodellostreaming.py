@@ -105,6 +105,7 @@ def episodios(item):
     # debugBlock = True
     return locals()
 
+
 @support.scrape
 def genres(item):
     info(item)
@@ -119,8 +120,10 @@ def genres(item):
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'
 
     patronMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
+    # debugBlock = True
 
     return locals()
+
 
 def search(item, text):
     info(text)

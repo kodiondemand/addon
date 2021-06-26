@@ -71,7 +71,7 @@ def peliculas(item):
         #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
         patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+>\s*<div'
     elif item.args == 'last':
-        patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
+        patronBlock = '(?:Aggiornamenti|Update)</h2>(?P<block>.*?)</ul>'
         patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
