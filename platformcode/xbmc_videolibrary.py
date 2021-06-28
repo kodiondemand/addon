@@ -14,7 +14,7 @@ if PY3:
 else:
     import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
-from core import filetools, jsontools
+from core import filetools, jsontools, support
 from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
@@ -74,6 +74,7 @@ def mark_auto_as_watched(item):
 
             # check for next Episode
             if next_episode and sync and time_from_end >= difference:
+                support.dbg()
                 nextdialog = NextDialog(ND, config.get_runtime_path())
                 while platformtools.is_playing() and not nextdialog.is_exit():
                     xbmc.sleep(100)
@@ -1389,7 +1390,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         else: img = filetools.join(config.get_runtime_path(), "resources", "noimage.png")
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
-        self.setProperty("ep_title", "%dx%02d - %s" % (info["season"], info["episode"], info["title"]))
+        self.setProperty("ep_title", "%dx%02d - %s" % (info["season"], info["episode"], info.get("title",'')))
         self.show()
 
     def set_exit(self, EXIT):
