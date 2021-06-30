@@ -128,7 +128,7 @@ def cache_response(fn):
                 result = fn(*args)
             else:
 
-                url = args[0].replace('&year=-', '')
+                url = args[0].replace('&year=-', '').replace('&primary_release_year=-', '').replace('&first_air_date_year=-', '')
                 # if PY3: url = str.encode(url)
 
                 row = db['tmdb_cache'].get(url)
@@ -1010,7 +1010,11 @@ class Tmdb(object):
             url = ('{}/search/{}?api_key={}&query={}&language={}&include_adult={}&page={}'.format(host, self.search_type, api, text_quote, self.search_language, True, page))
 
             if self.search_year:
-                url += '&year=%s' % self.search_year
+                if self.search_type == 'movie':
+                    url += '&primary_release_year=%s' % self.search_year
+                else:
+                    url += '&first_air_date_year=%s' % self.search_year
+
 
             searching = self.search_text.capitalize()
             logger.debug("[Tmdb.py] Searching %s on page %s:\n%s" % (searching, page, url))

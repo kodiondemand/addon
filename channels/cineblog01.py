@@ -135,17 +135,17 @@ def episodios(item):
     @support.scrape
     def folder(item, data):
         """
-            Quando c'è un link ad una cartelle di vcrypt contenente più stagioni
+            Quando c'è un link ad una cartella contenente più stagioni
         """
         actLike = 'episodios'
         addVideolibrary = False
         downloadEnabled = False
 
-        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)').replace(
-            '.net/', '.pw/')  # vcrypt.pw non ha CF
+        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl, disable_directIP=True).data
-        patron = r'><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
+        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
         sceneTitle = True
+        # debug = True
 
         def itemHook(item):
             item.serieFolder = True
