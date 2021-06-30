@@ -3,7 +3,6 @@
 # Common Library Tools
 # ------------------------------------------------------------
 
-from platformcode.dbconverter import addVideo
 from platformcode.xbmc_videolibrary import execute_sql_kodi
 import sys
 PY3 = False
@@ -431,9 +430,9 @@ def save_tvshow(item, episodelist, silent=False):
     logger.debug()
     inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, local_files, silent=silent)
     videolibrarydb.close()
-    # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
-    #     # from platformcode.dbconverter import add_video
-    #     # add_video(tvshow_item)
+    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:# and inserted:
+        from platformcode.dbconverter import add_video
+        add_video(tvshow_item)
     #     from platformcode.xbmc_videolibrary import update
     #     update(TVSHOWS_PATH, tvshow_item.basename)
 
@@ -540,8 +539,8 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                 filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
             # update db if episode added
-            if failed == 0 and config.get_setting('kod_scraper'):
-                add_video(episode_item)
+            # if failed == 0 and config.get_setting('kod_scraper'):
+            #     add_video(episode_item)
 
         return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
 
@@ -658,8 +657,8 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                 seasons[s] = season_item
 
                 # Add to Kodi DB if Kod is set to add information
-                if config.get_setting('kod_scraper'):
-                    add_video(season_item)
+                # if config.get_setting('kod_scraper'):
+                #     add_video(season_item)
 
 
     if not silent:
