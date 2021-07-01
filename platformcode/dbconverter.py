@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import xbmc, os, math
+import xbmc
 from core import filetools, support
 from core.videolibrarydb import videolibrarydb
 from platformcode import config, logger, platformtools
@@ -26,7 +26,7 @@ def add_video(item):
 
 
 def get_path(item):
-    logger.debug(item)
+    logger.debug()
     p = item.strm_path if item.strm_path else item.nfo_path
     path = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)), p.split('\\')[0].split('/')[0])
     parent = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)))
@@ -37,10 +37,12 @@ def get_path(item):
     else:
         return process_path(path), process_path(parent)
 
+
 def process_path(path):
     if '\\' in path: path += '\\'
     else: path += '/'
     return path
+
 
 def get_id(column, table):
     sql = 'SELECT MAX({}) FROM {}'.format(column, table)
@@ -49,9 +51,11 @@ def get_id(column, table):
     else: _id = 1
     return _id
 
+
 def get_images(item):
 
     pstring = '<thumb aspect="{}" preview="{}">{}</thumb>'
+    sstring = '<thumb aspect="{}" type="season" season="{}">{}</thumb>'
     fstring = '<thumb preview="{}">{}</thumb>'
 
     posters = ''
@@ -64,19 +68,33 @@ def get_images(item):
     videolanscapes = item.infoLabels.get('lanscapes',[])
     videobanners = item.infoLabels.get('banners',[])
     videodiscs = item.infoLabels.get('discs',[])
+    if item.contentType == 'season':
+        for p in videoposters:
+            if p: posters += sstring.format('poster', item.contentSeason, p)
+        for p in videoclearlogos:
+            if p: posters += sstring.format('clearlogo', item.contentSeason, p)
+        for p in videocleararts:
+            if p: posters += sstring.format('clearart', item.contentSeason, p)
+        for p in videolanscapes:
+            if p: posters += sstring.format('lanscape', item.contentSeason, p)
+        for p in videobanners:
+            if p: posters += sstring.format('banner', item.contentSeason, p)
+        for p in videodiscs:
+            if p: posters += sstring.format('disc', item.contentSeason, p)
+    else:
+        for p in videoposters:
+            if p: posters += pstring.format('poster', p.replace('original', 'w500'), p)
+        for p in videoclearlogos:
+            if p: posters += pstring.format('clearlogo', '', p)
+        for p in videocleararts:
+            if p: posters += pstring.format('clearart', '', p)
+        for p in videolanscapes:
+            if p: posters += pstring.format('lanscape', '', p)
+        for p in videobanners:
+            if p: posters += pstring.format('banner', '', p)
+        for p in videodiscs:
+            if p: posters += pstring.format('disc', '', p)
 
-    for p in videoposters:
-        if p: posters += pstring.format('poster', p.replace('original', 'w500'), p)
-    for p in videoclearlogos:
-        if p: posters += pstring.format('clearlogo', '', p)
-    for p in videocleararts:
-        if p: posters += pstring.format('clearart', '', p)
-    for p in videolanscapes:
-        if p: posters += pstring.format('lanscape', '', p)
-    for p in videobanners:
-        if p: posters += pstring.format('banner', '', p)
-    for p in videodiscs:
-        if p: posters += pstring.format('disc', '', p)
 
     if item.infoLabels['setid']:
         collection = videolibrarydb['collection'].get(item.infoLabels['setid'], {})
@@ -105,13 +123,26 @@ def get_images(item):
 
 
 
-
-    fanarts += '<fanart>'
-    for f in videofanarts:
-        if f: fanarts += fstring.format(f.replace('original', 'w780'), f)
-    fanarts += '</fanart>'
+    if item.contentType != 'season':
+        fanarts += '<fanart>'
+        for f in videofanarts:
+            if f: fanarts += fstring.format(f.replace('original', 'w780'), f)
+        fanarts += '</fanart>'
 
     return posters, fanarts
+
+
+def execute_sql(sql_actions):
+        cursor = conn.cursor()
+        for sql, params in sql_actions:
+            try:
+                if type(params) == list:
+                    cursor.executemany(sql, params)
+                else:
+                    cursor.execute(sql, params)
+            except:
+                logger.error('Unable to run SQL\nSQL:', sql,'\nPARAMS:', params)
+        conn.commit()
 
 
 class addMovie(object):
@@ -139,13 +170,7 @@ class addMovie(object):
             self.set_movie()
             self.set_art()
 
-            cursor = conn.cursor()
-            for sql, params in self.sql_actions:
-                if type(params) == list:
-                    cursor.executemany(sql, params)
-                else:
-                    cursor.execute(sql, params)
-            conn.commit()
+            execute_sql(self.sql_actions)
 
             # need if no movie in kodi library
             if self.VideoId == 1:
@@ -374,8 +399,13 @@ class addMovie(object):
             sql = 'INSERT OR IGNORE INTO art (art_id, media_id, media_type, type, url) VALUES (?, ?, ?, ?, ?)'
             self.sql_actions.append([sql, params])
 
+
 class addTvShow(object):
     def __init__(self, *args, **kwargs):
+        self.art = []
+        self.sql_actions = []
+        self.posters = ''
+        self.fanarts = ''
         self.item = kwargs.get('item', None)
         self.info = self.item.infoLabels
         self.seasons = videolibrarydb['season'][self.item.videolibrary_id]
@@ -385,8 +415,6 @@ class addTvShow(object):
         self.idSeasons = self.get_idSeasons()
         self.idEpisodes = self.get_idEpisodes()
         self.strPath, self.parentPath = get_path(self.item)
-        self.art = []
-        self.sql_actions = []
         logger.debug('Add {}: {} to Kodi Library'.format(self.item.contentType, self.item.title))
 
         self.set_path()
@@ -403,13 +431,7 @@ class addTvShow(object):
         self.set_episodes()
         self.set_art()
 
-        cursor = conn.cursor()
-        for sql, params in self.sql_actions:
-            if type(params) == list:
-                cursor.executemany(sql, params)
-            else:
-                cursor.execute(sql, params)
-        conn.commit()
+        execute_sql(self.sql_actions)
 
         # need if no movie in kodi library
         if self.idShow == 1:
@@ -441,13 +463,32 @@ class addTvShow(object):
             for season in self.seasons.keys():
                 if season.contentSeason not in seasons:
                     r[season] = maxId
-                    
+                    self.get_season_images(season, maxId)
                     maxId += 1
         else:
             for season in self.seasons:
                 r[season] = maxId
+                self.get_season_images(season, maxId)
                 maxId += 1
         return r
+
+    def get_season_images(self, season, _id):
+        item = self.seasons[season]
+        posters, fanarts = get_images(item)
+        self.posters += posters
+
+        if item.thumbnail:
+            self.art.append({'media_id':_id, 'media_type': 'season', 'type':'poster', 'url':item.thumbnail})
+        if item.fanart:
+            self.art.append({'media_id':_id, 'media_type': 'season',  'type':'fanart', 'url':item.fanart})
+        if item.landscape:
+            self.art.append({'media_id':_id, 'media_type': 'season',  'type':'landscape', 'url':item.landscape})
+        if item.banner:
+            self.art.append({'media_id':_id, 'media_type': 'season',  'type':'banner', 'url':item.banner})
+        if item.clearlogo:
+            self.art.append({'media_id':_id, 'media_type': 'season',  'type':'clearlogo', 'url':item.clearlogo})
+        if item.clearart:
+            self.art.append({'media_id':_id, 'media_type': 'season',  'type':'clearart', 'url':item.clearart})
 
     def get_idEpisodes(self):
         sql = 'select idEpisode, c12, c13 from episode_view where idShow = {}'.format(self.idShow)
@@ -485,8 +526,12 @@ class addTvShow(object):
         else:
             self.idPath = get_id('idPath', 'path')
 
-            sql = 'INSERT OR IGNORE INTO path (idPath, strPath, dateAdded, idParentPath, noUpdate) VALUES ( ?,  ?,  ?,  ?, ?)'
+            sql = 'INSERT OR IGNORE INTO path (idPath, strPath, dateAdded, idParentPath, noUpdate) VALUES (?,  ?,  ?,  ?, ?)'
             params = (self.idPath, self.strPath, date, self.idParentPath, 1)
+            self.sql_actions.append([sql, params])
+
+            sql = 'INSERT OR IGNORE INTO tvshowlinkpath (idShow, idPath) VALUES (?,  ?)'
+            params = (self.idShow, self.idPath)
             self.sql_actions.append([sql, params])
 
     def set_files(self):
@@ -695,9 +740,12 @@ class addTvShow(object):
             sql = 'INSERT OR IGNORE INTO {}_link ({}_id, media_id, media_type) VALUES (?, ?, ?)'.format(info_name, info_name)
             params = [(execute_sql_kodi('select {}_id from {} where name = "{}" limit 1'.format(info_name, info_name, info))[1][0][0],
                        self.idShow, self.item.contentType) for info in info_list]
+            self.sql_actions.append([sql, params])
 
     def set_tvshow(self):
         posters, fanarts = get_images(self.item)
+        self.posters += posters
+        self.fanarts += fanarts
         sql = 'INSERT OR IGNORE INTO tvshow (idShow, c00, c01, c02, c04, c05, c06, c08, c09, c11, c12, c13, c14, c16)'
         sql += 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         params = (self.idShow, # idShow
@@ -706,10 +754,10 @@ class addTvShow(object):
                   self.info.get('status'), # c02
                   self.rating_id, # c04
                   self.info.get('premiered'), # c05
-                  posters, # c06
+                  self.posters, # c06
                   self.info.get('genre','').replace(',', ' /') if self.info.get('genre') else None, # c08
                   self.info.get('originaltitle'), # c09
-                  fanarts, # c11
+                  self.fanarts, # c11
                   self.uniqueID, #c12
                   self.info.get('mpaa'), # c13
                   self.info.get('studio'), # c14
@@ -770,7 +818,7 @@ class addTvShow(object):
         _id = get_id('art_id', 'art')
         art_urls = [[u[0], u[1], u[2]] for u in execute_sql_kodi('select media_id, media_type, type from art', conn=conn)[1]]
         for art in self.art:
-            if [art ['media_id'], art['media_type'], art['type']] not in art_urls:
+            if [art['media_id'], art['media_type'], art['type']] not in art_urls:
                 params.append((_id, art['media_id'], art['media_type'], art['type'], art['url']))
                 _id += 1
         if params:

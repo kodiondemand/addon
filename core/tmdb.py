@@ -1491,7 +1491,7 @@ class Tmdb(object):
             imdb_id = externalIds.get('imdb_id')
             tvdb_id = externalIds.get('tvdb_id')
             posters = []
-            for image in episode['images']['stills']:
+            for image in episode.get('images',{}).get('stills',{}):
                 posters.append('https://image.tmdb.org/t/p/original' + image['file_path'])
 
             ret_dic["episode_title"] = episodeTitle
