@@ -548,10 +548,10 @@ class addTvShow(object):
             else:
                 if self.item.playcount:
                     sql = 'INSERT INTO files (idFile, idPath, strFilename, playCount, lastPlayed, dateAdded) VALUES ( ?,  ?,  ?,  ?,  ?,  ?)'
-                    params = (idFile, self.idPath, episode + 'strm', self.item.playcount, self.item.lastplayed, date)
+                    params = (idFile, self.idPath, episode + '.strm', self.item.playcount, self.item.lastplayed, date)
                 else:
                     sql = 'INSERT INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
-                    params = (idFile, self.idPath, episode + 'strm', date)
+                    params = (idFile, self.idPath, episode + '.strm', date)
                 self.idFiles[episode] = idFile
                 idFile += 1
                 self.sql_actions.append([sql, params])
