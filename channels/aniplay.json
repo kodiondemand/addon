@@ -1,0 +1,37 @@
+{
+    "id": "aniplay",
+    "name": "AniPlay",
+    "active": true,
+    "language": ["ita", "sub-ita"],
+    "thumbnail": "aniplay.png",
+    "banner": "aniplay.png",
+    "categories": ["anime", "vos"],
+    "settings": [
+        {
+            "id": "sort",
+            "type": "list",
+            "label": "Ordine di Visualizzazione",
+            "default": 0,
+            "enabled": true,
+            "visible": true,
+            "lvalues": [ "Popolarità", "Titolo", "Numero Episodi", "Data di inizio", "Data di fine", "Data di aggiunta"]
+        },
+        {
+            "id": "order",
+            "type": "bool",
+            "label": "Visualizza in ordine Discendente?",
+            "default": false,
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "perpage",
+            "type": "list",
+            "label": "Numero di elementi per pagina",
+            "default": 1,
+            "enabled": true,
+            "visible": true,
+            "lvalues": ["10", "20", "30", "40", "50", "60", "80", "90"]
+        }
+  ]
+}

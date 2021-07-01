@@ -118,7 +118,7 @@ def mainlist(item):
 
     # VOCE CHE APPARIRA' come prima voce nel menu di KOD!
     # [Voce Menu,['url','action','args',contentType]
-    top = [ '' ['', '', '', ''])
+    top = ([ '' ['', '', '', ''])
 
     # Se vuoi creare un menu personalizzato o perchè gli altri non
     # ti soddisfano
