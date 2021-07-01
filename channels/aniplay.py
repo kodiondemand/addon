@@ -211,7 +211,7 @@ def episodios(item):
             itemlist.append(item.clone(title = title,
                                        id= '{}/season/{}'.format(it['animeId'], it['id']),
                                        contentType = 'season',
-                                       contentSeason = i,
+                                       contentSeason = i + 1,
                                        action = 'episodios',
                                        plot = json['storyline'],
                                        year = it['yearStart']))
