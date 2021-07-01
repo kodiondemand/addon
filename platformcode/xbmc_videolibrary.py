@@ -15,7 +15,7 @@ if PY3:
 else:
     import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
-from core import filetools, jsontools, support
+from core import filetools, jsontools, support, videolibrarydb
 from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
@@ -75,8 +75,8 @@ def mark_auto_as_watched(item):
                     break
 
             # check for next Episode
-            if next_episode and sync and time_from_end >= difference:
-                nextdialog = NextDialog(ND, config.get_runtime_path())
+            if next_episode and marked and time_from_end >= difference:
+                nextdialog = NextDialog(ND, config.get_runtime_path(), item=next_episode)
                 while platformtools.is_playing() and not nextdialog.is_exit():
                     xbmc.sleep(100)
                 if nextdialog.continuewatching:
@@ -106,8 +106,8 @@ def mark_auto_as_watched(item):
             videolibrary.mark_content_as_watched(item)
 
         if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
-            from platformcode.launcher import play_from_library
-            play_from_library(next_episode)
+            from platformcode.launcher import run
+            run(next_episode)
 
         # db need to be closed when not used, it will cause freezes
         from core import db
@@ -1354,48 +1354,20 @@ def ask_set_content(silent=False):
 
 
 def next_ep(item):
-    from core.item import Item
-    logger.debug()
-    item.next_ep = False
+    logger.debug(item)
+    episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
+    episodes = sorted(videolibrarydb.videolibrarydb['episode'][item.videolibrary_id].items())
+    videolibrarydb.videolibrarydb.close()
 
-    # check if next file exist
-    current_filename = filetools.basename(item.strm_path)
-    base_path = filetools.basename(filetools.dirname(item.strm_path))
-    path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"),base_path)
-    fileList = []
-    for file in filetools.listdir(path):
-        if file.endswith('.strm'):
-            fileList.append(file)
-    fileList.sort()
-
-    nextIndex = fileList.index(current_filename) + 1
-    if nextIndex == 0 or nextIndex == len(fileList): next_file = None
-    else: next_file = fileList[nextIndex]
-    logger.debug('Next File:' + str(next_file))
-
-    # start next episode window afther x time
-    if next_file:
-        season_ep = next_file.split('.')[0]
-        season = season_ep.split('x')[0]
-        episode = season_ep.split('x')[1]
-        next_ep = '%sx%s' % (season, episode)
-        item = Item(
-            action= 'play_from_library',
-            channel= 'videolibrary',
-            contentEpisodeNumber= episode,
-            contentSeason= season,
-            contentTitle= next_ep,
-            contentType= 'episode',
-            infoLabels= {'episode': episode, 'mediatype': 'episode', 'season': season, 'title': next_ep},
-            strm_path= filetools.join(base_path, next_file),
-            window = item.window)
-
-        global INFO
-        INFO = filetools.join(path, next_file.replace("strm", "nfo"))
+    nextIndex = [k for k, v in episodes].index(episode) + 1
+    if nextIndex == 0 or nextIndex == len(episodes):
+        it = None
     else:
-        item=None
+        it = episodes[nextIndex][1]['item']
+        if item.from_library: it.action = 'play_from_library'
+        logger.debug('Next File:' + '{}x{:02d}. {}'.format(it.contentSeason, it.contentEpisodeNumber, it.title))
 
-    return item
+    return it
 
 class NextDialog(xbmcgui.WindowXMLDialog):
     item = None
@@ -1408,19 +1380,13 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         self.progress_control = None
 
         # set info
-        f = filetools.file_open(INFO, 'r')
-        full_info = f.read().split('\n')
-        full_info = full_info[1:]
-        f.close()
-        full_info = "".join(full_info)
-        info = jsontools.load(full_info)
-        info = info["infoLabels"]
+        info = kwargs.get('item').infoLabels
         if "fanart" in info: img = info["fanart"]
         elif "thumbnail" in info: img = info["thumbnail"]
         else: img = filetools.join(config.get_runtime_path(), "resources", "noimage.png")
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
-        self.setProperty("ep_title", "%dx%02d - %s" % (info["season"], info["episode"], info["title"]))
+        self.setProperty("ep_title", "{}x{:02d}. {}".format(info["season"], info["episode"], info["title"]))
         self.show()
 
     def set_exit(self, EXIT):

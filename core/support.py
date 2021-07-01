@@ -391,7 +391,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
                 it.action = function
             if it.action == 'findvideos':
-                it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
+                it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
                 if it.window: it.folder = False
             # for lg in list(set(listGroups).difference(known_keys)):
             #     it.__setattr__(lg, match[listGroups.index(lg)])
@@ -1199,7 +1199,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         if videoitem.video_urls or srv_param.get('active', False):
             # dbg()
             item.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
-
+            # videoitem = item.clone()
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
             videoitem.title = item.title
@@ -1214,6 +1214,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             videoitem.referer = item.referer if item.referer else item.url
             videoitem.action = "play"
             videoitem.videolibrary_id = item.videolibrary_id
+            videoitem.from_library = item.from_library
             return videoitem
 
     # non threaded for webpdb

@@ -3369,7 +3369,7 @@ msgid "Server logo"
 msgstr ""
 
 msgctxt "#70134"
-msgid "Intelligent Titles"
+msgid "Format Titles"
 msgstr ""
 
 msgctxt "#70135"

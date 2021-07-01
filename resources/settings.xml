@@ -154,7 +154,7 @@
         <setting id="quick_menu" type="bool" label="60360" default="true"/>
         <!-- <setting id="side_menu" type="bool" label="70737" default="false"/> -->
 <!--        <setting id="kod_menu" type="bool" label="60026" default="true"/>-->
-        <setting id="infoplus" type="bool" label="70151" default="false"/>
+        <setting id="infoplus" type="bool" label="70151" default="true"/>
         <!-- <setting id="infoplus_set" type="bool" label="70128" visible="eq(-1,true)" default="false" subsetting="true"/> -->
         <!-- <setting id="extended_info" type="bool" label="70152" default="false"/> -->
         <!-- Shortcut -->
@@ -168,5 +168,6 @@
         <setting id="enable_custom_theme" type="bool" label="70564" default="false"/>
         <setting id="custom_theme" type="folder" label="70565" default="" visible="eq(-1,true)"/>
         <setting id="video_thumbnail_type" type="select" label="70131" lvalues="70132|70133" default="1"/>
+        <setting id="format_title" type="bool" label="70134" default="true"/>
     </category>
 </settings>

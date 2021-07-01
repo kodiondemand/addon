@@ -366,7 +366,7 @@ def render_items(itemlist, parent_item):
         title = item.title
         episode = ''
 
-        if parent_item.channel not in ['videolibrary'] and title[:1] not in ['[', '•']:
+        if (parent_item.channel not in ['videolibrary'] or item.server) and title[:1] not in ['[', '•']:
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:
@@ -377,7 +377,7 @@ def render_items(itemlist, parent_item):
             if episode: title = '{}. {}'.format(episode, title)
             if item.title2: title = '{} - {}'.format(title, item.title2)
 
-            if not config.get_setting('format_title'):
+            if config.get_setting('format_title'):
                 server = typo(servertools.get_server_parameters(item.server).get('name', item.server.capitalize()), '_ []') if item.server else ''
                 quality = typo(item.quality, '_ [] color kod') if item.quality else ''
                 lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
@@ -1442,7 +1442,7 @@ def set_player(item, xlistitem, mediaurl, view, strm):
         xbmc_player.setSubtitles(item.subtitle)
 
     # if it is a video library file send to mark as seen
-    if strm or item.strm_path: item.options['strm'] = True
+    if strm or item.strm_path or item.from_library: item.options['strm'] = True
     # if player_mode == 1: item.options['continue'] = True
     from platformcode import xbmc_videolibrary
     xbmc_videolibrary.mark_auto_as_watched(item)
@@ -1460,16 +1460,13 @@ def add_next_to_playlist(item):
     from core import filetools, videolibrarytools
     from platformcode import xbmc_videolibrary
     def add_to_playlist(item):
-        if item.contentType != 'movie' and item.strm_path:
+        if item.contentType != 'movie':
             next= xbmc_videolibrary.next_ep(item)
             if next:
                 next.back = True
-                nfo_path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"), next.strm_path.replace('strm','nfo'))
-                if nfo_path and filetools.isfile(nfo_path):
-                    head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-                nextItem = xbmcgui.ListItem(path=item_nfo.url)
-                nextItem.setArt({"thumb": item_nfo.contentThumbnail if item_nfo.contentThumbnail else item_nfo.thumbnail})
-                set_infolabels(nextItem, item_nfo, True)
+                nextItem = xbmcgui.ListItem(path=next.url)
+                nextItem.setArt({"thumb": next.contentThumbnail if next.contentThumbnail else next.thumbnail})
+                set_infolabels(nextItem, next, True)
                 nexturl = "plugin://plugin.video.kod/?" + next.tourl()
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                 playlist.add(nexturl, nextItem)
@@ -1861,7 +1858,16 @@ def serverwindow(item, itemlist):
                     name = jsontools.load(open(path, "rb").read())['name']
                     if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
                     it = xbmcgui.ListItem('{}{}'.format(name, quality))
-                    it.setProperties({'name': self.item.title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
+
+                    # format Title
+                    if self.item.contentSeason and self.item.contentEpisodeNumber:
+                        title = '{}x{:02d}. {}'.format(self.item.contentSeason, self.item.contentEpisodeNumber, self.item.contentTitle)
+                    elif self.item.contentEpisodeNumber:
+                        title = '{:02d}. {}'.format(self.item.contentEpisodeNumber, self.item.contentTitle)
+                    else:
+                        title = self.item.contentTitle
+
+                    it.setProperties({'name': title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
                     it.setArt({'poster':self.item.contentThumbnail, 'thumb':videoitem.thumbnail,  'fanart':item.fanart})
                     self.servers.append(it)
             self.doModal()

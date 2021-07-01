@@ -3368,8 +3368,8 @@ msgid "Server logo"
 msgstr "Server logo"
 
 msgctxt "#70134"
-msgid "Intelligent Titles"
-msgstr "Titoli Intelligenti"
+msgid "Format Titles"
+msgstr "Formatta Titoli"
 
 msgctxt "#70135"
 msgid "Custom Colours"

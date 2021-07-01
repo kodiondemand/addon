@@ -286,7 +286,7 @@ def get_episodes(item):
             if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
                 it.title = '{}x{}'.format(it.contentSeason, it.title)
             it = get_host(it)
-            it.window = True if item.window_type == 1 or (config.get_setting("window_type") == 0) else False
+            it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
             if it.window:
                 it.folder = False
             it.from_library = item.from_library
@@ -309,7 +309,9 @@ def findvideos(item):
     from core import autoplay
     from platformcode import platformtools
     logger.debug()
-    # support.dbg()
+    if config.get_setting('next_ep') == 3 and item.contentType != 'movie':
+        platformtools.prevent_busy(item)
+        item.window = True
 
     videolibrarytools.check_renumber_options(item)
     itemlist = []
@@ -415,6 +417,7 @@ def servers(item, ch, items):
         it.videolibrary_id = item.videolibrary_id
         it.contentTitle = it.fulltitle = item.title
         it.contentChannel = 'videolibrary'
+        it.from_library = item.from_library
         for item in getattr(channel, it.action)(it):
             if item.server and item.channel:
                 item.ch_name = ch_name
