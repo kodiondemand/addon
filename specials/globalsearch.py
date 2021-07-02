@@ -791,7 +791,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
 
     def play(self, server=None):
-        platformtools.prevent_platformtools.dialog_busy(server)
+        platformtools.prevent_busy(server)
         server.window = True
         server.globalsearch = True
         return run(server)

@@ -3,7 +3,6 @@
 # Common Library Tools
 # ------------------------------------------------------------
 
-from platformcode.xbmc_videolibrary import execute_sql_kodi
 import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -19,7 +18,6 @@ from lib import generictools
 from platformcode import config, logger, platformtools
 from platformcode.autorenumber import RENUMBER
 from core.videolibrarydb import videolibrarydb
-from platformcode.dbconverter import add_video
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
@@ -899,6 +897,7 @@ def get_fanart_tv(item, set='', ret={}):
 
 
 def get_local_files(path, item):
+    from platformcode.xbmc_videolibrary import execute_sql_kodi
     # check if movie or season already exist in path or db
     excluded_extensions = subtitle_extensions + image_extensions + library_extension
 

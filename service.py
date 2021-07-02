@@ -112,7 +112,7 @@ class AddonMonitor(xbmc.Monitor):
 
             # if you want to autoconfigure and the video library directory had been created
             if not self.settings_pre.get("videolibrary_kodi", None) and settings_post.get("videolibrary_kodi", None):
-                xbmc_videolibrary.ask_set_content(silent=True)
+                xbmc_videolibrary.set_content(silent=True)
             elif self.settings_pre.get("videolibrary_kodi", None) and not settings_post.get("videolibrary_kodi", None):
                 xbmc_videolibrary.clean()
 

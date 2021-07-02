@@ -5,6 +5,8 @@
 # from future import standard_library
 # standard_library.install_aliases()
 #from builtins import str
+from specials import videolibrary
+from platformcode.contextmenu.update_tv_show import join
 from core.item import Item
 import sys, os, threading, time, re, math, xbmc, xbmcgui, sqlite3
 PY3 = False
@@ -561,260 +563,22 @@ def search_local_path(item):
     return ''
 
 
-def set_content(content_type, silent=False, custom=False):
-    """
-    Procedure to auto-configure the kodi video library with the default values
-    @type content_type: str ('movie' o 'tvshow')
-    @param content_type: content type to configure, series or movies
-    """
+def set_content(silent=False):
     logger.debug()
-    continuar = True
-    msg_text = ""
     videolibrarypath = config.get_setting("videolibrarypath")
-
-    if content_type == 'movie':
-        scraper = [config.get_localized_string(70093), config.get_localized_string(70096)]
-        if not custom:
-            seleccion = 0 # tmdb
+    sep = '/' if '/' in videolibrarypath else '\\'
+    paths = {'movie': filetools.join(videolibrarypath, config.get_setting('folder_movies')) + sep,
+             'tvshow': filetools.join(videolibrarypath, config.get_setting('folder_tvshows')) + sep}
+    for k, v in paths.items():
+        sql = 'SELECT idPath, strPath FROM path where strPath= "{}"'.format(v)
+        n, records = execute_sql_kodi(sql)
+        if records:
+            sql = 'update path set strScraper="metadata.local" where idPath={}'.format(records[0][0])
+            n, records = execute_sql_kodi(sql)
         else:
-            seleccion = platformtools.dialog_select(config.get_localized_string(70094), scraper)
-
-
-        # Instalar The Movie Database
-        if seleccion == -1 or seleccion == 0:
-            if not xbmc.getCondVisibility('System.HasAddon(metadata.themoviedb.org)'):
-                if not silent:
-                    # Ask if we want to install metadata.themoviedb.org
-                    install = platformtools.dialog_yesno(config.get_localized_string(60046),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        # Install metadata.themoviedb.org
-                        xbmc.executebuiltin('InstallAddon(metadata.themoviedb.org)', True)
-                        logger.debug("Instalado el Scraper de películas de TheMovieDB")
-                    except:
-                        pass
-
-                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.themoviedb.org)'))
-                if not continuar:
-                    msg_text = config.get_localized_string(60047)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.themoviedb.org)', True)
-
-        # Instalar Universal Movie Scraper
-        elif seleccion == 1:
-            if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.universal)'):
-                continuar = False
-                if not silent:
-                    # Ask if we want to install metadata.universal
-                    install = platformtools.dialog_yesno(config.get_localized_string(70095),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        xbmc.executebuiltin('InstallAddon(metadata.universal)', True)
-                        if xbmc.getCondVisibility('System.HasAddon(metadata.universal)'):
-                            continuar = True
-                    except:
-                        pass
-
-                continuar = (install and continuar)
-                if not continuar:
-                    msg_text = config.get_localized_string(70097)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.universal)', True)
-
-    else:  # SERIES
-        scraper = [config.get_localized_string(70093), config.get_localized_string(70098)]
-        if not custom:
-            seleccion = 0 # tmdb
-        else:
-            seleccion = platformtools.dialog_select(config.get_localized_string(70107), scraper)
-
-        # Instalar The Movie Database
-        if seleccion == -1 or seleccion == 0:
-            if continuar and not xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
-                continuar = False
-                if not silent:
-                    # Ask if we want to install metadata.tvshows.themoviedb.org
-                    install = platformtools.dialog_yesno(config.get_localized_string(60050),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        # Install metadata.tvshows.themoviedb.org
-                        xbmc.executebuiltin('InstallAddon(metadata.tvshows.themoviedb.org)', True)
-                        if xbmc.getCondVisibility('System.HasAddon(metadata.tvshows.themoviedb.org)'):
-                            continuar = True
-                    except:
-                        pass
-
-                continuar = (install and continuar)
-                if not continuar:
-                    msg_text = config.get_localized_string(60051)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvshows.themoviedb.org)', True)
-
-        # Instalar The TVDB
-        elif seleccion == 1:
-            if not xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'):
-                if not silent:
-                    #Ask if we want to install metadata.tvdb.com
-                    install = platformtools.dialog_yesno(config.get_localized_string(60048),'')
-                else:
-                    install = True
-
-                if install:
-                    try:
-                        # Install metadata.tvdb.com
-                        xbmc.executebuiltin('InstallAddon(metadata.tvdb.com)', True)
-                        logger.debug("The TVDB series Scraper installed ")
-                    except:
-                        pass
-
-                continuar = (install and xbmc.getCondVisibility('System.HasAddon(metadata.tvdb.com)'))
-                if not continuar:
-                    msg_text = config.get_localized_string(60049)
-            if continuar:
-                xbmc.executebuiltin('Addon.OpenSettings(metadata.tvdb.com)', True)
-
-    idPath = 0
-    idParentPath = 0
-    if continuar:
-        continuar = False
-
-        # We look for the idPath
-        sql = 'SELECT MAX(idPath) FROM path'
-        nun_records, records = execute_sql_kodi(sql)
-        if nun_records == 1:
-            idPath = records[0][0] + 1
-
-        sql_videolibrarypath = videolibrarypath
-        if sql_videolibrarypath.startswith("special://"):
-            sql_videolibrarypath = sql_videolibrarypath.replace('/profile/', '/%/').replace('/home/userdata/', '/%/')
-            sep = '/'
-        elif scrapertools.find_single_match(sql_videolibrarypath, r'(^\w+:\/\/)'):
-            sep = '/'
-        else:
-            sep = os.sep
-
-        if not sql_videolibrarypath.endswith(sep):
-            sql_videolibrarypath += sep
-
-        # We are looking for the idParentPath
-        sql = 'SELECT idPath, strPath FROM path where strPath LIKE "%s"' % sql_videolibrarypath
-        nun_records, records = execute_sql_kodi(sql)
-        if nun_records == 1:
-            idParentPath = records[0][0]
-            videolibrarypath = records[0][1][:-1]
-            continuar = True
-        else:
-            # There is no videolibrarypath in the DB: we insert it
-            sql_videolibrarypath = videolibrarypath
-            if not sql_videolibrarypath.endswith(sep):
-                sql_videolibrarypath += sep
-
-            sql = 'INSERT INTO path (idPath, strPath,  scanRecursive, useFolderNames, noUpdate, exclude) VALUES ' \
-                  '(%s, "%s", 0, 0, 0, 0)' % (idPath, sql_videolibrarypath)
-            nun_records, records = execute_sql_kodi(sql)
-            if nun_records == 1:
-                continuar = True
-                idParentPath = idPath
-                idPath += 1
-            else:
-                msg_text = config.get_localized_string(70101)
-
-    if continuar:
-        continuar = False
-
-        # We set strContent, strScraper, scanRecursive and strSettings
-        if content_type == 'movie':
-            strContent = 'movies'
-            scanRecursive = 2147483647
-            if seleccion == -1 or seleccion == 0:
-                strScraper = 'metadata.themoviedb.org'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.themoviedb.org/settings.xml")
-            elif seleccion == 1:
-                strScraper = 'metadata.universal'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.universal/settings.xml")
-            if not os.path.exists(path_settings):
-                logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
-                return continuar
-            settings_data = filetools.read(path_settings)
-            strSettings = ' '.join(settings_data.split()).replace("> <", "><")
-            strSettings = strSettings.replace("\"","\'")
-            strActualizar = "Do you want to set this Scraper in Spanish as the default option for movies?"
-            if not videolibrarypath.endswith(sep):
-                videolibrarypath += sep
-            strPath = videolibrarypath + config.get_setting("folder_movies") + sep
-        else:
-            strContent = 'tvshows'
-            scanRecursive = 0
-            if seleccion == -1 or seleccion == 0:
-                strScraper = 'metadata.tvshows.themoviedb.org'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
-            elif seleccion == 1:
-                strScraper = 'metadata.tvdb.com'
-                path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvdb.com/settings.xml")
-            if not os.path.exists(path_settings):
-                logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
-                return continuar
-            settings_data = filetools.read(path_settings)
-            strSettings = ' '.join(settings_data.split()).replace("> <", "><")
-            strSettings = strSettings.replace("\"","\'")
-            strActualizar = "Do you want to configure this Scraper in Spanish as a default option for series?"
-            if not videolibrarypath.endswith(sep):
-                videolibrarypath += sep
-            strPath = videolibrarypath + config.get_setting("folder_tvshows") + sep
-
-        logger.debug("%s: %s" % (content_type, strPath))
-        # We check if strPath already exists in the DB to avoid duplicates
-        sql = 'SELECT idPath FROM path where strPath="%s"' % strPath
-        nun_records, records = execute_sql_kodi(sql)
-        sql = ""
-        if nun_records == 0:
-            # Insertamos el scraper
-            sql = 'INSERT INTO path (idPath, strPath, strContent, strScraper, scanRecursive, useFolderNames, ' \
-                  'strSettings, noUpdate, exclude, idParentPath) VALUES (%s, "%s", "%s", "%s", %s, 0, ' \
-                  '"%s", 0, 0, %s)' % (
-                      idPath, strPath, strContent, strScraper, scanRecursive, strSettings, idParentPath)
-        else:
-            if not silent:
-                # Preguntar si queremos configurar themoviedb.org como opcion por defecto
-                actualizar = platformtools.dialog_yesno(config.get_localized_string(70098), strActualizar)
-            else:
-                actualizar = True
-
-            if actualizar:
-                # Actualizamos el scraper
-                idPath = records[0][0]
-                sql = 'UPDATE path SET strContent="%s", strScraper="%s", scanRecursive=%s, strSettings="%s" ' \
-                      'WHERE idPath=%s' % (strContent, strScraper, scanRecursive, strSettings, idPath)
-
-        if sql:
-            nun_records, records = execute_sql_kodi(sql)
-            if nun_records == 1:
-                continuar = True
-
-        if not continuar:
-            msg_text = config.get_localized_string(60055)
-
-    if not continuar:
-        heading = config.get_localized_string(70102) % content_type
-    elif content_type == 'tvshow' and not xbmc.getCondVisibility(
-            'System.HasAddon(metadata.tvshows.themoviedb.org)'):
-        heading = config.get_localized_string(70103) % content_type
-        msg_text = config.get_localized_string(60058)
-    else:
-        heading = config.get_localized_string(70103) % content_type
-        msg_text = config.get_localized_string(70104)
-
-    logger.debug("%s: %s" % (heading, msg_text))
-    return continuar
+            sql ='INSERT OR IGNORE INTO path (strPath, strContent, strScraper, scanRecursive, useFolderNames, strSettings, noUpdate) VALUES ("{}", "{}", "metadata.local", 0, 0, 0, 0)'.format(v, k)
+            n, records = execute_sql_kodi(sql)
+    from platformcode.dbconverter import save_all; save_all()
 
 
 def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvshows_folder, new_tvshows_folder, progress):

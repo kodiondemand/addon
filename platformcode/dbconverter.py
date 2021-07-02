@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import xbmc
-from core import filetools, support
+from core import filetools, support, videolibrarytools
 from core.videolibrarydb import videolibrarydb
 from platformcode import config, logger, platformtools
 from platformcode.xbmc_videolibrary import execute_sql_kodi, get_data, get_file_db
@@ -9,6 +9,40 @@ import sqlite3
 
 conn = sqlite3.connect(get_file_db())
 date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
+
+def save_all():
+    movies = dict(videolibrarydb['movie'])
+    tvshows = dict(videolibrarydb['tvshow'])
+    videolibrarydb.close()
+    for movie in movies.values():
+        item = movie['item']
+        item.no_reload = True
+        add_video(item)
+    for tvshow in tvshows.values():
+        item = tvshow['item']
+        item.no_reload = True
+        add_video(item)
+    conn.close()
+
+    _id = get_id('idShow', 'tvshow') + get_id('idMovie', 'movie')
+    if _id == 1:
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "VideoLibrary.Scan",
+            "directory": videolibrarytools.FOLDER_MOVIES,
+            "id": 1
+        }
+        get_data(payload)
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "VideoLibrary.Scan",
+            "directory": videolibrarytools.FOLDER_TVSHOWS,
+            "id": 1
+        }
+        get_data(payload)
+    else:
+        xbmc.executebuiltin('ReloadSkin()')
+
 
 def add_video(item):
     progress = platformtools.dialog_progress_bg('Sincronizzazione Libreria', item.title)
@@ -173,16 +207,17 @@ class addMovie(object):
             execute_sql(self.sql_actions)
 
             # need if no movie in kodi library
-            if self.VideoId == 1:
-                payload = {
-                    "jsonrpc": "2.0",
-                    "method": "VideoLibrary.Scan",
-                    "directory": self.strPath,
-                    "id": 1
-                }
-                get_data(payload)
-            else:
-                xbmc.executebuiltin('ReloadSkin()')
+            if not self.item.no_reload:
+                if self.VideoId == 1:
+                    payload = {
+                        "jsonrpc": "2.0",
+                        "method": "VideoLibrary.Scan",
+                        "directory": self.strPath,
+                        "id": 1
+                    }
+                    get_data(payload)
+                else:
+                    xbmc.executebuiltin('ReloadSkin()')
         conn.close()
 
     def get_id(self):
@@ -434,17 +469,18 @@ class addTvShow(object):
         execute_sql(self.sql_actions)
 
         # need if no movie in kodi library
-        if self.idShow == 1:
-            payload = {
-                "jsonrpc": "2.0",
-                "method": "VideoLibrary.Scan",
-                "directory": self.strPath,
-                "id": 1
-            }
-            get_data(payload)
-        else:
-            xbmc.executebuiltin('ReloadSkin()')
-        conn.close()
+        if not self.item.no_reload:
+            if self.idShow == 1:
+                payload = {
+                    "jsonrpc": "2.0",
+                    "method": "VideoLibrary.Scan",
+                    "directory": self.strPath,
+                    "id": 1
+                }
+                get_data(payload)
+            else:
+                xbmc.executebuiltin('ReloadSkin()')
+            conn.close()
 
     def get_idShow(self):
         sql = 'select idShow from tvshow_view where uniqueid_value = {} and uniqueid_type = "kod"'.format(self.info['tmdb_id'])
