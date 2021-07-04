@@ -49,6 +49,7 @@ def hdpass_get_servers(item):
         url = url.replace("&download=1", "")
         if 'hdpass' not in url and 'hdplayer' not in url: return itemlist
     if not url.startswith('http'): url = 'https:' + url
+    item.referer = url
 
     data = httptools.downloadpage(url, CF=False).data
     patron_res = '<div class="buttons-bar resolutions-bar">(.*?)<div class="buttons-bar'
@@ -57,6 +58,11 @@ def hdpass_get_servers(item):
 
     res = scrapertools.find_single_match(data, patron_res)
 
+    # non threaded for webpdb
+    # for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
+    #     res_url = scrapertools.decodeHtmlentities(res_url)
+    #     itemlist.extend(get_hosts(res_url, res_video))
+    #
     with futures.ThreadPoolExecutor() as executor:
         thL = []
         for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
@@ -68,14 +74,15 @@ def hdpass_get_servers(item):
 
     return server(item, itemlist=itemlist)
 
+
 def hdpass_get_url(item):
-    item.referer = item.url
     data = httptools.downloadpage(item.url, CF=False).data
     src = scrapertools.find_single_match(data, r'<iframe allowfullscreen custom-src="([^"]+)')
     if src: item.url = base64.b64decode(src)
     else: item.url = scrapertools.find_single_match(data, r'<iframe allowfullscreen src="([^"]+)')
     item.url, c = unshortenit.unshorten_only(item.url)
     return [item]
+
 
 def color(text, color):
     return "[COLOR " + color + "]" + text + "[/COLOR]"
