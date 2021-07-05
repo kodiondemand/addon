@@ -24,15 +24,15 @@ def save_all():
         add_video(item)
     conn.close()
 
-    _id = get_id('idShow', 'tvshow') + get_id('idMovie', 'movie')
-    if _id == 1:
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "VideoLibrary.Scan",
-            "directory": videolibrarytools.FOLDER_MOVIES,
-            "id": 1
-        }
-        get_data(payload)
+    reload()
+
+def reload():
+    movieid = get_id('idMovie', 'movie')
+    showid = get_id('idShow', 'tvshow')
+
+    if movieid > 0 and showid > 0:
+        xbmc.executebuiltin('ReloadSkin()')
+    else:
         payload = {
             "jsonrpc": "2.0",
             "method": "VideoLibrary.Scan",
@@ -40,8 +40,13 @@ def save_all():
             "id": 1
         }
         get_data(payload)
-    else:
-        xbmc.executebuiltin('ReloadSkin()')
+        payload = {
+            "jsonrpc": "2.0",
+            "method": "VideoLibrary.Scan",
+            "directory": videolibrarytools.FOLDER_MOVIES,
+            "id": 1
+        }
+        get_data(payload)
 
 
 def add_video(item):
@@ -256,6 +261,7 @@ class addMovie(object):
         if self.info.get('set'):
             sql = 'SELECT idSet from sets where (strSet = "{}") limit 1'.format(self.info.get('set'))
             collection_info = videolibrarydb['collection'][self.info.get('setid')].infoLabels
+            logger.debug('COLLECTION INFO:',collection_info)
             nun_records, records = execute_sql_kodi(sql, conn=conn)
             if records:
                 self.idSet = records[0][0]
@@ -264,20 +270,20 @@ class addMovie(object):
                 sql = 'INSERT OR IGNORE INTO sets (idSet, strSet, strOvervieW) VALUES ( ?,  ?,  ?)'
                 params = (self.idSet, self.info.get('set'), self.info.get('setoverview'))
                 self.sql_actions.append([sql, params])
-                if collection_info.get('poster'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set', 'type':'poster', 'url':collection_info.get('poster')})
-                if collection_info.get('fanart'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'fanart', 'url':collection_info.get('fanart')})
-                if collection_info.get('landscape'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'landscape', 'url':collection_info.get('landscape')})
-                if collection_info.get('banner'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'banner', 'url':collection_info.get('banner')})
-                if collection_info.get('clearlogo'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearlogo', 'url':collection_info.get('clearlogo')})
-                if collection_info.get('clearart'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('clearart')})
-                if collection_info.get('disc'):
-                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('disc')})
+                if collection_info.get('posters'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set', 'type':'poster', 'url':collection_info.get('posters')[0]})
+                if collection_info.get('fanarts'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'fanart', 'url':collection_info.get('fanarts')[0]})
+                if collection_info.get('landscapes'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'landscape', 'url':collection_info.get('landscapes')[0]})
+                if collection_info.get('banners'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'banner', 'url':collection_info.get('banners')[0]})
+                if collection_info.get('clearlogos'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearlogo', 'url':collection_info.get('clearlogos')[0]})
+                if collection_info.get('cleararts'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('cleararts')[0]})
+                if collection_info.get('discs'):
+                    self.art.append({'media_id':self.idSet, 'media_type': 'set',  'type':'clearart', 'url':collection_info.get('discs')[0]})
 
     def set_files(self):
         self.idFile = get_id('idFile', 'files')

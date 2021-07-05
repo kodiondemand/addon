@@ -203,7 +203,7 @@ def save_movie(item, silent=False):
         if not movie_item.infoLabels['disc'] and item.infoLabels['discs']: movie_item.infoLabels['disc'] = item.infoLabels['discs'][0]
         if not movie_item.prefered_lang: movie_item.prefered_lang = ''
         if not movie_item.lang_list: movie_item.lang_list = []
-        # if not movie_item.info: movie_item.info = extra_info(_id)
+        movie_item.no_reload = item.no_reload
 
         if not item.contentLanguage: item.contentLanguage = 'ITA'
         if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
@@ -214,9 +214,8 @@ def save_movie(item, silent=False):
             movie_item.prefered_lang = movie_item.lang_list[0]
 
         # create nfo file if it does not exist
-        # support.dbg()
+
         if not nfo_exists:
-            # data = dicttoxml(movie_item)
             filetools.write(filetools.join(MOVIES_PATH, movie_item.nfo_path), head_nfo)
 
         # create strm file if it does not exist
@@ -267,8 +266,8 @@ def save_movie(item, silent=False):
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
         # Update Kodi Library
-        # from platformcode.dbconverter import add_video
-        # add_video(movie_item)
+        from platformcode.dbconverter import add_video
+        add_video(movie_item)
         # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
@@ -399,6 +398,8 @@ def save_tvshow(item, episodelist, silent=False):
     if not tvshow_item.prefered_lang: tvshow_item.prefered_lang = ''
     if not tvshow_item.lang_list: tvshow_item.lang_list = []
 
+    tvshow_item.no_reload = item.no_reload
+
     remove_host(item)
 
     item.renumber = add_renumber_options(item)
@@ -419,7 +420,7 @@ def save_tvshow(item, episodelist, silent=False):
 
     if not nfo_exists:
         filetools.write(filetools.join(TVSHOWS_PATH, tvshow_item.nfo_path), head_nfo)
-    # support.dbg()
+
     if not episodelist:
         # The episode list is empty
         return 0, 0, -1, path
@@ -431,8 +432,7 @@ def save_tvshow(item, episodelist, silent=False):
     if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:# and inserted:
         from platformcode.dbconverter import add_video
         add_video(tvshow_item)
-    #     from platformcode.xbmc_videolibrary import update
-    #     update(TVSHOWS_PATH, tvshow_item.basename)
+
 
     return inserted, overwritten, failed, path
 
@@ -452,8 +452,6 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
             season_episode = '{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber)
             strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
 
-            # e.contentSeason = int(season_episode.split('x')[0])
-            # e.contentEpisodeNumber = int(season_episode.split('x')[1])
             if item.infoLabels.get('imdb_id'): e.infoLabels['imdb_id'] = item.infoLabels['imdb_id']
             if item.infoLabels.get('tmdb_id'): e.infoLabels['tmdb_id'] = item.infoLabels['tmdb_id']
             if item.infoLabels.get('tvdb_id'): e.infoLabels['tvdb_id'] = item.infoLabels['tvdb_id']
@@ -779,6 +777,7 @@ def add_tvshow(item, channel=None):
         # If the second screen is canceled, the variable "scraper_return" will be False. The user does not want to continue
 
         item = generictools.update_title(item) # We call the method that updates the title with tmdb.find_and_set_infoLabels
+
         if not item: return
         #if item.tmdb_stat:
         #    del item.tmdb_stat          # We clean the status so that it is not recorded in the Video Library

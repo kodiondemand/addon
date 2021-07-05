@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import threading
+from core import support
 
 import xbmc, xbmcgui, sys, channelselector, time, os
 from core.support import dbg, tmdb
@@ -8,6 +9,7 @@ from core import channeltools, servertools, scrapertools
 from platformcode import platformtools, config, logger
 from platformcode.launcher import run
 from threading import Thread
+from platformcode.dbconverter import reload
 
 if sys.version_info[0] >= 3:
     PY3 = True
@@ -73,6 +75,7 @@ SERVERLIST = 300
 class SearchWindow(xbmcgui.WindowXML):
     def start(self, item, moduleDict={}, searchActions=[], thActions=None):
         logger.debug()
+
         self.exit = False
         self.item = item
         self.type = self.item.mode
@@ -89,6 +92,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.pos = 0
         self.items = []
         self.search_threads = []
+        self.reload = False
 
         if not thActions:
             self.thActions = Thread(target=self.getActionsThread)
@@ -117,7 +121,6 @@ class SearchWindow(xbmcgui.WindowXML):
                     channeltools.set_channel_setting('Last_searched', self.item.text, 'search')
                     from specials.search import save_search
                     save_search(self.item.text)
-
 
     def getActionsThread(self):
         logger.debug()
@@ -577,6 +580,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         elif action in [EXIT]:
             self.Close()
+            reload()
             close_action = True
             xbmc.sleep(500)
 
@@ -602,6 +606,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         elif control_id in [CLOSE]:
             self.Close()
+            reload()
             close_action = True
 
         elif control_id in [MENU]:
@@ -769,7 +774,6 @@ class SearchWindow(xbmcgui.WindowXML):
             platformtools.dialog_busy(False)
         self.close()
 
-
     def context(self):
         focus = self.getFocusId()
         if focus == EPISODESLIST:  # context on episode
@@ -785,10 +789,10 @@ class SearchWindow(xbmcgui.WindowXML):
         parent.noMainMenu = True
         commands = platformtools.set_context_commands(item, item_url, parent)
         context = [c[0] for c in commands]
-        context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
+        context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin').replace(')','&no_reload=True)') for c in commands]
         index = xbmcgui.Dialog().contextmenu(context)
+        self.reload = True
         if index > 0: xbmc.executebuiltin(context_commands[index])
-
 
     def play(self, server=None):
         platformtools.prevent_busy(server)
