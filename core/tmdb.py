@@ -391,15 +391,18 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                     # do it by title
                     if search_type == 'tv':
                         # Serial search by title and filtering your results if necessary
-                        otmdb = Tmdb(searched_text=scrapertools.unescape(item.infoLabels['tvshowtitle']), search_type=search_type,
+                        searched_title = scrapertools.unescape(item.infoLabels['tvshowtitle'])
+                        searched_title = searched_title.split('-')[0].strip()
+                        otmdb = Tmdb(searched_text=searched_title, search_type=search_type,
                                      search_language=search_language, filtro=item.infoLabels.get('filtro', {}),
                                      year=item.infoLabels['year'])
                     else:
                         # Movie search by title ...
                         # if item.infoLabels['year'] or item.infoLabels['filtro']:
                         # ...and year or filter
-                        searched_title = item.contentTitle if item.contentTitle else item.fulltitle
-                        otmdb = Tmdb(searched_text=scrapertools.unescape(searched_title), search_type=search_type, search_language=search_language,
+                        searched_title = scrapertools.unescape(item.contentTitle if item.contentTitle else item.fulltitle)
+                        searched_title = searched_title.split('-')[0].strip()
+                        otmdb = Tmdb(searched_text=searched_title, search_type=search_type, search_language=search_language,
                                      filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
                     if otmdb is not None:
                         if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):

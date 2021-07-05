@@ -686,6 +686,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             # Add Movie to Video Library
             elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
                 context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_movie_to_library&from_action=' + item.action)))
+            elif item.action in ['check'] and item.contentTitle:
+                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
             # Download movie

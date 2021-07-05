@@ -679,6 +679,14 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
     return inserted, overwritten, failed
 
 
+def add_to_videolibrary(item, channel):
+    itemlist = getattr(channel, item.from_action)(item)
+    if itemlist and itemlist[0].contentType == 'episode':
+        return add_tvshow(item, channel)
+    else:
+        return add_movie(item)
+
+
 def add_movie(item):
     """
         Keep a movie at the movie library. The movie can be a link within a channel or a previously downloaded video.
