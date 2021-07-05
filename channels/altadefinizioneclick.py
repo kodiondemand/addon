@@ -17,6 +17,7 @@
 
 
 """
+from platformcode.logger import debug
 from core import support
 from core.item import Item
 from platformcode import config
@@ -42,28 +43,29 @@ def mainlist(item):
         ('Mi sento Fortunato',[ '', 'genres', 'lucky']),
         ('Sub-ITA', ['/sub-ita/', 'peliculas', 'sub'])
     ]
+
+    tvshow = ['/serie-tv/']
+
+    search = ''
     return locals()
 
 @support.scrape
 def peliculas(item):
-    # debug=True
+    action = 'check'
+
     patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</div>)'
-    # patronBlock = r'h1>(?P<block>.*?)</section'
 
     if item.args == 'az':
         patron = r'<img style="[^"]+" src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)" [^>]+>(?P<title>[^<\[]+)(?:\[(?P<lang>[^\]]+)\]\s*)?<'\
                  r'[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<year>\d{4})[^>]+>[^>]+>\s*(?P<quality>[^<]+).*?<span class="label">(?P<ratting>[^<]+)<'
         patronBlock =''
 
-    # elif item.args == 'genres':
-    #     patron = r'<div class="wrapperImage">[ ]?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)"'\
-    #              r'.+?<h2 class="titleFilm(?:Mobile)?">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?(?:\((?P<year>\d{4})\))?</a>.*?(IMDB\:[ ](?P<rating>.+?))<'
     elif item.args == 'search':
         patronBlock = r'<section id="lastUpdate">(?P<block>.*?)(?:<div class="row ismobile">|<section)'
-        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)'
+        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"(?:(?:[^>]+>){5}\s*(?P<rating>[^<]+))?(?:[^>]+>){4}(?P<title>[^<]+)'
 
     if not item.args:
-        patronBlock = r'ULTIMI INSERITI(?P<block>.*?)</section'
+        patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
 
     # nella pagina "CERCA", la voce "SUCCESSIVO" apre la maschera di inserimento dati
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
@@ -72,7 +74,6 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    # debugBlock=True
     action = 'peliculas'
     patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
@@ -133,6 +134,56 @@ def newest(categoria):
         return []
 
     return itemlist
+
+
+def check(item):
+    def get_season(pageData, seas_url, season):
+        data = ''
+        episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
+        for episode_url, episode in episodes:
+            # episode_url = support.urlparse.urljoin(item.url, episode_url)
+            # if '-' in episode: episode = episode.split('-')[0].zfill(2) + 'x' + episode.split('-')[1].zfill(2)
+            title = season + "x" + episode.zfill(2) + ' - ' + item.fulltitle
+            data += title + '|' + episode_url + '\n'
+        return data
+
+    patron_season = '<div class="[^"]+" id="seasonsModal"[^>]+>(.*?)</ul>'
+    patron_episode = '<div class="[^"]+" id="episodesModal"[^>]+>(.*?)</ul>'
+    patron_option = r'<a href="([^"]+?)".*?>(?:Stagione |Episodio )([^<]+?)</a>'
+
+    url = support.match(item, patron=r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
+    seasons = support.match(url, patronBlock=patron_season, patron=patron_option)
+    if not seasons.match:
+        item.contentType = 'tvshow'
+        return findvideos(item)
+
+    data = ''
+
+    import sys
+    if sys.version_info[0] >= 3: from concurrent import futures
+    else: from concurrent_py2 import futures
+    with futures.ThreadPoolExecutor() as executor:
+        thL = []
+        for i, season in enumerate(seasons.matches):
+            thL.append(executor.submit(get_season, seasons.data if i == 0 else '', season[0], season[1]))
+        for res in futures.as_completed(thL):
+            if res.result():
+                data += res.result()
+    item.data = data
+    return episodios(item)
+
+@support.scrape
+def episodios(item):
+    data = item.data
+
+    patron = r'(?P<season>\d+)x(?P<episode>\d+)\s*-\s*(?P<title>[^\|]+)\|(?P<url>[^ ]+)'
+    action = 'findvideos'
+
+    def itemlistHook(itemlist):
+        itemlist.sort(key=lambda item: (item.infoLabels['season'], item.infoLabels['episode']))
+        return itemlist
+
+    return locals()
 
 def findvideos(item):
     support.info('findvideos', item)

@@ -5,6 +5,7 @@
     "language": ["ita","sub-ita"],
     "thumbnail": "altadefinizioneclick.png",
     "bannermenu": "altadefinizioneciclk.png",
-    "categories": ["movie","vos"],
+    "categories": ["tvshow","movie","vos"],
+    "not_active":["include_in_newest_series"],
     "settings": []
 }
