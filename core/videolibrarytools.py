@@ -949,6 +949,14 @@ def get_local_content(path):
     return local_episodelist
 
 
+def add_to_videolibrary(item, channel):
+    itemlist = getattr(channel, item.from_action)(item)
+    if itemlist and itemlist[0].contentType == 'episode':
+        return add_tvshow(item, channel)
+    else:
+        return add_movie(item)
+
+
 def add_movie(item):
     """
         Keep a movie at the movie library. The movie can be a link within a channel or a previously downloaded video.
@@ -966,6 +974,7 @@ def add_movie(item):
     """
     logger.debug()
     from platformcode.launcher import set_search_temp; set_search_temp(item)
+    item.contentType = 'movie'
 
     # To disambiguate titles, TMDB is caused to ask for the really desired title
     # The user can select the title among those offered on the first screen
@@ -1012,6 +1021,7 @@ def add_tvshow(item, channel=None):
     """
 
     logger.debug("show=#" + item.show + "#")
+    item.contentType = 'tvshow'
     from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     if item.channel == "downloads":
