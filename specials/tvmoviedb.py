@@ -114,7 +114,7 @@ def tmdb(item):
     itemlist.append(item.clone(title=config.get_localized_string(70029), action="list_tmdb", search={'url': item.args + "/top_rated", 'language': langt, 'page': 1}))
 
     if item.args == "movie": itemlist.append(item.clone(title=config.get_localized_string(70030), action="list_tmdb", search={'url': item.args + "/now_playing", 'language': langt, 'page': 1}))
-    else: itemlist.append(item.clone(title=config.get_localized_string(70031), action="list_tmdb", search={'url': item.args + "/on_the_air", 'language': langt, 'page': 1}))
+    else: itemlist.append(item.clone(title=config.get_localized_string(70031), action="list_tmdb", search={'url': item.args + "/on_air", 'language': langt, 'page': 1}))
 
     itemlist.append(item.clone(title=config.get_localized_string(70032), action="indices_tmdb"))
     itemlist.append(item.clone(title=config.get_localized_string(70042), action="indices_tmdb"))

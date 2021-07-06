@@ -433,7 +433,7 @@ def scrape(func):
         search = args.get('search', '')
         blacklist = args.get('blacklist', [])
         data = args.get('data', '')
-        patron = args.get('patron', args.get('patronMenu', ''))
+        patron = args.get('patron', args.get('patronMenu', args.get('patronGenreMenu', '')))
         if 'headers' in args:
             headers = args['headers']
         elif 'headers' in func.__globals__:
@@ -537,7 +537,7 @@ def scrape(func):
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and not disabletmdb and inspect.stack()[1][3] not in ['add_tvshow'] and function != 'episodios' or (function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
+        if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args and not disabletmdb and inspect.stack()[1][3] not in ['add_tvshow'] and function != 'episodios' or (function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
@@ -569,8 +569,10 @@ def scrape(func):
             if downloadEnabled and function == 'episodios' or function == 'findvideos':
                 download(itemlist, item, function=function)
 
-        if 'patronMenu' in args and itemlist:
+        if 'patronGenreMenu' in args and itemlist:
             itemlist = thumb(itemlist, genre=True)
+        if 'patronMenu' in args and itemlist:
+            itemlist = thumb(itemlist)
 
         if 'fullItemlistHook' in args:
             try:
@@ -1391,53 +1393,36 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     return video_urls
 
 
-def thumb(item_itemlist_string=None, genre=False, live=False):
+def thumb(data=None, genre=False, live=False):
+    '''
+        data = str, item or itemlist
+        genre = bool, search icon in genres
+        live = bool, add icon by channel name
+    '''
     from channelselector import get_thumb
     if live:
-        if type(item_itemlist_string) == list:
-            for item in item_itemlist_string:
+        if type(data) == list:
+            for item in data:
                 item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
         else:
-            item_itemlist_string.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item_itemlist_string.fulltitle.lower().replace(' ','_') + '.png'
-        return item_itemlist_string
+            data.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + data.fulltitle.lower().replace(' ','_') + '.png'
+        return data
 
-    icon_dict = {'movie':['film', 'movie'],
+    main_dict = {'movie':['film', 'movie', 'movies'],
                  'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
-                 'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                 'teenager':['ragazzi','teenager', 'teen'],
-                 'learning':['learning', 'school', 'scuola'],
-                 'all':['tutti', 'all'],
-                 'news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'notizie'],
-                 'now_playing':['cinema', 'in sala'],
                  'anime':['anime'],
-                 'genres':['genere', 'generi', 'categorie', 'categoria', 'category'],
-                 'animation': ['animazione', 'cartoni', 'cartoon', 'animation'],
-                 'action':['azione', 'marziali', 'action', 'martial'],
-                 'adventure': ['avventura', 'adventure'],
-                 'biographical':['biografico', 'biographical', 'biografia'],
-                 'comedy':['comico', 'commedia', 'demenziale', 'comedy', 'brillante', 'demential', 'parody'],
-                 'adult':['erotico', 'hentai', 'harem', 'ecchi', 'adult'],
-                 'drama':['drammatico', 'drama', 'dramma'],
-                 'syfy':['fantascienza', 'science fiction', 'syfy', 'sci-fi'],
-                 'fantasy':['fantasy', 'magia', 'magic', 'fantastico'],
-                 'crime':['gangster','poliziesco', 'crime', 'crimine', 'police'],
-                 'grotesque':['grottesco', 'grotesque'],
-                 'war':['guerra', 'war', 'military'],
-                 'children':['bambini', 'kids'],
-                 'horror':['horror', 'orrore'],
+                 'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
                  'music':['musical', 'musica', 'music', 'musicale'],
-                 'mistery':['mistero', 'giallo', 'mystery'],
-                 'noir':['noir'],
-                 'popular':['popolari','popolare', 'più visti', 'raccomandati', 'raccomandazioni' 'recommendations'],
-                 'thriller':['thriller'],
-                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
-                 'on_the_air' : ['corso', 'onda', 'diretta', 'dirette'],
-                 'western':['western'],
-                 'vos':['sub','sub-ita'],
-                 'romance':['romantico','sentimentale', 'romance', 'soap'],
-                 'family':['famiglia','famiglie', 'family'],
-                 'historical':['storico', 'history', 'storia', 'historical'],
+                 }
+
+    icon_dict = {'torrent':['torrent'],
+                 'all':['tutti', 'all'],
                  'az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
+                 'news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'ultime', 'notizie'],
+                 'now_playing':['cinema', 'in sala'],
+                 'genre':['genere', 'generi', 'categorie', 'categoria', 'category'],
+                 'popular':['popolari', 'popolare', 'popular', 'più', 'raccomandati', 'raccomandazioni' 'recommendations'],
+                 'on_air' : ['corso', 'onda', 'diretta', 'dirette', 'progress'],
                  'year':['anno', 'anni', 'year'],
                  'update':['replay', 'update'],
                  'videolibrary':['teche'],
@@ -1447,62 +1432,103 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
                  'spring':['primavera', 'spring'],
                  'summer':['estate', 'summer'],
                  'autumn':['autunno', 'autumn'],
+                 'vos':['sub','sub-ita'],
+                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
                  'autoplay':[config.get_localized_string(60071)]
                 }
+
+    genre_dict = {'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
+                  'teenager':['ragazzi','teenager', 'teen'],
+                  'learning':['learning', 'school', 'scuola'],
+                  'animation': ['animazione', 'cartoni', 'cartoon', 'animation'],
+                  'action':['azione', 'marziali', 'action', 'martial', 'samurai'],
+                  'adventure': ['avventura', 'adventure'],
+                  'biographical':['biografico', 'biographical', 'biografia'],
+                  'comedy':['comico', 'commedia', 'demenziale', 'comedy', 'brillante', 'demential', 'parody', 'parodia'],
+                  'adult':['erotico', 'hentai', 'harem', 'ecchi', 'adult'],
+                  'drama':['drammatico', 'drama', 'dramma'],
+                  'syfy':['fantascienza', 'science fiction', 'syfy', 'sci-fi'],
+                  'fantasy':['fantasy', 'magia', 'magic', 'fantastico'],
+                  'crime':['gangster','poliziesco', 'crime', 'crimine', 'police', 'polizia'],
+                  'grotesque':['grottesco', 'grotesque'],
+                  'war':['guerra', 'war', 'military', 'militari'],
+                  'children':['bambini', 'kids'],
+                  'horror':['horror', 'orrore', 'demoni', 'vampiri'],
+                  'music':['musical', 'musica', 'music', 'musicale'],
+                  'mistery':['mistero', 'giallo', 'mystery'],
+                  'noir':['noir'],
+                  'thriller':['thriller'],
+                  'western':['western'],
+                  'romance':['romantico','sentimentale', 'romance', 'soap'],
+                  'family':['famiglia','famiglie', 'family'],
+                  'historical':['storico', 'history', 'storia', 'historical'],
+                  'tvmovie':['tv', 'show', 'film tv', 'tv movie']}
 
     suffix_dict = {'_hd':['hd','altadefinizione','alta definizione'],
                    '_4k':['4K'],
                    '_az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
+                   '_genre':['genere', 'generi', 'categorie', 'categoria', 'genre', 'genres'],
+                   '_popular':['popolari', 'popolare', 'popular', 'più', 'raccomandati', 'raccomandazioni' 'recommendations'],
+                   '_top':['fortunato', 'votati', 'lucky', 'top'],
                    '_year':['anno', 'anni', 'year'],
-                   '_genre':['genere', 'generi', 'categorie', 'categoria']}
+                   '_news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'ultime', 'notizie'],
+                   '_on_air' : ['corso', 'onda', 'diretta', 'dirette', 'progress'],
+                   '_cinema':['cinema', 'sala', 'theatre', 'theatres']}
 
     search = ['cerca', 'search']
 
-    search_suffix ={'_movie':['film', 'movie'],
-                    '_tvshow':['serie','tv', 'fiction']}
+    search_suffix ={'_movie':['film', 'movie', 'movies'],
+                    '_tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
+                    '_anime':['anime'],
+                    '_year':['anno', 'anni', 'year'],
+                    '_rating':['rating', 'voto'],
+                    '_documentary':['documentari','documentario', 'documentary', 'documentaristico'],
+                    '_music':['musical', 'musica', 'music', 'musicale'],
+                    '_star':['star', 'personaggi', 'interpreti', 'stars', 'characters', 'performers', 'staff', 'actors', 'attori', 'regista', 'registi'],
+                    '_genre':['genere', 'generi', 'categorie', 'categoria', 'genre', 'genres']}
 
     def autoselect_thumb(item, genre):
-        # logger.debug('SPLIT',re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()))
-        if genre == False:
-            for thumb, titles in icon_dict.items():
-                if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in search):
-                    thumb = 'search'
-                    for suffix, titles in search_suffix.items():
-                        if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
-                            thumb = thumb + suffix
-                    item.thumbnail = get_thumb(thumb + '.png')
-                elif any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
-                    if thumb == 'movie' or thumb == 'tvshow':
-                        for suffix, titles in suffix_dict.items():
-                            if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
-                                thumb = thumb + suffix
-                        item.thumbnail = get_thumb(thumb + '.png')
-                    else: item.thumbnail = get_thumb(thumb + '.png')
-                else:
-                    thumb = item.thumbnail
-
+        searched_title = re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ', scrapertools.unescape(re.sub('\[[^\]]+\]|\u2026|\u2022', '', item.title.lower().replace('/',' '))))
+        thumb = ''
+        if genre:
+            for t, titles in genre_dict.items():
+                if any(word in searched_title for word in titles ):
+                    thumb = t
         else:
-            for thumb, titles in icon_dict.items():
-                if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
-                    item.thumbnail = get_thumb(thumb + '.png')
-                else:
-                    thumb = item.thumbnail
+            if any(word in searched_title for word in search):
+                thumb = 'search'
+                for suffix, titles in search_suffix.items():
+                    if any(word in searched_title for word in titles):
+                        thumb = thumb + suffix
+            if not thumb:
+                for t, titles in main_dict.items():
+                    if any(word in searched_title for word in titles):
+                        thumb = t
+                        if thumb in main_dict.keys():
+                            for suffix, titles in suffix_dict.items():
+                                if any(word in searched_title for word in titles):
+                                    thumb = t + suffix
+            if not thumb:
+                for t, titles in icon_dict.items():
+                    if any(word in searched_title for word in titles):
+                        thumb = t
 
+        if thumb: item.thumbnail = get_thumb(thumb + '.png')
         item.title = re.sub(r'\s*\{[^\}]+\}','',item.title)
         return item
 
-    if item_itemlist_string:
-        if type(item_itemlist_string) == list:
-            for item in item_itemlist_string:
+    if data:
+        if type(data) == list:
+            for item in data:
                 autoselect_thumb(item, genre)
-            return item_itemlist_string
+            return data
 
-        elif type(item_itemlist_string) == str:
-            filename, file_extension = os.path.splitext(item_itemlist_string)
-            if not file_extension: item_itemlist_string += '.png'
-            return get_thumb(item_itemlist_string)
+        elif type(data) == str:
+            filename, file_extension = os.path.splitext(data)
+            if not file_extension: data += '.png'
+            return get_thumb(data)
         else:
-            return autoselect_thumb(item_itemlist_string, genre)
+            return autoselect_thumb(data, genre)
 
     else:
         return get_thumb('next.png')

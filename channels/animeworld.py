@@ -51,7 +51,7 @@ def genres(item):
     action = 'peliculas'
     data = get_data(item)
     patronBlock = r'dropdown[^>]*>\s*Generi\s*<span.[^>]+>(?P<block>.*?)</ul>'
-    patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
+    patronGenreMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
 
     def itemHook(item):
         item.url = host + '/filter?' + item.name + '=' + item.value + '&sort='
@@ -63,10 +63,13 @@ def genres(item):
 def menu(item):
     action = 'submenu'
     data = get_data(item)
-    patronMenu=r'<button[^>]+>\s*(?P<title>[A-Za-z0-9]+)\s*<span.[^>]+>(?P<other>.*?)</ul>'
+    patronMenu = r'<button[^>]+>\s*(?P<title>[A-Za-z0-9]+)\s*<span.[^>]+>(?P<other>.*?)</ul>'
+    genre = False
     def itemlistHook(itemlist):
-        itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), action='peliculas'))
-        itemlist.append(item.clone(title=support.typo('Cerca...','bold'), action='search', search=True, thumbnail=support.thumb('search.png')))
+        for item in itemlist:
+            item.title += ' {anime}'
+        itemlist.insert(0, item.clone(title=support.typo('Tutti {anime}','bold'), action='peliculas'))
+        itemlist.append(item.clone(title=support.typo('Cerca... {anime}','bold'), action='search', search=True, thumbnail=support.thumb('search.png')))
         return itemlist
     return locals()
 

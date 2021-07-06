@@ -30,7 +30,7 @@ def getmainlist(view="thumb_"):
 
     if addon.getSetting('enable_onair_menu') == "true":
         itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
-                             thumbnail=get_thumb("on_the_air.png"), viewmode="thumbnails"))
+                             thumbnail=get_thumb("on_air.png"), viewmode="thumbnails"))
 
     if addon.getSetting('enable_link_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist", thumbnail=get_thumb("mylink.png", view),
@@ -46,7 +46,7 @@ def getmainlist(view="thumb_"):
                              context=[{"title": config.get_localized_string(70287), "channel": "shortcuts", "action": "SettingOnPosition", "category":2, "setting":1},
                                       {"title": config.get_localized_string(60568), "channel": "videolibrary", "action": "update_videolibrary"}]))
     if downloadenabled != "false":
-        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist", thumbnail=get_thumb("downloads.png", view), viewmode="list",
+        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist", thumbnail=get_thumb("download.png", view), viewmode="list",
                              context=[{"title": config.get_localized_string(70288), "channel": "shortcuts", "action": "SettingOnPosition", "category":6}]))
 
     thumb_setting = "setting_%s.png" % 0  # config.get_setting("plugin_updates_available")
@@ -187,7 +187,7 @@ def filterchannels(category, view="thumb_"):
         # Special Category
         if category in ['movie', 'tvshow']:
             titles = [config.get_localized_string(70028), config.get_localized_string(30985), config.get_localized_string(70559), config.get_localized_string(60264), config.get_localized_string(70560)]
-            ids = ['popular', 'top_rated', 'now_playing', 'on_the_air']
+            ids = ['popular', 'top_rated', 'now_playing', 'on_air']
             for x in range(0,3):
                 if x == 2 and category != 'movie':
                     title=titles[x+1]
@@ -200,7 +200,7 @@ def filterchannels(category, view="thumb_"):
                          list_type='%s/%s' % (category.replace('show',''), id), mode=category, thumbnail=get_thumb(id+".png")))
 
             channelslist.insert(3, Item(channel='search', action='genres_menu', title=config.get_localized_string(30987),
-                                        type=category.replace('show',''), mode=category ,thumbnail=get_thumb("genres.png")))
+                                        type=category.replace('show',''), mode=category ,thumbnail=get_thumb("genre.png")))
 
     return channelslist
 
@@ -213,8 +213,8 @@ def get_thumb(thumb_name, view="thumb_"):
         media_path = config.get_setting('custom_theme')
     else:
         icon_pack_name = config.get_setting('icon_set', default="default")
-        media_path = filetools.join("https://raw.githubusercontent.com/kodiondemand/media/master/themes", icon_pack_name)
-    return filetools.join(media_path, view + thumb_name)
+        media_path = filetools.join("https://raw.githubusercontent.com/kodiondemand/media/master/themes/new", icon_pack_name)
+    return filetools.join(media_path, thumb_name)
 
 
 def set_channel_info(parameters):

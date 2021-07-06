@@ -35,14 +35,15 @@ def mainlist(item):
 
 
 def search_list(item):
-    itemlist = [item.clone(title=config.get_localized_string(70032), action='list_genres', thumbnail=thumb('{}_genre'.format(item.contentType))),
-                item.clone(title=config.get_localized_string(70042), action='list_years', thumbnail=thumb('{}_year'.format(item.contentType))),
-                item.clone(title=config.get_localized_string(70314), action='list_az', next_action='list_actors', thumbnail=thumb('star')),
-                item.clone(title=config.get_localized_string(70473), action='list_ratings', thumbnail=thumb('{}_top'.format(item.contentType))),
-                item.clone(title='Registi', action='list_az', next_action='list_directors', thumbnail=thumb('directors')),
-                item.clone(title=config.get_localized_string(30980), action='search', thumbnail=thumb('search_{}'.format(item.contentType)))]
+    itemlist = [item.clone(title=config.get_localized_string(70032) + '{search}', action='list_genres'),
+                item.clone(title=config.get_localized_string(70042) + '{search}', action='list_years'),
+                item.clone(title=config.get_localized_string(70314) + '{search}', action='list_az', next_action='list_actors'),
+                item.clone(title=config.get_localized_string(70473) + '{search}', action='list_ratings'),
+                item.clone(title='Registi' + '{search}', action='list_az', next_action='list_directors'),
+                item.clone(title=config.get_localized_string(30980) + '{search}', action='search')]
     if item.contentType == 'movie':
-        itemlist.insert(0, item.clone(title='Collezioni', action='list_sets', thumbnail=thumb('{}_genre'.format(item.contentType))))
+        itemlist.insert(0, item.clone(title='Collezioni', action='list_sets'))
+    support.thumb(itemlist)
     return itemlist
 
 
