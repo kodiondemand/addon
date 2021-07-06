@@ -4,7 +4,7 @@
 # --------------------------------------------------------
 
 import re
-from core import httptools, scrapertools
+from core import httptools, scrapertools, support
 from platformcode import logger, config
 from lib import jsunpack
 
@@ -22,12 +22,19 @@ def test_video_exists(page_url):
 def get_video_url(page_url, video_password=""):
     logger.info("(page_url='%s')" % page_url)
     video_urls = []
-    packed_data = scrapertools.find_single_match(data.data, r'(function\(p,a,c,k,e,d\)[^<]+)')
+    packed_data = scrapertools.find_multiple_matches(data.data, r'(eval.*?video(\d).*?video_(\d)[^<]+)')
     if packed_data:
-        url = scrapertools.find_single_match(jsunpack.unpack(packed_data), r"src:\\'([^'\\]+)")
+        for p, index, control in packed_data:
+            if index == control:
+                try:
+                    url = scrapertools.find_single_match(jsunpack.unpack(p), r"src:\\'([^'\\]+)")
+                    break
+                except:
+                    pass
+
     else:
         url = re.sub(r'(\.\w{2,3})/\w', '\\1/getl1nk-', data.url) + '.dll'
-    url += "|User-Agent=%s" % httptools.get_user_agent()
-    video_urls.append([".mp4 [streamZ]", url])
+    url += "|Referer=https://streamz.ws/&User-Agent=Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'"
+    video_urls.append(["mp4 [streamZ]", url])
 
     return video_urls
