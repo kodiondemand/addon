@@ -25,7 +25,7 @@ from platformcode.logger import info
 from platformcode import logger
 
 
-def hdpass_get_servers(item):
+def hdpass_get_servers(item, data=''):
     def get_hosts(url, quality):
         ret = []
         page = httptools.downloadpage(url, CF=False).data
@@ -43,7 +43,8 @@ def hdpass_get_servers(item):
     itemlist = []
     if 'hdpass' in item.url or 'hdplayer' in item.url: url = item.url
     else:
-        data = httptools.downloadpage(item.url, CF=False).data.replace('\n', '')
+        if not data:
+            data = httptools.downloadpage(item.url, CF=False).data.replace('\n', '')
         patron = r'<iframe(?: id="[^"]+")? width="[^"]+" height="[^"]+" src="([^"]+)"[^>]+><\/iframe>'
         url = scrapertools.find_single_match(data, patron)
         url = url.replace("&download=1", "")

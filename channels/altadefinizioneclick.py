@@ -2,22 +2,7 @@
 # ------------------------------------------------------------
 # Canale per altadefinizioneclick
 # ----------------------------------------------------------
-"""
-
-    Eccezioni che non superano il test del canale:
-       - indicare le eccezioni
-
-    Novità. Indicare in quale/i sezione/i è presente il canale:
-       - film
-    
-    Avvisi:
-        - Eventuali avvisi per i tester
-
-    Ulteriori info:
-
-
-"""
-from platformcode.logger import debug
+from platformcode import logger
 from core import support
 from core.item import Item
 from platformcode import config
@@ -67,13 +52,13 @@ def peliculas(item):
     if not item.args:
         patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
 
-    # nella pagina "CERCA", la voce "SUCCESSIVO" apre la maschera di inserimento dati
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
 
     return locals()
 
 @support.scrape
 def genres(item):
+    item.contentType = 'undefined'
     action = 'peliculas'
     patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
@@ -141,8 +126,6 @@ def check(item):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
         for episode_url, episode in episodes:
-            # episode_url = support.urlparse.urljoin(item.url, episode_url)
-            # if '-' in episode: episode = episode.split('-')[0].zfill(2) + 'x' + episode.split('-')[1].zfill(2)
             title = season + "x" + episode.zfill(2) + ' - ' + item.fulltitle
             data += title + '|' + episode_url + '\n'
         return data
@@ -151,10 +134,11 @@ def check(item):
     patron_episode = '<div class="[^"]+" id="episodesModal"[^>]+>(.*?)</ul>'
     patron_option = r'<a href="([^"]+?)".*?>(?:Stagione |Episodio )([^<]+?)</a>'
 
-    url = support.match(item, patron=r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
-    seasons = support.match(url, patronBlock=patron_season, patron=patron_option)
+    url = support.match(item, patron=r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen')
+    seasons = support.match(url.match, patronBlock=patron_season, patron=patron_option)
     if not seasons.match:
         item.contentType = 'tvshow'
+        item.data = url.data
         return findvideos(item)
 
     data = ''
@@ -186,10 +170,7 @@ def episodios(item):
     return locals()
 
 def findvideos(item):
-    support.info('findvideos', item)
-    return support.hdpass_get_servers(item)
+    logger.debug()
+    return support.hdpass_get_servers(item, item.data)
 
-def play(item):
-    if 'hdpass' in item.url:
-        return support.hdpass_get_url(item)
-    return [item]
+

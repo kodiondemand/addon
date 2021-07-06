@@ -682,9 +682,12 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
 def add_to_videolibrary(item, channel):
     itemlist = getattr(channel, item.from_action)(item)
     if itemlist and itemlist[0].contentType == 'episode':
-        return add_tvshow(item, channel)
-    else:
+        return add_tvshow(item, itemlist)
+    elif itemlist and itemlist[0].server:
         return add_movie(item)
+    else:
+        videolibrarydb.close()
+        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(70838) % item.contentTitle)
 
 
 def add_movie(item):
@@ -703,7 +706,8 @@ def add_movie(item):
         @param item: item to be saved.
     """
     logger.debug()
-    from platformcode.launcher import set_search_temp; set_search_temp(item)
+    item.contentType = 'movie'
+    # from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     # To disambiguate titles, TMDB is caused to ask for the really desired title
     # The user can select the title among those offered on the first screen
@@ -731,7 +735,7 @@ def add_movie(item):
             videolibrarydb.close()
 
 
-def add_tvshow(item, channel=None):
+def add_tvshow(item, channel=None, itemlist=[]):
     """
         Save content in the series library. This content can be one of these two:
             - The series with all the chapters included in the episodelist.
@@ -753,7 +757,8 @@ def add_tvshow(item, channel=None):
 
     """
     logger.debug("show=#" + item.show + "#")
-    from platformcode.launcher import set_search_temp; set_search_temp(item)
+    item.contentType = 'tvshow'
+    # from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     if item.channel == "downloads":
         itemlist = [item.clone()]
@@ -792,7 +797,8 @@ def add_tvshow(item, channel=None):
 
         # Get the episode list
         it = item.clone()
-        itemlist = getattr(channel, it.action)(it)
+        if not itemlist:
+            itemlist = getattr(channel, it.action)(it)
         item.host = channel.host
         if itemlist:
             from platformcode.autorenumber import start, check
@@ -818,24 +824,24 @@ def add_tvshow(item, channel=None):
 
     elif not inserted and not overwritten and not failed:
         filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.show)
-        logger.error("The string %s could not be added to the video library. Could not get any episode" % item.show)
+        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.contentTitle)
+        logger.error("The string %s could not be added to the video library. Could not get any episode" % item.contentTitle)
 
     elif failed == -1:
         filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60068) % item.show)
-        logger.error("The string %s could not be added to the video library" % item.show)
+        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60068) % item.contentTitle)
+        logger.error("The string %s could not be added to the video library" % item.contentTitle)
 
     elif failed == -2:
         filetools.rmdirtree(path)
 
     elif failed > 0:
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60069) % item.show)
-        logger.error("Could not add %s episodes of series %s to the video library" % (failed, item.show))
+        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60069) % item.contentTitle)
+        logger.error("Could not add %s episodes of series %s to the video library" % (failed, item.contentTitle))
 
     else:
-        platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(60070) % item.show)
-        logger.debug("%s episodes of series %s have been added to the video library" % (inserted, item.show))
+        platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(60070) % item.contentTitle)
+        logger.debug("%s episodes of series %s have been added to the video library" % (inserted, item.contentTitle))
         if config.is_xbmc():
             if config.get_setting("sync_trakt_new_tvshow", "videolibrary"):
                 import xbmc

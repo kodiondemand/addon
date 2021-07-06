@@ -6164,6 +6164,10 @@ msgctxt "#70837"
 msgid "Enable/Disable Channels"
 msgstr "Abilita/Disabilita Canali"
 
+msgctxt "#70838"
+msgid "There are no valid content for: %s"
+msgstr "Non ci sono contenti validi per: %s"
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"

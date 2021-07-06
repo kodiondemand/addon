@@ -6163,6 +6163,10 @@ msgctxt "#70837"
 msgid "Enable/Disable Channels"
 msgstr ""
 
+msgctxt "#70838"
+msgid "There are no valid content for: %s"
+msgstr ""
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"
