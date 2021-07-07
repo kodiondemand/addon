@@ -378,7 +378,7 @@ def render_items(itemlist, parent_item):
             if item.title2: title = '{} - {}'.format(title, item.title2)
 
             if config.get_setting('format_title'):
-                server = typo(servertools.get_server_parameters(item.server).get('name', item.server.capitalize()), '_ []') if item.server else ''
+                server = typo(item.serverName, '_ []') if item.server else ''
                 quality = typo(item.quality, '_ [] color kod') if item.quality else ''
                 lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
                 extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''

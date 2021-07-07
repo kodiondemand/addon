@@ -1193,19 +1193,17 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                             info(videoitem, 'Non supportato')
                             return
                 videoitem.server = findS[2]
-                videoitem.title = findS[0]
+                videoitem.title= findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
             else:
                 videoitem.server = videoitem.server.lower()
 
         if videoitem.video_urls or srv_param.get('active', False):
-            # dbg()
-            item.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
-            # videoitem = item.clone()
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
-            videoitem.title = item.title
+            videoitem.serverName = videoitem.title if videoitem.server == 'directo' else servertools.get_server_parameters(videoitem.server).get('name', videoitem.server.capitalize())
+            videoitem.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
             videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle

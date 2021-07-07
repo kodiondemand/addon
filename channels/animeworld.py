@@ -175,7 +175,8 @@ def findvideos(item):
 
     for ID, name in resp.matches:
         # if not item.number: item.number = support.match(item.title, patron=r'(\d+) -').match
-        match = support.match(data, patronBlock=r'data-name="{}"[^>]+>(.*?)(?:<div class="(?:server|download)|link)', patron=r'data-id="([^"]+)" data-episode-num="{}".*?href="([^"]+)"'.format(ID, item.contentEpisodeNumber if item.contentEpisodeNumber else 1)).match
+        match = support.match(data, patronBlock=r'data-name="{}"[^>]+>(.*?)(?:<div class="(?:server|download)|link)'.format(ID), patron=r'data-id="([^"]+)" data-episode-num="{}".*?href="([^"]+)"'.format(item.contentEpisodeNumber if item.contentEpisodeNumber else 1)).match
+
         if match:
             epID, epurl = match
             # if 'vvvvid' in name.lower():
