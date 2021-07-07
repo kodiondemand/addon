@@ -165,12 +165,8 @@ def peliculas(item):
 
     for it in js:
         title, lang = get_lang(it['title'])
-        active = False if it['status'] == 'Annunciato' else True
 
-        if active:
-            long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
-        else:
-            long_title = support.typo(title, 'italic') + support.typo('Annunciato', '_ [] color kod italic')
+        long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
 
         itemlist.append(item.clone(title = long_title,
                                    fulltitle = title,
@@ -179,7 +175,7 @@ def peliculas(item):
                                    contentType = 'movie' if it['type'] == 'Movie' else 'tvshow',
                                    contentTitle = title,
                                    contentSerieName = title if it['type'] == 'Serie' else '',
-                                   action = '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
+                                   action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
                                    plot = it['storyline'],
                                    year = it['startDate'].split('-')[0],
                                    id= it['id'],
@@ -201,63 +197,82 @@ def episodios(item):
     url = '{}/api/anime/{}'.format(host, item.id)
     json = httptools.downloadpage(url, CF=False ).json
 
-    if 'seasons' in json and len(json['seasons']) > 0:
+    if json.get('seasons'):
         seasons = json['seasons']
         seasons.sort(key=lambda s: s['episodeStart'])
 
-        for i, it in enumerate(seasons):
+        for it in seasons:
             title = it['name']
 
             itemlist.append(item.clone(title = title,
                                        id= '{}/season/{}'.format(it['animeId'], it['id']),
                                        contentType = 'season',
-                                       contentSeason = i + 1,
-                                       action = 'episodios',
+                                       action = 'list_episodes',
                                        plot = json['storyline'],
-                                       year = it['yearStart']))
+                                       year = it['yearStart'],
+                                       show_renumber = True))
 
+        # If the call come from the videolibrary or autorenumber, shows the episodes
         if stack()[1][3] in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
             itlist = []
             with futures.ThreadPoolExecutor() as executor:
-                eplist = [executor.submit(episodios, item) for item in itemlist]
+                eplist = []
+                for ep in itemlist:
+                    ep.show_renumber = False
+                    eplist.append(executor.submit(list_episodes, ep))
                 for res in futures.as_completed(eplist):
                     if res.result():
                         itlist.extend(res.result())
             itemlist = itlist
+    elif json.get('episodes'):
+        itemlist = list_episodes(item, json)
 
-    elif ('episodes' in json and len(json['episodes']) > 0) or len(json) > 0:
-        episodes = json['episodes'] if 'episodes' in json else json
+    # add renumber option
+    if stack()[1][3] not in ['find_episodes'] and itemlist and itemlist[0].contentType == 'episode':
+        autorenumber.start(itemlist, item)
 
-        episodes.sort(key=lambda ep: int(ep['episodeNumber']))
-
-        for it in episodes:
-            quality = 'Full HD' if it['fullHd'] else 'HD'
-
-            if item.contentSeason:
-                episode = '{}x{:02d}'.format(item.contentSeason, int(it['episodeNumber']))
-            else:
-                episode = '{:02d}'.format(int(it['episodeNumber']))
-
-            title = support.typo('{}. {}'.format(episode, it['title']), 'bold')
-            image = get_thumbnail(it, 'episodeImages')
-
-            itemlist.append(item.clone(title = title,
-                                    id= it['id'],
-                                    url= 'api/episode/{}'.format(it['id']),
-                                    contentType = 'episode',
-                                    contentEpisodeNumber = int(it['episodeNumber']),
-                                    contentSeason = item.contentSeason if item.contentSeason else '',
-                                    action = 'findvideos',
-                                    quality = quality,
-                                    thumbnail = image,
-                                    fanart= image,
-                                    year = it['airingDate'].split('-')[0]))
-
-        if not item.contentSeason and stack()[1][3] not in ['find_episodes']:
-            autorenumber.start(itemlist, item)
-
+    # add add to videolibrary menu
     if stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
         support.videolibrary(itemlist, item)
+    
+    return itemlist
+    
+
+def list_episodes(item, json=None):
+    itemlist = []
+    if not json:
+        url = '{}/api/anime/{}'.format(host, item.id)
+        json = httptools.downloadpage(url, CF=False ).json
+
+    episodes = json['episodes'] if 'episodes' in json else json
+    episodes.sort(key=lambda ep: int(ep['episodeNumber'].split('.')[0]))
+
+    for it in episodes:
+        quality = 'Full HD' if it['fullHd'] else 'HD'
+
+        if item.contentSeason:
+            episode = '{}x{:02d}'.format(item.contentSeason, int(it['episodeNumber'].split('.')[0]))
+        else:
+            episode = '{:02d}'.format(int(it['episodeNumber'].split('.')[0]))
+
+        title = support.typo('{}. {}'.format(episode, it['title']), 'bold')
+        image = get_thumbnail(it, 'episodeImages')
+
+        itemlist.append(item.clone(title = title,
+                                   id= it['id'],
+                                   url= 'api/episode/{}'.format(it['id']),
+                                   contentType = 'episode',
+                                   contentEpisodeNumber = int(it['episodeNumber'].split('.')[0]),
+                                   contentSeason = item.contentSeason if item.contentSeason else '',
+                                   action = 'findvideos',
+                                   quality = quality,
+                                   thumbnail = image,
+                                   fanart= image))
+
+    # Renumber episodes only if shown in the menu
+    if item.show_renumber:
+        autorenumber.start(itemlist, item)
+
     return itemlist
 
 
