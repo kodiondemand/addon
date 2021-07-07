@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from core import httptools, scrapertools, config, support
+from core import httptools, scrapertools, config
 import base64
-from lib import js2py
 import math
 import re
 
