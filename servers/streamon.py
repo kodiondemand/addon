@@ -12,39 +12,16 @@ def test_video_exists(page_url):
   global htmldata
   htmldata = httptools.downloadpage(page_url).data
 
-  if htmldata:
-        return True, ""
+  if 'Oops! video not found' in htmldata:
+    return False, config.get_localized_string(70449) % "Streamon"
   else:
-        return False, config.get_localized_string(70449) % "Streamon"
-
-
-# def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-
-#     tabbler = httptools.downloadpage('https://streamon.to/assets/js/tabber.js').data.replace('eval','')
-#     decoded_tabler = js2py.eval_js(tabbler)
-#     decoder = scrapertools.find_single_match(decoded_tabler, r'var res = ([a-z]{12})\.replace\("([^"]+)[^\.]+\.replace\("([^"]+)')
-
-#     first_decoder_js = scrapertools.find_single_match(htmldata, '<script\s+?type=[\'|"].*?[\'|"]>\s?(var.*?)<\/script>').replace('eval', '')
-
-#     first_decoder_fn = js2py.eval_js(first_decoder_js)
-
-#     variable_value = scrapertools.find_single_match(first_decoder_fn, 'var {}="([^"]+)"'.format(decoder[0]))
-
-#     res = variable_value.replace(decoder[1], "")
-#     res2 = res.replace(decoder[2], "")
-#     media_url = base64.b64decode( res2 ).decode('ascii')
-
-#     video_urls = []
-
-#     video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [Streamon]", media_url])
-
-#     return video_urls
+    return True, ""
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
 
     tabbler = httptools.downloadpage('https://streamon.to/assets/js/tabber.js').data
-    params_tabber = scrapertools.find_single_match(tabbler, r'\}\((.*)\)\)$')
+    params_tabber = scrapertools.find_single_match(tabbler, r'\}\(([^\)]+)')
 
 
     params_tabber_decoder = params_tabber.split(',')
@@ -87,7 +64,16 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
 
 
+
+"""
+" I don't know waht following lines do. Maybe neither God knows...
+" but they seem to be working :)
+"""
+
 def loop_reduce(lst, h, e):
+  """
+  " Simulate the Array.reduce functionality
+  """
   acc = 0
   for index, val in enumerate(lst):
     indexOf = h.find(val)
@@ -98,16 +84,15 @@ def loop_reduce(lst, h, e):
   return acc
 
 
-
-
-
-def _0xe36c(d, e, f):
+def decrypt_string(d, e, f):
+  """
+  " Decrypt char-sequence from given key
+  """
   g = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/'
 
-  h = g[0 : e];
-  i = g[0 : f];
+  h = g[0 : e]
+  i = g[0 : f]
 
-  #j = functools.reduce( reduce_array(e), list(d)[::-1] )
   j = loop_reduce(list(d)[::-1], h, e)
   k = ''
   while j > 0:
@@ -120,7 +105,10 @@ def _0xe36c(d, e, f):
 
 
 def eval_fn(h, u, n, t, e, r):
-  r = "";
+  """
+  " Extract decrypter key and convert decrypted string into a ASCII string
+  """
+  r = ""
   i = -1
   while i < len(h)  -  1:
     i = i + 1
@@ -132,7 +120,7 @@ def eval_fn(h, u, n, t, e, r):
       reg = re.compile(n[j])
       s = re.sub(reg, str(j), s)
 
-    res = _0xe36c(s, e, 10)
+    res = decrypt_string(s, e, 10)
     r += chr( int( res ) - t )
 
   return r
