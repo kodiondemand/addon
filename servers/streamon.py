@@ -43,8 +43,6 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
 
-    support.dbg()
-
     tabbler = httptools.downloadpage('https://streamon.to/assets/js/tabber.js').data
     params_tabber = scrapertools.find_single_match(tabbler, r'\}\((.*)\)\)$')
 
