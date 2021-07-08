@@ -51,9 +51,8 @@ def mainlist(item):
         channel_language = auto_filter()
 
     #if list_canales['peliculas']:
-    thumbnail = get_thumb("movie.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="peliculas", title=config.get_localized_string(30122),
-                    thumbnail=thumbnail)
+    # thumbnail = get_thumb("movie.png")
+    new_item = Item(channel=item.channel, action="novedades", extra="peliculas", title=config.get_localized_string(30122) + '{news}')
 
     set_category_context(new_item)
     itemlist.append(new_item)
@@ -79,16 +78,12 @@ def mainlist(item):
     # itemlist.append(new_item)
 
     #if list_canales['series']:
-    thumbnail = get_thumb("tvshow.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="series", title=config.get_localized_string(60511),
-                    thumbnail=thumbnail)
+    new_item = Item(channel=item.channel, action="novedades", extra="series", title=config.get_localized_string(60511) + '{news}')
     set_category_context(new_item)
     itemlist.append(new_item)
 
     #if list_canales['anime']:
-    thumbnail = get_thumb("anime.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="anime", title=config.get_localized_string(60512),
-                    thumbnail=thumbnail)
+    new_item = Item(channel=item.channel, action="novedades", extra="anime", title=config.get_localized_string(60512) + '{news}')
     set_category_context(new_item)
     itemlist.append(new_item)
 
@@ -112,10 +107,9 @@ def mainlist(item):
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
-    thumbnail = get_thumb("setting_0.png")
     itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=7, setting=1,
-                         title=typo(config.get_localized_string(70285), 'bold color kod'), thumbnail=thumbnail))
-
+                         title=typo(config.get_localized_string(70285), 'bold color kod')))
+    support.thumb(itemlist)
     return itemlist
 
 

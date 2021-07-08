@@ -31,6 +31,7 @@ def mainlist(item):
                 item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30123) + '...', 'submenu'),contentType='tvshow', action='search_list', thumbnail=thumb('search_tvshow')),
                 item.clone(channel='shortcuts', title=typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
                            category=2, setting=1, thumbnail = thumb('setting_0'),folder=False)]
+    support.thumb(itemlist)
     return itemlist
 
 

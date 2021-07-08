@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 from core import filetools, jsontools, trakt_tools
+from core import support
 from core.tmdb import Tmdb
 from core.scrapertools import htmlclean, decodeHtmlentities
 from core.support import thumb, typo, match, Item
@@ -32,20 +33,21 @@ def mainlist(item):
     itemlist = [
             # TMDB
             # item.clone(title=typo(config.get_localized_string(70021), 'bold'), action=""),
-            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'TMDB'), action="tmdb", args="movie", thumbnail=thumb('search_movie')),
-            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'TMDB'), action="tmdb", args="tv", thumbnail=thumb('search_tvshow')),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'TMDB'), action="tmdb", args="movie"),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'TMDB'), action="tmdb", args="tv"),
             # Filmaffinity
             # itemlist.append(item.clone(title=typo(config.get_localized_string(70024), 'bold'), action=""))
             # itemlist.append(item.clone(title=config.get_localized_string(70022), action="filmaf", args="movie", thumbnail=thumb('search_movie')))
             # itemlist.append(item.clone(title=config.get_localized_string(70023), action="filmaf", args="tv", thumbnail=thumb('search_tvshow')))
             # IMDB
             # item.clone(title=typo(config.get_localized_string(70025), 'bold'), action=""),
-            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'IMDB'), action="imdb", args="movie", url='&title_type=feature,tv_movie', thumbnail=thumb('search_movie')),
-            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'IMDB'), action="imdb", args="tv", url='&title_type=tv_series,tv_special,mini_series', thumbnail=thumb('search_tvshow')),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30122), 'IMDB'), action="imdb", args="movie", url='&title_type=feature,tv_movie'),
+            item.clone(title=config.get_localized_string(70021) % (config.get_localized_string(30123), 'IMDB'), action="imdb", args="tv", url='&title_type=tv_series,tv_special,mini_series'),
             item.clone(title=config.get_localized_string(70415), action="trakt", thumbnail="http://i.imgur.com/5sQjjuk.png"),
             item.clone(title=config.get_localized_string(70026), action="mal", thumbnail="http://i.imgur.com/RhsYWmd.png"),
             item.clone(title=typo(config.get_localized_string(70027), 'color kod'), action="configuracion", folder=False)
         ]
+    support.thumb(itemlist)
     return itemlist
 
 

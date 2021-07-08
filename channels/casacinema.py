@@ -30,7 +30,7 @@ def mainlist(item):
 def genres(item):
     action = 'peliculas'
     blacklist = ['PRIME VISIONI', 'ULTIME SERIE TV', 'ULTIMI FILM']
-    patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a></li>'
+    patronGenreMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a></li>'
     patronBlock = r'<div class="container home-cats">(?P<block>.*?)<div class="clear">'
     return locals()
 

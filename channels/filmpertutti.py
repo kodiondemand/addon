@@ -3,14 +3,12 @@
 # Canale per filmpertutti.py
 # ------------------------------------------------------------
 
-from core import httptools, support
+from core import support
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 def findhost(url):
-    page = httptools.downloadpage(url).data
-    url = support.scrapertools.find_single_match(page, 'Il nuovo indirizzo di FILMPERTUTTI è ?<a href="([^"]+)')
-    return url
+    return support.match(url, patron=r'Il nuovo indirizzo di FILMPERTUTTI è ?<a href="([^"]+)', debug=True).match
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
@@ -34,10 +32,6 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.info()
-    # debug = True
-    #debugBlock = True
-    # support.dbg()
 
     if item.args != 'newest':
         patronBlock = r'<ul class="posts">(?P<block>.*)<\/ul>'
@@ -48,13 +42,13 @@ def peliculas(item):
         patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\s\[(?P<quality>HD)\])?<\/div><div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
 
     if item.args == 'search':
-        action = 'select'
+        action = 'check'
     elif item.contentType == 'tvshow':
         action = 'episodios'
     elif item.contentType == 'movie':
         action ='findvideos'
     else:
-        action = 'select'
+        action = 'check'
 
     def itemHook(item):
         item.title = item.title.replace(' - La Serie', '')
@@ -64,7 +58,6 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    # debug = True
     data = support.match(item.url, headers=headers).data
     if 'accordion-item' in data:
         patronBlock = r'<span class="season[^>]*>\d+[^>]+>[^>]+>[^>]+>[^>]+>\D*(?:STAGIONE|Stagione)[ -]+(?P<lang>[a-zA-Z\- ]+)[^<]*</span>(?P<block>.*?)<div id="(?:season|disqus)'
@@ -92,27 +85,27 @@ def genres(item):
 
     action = 'peliculas'
     patronBlock = r'<select class="cats">(?P<block>.*?)<\/select>'
-    patronMenu = r'<option data-src="(?P<url>[^"]+)">(?P<title>[^<]+)<\/option>'
+    patronGenreMenu = r'<option data-src="(?P<url>[^"]+)">(?P<title>[^<]+)<\/option>'
 
     return locals()
 
 
-def select(item):
-    support.info()
+def check(item):
+    logger.debug()
     patron=r'class="taxonomy category"\s*><span property="name">([^>]+)</span></a><meta property="position" content="2">'
     block = support.match(item.url, patron=patron,headers=headers).match
     if block.lower() != 'film':
-        support.info('select = ### è una serie ###')
+        logger.debug('### è una Serie ###')
         item.contentType='tvshow'
         return episodios(item)
     else:
-        support.info('select = ### è un movie ###')
+        logger.debug(' ### è un Film ###')
         item.contentType='movie'
         return findvideos(item)
 
 
 def search(item, texto):
-    support.info()
+    logger.debug()
     item.url = host + "/?s=" + texto
     item.args = 'search'
     try:
@@ -121,12 +114,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info()
+    logger.debug()
     itemlist = []
     item = Item()
     try:
@@ -147,7 +140,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist

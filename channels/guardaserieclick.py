@@ -140,7 +140,7 @@ def genres(item):
     info()
 
     action = 'peliculas'
-    patron = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
+    patronGenreMenu = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
     patron_block = r'<ul\sclass="dropdown-menu category">(?P<block>.*?)</ul>'
     item.contentType = ''
 

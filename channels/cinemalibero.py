@@ -94,12 +94,12 @@ def episodios(item):
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
-        item.contentType = 'tvshow'
+        # item.contentType = 'tvshow'
     elif item.args == 'serie':
         support.info("Serie :", item)
         patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
-        item.contentType = 'tvshow'
+        # item.contentType = 'tvshow'
     else:
         patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)(?:<br|</p)'
 
@@ -116,7 +116,7 @@ def genres(item):
 
     action='peliculas'
     patron_block=r'<div id="bordobar" class="dropdown-menu(?P<block>.*?)</li>'
-    patronMenu=r'<a class="dropdown-item" href="(?P<url>[^"]+)" title="(?P<title>[A-z]+)"'
+    patronGenreMenu=r'<a class="dropdown-item" href="(?P<url>[^"]+)" title="(?P<title>[A-z]+)"'
 
     return locals()
 

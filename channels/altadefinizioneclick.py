@@ -60,7 +60,7 @@ def peliculas(item):
 def genres(item):
     item.contentType = 'undefined'
     action = 'peliculas'
-    patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
+    patronGenreMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
     if item.args == 'genres':
         patronBlock = r'<ul class="listSubCat" id="Film">(?P<block>.*)<ul class="listSubCat" id="Anno">'

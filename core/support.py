@@ -605,7 +605,7 @@ def dooplay_get_links(item, host, paramList=[]):
     for type, post, nume, title, server in matches:
         postData = urlencode({
             "action": "doo_player_ajax",
-            "post": post, 
+            "post": post,
             "nume": nume,
             "type": type
         })
@@ -941,7 +941,7 @@ def match(item_url_string, **args):
     if patronBlock:
         blocks = [scrapertools.find_single_match(data, patronBlock)]
     elif patronBlocks:
-        if type(patronBlocks) == str: 
+        if type(patronBlocks) == str:
             patronBlocks = [patronBlocks]
         for p in patronBlocks:
             blocks += scrapertools.find_multiple_matches(data, p)
@@ -1406,94 +1406,162 @@ def thumb(data=None, genre=False, live=False):
             data.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + data.fulltitle.lower().replace(' ','_') + '.png'
         return data
 
-    main_dict = {'movie':['film', 'movie', 'movies'],
-                 'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
-                 'anime':['anime'],
-                 'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                 'music':['musical', 'musica', 'music', 'musicale'],
-                 }
+    _movie = ['movie', 'movies', 'film', 'films']
+    _tvshow = ['serie', 'tv', 'episodi', 'episodio', 'fiction', 'show', 'episode', 'episodes']
+    _anime = ['anime']
+    _documentary = ['documentario', 'documentari', 'documentary', 'documentaries', 'documentaristico']
+    _music = ['musica', 'musicale', 'music', 'musical']
+    _torrent = ['torrent']
+    _live = ['corso', 'onda', 'diretta', 'dirette', 'progress', 'air', 'live']
+    _year = ['anno', 'anni', 'year', 'years']
+    _top = ['voto', 'voti', 'votato', 'votati', 'migliore', 'migliori', 'fortunato', 'classifica', 'classifiche', 'vote', 'voted', 'best', 'top', 'lucky', 'ranking', 'charts']
+    _popular = ['popolare', 'popolari', 'raccomandato', 'raccomandati', 'raccomandazione', 'raccomandazioni', 'momento', 'popular', 'recommended', 'recommendation', 'recommendations', 'moment']
+    _all = ['tutto', 'tutta', 'tutti', 'tutte' 'all']
+    _az = ['lettera', 'lettere', 'lista', 'liste', 'alfabetico', 'a-z', 'letter', 'letters', 'list', 'alphabetical']
+    _news = ['novità', "novita'", 'aggiornamenti', 'nuovo', 'nuova', 'nuovi', 'nuove', 'ultimo', 'ultima', 'ultimi', 'ultime', 'notizia', 'notizie', 'new', 'newest', 'last', 'latest', 'news']
+    _cinema = ['cinema', 'sala', 'theatre', 'theatres']
+    _genre = ['genere', 'generi', 'categoria', 'categorie', 'genre', 'genres', 'category', 'categories']
+    _sub = ['sub', 'sub-ita', 'sottotitolato', 'sottotitolata', 'sottotitolati', 'originale', 'subtitled', 'original']
+    _ita = ['ita', 'italiano']
+    _update = ['aggiorno', 'aggiorna', 'aggiorni', 'aggiornare', 'update', 'replay']
+    _videolibrary = ['videoteca', 'videoteche', 'teca', 'teche', 'library', 'videolibrary']
+    _info = ['informazione', 'informazioni', 'info', 'information', 'informations']
+    _star = ['attore', 'attrice', 'attori', 'attrici', 'regista', 'registi', 'personaggio', 'personaggi', 'interprete', 'interpreti', 'star', 'stars', 'character', 'characters', 'performer', 'performers', 'staff', 'actor', 'actors', 'actress', 'actresses', 'director', 'directors']
+    _winter = ['inverno', 'winter']
+    _spring = ['primavera', 'spring'],
+    _summer = ['estate', 'summer'],
+    _autumn = ['autunno', 'autumn'],
+    _teenager = ['ragazzo', 'ragazza', 'ragazzi', 'ragazze','teenager', 'teen']
+    _learning = ['imparare', 'scuola', 'learn', 'learning', 'school']
+    _animation = ['animazione', 'cartoni', 'animation', 'cartoon']
+    _action = ['azione', 'marziali', 'action', 'martial', 'samurai']
+    _adventure = ['avventura', 'adventure']
+    _biographic = ['biografia',  'biografico', 'bio', 'biographic', 'biographical']
+    _comedy = ['comico', 'commedia', 'parodia', 'demenziale', 'brillante', 'comic', 'comical', 'comedy', 'parody', 'demential']
+    _adult = ['erotico', 'hentai', 'harem', 'ecchi', 'adult']
+    _drama = ['dramma', 'drammatico', 'drama']
+    _syfy = ['fantascienza', 'science fiction', 'syfy', 'sci', 'fi']
+    _fantasy = ['fantastico', 'magia', 'fantasy', 'magic']
+    _crime = ['polizia', 'poliziesco', 'poliziottesco', 'crimine', 'criminale', 'police', 'crime', 'gangster']
+    _grotesque = ['grottesco', 'grotesque']
+    _war = ['guerra', 'militare', 'militari', 'war', 'military']
+    _children = ['bambino', 'bambina', 'bambini', 'bambine', 'child', 'children', 'kids', 'baby', 'babies', 'boy', 'girl']
+    _horror = ['orrore', 'paura', 'horror', 'fear']
+    _mistery = ['mistero', 'giallo', 'mystery']
+    _noir = ['noir']
+    _thriller = ['thriller']
+    _western = ['western']
+    _romance = ['romantico', 'sentimentale', 'romance', 'soap']
+    _family = ['famiglia','famiglie', 'family']
+    _historical = ['storia', 'storico', 'history', 'historical']
+    _hd = ['hd','altadefinizione','alta', '1080', '1080p', 'fullhd']
+    _4k = ['4k']
+    _setting = ['impostazioni', 'settaggi', 'configura', 'configurare', 'gestire', 'gestisci', 'gestione', 'setting', 'config']
+    _talk = ['talk']
+    _reality = ['reality']
+    _quality = ['qualità', 'risoluzione', 'risoluzioni', 'quality', 'resolution', 'resolutions']
 
-    icon_dict = {'torrent':['torrent'],
-                 'all':['tutti', 'all'],
-                 'az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
-                 'news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'ultime', 'notizie'],
-                 'now_playing':['cinema', 'in sala'],
-                 'genre':['genere', 'generi', 'categorie', 'categoria', 'category'],
-                 'popular':['popolari', 'popolare', 'popular', 'più', 'raccomandati', 'raccomandazioni' 'recommendations'],
-                 'on_air' : ['corso', 'onda', 'diretta', 'dirette', 'progress'],
-                 'year':['anno', 'anni', 'year'],
-                 'update':['replay', 'update'],
-                 'videolibrary':['teche'],
-                 'info':['info','information','informazioni'],
-                 'star':['star', 'personaggi', 'interpreti', 'stars', 'characters', 'performers', 'staff', 'actors', 'attori'],
-                 'winter':['inverno', 'winter'],
-                 'spring':['primavera', 'spring'],
-                 'summer':['estate', 'summer'],
-                 'autumn':['autunno', 'autumn'],
-                 'vos':['sub','sub-ita'],
-                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
+    main_dict = {'movie':_movie,
+                 'tvshow':_tvshow,
+                 'anime':_anime,
+                 'documentary':_documentary,
+                 'music':_music}
+
+    icon_dict = {'torrent':_torrent,
+                 'all':_all,
+                 'az':_az,
+                 'news':_news,
+                 'cinema':_cinema,
+                 'genre':_genre,
+                 'popular':_popular,
+                 'live':_live,
+                 'year':_year,
+                 'update':_update,
+                 'videolibrary':_videolibrary,
+                 'info':_info,
+                 'star':_star,
+                 'winter':_winter,
+                 'spring':_spring,
+                 'summer':_summer,
+                 'autumn':_autumn,
+                 'sub':_sub,
+                 'top':_top,
+                 'setting':_setting,
+                 'children':_children,
+                 'family':_family,
+                 'teenager':_teenager,
+                 'learning':_learning,
                  'autoplay':[config.get_localized_string(60071)]
                 }
 
-    genre_dict = {'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                  'teenager':['ragazzi','teenager', 'teen'],
-                  'learning':['learning', 'school', 'scuola'],
-                  'animation': ['animazione', 'cartoni', 'cartoon', 'animation'],
-                  'action':['azione', 'marziali', 'action', 'martial', 'samurai'],
-                  'adventure': ['avventura', 'adventure'],
-                  'biographical':['biografico', 'biographical', 'biografia'],
-                  'comedy':['comico', 'commedia', 'demenziale', 'comedy', 'brillante', 'demential', 'parody', 'parodia'],
-                  'adult':['erotico', 'hentai', 'harem', 'ecchi', 'adult'],
-                  'drama':['drammatico', 'drama', 'dramma'],
-                  'syfy':['fantascienza', 'science fiction', 'syfy', 'sci-fi'],
-                  'fantasy':['fantasy', 'magia', 'magic', 'fantastico'],
-                  'crime':['gangster','poliziesco', 'crime', 'crimine', 'police', 'polizia'],
-                  'grotesque':['grottesco', 'grotesque'],
-                  'war':['guerra', 'war', 'military', 'militari'],
-                  'children':['bambini', 'kids'],
-                  'horror':['horror', 'orrore', 'demoni', 'vampiri'],
-                  'music':['musical', 'musica', 'music', 'musicale'],
-                  'mistery':['mistero', 'giallo', 'mystery'],
-                  'noir':['noir'],
-                  'thriller':['thriller'],
-                  'western':['western'],
-                  'romance':['romantico','sentimentale', 'romance', 'soap'],
-                  'family':['famiglia','famiglie', 'family'],
-                  'historical':['storico', 'history', 'storia', 'historical'],
-                  'tvmovie':['tv', 'show', 'film tv', 'tv movie']}
+    genre_dict = {'documentary':_documentary,
+                  'teenager':_teenager,
+                  'learning':_learning,
+                  'animation':_animation,
+                  'action':_action,
+                  'adventure':_adventure,
+                  'biographic':_biographic,
+                  'comedy':_comedy,
+                  'adult':_adult,
+                  'drama':_drama,
+                  'syfy':_syfy,
+                  'fantasy':_fantasy,
+                  'crime':_crime,
+                  'grotesque':_grotesque,
+                  'war':_war,
+                  'children':_children,
+                  'horror':_horror,
+                  'music':_music,
+                  'mistery':_mistery,
+                  'noir':_noir,
+                  'thriller':_thriller,
+                  'western':_western,
+                  'romance':_romance,
+                  'family':_family,
+                  'historical':_historical,
+                  'news':_news,
+                  'talk':_talk,
+                  'reality':_reality,
+                  'tvmovie':_movie}
 
-    suffix_dict = {'_hd':['hd','altadefinizione','alta definizione'],
-                   '_4k':['4K'],
-                   '_az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
-                   '_genre':['genere', 'generi', 'categorie', 'categoria', 'genre', 'genres'],
-                   '_popular':['popolari', 'popolare', 'popular', 'più', 'raccomandati', 'raccomandazioni' 'recommendations'],
-                   '_top':['fortunato', 'votati', 'lucky', 'top'],
-                   '_year':['anno', 'anni', 'year'],
-                   '_news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'ultime', 'notizie'],
-                   '_on_air' : ['corso', 'onda', 'diretta', 'dirette', 'progress'],
-                   '_cinema':['cinema', 'sala', 'theatre', 'theatres']}
+    suffix_dict = {'_hd':_hd,
+                   '_4k':_4k,
+                   '_az':_az,
+                   '_genre':_genre,
+                   '_popular':_popular,
+                   '_top':_top,
+                   '_year':_year,
+                   '_news':_news,
+                   '_live':_live,
+                   '_sub':_sub,
+                   '_ita':_ita,
+                   '_quality':_quality,
+                   '_cinema':_cinema}
 
-    search = ['cerca', 'search']
+    search = ['cerca', 'cercare', 'ricerca', 'ricercare', 'trova', 'trovare', 'search', 'searching', 'find', 'finding']
 
-    search_suffix ={'_movie':['film', 'movie', 'movies'],
-                    '_tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
-                    '_anime':['anime'],
-                    '_year':['anno', 'anni', 'year'],
-                    '_rating':['rating', 'voto'],
-                    '_documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                    '_music':['musical', 'musica', 'music', 'musicale'],
-                    '_star':['star', 'personaggi', 'interpreti', 'stars', 'characters', 'performers', 'staff', 'actors', 'attori', 'regista', 'registi'],
-                    '_genre':['genere', 'generi', 'categorie', 'categoria', 'genre', 'genres']}
+    search_suffix ={'_movie':_movie,
+                    '_tvshow':_tvshow,
+                    '_anime':_anime,
+                    '_year':_year,
+                    '_top':_top,
+                    '_documentary':_documentary,
+                    '_music':_music,
+                    '_star':_star,
+                    '_genre':_genre}
 
     def autoselect_thumb(item, genre):
-        searched_title = re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ', scrapertools.unescape(re.sub('\[[^\]]+\]|\u2026|\u2022', '', item.title.lower().replace('/',' '))))
+        searched_title = re.split(r'\.|\{|\}|\(|\)|/| ', scrapertools.unescape(re.sub('\[[^\]]*\]||\u2026|\u2022','', item.title.lower())))
+        logger.debug('SEARCED', searched_title)
         thumb = ''
         if genre:
             for t, titles in genre_dict.items():
                 if any(word in searched_title for word in titles ):
                     thumb = t
         else:
-            if any(word in searched_title for word in search):
+            if any(word in searched_title for word in _setting):
+                thumb = 'setting'
+            elif any(word in searched_title for word in search):
                 thumb = 'search'
                 for suffix, titles in search_suffix.items():
                     if any(word in searched_title for word in titles):

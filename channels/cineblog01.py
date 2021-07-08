@@ -47,6 +47,8 @@ def mainlist(item):
 def menu(item):
     patronBlock = item.args + r'<span.*?><\/span>.*?<ul.*?>(?P<block>.*?)<\/ul>'
     patronMenu = r'href="?(?P<url>[^">]+)"?>(?P<title>.*?)<\/a>'
+    if 'genere' in item.args.lower():
+        patronGenreMenu = patronMenu
     action = 'peliculas'
 
     return locals()

@@ -201,12 +201,11 @@ def mainlist(item):
 
         plot = str(len(perfil['items'])) + " " + config.get_localized_string(70723)
         itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context, thumbnail=support.thumb('mylink.png')))
+    support.thumb(itemlist)
+    itemlist.append(item.clone(action='crear_perfil', title=config.get_localized_string(70542), folder=False, thumbnail=support.thumb('more')))
+    itemlist.append(item.clone(action='mainlist_listas', title=config.get_localized_string(70603), thumbnail=support.thumb('setting')))
 
-    itemlist.append(item.clone(action='crear_perfil', title=config.get_localized_string(70542), folder=False))
-
-    itemlist.append(item.clone(action='mainlist_listas', title=config.get_localized_string(70603)))
-
-    return support.thumb(itemlist)
+    return itemlist
 
 
 def mostrar_perfil(item):

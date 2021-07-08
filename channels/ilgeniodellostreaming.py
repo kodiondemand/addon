@@ -118,7 +118,7 @@ def genres(item):
     elif item.args == 'letter':
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'
 
-    patronMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
+    patronGenreMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
 
     return locals()
 
