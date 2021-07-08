@@ -23,7 +23,7 @@ se vanno cancellati tutti deve rimanere la voce:
     "active": false,
     "thumbnail": "",
     "banner": "",
-    "categories": ["movie", "tvshow", "anime", "vos", "documentary"],
+    "categories": ["movie", "tvshow", "anime", "sub, "documentary"],
     "not_active": ["include_in_newest"],
     "settings": [
 		{

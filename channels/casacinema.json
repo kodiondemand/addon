@@ -5,7 +5,7 @@
     "active": true,
     "thumbnail": "casacinema.png",
     "banner": "casacinema.png",
-    "categories": ["tvshow", "movie","vos"],
+    "categories": ["tvshow", "movie","sub"],
     "settings": [
     ]
 }

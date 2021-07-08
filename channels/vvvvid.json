@@ -2,9 +2,9 @@
     "id": "vvvvid",
     "name": "VVVVID",
     "active": true,
-    "language": ["ita","vos"],
+    "language": ["ita","sub"],
     "thumbnail": "vvvvid.png",
     "banner": "vvvvid.png",
-    "categories": ["anime","tvshow","movie","vos"],
+    "categories": ["anime","tvshow","movie","sub"],
     "settings": []
 }

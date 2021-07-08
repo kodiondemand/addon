@@ -2,7 +2,7 @@
     "id": "guardaserieclick",
     "name": "GuardaSerie.click",
     "active": true,
-    "language": ["ita", "vos"],
+    "language": ["ita", "sub"],
     "thumbnail": "guardaserieclick.png",
     "bannermenu": "guardaserieclick.png",
     "categories": ["tvshow", "anime"],

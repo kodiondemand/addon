@@ -1276,7 +1276,7 @@ def channel_config(item, itemlist):
              title=typo(config.get_localized_string(60587), 'color kod bold'),
              config=item.channel,
              folder=False,
-             thumbnail=thumb('setting_0'))
+             thumbnail=thumb('setting'))
     )
 
 

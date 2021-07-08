@@ -2235,7 +2235,7 @@ def details_mal(item):
 
     token_auth = config.get_setting("token_trakt", "trakt")
     if token_auth and ob_tmdb.result:
-        itemlist.append(item.clone(title=config.get_localized_string(70323), action="menu_trakt", thumbnail=thumb('setting_0')))
+        itemlist.append(item.clone(title=config.get_localized_string(70323), action="menu_trakt", thumbnail=thumb('setting')))
 
     # Prequels, sequels and alternative series are listed
     prequel = match(data, patron=r'Prequel:</td>(.*?)</td>').match

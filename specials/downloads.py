@@ -124,7 +124,7 @@ def mainlist(item):
         itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.get_localized_string(70222),'bold'), thumbnail=get_thumb('search.png'), url=DOWNLOAD_PATH))
 
     if not item.contentType == "tvshow":
-        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.get_localized_string(70288),'bold color kod'), thumbnail=get_thumb('setting_0.png')))
+        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.get_localized_string(70288),'bold color kod'), thumbnail=get_thumb('setting.png')))
 
     # Reload
     if estados:

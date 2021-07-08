@@ -5,7 +5,7 @@
     "active": true,
     "thumbnail": "hd4me.png",
     "banner": "hd4me.png",
-    "categories": ["movie", "vos"],
+    "categories": ["movie", "sub"],
     "not_active": ["include_in_newest"],
     "settings": []
 }

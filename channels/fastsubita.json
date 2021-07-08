@@ -5,7 +5,7 @@
     "active": false,
     "thumbnail": "fastsubita.png",
     "banner": "fastsubita.png",
-    "categories": ["tvshow", "vos"],
+    "categories": ["tvshow", "sub"],
     "not_active": ["include_in_newest_peliculas", "include_in_newest_anime"],
     "settings": []
 }

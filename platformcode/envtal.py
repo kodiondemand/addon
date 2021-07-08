@@ -409,7 +409,7 @@ def paint_env(item, environment={}):
 
     itemlist = []
 
-    thumb = get_thumb("setting_0.png")
+    thumb = get_thumb("setting.png")
 
     cabecera = """\
     It shows the [COLOR yellow] variables [/ COLOR] of the Kodi ecosystem that may be relevant to the problem diagnosis in Alpha:

@@ -5,7 +5,7 @@
   "active": true,
   "thumbnail": "toonitalia.png", 
   "banner": "toonitalia.png", 
-  "categories": ["tvshow", "movie", "vos", "anime"],
+  "categories": ["tvshow", "movie", "sub, "anime"],
   "not_active":["include_in_newest_peliculas", "include_in_newest_series"],
   "default_off":["include_in_newest"],
   "settings": []

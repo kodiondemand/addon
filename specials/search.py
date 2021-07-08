@@ -50,8 +50,8 @@ def mainlist(item):
     itemlist += [Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=get_thumb('search.png')),
                 Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=get_thumb('search.png')),
                 Item(channel="tvmoviedb", title=config.get_localized_string(70274), action="mainlist", thumbnail=get_thumb("search.png")),
-                Item(channel=item.channel, title=typo(config.get_localized_string(59994) + '{config}', 'color kod bold'), action='setting_channel_new', thumbnail=get_thumb('setting_0.png'), folder=False),
-                Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, thumbnail=get_thumb('setting_0.png'), folder=False)]
+                Item(channel=item.channel, title=typo(config.get_localized_string(59994) + '{config}', 'color kod bold'), action='setting_channel_new', thumbnail=get_thumb('setting.png'), folder=False),
+                Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, thumbnail=get_thumb('setting.png'), folder=False)]
 
     itemlist = set_context(itemlist)
     support.thumb(itemlist)

@@ -27,7 +27,7 @@ def mainlist(item):
             Item(title=support.typo('Canali live', 'bold'),
                  channel=item.channel,
                  action='live',
-                 thumbnail=support.thumb('tvshow_on_air')),
+                 thumbnail=support.thumb('tvshow_live')),
             Item(channel=item.channel,
                      title=config.get_setting("film1", channel="filmontv"),
                      action="now_on_tv",
@@ -83,7 +83,7 @@ def mainlist(item):
                     action="server_config",
                     config="filmontv",
                     folder=False,
-                    thumbnail=item.thumbnail)]
+                    thumbnail=support.thumb('setting'))]
 
     return itemlist
 

@@ -67,7 +67,7 @@ Controlla sia presente qualcosa, tra le " " di thumbnail e banner, e che le imma
 
 Riepilogo voci:
 
-	movie, tvshow, anime, documentary, vos, adult
+	movie, tvshow, anime, documentary, sub, adult
 
 (se il sito contiene film e serie, devono esserci sia movie che tvshow, se contiene solo film, solo movie)
 

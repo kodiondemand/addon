@@ -2,12 +2,7 @@
 # ------------------------------------------------------------
 # XBMC Library Tools
 # ------------------------------------------------------------
-# from future import standard_library
-# standard_library.install_aliases()
-#from builtins import str
-from specials import videolibrary
-from platformcode.contextmenu.update_tv_show import join
-from core.item import Item
+
 import sys, os, threading, time, re, math, xbmc, xbmcgui, sqlite3
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -17,7 +12,7 @@ if PY3:
 else:
     import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
-from core import filetools, jsontools, support, videolibrarydb
+from core import filetools, jsontools, videolibrarydb
 from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
