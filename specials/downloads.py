@@ -12,7 +12,7 @@ from past.utils import old_div
 
 import re, time, unicodedata, xbmc
 
-from channelselector import get_thumb
+from core.support import thumb
 from core import filetools, jsontools, scraper, scrapertools, servertools, videolibrarytools, support
 from core.downloader import Downloader
 from core.item import Item
@@ -93,43 +93,43 @@ def mainlist(item):
     # If there is any completed
     if 2 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="clean_ready", title=config.get_localized_string(70218),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=get_thumb('delete.png'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('delete'),
                                 contentSerieName=item.contentSerieName, text_color=STATUS_COLORS[STATUS_CODES.completed]))
 
     # If there is any error
     if 3 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="restart_error", title=config.get_localized_string(70219),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=get_thumb('update.png'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('update'),
                                 contentSerieName=item.contentSerieName, text_color=STATUS_COLORS[STATUS_CODES.error]))
 
     # If there is any pending
     if 1 in estados or 0 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="download_all", title=support.typo(config.get_localized_string(70220),'bold'),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=get_thumb('downloads.png'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('downloads'),
                                 contentSerieName=item.contentSerieName))
 
     if len(itemlist):
         itemlist.insert(0, Item(channel=item.channel, action="clean_all", title=support.typo(config.get_localized_string(70221),'bold'),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=get_thumb('delete.png'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('delete'),
                                 contentSerieName=item.contentSerieName))
 
     # if there's at least one downloading
     if 4 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="stop_all", title=config.get_localized_string(60222),
                                 contentType=item.contentType, contentChannel=item.contentChannel,
-                                contentSerieName=item.contentSerieName, thumbnail=get_thumb('stop.png'),
+                                contentSerieName=item.contentSerieName, thumbnail=thumb('stop'),
                                 text_color=STATUS_COLORS[STATUS_CODES.downloading]))
 
     if not item.contentType == "tvshow" and config.get_setting("browser") == True:
-        itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.get_localized_string(70222),'bold'), thumbnail=get_thumb('search.png'), url=DOWNLOAD_PATH))
+        itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.get_localized_string(70222),'bold'), thumbnail=thumb('search'), url=DOWNLOAD_PATH))
 
     if not item.contentType == "tvshow":
-        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.get_localized_string(70288),'bold color kod'), thumbnail=get_thumb('setting.png')))
+        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.get_localized_string(70288),'bold color kod'), thumbnail=thumb('setting')))
 
     # Reload
     if estados:
         itemlist.insert(0, Item(channel=item.channel, action="reload", title= support.typo(config.get_localized_string(70008),'bold color kod'),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=get_thumb('update.png'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('update'),
                                 contentSerieName=item.contentSerieName))
 
     return itemlist

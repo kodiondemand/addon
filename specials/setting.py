@@ -536,11 +536,11 @@ def restore_tools(item):
 def report_menu(item):
     logger.debug('URL: ' + item.url)
 
-    from channelselector import get_thumb
+    from core.support import thumb
 
-    thumb_debug = get_thumb("update.png")
-    thumb_error = get_thumb("error.png")
-    thumb_next = get_thumb("next.png")
+    thumb_debug = thumb("update")
+    thumb_error = thumb("error")
+    thumb_next = thumb("next")
     itemlist = []
     paso = 1
 

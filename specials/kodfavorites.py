@@ -200,7 +200,7 @@ def mainlist(item):
             context.append({'title': config.get_localized_string(70538), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'bottom'})
 
         plot = str(len(perfil['items'])) + " " + config.get_localized_string(70723)
-        itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context, thumbnail=support.thumb('mylink.png')))
+        itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context, thumbnail=support.thumb('mylink')))
     support.thumb(itemlist)
     itemlist.append(item.clone(action='crear_perfil', title=config.get_localized_string(70542), folder=False, thumbnail=support.thumb('more')))
     itemlist.append(item.clone(action='mainlist_listas', title=config.get_localized_string(70603), thumbnail=support.thumb('setting')))
@@ -643,9 +643,9 @@ def activar_lista(item):
 
     config.set_setting('lista_activa', item.lista)
 
-    from channelselector import get_thumb
+    from core.support import thumb
     item_inicio = Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
-                       thumbnail=get_thumb("mylink.png"),
+                       thumbnail=thumb("mylink"),
                        category=config.get_localized_string(70527), viewmode="thumbnails")
     platformtools.itemlist_update(item_inicio, replace=True)
     return True

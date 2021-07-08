@@ -9,7 +9,7 @@ from __future__ import division
 import random
 import sys
 
-from channelselector import get_thumb
+from core.support import thumb
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -111,7 +111,7 @@ def buscartrailer(item, trailers=[]):
             return
     if not itemlist:
         itemlist.append(item.clone(title=config.get_localized_string(70501), title2=item.contentTitle,
-                                   action="", thumbnail=get_thumb('nofolder.png'), text_color=""))
+                                   action="", thumbnail=thumb('nofolder'), text_color=""))
 
     from lib.fuzzy_match import algorithims
     itemlist.sort(key=lambda r: algorithims.trigram(item.contentTitle + ' trailer', r.title), reverse=True)

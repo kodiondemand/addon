@@ -401,7 +401,8 @@ def list_env(environment={}):
 
 def paint_env(item, environment={}):
     from core.item import Item
-    from channelselector import get_thumb
+    from core.support import thumb
+    # from channelselector import get_thumb
 
     if not environment:
         environment = get_environment()
@@ -409,7 +410,7 @@ def paint_env(item, environment={}):
 
     itemlist = []
 
-    thumb = get_thumb("setting.png")
+    thumb = thumb("setting.png")
 
     cabecera = """\
     It shows the [COLOR yellow] variables [/ COLOR] of the Kodi ecosystem that may be relevant to the problem diagnosis in Alpha:
@@ -551,6 +552,6 @@ def paint_env(item, environment={}):
 
     itemlist.append(Item(title="==> Report a bug",
                          channel="setting", action="report_menu", category='Configuración',
-                         unify=False, plot=reporte, thumbnail=get_thumb("error.png")))
+                         unify=False, plot=reporte, thumbnail=thumb("error.png")))
 
     return (itemlist, environment)

@@ -11,7 +11,7 @@ import re, os, sys, datetime, time, traceback
 try: import urlparse
 except: import urllib.parse as urlparse
 
-from channelselector import get_thumb
+from core.support import get_thumb
 from core import httptools, scrapertools, servertools, channeltools, filetools, tmdb
 from core.item import Item
 from platformcode import config, logger, platformtools

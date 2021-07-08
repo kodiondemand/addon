@@ -14,7 +14,8 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 import glob, os, re, time
 from threading import Thread
 
-from channelselector import get_thumb, auto_filter
+from channelselector import auto_filter
+from core. support import thumb
 from core import channeltools, jsontools, scrapertools, support
 from core.item import Item
 from platformcode import config, logger, platformtools
@@ -51,27 +52,27 @@ def mainlist(item):
         channel_language = auto_filter()
 
     #if list_canales['peliculas']:
-    # thumbnail = get_thumb("movie.png")
+    # thumbnail = thumb("movie")
     new_item = Item(channel=item.channel, action="novedades", extra="peliculas", title=config.get_localized_string(30122) + '{news}')
 
     set_category_context(new_item)
     itemlist.append(new_item)
 
-    # thumbnail = get_thumb("movie_4k.png")
+    # thumbnail = thumb("movie_4k")
     # new_item = Item(channel=item.channel, action="novedades", extra="4k", title=config.get_localized_string(70208), thumbnail=thumbnail)
     #
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['terror']:
-    # thumbnail = get_thumb("channels_horror.png")
+    # thumbnail = thumb("channels_horror")
     # new_item = Item(channel=item.channel, action="novedades", extra="terror", title=config.get_localized_string(70209),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['infantiles']:
-    # thumbnail = get_thumb("children.png")
+    # thumbnail = thumb("children")
     # new_item = Item(channel=item.channel, action="novedades", extra="infantiles", title=config.get_localized_string(60510),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
@@ -89,20 +90,20 @@ def mainlist(item):
 
     # if channel_language == "all":
     #     # if list_canales['Italiano']:
-    #     thumbnail = get_thumb("italian.png")
+    #     thumbnail = thumb("italian")
     #     new_item = Item(channel=item.channel, action="novedades", extra="italiano", title=config.get_localized_string(70563),
     #                     thumbnail=thumbnail)
     #     set_category_context(new_item)
     #     itemlist.append(new_item)
 
     # if list_canales['Torrent']:
-    # thumbnail = get_thumb("channels_torrent.png")
+    # thumbnail = thumb("channels_torrent")
     # new_item = Item(channel=item.channel, action="novedades", extra="torrent", title=config.get_localized_string(70171), thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['documentales']:
-    # thumbnail = get_thumb("documentary.png")
+    # thumbnail = thumb("documentary")
     # new_item = Item(channel=item.channel, action="novedades", extra="documentales", title=config.get_localized_string(60513),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
@@ -194,7 +195,7 @@ def get_from_cache(item):
 def add_menu_items(item, itemlist):
     logger.debug()
 
-    menu_icon = get_thumb('menu.png')
+    menu_icon = thumb('menu')
     menu = Item(channel="channelselector", action="getmainlist", viewmode="movie", thumbnail=menu_icon, title='Menu')
     itemlist.insert(0, menu)
     if item.mode != 'finish':
@@ -202,7 +203,7 @@ def add_menu_items(item, itemlist):
             last=item.last
         else:
             last = len(itemlist)
-        refresh_icon = get_thumb('more.png')
+        refresh_icon = thumb('more')
         refresh = item.clone(thumbnail=refresh_icon, mode='get_cached',title='Mas', last=last)
         itemlist.insert(len(itemlist), refresh)
 
@@ -551,40 +552,40 @@ def show_channels(item):
 def menu_opciones(item):
     itemlist = list()
     itemlist.append(Item(channel=item.channel, title=config.get_localized_string(60525),
-                         text_bold = True, thumbnail=get_thumb("setting.png"),
+                         text_bold = True, thumbnail=thumb("setting"),
                          folder=False))
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="peliculas", title=config.get_localized_string(60526),
-                         thumbnail=get_thumb("movie.png"),
+                         thumbnail=thumb("movie"),
                          folder=False))
     # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="4K", title=config.get_localized_string(70207),
-    #                      thumbnail=get_thumb("movie.png"), folder=False))
+    #                      thumbnail=thumb("movie"), folder=False))
     # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="infantiles", title=config.get_localized_string(60527),
-    #                      thumbnail=get_thumb("children.png"),
+    #                      thumbnail=thumb("children"),
     #                      folder=False))
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="series",
                          title=config.get_localized_string(60528),
-                         thumbnail=get_thumb("tvshow.png"),
+                         thumbnail=thumb("tvshow"),
                          folder=False))
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="anime",
                          title=config.get_localized_string(60529),
-                         thumbnail=get_thumb("anime.png"),
+                         thumbnail=thumb("anime"),
                          folder=False))
     # itemlist.append(
     #     Item(channel=item.channel, action="setting_channel", extra="castellano", title=config.get_localized_string(70212),
-    #          thumbnail=get_thumb("documentary.png"), folder=False))
+    #          thumbnail=thumb("documentary"), folder=False))
 
     # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="latino", title=config.get_localized_string(70213),
-    #                      thumbnail=get_thumb("documentary.png"), folder=False))
+    #                      thumbnail=thumb("documentary"), folder=False))
 
     # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="torrent", title=config.get_localized_string(70214),
-    #                      thumbnail=get_thumb("documentary.png"), folder=False))
+    #                      thumbnail=thumb("documentary"), folder=False))
 
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="documentales",
                          title=config.get_localized_string(60530),
-                         thumbnail=get_thumb("documentary.png"),
+                         thumbnail=thumb("documentary"),
                          folder=False))
     itemlist.append(Item(channel=item.channel, action="settings", title=config.get_localized_string(60531),
-                         thumbnail=get_thumb("setting.png"),
+                         thumbnail=thumb("setting"),
                          folder=False))
     return itemlist
 

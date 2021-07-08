@@ -12,7 +12,7 @@ import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-import os, json, time, inspect, channelselector
+import time, channelselector
 
 if PY3:
     from concurrent import futures
@@ -20,7 +20,6 @@ else:
     from concurrent_py2 import futures
 from core.item import Item
 from core import tmdb, scrapertools, channeltools, filetools, jsontools, servertools
-from channelselector import get_thumb
 from platformcode import logger, config, platformtools, unify
 from core.support import typo, thumb
 import xbmcgui
@@ -42,19 +41,19 @@ def mainlist(item):
                     Item(channel='globalsearch', title=config.get_localized_string(70741) % config.get_localized_string(30123), action='Search', mode='tvshow', folder=False),
                     Item(channel='globalsearch', title=config.get_localized_string(70741) % config.get_localized_string(70314), action='Search', page=1, mode='person', folder=False)]
     else:
-        itemlist = [Item(channel=item.channel, title=config.get_localized_string(70276), action='new_search', mode='all', thumbnail=get_thumb("search.png")),
+        itemlist = [Item(channel=item.channel, title=config.get_localized_string(70276), action='new_search', mode='all'),
                     Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(30122), action='new_search', mode='movie'),
                     Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(30123), action='new_search', mode='tvshow'),
                     Item(channel=item.channel, title=config.get_localized_string(70741) % config.get_localized_string(70314), action='new_search', page=1, mode='person')]
 
-    itemlist += [Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=get_thumb('search.png')),
-                Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=get_thumb('search.png')),
-                Item(channel="tvmoviedb", title=config.get_localized_string(70274), action="mainlist", thumbnail=get_thumb("search.png")),
-                Item(channel=item.channel, title=typo(config.get_localized_string(59994) + '{config}', 'color kod bold'), action='setting_channel_new', thumbnail=get_thumb('setting.png'), folder=False),
-                Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, thumbnail=get_thumb('setting.png'), folder=False)]
+    itemlist += [Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=thumb('search')),
+                Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=thumb('search')),
+                Item(channel="tvmoviedb", title=config.get_localized_string(70274), action="mainlist", thumbnail=thumb('search')),
+                Item(channel=item.channel, title=typo(config.get_localized_string(59994) + '{config}', 'color kod bold'), action='setting_channel_new', folder=False),
+                Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'color kod bold'), action='SettingOnPosition', category=5, setting=1, folder=False)]
 
     itemlist = set_context(itemlist)
-    support.thumb(itemlist)
+    thumb(itemlist)
     return itemlist
 
 
@@ -92,14 +91,14 @@ def saved_search(item):
                  search_text=saved_search_text.split('{}')[0],
                  text=saved_search_text.split('{}')[0],
                  mode='all',
-                 thumbnail=get_thumb('search.png')))
+                 thumbnail=thumb('search')))
 
     if len(saved_searches_list) > 0:
         itemlist.append(
             Item(channel=item.channel,
                  action="clear_saved_searches",
                  title=typo(config.get_localized_string(60417), 'color kod bold'),
-                 thumbnail=get_thumb('search.png')))
+                 thumbnail=thumb('search')))
 
     itemlist = set_context(itemlist)
     return itemlist
@@ -334,13 +333,13 @@ def channel_search(item):
     results = sorted(results, key=lambda it: it.title)
     results_statistic = config.get_localized_string(59972) % (item.title, time.time() - start)
     if mode == 'all':
-        results.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
+        results.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=thumb('search')))
     else:
         if not valid:
-            valid.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
+            valid.append(Item(title=config.get_localized_string(60347), thumbnail=thumb('nofolder')))
 
-        valid.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=get_thumb('search.png')))
-        results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=get_thumb('search.png')))
+        valid.insert(0, Item(title=typo(results_statistic, 'color kod bold'), thumbnail=thumb('search')))
+        results.insert(0, Item(title=typo(config.get_localized_string(30025), 'color kod bold'), thumbnail=thumb('search')))
     # logger.debug(results_statistic)
 
     itlist = valid + results
@@ -583,11 +582,11 @@ def years_menu(item):
     mode = item.mode.replace('show', '')
 
     par_year = 'primary_release_year'
-    thumb = channelselector.get_thumb('movie_year.png')
+    thumb = thumb('movie_year')
 
     if mode != 'movie':
         par_year = 'first_air_date_year'
-        thumb = channelselector.get_thumb('tvshow_year.png')
+        thumb = thumb('tvshow_year')
 
     c_year = datetime.datetime.now().year + 1
     l_year = c_year - 31

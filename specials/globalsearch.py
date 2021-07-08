@@ -708,7 +708,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 serverlist = uhd + fhd + hd + sd + unknown + other
                 if not serverlist:
                     serverlist = [xbmcgui.ListItem(config.get_localized_string(60347))]
-                    serverlist[0].setProperty('thumb', channelselector.get_thumb('nofolder.png'))
+                    serverlist[0].setProperty('thumb', support.thumb('nofolder'))
 
                 self.Focus(SERVERS)
                 self.SERVERLIST.reset()
@@ -733,7 +733,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
                 if not ep:
                     ep = [xbmcgui.ListItem(config.get_localized_string(60347))]
-                    ep[0].setProperty('thumb', channelselector.get_thumb('nofolder.png'))
+                    ep[0].setProperty('thumb', support.thumb('nofolder'))
 
                 self.Focus(EPISODES)
                 self.EPISODESLIST.reset()

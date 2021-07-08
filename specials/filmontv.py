@@ -19,11 +19,7 @@ TIMEOUT_TOTAL = 60
 
 def mainlist(item):
     logger.debug(" mainlist")
-    itemlist = [#Item(channel="search", action='discover_list', title=config.get_localized_string(70309),
-               #search_type='list', list_type='movie/now_playing',
-               #          thumbnail=get_thumb("now_playing.png")),
-               #Item(channel="search", action='discover_list', title=config.get_localized_string(70312),
-               #          search_type='list', list_type='tv/on_air', thumbnail=get_thumb("on_air.png")),
+    itemlist = [
             Item(title=support.typo('Canali live', 'bold'),
                  channel=item.channel,
                  action='live',

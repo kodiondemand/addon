@@ -7,7 +7,6 @@ import re, inspect, xbmcgui
 from core import httptools, jsontools, tmdb, support, filetools
 from core.item import Item
 from platformcode import config, platformtools, logger
-from channelselector import get_thumb
 from collections import OrderedDict
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
@@ -46,7 +45,7 @@ def show_channels(item):
     itemlist.append(Item(channel=item.channel,
                          title=support.typo(config.get_localized_string(70676),'bold color kod'),
                          action='add_channel',
-                         thumbnail=get_thumb('add.png')))
+                         thumbnail=support.thumb('add')))
 
     for key, channel in json['channels'].items():
         path = filetools.dirname(channel['path']) # relative path
@@ -679,7 +678,7 @@ def set_extra_values(item, json, path):
         elif key ==  'plot':
             ret.plot = json[key]
         elif key in ['poster', 'thumbnail']:
-            ret.thumb = json[key] if ':/' in json[key] else filetools.join(path,json[key]) if '/' in json[key] else get_thumb(json[key])
+            ret.thumb = json[key] if ':/' in json[key] else filetools.join(path,json[key]) if '/' in json[key] else support.thumb(json[key])
         elif key ==  'fanart':
             ret.fanart = json[key] if ':/' in json[key] else filetools.join(path,json[key])
         elif key in ['url', 'link']:
@@ -704,7 +703,7 @@ def set_extra_values(item, json, path):
 
     if not ret.thumb:
         if 'get_search_menu' in inspect.stack()[1][3]:
-            ret.thumb = get_thumb('search.png')
+            ret.thumb = support.thumb('search')
         else:
             ret.thumb = item.thumbnail
     if not ret.fanart:
@@ -744,7 +743,7 @@ def relative(key, json, path):
     ret = ''
     if key in json:
         if key in ['thumbnail', 'poster']:
-            ret = json[key] if ':/' in json[key] else filetools.join(path,json[key]) if '/' in json[key] else get_thumb(json[key]) if json[key] else ''
+            ret = json[key] if ':/' in json[key] else filetools.join(path,json[key]) if '/' in json[key] else support.thumb(json[key]) if json[key] else ''
         else:
             ret = json[key] if ':/' in json[key] else filetools.join(path,json[key])  if '/' in json[key] else ''
 

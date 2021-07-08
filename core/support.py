@@ -17,7 +17,7 @@ else:
     from urllib import urlencode
 
 from time import time
-from core import httptools, scrapertools, servertools, tmdb, channeltools, autoplay, scraper
+from core import httptools, scrapertools, servertools, tmdb, channeltools, autoplay
 from core.item import Item
 from lib import unshortenit
 from platformcode import config
@@ -1397,7 +1397,7 @@ def thumb(data=None, genre=False, live=False):
         genre = bool, search icon in genres
         live = bool, add icon by channel name
     '''
-    from channelselector import get_thumb
+
     if live:
         if type(data) == list:
             for item in data:
@@ -1414,7 +1414,7 @@ def thumb(data=None, genre=False, live=False):
     _torrent = ['torrent']
     _live = ['corso', 'onda', 'diretta', 'dirette', 'progress', 'air', 'live']
     _year = ['anno', 'anni', 'year', 'years']
-    _top = ['voto', 'voti', 'votato', 'votati', 'migliore', 'migliori', 'fortunato', 'classifica', 'classifiche', 'vote', 'voted', 'best', 'top', 'lucky', 'ranking', 'charts']
+    _top = ['voto', 'voti', 'votato', 'votati', 'migliore', 'migliori', 'fortunato', 'classifica', 'classifiche', 'vote', 'voted', 'best', 'top', 'lucky', 'ranking', 'rating', 'charts']
     _popular = ['popolare', 'popolari', 'raccomandato', 'raccomandati', 'raccomandazione', 'raccomandazioni', 'momento', 'popular', 'recommended', 'recommendation', 'recommendations', 'moment']
     _all = ['tutto', 'tutta', 'tutti', 'tutte' 'all']
     _az = ['lettera', 'lettere', 'lista', 'liste', 'alfabetico', 'a-z', 'letter', 'letters', 'list', 'alphabetical']
@@ -1548,7 +1548,8 @@ def thumb(data=None, genre=False, live=False):
                     '_documentary':_documentary,
                     '_music':_music,
                     '_star':_star,
-                    '_genre':_genre}
+                    '_genre':_genre,
+                    '_top':_top}
 
     def autoselect_thumb(item, genre):
         searched_title = re.split(r'\.|\{|\}|\(|\)|/| ', scrapertools.unescape(re.sub('\[[^\]]*\]||\u2026|\u2022','', item.title.lower())))
@@ -1598,3 +1599,15 @@ def thumb(data=None, genre=False, live=False):
 
     else:
         return get_thumb('next.png')
+
+
+def get_thumb(thumb_name, view="thumb_"):
+    from core import filetools
+    if thumb_name.startswith('http'):
+        return thumb_name
+    elif config.get_setting('enable_custom_theme') and config.get_setting('custom_theme') and filetools.isfile(config.get_setting('custom_theme') + view + thumb_name):
+        media_path = config.get_setting('custom_theme')
+    else:
+        icon_pack_name = config.get_setting('icon_set', default="default")
+        media_path = filetools.join("https://raw.githubusercontent.com/kodiondemand/media/master/themes/new", icon_pack_name)
+    return filetools.join(media_path, thumb_name)

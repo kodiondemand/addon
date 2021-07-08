@@ -18,9 +18,8 @@ else:
 
 import os, xbmc, xbmcgui, xbmcplugin
 from past.utils import old_div
-from channelselector import get_thumb
 from core import scrapertools
-from core.item import InfoLabels, Item
+from core.item import Item
 from platformcode import logger, config
 
 addon = config.__settings__
@@ -341,7 +340,8 @@ def render_items(itemlist, parent_item):
 
     # if there's no item, add "no elements" item
     if not len(itemlist):
-        itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
+        from core.support import thumb
+        itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=thumb('nofolder')))
 
     dirItems = []
     # for n, item in enumerate(itemlist):
