@@ -29,10 +29,12 @@ def mainlist(item):
 def menu(item):
     item.contentType = ''
     action = 'peliculas'
-    
 
     patronBlock = r'<div class="filter-header"><b>%s</b>(?P<block>.*?)<div class="filter-box">' % item.args
     patronMenu = r'<a class="[^"]+" data-state="[^"]+" (?P<other>[^>]+)>[^>]+></i>[^>]+></i>[^>]+></i>(?P<title>[^>]+)</a>'
+
+    if 'generi' in item.args.lower():
+        patronGenreMenu = patronMenu
 
     def itemHook(item):
         support.info(item.type)

@@ -28,6 +28,8 @@ def submenu(item):
     action = 'peliculas'
     patronBlock = r'data-taxonomy="' + item.args + r'"(?P<block>.*?)</select'
     patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<t>[^(]+)[^\(]+\((?P<num>\d+)'
+    if 'genre' in item.args:
+        patronGenreMenu = patronMenu
     def itemHook(item):
         item.url += host + '/anime/' + item.args + '/' + item.u
         item.title = support.typo(item.t, 'bold')

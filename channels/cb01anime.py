@@ -27,6 +27,8 @@ def menu(item):
     blacklist = ['Anime per Genere', 'Anime per Anno', 'Anime per Lettera']
     patronBlock = r'<select name="select%s"(?P<block>.*?)</select>' % item.args
     patronMenu = r'<option value="(?P<url>[^"]+)">(?P<title>[^<]+)</option>'
+    if '2' in item.args:
+        patronGenreMenu = patronMenu
     action = 'peliculas'
     def itemHook(item):
         item.url = item.url.replace('cb01-anime/','cb01-anime-cartoon/')

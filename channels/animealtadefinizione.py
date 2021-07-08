@@ -28,6 +28,8 @@ def menu(item):
     action = 'peliculas'
     patronBlock= r'<a href="' + host + r'/category/' + item.args.lower() + r'/">' + item.args + r'</a>\s*<ul class="sub-menu">(?P<block>.*?)</ul>'
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
+    if 'genere' in item.args.lower():
+        patronGenreMenu = patronMenu
     return locals()
 
 

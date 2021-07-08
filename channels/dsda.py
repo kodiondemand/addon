@@ -12,8 +12,8 @@ host = config.get_channel_url()
 @support.menu
 def mainlist(item):
     docu = [('Documentari {bullet bold}',('/elenco-documentari','peliculas')),
-            ('Categorie {submenu}',('','menu')),
-            ('Cerca... {bullet bold}',('','search')),]
+            ('Categorie {submenu documentary}',('','menu')),
+            ('Cerca... {bullet bold documentary}',('','search')),]
     return locals()
 
 

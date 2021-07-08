@@ -44,13 +44,13 @@ def genres(item):
     if item.args == 'genres':
         patronBlock = r'<div class="sidemenu">\s*<h2>Genere</h2>(?P<block>.*?)</ul'
     elif item.args == 'year':
-        item.args = 'genres'
         patronBlock = r'<div class="sidemenu">\s*<h2>Anno di uscita</h2>(?P<block>.*?)</ul'
     elif item.args == 'az':
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'
 
     patronMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
-
+    if 'genres' in item.args:
+        patronGenreMenu = patronMenu
     return locals()
 
 def search(item, text):

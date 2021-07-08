@@ -34,7 +34,7 @@ def peliculas(item):
 def genre(item):
     action = 'peliculas'
     blacklist =['prova ']
-    patronMenu = r'<a href="(?P<url>[^"]+)" class="menu-link\s*sub-menu-link">(?P<title>[^<]+)<'
+    patronGenreMenu = r'<a href="(?P<url>[^"]+)" class="menu-link\s*sub-menu-link">(?P<title>[^<]+)<'
     def itemHook(item):
         if item.fulltitle in ['Classici Disney', 'Studio Ghibli', 'Pixar']:
             item.args = 'alternative'
