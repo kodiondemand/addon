@@ -1,7 +1,7 @@
 {
     "id": "seriehd",
     "name": "SerieHD",
-    "active": false,
+    "active": true,
     "language": ["ita"],
     "thumbnail": "seriehd.png",
     "banner": "seriehd.png",
