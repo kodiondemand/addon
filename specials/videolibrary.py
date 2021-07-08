@@ -428,10 +428,10 @@ def servers(item, ch, items):
 
     if ch_params.get('active', False):
 
-        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + '.py')): CHANNELS = 'channels'
-        else: CHANNELS = 'specials'
-        try: channel = __import__('%s.%s' % (CHANNELS, ch), None, None, ['%s.%s' % (CHANNELS, ch)])
-        except ImportError: exec('import ' + CHANNELS + '.' + ch + ' as channel')
+        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + '.py')): _channel = 'channels'
+        else: _channel = 'specials'
+        channel = __import__('{}.{}'.format(_channel, ch), fromlist=['{}.{}'.format(_channel, ch)])
+
         with futures.ThreadPoolExecutor() as executor:
             itlist = [executor.submit(channel_servers, item, it, channel, ch_name) for it in items]
             for res in futures.as_completed(itlist):
@@ -447,10 +447,11 @@ def play(item):
     # platformtools.play_video(item)
 
     if not item.channel == "local":
-        if item.channel == 'community':
-            channel = __import__('specials.%s' % item.channel, fromlist=["channels.%s" % item.channel])
-        else:
-            channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + '.py')): _channel = 'channels'
+        else: _channel = 'specials'
+
+        channel = __import__('{}.{}'.format(_channel, item.channel), fromlist=['{}.{}'.format(_channel, item.channel)])
+
         if hasattr(channel, "play"):
             itemlist = getattr(channel, "play")(item)
 
@@ -521,8 +522,8 @@ def update_videolibrary(item=None):
             chname = channeltools.get_channel_parameters(it.channel)['title']
             p_dialog.update(int(i * t), message=message % (it.fulltitle, chname))
             it = get_host(it)
-            try: channel = __import__('channels.%s' % it.channel, fromlist=['channels.%s' % it.channel])
-            except: channel = __import__('specials.%s' % it.channel, fromlist=['specials.%s' % it.channel])
+            try: channel = __import__('channels.{}'.format(it.channel), fromlist=['channels.{}'.format(it.channel)])
+            except: channel = __import__('specials.{}'.format(it.channel), fromlist=['specials.{}'.format(it.channel)])
             itemlist = getattr(channel, it.action)(it)
             videolibrarytools.save_tvshow(it, itemlist, True)
         p_dialog.close()
