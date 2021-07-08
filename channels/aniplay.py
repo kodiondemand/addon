@@ -197,7 +197,11 @@ def episodios(item):
     url = '{}/api/anime/{}'.format(host, item.id)
     json = httptools.downloadpage(url, CF=False ).json
 
-    if json.get('seasons'):
+    if type(json) == list:
+        item.show_renumber = False
+        itemlist = list_episodes(item, json)
+
+    elif json.get('seasons'):
         seasons = json['seasons']
         seasons.sort(key=lambda s: s['episodeStart'])
 
@@ -234,12 +238,13 @@ def episodios(item):
     # add add to videolibrary menu
     if stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
         support.videolibrary(itemlist, item)
-    
+
     return itemlist
-    
+
 
 def list_episodes(item, json=None):
     itemlist = []
+
     if not json:
         url = '{}/api/anime/{}'.format(host, item.id)
         json = httptools.downloadpage(url, CF=False ).json
