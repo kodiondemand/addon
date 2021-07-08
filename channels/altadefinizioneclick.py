@@ -65,7 +65,8 @@ def peliculas(item):
         patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"(?:(?:[^>]+>){5}\s*(?P<rating>[^<]+))?(?:[^>]+>){4}(?P<title>[^<]+)'
 
     if not item.args:
-        patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
+        # patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
+        patronBlock = r'({})(?P<block>.*?)</section'.format('ULTIMI INSERITI' if item.contentType == 'movie' else 'Serie TV')
 
     # nella pagina "CERCA", la voce "SUCCESSIVO" apre la maschera di inserimento dati
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
