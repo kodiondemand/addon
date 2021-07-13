@@ -920,7 +920,8 @@ def mark_content_as_watched(item):
             if config.is_xbmc():
                 from platformcode import xbmc_videolibrary
                 xbmc_videolibrary.mark_content_as_watched_on_kodi(item, item.playcount)
-
+                if config.get_setting("trakt_sync"):
+                    xbmc_videolibrary.sync_trakt_kodi()
             platformtools.itemlist_refresh()
 
 
@@ -975,6 +976,8 @@ def mark_season_as_watched(item):
             # We update the Kodi database
             from platformcode import xbmc_videolibrary
             xbmc_videolibrary.mark_season_as_watched_on_kodi(item, item.playcount)
+            if config.get_setting("trakt_sync"):
+                xbmc_videolibrary.sync_trakt_kodi()
 
     platformtools.itemlist_refresh()
 

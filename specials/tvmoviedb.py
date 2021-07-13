@@ -1910,7 +1910,7 @@ def acciones_trakt(item):
     post = None
     if item.post: post = jsontools.dump(item.post)
 
-    url = "http://api-v2launch.trakt.tv/%s" % item.url
+    url = "http://api.trakt.tv/%s" % item.url
     data = httptools.downloadpage(url, post=post, headers=headers)
     if data.code == "401":
         trakt_tools.token_trakt(item.clone(args="renew"))
@@ -1966,12 +1966,18 @@ def acciones_trakt(item):
                 # try: entry = entry[item.args]
                 # except: pass
                 new_item = item.clone(action="details")
-                if 'show' in entry or 'show' in item.args:
+                if 'show' in entry and 'show' in item.args:
                     entry = entry['show']
                     new_item.args = 'show'
                     new_item.contentType = 'tvshow'
-                else:
+                elif 'movie' in entry and 'movie' in item.args:
                     entry = entry['movie']
+                    new_item.args = 'movie'
+                    new_item.contentType = 'movie'
+                elif 'show' in item.args:
+                    new_item.args = 'show'
+                    new_item.contentType = 'tvshow'
+                else:
                     new_item.args = 'movie'
                     new_item.contentType = 'movie'
                 new_item.title = entry["title"] + " (%s)" % entry["year"]
