@@ -15,7 +15,7 @@ import math, traceback, re, os
 from core import filetools, scraper, scrapertools, support, httptools, tmdb
 from core.item import Item
 from lib import generictools
-from platformcode import config, logger, platformtools
+from platformcode import config, dbconverter, logger, platformtools
 from platformcode.autorenumber import RENUMBER
 from core.videolibrarydb import videolibrarydb
 
@@ -265,9 +265,10 @@ def save_movie(item, silent=False):
         if not silent:
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
-        # Update Kodi Library
-        from platformcode.dbconverter import add_video
-        add_video(movie_item)
+        if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not item.not_add:
+            # Update Kodi Library
+            from platformcode.dbconverter import add_video
+            add_video(movie_item)
         # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
@@ -429,7 +430,7 @@ def save_tvshow(item, episodelist, silent=False):
     logger.debug()
     inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, local_files, silent=silent)
     videolibrarydb.close()
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent:# and inserted:
+    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not item.not_add:
         from platformcode.dbconverter import add_video
         add_video(tvshow_item)
 
@@ -682,7 +683,7 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
 def add_to_videolibrary(item, channel):
     itemlist = getattr(channel, item.from_action)(item)
     if itemlist and itemlist[0].contentType == 'episode':
-        return add_tvshow(item, itemlist)
+        return add_tvshow(item, itemlist=itemlist)
     elif itemlist and itemlist[0].server:
         return add_movie(item)
     else:
@@ -1067,3 +1068,125 @@ def set_base_name(item, _id):
         base_name = base_name.lower()
 
     return '{} [{}]'.format(base_name, _id)
+
+
+def restore_videolibrary():
+    movies = [x['item'] for x in dict(videolibrarydb['movie']).values()]
+    tvshows = [x['item'] for x in dict(videolibrarydb['tvshow']).values()]
+    total = len(movies) + len(tvshows)
+    progress = 0
+    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Ripristino videoteca in corso')
+    try: os.mkdir(MOVIES_PATH)
+    except: pass
+    try: os.mkdir(TVSHOWS_PATH)
+    except: pass
+
+    for item in movies:
+        base_name = set_base_name(item, item.videolibrary_id)
+        path = filetools.join(MOVIES_PATH, base_name)
+        try: os.mkdir(path)
+        except: pass
+        nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
+        strm_path = filetools.join(base_name, "{}.strm".format(base_name))
+        nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
+        strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+        local = True if 'local' in  videolibrarydb['movie'][item.videolibrary_id]['channels'] else False
+        if not nfo_exists:
+            if not item.head_nfo: item.head_nfo = scraper.get_nfo(item)
+            filetools.write(filetools.join(MOVIES_PATH, item.nfo_path), item.head_nfo)
+        if not strm_exists and not local:
+            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=item.videolibrary_id)
+            filetools.write(filetools.join(MOVIES_PATH, item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+        progress += 1
+        dialog.update(int(progress / total * 100))
+
+    for item in tvshows:
+        base_name = set_base_name(item, item.videolibrary_id)
+        path = filetools.join(TVSHOWS_PATH, base_name)
+        try: os.mkdir(path)
+        except: pass
+        nfo_path = filetools.join(base_name, "tvshow.nfo")
+        nfo_exists = filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path))
+        if not nfo_exists:
+            if not item.head_nfo: item.head_nfo = scraper.get_nfo(item)
+            filetools.write(filetools.join(TVSHOWS_PATH, item.nfo_path), item.head_nfo)
+
+        episodes = [x['item'] for x in dict(videolibrarydb['episode'][item.videolibrary_id]).values()]
+        for e in episodes:
+            season_episode = '{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber)
+            strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
+            strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+            local = True if 'local' in videolibrarydb['episode'][item.videolibrary_id][season_episode]['channels'] else False
+            if not strm_exists and not local:
+                logger.debug("Creating .strm: " + strm_path)
+                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=e.videolibrary_id, contentSeason = e.contentSeason, contentEpisodeNumber = e.contentEpisodeNumber,)
+                filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+        progress += 1
+        dialog.update(int(progress / total * 100))
+    videolibrarydb.close()
+
+    dbconverter.save_all()
+
+def convert_videolibrary():
+    import glob, xbmc
+    from platformcode import xbmc_videolibrary
+    from core import jsontools
+
+    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+    path_to_delete = []
+    film_lst = glob.glob(filetools.join(MOVIES_PATH, '*/*.json'))
+    tvshow_lst = glob.glob((filetools.join(TVSHOWS_PATH, '*/tvshow.nfo')))
+    total = len(film_lst) + len(tvshow_lst)
+    progress = 0
+
+    tvPath = filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'))
+    moviePath = filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'))
+
+    # set local info only
+    xbmc_videolibrary.execute_sql_kodi('update path set strScraper="metadata.local", strSettings="" where strPath = "{}{}"'.format(tvPath, '/' if '/' in tvPath else '\\'))
+    xbmc_videolibrary.execute_sql_kodi('update path set strScraper="metadata.local", strSettings="" where strPath = "{}{}"'.format(moviePath, '/' if '/' in moviePath else '\\'))
+
+    for film in film_lst:
+        path_to_delete.append(filetools.dirname(film))
+        it = Item().fromjson(filetools.read(film))
+        it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'movie'}
+        tmdb.find_and_set_infoLabels(it)
+        it.no_reload = True
+        save_movie(it)
+        progress += 1
+        dialog.update(int(progress / total * 100))
+
+    for tvshow in tvshow_lst:
+        if not dialog:
+            dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+        js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
+        channels_dict = js.get('library_urls')
+        if channels_dict:
+            for ch, url in channels_dict.items():
+                dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
+                json_files = [f for f in dir if f.endswith('.json')]
+                if json_files:
+                    path_to_delete.append(filetools.dirname(tvshow))
+                    nfo, it = read_nfo(tvshow)
+                    it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
+                    it.contentType = 'tvshow'
+                    it.channel = ch
+                    it.url = channels_dict[ch]
+                    remove_host(it)
+                    tmdb.find_and_set_infoLabels(it)
+                    try: channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
+                    except: channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
+                    it.host = channel.host
+                    it.url = channel.host + it.url
+                    episodes = getattr(channel, 'episodios')(it)
+                    for ep in episodes:
+                        logger.debug('EPISODE URL', ep.url)
+                    it.no_reload = True
+                    save_tvshow(it, episodes, True)
+        progress += 1
+        dialog.update(int(progress / total * 100))
+    for path in path_to_delete:
+        filetools.rmdirtree(path, True)
+    dialog.close()
+    if path_to_delete:
+        dbconverter.save_all()

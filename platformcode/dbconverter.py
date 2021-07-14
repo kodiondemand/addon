@@ -14,6 +14,7 @@ def save_all():
     movies = dict(videolibrarydb['movie'])
     tvshows = dict(videolibrarydb['tvshow'])
     videolibrarydb.close()
+
     for movie in movies.values():
         item = movie['item']
         item.no_reload = True
@@ -29,24 +30,23 @@ def save_all():
 def reload():
     movieid = get_id('idMovie', 'movie')
     showid = get_id('idShow', 'tvshow')
+    payload = {"jsonrpc": "2.0",
+               "method": "VideoLibrary.Scan",
+               "id": 1}
 
-    if movieid > 0 and showid > 0:
-        xbmc.executebuiltin('ReloadSkin()')
-    else:
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "VideoLibrary.Scan",
-            "directory": videolibrarytools.FOLDER_TVSHOWS,
-            "id": 1
-        }
-        get_data(payload)
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "VideoLibrary.Scan",
-            "directory": videolibrarytools.FOLDER_MOVIES,
-            "id": 1
-        }
-        get_data(payload)
+    while xbmc.getCondVisibility('Library.IsScanningVideo()'): pass
+
+    payload["directory"] = videolibrarytools.FOLDER_TVSHOWS
+    get_data(payload)
+
+    while xbmc.getCondVisibility('Library.IsScanningVideo()'): pass
+
+    payload["directory"] = videolibrarytools.FOLDER_MOVIES
+    get_data(payload)
+
+    while xbmc.getCondVisibility('Library.IsScanningVideo()'): pass
+
+    xbmc.executebuiltin('ReloadSkin()')
 
 
 def add_video(item):
@@ -223,7 +223,7 @@ class addMovie(object):
                     get_data(payload)
                 else:
                     xbmc.executebuiltin('ReloadSkin()')
-        conn.close()
+                conn.close()
 
     def get_id(self):
         Type = 'id' + self.item.contentType.replace('tv', '').capitalize()
@@ -243,7 +243,9 @@ class addMovie(object):
         if records:
             self.idParentPath = records[0][0]
         else:
-            return
+            self.idParentPath = get_id('idPath', 'path')
+            sql = 'INSERT OR IGNORE INTO path (idPath, strPath, strContent, strScraper, noUpdate) VALUES ({}, "{}", "{}", "{}", {})'.format(self.idParentPath, self.parentPath, 'movies', 'meatadata.local', 0)
+            nun_records, records = execute_sql_kodi(sql, conn=conn)
 
         sql = 'select idPath from path where (strPath = "{}") limit 1'.format(self.strPath)
         nun_records, records = execute_sql_kodi(sql, conn=conn)
@@ -559,7 +561,9 @@ class addTvShow(object):
         if records:
             self.idParentPath = records[0][0]
         else:
-            return
+            self.idParentPath = get_id('idPath', 'path')
+            sql = 'INSERT OR IGNORE INTO path (idPath, strPath, strContent, strScraper, noUpdate) VALUES ({}, "{}", "{}", "{}", {})'.format(self.idParentPath, self.parentPath, 'tvshows', 'meatadata.local', 0)
+            nun_records, records = execute_sql_kodi(sql, conn=conn)
 
         sql = 'select idPath from path where (strPath = "{}") limit 1'.format(self.strPath)
         nun_records, records = execute_sql_kodi(sql, conn=conn)

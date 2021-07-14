@@ -5,10 +5,10 @@
 
 
 from core import support
-def findhost(url):
-    return support.match(url, patron=r'<h2[^>]+><a href="([^"]+)"').match
+# def findhost(url):
+#     return support.match(url, patron=r'<h2[^>]+><a href="([^"]+)"').match
 
-host = support.config.get_channel_url(findhost)
+host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 

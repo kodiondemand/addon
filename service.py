@@ -200,65 +200,66 @@ if __name__ == "__main__":
                                                                                  config.get_setting('folder_tvshows')) +
                                                                   '/" and strScraper<>"metadata.local"')
         if nun_records:
-            dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
-            path_to_delete = []
-            film_lst = glob.glob(xbmc.translatePath(
-                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'),
-                               '*/*.json')))
-            tvshow_lst = glob.glob(xbmc.translatePath(
-                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'),
-                               '*/tvshow.nfo')))
-            total = len(film_lst) + len(tvshow_lst)
-            progress = 0
+            videolibrarytools.convert_videolibrary()
+            # dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+            # path_to_delete = []
+            # film_lst = glob.glob(xbmc.translatePath(
+            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'),
+            #                    '*/*.json')))
+            # tvshow_lst = glob.glob(xbmc.translatePath(
+            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'),
+            #                    '*/tvshow.nfo')))
+            # total = len(film_lst) + len(tvshow_lst)
+            # progress = 0
 
-            # set local info only
-            xbmc_videolibrary.execute_sql_kodi(
-                'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
-                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) + '/"')
-            xbmc_videolibrary.execute_sql_kodi(
-                'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
-                filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies')) + '/"')
+            # # set local info only
+            # xbmc_videolibrary.execute_sql_kodi(
+            #     'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
+            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) + '/"')
+            # xbmc_videolibrary.execute_sql_kodi(
+            #     'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
+            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies')) + '/"')
 
-            for film in film_lst:
-                path_to_delete.append(filetools.dirname(film))
-                it = Item().fromjson(filetools.read(film))
-                it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'movie'}
-                tmdb.find_and_set_infoLabels(it)
-                videolibrarytools.save_movie(it)
-                progress += 1
-                dialog.update(int(progress / total * 100))
-            for tvshow in tvshow_lst:
-                if not dialog:
-                    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
-                js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
-                channels_dict = js.get('library_urls')
-                if channels_dict:
-                    for ch, url in channels_dict.items():
-                        dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
-                        json_files = [f for f in dir if f.endswith('.json')]
-                        if json_files:
-                            path_to_delete.append(filetools.dirname(tvshow))
-                            nfo, it = videolibrarytools.read_nfo(tvshow)
-                            it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
-                            it.contentType = 'tvshow'
-                            it.channel = ch
-                            it.url = channels_dict[ch]
-                            tmdb.find_and_set_infoLabels(it)
-                            try:
-                                channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
-                            except:
-                                channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
-                            it.host = channel.host
-                            episodes = getattr(channel, 'episodios')(it)
-                            for ep in episodes:
-                                logger.debug('EPISODE URL',ep.url)
+            # for film in film_lst:
+            #     path_to_delete.append(filetools.dirname(film))
+            #     it = Item().fromjson(filetools.read(film))
+            #     it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'movie'}
+            #     tmdb.find_and_set_infoLabels(it)
+            #     videolibrarytools.save_movie(it)
+            #     progress += 1
+            #     dialog.update(int(progress / total * 100))
+            # for tvshow in tvshow_lst:
+            #     if not dialog:
+            #         dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+            #     js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
+            #     channels_dict = js.get('library_urls')
+            #     if channels_dict:
+            #         for ch, url in channels_dict.items():
+            #             dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
+            #             json_files = [f for f in dir if f.endswith('.json')]
+            #             if json_files:
+            #                 path_to_delete.append(filetools.dirname(tvshow))
+            #                 nfo, it = videolibrarytools.read_nfo(tvshow)
+            #                 it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
+            #                 it.contentType = 'tvshow'
+            #                 it.channel = ch
+            #                 it.url = channels_dict[ch]
+            #                 tmdb.find_and_set_infoLabels(it)
+            #                 try:
+            #                     channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
+            #                 except:
+            #                     channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
+            #                 it.host = channel.host
+            #                 episodes = getattr(channel, 'episodios')(it)
+            #                 for ep in episodes:
+            #                     logger.debug('EPISODE URL',ep.url)
 
-                            videolibrarytools.save_tvshow(it, episodes, True)
-                progress += 1
-                dialog.update(int(progress / total * 100))
-            for path in path_to_delete:
-                filetools.rmdirtree(path, True)
-            dialog.close()
+            #                 videolibrarytools.save_tvshow(it, episodes, True)
+            #     progress += 1
+            #     dialog.update(int(progress / total * 100))
+            # for path in path_to_delete:
+            #     filetools.rmdirtree(path, True)
+            # dialog.close()
 
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')

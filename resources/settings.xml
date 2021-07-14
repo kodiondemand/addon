@@ -54,6 +54,8 @@
         <setting id="vidolibrary_export" type="action" label="80000" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAiZXhwb3J0X3ZpZGVvbGlicmFyeSIsDQogICAgImNoYW5uZWwiOiAiYmFja3VwIg0KfQ==)"/>
         <setting id="vidolibrary_import" type="action" label="80001" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAiaW1wb3J0X3ZpZGVvbGlicmFyeSIsDQogICAgImNoYW5uZWwiOiAiYmFja3VwIg0KfQ==)"/>
         <setting id="vidolibrary_delete" type="action" label="80036" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAiZGVsZXRlX3ZpZGVvbGlicmFyeSIsDQogICAgImNoYW5uZWwiOiAidmlkZW9saWJyYXJ5Ig0KfQ==)"/>
+        <setting id="vidolibrary_convert" type="action" label="70839" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAiY29udmVydF92aWRlb2xpYnJhcnkiLA0KICAgICJjaGFubmVsIjogInZpZGVvbGlicmFyeSINCn0=)"/>
+        <setting id="vidolibrary_restore" type="action" label="70840" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAicmVzdG9yZV92aWRlb2xpYnJhcnkiLA0KICAgICJjaGFubmVsIjogInZpZGVvbGlicmFyeSINCn0=)"/>
     </category>
 
     <!-- Channels -->

@@ -1325,3 +1325,8 @@ def get_results(nfo_path, root, Type, local=False):
 
 #     platformtools.itemlist_refresh()
 
+def convert_videolibrary(item):
+    videolibrarytools.convert_videolibrary()
+
+def restore_videolibrary(item):
+    videolibrarytools.restore_videolibrary()

@@ -6166,7 +6166,15 @@ msgstr "Abilita/Disabilita Canali"
 
 msgctxt "#70838"
 msgid "There are no valid content for: %s"
-msgstr "Non ci sono contenti validi per: %s"
+msgstr "Non ci sono contenuti validi per: %s"
+
+msgctxt "#70839"
+msgid "Convert Videolibrary"
+msgstr "Converti Videoteca"
+
+msgctxt "#70840"
+msgid "Restore Video Library from DB"
+msgstr "Ripristina Videoteca da DB"
 
 # DNS start [ settings and declaration ]
 msgctxt "#707401"

@@ -6167,6 +6167,14 @@ msgctxt "#70838"
 msgid "There are no valid content for: %s"
 msgstr ""
 
+msgctxt "#70839"
+msgid "Convert Videolibrary"
+msgstr ""
+
+msgctxt "#70840"
+msgid "Restore Video Library from DB"
+msgstr ""
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"
