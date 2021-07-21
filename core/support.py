@@ -552,13 +552,13 @@ def scrape(func):
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
-        for it in itemlist:
-            if it.contentEpisodeNumber and it.contentSeason:
-                it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
-                if it.contentLanguage:
-                    it.title += typo(it.contentLanguage, '_ [] color kod')
-                if it.quality:
-                    it.title += typo(it.quality, '_ [] color kod')
+        # for it in itemlist:
+        #     if it.contentEpisodeNumber and it.contentSeason:
+        #         it.title = '[B]{:d}x{:02d} - {}[/B]'.format(it.contentSeason, it.contentEpisodeNumber, it.infoLabels['title'] if it.infoLabels['title'] else it.fulltitle)
+        #         if it.contentLanguage:
+        #             it.title += typo(it.contentLanguage, '_ [] color kod')
+        #         if it.quality:
+        #             it.title += typo(it.quality, '_ [] color kod')
 
         # next page for pagination
         if pagination and len(matches) > pag * pagination and not search:
