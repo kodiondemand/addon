@@ -6,7 +6,6 @@ import re, inspect, mimetypes, xbmcgui
 
 from core import httptools, jsontools, tmdb, support, filetools
 from core.item import Item
-from lib import unshortenit
 from platformcode import config, platformtools, logger
 from channelselector import get_thumb
 from collections import OrderedDict
@@ -107,7 +106,7 @@ def show_menu(item):
                     itemlist += get_seasons(item)
                 elif key in ['episodes_list']:
                     itemlist += episodios(item, json, key)
-                elif key in ['links', 'find_links']:
+                elif key in ['links']:
                     itemlist += findvideos(item)
                 elif key in ['search'] and 'url' in json['search']:
                     search_json = json['search']
@@ -205,12 +204,6 @@ def peliculas(item, json='', key='', itemlist=[]):
 
         # filter elements
         if (not item.filter or item.filter.lower() in filterkey) and item.search.lower() in title.lower() and title:
-
-            if 'generic_list' in key and 'links' not in option and 'url' in option:
-                option['links'] = []
-                option['links'].append({'url': option['url']})
-                option['url'] = ''
-
             extra = set_extra_values(item, option, item.path)
 
             infoLabels['year'] = option['year'] if 'year' in option else ''
@@ -411,55 +404,56 @@ def findvideos(item):
     # logger.debug('DEBUG', item)
     item.contentTitle = item.fulltitle
     itemlist = []
-    json = []
     if 'links' in item.url:
         json = item.url['links']
-    elif 'find_links' in item.url:
-        for link in item.url['find_links']:
-            link['url'] = unshortenit.findlinks(link['url'])
-            mimetype = findS = None
-            mimetype = mimetypes.MimeTypes().guess_type(link['url'])[0]
-            if mimetype is None:
-                findS = servertools.get_server_from_url(link['url'])
-            if mimetype is None and findS is None:
-                data = support.match(link['url']).data
-                itemlist_url = servertools.find_video_items(data=data)
-                if len(itemlist_url):
-                    for item_url in itemlist_url:
-                        valid = True
-                        patterns = link.get('patterns', False)
-                        if patterns:
-                            valid = False
-                            for pattern in patterns:
-                                match = re.search(pattern, item_url.url)
-                                if match:
-                                    valid = True
-                                    break
-                        if valid:
-                            json.append({"url": item_url.url})
-            else:
-                json.append(link)
-
     else:
-        url = item.url
-        item.url = {}
-        json.append({"url": url})
+        json = item.url
 
     # support.dbg()
     for option in json:
         extra = set_extra_values(item, option, item.path)
-        itemlist.append(
-            item.clone(url=option['url'],
-                       action='play',
-                       quality=extra.quality,
-                       contentLanguage=extra.language,
-                       extraInfo=extra.info))
+        mimetype = mimetypes.MimeTypes().guess_type(option['url'])[0]
+        if mimetype is None:
+            itemlist_url = []
+            data = support.match(option['url']).data
+            itemlist_url = servertools.find_video_items(data=data)
 
-    videolibrary = item.url.get('videolibrary', True)
-    item.autoplay = item.url.get('autoplay', False)
+            if len(itemlist_url):
+                for item_url in itemlist_url:
+                    if is_valid_url(item_url.url) and not mimetypes.MimeTypes().guess_type(item_url.url)[0] is None:
+                        # logger.debug('DEBUG', item_url.url)
+                        itemlist.append(
+                            item_url.clone(channel=item.channel, action='play')
+                        )
+        else:
+            itemlist.append(
+                item.clone(url=option['url'],
+                           action='play',
+                           quality=extra.quality,
+                           contentLanguage=extra.language,
+                           extraInfo=extra.info))
+
+    videolibrary = True
+    if 'videolibrary' in item.url:
+        videolibrary = True if item.url['videolibrary'] else False
+
+    if 'autoplay' in item.url and item.url['autoplay']:
+        item.autoplay = True
 
     item.url = ''  # do not pass referer
     return support.server(item, itemlist=itemlist, Videolibrary=videolibrary)
+
+
+def is_valid_url(url):
+    # import re
+    regex = re.compile(
+        r'^https?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+        r'localhost|'  # localhost...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    return url is not None and regex.search(url)
 
 
 ################################   Menu   ################################
@@ -743,11 +737,13 @@ def set_extra_values(item, json, path):
         elif key == 'episodes_list':
             ret.url = {}
             ret.url['episodes_list'] = json['episodes_list']
-        elif key in ['links', 'find_links']:
+        elif key == 'links':
             ret.url = {}
-            ret.url[key] = json[key]
-            ret.url['videolibrary'] = json.get('videolibrary', True)
-            ret.url['autoplay'] = json.get('autoplay', False)
+            ret.url['links'] = json[key]
+            if 'videolibrary' in json:
+                ret.url['videolibrary'] = json['videolibrary']
+            if 'autoplay' in json:
+                ret.url['autoplay'] = json['autoplay']
         elif key == 'filter':
             filterkey = json[key].keys()[0]
             ret.filter = json[key][filterkey]
