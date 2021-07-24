@@ -46,7 +46,7 @@ def start(itemlist, item):
     # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
     if not user_config_setting_action: config.set_setting("default_action", 2)
 
-    if config.get_setting('autoplay'):
+    if config.get_setting('autoplay') or (item.channel == 'community' and item.autoplay)::
         from core.servertools import sort_servers
         autoplay_list = sort_servers(itemlist)
 
