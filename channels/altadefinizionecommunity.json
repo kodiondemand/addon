@@ -1,0 +1,27 @@
+{
+    "id": "altadefinizionecommunity",
+    "name": "Altadefinizione Community",
+    "language": ["ita", "sub-ita"],
+    "active": true,
+    "thumbnail": "",
+    "banner": "",
+    "categories": ["movie", "tvshow", "vos"],
+    "not_active": ["include_in_newest"],
+    "settings": [
+        {
+      "default": "",
+      "enabled": true,
+      "id": "username",
+      "label": "username",
+      "type": "text",
+      "visible": true
+    },
+    {
+      "default": "",
+      "enabled": true,
+      "id": "password",
+      "label": "password",
+      "type": "text",
+      "visible": true
+    }]
+}

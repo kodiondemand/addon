@@ -1166,6 +1166,7 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
                        thumbnail=thumb()))
         return itemlist[-1]
 
+
 def pagination(itemlist, item, page, perpage, function_level=1):
     if len(itemlist) >= page * perpage:
         itemlist.append(
@@ -1381,9 +1382,8 @@ def addQualityTag(item, itemlist, data, patron):
 
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
-
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources:\s*([^\]]+\])') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}])') if not dataIsBlock else data
     if block:
         json = jsontools.load(block)
         if json:
@@ -1404,7 +1404,7 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url if not onlyHttp else url.replace('https://', 'http://')])
+                video_urls.append(['.' + url.split('.')[-1].split('?')[0] + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])
 
         video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls

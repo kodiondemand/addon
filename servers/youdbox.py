@@ -14,7 +14,7 @@ def test_video_exists(page_url):
     return True, ""
 
 
-def get_video_url(page_url, video_password):
+def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.info("(page_url='%s')" % page_url)
     global data
     video_urls = []

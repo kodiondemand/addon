@@ -1053,7 +1053,10 @@ class Tmdb(object):
             # We sort result based on fuzzy match to detect most similar
             if len(results) > 1:
                 from lib.fuzzy_match import algorithims
-                results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.search_type == 'tv' else r.get('title', '')), reverse=True)
+                if self.search_type == 'multi':
+                    results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if r.get('media_type') == 'tv' else r.get('title', '')), reverse=True)
+                else:
+                    results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.search_type == 'tv' else r.get('title', '')), reverse=True)
 
             # We return the number of results of this page
             self.results = results
@@ -1652,7 +1655,10 @@ class Tmdb(object):
                 if v == "None":
                     continue
 
-            if k == 'overview':
+            if k == 'media_type':
+                ret_infoLabels['mediatype'] = 'tvshow' if v == 'tv' else 'movie'
+
+            elif k == 'overview':
                 if origen:
                     ret_infoLabels['plot'] = v
                 else:
