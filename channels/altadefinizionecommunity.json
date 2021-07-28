@@ -3,7 +3,7 @@
     "name": "Altadefinizione Community",
     "language": ["ita", "sub-ita"],
     "active": true,
-    "thumbnail": "",
+    "thumbnail": "altadefinizionecommunity.png",
     "banner": "",
     "categories": ["movie", "tvshow", "vos"],
     "not_active": ["include_in_newest"],
