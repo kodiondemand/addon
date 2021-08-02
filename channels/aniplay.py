@@ -178,7 +178,7 @@ def peliculas(item):
                                    action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
                                    plot = it['storyline'],
                                    year = it['startDate'].split('-')[0],
-                                   id= it['id'],
+                                   url = '{}/api/anime/{}'.format(host, it['id']),
                                    thumbnail = get_thumbnail(it),
                                    fanart = get_thumbnail(it, 'horizontalImages')))
 
@@ -194,8 +194,8 @@ def episodios(item):
     logger.debug()
     itemlist = []
 
-    url = '{}/api/anime/{}'.format(host, item.id)
-    json = httptools.downloadpage(url, CF=False ).json
+    # url = '{}/api/anime/{}'.format(host, item.id)
+    json = httptools.downloadpage(item.url, CF=False ).json
 
     if type(json) == list:
         item.show_renumber = False
