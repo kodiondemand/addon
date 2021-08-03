@@ -42,16 +42,17 @@ def mainlist(item):
 
 def login():
     r = httptools.downloadpage(host)
+    Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)').match
     if 'id="logged"' in r.data:
         logger.info('Già loggato')
     else:
         logger.info('Login in corso')
-        r = httptools.downloadpage(host + '/login', post={'email': config.get_setting('username', channel='altadefinizionecommunity'),
-                                 'password': config.get_setting('password', channel='altadefinizionecommunity')})
+        post = '_token={}&form_action=login&email={}&password={}'.format(Token, config.get_setting('username', channel='altadefinizionecommunity'),config.get_setting('password', channel='altadefinizionecommunity'))
+        r = httptools.downloadpage(host + '/login', post=post)
         if not r.success or 'Email o Password non validi' in r.data:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
-
+        logger.debug(r.data)
     return 'id="logged"' in r.data
 
 
