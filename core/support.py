@@ -576,7 +576,6 @@ def scrape(func):
                          thumbnail=thumb(),
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
-
         if inspect.stack()[1][3] not in ['find_episodes']:
             if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
                 # item.fulltitle = item.infoLabels["title"]

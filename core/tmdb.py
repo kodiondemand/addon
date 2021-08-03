@@ -210,11 +210,8 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, search_language=def_lang,
     def sub_thread(_item, _i, _seekTmdb):
         # semaphore.acquire()
         ret = 0
-        try:
-            ret = set_infoLabels_item(_item, _seekTmdb, search_language, lock)
-        except:
-            import traceback
-            logger.error(traceback.format_exc(1))
+        ret = set_infoLabels_item(_item, _seekTmdb, search_language, lock)
+
         if lock and lock.locked():
             lock.release()
         # logger.debug(str(ret) + "item: " + _item.tostring())
@@ -966,7 +963,7 @@ class Tmdb(object):
                 # http://api.themoviedb.org/3/tv/1407?api_key=a1ab8b8669da03637a4b98fa39c39228&language=es
                 #   &append_to_response=images,videos,external_ids,credits&include_image_language=es,null
                 url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
-                searching = "id_Tmdb: " + self.search_id
+                searching = "id_Tmdb: " + str(self.search_id)
             else:
                 # http://api.themoviedb.org/3/find/%s?external_source=imdb_id&api_key=a1ab8b8669da03637a4b98fa39c39228
                 url = ('{}/find/{}?external_source={}&api_key={}8&language={}'.format(host, self.search_id, source, api, self.search_language))

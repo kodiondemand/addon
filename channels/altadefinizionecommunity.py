@@ -199,7 +199,9 @@ def findvideos(item):
         video_url = playWindow.match
         if '/tvshow' in video_url:
             item.data = playWindow.data
+            item.contentType = 'tvshow'
             return episodios(item)
+    item.contentType = 'movie'
     itemlist.append(item.clone(action='play', url=support.match(video_url.replace('/watch-unsubscribed', '/watch-external'),
                                 patron='src="([^"]+)').match, quality=''))
     itemlist.append(item.clone(action='play', server='directo', title=support.config.get_localized_string(30137),
