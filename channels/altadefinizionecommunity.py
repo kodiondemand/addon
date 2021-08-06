@@ -13,7 +13,7 @@ def findhost(url):
 
 host = config.get_channel_url(findhost)
 register_url = 'https://altaregistrazione.com'
-headers = [['Referer', host], ['x-requested-with', 'XMLHttpRequest']]
+headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
 
 @support.menu
@@ -125,13 +125,17 @@ def registerOrLogin():
 @support.scrape
 def peliculas(item):
     # debug = True
+    json = {}
     support.info(item)
     if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
         import ast
-        ajax = support.match(item.url, patron="ajax_data\s*=\s*([^;]+)").match
+        ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)').match
         item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
-    json = support.httptools.downloadpage(item.url, headers=headers).json
-    data = "\n".join(json['data'])
+    if not '/search' in item.url:
+        json = support.httptools.downloadpage(item.url, headers=headers).json
+        data = "\n".join(json['data'])
+    else:
+        data = support.httptools.downloadpage(item.url, headers=headers).data
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
@@ -142,14 +146,16 @@ def peliculas(item):
             page = str(int(spl[-1])+1)
             support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas')
             return itemlist
+
     return locals()
 
 
 def search(item, texto):
     support.info("search ", texto)
+    # support.dbg()
 
     item.args = 'search'
-    item.url = host + "/search?s={0}&page=1".format(texto)
+    item.url = host + "/search?s={}&page=1".format(texto)
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -163,6 +169,7 @@ def search(item, texto):
 @support.scrape
 def genres(item):
     support.info(item)
+    data = cf.get(item.url).text
 
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
     if item.args == 'quality':
