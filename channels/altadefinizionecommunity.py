@@ -6,6 +6,8 @@ from lib.fakeMail import Gmailnator
 from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
+from lib import cloudscraper
+
 
 def findhost(url):
     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
@@ -15,6 +17,7 @@ host = config.get_channel_url(findhost)
 register_url = 'https://altaregistrazione.com'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
+cf = cloudscraper.create_scraper()
 
 @support.menu
 def mainlist(item):
@@ -41,19 +44,23 @@ def mainlist(item):
 
 
 def login():
-    r = httptools.downloadpage(host)
-    Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)').match
-    if 'id="logged"' in r.data:
+    r = cf.get(host)
+    Token = support.match(r.text, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)').match
+    if 'id="logged"' in r.text:
         logger.info('Già loggato')
     else:
         logger.info('Login in corso')
-        post = '_token={}&form_action=login&email={}&password={}'.format(Token, config.get_setting('username', channel='altadefinizionecommunity'),config.get_setting('password', channel='altadefinizionecommunity'))
-        r = httptools.downloadpage(host + '/login', post=post)
-        if not r.success or 'Email o Password non validi' in r.data:
+        post = {'_token': '',
+                'form_action':'login', 
+                'email': config.get_setting('username', channel='altadefinizionecommunity'),
+                'password':config.get_setting('password', channel='altadefinizionecommunity')}
+
+        r = cf.post(host + '/login', json=post, headers={'referer': host})
+        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.text:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
-        logger.debug(r.data)
-    return 'id="logged"' in r.data
+
+    return 'id="logged"' in r.text
 
 
 def registerOrLogin():
@@ -202,7 +209,7 @@ def findvideos(item):
     itemlist = []
     video_url = item.url
     if '/watch-unsubscribed' not in video_url:
-        playWindow = support.match(item.url, patron='playWindow" href="([^"]+)')
+        playWindow = support.match(cf.get(item.url).text, patron='playWindow" href="([^"]+)')
         video_url = playWindow.match
         if '/tvshow' in video_url:
             item.data = playWindow.data
@@ -219,7 +226,7 @@ def findvideos(item):
 def play(item):
     if host in item.url:  # intercetto il server proprietario
         if registerOrLogin():
-            return support.get_jwplayer_mediaurl(httptools.downloadpage(item.url).data, 'Diretto')
+            return support.get_jwplayer_mediaurl(cf.get(item.url).text, 'Diretto')
         else:
             platformtools.play_canceled = True
             return []
