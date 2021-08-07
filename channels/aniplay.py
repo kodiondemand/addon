@@ -26,13 +26,12 @@ def mainlist(item):
 
 def submenu_az(item):
     itemlist = []
-    if item.args == 'az':
-        for letter in ['0-9'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
-            itemlist.append(item.clone(title = support.typo(letter, 'bold'),
-                                    url= host + '/api/anime/find-by-char',
-                                    action= 'peliculas',
-                                    variable= '&character=' + letter,
-                                    thumbnail=support.thumb('az')))
+    for letter in ['0-9'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
+        itemlist.append(item.clone(title = support.typo(letter, 'bold'),
+                                url= host + '/api/anime/find-by-char',
+                                action= 'peliculas',
+                                variable= '&character=' + letter,
+                                thumbnail=support.thumb('az')))
     return itemlist
 
 def submenu_year(item):

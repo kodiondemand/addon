@@ -76,7 +76,7 @@ chNumRis = {
     },
     'altadefinizioneclick': {
         'Film': 36,
-        'Serie TV': 12,
+        'Serie TV': 36,
     },
     'casacinema': {
         'Film': 10,

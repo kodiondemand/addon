@@ -203,9 +203,9 @@ def findvideos(item):
             return episodios(item)
     item.contentType = 'movie'
     itemlist.append(item.clone(action='play', url=support.match(video_url.replace('/watch-unsubscribed', '/watch-external'),
-                                patron='src="([^"]+)').match, quality=''))
-    itemlist.append(item.clone(action='play', server='directo', title=support.config.get_localized_string(30137),
-                               url=video_url.replace('/watch-unsubscribed', '/watch')))
+                                patron='allowfullscreen[^<]+src="([^"]+)"').match, quality=''))
+    # itemlist.append(item.clone(action='play', server='directo', title=support.config.get_localized_string(30137),
+    #                            url=video_url.replace('/watch-unsubscribed', '/watch')))
     return support.server(item, itemlist=itemlist)
 
 
