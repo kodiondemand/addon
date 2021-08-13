@@ -48,8 +48,8 @@ def start(itemlist, item):
 
     if config.get_setting('autoplay'):
         from core.servertools import sort_servers, correct_onlinemedia_info
-        video_itemlist = correct_onlinemedia_info(itemlist)
-        autoplay_list = sort_servers(video_itemlist)
+        itemlist = correct_onlinemedia_info(itemlist)
+        autoplay_list = sort_servers(itemlist)
 
         if autoplay_list:
             max_intents = 5

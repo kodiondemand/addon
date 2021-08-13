@@ -7,7 +7,7 @@ from __future__ import division
 from __future__ import absolute_import
 from servers.akvideo import get_video_url
 from core.autoplay import servername
-from core.support import server
+# from core.support import server
 import sys
 import os
 PY3 = False
@@ -25,6 +25,7 @@ from core import filetools, httptools, jsontools
 from core.item import Item
 from platformcode import config, logger, platformtools
 from lib import unshortenit
+import requests
 
 dict_servers_parameters = {}
 server_list = {}
@@ -867,7 +868,6 @@ def translate_server_name(name):
 #     return server_json
 
 if PY3:
-    import requests
     from pymediainfo import MediaInfo
 
     def correct_onlinemedia_info(video_itemlist):
@@ -915,7 +915,8 @@ if PY3:
             return info_dict
 
         for item in video_itemlist:
-            url_list, url_exists = resolve_video_urls_for_playing(item.server)
+            #logger.debug(item.tostring('/n'))
+            url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
                 try:
                     video_quality = determine_video_resolution(get_onlinevideo_information(url_list[0]))
@@ -932,6 +933,7 @@ if PY3:
                 item.resolution = video_quality["resolution"]
                 item.bitrate = video_quality["bit_rate"]
             else:
+                logger.debug(url_error)
                 item.title = item.title.append("... x ...", "unknown bit_rate")
                 # i won't set alternative values for the item.quality parameter
                 # i won't set alternative values for the item.resolution parameter
