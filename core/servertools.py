@@ -735,6 +735,7 @@ def sort_servers(servers_list):
         # if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
         element["indice_server"] = index(favorite_servers, item.server.lower())
         element["indice_quality"] = index(favorite_quality, item.quality.lower())
+        element["bit_rate"] = item.bitrate
 
         # elif priority == 2:  # Servers only
         #     element["indice_server"] = index(favorite_servers, item.server.lower())
@@ -758,11 +759,11 @@ def sort_servers(servers_list):
     # elif priority == 3: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
     # else: sorted_list.sort(key=lambda orden: orden['indice_language'])
 
-    if priority == 0: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'], row['indice_quality'])) # Servers and Qualities
-    elif priority == 1: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['indice_server'])) # Qualities and Servers
+    if priority == 0: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'], row['indice_quality'], row['bit_rate'])) # Servers and Qualities
+    elif priority == 1: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate'], row['indice_server'])) # Qualities and Servers
     elif priority == 2: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'])) # Servers only
-    elif priority == 3: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'])) # Only qualities
-    else: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality']))
+    elif priority == 3: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate'])) # Only qualities
+    else: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate']))
 
     return [v['videoitem'] for v in sorted_list if v]
 
@@ -914,13 +915,26 @@ if PY3:
             return info_dict
 
         for item in video_itemlist:
-            url_list, url_exists, errors = resolve_video_urls_for_playing(item.server)
+            url_list, url_exists = resolve_video_urls_for_playing(item.server)
             if url_exists:
-                for url in url_list:
-                    video_quality = determine_video_resolution(get_onlinevideo_information(url))
-                    item.title = item.title.append(video_quality["resolution_label"], video_quality["resolution"], video_quality["bit_rate"])
-                    item.quality = video_quality["resolution_label"]
-                    item.resolution = video_quality["resolution"]
-                    item.bitrate = video_quality["bit_rate"]
+                try:
+                    video_quality = determine_video_resolution(get_onlinevideo_information(url_list[0]))
+                except Exception as e:
+                    logger.error(e)
+                    item.title = item.title.append("... x ...", "unknown bit_rate")
+                    # i won't set alternative values for the item.quality parameter
+                    # i won't set alternative values for the item.resolution parameter
+                    item.bitrate = 0
+                    continue
+
+                item.title = item.title.append(video_quality["resolution_label"], video_quality["resolution"], video_quality["bit_rate"])
+                item.quality = video_quality["resolution_label"]
+                item.resolution = video_quality["resolution"]
+                item.bitrate = video_quality["bit_rate"]
+            else:
+                item.title = item.title.append("... x ...", "unknown bit_rate")
+                # i won't set alternative values for the item.quality parameter
+                # i won't set alternative values for the item.resolution parameter
+                item.bitrate = 0
         
         return video_itemlist
