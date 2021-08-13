@@ -6,6 +6,8 @@ from lib.fakeMail import Gmailnator
 from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
+from lib import cloudscraper
+
 
 def findhost(url):
     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
@@ -13,8 +15,9 @@ def findhost(url):
 
 host = config.get_channel_url(findhost)
 register_url = 'https://altaregistrazione.com'
-headers = [['Referer', host], ['x-requested-with', 'XMLHttpRequest']]
+headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
+cf = cloudscraper.create_scraper()
 
 @support.menu
 def mainlist(item):
@@ -41,19 +44,23 @@ def mainlist(item):
 
 
 def login():
-    r = httptools.downloadpage(host)
-    Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)').match
-    if 'id="logged"' in r.data:
+    r = cf.get(host)
+    Token = support.match(r.text, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)').match
+    if 'id="logged"' in r.text:
         logger.info('Già loggato')
     else:
         logger.info('Login in corso')
-        post = '_token={}&form_action=login&email={}&password={}'.format(Token, config.get_setting('username', channel='altadefinizionecommunity'),config.get_setting('password', channel='altadefinizionecommunity'))
-        r = httptools.downloadpage(host + '/login', post=post)
-        if not r.success or 'Email o Password non validi' in r.data:
+        post = {'_token': '',
+                'form_action':'login', 
+                'email': config.get_setting('username', channel='altadefinizionecommunity'),
+                'password':config.get_setting('password', channel='altadefinizionecommunity')}
+
+        r = cf.post(host + '/login', json=post, headers={'referer': host})
+        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.text:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
-        logger.debug(r.data)
-    return 'id="logged"' in r.data
+
+    return 'id="logged"' in r.text
 
 
 def registerOrLogin():
@@ -125,13 +132,17 @@ def registerOrLogin():
 @support.scrape
 def peliculas(item):
     # debug = True
+    json = {}
     support.info(item)
     if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
         import ast
-        ajax = support.match(item.url, patron="ajax_data\s*=\s*([^;]+)").match
+        ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)').match
         item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
-    json = support.httptools.downloadpage(item.url, headers=headers).json
-    data = "\n".join(json['data'])
+    if not '/search' in item.url:
+        json = support.httptools.downloadpage(item.url, headers=headers).json
+        data = "\n".join(json['data'])
+    else:
+        data = support.httptools.downloadpage(item.url, headers=headers).data
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
@@ -142,14 +153,16 @@ def peliculas(item):
             page = str(int(spl[-1])+1)
             support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas')
             return itemlist
+
     return locals()
 
 
 def search(item, texto):
     support.info("search ", texto)
+    # support.dbg()
 
     item.args = 'search'
-    item.url = host + "/search?s={0}&page=1".format(texto)
+    item.url = host + "/search?s={}&page=1".format(texto)
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -163,6 +176,7 @@ def search(item, texto):
 @support.scrape
 def genres(item):
     support.info(item)
+    data = cf.get(item.url).text
 
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
     if item.args == 'quality':
@@ -195,7 +209,7 @@ def findvideos(item):
     itemlist = []
     video_url = item.url
     if '/watch-unsubscribed' not in video_url:
-        playWindow = support.match(item.url, patron='playWindow" href="([^"]+)')
+        playWindow = support.match(cf.get(item.url).text, patron='playWindow" href="([^"]+)')
         video_url = playWindow.match
         if '/tvshow' in video_url:
             item.data = playWindow.data
@@ -203,16 +217,16 @@ def findvideos(item):
             return episodios(item)
     item.contentType = 'movie'
     itemlist.append(item.clone(action='play', url=support.match(video_url.replace('/watch-unsubscribed', '/watch-external'),
-                                patron='src="([^"]+)').match, quality=''))
-    itemlist.append(item.clone(action='play', server='directo', title=support.config.get_localized_string(30137),
-                               url=video_url.replace('/watch-unsubscribed', '/watch')))
+                                patron='allowfullscreen[^<]+src="([^"]+)"').match, quality=''))
+    # itemlist.append(item.clone(action='play', server='directo', title=support.config.get_localized_string(30137),
+    #                            url=video_url.replace('/watch-unsubscribed', '/watch')))
     return support.server(item, itemlist=itemlist)
 
 
 def play(item):
     if host in item.url:  # intercetto il server proprietario
         if registerOrLogin():
-            return support.get_jwplayer_mediaurl(httptools.downloadpage(item.url).data, 'Diretto')
+            return support.get_jwplayer_mediaurl(cf.get(item.url).text, 'Diretto')
         else:
             platformtools.play_canceled = True
             return []

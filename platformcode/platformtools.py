@@ -364,7 +364,7 @@ def render_items(itemlist, parent_item):
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
     if parent_item.list_type == '':
-        breadcrumb = parent_item.category.capitalize()
+        breadcrumb = parent_item.category #.capitalize()
     else:
         if 'similar' in parent_item.list_type:
             if parent_item.contentTitle != '':

@@ -2,7 +2,7 @@
 	"id": "dsda",
 	"name": "D.S.D.A",
 	"language": ["ita"],
-	"active": true,
+	"active": false,
 	"thumbnail": "dsda.png",
 	"banner": "dsda.png",
 	"categories": ["documentary"],
