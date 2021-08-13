@@ -5,9 +5,7 @@
 
 from __future__ import division
 from __future__ import absolute_import
-from servers.akvideo import get_video_url
-from core.autoplay import servername
-# from core.support import server
+
 import sys
 import os
 PY3 = False
