@@ -5,7 +5,11 @@
 
 from __future__ import division
 from __future__ import absolute_import
+from servers.akvideo import get_video_url
+from core.autoplay import servername
+from core.support import server
 import sys
+import os
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -860,3 +864,63 @@ def translate_server_name(name):
 #         server_json = None
 #
 #     return server_json
+
+if PY3:
+    import requests
+    from pymediainfo import MediaInfo
+
+    def correct_onlinemedia_info(video_itemlist):
+        
+        def get_onlinevideo_information(url:str):
+            video_chunk = "videooutput"
+
+            try:
+                r = requests.get(url, stream=True)
+                with open(video_chunk, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=100000):
+                        if chunk:
+                            f.write(chunk)
+                            break
+            except Exception as e:
+                logger.error(e)
+                sys.exit(1)
+
+            media_info = MediaInfo.parse(video_chunk)  # analyses the file in the location passed by ther variable "url"
+            for track in media_info.tracks:
+                if track.track_type == "Video":  # there can be video tracks and audio tracks, we ensure it is the video one
+                    videoinfo = track.to_data()  # save all the data as a dictionary in the variable "videoinfo"
+
+            os.remove(video_chunk)  # remove the video chunck downloaded at the beginning to retrieve the necessary information
+            return videoinfo
+
+        def determine_video_resolution(info_video:dict):
+            info_dict = dict()
+            resolutions = {"sd_width" : 720, "hd_width" : 1366, "fullhd_width" : 1920, "2k" : 2560, "4k" : 3840}
+
+            if info_video["width"] <= resolutions["sd_width"]:
+                info_dict["resolution_label"] = "SD"
+            elif info_video["width"] <= resolutions["hd_width"]:
+                info_dict["resolution_label"] = "HD"
+            elif info_video["width"] <= resolutions["fullhd_width"]:
+                info_dict["resolution_label"] = "Full HD"
+            elif info_video["width"] <= resolutions["2k"]:
+                info_dict["resolution_label"] = "2K"
+            elif info_video["width"] <= resolutions["4k"]:
+                info_dict["resolution_label"] = "4K"
+            
+            info_dict["resolution"] = "%s x %s" %(info_video["width"], info_video["height"])
+            info_dict["bit_rate"] = info_video["bit_rate"]
+
+            return info_dict
+
+        for item in video_itemlist:
+            url_list, url_exists, errors = resolve_video_urls_for_playing(item.server)
+            if url_exists:
+                for url in url_list:
+                    video_quality = determine_video_resolution(get_onlinevideo_information(url))
+                    item.title = item.title.append(video_quality["resolution_label"], video_quality["resolution"], video_quality["bit_rate"])
+                    item.quality = video_quality["resolution_label"]
+                    item.resolution = video_quality["resolution"]
+                    item.bitrate = video_quality["bit_rate"]
+        
+        return video_itemlist
