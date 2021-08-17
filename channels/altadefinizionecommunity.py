@@ -139,7 +139,8 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
     else:
-        data = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).data
+        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
+        data = "\n".join(json['data'])
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
@@ -156,7 +157,6 @@ def peliculas(item):
 
 def search(item, texto):
     support.info("search ", texto)
-    # support.dbg()
 
     item.args = 'search'
     item.url = host + "/search?s={}&page=1".format(texto)
