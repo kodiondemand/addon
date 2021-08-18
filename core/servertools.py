@@ -696,7 +696,7 @@ def sort_servers(servers_list):
 
     sorted_list = []
     url_list_valid = []
-    favorite_quality = [quality_list.reverse() if config.get_setting('default_action') == 1 else quality_list]
+    favorite_quality = quality_list.reverse() if config.get_setting('default_action') == 1 else quality_list
 
     # Priorities when ordering itemlist:
     #       0: Servers and Qualities
@@ -758,7 +758,7 @@ def sort_servers(servers_list):
     elif priority == 1: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['indice_server'])) # Qualities and Servers
     elif priority == 2: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'])) # Servers only
     elif priority == 3: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'])) # Only qualities
-    else: sorted_list.sort(key=lambda row: row['indice_language'])
+    else: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality']))
 
     return [v['videoitem'] for v in sorted_list if v]
 

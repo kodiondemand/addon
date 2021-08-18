@@ -27,13 +27,11 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    # from core .support import dbg;dbg()
 
     video_urls = []
-    possible_url = ''
-    find_url = match(data, patron=r'''innerHTML = ["']([^"]+)["'](?:\s*\+\s*['"]([^"']+))?''').match
-    for m in find_url:
-        possible_url += m
+    find_url = match(data, patron=r'''innerHTML = ["']([^"]+)["'](?:\s*\+\s*['"(]+([^"']+))?''').match
+    possible_url = find_url[0]
+    possible_url += find_url[1][2:]
 
     if not possible_url:
         possible_url = match(data, patron=r"innerHTML\\'\]=\\'([^']+)").match

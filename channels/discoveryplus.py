@@ -35,7 +35,9 @@ def mainlist(item):
 
 def liveDict():
     livedict = {}
-    for key in session.get(api + '/cms/routes/home?decorators=viewingHistory&include=default', headers=headers).json()['included']:
+
+    for key in session.get(api + '/cms/routes/canali?decorators=viewingHistory&include=default', headers=headers).json()['included']:
+
         if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
             title = key['attributes']['name']
             livedict[title] = {}

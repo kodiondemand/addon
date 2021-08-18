@@ -138,6 +138,7 @@ def newest(categoria):
 
 
 def check(item):
+    item.contentType = 'tvshow'
     def get_season(pageData, seas_url, season):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
@@ -155,7 +156,7 @@ def check(item):
     url = support.match(item, patron=r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
     seasons = support.match(url, patronBlock=patron_season, patron=patron_option)
     if not seasons.match:
-        item.contentType = 'tvshow'
+        item.contentType = 'movie'
         return findvideos(item)
 
     data = ''

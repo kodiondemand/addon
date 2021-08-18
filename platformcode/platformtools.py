@@ -364,7 +364,7 @@ def render_items(itemlist, parent_item):
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
     if parent_item.list_type == '':
-        breadcrumb = parent_item.category.capitalize()
+        breadcrumb = parent_item.category #.capitalize()
     else:
         if 'similar' in parent_item.list_type:
             if parent_item.contentTitle != '':
@@ -614,7 +614,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append((config.get_localized_string(60350), "Container.Refresh (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
-        if item.channel != "videolibrary" and item.videolibrary != False:
+        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
                 context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
@@ -625,7 +625,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             elif item.action in ['check'] and item.contentTitle:
                 context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
 
-        if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
+        if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled') and not item.disable_videolibrary:
             # Download movie
             if item.contentType == "movie":
                 context_commands.append((config.get_localized_string(60354), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))

@@ -5760,8 +5760,8 @@ msgid "Open in browser"
 msgstr "Apri nel browser"
 
 msgctxt "#70740"
-msgid "Your system does not have a web browser, so here's the short link you can open in another device:\n%s"
-msgstr "Il tuo sistema non ha un browser, quindi ecco un link corto che puoi aprire in un altro dispositivo\n%s"
+msgid "Your system does not have a web browser, so here's the link you can open in another device:\n%s"
+msgstr "Il tuo sistema non ha un browser, quindi ecco il link che puoi aprire in un altro dispositivo:\n%s"
 
 msgctxt "#70741"
 msgid "Search %s"

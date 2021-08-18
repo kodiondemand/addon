@@ -59,6 +59,7 @@ class UnshortenIt(object):
     def unshorten(self, uri, type=None):
         code = 0
         while True:
+            uri = uri.strip()
             oldUri = uri
             domain = urlsplit(uri).netloc
             if not domain:

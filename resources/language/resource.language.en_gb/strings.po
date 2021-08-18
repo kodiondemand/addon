@@ -5760,7 +5760,7 @@ msgid "Open in browser"
 msgstr ""
 
 msgctxt "#70740"
-msgid "Your system does not have a web browser, so here's the short link you can open in another device:\n%s"
+msgid "Your system does not have a web browser, so here's the link you can open in another device:\n%s"
 msgstr ""
 
 msgctxt "#70741"

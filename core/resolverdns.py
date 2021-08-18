@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import os, sys, ssl
+import datetime, sys, ssl
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3:
@@ -23,6 +23,8 @@ elif 'PROTOCOL_SSLv23' in ssl.__dict__:
     protocol = ssl.PROTOCOL_SSLv23
 else:
     protocol = ssl.PROTOCOL_SSLv3
+
+current_date = datetime.datetime.now()
 
 
 class CustomContext(ssl.SSLContext):
@@ -54,10 +56,13 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         return self.send(request, flushedDns=True, **kwargs)
 
     def getIp(self, domain):
-        ip = db['dnscache'].get(domain, None)
-        logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
+        cache = db['dnscache'].get(domain, {})
+        ip = None
+        if type(cache) != dict or (cache.get('datetime') and
+                                   current_date - cache.get('datetime') > datetime.timedelta(days=7)):
+            cache = None
 
-        if not ip:  # not cached
+        if not cache:  # not cached
             try:
                 ip = doh.query(domain)[0]
                 logger.info('Query DoH: ' + domain + ' = ' + str(ip))
@@ -65,11 +70,14 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
             except Exception:
                 logger.error('Failed to resolve hostname, fallback to normal dns')
                 import traceback
-                logger.error(traceback.print_exc())
+                logger.error(traceback.format_exc())
+        else:
+            ip = cache.get('ip')
+        logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
         return ip
 
     def writeToCache(self, domain, ip):
-        db['dnscache'][domain] = ip
+        db['dnscache'][domain] = {'ip': ip, 'datetime': current_date}
 
     def init_poolmanager(self, *args, **kwargs):
         kwargs['ssl_context'] = self.ssl_context

@@ -8,6 +8,23 @@
     "categories": ["movie", "tvshow", "documentary", "live"],
     "not_active": ["include_in_newest"],
     "default_off": ["include_in_global_search"],
-    "settings": [],
-    "cloudflare": true
+    "settings": [
+        {
+            "id": "mpd",
+            "type": "bool",
+            "label": "Preferisci mpd",
+            "default": true,
+            "enabled": true,
+            "visible": true
+        },
+        {
+            "id": "pagination",
+            "type": "list",
+            "label": "Pagination",
+            "default": 1,
+            "enabled": true,
+            "visible": true,
+            "lvalues": ["10", "20", "30", "40", "50", "60", "70", "80", "90", "100"]
+          }
+    ]
 }

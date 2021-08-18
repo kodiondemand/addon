@@ -64,7 +64,7 @@ validUrlRegex = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-chBlackList = ['url', 'mediasetplay']
+chBlackList = ['url', 'mediasetplay', 'metalvideo']
 srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {
@@ -76,7 +76,7 @@ chNumRis = {
     },
     'altadefinizioneclick': {
         'Film': 36,
-        'Serie TV': 12,
+        'Serie TV': 36,
     },
     'casacinema': {
         'Film': 10,

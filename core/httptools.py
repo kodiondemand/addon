@@ -285,12 +285,16 @@ def downloadpage(url, **opt):
     parse = urlparse.urlparse(url)
     domain = parse.netloc
 
-    from lib import requests
-    session = requests.session()
+    if opt.get('cloudscraper'):
+        from lib import cloudscraper
+        session = cloudscraper.create_scraper()
+    else:
+        from lib import requests
+        session = requests.session()
 
-    if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
-        from core import resolverdns
-        session.mount('https://', resolverdns.CipherSuiteAdapter(domain))
+        if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
+            from core import resolverdns
+            session.mount('https://', resolverdns.CipherSuiteAdapter(domain))
 
     req_headers = default_headers.copy()
 
