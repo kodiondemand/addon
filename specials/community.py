@@ -414,14 +414,20 @@ def findvideos(item):
         extra = set_extra_values(item, option, item.path)
         mimetype = mimetypes.MimeTypes().guess_type(option['url'])[0]
         if mimetype is None:
-            itemlist_url = []
             data = support.match(option['url']).data
             itemlist_url = servertools.find_video_items(data=data)
 
             if len(itemlist_url):
                 for item_url in itemlist_url:
-                    if is_valid_url(item_url.url) and not mimetypes.MimeTypes().guess_type(item_url.url)[0] is None:
-                        # logger.debug('DEBUG', item_url.url)
+                    valid = True
+                    if 'patterns' in item.url and item.url['patterns']:
+                        valid = False
+                        for pattern in item.url['patterns']:
+                            match = re.search(re.compile(pattern), item_url.url)
+                            if match:
+                                valid = True
+                                break
+                    if valid:
                         itemlist.append(
                             item_url.clone(channel=item.channel, action='play')
                         )
@@ -442,18 +448,6 @@ def findvideos(item):
 
     item.url = ''  # do not pass referer
     return support.server(item, itemlist=itemlist, Videolibrary=videolibrary)
-
-
-def is_valid_url(url):
-    # import re
-    regex = re.compile(
-        r'^https?://'  # http:// or https://
-        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
-        r'localhost|'  # localhost...
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
-    return url is not None and regex.search(url)
 
 
 ################################   Menu   ################################
@@ -740,6 +734,8 @@ def set_extra_values(item, json, path):
         elif key == 'links':
             ret.url = {}
             ret.url['links'] = json[key]
+            if 'patterns' in json:
+                ret.url['patterns'] = json['patterns']
             if 'videolibrary' in json:
                 ret.url['videolibrary'] = json['videolibrary']
             if 'autoplay' in json:
