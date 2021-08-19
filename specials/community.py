@@ -404,23 +404,27 @@ def findvideos(item):
     # logger.debug('DEBUG', item)
     item.contentTitle = item.fulltitle
     itemlist = []
+    json = []
     if 'links' in item.url:
         json = item.url['links']
     else:
-        json = item.url
+        json.append({"url": item.url})
 
     # support.dbg()
     for option in json:
         extra = set_extra_values(item, option, item.path)
+        mimetype = findS = None
         mimetype = mimetypes.MimeTypes().guess_type(option['url'])[0]
         if mimetype is None:
+            findS = servertools.get_server_from_url(option['url'])
+        if mimetype is None and findS is None:
             data = support.match(option['url']).data
             itemlist_url = servertools.find_video_items(data=data)
 
             if len(itemlist_url):
                 for item_url in itemlist_url:
                     valid = True
-                    patterns = item.url.get('patterns')
+                    patterns = item.url.get('patterns', False)
                     if patterns:
                         valid = False
                         for pattern in patterns:
@@ -440,12 +444,8 @@ def findvideos(item):
                            contentLanguage=extra.language,
                            extraInfo=extra.info))
 
-    videolibrary = True
-    if 'videolibrary' in item.url:
-        videolibrary = True if item.url['videolibrary'] else False
-
-    if 'autoplay' in item.url and item.url['autoplay']:
-        item.autoplay = True
+    videolibrary = item.url.get('videolibrary', True)
+    item.autoplay = item.url.get('autoplay', False)
 
     item.url = ''  # do not pass referer
     return support.server(item, itemlist=itemlist, Videolibrary=videolibrary)
