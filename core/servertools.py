@@ -772,7 +772,7 @@ def check_list_links(itemlist, numero='', timeout=3):
     """
     Check a list of video links and return it by modifying the title with verification.
     The number parameter indicates how many links to check (0:5, 1:10, 2:15, 3:20)
-    The timeout parameter indicates a waiting limit to download the page
+    The timeout parameter indicates a waiting limit to download the page.
     """
     numero = numero if numero > 4 else ((int(numero) + 1) * 5) if numero != '' else 5
     import sys
@@ -868,10 +868,34 @@ def translate_server_name(name):
 if PY3:
     from pymediainfo import MediaInfo
 
-    def correct_onlinemedia_info(video_itemlist):
-        
-        def get_onlinevideo_information(url:str):
-            video_chunk = "videooutput"
+    def correct_onlinemedia_info(video_itemlist:list):
+        """This function aims at correctly identifying video information
+        of an online mediafile and writes them back selectively in the corresponding 
+        properties of each Item;
+        -------------------
+        Parameters
+        -------------------
+        - video_itemlist: a list of Items (custom type)
+        -------------------
+
+        @return: it returns the modified parameter passed to the function "video_itemlist"
+        @rtype: list.
+        """
+
+        def get_onlinevideo_chunck(url:str):
+            """This function downloads a chunck of the mediafile which resides at the link
+            provided as parameter to the function and returns the path to it;
+            -------------------
+            Parameters
+            -------------------
+            - url: a string containig the url/link to the video/mediafile you want to gather info from
+            -------------------
+
+            @return: the path to the "video_chunk"
+            @rtype: string.
+            """
+
+            video_chunk = "./header_mediafile"
 
             try:
                 r = requests.get(url, stream=True)
@@ -884,32 +908,47 @@ if PY3:
                 logger.error(e)
                 sys.exit(1)
 
-            media_info = MediaInfo.parse(video_chunk)  # analyses the file in the location passed by ther variable "url"
-            for track in media_info.tracks:
-                if track.track_type == "Video":  # there can be video tracks and audio tracks, we ensure it is the video one
-                    videoinfo = track.to_data()  # save all the data as a dictionary in the variable "videoinfo"
+            return video_chunk
 
-            os.remove(video_chunk)  # remove the video chunck downloaded at the beginning to retrieve the necessary information
-            return videoinfo
+        def gather_video_info(path_to_videochunk:str):
+            """This function determines and generates a dictionary containing
+            the correct "resolution", "resolution_label" and "bit_rate" of a video file;
+            -------------------
+            Parameters
+            -------------------
+            - path_to_videochunk: path to the video chunk downloaded previously
+            -------------------
 
-        def determine_video_resolution(info_video:dict):
-            info_dict = dict()
+            @return: it returns a dictionary containing only the selected video information ("resolution", "resolution_label" and "bit_rate")
+            @rtype: dictionary
+            """
+            info_dict = dict()  # dictionary to store resolution, resolution_label and bitrate information that will be returned
             resolutions = {"sd_width" : 720, "hd_width" : 1366, "fullhd_width" : 1920, "2k" : 2560, "4k" : 3840}
 
-            if info_video["width"] <= resolutions["sd_width"]:
+            media_info = MediaInfo.parse(path_to_videochunk)  # analyses the file in the "path_to_videochunk" location
+            for track in media_info.tracks:
+                if track.track_type == "Video":               # there can be video tracks and audio tracks, we ensure it is the video one
+                    videoinfo = track.to_data()               # save all the data as a dictionary in the variable "videoinfo"
+
+            # if the width information available in the dictionary passed as parameter 
+            # to the function is comparable to the dictionary of "resolutions" defined above:
+                # set the "resolution_label" accordingly
+            if videoinfo["width"] <= resolutions["sd_width"]:
                 info_dict["resolution_label"] = "SD"
-            elif info_video["width"] <= resolutions["hd_width"]:
+            elif videoinfo["width"] <= resolutions["hd_width"]:
                 info_dict["resolution_label"] = "HD"
-            elif info_video["width"] <= resolutions["fullhd_width"]:
+            elif videoinfo["width"] <= resolutions["fullhd_width"]:
                 info_dict["resolution_label"] = "Full HD"
-            elif info_video["width"] <= resolutions["2k"]:
+            elif videoinfo["width"] <= resolutions["2k"]:
                 info_dict["resolution_label"] = "2K"
-            elif info_video["width"] <= resolutions["4k"]:
+            elif videoinfo["width"] <= resolutions["4k"]:
                 info_dict["resolution_label"] = "4K"
             
-            info_dict["resolution"] = "%s x %s" %(info_video["width"], info_video["height"])
-            info_dict["bit_rate"] = info_video["bit_rate"]
+            info_dict["resolution"] = (f'{videoinfo["width"]} x {videoinfo["height"]}')
+            info_dict["bit_rate"] = videoinfo["bit_rate"]
 
+            os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
+            
             return info_dict
 
         for item in video_itemlist:
@@ -917,7 +956,7 @@ if PY3:
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
                 try:
-                    video_quality = determine_video_resolution(get_onlinevideo_information(url_list[0]))
+                    video_quality = gather_video_info(get_onlinevideo_chunck(url_list[0]))
                 except Exception as e:
                     logger.error(e)
                     item.title = item.title.append("... x ...", "unknown bit_rate")
