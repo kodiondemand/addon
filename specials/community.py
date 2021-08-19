@@ -420,10 +420,11 @@ def findvideos(item):
             if len(itemlist_url):
                 for item_url in itemlist_url:
                     valid = True
-                    if 'patterns' in item.url and item.url['patterns']:
+                    patterns = item.url.get('patterns')
+                    if patterns:
                         valid = False
-                        for pattern in item.url['patterns']:
-                            match = re.search(re.compile(pattern), item_url.url)
+                        for pattern in patterns:
+                            match = re.search(pattern, item_url.url)
                             if match:
                                 valid = True
                                 break
