@@ -74,7 +74,6 @@ def mark_auto_as_watched(item):
 
             # check for next Episode
             if next_episode and sync and time_from_end >= difference:
-                support.dbg()
                 nextdialog = NextDialog(ND, config.get_runtime_path())
                 while platformtools.is_playing() and not nextdialog.is_exit():
                     xbmc.sleep(100)
