@@ -5,6 +5,6 @@
 	"active": true,
 	"thumbnail": "cb01.png",
 	"banner": "cb01.png",
-	"categories": ["tvshow", "movie", "sub, "documentary"],
+	"categories": ["tvshow", "movie", "sub", "documentary"],
 	"settings": []
 }

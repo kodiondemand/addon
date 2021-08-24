@@ -453,7 +453,9 @@ class addTvShow(object):
         self.info = self.item.infoLabels
         self.seasons = videolibrarydb['season'][self.item.videolibrary_id]
         self.episodes = videolibrarydb['episode'][self.item.videolibrary_id]
-        self.imdb_id, self.tmdb_id, self.tvdb_id = self.info['code']
+        self.imdb_id = self.info.get('imdb_id', '')
+        self.tmdb_id = self.info.get('tmdb_id', '')
+        self.tvdb_id = self.info.get('tvdb_id', '')
         self.exist, self.idShow = self.get_idShow()
         self.idSeasons = self.get_idSeasons()
         self.idEpisodes = self.get_idEpisodes()

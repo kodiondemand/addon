@@ -17,7 +17,7 @@ from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools
+from core import filetools, httptools, jsontools, scrapertools, support
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 import threading
@@ -965,13 +965,8 @@ class Tmdb(object):
                             result = result["tv_results"][0]
                         else:
                             result = result['tv_episode_results'][0]
-                if result.get('id'):
-                    Mpaaurl = '{}/{}/{}/{}?api_key={}'.format(host, self.search_type, result['id'], 'release_dates' if self.search_type == 'movie' else 'content_ratings', api)
-                    Mpaas = self.get_json(Mpaaurl).get('results',[])
-                    for m in Mpaas:
-                        if m.get('iso_3166_1','').lower() == 'us':
-                            result['mpaa'] = m.get('rating', m.get('release_dates', [{}])[0].get('certification'))
-                            break
+
+                result = self.get_mpaa(result)
 
                 self.results = [result]
                 self.total_results = 1
@@ -1041,6 +1036,8 @@ class Tmdb(object):
             self.total_results = total_results
             self.total_pages = total_pages
             self.result = ResultDictDefault(self.results[index_results])
+            if not config.get_setting('tmdb_plus_info'):
+                self.result = self.get_mpaa(self.result)
             return len(self.results)
 
         else:
@@ -1785,6 +1782,16 @@ class Tmdb(object):
 
         return ret_infoLabels
 
+    def get_mpaa(self, result):
+        if result.get('id'):
+            Mpaaurl = '{}/{}/{}/{}?api_key={}'.format(host, self.search_type, result['id'], 'release_dates' if self.search_type == 'movie' else 'content_ratings', api)
+            Mpaas = self.get_json(Mpaaurl).get('results',[])
+            for m in Mpaas:
+                if m.get('iso_3166_1','').lower() == 'us':
+                    result['mpaa'] = m.get('rating', m.get('release_dates', [{}])[0].get('certification'))
+                    break
+        return result
+
 
 def get_season_dic(season):
     ret_dic = dict()
@@ -1800,7 +1807,7 @@ def get_season_dic(season):
     seasonCredits = season.get('credits', {})
     seasonPosters = season.get('images',{}).get('posters',{})
     seasonFanarts = season.get('images',{}).get('backdrops',{})
-    seasonTrailers = season.get('videos',[]).get('results',[])
+    seasonTrailers = season.get('videos',{}).get('results',[])
 
     ret_dic["season_title"] = seasonTitle
     ret_dic["season_plot"] = seasonPlot

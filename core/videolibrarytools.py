@@ -802,8 +802,9 @@ def add_tvshow(item, channel=None, itemlist=[]):
             itemlist = getattr(channel, it.action)(it)
         item.host = channel.host
         if itemlist:
+            # support.dbg()
             from platformcode.autorenumber import start, check
-            if not check(item):
+            if not check(item, itemlist):
                 action = item.action
                 item.setrenumber = True
                 start(item)
@@ -877,7 +878,8 @@ def get_fanart_tv(item, set='', ret={}):
             d[k['season']] = o
         return d
 
-    _id = item.infoLabels.get('tvdb_id', item.infoLabels.get('tmdb_id'))
+    _id = item.infoLabels.get('tmdb_id')
+    # support.dbg()
 
     if _id:
         _type = item.contentType.replace('show','').replace('movie','movies')

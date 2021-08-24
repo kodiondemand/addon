@@ -1,0 +1,17 @@
+{
+    "active": true,
+    "find_videos": {
+        "ignore_urls": [],
+        "patterns": [{
+        "pattern": "streamon\\.to/d/(\\w+)",
+        "url": "https://streamon.to/d/\\1"
+        }]
+    },
+    "free": true,
+    "id": "streamon",
+    "name": "Streamon",
+    "premium": [
+    ],
+    "settings": [
+    ]
+}

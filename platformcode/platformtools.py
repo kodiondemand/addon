@@ -351,8 +351,6 @@ def render_items(itemlist, parent_item):
 
         if item.category == "":
             item.category = parent_item.category
-        if not item.title:
-            item.title = item.contentTitle
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
         if item.action in ['play', '']:
             item.folder = False
@@ -366,7 +364,9 @@ def render_items(itemlist, parent_item):
         title = item.title
         episode = ''
 
-        if (parent_item.channel not in ['videolibrary'] or item.server) and title[:1] not in ['[', '•']:
+        if title[:1] not in ['[', '•']:
+            if item.contentSerieName: title = item.contentSerieName
+            elif item.contentTitle: title = item.contentTitle
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:
@@ -416,15 +416,15 @@ def render_items(itemlist, parent_item):
             context_commands = def_context_commands
         listitem.addContextMenuItems(context_commands)
         return item, item_url, listitem
+    # from core.support import dbg;dbg()
+    r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
+    # r_list = []
 
-    # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
-    r_list = []
-
-    with futures.ThreadPoolExecutor() as executor:
-        searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
-        for res in futures.as_completed(searchList):
-            r_list.append(res.result())
-    r_list.sort(key=lambda it: it[0].itemlistPosition)
+    # with futures.ThreadPoolExecutor() as executor:
+    #     searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
+    #     for res in futures.as_completed(searchList):
+    #         r_list.append(res.result())
+    # r_list.sort(key=lambda it: it[0].itemlistPosition)
 
     for item, item_url, listitem in r_list:
         dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder, len(r_list)))
@@ -685,12 +685,12 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if item.channel != "videolibrary" and item.videolibrary != False:
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
-                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
             # Add Movie to Video Library
             elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_movie_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_movie_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
             elif item.action in ['check'] and item.contentTitle or item.contentSerieName:
-                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
+                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
             # Download movie
@@ -1794,10 +1794,10 @@ def get_played_time(item):
     result = None
 
     try:
-        if item.contentType == 'movie':
-            result = db['viewed'].get(ID)
-        elif S and E:
+        if S and E:
             result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
+        else:
+            result = db['viewed'].get(ID)
 
         if result:
             played_time = result

@@ -28,7 +28,9 @@ MANUALMODE = 'manual'
 GROUP = 'info'
 
 # helper Functions
-def check(item):
+def check(item, itemlist=None):
+    if itemlist and itemlist[0].contentSeason:
+        return True
     logger.debug()
     dict_series = load(item)
     title = item.fulltitle.rstrip()

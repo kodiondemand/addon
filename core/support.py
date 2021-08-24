@@ -562,12 +562,12 @@ def scrape(func):
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
 
-        if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
-            if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
-                # item.fulltitle = item.infoLabels["title"]
-                videolibrary(itemlist, item, function=function)
-            if downloadEnabled and function == 'episodios' or function == 'findvideos':
-                download(itemlist, item, function=function)
+        # if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
+        #     if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
+        #         # item.fulltitle = item.infoLabels["title"]
+        #         videolibrary(itemlist, item, function=function)
+        #     if downloadEnabled and function == 'episodios' or function == 'findvideos':
+        #         download(itemlist, item, function=function)
 
         if 'patronGenreMenu' in args and itemlist:
             itemlist = thumb(itemlist, genre=True)
@@ -1043,7 +1043,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
                          from_action=from_action,
                          contentTitle=contentTitle,
                          path=item.path,
-                         thumbnail=thumb('downloads'),
+                         thumbnail=thumb('download'),
                          downloadItemlist=downloadItemlist
                     ))
             if from_action == 'episodios':
@@ -1060,7 +1060,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
                          from_action=from_action,
                          contentTitle=contentTitle,
                          download='season',
-                         thumbnail=thumb('downloads'),
+                         thumbnail=thumb('download'),
                          downloadItemlist=downloadItemlist
                 ))
 
@@ -1193,7 +1193,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                             info(videoitem, 'Non supportato')
                             return
                 videoitem.server = findS[2]
-                videoitem.title= findS[0]
+                videoitem.serverName= findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
             else:
@@ -1201,9 +1201,10 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
 
         if videoitem.video_urls or srv_param.get('active', False):
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
+            # videoitem = item.clone(url=videoitem.url, serverName=videoitem.serverName, server=videoitem.server, action='play')
             videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
             videoitem.serverName = videoitem.title if videoitem.server == 'directo' else servertools.get_server_parameters(videoitem.server).get('name', videoitem.server.capitalize())
-            videoitem.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
+            # videoitem.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
             videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle
@@ -1362,7 +1363,6 @@ def addQualityTag(item, itemlist, data, patron):
 
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
-
     video_urls = []
     block = scrapertools.find_single_match(data, r'sources:\s*([^\]]+\])') if not dataIsBlock else data
     if block:

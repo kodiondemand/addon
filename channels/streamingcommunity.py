@@ -177,7 +177,7 @@ def episodios(item):
         for it in episodes['episodes']:
             itemlist.append(
                 support.Item(channel=item.channel,
-                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + it['name'], 'bold'),
+                             title=it['name'],
                              episode = it['number'],
                              season=episodes['number'],
                              thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
@@ -185,6 +185,8 @@ def episodios(item):
                              plot=it['plot'],
                              action='findvideos',
                              contentType='episode',
+                             contentSeason = int(episodes['number']),
+                             contentEpisodeNumber = int(it['number']),
                              contentSerieName=item.fulltitle,
                              url=host + '/watch/' + str(episodes['title_id']),
                              episodeid= '?e=' + str(it['id'])))
