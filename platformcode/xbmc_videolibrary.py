@@ -26,10 +26,9 @@ def mark_auto_as_watched(item):
         actual_time = 0
         total_time = 0
 
-        time_limit = time.time() + 30
+        time_limit = time.time() + 10
         while not platformtools.is_playing() and time.time() < time_limit:
             time.sleep(1)
-
 
         marked = False
         sync = False
@@ -38,6 +37,7 @@ def mark_auto_as_watched(item):
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
+
         if item.contentType != 'movie' and 0 < config.get_setting('next_ep') < 3:
             next_dialogs = ['NextDialog.xml', 'NextDialogExtended.xml', 'NextDialogCompact.xml']
             next_ep_type = config.get_setting('next_ep_type')
@@ -46,7 +46,8 @@ def mark_auto_as_watched(item):
             except: next_episode = False
             logger.debug(next_episode)
 
-        while platformtools.is_playing():
+        while not xbmc.Monitor().abortRequested():
+            if not platformtools.is_playing(): break
             try: actual_time = xbmc.Player().getTime()
             except: pass
             try: total_time = xbmc.Player().getTotalTime()
@@ -111,6 +112,7 @@ def mark_auto_as_watched(item):
     # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
+
 
 
 def sync_trakt_addon(path_folder):
