@@ -365,8 +365,8 @@ def render_items(itemlist, parent_item):
         episode = ''
 
         if title[:1] not in ['[', '•']:
-            if item.contentSerieName: title = item.contentSerieName
-            elif item.contentTitle: title = item.contentTitle
+            if item.contentTitle: title = item.contentTitle
+            elif item.contentSerieName: title = item.contentSerieName
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:

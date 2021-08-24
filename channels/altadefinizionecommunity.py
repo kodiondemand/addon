@@ -195,9 +195,11 @@ def episodios(item):
         spl = it.url.split('/')[-2:]
         it.infoLabels['season'] = int(spl[0])+1
         it.infoLabels['episode'] = int(spl[1])+1
+        it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
         return it
 
     return locals()
+
 
 def check(item):
     if '/watch-unsubscribed' not in item.url:
@@ -208,13 +210,14 @@ def check(item):
             item.contentType = 'tvshow'
             return episodios(item)
         else:
-            item.video_url = video_url.replace('/watch-unsubscribed', '/watch-external')
+            item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
+            item.contentType = 'movie'
             return findvideos(item)
 
 def findvideos(item):
     itemlist = []
 
-    itemlist.append(item.clone(action='play', url=support.match(item.video_url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
+    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
 
     return support.server(item, itemlist=itemlist)
 

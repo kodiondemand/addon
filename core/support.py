@@ -562,12 +562,12 @@ def scrape(func):
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
 
-        # if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
-        #     if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
-        #         # item.fulltitle = item.infoLabels["title"]
-        #         videolibrary(itemlist, item, function=function)
-        #     if downloadEnabled and function == 'episodios' or function == 'findvideos':
-        #         download(itemlist, item, function=function)
+        if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
+            if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
+                # item.fulltitle = item.infoLabels["title"]
+                videolibrary(itemlist, item, function=function)
+            if downloadEnabled and function == 'episodios' or function == 'findvideos':
+                download(itemlist, item, function=function)
 
         if 'patronGenreMenu' in args and itemlist:
             itemlist = thumb(itemlist, genre=True)

@@ -105,7 +105,7 @@ def mainlist(item):
     # If there is any pending
     if 1 in estados or 0 in estados:
         itemlist.insert(0, Item(channel=item.channel, action="download_all", title=support.typo(config.get_localized_string(70220),'bold'),
-                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('downloads'),
+                                contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('download'),
                                 contentSerieName=item.contentSerieName))
 
     if len(itemlist):

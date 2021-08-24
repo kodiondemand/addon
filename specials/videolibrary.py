@@ -49,7 +49,25 @@ def search_list(item):
 
 
 def list_az(item):
-    return [item.clone(title=i, action=item.next_action) for i in ['A','B','C','D','I','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']]
+    videos = dict(videolibrarydb[item.contentType]).values()
+    videolibrarydb.close()
+    cast = []
+    for v in videos:
+        if item.next_action == 'list_actors':
+            v = v['item'].infoLabels['castandrole']
+        else:
+            v = v['item'].infoLabels
+            if 'director' in v:
+                v = v.get('director').split(',')
+            else:
+                v= v.get('writer').split(',')
+        cast += [c[0].strip() for c in v]
+
+    az = [] #[c[0] for c in cast if c[0] not in az]
+    for c in cast:
+        if c[0] not in az:
+            az.append(c[0])
+    return [item.clone(title=i, action=item.next_action) for i in az]#['A','B','C','D','I','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']]
 
 
 def list_genres(item):
@@ -88,14 +106,18 @@ def list_directors(item):
     directors = []
     director_images = []
     for v in videos:
-        directors += v['item'].infoLabels['director'].split(',')
-        director_images += v['item'].infoLabels['director_image']
-
+        v = v['item'].infoLabels
+        if 'director' in v:
+            directors += v['director'].split(',')
+            director_images += v['director_image']
+        else:
+            directors += v['writer'].split(',')
+            director_images += v['writer_image']
     itemlist = []
     for i, d in enumerate(directors):
         d = d.strip()
         if d and d[0][0] == item.title and d not in [it.director for it in itemlist]:
-            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d, thumbnail=director_images[i])
+            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d, thumbnail=director_images[i] if len(director_images) > i else '')
             itemlist.append(it)
 
     itemlist.sort(key=lambda it: it.director)
@@ -284,9 +306,10 @@ def get_episodes(item):
         it = ep['item']
 
         if it.contentSeason == item.contentSeason or item.all:
-            it.title = '{}. {}'.format(it.contentEpisodeNumber, it.title)
             if config.get_setting('no_pile_on_seasons', 'videolibrary') == 2 or item.all:
-                it.title = '{}x{}'.format(it.contentSeason, it.title)
+                it.onlyep = False
+            else:
+                it.onlyep = True
             it = get_host(it)
             it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
             if it.window:
@@ -955,7 +978,7 @@ def add_download_items(item, itemlist):
                                 from_action='findvideos',
                                 contentTitle=config.get_localized_string(60355),
                                 path=item.path,
-                                thumbnail=thumb('downloads'),
+                                thumbnail=thumb('download'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
