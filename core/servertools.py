@@ -689,14 +689,15 @@ def sort_servers(servers_list):
         servers_list = sorted(servers_list, key=lambda x: favorite_servers.index(x) if x in favorite_servers else 999)
         return servers_list
 
-    quality_list = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
+    favorite_quality = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
                     'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
                     'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
                     'sd', '480p', '480', '360p', '360', '240p', '240']
 
     sorted_list = []
     url_list_valid = []
-    favorite_quality = quality_list.reverse() if config.get_setting('default_action') == 1 else quality_list
+    if config.get_setting('default_action') == 1:
+        favorite_quality.reverse()
 
     # Priorities when ordering itemlist:
     #       0: Servers and Qualities
@@ -729,36 +730,22 @@ def sort_servers(servers_list):
 
 
         # if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
-        element["indice_server"] = index(favorite_servers, item.server.lower())
-        element["indice_quality"] = index(favorite_quality, item.quality.lower())
+        element["index_server"] = index(favorite_servers, item.server.lower())
+        element["index_quality"] = index(favorite_quality, item.quality.lower())
 
-        # elif priority == 2:  # Servers only
-        #     element["indice_server"] = index(favorite_servers, item.server.lower())
 
-        # elif priority == 3:  # Only qualities
-        #     element["indice_quality"] = index(favorite_quality, item.quality.lower())
 
-        # else:  # Do not order
-        #     if item.url in url_list_valid:
-        #         continue
-
-        element['indice_language'] = 0 if item.contentLanguage == 'ITA' else 1
+        element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
 
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    # if priority == 0: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'], orden['indice_quality'])) # Servers and Qualities
-    # elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'], orden['indice_server'])) # Qualities and Servers
-    # elif priority == 2: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'])) # Servers only
-    # elif priority == 3: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
-    # else: sorted_list.sort(key=lambda orden: orden['indice_language'])
-
-    if priority == 0: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'], row['indice_quality'])) # Servers and Qualities
-    elif priority == 1: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['indice_server'])) # Qualities and Servers
-    elif priority == 2: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'])) # Servers only
-    elif priority == 3: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'])) # Only qualities
-    else: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality']))
+    if priority == 0: sorted_list.sort(key=lambda row: (row['index_language'], row['index_server'], row['index_quality'])) # Servers and Qualities
+    elif priority == 1: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality'], row['index_server'])) # Qualities and Servers
+    elif priority == 2: sorted_list.sort(key=lambda row: (row['index_language'], row['index_server'])) # Servers only
+    elif priority == 3: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality'])) # Only qualities
+    else: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality']))
 
     return [v['videoitem'] for v in sorted_list if v]
 

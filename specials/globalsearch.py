@@ -789,7 +789,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
 
     def play(self, server=None):
-        server.globalsearch = True
         platformtools.prevent_busy(server)
         server.window = True
+        server.globalsearch = True
         return run(server)
