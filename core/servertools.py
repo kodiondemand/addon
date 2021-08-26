@@ -695,28 +695,19 @@ def sort_servers(servers_list):
                     'sd', '480p', '480', '360p', '360', '240p', '240']
 
     sorted_list = []
-    url_list_valid = []
-    if config.get_setting('default_action') == 1:
-        favorite_quality.reverse()
+    inverted = False
+
+    if config.get_setting('default_action') == 2:
+        inverted = True
 
     # Priorities when ordering itemlist:
-    #       0: Servers and Qualities
-    #       1: Qualities and Servers
-    #       2: Servers only
-    #       3: Only qualities
-    #       4: Do not order
+    #       0: Only Qualities
+    #       1: Servers and Qualities
+    #       2: Qualities and Servers
 
-    if config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and not config.get_setting('quality_priority'):
-        priority = 0  # 0: Servers and Qualities
-    elif config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and config.get_setting('quality_priority'):
-        priority = 1  # 0: Qualities and Servers
-    elif config.get_setting('favorites_servers') and favorite_servers:
-        priority = 2  # Servers only
-    elif config.get_setting('default_action'):
-        priority = 3  # Only qualities
-    else:
-        priority = 4  # Do not order
-
+    priority = 0
+    if config.get_setting('favorites_servers') and favorite_servers: priority = 1
+    if config.get_setting('quality_priority'): priority = 2
 
     for item in servers_list:
         element = dict()
@@ -728,24 +719,16 @@ def sort_servers(servers_list):
         if item.server.lower() in blacklisted_servers:
             continue
 
-
-        # if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
         element["index_server"] = index(favorite_servers, item.server.lower())
-        element["index_quality"] = index(favorite_quality, item.quality.lower())
-
-
-
+        element["index_quality"] = platformtools.calcResolution(item.quality)
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
-
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    if priority == 0: sorted_list.sort(key=lambda row: (row['index_language'], row['index_server'], row['index_quality'])) # Servers and Qualities
-    elif priority == 1: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality'], row['index_server'])) # Qualities and Servers
-    elif priority == 2: sorted_list.sort(key=lambda row: (row['index_language'], row['index_server'])) # Servers only
-    elif priority == 3: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality'])) # Only qualities
-    else: sorted_list.sort(key=lambda row: (row['index_language'], row['index_quality']))
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'] , element['videoitem'].server))
+    elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'])) # Servers and Qualities
+    elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['index_server'])) # Qualities and Servers
 
     return [v['videoitem'] for v in sorted_list if v]
 

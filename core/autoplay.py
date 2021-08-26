@@ -39,14 +39,14 @@ def start(itemlist, item):
     if not config.is_xbmc():
         return itemlist
 
-    # Save the current value of "Action and Player Mode" in preferences
-    user_config_setting_action = config.get_setting("default_action")
-    # user_config_setting_player = config.get_setting("player_mode")
-
-    # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
-    if not user_config_setting_action: config.set_setting("default_action", 2)
-
     if config.get_setting('autoplay') or (item.channel == 'community' and item.autoplay):
+        # Save the current value of "Action and Player Mode" in preferences
+        user_config_setting_action = config.get_setting("default_action")
+        # user_config_setting_player = config.get_setting("player_mode")
+
+        # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
+        if not user_config_setting_action: config.set_setting("default_action", 2)
+
         from core.servertools import sort_servers
         autoplay_list = sort_servers(itemlist)
 
