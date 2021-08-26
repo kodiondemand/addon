@@ -130,7 +130,15 @@ def registerOrLogin():
 @support.scrape
 def peliculas(item):
     json = {}
-    action = 'check'
+
+    if item.contentType == 'undefined':
+        disabletmdb = True
+        action = 'check'
+    elif item.contentType == 'movie':
+        action = 'findvideos'
+    else:
+        action = 'episodios'
+
     if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
         import ast
         ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)', cloudscraper=True).match
@@ -139,8 +147,8 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
     else:
-        disabletmdb = True
-        data = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).data
+        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
+        data = "\n".join(json['data'])
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
@@ -177,8 +185,10 @@ def genres(item):
 
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
     if item.args == 'quality':
+        item.contentType = 'undefined'
         patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
     elif item.args == 'years':
+        item.contentType = 'undefined'
         patronBlock = r'ANNO(?P<block>.*?</section>)'
     else:
         patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
@@ -197,7 +207,7 @@ def episodios(item):
         it.infoLabels['season'] = int(spl[0])+1
         it.infoLabels['episode'] = int(spl[1])+1
         it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
-        it.title = '{}x{:02d} - {}'.format(it.contentSeason, it.contentEpisodeNumber, it.contentTitle)
+        it.title = '{}x{:02d} - {}'.format(it.contentSeason, it.contentEpisodeNumber, it.fulltitle)
         return it
 
     return locals()

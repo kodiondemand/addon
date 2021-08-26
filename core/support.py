@@ -227,6 +227,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             scraped[kk] = val.strip() if type(val) == str else val
 
         # episode = re.sub(r'\s-\s|-|x|&#8211|&#215;', 'x', scraped['episode']) if scraped['episode'] else ''
+
         title = cleantitle(scraped.get('title', ''))
         if group and scraped.get('title', '') in contents and not item.grouped:  # same title and grouping enabled
             continue
@@ -391,8 +392,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 infoLabels=infolabels,
                 thumbnail=item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
                 args=item.args,
-                contentSerieName= title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
-                contentTitle= title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
+                contentSerieName= title if contentType not in ['movie'] and function != 'episodios' or contentType in ['undefined'] else item.contentSerieName,
+                contentTitle= title if contentType in ['movie', 'undefined'] and function == 'peliculas' else item.contentTitle,
                 contentLanguage = lang1,
                 contentSeason= infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
