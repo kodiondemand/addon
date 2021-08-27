@@ -4,7 +4,12 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "((?:https?://).\\S+.(m3u8|mp4|mpeg|mpd|flv)[^\"'\n]*)",
+        "pattern": "((?:http://|https://).*?m3u8[^\"'\n]*)",
+        "url": "\\1"
+
+      },
+      {
+        "pattern": "((?:http://|https://).*?.mpd[^\"'\n]*)",
         "url": "\\1"
       },
       {
