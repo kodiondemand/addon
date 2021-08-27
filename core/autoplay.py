@@ -47,7 +47,8 @@ def start(itemlist, item):
     if not user_config_setting_action: config.set_setting("default_action", 2)
 
     if config.get_setting('autoplay'):
-        from core.servertools import sort_servers
+        from core.servertools import sort_servers, correct_onlinemedia_info
+        itemlist = correct_onlinemedia_info(itemlist)
         autoplay_list = sort_servers(itemlist)
 
         if autoplay_list:

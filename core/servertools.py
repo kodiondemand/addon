@@ -5,7 +5,6 @@
 
 from __future__ import division
 from __future__ import absolute_import
-
 import sys
 import os
 PY3 = False
@@ -867,6 +866,7 @@ def translate_server_name(name):
 
 if PY3:
     from pymediainfo import MediaInfo
+    import pathlib
 
     def correct_onlinemedia_info(video_itemlist:list):
         """This function aims at correctly identifying video information
@@ -895,18 +895,15 @@ if PY3:
             @rtype: string.
             """
 
-            video_chunk = "./header_mediafile"
+            video_chunk =  str(pathlib.Path(__file__).parent.parent.resolve()) + "/header_mediafile"
+            logger.info(f'"get_onlinevideo_chunk" got initiated and will save the chunk to the location: {video_chunk}')
 
-            try:
-                r = requests.get(url, stream=True)
-                with open(video_chunk, 'wb') as f:
-                    for chunk in r.iter_content(chunk_size=100000):
-                        if chunk:
-                            f.write(chunk)
-                            break
-            except Exception as e:
-                logger.error(e)
-                sys.exit(1)
+            r = requests.get(url, stream=True)
+            with open(video_chunk, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=100000):
+                    if chunk:
+                        f.write(chunk)
+                        break
 
             return video_chunk
 
@@ -925,10 +922,12 @@ if PY3:
             info_dict = dict()  # dictionary to store resolution, resolution_label and bitrate information that will be returned
             resolutions = {"sd_width" : 720, "hd_width" : 1366, "fullhd_width" : 1920, "2k" : 2560, "4k" : 3840}
 
+            logger.info(f'"gather_video_info" got initiated and "Mediainfo" will parse the file located at: {path_to_videochunk}')
             media_info = MediaInfo.parse(path_to_videochunk)  # analyses the file in the "path_to_videochunk" location
             for track in media_info.tracks:
                 if track.track_type == "Video":               # there can be video tracks and audio tracks, we ensure it is the video one
                     videoinfo = track.to_data()               # save all the data as a dictionary in the variable "videoinfo"
+            logger.info(f'"MediaInfo" successfully parsed the file located at {path_to_videochunk}')
 
             # if the width information available in the dictionary passed as parameter 
             # to the function is comparable to the dictionary of "resolutions" defined above:
@@ -948,30 +947,38 @@ if PY3:
             info_dict["bit_rate"] = videoinfo["bit_rate"]
 
             os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
-            
+
             return info_dict
 
+
+        logger.info('"correct_onlinemedia_info" received the itemlist to parse')
         for item in video_itemlist:
-            #logger.debug(item.tostring('/n'))
+            # logger.debug(item.tostring('/n'))  
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
+                # logger.debug(f'The URL list is: --------> {url_list}\n')
+                highest_quality_url = (url_list[-1][-1] if len(url_list) == 1 or not "m3u8" in url_list[-1][-1] else url_list[-2][-1]).split("|")[0]
+                logger.info(f'For the Server: "{item.server}"  we are passing the url: "{highest_quality_url}"')
                 try:
-                    video_quality = gather_video_info(get_onlinevideo_chunck(url_list[0]))
+                    video_quality = gather_video_info(get_onlinevideo_chunck(highest_quality_url))
                 except Exception as e:
                     logger.error(e)
-                    item.title = item.title.append("... x ...", "unknown bit_rate")
+                    item.title += "... x ..., unknown bit_rate"
                     # i won't set alternative values for the item.quality parameter
                     # i won't set alternative values for the item.resolution parameter
                     item.bitrate = 0
                     continue
-
-                item.title = item.title.append(video_quality["resolution_label"], video_quality["resolution"], video_quality["bit_rate"])
+                
+                logger.info("Updating the Item's information with the gathered ones")
+                item.url = highest_quality_url
+                item.title += (f'{video_quality["resolution_label"]}, {video_quality["resolution"]}, {video_quality["bit_rate"]}')
                 item.quality = video_quality["resolution_label"]
                 item.resolution = video_quality["resolution"]
                 item.bitrate = video_quality["bit_rate"]
+                logger.info(f'--------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
             else:
                 logger.debug(url_error)
-                item.title = item.title.append("... x ...", "unknown bit_rate")
+                item.title += "... x ..., unknown bit_rate"
                 # i won't set alternative values for the item.quality parameter
                 # i won't set alternative values for the item.resolution parameter
                 item.bitrate = 0
