@@ -214,20 +214,18 @@ def episodios(item):
 
 
 def check(item):
-    if '/watch-unsubscribed' not in item.url:
-        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
-        video_url = playWindow.match
-        if '/tvshow' in video_url:
-            item.data = playWindow.data
-            item.contentType = 'tvshow'
-            return episodios(item)
-        else:
-            item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
-            item.contentType = 'movie'
-            return findvideos(item)
+    resolve_url(item)
+    if '/tvshow' in item.url:
+        item.contentType = 'tvshow'
+        return episodios(item)
+    else:
+        item.contentType = 'movie'
+        return findvideos(item)
+
 
 def findvideos(item):
     itemlist = []
+    resolve_url(item)
 
     itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
 
@@ -243,3 +241,12 @@ def play(item):
             return []
     else:
         return [item]
+
+
+def resolve_url(item):
+    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
+        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
+        video_url = playWindow.match
+        item.data = playWindow.data
+        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
+    return item
