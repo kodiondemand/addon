@@ -952,7 +952,7 @@ def get_local_content(path):
 def add_to_videolibrary(item, channel):
     itemlist = getattr(channel, item.from_action)(item)
     if itemlist and itemlist[0].contentType == 'episode':
-        return add_tvshow(item, channel)
+        return add_tvshow(item, channel, itemlist)
     else:
         return add_movie(item)
 
@@ -998,7 +998,7 @@ def add_movie(item):
                                     config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
 
 
-def add_tvshow(item, channel=None):
+def add_tvshow(item, channel=None, itemlist=[]):
     """
         Save content in the series library. This content can be one of these two:
             - The series with all the chapters included in the episodelist.
@@ -1060,7 +1060,7 @@ def add_tvshow(item, channel=None):
 
         # Get the episode list
         # from core.support import dbg;dbg()
-        itemlist = getattr(channel, item.action)(item)
+        if not itemlist: itemlist = getattr(channel, item.action)(item)
         if itemlist and not scrapertools.find_single_match(itemlist[0].title, r'[Ss]?(\d+)(?:x|_|\s+)[Ee]?[Pp]?(\d+)'):
             from platformcode.autorenumber import start, check
             if not check(item):

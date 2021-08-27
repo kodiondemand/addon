@@ -1057,23 +1057,23 @@ def get_seleccion(default_action, opciones, seleccion, video_urls):
 
 
 def calcResolution(option):
-    match = scrapertools.find_single_match(option, '([0-9]{2,4})x([0-9]{2,4})')
-    resolution = False
+    match = scrapertools.find_single_match(option, '([0-9]{2,4})(?:p|i|x[0-9]{2,4}|)')
+    resolution = 0
+
     if match:
-        resolution = int(match[0]) * int(match[1])
-    else:
-        if '240p' in option:
-            resolution = 320 * 240
-        elif '360p' in option:
-            resolution = 480 * 360
-        elif ('480p' in option) or ('480i' in option):
-            resolution = 720 * 480
-        elif ('576p' in option) or ('576p' in option):
-            resolution = 720 * 576
-        elif ('720p' in option) or ('HD' in option):
-            resolution = 1280 * 720
-        elif ('1080p' in option) or ('1080i' in option) or ('Full HD' in option):
-            resolution = 1920 * 1080
+        resolution = int(match)
+    elif 'sd' in option.lower():
+        resolution = 480
+    elif 'hd' in option.lower():
+        resolution = 720
+        if 'full' in option.lower():
+            resolution = 1080
+    elif '2k' in option.lower():
+        resolution = 1440
+    elif '4k' in option.lower():
+        resolution = 2160
+    elif 'auto' in option.lower():
+        resolution = 10000
 
     return resolution
 
