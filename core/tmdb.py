@@ -606,6 +606,8 @@ def discovery(item, dict_=False, cast=False):
     from core.item import Item
 
     if dict_:
+        if item.page:
+            item.discovery['page'] = item.page
         listado = Tmdb(discover = dict_, cast=cast)
 
     elif item.search_type == 'discover':
@@ -1029,7 +1031,10 @@ class Tmdb(object):
             # We sort result based on fuzzy match to detect most similar
             if len(results) > 1:
                 from lib.fuzzy_match import algorithims
-                results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.search_type == 'tv' else r.get('title', '')), reverse=True)
+                if self.search_type == 'multi':
+                    results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if r.get('media_type') == 'tv' else r.get('title', '')), reverse=True)
+                else:
+                    results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.search_type == 'tv' else r.get('title', '')), reverse=True)
 
             # We return the number of results of this page
             self.results = results
@@ -1539,10 +1544,12 @@ class Tmdb(object):
         :rtype: list of Dict
         """
         ret = []
+
         if self.result['id']:
             if self.result['videos']:
                 self.result["videos"] = self.result["videos"]['results']
             else:
+                self.result["videos"] = []
                 # First video search in the search language
                 url = "{}/{}/{}/videos?api_key={}&language={}".format(host, self.search_type, self.result['id'], api, self.search_language)
 
@@ -1638,7 +1645,10 @@ class Tmdb(object):
                 if v == "None":
                     continue
 
-            if k == 'overview':
+            if k == 'media_type':
+                ret_infoLabels['mediatype'] = 'tvshow' if v == 'tv' else 'movie'
+
+            elif k == 'overview':
                 if origen:
                     ret_infoLabels['plot'] = v
                 else:

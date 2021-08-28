@@ -71,7 +71,7 @@ def peliculas(item):
         #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'
         patron = r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<[^>]+>[^>]+>\s*<div'
     elif item.args == 'last':
-        patronBlock = 'Aggiornamenti</h2>(?P<block>.*)</ul>'
+        patronBlock = '(?:Aggiornamenti|Update)</h2>(?P<block>.*?)</ul>'
         patron = r'<a href="(?P<url>[^"]+)">\s*<img[^>]+src[set]{0,3}="(?P<thumbnail>[^ ]+)[^>]+>\s*<span[^>]+>(?P<title>[^<]+)'
     else:
         patronBlock = '<main[^>]+>(?P<block>.*)</main>'
@@ -93,17 +93,15 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime = True
-    def get_ep(item):
-        find = ''
-        data = support.match(item, headers=headers).data
-        match = support.match(data, patron=r'(?: /> |<p>)(?:(?P<season>\d+)&#215;)?(?P<episode>\d+)(?:\s+&#8211;\s+)?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)').matches
-        if match:
-            for m in match:
-                find += '{}{:02d}|{}|{}|'.format(m[0]+'x' if m[0] else '', int(m[1]), clean_title(m[2]), m[3])
-        return find
-
-    data = get_ep(item)
-    patron = r'(?P<episode>[^|]+)\|(?P<title>[^|]+)\|(?P<data>[^|]+)\|'
+    # debug = True
+    patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
+    # data = ''
+    # match = support.match(item, headers=headers, patron=r'(?: /> |<p>)(?:(?P<season>\d+)&#215;)?(?P<episode>\d+)(?:\s+&#8211;\s+)?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)').matches
+    # if match:
+    #     for m in match:
+    #         data += '{}{:02d}|{}|{}|'.format(m[0]+'x' if m[0] else '', int(m[1]), clean_title(m[2]), m[3])
+    #
+    # patron = r'(?P<episode>[^|]+)\|(?P<title>[^|]+)\|(?P<data>[^|]+)\|'
 
     return locals()
 

@@ -36,13 +36,13 @@ def mainlist(item):
 def live(item):
     itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True, no_return=True),
                 item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True, no_return=True)]
-    return support.thumb(itemlist, live=True)
+    return support.thumb(itemlist, mode='live')
 
 
 def replay_channels(item):
     itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True),
                 item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True)]
-    return support.thumb(itemlist, live=True)
+    return support.thumb(itemlist, mode='live')
 
 
 @support.scrape
@@ -84,6 +84,8 @@ def search(item, text):
 def peliculas(item):
     search = item.search
     disabletmdb = True
+    addVideolibrary = False
+    downloadEnabled = False
     action = 'episodios'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     def itemHook(item):
@@ -96,7 +98,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = support.match(item).data
-    debug = True
+    # debug = True
     action = 'play'
     if '>puntate<' in data:
         patronBlock = r'>puntate<(?P<block>.*?)home-block-outbrain'
@@ -109,6 +111,7 @@ def episodios(item):
     patron = r'(?:<a href="(?P<url>[^"]+)">[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]*)">[^>]+>[^>]+>[^>]+>(?:[^>]+>)?(?:[^>]+>){6}?)\s*(?P<title>[^<]+)<(?:[^>]+>[^>]+>[^>]+><div class="data">(?P<date>[^<]+))?|class="heading">[^>]+>(?P<Title>[^<]+).*?window.shareUrl = "(?P<Url>[^"]+)".*?poster:\s*"(?P<Thumb>[^"]+)", title: "(?P<desc>[^"]+)"'
     patronNext = r'<a href="([^"]+)">›'
     addVideolibrary = False
+    downloadEnabled = False
 
     def itemHook(item):
         if item.Thumb: item.t = item.Thumb

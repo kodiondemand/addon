@@ -52,7 +52,7 @@ def genres(item):
     args = support.match(data, patronBlock=r'genre-options-json="([^\]]+)\]', patron=r'name"\s*:\s*"([^"]+)').matches
     for arg in args:
         itemlist.append(item.clone(title=support.typo(arg, 'bold'), args=arg, action='peliculas'))
-    support.thumb(itemlist, genre=True)
+    support.thumb(itemlist, mode='genre')
     return itemlist
 
 

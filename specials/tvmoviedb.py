@@ -1912,7 +1912,7 @@ def acciones_trakt(item):
     post = None
     if item.post: post = jsontools.dump(item.post)
 
-    url = "http://api-v2launch.trakt.tv/%s" % item.url
+    url = "http://api.trakt.tv/%s" % item.url
     data = httptools.downloadpage(url, post=post, headers=headers)
     if data.code == "401":
         trakt_tools.token_trakt(item.clone(args="renew"))
@@ -2379,7 +2379,7 @@ def indices_mal(item):
             if not url.startswith('http'): url = "https://myanimelist.net" + url
             itemlist.append(Item(channel=item.channel, action="season_mal", title=typo(title, 'bold'), url=url, thumbnail=thumbnail, fanart=thumbnail))
 
-    return thumb(itemlist, genre=True)
+    return thumb(itemlist, mode='genre')
 
 
 def season_mal(item):

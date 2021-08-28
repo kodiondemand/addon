@@ -25,6 +25,11 @@ from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
 from servers import torrent
 
+# if this service need to be reloaded because an update changed it
+needsReload = False
+# list of threads
+threads = []
+
 
 def check_for_update():
     if config.get_setting("update", "videolibrary"):
@@ -32,12 +37,9 @@ def check_for_update():
 
 
 def updaterCheck():
+    global needsReload
     # updater check
     updated, needsReload = updater.check(background=True)
-    if needsReload:
-        xbmc.executescript(__file__)
-        db.close()
-        exit(0)
 
 
 def get_ua_list():
@@ -64,6 +66,12 @@ def get_ua_list():
 def run_threaded(job_func, args):
     job_thread = threading.Thread(target=job_func, args=args)
     job_thread.start()
+    threads.append(job_thread)
+
+
+def join_threads():
+    for th in threads:
+        th.join()
 
 
 class AddonMonitor(xbmc.Monitor):
@@ -77,14 +85,15 @@ class AddonMonitor(xbmc.Monitor):
         self.scheduleUpdater()
         self.scheduleUA()
 
-        # videolibrary wait
-        update_wait = [0, 10000, 20000, 30000, 60000]
-        wait = update_wait[int(config.get_setting("update_wait", "videolibrary"))]
-        if wait > 0:
-            xbmc.sleep(wait)
-        if not config.get_setting("update", "videolibrary") == 2:
-            check_for_update()
-        self.scheduleVideolibrary()
+        if not needsReload:  # do not run videolibrary update if service needs to be reloaded
+            # videolibrary wait
+            update_wait = [0, 10000, 20000, 30000, 60000]
+            wait = update_wait[int(config.get_setting("update_wait", "videolibrary"))]
+            if wait > 0:
+                xbmc.sleep(wait)
+            if not config.get_setting("update", "videolibrary") == 2:
+                run_threaded(check_for_update, (False,))
+            self.scheduleVideolibrary()
         super(AddonMonitor, self).__init__()
 
     def onSettingsChanged(self):
@@ -201,65 +210,7 @@ if __name__ == "__main__":
                                                                   '/" and strScraper<>"metadata.local"')
         if nun_records:
             videolibrarytools.convert_videolibrary()
-            # dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
-            # path_to_delete = []
-            # film_lst = glob.glob(xbmc.translatePath(
-            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'),
-            #                    '*/*.json')))
-            # tvshow_lst = glob.glob(xbmc.translatePath(
-            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'),
-            #                    '*/tvshow.nfo')))
-            # total = len(film_lst) + len(tvshow_lst)
-            # progress = 0
 
-            # # set local info only
-            # xbmc_videolibrary.execute_sql_kodi(
-            #     'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
-            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows')) + '/"')
-            # xbmc_videolibrary.execute_sql_kodi(
-            #     'update path set strScraper="metadata.local", strSettings="" where strPath = "' +
-            #     filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies')) + '/"')
-
-            # for film in film_lst:
-            #     path_to_delete.append(filetools.dirname(film))
-            #     it = Item().fromjson(filetools.read(film))
-            #     it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'movie'}
-            #     tmdb.find_and_set_infoLabels(it)
-            #     videolibrarytools.save_movie(it)
-            #     progress += 1
-            #     dialog.update(int(progress / total * 100))
-            # for tvshow in tvshow_lst:
-            #     if not dialog:
-            #         dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
-            #     js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
-            #     channels_dict = js.get('library_urls')
-            #     if channels_dict:
-            #         for ch, url in channels_dict.items():
-            #             dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
-            #             json_files = [f for f in dir if f.endswith('.json')]
-            #             if json_files:
-            #                 path_to_delete.append(filetools.dirname(tvshow))
-            #                 nfo, it = videolibrarytools.read_nfo(tvshow)
-            #                 it.infoLabels = {'tmdb_id': it.infoLabels['tmdb_id'], 'mediatype':'tvshow'}
-            #                 it.contentType = 'tvshow'
-            #                 it.channel = ch
-            #                 it.url = channels_dict[ch]
-            #                 tmdb.find_and_set_infoLabels(it)
-            #                 try:
-            #                     channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
-            #                 except:
-            #                     channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
-            #                 it.host = channel.host
-            #                 episodes = getattr(channel, 'episodios')(it)
-            #                 for ep in episodes:
-            #                     logger.debug('EPISODE URL',ep.url)
-
-            #                 videolibrarytools.save_tvshow(it, episodes, True)
-            #     progress += 1
-            #     dialog.update(int(progress / total * 100))
-            # for path in path_to_delete:
-            #     filetools.rmdirtree(path, True)
-            # dialog.close()
 
     if config.get_setting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
@@ -283,7 +234,19 @@ if __name__ == "__main__":
         except:
             logger.error(traceback.format_exc())
 
+        if needsReload:
+            join_threads()
+            db.close()
+            logger.info('Relaunching service.py')
+            xbmc.executeJSONRPC(
+                '{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "plugin.video.kod", "enabled": false }}')
+            xbmc.executeJSONRPC(
+                '{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "plugin.video.kod", "enabled": true }}')
+            logger.debug(threading.enumerate())
+            break
+
         if monitor.waitForAbort(1):  # every second
+            join_threads()
             # db need to be closed when not used, it will cause freezes
             db.close()
             break

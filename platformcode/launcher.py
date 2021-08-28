@@ -5,11 +5,12 @@
 
 from specials import videolibrary
 import sys, os
+
 PY3 = False
 if sys.version_info[0] >= 3:PY3 = True; unicode = str; unichr = chr; long = int
 
 from core.item import Item
-from core import filetools, jsontools, videolibrarydb
+from core import filetools, videolibrarydb
 from platformcode import config, logger, platformtools
 from platformcode.logger import WebErrorException
 temp_search_file = config.get_temp_file('temp-search')
@@ -144,14 +145,20 @@ def run(item=None):
             if not webbrowser.open(item.url):
                 import xbmc
                 if xbmc.getCondVisibility('system.platform.linux') and xbmc.getCondVisibility('system.platform.android'):  # android
-                    xbmc.executebuiltin('StartAndroidActivity("", "android.intent.action.VIEW", "", "%s")' % (item.url))
+                    xbmc.executebuiltin('StartAndroidActivity("", "android.intent.action.VIEW", "", "%s")' % item.url)
                 else:
-                    try:
-                        import urllib.request as urllib
-                    except ImportError:
-                        import urllib
-                    short = urllib.urlopen('https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read().decode('utf-8')
-                    platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % short)
+                    platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join([item.url[j:j+57] for j in range(0, len(item.url), 57)]))
+        elif item.action == "gotopage":
+            page = platformtools.dialog_numeric(0, config.get_localized_string(70513))
+            if page:
+                import xbmc
+                item.action = item.real_action
+                if item.page:
+                    item.page = page
+                else:
+                    import re
+                    item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>' + page + '\g<2>', item.url)
+                xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
@@ -247,6 +254,11 @@ def run(item=None):
                 videolibrarytools.add_tvshow(item, channel)
                 
             # Special action for adding a serie to the library
+            elif item.action == "add_to_library":
+                from core import videolibrarytools
+                videolibrarytools.add_to_videolibrary(item, channel)
+
+            # Special action for adding a undefined to the library
             elif item.action == "add_to_library":
                 from core import videolibrarytools
                 videolibrarytools.add_to_videolibrary(item, channel)

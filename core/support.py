@@ -24,6 +24,56 @@ from platformcode import config
 from platformcode.logger import info
 from platformcode import logger
 
+channels_order = {'Rai 1': 1,
+                  'Rai 2': 2,
+                  'Rai 3': 3,
+                  'Rete 4': 4,
+                  'Canale 5': 5,
+                  'Italia 1': 6,
+                  'La7': 7,
+                  'NOVE': 9,
+                  '20': 20,
+                  'Rai 4': 21,
+                  'Iris': 22,
+                  'Rai 5': 23,
+                  'Rai Movie': 24,
+                  'Rai Premium': 25,
+                  'Paramount': 27,
+                  'La7d': 29,
+                  'La 5': 30,
+                  'Real Time': 31,
+                  'Food Network': 33,
+                  'Cine34': 34,
+                  'Focus': 35,
+                  'Giallo': 38,
+                  'Top Crime': 39,
+                  'Boing': 40,
+                  'K2': 41,
+                  'Rai Gulp': 42,
+                  'Rai Yoyo': 43,
+                  'Frisbee': 44,
+                  'Cartoonito': 46,
+                  'Super': 46,
+                  'Rai News 24': 48,
+                  'Spike': 49,
+                  'TGCom': 51,
+                  'DMAX': 52,
+                  'Rai Storia': 54,
+                  'Mediaset Extra': 55,
+                  'Home and Garden TV': 56,
+                  'Rai Sport piu HD': 57,
+                  'Rai Sport': 58,
+                  'Motor Trend': 59,
+                  'Italia 2': 66,
+                  'VH1': 67,
+                  'Rai Scuola': 146,
+                  'Radio 105': 157,
+                  'R101tv': 167,
+                  'RMC': 256,
+                  'Virgin Radio': 257,
+                  'Rai Radio 2': 999,
+                  }
+
 
 def hdpass_get_servers(item, data=''):
     def get_hosts(url, quality):
@@ -50,14 +100,20 @@ def hdpass_get_servers(item, data=''):
         url = url.replace("&download=1", "")
         if 'hdpass' not in url and 'hdplayer' not in url: return itemlist
     if not url.startswith('http'): url = 'https:' + url
+    item.referer = url
 
     data = httptools.downloadpage(url, CF=False).data
     patron_res = '<div class="buttons-bar resolutions-bar">(.*?)<div class="buttons-bar'
-    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)<div id="main-player'
+    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)(?:<div id="main-player|<script)'
     patron_option = r'<a href="([^"]+?)"[^>]+>([^<]+?)</a'
 
     res = scrapertools.find_single_match(data, patron_res)
 
+    # non threaded for webpdb
+    # for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
+    #     res_url = scrapertools.decodeHtmlentities(res_url)
+    #     itemlist.extend(get_hosts(res_url, res_video))
+    #
     with futures.ThreadPoolExecutor() as executor:
         thL = []
         for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
@@ -69,14 +125,15 @@ def hdpass_get_servers(item, data=''):
 
     return server(item, itemlist=itemlist)
 
+
 def hdpass_get_url(item):
-    item.referer = item.url
     data = httptools.downloadpage(item.url, CF=False).data
     src = scrapertools.find_single_match(data, r'<iframe allowfullscreen custom-src="([^"]+)')
     if src: item.url = base64.b64decode(src)
     else: item.url = scrapertools.find_single_match(data, r'<iframe allowfullscreen src="([^"]+)')
     item.url, c = unshortenit.unshorten_only(item.url)
     return [item]
+
 
 def color(text, color):
     return "[COLOR " + color + "]" + text + "[/COLOR]"
@@ -224,6 +281,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
             scraped[kk] = val.strip() if type(val) == str else val
 
         # episode = re.sub(r'\s-\s|-|x|&#8211|&#215;', 'x', scraped['episode']) if scraped['episode'] else ''
+
         title = cleantitle(scraped.get('title', ''))
         if group and scraped.get('title', '') in contents and not item.grouped:  # same title and grouping enabled
             continue
@@ -371,22 +429,23 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 title = title,
                 fulltitle = item.fulltitle if function == 'episodios' else title,
                 show=item.show if function == 'episodios' else title,
-                quality = quality,
-                url = scraped["url"] if scraped["url"] else item.url,
-                infoLabels = infolabels,
-                thumbnail = item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
-                args = item.args,
-                contentSerieName = title if 'movie' not in [contentType] and function != 'episodios' else item.contentSerieName,
-                contentTitle = title if 'movie' in [contentType] and function == 'peliculas' else item.contentTitle,
-                contentLanguage = lang1 if lang1 else item.contentLanguage,
-                contentSeason = infolabels.get('season', ''),
+                quality=quality,
+                url=scraped["url"] if scraped["url"] else item.url,
+                infoLabels=infolabels,
+                thumbnail=item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
+                args=item.args,
+                contentSerieName= title if contentType not in ['movie'] and function != 'episodios' or contentType in ['undefined'] else item.contentSerieName,
+                contentTitle= title if contentType in ['movie', 'undefined'] and function == 'peliculas' else item.contentTitle,
+                contentLanguage = lang1,
+                contentSeason= infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news = item.news if item.news else '',
                 other = scraped['other'] if scraped['other'] else '',
                 grouped = group,
                 title2 = cleantitle(title2) if title2 else '',
                 episode2 = second_episode,
-                extraInfo = extraInfo
+                extraInfo = extraInfo,
+                disable_videolibrary = not args.get('addVideolibrary', True)
             )
 
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
@@ -570,7 +629,7 @@ def scrape(func):
                 download(itemlist, item, function=function)
 
         if 'patronGenreMenu' in args and itemlist:
-            itemlist = thumb(itemlist, genre=True)
+            itemlist = thumb(itemlist, mode='genre')
         if 'patronMenu' in args and itemlist:
             itemlist = thumb(itemlist)
 
@@ -777,11 +836,13 @@ def menu(func):
         for name, var in args.items():
             if name not in listUrls and name != 'item':
                listUrls_extra.append(name)
+
         for name in listUrls_extra:
             dictUrl[name] = args.get(name, None)
             for sub, var in dictUrl[name]:
+                # sub = scrapertools.unescape(sub)
                 menuItem(itemlist, filename,
-                             title = sub + ' ',
+                             title = sub,
                              url = host + var[0] if len(var) > 0 else '',
                              action = var[1] if len(var) > 1 else 'peliculas',
                              args=var[2] if len(var) > 2 else '',
@@ -791,8 +852,6 @@ def menu(func):
             menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)
 
         if not global_search:
-            # autoplay.init(item.channel, list_servers, list_quality)
-            # autoplay.show_option(item.channel, itemlist)
             channel_config(item, itemlist)
 
             # Apply auto Thumbnails at the menus
@@ -1153,6 +1212,7 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
                        thumbnail=thumb()))
         return itemlist[-1]
 
+
 def pagination(itemlist, item, page, perpage, function_level=1):
     if len(itemlist) >= page * perpage:
         itemlist.append(
@@ -1364,7 +1424,7 @@ def addQualityTag(item, itemlist, data, patron):
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources:\s*([^\]]+\])') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}])') if not dataIsBlock else data
     if block:
         json = jsontools.load(block)
         if json:
@@ -1385,20 +1445,19 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                video_urls.append(['.' + url.split('.')[-1] + ' [' + quality + '] [' + srvName + ']', url if not onlyHttp else url.replace('https://', 'http://')])
+                video_urls.append(['.' + url.split('.')[-1].split('?')[0] + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])
 
         video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls
 
 
-def thumb(data=None, genre=False, live=False):
+def thumb(data=None, mode=None):
     '''
         data = str, item or itemlist
-        genre = bool, search icon in genres
-        live = bool, add icon by channel name
+        mode = str, genre, live, quality
     '''
 
-    if live:
+    if mode == 'live':
         if type(data) == list:
             for item in data:
                 item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
@@ -1454,12 +1513,18 @@ def thumb(data=None, genre=False, live=False):
     _romance = ['romantico', 'sentimentale', 'romance', 'soap']
     _family = ['famiglia','famiglie', 'family']
     _historical = ['storia', 'storico', 'history', 'historical']
-    _hd = ['hd','altadefinizione','alta', '1080', '1080p', 'fullhd']
-    _4k = ['4k']
     _setting = ['impostazioni', 'settaggi', 'configura', 'configurare', 'gestire', 'gestisci', 'gestione', 'setting', 'config']
     _talk = ['talk']
     _reality = ['reality']
     _quality = ['qualità', 'risoluzione', 'risoluzioni', 'quality', 'resolution', 'resolutions']
+    _cam = ['cam']
+    _ts = ['ts']
+    _md = ['md']
+    _sd = ['sd']
+    _hd = ['hd']
+    _fhd = ['fullhd']
+    _2k = ['2k']
+    _4k = ['4k']
 
     main_dict = {'movie':_movie,
                  'tvshow':_tvshow,
@@ -1491,6 +1556,7 @@ def thumb(data=None, genre=False, live=False):
                  'family':_family,
                  'teenager':_teenager,
                  'learning':_learning,
+                 'quality':_quality,
                  'autoplay':[config.get_localized_string(60071)]
                 }
 
@@ -1524,7 +1590,15 @@ def thumb(data=None, genre=False, live=False):
                   'reality':_reality,
                   'tvmovie':_movie}
 
-    suffix_dict = {'_hd':_hd,
+    search = ['cerca', 'cercare', 'ricerca', 'ricercare', 'trova', 'trovare', 'search', 'searching', 'find', 'finding']
+
+    suffix_dict = {'_cam':_cam,
+                   '_ts':_ts,
+                   '_md':_md,
+                   '_sd':_sd,
+                   '_hd':_hd,
+                   '_fullhd':_fhd,
+                   '_2k':_2k,
                    '_4k':_4k,
                    '_az':_az,
                    '_genre':_genre,
@@ -1536,38 +1610,41 @@ def thumb(data=None, genre=False, live=False):
                    '_sub':_sub,
                    '_ita':_ita,
                    '_quality':_quality,
-                   '_cinema':_cinema}
+                   '_cinema':_cinema,
+                   '_search':search}
 
-    search = ['cerca', 'cercare', 'ricerca', 'ricercare', 'trova', 'trovare', 'search', 'searching', 'find', 'finding']
+    quality_dict = {'cam':_cam,
+                    'ts':_ts,
+                    'md':_md,
+                    'sd':_sd,
+                    'hd':_hd,
+                    'fhd':_fhd,
+                    '2k':_2k,
+                    '4k':_4k}
 
-    search_suffix ={'_movie':_movie,
-                    '_tvshow':_tvshow,
-                    '_anime':_anime,
-                    '_year':_year,
+    search_suffix ={'_year':_year,
                     '_top':_top,
-                    '_documentary':_documentary,
                     '_music':_music,
                     '_star':_star,
                     '_genre':_genre,
                     '_top':_top}
 
-    def autoselect_thumb(item, genre):
+    def autoselect_thumb(item, mode):
         searched_title = re.split(r'\.|\{|\}|\(|\)|/| ', scrapertools.unescape(re.sub('\[[^\]]*\]||\u2026|\u2022','', item.title.lower())))
         logger.debug('SEARCED', searched_title)
         thumb = ''
-        if genre:
+        if mode == 'genre':
             for t, titles in genre_dict.items():
-                if any(word in searched_title for word in titles ):
+                if any(word in searched_title for word in titles):
+                    thumb = t
+        elif mode == 'quality':
+            for t, titles in quality_dict.items():
+                if searched_title[0] in titles:
                     thumb = t
         else:
             if any(word in searched_title for word in _setting):
                 thumb = 'setting'
-            elif any(word in searched_title for word in search):
-                thumb = 'search'
-                for suffix, titles in search_suffix.items():
-                    if any(word in searched_title for word in titles):
-                        thumb = thumb + suffix
-            if not thumb:
+            else:
                 for t, titles in main_dict.items():
                     if any(word in searched_title for word in titles):
                         thumb = t
@@ -1575,6 +1652,12 @@ def thumb(data=None, genre=False, live=False):
                             for suffix, titles in suffix_dict.items():
                                 if any(word in searched_title for word in titles):
                                     thumb = t + suffix
+            if not thumb:
+                if any(word in searched_title for word in search):
+                    thumb = 'search'
+                    for suffix, titles in search_suffix.items():
+                        if any(word in searched_title for word in titles):
+                            thumb = thumb + suffix
             if not thumb:
                 for t, titles in icon_dict.items():
                     if any(word in searched_title for word in titles):
@@ -1587,7 +1670,7 @@ def thumb(data=None, genre=False, live=False):
     if data:
         if type(data) == list:
             for item in data:
-                autoselect_thumb(item, genre)
+                autoselect_thumb(item, mode)
             return data
 
         elif type(data) == str:
@@ -1595,7 +1678,7 @@ def thumb(data=None, genre=False, live=False):
             if not file_extension: data += '.png'
             return get_thumb(data)
         else:
-            return autoselect_thumb(data, genre)
+            return autoselect_thumb(data, mode)
 
     else:
         return get_thumb('next.png')

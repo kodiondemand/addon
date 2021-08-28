@@ -11,28 +11,26 @@ else:
 
 import re
 import time
-
 import requests
 try:
     from platformcode import logger
 except ImportError:
     logger = None
 
-HEADERS = {
-    'Host': 'translate.google.com',
-    'User-Agent': 'android'
-}
+HEADERS = {'User-Agent': 'android',
+           "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+           "Accept-Language": "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3", "Accept-Charset": "UTF-8",
+           "Accept-Encoding": "gzip"}
 
-MAX_CONECTION_THREAD = 10
 SL = 'en'
 TL = 'it'
 
 BASE_URL_PROXY = 'https://translate.googleusercontent.com'
-BASE_URL_TRANSLATE = 'https://translate.google.com/translate?hl=it&sl=' + SL + '&tl=' + TL + '&u=[TARGET_URL]&sandbox=0'  # noqa: E501
+BASE_URL_TRANSLATE = 'https://translate.google.com/translate?hl=it&sl=' + SL + '&tl=' + TL + '&u=[TARGET_URL]'  # noqa: E501
 
 
 def checker_url(html, url):
-    grep_regex = re.findall(r'(?:href="|src="|value=")([^"]+)', html)  # noqa: E501
+    grep_regex = re.findall(r'(?:href="|src="|value=")(https?://translate[^"]+)', html)  # noqa: E501
     for url_result_regex in grep_regex:
         if url in url_result_regex:
             return url_result_regex.replace('&amp;', '&')
@@ -44,6 +42,8 @@ def process_request_proxy(url):
 
     try:
         domain = urlparse.urlparse(url).netloc
+        session = requests.Session()
+        session.headers.update(HEADERS)
 
         target_url = \
             BASE_URL_TRANSLATE.replace('[TARGET_URL]', request.quote(url))
@@ -53,7 +53,7 @@ def process_request_proxy(url):
         else:
             print(target_url)
 
-        return_html = requests.get(target_url, timeout=20, headers=HEADERS)
+        return_html = session.get(target_url, timeout=20)
 
         if not return_html:
             return
@@ -68,10 +68,9 @@ def process_request_proxy(url):
         else:
             print(url_request)
 
-        request_final = requests.get(
+        request_final = session.get(
             url_request,
-            timeout=20,
-            headers={'User-Agent': 'android'}
+            timeout=20
         )
 
         url_request_proxy = checker_url(
@@ -86,10 +85,9 @@ def process_request_proxy(url):
         result = None
         while not data or 'Sto traducendo' in data:
             time.sleep(0.5)
-            result = requests.get(
+            result = session.get(
                 url_request_proxy,
                 timeout=20
-                # headers={'User-Agent': 'android'}
             )
             data = result.content.decode('utf-8', 'ignore')
             if not PY3:
@@ -99,7 +97,7 @@ def process_request_proxy(url):
 
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
-        data = re.sub('https?://[a-zA-Z0-9-]+' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
+        data = re.sub('https?://[a-zA-Z0-9-]*' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
         data = re.sub('\s+<', '<', data)
         data = data.replace('&amp;', '&').replace('https://translate.google.com/website?sl=' + SL + '&tl=' + TL + '&ajax=1&u=', '')
 

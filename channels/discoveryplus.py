@@ -35,7 +35,9 @@ def mainlist(item):
 
 def liveDict():
     livedict = {}
-    for key in session.get(api + '/cms/routes/home?decorators=viewingHistory&include=default', headers=headers).json()['included']:
+
+    for key in session.get(api + '/cms/routes/canali?decorators=viewingHistory&include=default', headers=headers).json()['included']:
+
         if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
             title = key['attributes']['name']
             livedict[title] = {}
@@ -64,7 +66,7 @@ def live(item):
     itemlist =[]
     for name, values in liveDict().items():
         itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
-    return support.thumb(itemlist, live=True)
+    return support.thumb(itemlist, mode='live')
 
 
 def genres(item):
@@ -182,7 +184,7 @@ def play(item):
         item.fulltitle = item.livefilter
         item.forcethumb = True
         item.no_return = True
-        support.thumb(item, live=True)
+        support.thumb(item, mode='live')
     if item.contentType == 'episode': data = session.get('{}/playback/v2/videoPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     else: data = session.get('{}/playback/v2/channelPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     if data.get('protection', {}).get('drm_enabled',True):

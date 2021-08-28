@@ -136,11 +136,12 @@ class autorenumber():
         else:
             self.renumberdict = {}
             for item in self.itemlist:
-                item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
-                                 "action": "start",
-                                 "channel": "autorenumber",
-                                 "from_channel": item.channel,
-                                 "from_action": item.action}]
+                if item.contentType != 'movie':
+                    item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
+                                     "action": "start",
+                                     "channel": "autorenumber",
+                                     "from_channel": item.channel,
+                                     "from_action": item.action}]
 
     def config(self):
         # Pulizia del Titolo
@@ -149,16 +150,18 @@ class autorenumber():
         elif not self.item.infoLabels['tmdb_id']:
             self.item.contentSerieName = self.title.rstrip('123456789 ')
 
-        self.item.infoLabels['imdb_id'] = ''
-        self.item.infoLabels['tvdb_id'] = ''
-        self.item.infoLabels['tmdb_id'] = ''
-        self.item.infoLabels['year'] = '-'
         self.item.contentType = 'tvshow'
 
-        while not self.item.exit:
-            tmdb.find_and_set_infoLabels(self.item)
-            if self.item.infoLabels['tmdb_id']: self.item.exit = True
-            else:self.item = platformtools.dialog_info(self.item, 'tmdb')
+        if not self.item.disabletmdb:
+            self.item.infoLabels['imdb_id'] = ''
+            self.item.infoLabels['tvdb_id'] = ''
+            self.item.infoLabels['tmdb_id'] = ''
+            self.item.infoLabels['year'] = '-'
+
+            while not self.item.exit:
+                tmdb.find_and_set_infoLabels(self.item)
+                if self.item.infoLabels['tmdb_id']: self.item.exit = True
+                else:self.item = platformtools.dialog_info(self.item, 'tmdb')
 
         # Rinumerazione Automatica
         if (not self.id and self.auto) or self.item.setrenumber:

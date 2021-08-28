@@ -150,7 +150,7 @@ def live(item):
                                    plot=value['plot'],
                                    action='play',
                                    no_return=True))
-    return support.thumb(itemlist, live=True)
+    return support.thumb(itemlist, mode='live')
 
 
 def peliculas(item):

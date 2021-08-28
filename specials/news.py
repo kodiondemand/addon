@@ -395,13 +395,14 @@ def get_title(item):
         # title = re.compile("\[.*?\]", re.DOTALL).sub("", item.contentSerieName)
         if not scrapertools.get_season_and_episode(title) and item.contentEpisodeNumber:
             # contentSeason non c'è in support
-            if not item.contentSeason:
-                item.contentSeason = '1'
-            title = "%sx%s - %s" % (item.contentSeason, str(item.contentEpisodeNumber).zfill(2), title)
+            if item.contentSeason:
+                title = '{}x{:02d}. {}'.format(item.contentSeason, item.contentEpisodeNumber, title)
+            else:
+                title = '{:02d}. {}'.format(item.contentEpisodeNumber, title)
         else:
             seas = scrapertools.get_season_and_episode(item.title)
             if seas:
-                title = "%s - %s" % (seas, title)
+                title = "{}. {}".format(seas, title)
 
     elif item.contentTitle:  # If it is a movie with the adapted channel
         title = item.contentTitle

@@ -691,6 +691,14 @@ def add_to_videolibrary(item, channel):
         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(70838) % item.contentTitle)
 
 
+def add_to_videolibrary(item, channel):
+    itemlist = getattr(channel, item.from_action)(item)
+    if itemlist and itemlist[0].contentType == 'episode':
+        return add_tvshow(item, channel, itemlist)
+    else:
+        return add_movie(item)
+
+
 def add_movie(item):
     """
         Keep a movie at the movie library. The movie can be a link within a channel or a previously downloaded video.
@@ -757,6 +765,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
         @param channel: channel from which the series will be saved. By default, item.from_channel or item.channel will be imported.
 
     """
+
     logger.debug("show=#" + item.show + "#")
     item.contentType = 'tvshow'
     # from platformcode.launcher import set_search_temp; set_search_temp(item)

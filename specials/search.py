@@ -571,7 +571,7 @@ def genres_menu(item):
                              action='discover_list', discovery=discovery,
                              mode=item.mode))
     from core import support
-    support.thumb(itemlist, genre=True)
+    support.thumb(itemlist, mode='genre')
     return sorted(itemlist, key=lambda it: it.title)
 
 
@@ -724,12 +724,14 @@ def discover_list(item):
 
     elif len(result) > 19 and item.discovery:
         item.discovery['page'] = str(int(item.discovery['page']) + 1)
-        itemlist.append(Item(channel=item.channel, action='discover_list', title=typo(config.get_localized_string(30992), 'color kod bold'),
-                             list_type=item.list_type, discovery=item.discovery, thumbnail=thumb())) 
+        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
+                             title=typo(config.get_localized_string(30992), 'color kod bold'),
+                             list_type=item.list_type, discovery=item.discovery, thumbnail=thumb(), page=item.discovery['page']))
     elif len(result) > 19:
         next_page = str(int(item.page) + 1)
 
-        itemlist.append(Item(channel=item.channel, action='discover_list', title=typo(config.get_localized_string(30992), 'color kod bold'),
+        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
+                             title=typo(config.get_localized_string(30992), 'color kod bold'),
                              list_type=item.list_type, search_type=item.search_type, mode=item.mode, page=next_page, thumbnail=thumb()))
 
     return itemlist
@@ -791,8 +793,8 @@ def get_from_temp(item):
     results = [Item().fromurl(elem) for elem in item.itemlist[prevp:nextp]]
 
     if nextp < nTotal:
-        results.append(Item(channel='search', title=typo(config.get_localized_string(30992),'bold color kod'),
-                            action='get_from_temp', itemlist=item.itemlist, page=item.page + 1))
+        results.append(Item(channel='search', title=typo(config.get_localized_string(30992), 'bold color kod'),
+                            action='get_from_temp', itemlist=item.itemlist, page=item.page + 1, nextPage=True))
 
     tmdb.set_infoLabels_itemlist(results, True)
     for elem in results:

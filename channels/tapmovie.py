@@ -49,7 +49,7 @@ def genres(item):
     itemlist = []
     for n, genre in enumerate(httptools.downloadpage(host + api_url + 'categories', post={}).json.get('categories', [])):
         itemlist.append(item.clone(action="peliculas", genre=genre.get('name'), title=genre.get('value'), n=n))
-    return support.thumb(itemlist, genre=True)
+    return support.thumb(itemlist, mode='genre')
 
 
 def peliculas(item, text=''):

@@ -25,17 +25,15 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-
-    tvshow = ['/lista-serie-tv',
-        ('Aggiornamenti', ['/lista-serie-tv', 'peliculas', 'update']),
-        ('Generi', ['/categorie', 'genres', 'genres']),
-        ('News Sub-ITA', ['/lista-serie-tv', 'peliculas', 'ined']),
-        ('Da non perdere', ['/lista-serie-tv', 'peliculas', 'nolost']),
-        ('Classiche', ["/lista-serie-tv", 'peliculas', 'classic']),
-        ('Anime/Cartoni', ["/category/animazione/", 'peliculas', 'genres'])
-    ]
+    tvshow = ['',
+              ('Aggiornamenti', ['', 'peliculas', 'update']),
+              ('Generi', ['', 'genres', 'genres']),
+              ('News Sub-ITA', ['', 'peliculas', 'ined']),
+              ('Anime/Cartoni', ["/category/animazione/", 'peliculas', 'genres'])
+              ]
 
     return locals()
+
 
 ##@support.scrape
 ##def peliculas(item):
@@ -76,7 +74,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-##    import web_pdb; web_pdb.set_trace()
+    ##    import web_pdb; web_pdb.set_trace()
     info('peliculas ->\n', item)
 
     action = 'episodios'
@@ -87,36 +85,36 @@ def peliculas(item):
         patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)</p>'
         patronNext = r'rel="next" href="([^"]+)">'
         item.contentType = 'tvshow'
-##    elif item.args == 'search':
-##        patronBlock = r'<h2 style="color:\s?white !important.?" class="title-typology">(?P<block>.*?)<div class="container-fluid whitebg" style="">'
-##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)</p>'
+    ##    elif item.args == 'search':
+    ##        patronBlock = r'<h2 style="color:\s?white !important.?" class="title-typology">(?P<block>.*?)<div class="container-fluid whitebg" style="">'
+    ##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)</p>'
     else:
         end_block = r'(?P<block>.*?)<div\s+class="btn btn-lg btn-default btn-load-other-series">'
         patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
         pagination = 25
         if item.args == 'ined':
             deflang = 'SUB-ITA'
-            patronBlock = r'<span\s+class="label label-default label-title-typology">'+end_block
-##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##            pagination = 25
+            patronBlock = r'<span\s+class="label label-default label-title-typology">' + end_block
+        ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
+        ##            pagination = 25
         elif item.args == 'update':
-            patronBlock = r'<div\s+class="container-fluid greybg title-serie-lastep title-last-ep fixed-title-wrapper containerBottomBarTitle">'+end_block
-            patron = r'<a(?: rel="[^"]+")? href="(?P<url>[^"]+)"(?: class="[^"]+")?>[ ]<img class="[^"]+"[ ]title="[^"]+"[ ]alt="[^"]+"[ ](?:|meta-)?src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?:\d+.\d+)[ ]\((?P<lang>[a-zA-Z\-]+)[^<]+<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)<'
-        elif item.args == 'nolost':
-            patronBlock = r'<h2 class="title-typology styck-top" meta-class="title-serie-danonperd">'+end_block
-##            pagination = 25
-        elif item.args == 'classic':
-            patronBlock = r'<h2 class="title-typology  styck-top" meta-class="title-serie-classiche">'+end_block
-##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##            pagination = 25
-##        elif item.args == 'anime':
-##
+            patronBlock = r'<div\s+class="container-fluid greybg title-serie-lastep title-last-ep fixed-title-wrapper containerBottomBarTitle">' + end_block
+            patron = r'href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>.+?class="strongText">(?P<title>.+?)<'
+        # elif item.args == 'nolost':
+        #     patronBlock = r'<h2 class="title-typology styck-top" meta-class="title-serie-danonperd">' + end_block
+        #            pagination = 25
+        # elif item.args == 'classic':
+        #     patronBlock = r'<h2 class="title-typology  styck-top" meta-class="title-serie-classiche">' + end_block
+        ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
+        ##            pagination = 25
+        ##        elif item.args == 'anime':
+        ##
         else:
-            patronBlock = r'<div\s+class="container container-title-serie-new container-scheda" meta-slug="new">'+end_block
-##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##            pagination = 25
-    #support.regexDbg(item, patronBlock, headers)
-    #debug = True
+            patronBlock = r'<div\s+class="container container-title-serie-new container-scheda" meta-slug="new">' + end_block
+    ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
+    ##            pagination = 25
+    # support.regexDbg(item, patronBlock, headers)
+    # debug = True
     return locals()
 
 
@@ -129,21 +127,21 @@ def episodios(item):
     patronBlock = r'<h2 class="title-typology">Episodi (?P<stagione>\d+).{1,3}Stagione</h2>(?P<block>.*?)<div class="container">'
 
     def itemHook(item):
-        item.title = item.title.replace(item.fulltitle, '').replace('-','',1)
+        item.title = item.title.replace(item.fulltitle, '').replace('-', '', 1)
         return item
 
-    #debug = True
+    # debug = True
     return locals()
+
 
 @support.scrape
 def genres(item):
     info()
 
     action = 'peliculas'
-    patronGenreMenu = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
+    patronMenu = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
     patron_block = r'<ul\sclass="dropdown-menu category">(?P<block>.*?)</ul>'
-    item.contentType = ''
-
+    # debug = True
     return locals()
 
 
@@ -161,15 +159,16 @@ def search(item, text):
             info("%s" % line)
         return []
 
+
 def newest(categoria):
     info()
     itemlist = []
     item = Item()
-    item.contentType= 'tvshow'
+    item.contentType = 'tvshow'
     item.args = 'update'
     try:
         if categoria == "series":
-            item.url = "%s/lista-serie-tv" % host
+            item.url = host
             item.action = "peliculas"
             itemlist = peliculas(item)
 

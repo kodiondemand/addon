@@ -65,7 +65,7 @@ def live(item):
     itemlist=[]
     for key, value in liveDict().items():
         itemlist.append(item.clone(title=support.typo(key,'bold'), contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='play', forcethumb=True, no_return=True))
-    return support.thumb(itemlist, live=True)
+    return support.thumb(itemlist, mode='live')
 
 
 def peliculas(item):
@@ -174,5 +174,5 @@ def play(item):
     if item.livefilter:
         d = liveDict()[item.livefilter]
         item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
-        support.thumb(item, live=True)
+        support.thumb(item, mode='live')
     return [item]

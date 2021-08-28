@@ -105,6 +105,7 @@ def episodios(item):
     # debugBlock = True
     return locals()
 
+
 @support.scrape
 def genres(item):
     info(item)
@@ -118,15 +119,17 @@ def genres(item):
     elif item.args == 'letter':
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'
 
-    patronGenreMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
+    patronMenu = r'<a(?:.+?)?href="(?P<url>.*?)"[ ]?>(?P<title>.*?)<\/a>'
+    # debugBlock = True
 
     return locals()
 
+
 def search(item, text):
     info(text)
-    itemlist = []
+    import uuid
     text = text.replace(' ', '+')
-    item.url = host + '/?a=b&s=' + text
+    item.url = host + '/?' + uuid.uuid4().hex + '=' + uuid.uuid4().hex + '&s=' + text
     try:
         item.args = 'search'
         return peliculas(item)

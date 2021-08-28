@@ -50,7 +50,8 @@ def peliculas(item):
         patron = r'<a href="(?P<url>[^"]+)">\s*<div class="wrapperImage">(?:\s*<span class="year">(?P<year>[^<]+)<\/span>)?(?:\s*<span class="hd">(?P<quality>[^<]+)<\/span>)?[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)"(?:(?:[^>]+>){5}\s*(?P<rating>[^<]+))?(?:[^>]+>){4}(?P<title>[^<]+)'
 
     if not item.args:
-        patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
+        # patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
+        patronBlock = r'({})(?P<block>.*?)</section'.format('ULTIMI INSERITI' if item.contentType == 'movie' else 'Serie TV')
 
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
 
@@ -58,7 +59,6 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    item.contentType = 'undefined'
     action = 'peliculas'
     patronGenreMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
@@ -122,6 +122,7 @@ def newest(categoria):
 
 
 def check(item):
+    item.contentType = 'tvshow'
     def get_season(pageData, seas_url, season):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches

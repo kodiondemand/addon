@@ -150,7 +150,7 @@ class Item(object):
         for k in kw:
             if k in ["contentTitle", "contentPlot", "contentSerieName", "show", "contentType", "contentEpisodeTitle",
                      "contentSeason", "contentEpisodeNumber", "contentThumbnail", "plot", "duration", "contentQuality",
-                     "quality"]:
+                     "quality", "year"]:
                 self.__setattr__(k, kw[k])
                 del kwargs[k]
 
@@ -180,7 +180,7 @@ class Item(object):
 
         # By modifying any of these attributes content...
         if name in ["contentTitle", "contentPlot", "plot", "contentSerieName", "contentType", "contentEpisodeTitle",
-                    "contentSeason", "contentEpisodeNumber", "contentThumbnail", "show", "contentQuality", "quality"]:
+                    "contentSeason", "contentEpisodeNumber", "contentThumbnail", "show", "contentQuality", "quality", "year"]:
             # ...and update infoLables
             if name == "contentTitle":
                 self.__dict__["infoLabels"]["title"] = value
@@ -200,6 +200,8 @@ class Item(object):
                 self.__dict__["infoLabels"]["thumbnail"] = value
             elif name == "contentQuality" or name == "quality":
                 self.__dict__["infoLabels"]["quality"] = value
+            elif name == "year":
+                self.__dict__["infoLabels"]["year"] = value
 
         elif name == "duration":
             # String q represents the duration of the video in seconds

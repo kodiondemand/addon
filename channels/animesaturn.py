@@ -92,7 +92,7 @@ def filter(item):
     matches = support.match(item.data if item.data else item.url, patron=r'<option value="(?P<value>[^"]+)"[^>]*>(?P<title>[^<]+)').matches
     for value, title in matches:
         itemlist.append(item.clone(title= support.typo(title,'bold'), url='{}{}&{}%5B0%5D={}'.format(host, item.args, item.parameter, value), action='peliculas', args='filter'))
-    support.thumb(itemlist, genre=True)
+    support.thumb(itemlist, mode='genre')
     return itemlist
 
 

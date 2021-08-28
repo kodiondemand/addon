@@ -39,7 +39,7 @@ def peliculas(item):
         patronNext = r'<a href="([^"]+)[^>]+>Pagina'
     else:
         patronBlock = r'<ul class="posts">(?P<block>.*)<div class="clear[^"]*">'
-        patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\s\[(?P<quality>HD)\])?<\/div><div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
+        patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\s\[(?P<quality>HD)\])?<\/div>\s*<div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
 
     if item.args == 'search':
         action = 'check'

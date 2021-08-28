@@ -10,12 +10,14 @@ import channelselector
 addon_icon = filetools.join( config.__settings__.getAddonInfo( "path" ),'resources', 'media', 'logo.png' )
 
 background = 'FF232323'
+overlay = '77232323'
 text = 'FFFFFFFF'
 select = 'FF0082C2'
 if config.get_setting('icon_set') == 'dark':
     background = 'FFDCDCDC'
+    overlay = '77DCDCDC'
     text = 'FF232323'
-    select = '880082C2'
+    select = 'FF78BDDF'
 
 class KeyListener(xbmcgui.WindowXMLDialog):
     TIMEOUT = 10
@@ -122,13 +124,15 @@ class Main(xbmcgui.WindowXMLDialog):
 
     def menulist(self, menu):
         itemlist = []
+        self.getControl(200).setLabel(background)
+        self.getControl(201).setLabel(overlay)
+        self.getControl(202).setLabel(select)
+        self.getControl(203).setLabel(text)
         for menuentry in menu:
             # if not menuentry.channel: menuentry.channel = 'news'
+
             title = re.sub(r'(\[[/]?COLOR[^\]]*\])','',menuentry.title)
             item = xbmcgui.ListItem(title)
-            item.setProperty('background', background)
-            item.setProperty('text', text)
-            item.setProperty('select', select)
             item.setProperty('channel', menuentry.channel)
             item.setProperty('focus', '0')
             item.setProperty('thumbnail', menuentry.thumbnail)
@@ -175,6 +179,7 @@ class Main(xbmcgui.WindowXMLDialog):
 
 
     def submenu(self):
+        itmlist = []
         channel_name = self.MENU.getSelectedItem().getProperty('channel')
         focus = int(self.MENU.getSelectedItem().getProperty('focus'))
         if channel_name == 'channelselector':

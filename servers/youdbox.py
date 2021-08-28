@@ -11,10 +11,10 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url).data
     if 'File was deleted' in data:
         return False, config.get_localized_string(70449) % 'YouDbox'
-    return True
+    return True, ""
 
 
-def get_video_url(page_url, video_password):
+def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.info("(page_url='%s')" % page_url)
     global data
     video_urls = []

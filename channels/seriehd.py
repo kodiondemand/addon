@@ -17,10 +17,10 @@ def mainlist(item):
 
     tvshow = [('Genere', ['', 'menu', 'genre']),
               ('A-Z', ['', 'menu', 'a-z']),
-              ('In Corso', ['category/serie-tv-streaming/serie-in-corso', 'peliculas']),
-              ('Complete', ['category/serie-tv-streaming/serie-complete', 'peliculas']),
-              ('Americane', ['category/serie-tv-streaming/serie-tv-americane', 'peliculas']),
-              ('Italiane', ['category/serie-tv-streaming/serie-tv-italiane', 'peliculas']),
+              ('In Corso', ['/category/serie-tv-streaming/serie-in-corso', 'peliculas']),
+              ('Complete', ['/category/serie-tv-streaming/serie-complete', 'peliculas']),
+              ('Americane', ['/category/serie-tv-streaming/serie-tv-americane', 'peliculas']),
+              ('Italiane', ['/category/serie-tv-streaming/serie-tv-italiane', 'peliculas']),
               ('Ultimi Episodi', ['/aggiornamenti', 'peliculas', 'last']),
               ('Evidenza', ['', 'peliculas', 'best'])]
     return locals()

@@ -93,13 +93,14 @@ def search(item, text):
 
 @support.scrape
 def peliculas(item):
+    # debug = True
     # esclusione degli articoli 'di servizio'
-    curYear = datetime.date.today().year
-    blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
-                 'Aggiornamento Quotidiano Serie TV',
-                 'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
-                 'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
-                 'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
+    # curYear = datetime.date.today().year
+    # blacklist = ['BENVENUTI', 'Richieste Serie TV', 'CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ',
+    #              'Aggiornamento Quotidiano Serie TV', 'AVVISO!!!',
+    #              'Openload: la situazione. Benvenuto Verystream', 'Openload: lo volete ancora?',
+    #              'OSCAR ' + str(curYear) + ' &#x25b6; VOTA IL TUO FILM PREFERITO! &#x1f3ac;',
+    #              'Auguri di Buon Natale e Felice Anno Nuovo! &#8211; ' + str(curYear) + '!']
 
     if 'newest' in item.args:
         pagination = ''
@@ -112,11 +113,11 @@ def peliculas(item):
             action = 'episodios'
 
     elif '/serietv/' not in item.url:
-        patron = r'<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?(?:\[(?P<quality2>[a-zA-Z/]+)\]\s*)? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
+        patron = r'(?<!sticky )hentry.*?<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?(?:\[(?P<quality2>[a-zA-Z/]+)\]\s*)? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
         action = 'findvideos'
 
     else:
-        patron = r'card-image[^>]*>\s*<a href=(?:")?(?P<url>[^" >]+)(?:")?\s*>\s*<img src=(?:")?(?P<thumb>[^" ]+)(?:")? alt="(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>(?P<genre>[^\(]+)\((?P<year>\d{4})[^>]*>[^>]+>[^>]+>[^>]+>(?:<p>)?(?P<plot>[^<]+)'
+        patron = r'(?<!sticky )hentry.*?card-image[^>]*>\s*<a href=(?:")?(?P<url>[^" >]+)(?:")?\s*>\s*<img src=(?:")?(?P<thumb>[^" ]+)(?:")? alt="(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>(?P<genre>[^\(]+)\((?P<year>\d{4})[^>]*>[^>]+>[^>]+>[^>]+>(?:<p>)?(?P<plot>[^<]+)'
         action = 'episodios'
         item.contentType = 'tvshow'
 
@@ -136,17 +137,17 @@ def episodios(item):
     @support.scrape
     def folder(item, data):
         """
-            Quando c'è un link ad una cartelle di vcrypt contenente più stagioni
+            Quando c'è un link ad una cartella contenente più stagioni
         """
         actLike = 'episodios'
         addVideolibrary = False
         downloadEnabled = False
 
-        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)').replace(
-            '.net/', '.pw/')  # vcrypt.pw non ha CF
+        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl, disable_directIP=True).data
-        patron = r'><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
+        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
         sceneTitle = True
+        # debug = True
 
         def itemHook(item):
             item.serieFolder = True
