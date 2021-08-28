@@ -311,7 +311,8 @@ def itemlist_refresh(offset=0):
 
         ctl.selectItem(pos)
     except:
-        xbmc.executebuiltin('ReloadSkin()')
+        xbmc.executebuiltin("Container.Refresh")
+        # xbmc.executebuiltin('ReloadSkin()')
 
 
 def itemlist_update(item, replace=False):
@@ -325,6 +326,7 @@ def render_items(itemlist, parent_item):
     """
     Function used to render itemlist on kodi
     """
+
     # if it's not a list, do nothing
     if not isinstance(itemlist, list):
         return
@@ -382,8 +384,10 @@ def render_items(itemlist, parent_item):
                 quality = typo(item.quality, '_ [] color kod') if item.quality else ''
                 lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
                 extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
+                size = typo(item.size, '_ [] color kod') if item.size else ''
+                seed = typo('Seed: ' + item.seed, '_ [] color kod') if item.seed else ''
 
-                title = '{}{}{}{}{}'.format(title, server, quality, lang, extra)
+                title = '{}{}{}{}{}{}{}'.format(title, server, quality, lang, extra, size, seed)
 
         listitem = xbmcgui.ListItem(title)
         art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
@@ -429,7 +433,10 @@ def render_items(itemlist, parent_item):
             r_list.append(res.result())
     r_list.sort(key=lambda it: it[0].itemlistPosition)
 
+
     for item, item_url, listitem in r_list:
+        # item, item_url, listitem = v
+        # if item.infoLabels.get('playcount', 0): pos = n + 2
         dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder, len(r_list)))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
@@ -455,6 +462,15 @@ def render_items(itemlist, parent_item):
     xbmcplugin.endOfDirectory(_handle)
 
     logger.debug('END render_items')
+
+    if parent_item.channel == 'videolibrary' and parent_item.action in ['get_episodes', 'get_season']:
+        _id = xbmcgui.getCurrentWindowId()
+        win = xbmcgui.Window(_id)
+        cid = win.getFocusId()
+        ctl = win.getControl(cid)
+        xbmc.sleep(50)
+        pos = int(xbmc.getInfoLabel('Container.TotalWatched')) + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
+        ctl.selectItem(pos)
 
 
 def viewmodeMonitor():

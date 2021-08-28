@@ -445,7 +445,9 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 title2 = cleantitle(title2) if title2 else '',
                 episode2 = second_episode,
                 extraInfo = extraInfo,
-                disable_videolibrary = not args.get('addVideolibrary', True)
+                disable_videolibrary = not args.get('addVideolibrary', True),
+                size = scraped['size'],
+                seed = scraped['seed']
             )
 
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
