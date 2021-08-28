@@ -896,7 +896,7 @@ if PY3:
             """
 
             video_chunk =  str(pathlib.Path(__file__).parent.parent.resolve()) + "/header_mediafile"
-            logger.info(f'"get_onlinevideo_chunk" got initiated and will save the chunk to the location: {video_chunk}')
+            logger.info(f'Saving the chunk to the location: {video_chunk}')
 
             r = requests.get(url, stream=True)
             with open(video_chunk, 'wb') as f:
@@ -907,7 +907,7 @@ if PY3:
 
             return video_chunk
 
-        def gather_video_info(path_to_videochunk:str):
+        def extract_video_info(path_to_videochunk:str):
             """This function determines and generates a dictionary containing
             the correct "resolution", "resolution_label" and "bit_rate" of a video file;
             -------------------
@@ -922,12 +922,14 @@ if PY3:
             info_dict = dict()  # dictionary to store resolution, resolution_label and bitrate information that will be returned
             resolutions = {"sd_width" : 720, "hd_width" : 1366, "fullhd_width" : 1920, "2k" : 2560, "4k" : 3840}
 
-            logger.info(f'"gather_video_info" got initiated and "Mediainfo" will parse the file located at: {path_to_videochunk}')
+            logger.info(f'"Mediainfo" will parse the file located at: {path_to_videochunk}')
             media_info = MediaInfo.parse(path_to_videochunk)  # analyses the file in the "path_to_videochunk" location
             for track in media_info.tracks:
                 if track.track_type == "Video":               # there can be video tracks and audio tracks, we ensure it is the video one
                     videoinfo = track.to_data()               # save all the data as a dictionary in the variable "videoinfo"
-            logger.info(f'"MediaInfo" successfully parsed the file located at {path_to_videochunk}')
+
+            for k,v in videoinfo.items():
+                logger.debug(f'{k}:{v}')
 
             # if the width information available in the dictionary passed as parameter 
             # to the function is comparable to the dictionary of "resolutions" defined above:
@@ -944,43 +946,57 @@ if PY3:
                 info_dict["resolution_label"] = "4K"
             
             info_dict["resolution"] = (f'{videoinfo["width"]} x {videoinfo["height"]}')
-            info_dict["bit_rate"] = videoinfo["bit_rate"]
+            info_dict["bit_rate"] = videoinfo.get("bit_rate", 0)
+            if info_dict["bit_rate"] == 0:
+                info_dict["bit_rate"] = videoinfo.get("maximum_bit_rate", 0)
 
             os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
 
             return info_dict
 
+        def set_blank_videoinfo(item:Item):
+            item.title += "... x ..., Bit Rate: unknown"
+            # i won't set alternative values for the "item.quality" parameter
+            # i won't set alternative values for the "item.resolution" parameter
+            item.bitrate = 0
+            return item
+        
+        def set_gathered_videoinfo(item:Item):
+            item.media_url = highest_quality_url
+            item.title += (f'{video_quality["resolution_label"]}, {video_quality["resolution"]}, Bit Rate:{video_quality["bit_rate"] if video_quality["bit_rate"] != 0 else "unknown"}')
+            item.quality = video_quality["resolution_label"]
+            item.resolution = video_quality["resolution"]
+            item.bitrate = video_quality["bit_rate"]
+            return item
 
-        logger.info('"correct_onlinemedia_info" received the itemlist to parse')
+
+        logger.info('Parsing the provided Itemlist')
         for item in video_itemlist:
             # logger.debug(item.tostring('/n'))  
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
-                # logger.debug(f'The URL list is: --------> {url_list}\n')
+                logger.debug(f'The URL list is: ----> {url_list}\n')
                 highest_quality_url = (url_list[-1][-1] if len(url_list) == 1 or not "m3u8" in url_list[-1][-1] else url_list[-2][-1]).split("|")[0]
-                logger.info(f'For the Server: "{item.server}"  we are passing the url: "{highest_quality_url}"')
-                try:
-                    video_quality = gather_video_info(get_onlinevideo_chunck(highest_quality_url))
-                except Exception as e:
-                    logger.error(e)
-                    item.title += "... x ..., unknown bit_rate"
-                    # i won't set alternative values for the item.quality parameter
-                    # i won't set alternative values for the item.resolution parameter
-                    item.bitrate = 0
+                if highest_quality_url != "":
+                    try:
+                        logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
+                        video_quality = extract_video_info(get_onlinevideo_chunck(highest_quality_url))
+                        logger.info("Updating the Item's information with the gathered ones")
+                        item = set_gathered_videoinfo(item)
+                        logger.info(f'\n --------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                    except Exception:
+                        import traceback
+                        logger.error(traceback.format_exc())
+                        item = set_blank_videoinfo(item)
+                        continue
+                else:
+                    item = set_blank_videoinfo(item)
+                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
                     continue
-                
-                logger.info("Updating the Item's information with the gathered ones")
-                item.url = highest_quality_url
-                item.title += (f'{video_quality["resolution_label"]}, {video_quality["resolution"]}, {video_quality["bit_rate"]}')
-                item.quality = video_quality["resolution_label"]
-                item.resolution = video_quality["resolution"]
-                item.bitrate = video_quality["bit_rate"]
-                logger.info(f'--------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+
             else:
                 logger.debug(url_error)
-                item.title += "... x ..., unknown bit_rate"
-                # i won't set alternative values for the item.quality parameter
-                # i won't set alternative values for the item.resolution parameter
-                item.bitrate = 0
+                item = set_blank_videoinfo(item)
+                continue
         
         return video_itemlist
