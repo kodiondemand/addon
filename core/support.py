@@ -1445,9 +1445,9 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                video_urls.append(['.' + url.split('.')[-1].split('?')[0] + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])
+                video_urls.append({'type':url.split('.')[-1], 'res':quality, 'url':url if not onlyHttp else url.replace('https://', 'http://')})
 
-        video_urls.sort(key=lambda x: x[0].split()[1])
+        # video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls
 
 

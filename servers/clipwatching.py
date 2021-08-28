@@ -35,7 +35,7 @@ def get_video_url(page_url, user="", password="", video_password=""):
             else:
                 label = video.split('.')[-1]
                 multires = False
-            video_urls.append([label + " [clipwatching]", video])
-    if multires:
-        video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
+            video_urls.append({'type':label, 'url':video})
+    # if multires:
+    #     video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
     return video_urls

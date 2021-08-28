@@ -32,6 +32,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug(post)
     url = support.match('https://userload.co/api/request/', post=post, patron=r'([^\s\r\n]+)').match
     if url:
-        video_urls.append(["{} [Userload]".format(url.split('.')[-1]), url])
+        video_urls.append({'type':url.split('.')[-1], 'url':url})
 
     return video_urls

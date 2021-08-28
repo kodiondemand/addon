@@ -38,8 +38,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                   scrapertools.find_single_match(data, '"Watch video ([^"]+")').replace(' ', '.') + ".mp4"
             for playpath, inf in playpaths:
                 h = scrapertools.find_single_match(playpath, 'h=([a-z0-9]+)')
-                video_urls.append([".mp4 [%s] %s" % (id_server, inf), mp4 % h])
-                video_urls.append(["RTMP [%s] %s" % (id_server, inf), "%s playpath=%s" % (rtmp, playpath)])
-    for video_url in video_urls:
-        logger.debug("video_url: %s - %s" % (video_url[0], video_url[1]))
+                video_urls.append({'type':'mp4', 'res':inf, 'url':mp4 % h})
+                video_urls.append({'type':'rtmp', 'res':inf, 'url':"%s playpath=%s" % (rtmp, playpath)})
+    # for video_url in video_urls:
+    #     logger.debug("video_url: %s - %s" % (video_url[0], video_url[1]))
     return video_urls

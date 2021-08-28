@@ -23,6 +23,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     protection = support.match(data, patron=r'>var protection="([^"]+)"').match
     url =  httptools.downloadpage("https://www.okstream.cc/request/", post='&morocco={}&mycountry={}'.format(keys, protection), headers={'Referer':page_url}).data
     url = url.strip()
-    video_urls.append([url.split('.')[-1] + " [OkStream]", url])
+    video_urls.append({'type':url.split('.')[-1], 'url':url})
 
     return video_urls

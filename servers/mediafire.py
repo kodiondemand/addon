@@ -25,7 +25,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         patron = 'Download file.*?href="([^"]+)"'
         matches = scrapertools.find_multiple_matches(data, patron)
     if len(matches) > 0:
-        video_urls.append([matches[0][-4:] + " [mediafire]", matches[0]])
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+        video_urls.append({'type':matches[0].split('.')[-1], 'url':matches[0]})
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

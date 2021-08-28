@@ -43,7 +43,7 @@ def get_video_url(page_url, premium = False, user = "", password = "", video_pas
     oculto = re.findall('<input type=hidden value=([^ ]+) id=func', data, flags=re.DOTALL)[0]
     funciones = resuelve(clave, base64.b64decode(oculto))
     url, type = scrapertools.find_single_match(funciones, "setAttribute\('src', '(.*?)'\);\s.*?type', 'video/(.*?)'")
-    video_urls.append(['upvid [%s]' % type ,url])
+    video_urls.append({'type':type ,'url':url})
     return video_urls
 
 

@@ -38,7 +38,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                 stream_url_http = scrapertools.find_single_match(data_m3u8, r'PROGRESSIVE-URI="([^"]+)"')
                 if stream_url_http:
                     stream_url = stream_url_http
-            video_urls.append(["%sp .%s [dailymotion]" % (calidad, stream_type), stream_url, 0, subtitle])
+            video_urls.append({'type':calidad, 'res':stream_type, 'url':stream_url, 'sub':subtitle})
     for video_url in video_urls:
         logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

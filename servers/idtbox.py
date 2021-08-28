@@ -34,6 +34,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ext = ext.split("/")[1]
         except:
             ext = ".mp4"
-        video_urls.append(["%s (%s) [idtbox]" % (ext, res), url])
+        video_urls.append({'type':ext, 'res':res, 'url':url})
 
     return video_urls

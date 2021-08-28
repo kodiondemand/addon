@@ -22,5 +22,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(page_url).data
     enc_data = scrapertools.find_single_match(data, 'data-stream="([^"]+)')
     dec_data = base64.b64decode(enc_data)
-    video_urls.append(['vivo', dec_data])
+    video_urls.append({'url':dec_data})
     return video_urls

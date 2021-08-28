@@ -30,6 +30,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     #media_url += "|Referer=%s" %page_url
     if "m3u8" in media_url:
         ext = "m3u8"
-    video_urls.append(["%s [samaup]" % (ext), media_url])
+    video_urls.append({'type':ext, 'url':media_url})
 
     return video_urls

@@ -32,10 +32,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         media_url = httptools.downloadpage(media_url, only_headers=True, follow_redirects=False).headers.get("location", "")
 
         if media_url:
-            video_urls.append([media_url.split('.')[-1] + ' - ' + label + ' - ' + ' [Speedvideo]', media_url])
-    logger.debug("speed video - media urls: %s " % video_urls)
+            video_urls.append({'type':media_url.split('.')[-1], 'res':label, 'url':media_url})
+    # logger.debug("speed video - media urls: %s " % video_urls)
 
-    return sorted(video_urls, key=lambda x: quality[x[0].split(' - ')[1]])
+    return video_urls
 
 
 ##,

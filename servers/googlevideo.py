@@ -21,9 +21,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     newpatron = '</script>.*?<a href="(.*?)" title="Click to Download">'
     newmatches = re.compile(newpatron, re.DOTALL).findall(data)
     if len(newmatches) > 0:
-        video_urls.append(["[googlevideo]", newmatches[0]])
+        video_urls.append({'url':newmatches[0]})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

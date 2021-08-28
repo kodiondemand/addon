@@ -29,9 +29,9 @@ def get_video_url(page_url, premium=False, user='', password='', video_password=
     info('server=torrent, the url is the good')
 
     if page_url.startswith('magnet:'):
-        video_urls = [['magnet: [torrent]', page_url]]
+        video_urls = [{'type':'magnet', 'url':page_url}]
     else:
-        video_urls = [['.torrent [torrent]', page_url]]
+        video_urls = [{'type':'torrent', 'url':page_url}]
 
     return video_urls
 

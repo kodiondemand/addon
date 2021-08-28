@@ -35,6 +35,6 @@ def get_video_url(page_url, video_password=""):
     else:
         url = re.sub(r'(\.\w{2,3})/\w', '\\1/getl1nk-', data.url) + '.dll'
     url += "|Referer=https://streamz.ws/&User-Agent=Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'"
-    video_urls.append(["mp4 [streamZ]", url])
+    video_urls.append({'type':'mp4', 'url':url})
 
     return video_urls

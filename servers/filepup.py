@@ -26,15 +26,15 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     qualities = scrapertools.find_multiple_matches(qualities, ' "([^"]+)')
     for calidad in qualities:
         media = media_url
-        title = "%s [filepup]" % (calidad)
+        # title = "%s [filepup]" % (calidad)
         if "480" not in calidad:
             med = media_url.split(".mp4")
-            media = med[0] + "-%s.mp4" %calidad + med[1]
+            media = med[0] + "-%s.mp4" % calidad + med[1]
         media += "|Referer=%s" %page_url
         media += "&User-Agent=" + httptools.get_user_agent()
-        video_urls.append([title, media, int(calidad.replace("p", ""))])
-    video_urls.sort(key=lambda x: x[2])
-    for video_url in video_urls:
-        video_url[2] = 0
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+        video_urls.append({'type':'mp4', 'res':calidad, 'url':media})
+    # video_urls.sort(key=lambda x: x[2])
+    # for video_url in video_urls:
+    #     video_url[2] = 0
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

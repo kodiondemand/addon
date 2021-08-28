@@ -42,9 +42,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         mediaurl = r[0]
 
     video_urls = []
-    video_urls.append([scrapertools.get_filename_from_url(mediaurl)[-4:] + " [hugefiles]", mediaurl])
+    video_urls.append({'type':scrapertools.get_filename_from_url(mediaurl).split('.')[-1], 'url':mediaurl})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

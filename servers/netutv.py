@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys
+import sys, random
 
 from platformcode import config
 
@@ -101,7 +101,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     link_m3u8 = 'http://hqq.watch/player/get_md5.php?ver=2&at=%s&adb=0&b=1&link_1=%s&server_2=%s&vid=%s&ext=%s' % (at, link_1, server_2, vid, ext)
     # ~ logger.debug(link_m3u8)
     
-    video_urls.append(["[netu.tv]", link_m3u8])
+    video_urls.append({'type':'m3u8', 'url':link_m3u8})
 
     return video_urls
 

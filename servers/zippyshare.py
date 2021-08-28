@@ -42,6 +42,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     mediaurl = '%s%s' % (domain, url)
     extension = "." + mediaurl.split('.')[-1]
-    video_urls.append([extension + " [zippyshare]", mediaurl])
-    logger.debug("url=%s" %video_urls)
+    video_urls.append({'type':extension, 'url':mediaurl})
+    # logger.debug("url=%s" %video_urls)
     return video_urls

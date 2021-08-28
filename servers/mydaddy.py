@@ -30,5 +30,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         if not url.startswith("http"):
             url = "http:%s" % url
         if not "Default" in quality:
-            video_urls.append(["[mydaddy] %s" % quality, url])
+            video_urls.append({'res':quality, 'url':url})
     return video_urls

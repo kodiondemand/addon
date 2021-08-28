@@ -25,6 +25,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     media_url = c.get_manifest_url()
 
-    video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [Streaming Community]", media_url])
+    video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1] , 'url':media_url})
 
     return video_urls

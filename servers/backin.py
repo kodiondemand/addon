@@ -45,9 +45,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("URL=" + str(url))
 
     # URL del vídeo
-    video_urls.append([".mp4" + " [backin]", url])
+    video_urls.append({'type':'mp4', 'url':url})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0],  httptools.get_url_headers(video_url[1])))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0],  httptools.get_url_headers(video_url[1])))
 
     return video_urls

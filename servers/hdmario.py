@@ -140,6 +140,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '') + '.m3u8', headers=[['X-Secure-Proof', secureProof]]).data
     filetools.write(xbmc.translatePath('special://temp/hdmario.m3u8'), data, 'w')
 
-    video_urls = [['.m3u8 [HDmario]', 'special://temp/hdmario.m3u8']]
+    video_urls = [{'type':'m3u8', 'url':'special://temp/hdmario.m3u8'}]
 
     return video_urls

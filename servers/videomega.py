@@ -15,6 +15,6 @@ def get_video_url(page_url, video_password):
     url = url.replace(" ", "")
     data=httptools.downloadpage(url).data
     url = scrapertools.find_single_match(data, '<source src="([^"]+)"')
-    video_urls.append(["[videomega]", url])
+    video_urls.append({'url':url})
     return video_urls
 

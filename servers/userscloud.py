@@ -33,10 +33,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         data = httptools.downloadpage(page_url, post=post).data
         media_url = scrapertools.find_single_match(data, 'name="down_script".*?<a href="([^"]+)"')
 
-    ext = scrapertools.get_filename_from_url(media_url)[-4:]
-    video_urls.append(["%s [userscloud]" % ext, media_url])
+    ext = scrapertools.get_filename_from_url(media_url).split('.')[-1]
+    video_urls.append({'type':ext, 'url':media_url})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

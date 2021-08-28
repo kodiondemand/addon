@@ -37,5 +37,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             url = url.split(',')
             video_url = url[0]
             Type = url[1].replace('label:','')
-        video_urls.append(['%s [CloudVideo]' % Type, video_url])
+        video_urls.append({'type':Type, 'url':video_url})
     return video_urls

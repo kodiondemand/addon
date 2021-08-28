@@ -74,8 +74,8 @@ def uptostream(data):
         tipo = tipo.replace("video/","")
         if lang: extension = "{} - {} [{}]".format(tipo, res, lang.upper())
         else: extension = "{} - {}".format(tipo, res)
-        video_urls.append([extension + " [UPtoStream]", media_url, 0, subtitle])
-        video_urls.sort(key=lambda url: int(match(url[0], patron=r'(\d+)p').match))
+        video_urls.append({'type':extension, 'url':media_url, 'sub':subtitle})
+        # video_urls.sort(key=lambda url: int(match(url[0], patron=r'(\d+)p').match))
     return video_urls
 
 def atob(s):
@@ -93,6 +93,6 @@ def uptobox(url, data):
     media = match(url, post=post[:-1], patron=r'<a href="([^"]+)">\s*<span class="button_upload green">').match
     url_strip = media.rsplit('/', 1)[1]
     media_url = media.rsplit('/', 1)[0] + "/" + url_strip
-    video_urls.append([media_url[-4:] + " [UPtoStream]", media_url])
+    video_urls.append({'type':media_url.split('.')[-1], 'url':media_url})
 
     return video_urls

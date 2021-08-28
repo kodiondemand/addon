@@ -30,11 +30,6 @@ if not FOLDER_MOVIES or not FOLDER_TVSHOWS or not VIDEOLIBRARY_PATH or not filet
 
 addon_name = "plugin://plugin.video.%s/" % config.PLUGIN_NAME
 
-quality_order = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
-                 'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
-                 'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
-                 'sd', '480p', '480', '360p', '360', '240p', '240']
-
 video_extensions = ['3g2', '3gp', '3gp2', 'asf', 'avi', 'divx', 'flv', 'iso', 'm4v', 'mk2', 'mk3d', 'mka', 'mkv', 'mov', 'mp4', 'mp4a', 'mpeg', 'mpg', 'ogg', 'ogm', 'ogv', 'qt', 'ra', 'ram', 'rm', 'ts', 'vob', 'wav', 'webm', 'wma', 'wmv']
 subtitle_extensions = ['srt', 'idx', 'sub', 'ssa', 'ass']
 image_extensions = ['.jpg', '.jpeg', '.png']

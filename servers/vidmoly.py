@@ -18,8 +18,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("url=" + page_url)
     global data
     video_urls = support.get_jwplayer_mediaurl(data, 'Vidmoly')
-    for url in video_urls:
+    for url in video_urls.items:
         logger.debug(url)
-        url[-1] = url[-1].replace(',','').replace('.urlset','').replace('/hls','') + '|Referer=' + page_url
+        url[url] = url['url'].replace(',','').replace('.urlset','').replace('/hls','') + '|Referer=' + page_url
 
     return video_urls

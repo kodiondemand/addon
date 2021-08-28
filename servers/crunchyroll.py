@@ -92,9 +92,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         import traceback
         logger.error(traceback.format_exc())
         file_sub = ""
-    video_urls.append(["%s  %sp [crunchyroll]" % (filename, quality), media_url, 0, file_sub])
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    video_urls.append({'type':filename, 'res':quality, 'url':media_url, 'sub':file_sub})
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls
 
 

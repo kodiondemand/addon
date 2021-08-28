@@ -27,6 +27,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(page_url, post=post).data
     media_url = scrapertools.find_single_match(data, '<a href="([^"]+)">http')
     ext = scrapertools.get_filename_from_url(media_url)
-    video_urls.append(["%s [Uppom]" % ext, media_url])
+    video_urls.append({'type':ext, 'url':media_url})
 
     return video_urls

@@ -21,6 +21,6 @@ def get_video_url(page_url, user="", password="", video_password=""):
     data = httptools.downloadpage(page_url).data
     video_urls = []
     videourl = scrapertools.find_single_match(data, 'src: "([^"]+)')
-    video_urls.append([".MP4 [thevideobee]", videourl])
+    video_urls.append({'type':'mp4', 'url':videourl})
 
     return video_urls

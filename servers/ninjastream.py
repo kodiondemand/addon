@@ -34,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         # support.dbg()
         url = data.get('result',{}).get('playlist')
 
-        video_urls.append([url.split('.')[-1], url + '|Referer=' + page_url])
+        video_urls.append({'type':url.split('.')[-1], 'url':url + '|Referer:' + page_url})
 
     return video_urls
 

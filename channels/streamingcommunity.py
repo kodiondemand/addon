@@ -218,13 +218,13 @@ def findvideos(item):
     def videourls(res):
         newurl = '{}/{}{}'.format(url, res, token)
         if requests.head(newurl, headers=headers).status_code == 200:
-            video_urls.append(["m3u8 {} [StreamingCommunity]".format(res), newurl])
+            video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
 
     with futures.ThreadPoolExecutor() as executor:
         for res in ['480p', '720p', '1080p']:
             executor.submit(videourls, res) 
 
-    if not video_urls: video_urls = [["m3u8 [StreamingCommunity]", url + token]]
+    if not video_urls: video_urls = [{'type':'m3u8', 'url':url + token}]
     else: video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
     return support.server(item, itemlist=itemlist)

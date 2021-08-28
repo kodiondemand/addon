@@ -123,10 +123,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
             for media_url, label in media_urls:
                 if not media_url.endswith("png") and not media_url.endswith(".srt"):
-                    video_urls.append(["." + media_url.rsplit('.', 1)[1] + " [flashx]", media_url, 0, subtitle])
+                    video_urls.append({'type':media_url.rsplit('.', 1)[1], 'url':media_url, 'sub':subtitle})
 
-            for video_url in video_urls:
-                logger.debug("%s - %s" % (video_url[0], video_url[1]))
+            # for video_url in video_urls:
+            #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
         except:
             pass
 

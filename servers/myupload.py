@@ -29,5 +29,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     matches = scrapertools.find_multiple_matches(data, 'tracker: "([^"]+)"')
     for scrapedurl in matches:
         url = base64.b64decode(scrapedurl)
-    video_urls.append(["[myupload]", url])
+    video_urls.append({'url':url})
     return video_urls

@@ -24,6 +24,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     patron += '"src":"(http.*?)".*?'
     matches = scrapertools.find_multiple_matches(data, patron)
     for label, url in matches:
-        video_urls.append(['%s [dostream]' %label, url])
-    video_urls.sort(key=lambda it: int(it[0].split("p ")[0]))
+        video_urls.append({'type':label, 'url':url})
+    # video_urls.sort(key=lambda it: int(it[0].split("p ")[0]))
     return video_urls

@@ -83,11 +83,11 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                    0] + " playpath=" + playpath + " swfUrl=http://gamovideo.com/player61/jwplayer.flash.swf"
 
     video_urls = []
-    video_urls.append(["RTMP [gamovideo]", rtmp_url])
-    video_urls.append([scrapertools.get_filename_from_url(mediaurl)[-4:] + " [gamovideo]", mediaurl])
+    video_urls.append({'type':'rtmp', 'url':rtmp_url})
+    video_urls.append({'type':scrapertools.get_filename_from_url(mediaurl).split('.')[-1], 'url':mediaurl})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls
 

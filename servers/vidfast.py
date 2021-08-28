@@ -26,7 +26,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("Intel11 %s" %data)
     media_url = scrapertools.find_single_match(data, 'file:"([^"]+)')
     if media_url:
-        ext = media_url[-4:]
-        video_urls.append(["%s [vidfast]" % (ext), media_url])
+        ext = media_url.split('.')[-1]
+        video_urls.append({'type':ext, 'url':media_url})
 
     return video_urls

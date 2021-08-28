@@ -28,6 +28,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data =  re.sub(r'\n|\r|\t|\s{2,}', "", data)
     media_url, ext = scrapertools.find_single_match(data, r'file:\s*"([^"]+)",type:\s*"([^"]+)"')
     
-    video_urls.append(["%s [Badshare]" % ext, media_url])
+    video_urls.append({'type':ext, 'url':media_url})
 
     return video_urls

@@ -647,7 +647,6 @@ def mark_content_as_watched(item):
             videolibrarydb.close()
 
             if config.is_xbmc() and not self.item.not_update:
-                # support.dbg()
                 from platformcode import xbmc_videolibrary
                 if self.movies:
                     for movie in self.movies:

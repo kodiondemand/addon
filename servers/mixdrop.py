@@ -27,7 +27,7 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     video_urls = []
-    ext = '.mp4'
+    ext = 'mp4'
 
     global data
     packed = scrapertools.find_single_match(data, r'(eval.*?)</script>')
@@ -42,7 +42,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     else:
         media_url = ''
     if not media_url.startswith('http'):
-        media_url = 'http:%s' % media_url
-    video_urls.append(["%s [Mixdrop]" % ext, media_url])
+        media_url = 'http:' + media_url
+    video_urls.append({'type':ext, 'url': media_url})
 
     return video_urls

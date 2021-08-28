@@ -86,10 +86,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # This function (the playlist) does not go, you have to browse megaserver / handler.py although the call is in client.py
     if len(files) > 5:
         media_url = c.get_play_list()
-        video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [mega]", media_url])
+        video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
     else:
         for f in files:
             media_url = f["url"]
-            video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [mega]", media_url])
+            video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
 
     return video_urls

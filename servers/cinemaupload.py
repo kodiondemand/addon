@@ -27,5 +27,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     matches = scrapertools.find_multiple_matches(data, patron)
     for url in matches:
         url += "|Referer=%s" %page_url
-        video_urls.append(['.m3u8 [CinemaUpload]', url])
+        video_urls.append({'type':'m3u8', 'url':url})
     return video_urls

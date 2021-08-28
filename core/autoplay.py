@@ -9,13 +9,6 @@ __channel__ = "autoplay"
 
 PLAYED = False
 
-quality_list = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
-                'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
-                'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
-                'sd', '480p', '480', '360p', '360', '240p', '240',
-                'default']
-
-
 def start(itemlist, item):
     '''
     Main method from which the links are automatically reproduced

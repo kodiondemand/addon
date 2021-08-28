@@ -32,7 +32,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     for video_url, video_calidad in videos:
         extension = scrapertools.get_filename_from_url(video_url)[-4:]
         if extension not in [".vtt", ".srt"]:
-            video_urls.append(["%s %s [fastplay]" % (extension, video_calidad), video_url, 0, subtitulo])
+            video_urls.append({'type':extension, 'res':video_calidad, 'url':video_url, 'sub':subtitulo})
     try:
         video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0].rsplit(" ")[1]))
     except:

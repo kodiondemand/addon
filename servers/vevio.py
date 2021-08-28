@@ -36,5 +36,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     matches = scrapertools.find_multiple_matches(bloque, '"([^"]+)":"([^"]+)')
     for res, media_url in matches:
         video_urls.append(
-            [scrapertools.get_filename_from_url(media_url)[-4:] + " (" + res + ") [vevio.me]", media_url])
+            {'type':scrapertools.get_filename_from_url(media_url).split('.')[-1],'res':res, 'url':media_url})
     return video_urls

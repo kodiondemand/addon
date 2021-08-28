@@ -32,12 +32,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     patron += '.*?quality":"([^"]+)"'
     match = scrapertools.find_multiple_matches(data, patron)
     for mime, media_url, calidad in match:
-        title = "%s (%s) [Vimeo]" % (mime.replace("video/", "."), calidad)
-        video_urls.append([title, media_url, int(calidad.replace("p", ""))])
+        # title = "%s (%s) [Vimeo]" % (mime.replace("video/", "."), calidad)
+        video_urls.append({'type':mime.replace("video/", ""), 'url':media_url, 'res':calidad})
 
-    video_urls.sort(key=lambda x: x[2])
-    for video_url in video_urls:
-        video_url[2] = 0
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # video_urls.sort(key=lambda x: x[2])
+    # for video_url in video_urls:
+    #     video_url[2] = 0
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

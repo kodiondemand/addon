@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from platformcode import logger, config
+from platformcode import logger
+from core import scrapertools
 
 
 def test_video_exists(page_url):
@@ -9,7 +10,6 @@ def test_video_exists(page_url):
 # Returns an array of possible video url's from the page_url
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-
-    video_urls = [["%s %s" % (page_url[-4:], config.get_localized_string(30137)), page_url]]
+    video_urls=[{'type':scrapertools.get_filename_from_url(page_url).split('.')[-1], 'url':page_url}]
 
     return video_urls

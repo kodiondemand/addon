@@ -31,7 +31,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         videourl = match
         videourl = videourl.replace('%5C', '')
         videourl = urllib.unquote(videourl)
-        video_urls.append(["[facebook]", videourl])
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+        video_urls.append({'url':videourl})
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls

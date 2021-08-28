@@ -23,5 +23,5 @@ def get_video_url(page_url, user="", password="", video_password=""):
     data = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True)
     logger.debug(data.headers)
     url = data.headers['location']
-    video_urls.append(['Fex', url])
+    video_urls.append({'url':url})
     return video_urls

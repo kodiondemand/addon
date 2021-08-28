@@ -55,5 +55,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     new_link = base_link + '/?format=json&sqr4374_compat=1&no_404=true&%s&%s' % (referer, id)
     data = httptools.downloadpage(new_link).data
     json_data = jsontools.load(data)
-    video_urls.append(['Rutube', json_data['video_balancer']['m3u8']])
+    video_urls.append({'type':'m3u8', 'url':json_data['video_balancer']['m3u8']})
     return video_urls

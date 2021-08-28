@@ -38,13 +38,13 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         if not media_url.startswith("http"):
             media_url = "http:" + media_url
         quality = " %s" % videos['key']
-        video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + quality + " [mail.ru]", media_url])
-    try:
-        video_urls.sort(key=lambda video_urls: int(video_urls[0].rsplit(" ", 2)[1][:-1]))
-    except:
-        pass
+        video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'res':quality, 'url',media_url})
+    # try:
+    #     video_urls.sort(key=lambda video_urls: int(video_urls[0].rsplit(" ", 2)[1][:-1]))
+    # except:
+    #     pass
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

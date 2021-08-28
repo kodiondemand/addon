@@ -22,13 +22,13 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         matches = re.compile(patron, re.DOTALL).findall(page_url)
 
         try:
-            video_urls.append(["[fourshared]", matches[0]])
+            video_urls.append({'url':matches[0]})
         except:
             pass
     else:
-        video_urls.append(["[fourshared]", page_url])
+        video_urls.append({'url':page_url})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

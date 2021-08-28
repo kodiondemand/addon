@@ -13,6 +13,6 @@ def get_video_url(page_url, video_password):
     matches = scrapertools.find_multiple_matches(data, '"file":"([^"]+)","label":"([^"]+)"')
     for url, quality in matches:
         url = url.replace("\/", "/")
-    video_urls.append(["[watchanimestream] %s" %quality, url])
+    video_urls.append({'res':quality, 'url':url})
     return video_urls
 

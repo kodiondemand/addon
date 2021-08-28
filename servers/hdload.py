@@ -25,6 +25,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug(data)
     url = base64.b64decode(data)
 
-    itemlist.append([".mp4 [HDLoad]", url])
+    itemlist.append({'type':'mp4', 'url':url})
 
     return itemlist

@@ -22,5 +22,5 @@ def get_video_url(page_url, user="", password="", video_password=""):
     label, videourl = scrapertools.find_single_match(data, 'label":"([^"]+)".*?file":"([^"]+)')
     if "animeid.tv" in videourl:
         videourl = httptools.downloadpage(videourl, follow_redirects=False, only_headers=True).headers.get("location", "")
-    video_urls.append([".MP4 " + label + " [animeid]", videourl])
+    video_urls.append({'type':'mp4', 'res':label, 'url':videourl})
     return video_urls

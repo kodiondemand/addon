@@ -23,5 +23,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     pack = scrapertools.find_single_match(data.data, 'p,a,c,k,e,d.*?</script>')
     unpacked = jsunpack.unpack(pack)
     url = scrapertools.find_single_match(unpacked, 'file:"([^"]+)') + "|Referer=%s" % page_url
-    video_urls.append(['m3u8 [PlayTube]', url] )
+    video_urls.append({'type':'m3u8', 'url':url})
     return video_urls

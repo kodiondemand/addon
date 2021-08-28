@@ -254,7 +254,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if isinstance(video_password, list):
             return video_password, len(video_password) > 0, "<br/>".join(error_messages)
         logger.info("Server: %s, url is good" % server)
-        video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2][-4:], config.get_localized_string(30137)), url])
+        video_urls.append({'type':urlparse.urlparse(url)[2].split('.')[-1], 'url':url})
 
     # Find out the video URL
     else:
@@ -270,7 +270,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
 
             # Count the available options, to calculate the percentage
 
-            orden = [
+            order = [
                 ["free"] + [server] + [premium for premium in server_parameters["premium"] if not premium == server],
                 [server] + [premium for premium in server_parameters["premium"] if not premium == server] + ["free"],
                 [premium for premium in server_parameters["premium"] if not premium == server] + [server] + ["free"]
@@ -282,7 +282,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
                 [premium for premium in server_parameters["premium"] if config.get_setting("premium", server=premium)])
 
             priority = int(config.get_setting("resolve_priority"))
-            opciones = sorted(opciones, key=lambda x: orden[priority].index(x))
+            opciones = sorted(opciones, key=lambda x: order[priority].index(x))
 
             logger.info("Available options: %s | %s" % (len(opciones), opciones))
         else:
@@ -685,6 +685,7 @@ def sort_servers(servers_list):
     blacklisted_servers = config.get_setting("black_list", server='servers', default=[])
     favorite_servers = config.get_setting('favorites_servers_list', server='servers', default=[])
     favorite_servers = [s for s in favorite_servers if s not in blacklisted_servers]
+
     if isinstance(servers_list[0], str):
         servers_list = sorted(servers_list, key=lambda x: favorite_servers.index(x) if x in favorite_servers else 999)
         return servers_list
@@ -720,8 +721,9 @@ def sort_servers(servers_list):
             continue
 
         element["index_server"] = index(favorite_servers, item.server.lower())
-        element["index_quality"] = platformtools.calcResolution(item.quality)
+        element["index_quality"] = index(favorite_quality, item.quality.lower())
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
+
         element['videoitem'] = item
         sorted_list.append(element)
 

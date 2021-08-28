@@ -61,4 +61,4 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = support.get_jwplayer_mediaurl(data, 'akvideo', onlyHttp=True)
 
 
-    return sorted(video_urls, key=lambda x: int(x[0].split('x')[0])) if vres else video_urls
+    return video_urls

@@ -24,7 +24,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 	if new_data != "":
 		from lib import jsunpack
 		data = jsunpack.unpack(new_data)
-	media_url = scrapertools.find_single_match(data, r'file:"([^"]+)"') + '|Referer=' + page_url
-	video_urls.append(["%s [UPstream]" % media_url.split('.')[-1], media_url])
+	media_url = scrapertools.find_single_match(data, r'file:"([^"]+)"')
+	video_urls.append({'type':media_url.split('.')[-1], 'url':media_url + '|Referer=' + page_url})
 
 	return video_urls

@@ -36,5 +36,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     for url in matches:
             if url.startswith('//'): url= 'http:' + url
             url += "|Referer=%s" %page_url
-            video_urls.append(['mp4 [Go Unlimited]', url])
+            video_urls.append({'type':'mp4', 'url':url})
     return video_urls

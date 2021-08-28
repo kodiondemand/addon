@@ -38,12 +38,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         video_url =  video_url.replace("\\", "")
         
         if extension not in [".vtt", ".srt"]:
-            video_urls.append(["%s %s [rcdnme]" % (extension, video_calidad), video_url, 0, subtitulo])
-    try:
-        video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0].rsplit(" ")[1]))
-    except:
-        pass
-    for video_url in video_urls:
-        logger.debug(" %s - %s" % (video_url[0], video_url[1]))
+            video_urls.append({'type':extension, 'res':video_calidad, 'url':video_url, 'sub':subtitulo})
+    # try:
+    #     video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0].rsplit(" ")[1]))
+    # except:
+    #     pass
+    # for video_url in video_urls:
+    #     logger.debug(" %s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

@@ -34,5 +34,5 @@ def get_video_url(page_url, user="", password="", video_password=""):
     file += "&Host=fs30.indifiles.com:182"
     video_urls = []
     videourl = file
-    video_urls.append([".MP4 [bdupload]", videourl])
+    video_urls.append({'type':'mp4', 'url':videourl})
     return video_urls

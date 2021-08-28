@@ -31,7 +31,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if match:
         url, token = match
         ret = scraper.get(host + url, headers=headers).text
-        video_urls.append(['mp4 [DooD Stream]', '{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)])
+        video_urls.append({'type':'mp4', 'url':'{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)})
 
 
     return video_urls

@@ -39,6 +39,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ext = url[-4:]
             media_url = url +"|Referer=%s" % page_url
         
-        video_urls.append([ext + " [yourupload]", media_url])
+        video_urls.append({'type':ext, 'url':media_url})
     
     return video_urls

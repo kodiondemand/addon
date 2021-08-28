@@ -23,5 +23,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     patron = '<meta property="og:video" content="([^"]+)">'
     matches = scrapertools.find_multiple_matches(data, patron)
     for url in matches:
-        video_urls.append(['.MP4 [ArchiveOrg]', url])
+        video_urls.append({'type':'mp4', 'url':url})
     return video_urls

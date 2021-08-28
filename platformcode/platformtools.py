@@ -301,8 +301,8 @@ def itemlist_refresh(offset=0):
         ctl = win.getControl(cid)
         pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
         logger.debug('ID:', _id, 'POSITION:', pos)
-        # xbmc.executebuiltin("Container.Refresh")
-        xbmc.executebuiltin('ReloadSkin()')
+        xbmc.executebuiltin("Container.Refresh")
+        # xbmc.executebuiltin('ReloadSkin()')
 
         while xbmcgui.getCurrentWindowDialogId() != 10138:
             pass
@@ -989,8 +989,7 @@ def get_window():
 
 
 def play_video(item, strm=False, force_direct=False, autoplay=False):
-    logger.debug()
-    logger.debug(item.tostring('\n'))
+    logger.debug(item)
 
     def play():
         if item.channel == 'downloads':
@@ -1010,23 +1009,27 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
             httptools.default_headers['Referer'] = item.referer
 
         # Open the selection dialog to see the available options
-        opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-        if salir: return
+        options, video_urls, selection, _exit = get_options_dialog(item, default_action, strm, autoplay)
+        if _exit: return
 
         # get default option of addon configuration
-        seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
-        if seleccion < 0: return # Canceled box
+        selection = get_selection(default_action, options, selection, video_urls)
 
-        logger.debug("selection=%d" % seleccion)
-        logger.debug("selection=%s" % opciones[seleccion])
+        # Canceled box
+        if selection < 0:
+            prevent_busy(item)
+            return
+
+        logger.debug("selection=%d" % selection)
+        logger.debug("selection=%s" % options[selection])
 
         # run the available option, jdwonloader, download, favorites, add to the video library ... IF IT IS NOT PLAY
-        salir = set_opcion(item, seleccion, opciones, video_urls)
-        if salir:
+        _exit = set_option(item, selection, options, video_urls)
+        if _exit:
             return
 
         # we get the selected video
-        mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
+        mediaurl, view, mpd, m3u8 = get_selected_video(item, selection, video_urls, autoplay)
         if not mediaurl: return
 
         # video information is obtained.
@@ -1035,8 +1038,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         set_infolabels(xlistitem, item, True)
 
         # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
-        # from core.support import dbg;dbg()
-        if mpd or item.manifest =='mpd':
+        if mpd or item.manifest == 'mpd':
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
@@ -1046,7 +1048,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
-        elif item.manifest == 'hls' or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
+        elif m3u8 or item.manifest == 'hls':
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
@@ -1068,62 +1070,22 @@ def stop_video():
     xbmc_player.stop()
 
 
-def get_seleccion(default_action, opciones, seleccion, video_urls):
-    fixpri = False
-    # to know what priority you work on
-    priority = int(config.get_setting("resolve_priority"))
-    # will be used to check for premium or debrider links
-    check = []
-    # Check if resolve stop is disabled
-    if config.get_setting("resolve_stop") == False:
-        fixpri = True
-    # ask
+def get_selection(default_action, options, selection, video_urls):
+    resolutions = []
+    for url in video_urls:
+        resolutions.append(calcResolution(url['res']) if 'res' in url else 0)
+
+    resolutions.sort()
+    if default_action == 2: resolutions.reverse()
+
+     # ask
     if default_action == 0:
         # "Choose an option"
-        seleccion = dialog_select(config.get_localized_string(30163), opciones)
-    # View in low quality
-    elif default_action == 1:
-        resolutions = []
-        for url in video_urls:
-            if "debrid]" in url[0] or "Premium)" in url[0]:
-                check.append(True)
-            res = calcResolution(url[0])
-            if res:
-                resolutions.append(res)
-        if resolutions:
-            if (fixpri == True and
-                    check and
-                    priority == 2):
-                seleccion = 0
-            else:
-                seleccion = resolutions.index(min(resolutions))
-        else:
-            seleccion = 0
-    # See in high quality
-    elif default_action == 2:
-        resolutions = []
-        for url in video_urls:
-            if "debrid]" in url[0] or "Premium)" in url[0]:
-                check.append(True)
-            res = calcResolution(url[0])
-            if res:
-                resolutions.append(res)
-
-        if resolutions:
-            if (fixpri == True and
-                    check and
-                    priority == 2):
-                seleccion = 0
-            else:
-                seleccion = resolutions.index(max(resolutions))
-        else:
-            if fixpri == True and check:
-                seleccion = 0
-            else:
-                seleccion = len(video_urls) - 1
+        selection = dialog_select(config.get_localized_string(30163), options)
     else:
-        seleccion = 0
-    return seleccion
+        selection = 0
+
+    return selection
 
 
 def calcResolution(option):
@@ -1215,12 +1177,12 @@ def handle_wait(time_to_wait, title, text):
         return True
 
 
-def get_dialogo_opciones(item, default_action, strm, autoplay):
+def get_options_dialog(item, default_action, strm, autoplay):
     logger.debug()
     # logger.debug(item.tostring('\n'))
     from core import servertools
 
-    opciones = []
+    options = []
     error = False
 
     try:
@@ -1244,37 +1206,41 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
             item.server, item.url, item.password, muestra_dialogo)
 
     if play_canceled:
-        return opciones, [], 0, True
+        return options, [], 0, True
 
-    seleccion = 0
+    selection = 0
     # If you can see the video, present the options
     if puedes:
+        video_urls = sorted(video_urls, key=lambda k: calcResolution(k['res']) if 'res' in k else 0)
+        video_urls.reverse()
         for video_url in video_urls:
-            opciones.append(config.get_localized_string(60221) + " " + video_url[0])
+            name = '{} {} [{}]'.format(config.get_localized_string(60221), video_url.get('type'), servertools.get_server_parameters(item.server)['name'])
+            if video_url.get('res',''): name += ' [{}]'.format(video_url.get('res',''))
+            options.append(name)
 
         if item.server == "local":
-            opciones.append(config.get_localized_string(30164))
+            options.append(config.get_localized_string(30164))
         else:
             # "Download"
             downloadenabled = config.get_setting('downloadenabled')
             if downloadenabled != False and item.channel != 'videolibrary':
                 opcion = config.get_localized_string(30153)
-                opciones.append(opcion)
+                options.append(opcion)
 
             if item.isFavourite:
                 # "Remove from favorites"
-                opciones.append(config.get_localized_string(30154))
+                options.append(config.get_localized_string(30154))
             else:
                 # "Add to Favorites"
-                opciones.append(config.get_localized_string(30155))
+                options.append(config.get_localized_string(30155))
 
         if default_action == 3:
-            seleccion = len(opciones) - 1
+            selection = len(options) - 1
 
         # Search for trailers
         if item.channel not in ["trailertools"]:
             # "Search Trailer"
-            opciones.append(config.get_localized_string(30162))
+            options.append(config.get_localized_string(30162))
 
     # If you can't see the video it informs you
     else:
@@ -1291,21 +1257,21 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
                                     (sys.argv[0], Item(action="open_browser", url=item.url).tourl()))
             if item.channel == "favorites":
                 # "Remove from favorites"
-                opciones.append(config.get_localized_string(30154))
+                options.append(config.get_localized_string(30154))
 
-            if len(opciones) == 0:
+            if len(options) == 0:
                 error = True
 
-    return opciones, video_urls, seleccion, error
+    return options, video_urls, selection, error
 
 
-def set_opcion(item, seleccion, opciones, video_urls):
+def set_option(item, selection, options, video_urls):
     logger.debug()
     # logger.debug(item.tostring('\n'))
-    salir = False
+    _exit = False
     # You have not chosen anything, most likely because you have given the ESC
 
-    if seleccion == -1:
+    if selection == -1:
         # To avoid the error "One or more elements failed" when deselecting from strm file
         listitem = xbmcgui.ListItem(item.title)
 
@@ -1318,62 +1284,74 @@ def set_opcion(item, seleccion, opciones, video_urls):
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), False, listitem)
 
     # "Download"
-    elif opciones[seleccion] == config.get_localized_string(30153):
+    elif options[selection] == config.get_localized_string(30153):
         from specials import downloads
 
         if item.contentType == "list" or item.contentType == "tvshow":
             item.contentType = "video"
         item.play_menu = True
         downloads.save_download(item)
-        salir = True
+        _exit = True
 
     # "Remove from favorites"
-    elif opciones[seleccion] == config.get_localized_string(30154):
+    elif options[selection] == config.get_localized_string(30154):
         from specials import favorites
         favorites.delFavourite(item)
-        salir = True
+        _exit = True
 
     # "Add to Favorites":
-    elif opciones[seleccion] == config.get_localized_string(30155):
+    elif options[selection] == config.get_localized_string(30155):
         from specials import favorites
         item.from_channel = "favorites"
         favorites.addFavourite(item)
-        salir = True
+        _exit = True
 
     # "Search Trailer":
-    elif opciones[seleccion] == config.get_localized_string(30162):
+    elif options[selection] == config.get_localized_string(30162):
         config.set_setting("subtitulo", False)
         xbmc.executebuiltin("RunPlugin(%s?%s)" % (sys.argv[0], item.clone(channel="trailertools", action="buscartrailer", contextual=True).tourl()))
-        salir = True
+        _exit = True
 
-    return salir
+    return _exit
 
 
-def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
+def get_selected_video(item, selection, video_urls, autoplay=False):
     logger.debug()
     mediaurl = ""
     view = False
     wait_time = 0
+    file_type = ''
     mpd = False
-
+    m3u8 = False
+    # video_urls Format:
+    #    [{'type':'Video Extension', 'url': 'Video url', 'wait':seconds to wait, 'sub':'subtitle url'}]
     # You have chosen one of the videos
-    if seleccion < len(video_urls):
-        mediaurl = video_urls[seleccion][1]
-        if len(video_urls[seleccion]) > 4:
-            wait_time = video_urls[seleccion][2]
-            if not item.subtitle:
-                item.subtitle = video_urls[seleccion][3]
-            mpd = True
-        elif len(video_urls[seleccion]) > 3:
-            wait_time = video_urls[seleccion][2]
-            if not item.subtitle:
-                item.subtitle = video_urls[seleccion][3]
-        elif len(video_urls[seleccion]) > 2:
-            wait_time = video_urls[seleccion][2]
+    if selection < len(video_urls):
+        video_url = video_urls[selection]
+        mediaurl = video_url.get('url', '')
+        wait_time = video_url.get('wait', 0)
+        file_type = video_url.get('type', 'Video').lower()
+        if not item.subtitle: item.subtitle = video_url.get('sub', '')
         view = True
+    # if selection < len(video_urls):
+    #     mediaurl = video_urls[selection][1]
+    #     if len(video_urls[selection]) > 4:
+    #         wait_time = video_urls[selection][2]
+    #         if not item.subtitle:
+    #             item.subtitle = video_urls[selection][3]
+    #         mpd = True
+    #     elif len(video_urls[selection]) > 3:
+    #         wait_time = video_urls[selection][2]
+    #         if not item.subtitle:
+    #             item.subtitle = video_urls[selection][3]
+    #     elif len(video_urls[selection]) > 2:
+    #         wait_time = video_urls[selection][2]
+    #     view = True
 
-    if 'mpd' in video_urls[seleccion][0]:
+    if 'mpd' in file_type:
         mpd = True
+    elif 'm3u8' in file_type:
+        m3u8 = True
 
     # If there is no mediaurl it is because the video is not there :)
     logger.debug("mediaurl=" + mediaurl)
@@ -1389,7 +1367,7 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
         if not continuar:
             mediaurl = ""
 
-    return mediaurl, view, mpd
+    return mediaurl, view, mpd, m3u8
 
 
 def set_player(item, xlistitem, mediaurl, view, strm):
@@ -1842,10 +1820,18 @@ def set_played_time(item):
         del db['viewed'][ID]
 
 
+# def prevent_busy(item):
+#     logger.debug()
+#     if not item.autoplay and not item.window:
+#         xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
+#         xbmc.sleep(200)
+#         xbmc.Player().stop()
+
 def prevent_busy(item):
     logger.debug()
     if not item.autoplay and not item.window:
-        xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
+        if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
+        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
         xbmc.sleep(200)
         xbmc.Player().stop()
 

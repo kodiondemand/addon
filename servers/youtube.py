@@ -1,6 +1,6 @@
 # s-*- coding: utf-8 -*-
 import xbmc, xbmcaddon, sys, re
-from core import httptools, scrapertools, filetools
+from core import httptools, scrapertools, filetools, support
 from platformcode import config, logger, platformtools
 
 name = 'plugin.video.youtube'
@@ -45,10 +45,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     from youtube_resolver import resolve
     try:
         for stream in resolve(page_url):
-            # title = scrapertools.find_single_match(stream['title'], '(\d+p)')
-            if scrapertools.find_single_match(stream['title'], r'(\d+p)'):
-                video_urls.append([re.sub(r'(\[[^\]]+\])', '', stream['title']), stream['url']])
-        video_urls.sort(key=lambda it: int(it[0].split("p", 1)[0]))
+            r,t = scrapertools.find_single_match(stream['title'], r'(\d+p)[^\(]+\(([^;]+)')
+            if r:
+                video_urls.append({'type':t, 'res':r, 'url':stream['url']})
+        # video_urls.sort(key=lambda it: int(it[0].split("p", 1)[0]))
     except:
         pass
 

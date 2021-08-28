@@ -77,8 +77,8 @@ def get_video_url(page_url, user="", password="", video_password=""):
     for itag, video_url in streams:
         if not video_url in urls:
             video_url += headers_string
-            video_urls.append([itags.get(itag, ''), video_url])
+            video_urls.append({'res':itags.get(itag, ''), 'type':video_url.split('.')[-1], 'url':video_url})
             urls.append(video_url)
-        video_urls.sort(key=lambda video_urls: int(video_urls[0].replace("p", "")))
+        # video_urls.sort(key=lambda video_urls: int(video_urls[0].replace("p", "")))
 
     return video_urls

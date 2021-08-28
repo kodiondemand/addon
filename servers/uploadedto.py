@@ -71,10 +71,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             logger.error(traceback.format_exc())
             extension = ""
 
-        video_urls.append([extension + " (Premium) [uploaded.to]", location])
+        video_urls.append({'type':extension, 'url':location})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls
 

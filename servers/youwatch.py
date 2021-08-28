@@ -28,9 +28,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     url = scrapertools.find_single_match(data, '{file:"([^"]+)"')
     video_url = "%s|Referer=%s" % (url, url_redirect)
-    video_urls = [[scrapertools.get_filename_from_url(url)[-4:] + " [youwatch]", video_url]]
+    video_urls = [{'typr':scrapertools.get_filename_from_url(url).split('.')[-1], 'url':video_url}]
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

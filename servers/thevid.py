@@ -30,6 +30,6 @@ def get_video_url(page_url, user="", password="", video_password=""):
         if not video.startswith("//"):
             continue
         video = "https:" + video
-        video_urls.append(["mp4 [Thevid]", video])
-    logger.debug("Url: %s" % videos)
+        video_urls.append({'type':'mp4', 'url':video})
+    # logger.debug("Url: %s" % videos)
     return video_urls

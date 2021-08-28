@@ -53,9 +53,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ext = "mp4"
             if "m3u8" in media_url:
                 ext = "m3u8"
-            video_urls.append(["%s [Vidcloud" % ext, media_url])
+            video_urls.append({'type':ext, 'url':media_url})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls
 

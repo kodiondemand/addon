@@ -57,9 +57,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         logger.debug("location=" + location)
 
         video_urls = []
-        video_urls.append([filename[-4:] + " (Premium) [1fichier]", location])
+        # video_urls.append([filename[-4:] + " (Premium) [1fichier]", location])
+        video_urls.append({'type':filename.split('.')[-1], 'url':location})
 
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls

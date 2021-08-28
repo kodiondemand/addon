@@ -49,9 +49,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # Solo es necesario codificar la ultima parte de la url
     url_strip = urllib.quote(media.rsplit('/', 1)[1])
     media_url = media.rsplit('/', 1)[0] + "/" + url_strip
-    video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [clicknupload]", media_url])
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
 
     return video_urls
 

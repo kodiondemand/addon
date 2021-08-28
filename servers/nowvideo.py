@@ -64,12 +64,12 @@ def find_videos(data):
     matches = re.compile(patronvideos, re.DOTALL).findall(data)
 
     for match in matches:
-        titulo = "[nowvideo]"
+        # titulo = "[nowvideo]"
         url = 'http://nowvideo.club/%s' % match
 
         if url not in encontrados:
             logger.debug("  url=" + url)
-            devuelve.append([titulo, url, 'nowvideo'])
+            devuelve.append({'url':url})
             encontrados.add(url)
         else:
             logger.debug("  url duplicada=" + url)

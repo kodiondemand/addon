@@ -34,10 +34,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     matches = scrapertools.find_multiple_matches(data, '<source src="([^"]+)" type="video/(\w+)')
     for media_url, ext in matches:
         calidad = scrapertools.find_single_match(media_url, '(\d+)\.%s' % ext)
-        video_urls.append([calidad + "p ." + ext + " [vk]", media_url])
-    video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
+        video_urls.append({'res':calidad, 'type':ext, 'url':media_url})
+    # video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
+    # for video_url in video_urls:
+    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
     return video_urls
 
 

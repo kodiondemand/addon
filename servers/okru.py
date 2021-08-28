@@ -28,6 +28,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # URL del vídeo
     for type, url in re.findall(r'\{"name":"([^"]+)","url":"([^"]+)"', data, re.DOTALL):
         url = url.replace("%3B", ";").replace("u0026", "&")
-        video_urls.append([type + " [OKru]", url])
+        video_urls.append({'type':type, 'url':url})
 
     return video_urls

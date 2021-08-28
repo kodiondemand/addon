@@ -24,6 +24,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     match = scrapertools.find_multiple_matches(data, patron)
     for media_url in match:
         media_url += "|Referer=%s" %page_url
-        title = "mp4 [anonfile]"
-        video_urls.append([title, media_url])
+        video_urls.append({'type':'mp4', 'url':media_url})
     return video_urls

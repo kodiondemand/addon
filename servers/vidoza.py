@@ -31,13 +31,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         for enlace in data:
             if 'src' in enlace or 'file' in enlace:
                 url = enlace['src'] if 'src' in enlace else enlace['file']
-                tit = ''
-                if 'label' in enlace: tit += ' [%s]' % enlace['label']
-                if 'res' in enlace: tit += ' [%s]' % enlace['res']
-                if tit == '' and 'type' in enlace: tit = enlace['type']
-                if tit == '': tit = '.mp4'
+                ext = ''
+                res = ''
+                if 'type' in enlace: tit = enlace['type'].split('/')[-1]
+                else: tit = 'mp4'
+                if 'res' in enlace: res = enlace['res']
+                elif 'label' in enlace: res = enlace['label']
 
-                video_urls.append(["%s [Vidoza]" % tit, url])
+                video_urls.append({'type':tit, 'res':res, 'url':url})
     except:
         logger.debug('No se detecta json %s' % s)
         pass

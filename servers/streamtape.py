@@ -33,5 +33,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     possible_url = js2py.eval_js(find_url)
     url = "https:" + possible_url
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers.get("location", "")
-    video_urls.append(['MP4 [Streamtape]', url])
+    video_urls.append({'type':'mp4', 'url':url})
     return video_urls

@@ -27,9 +27,9 @@ def get_video_url(page_url, user="", password="", video_password=""):
     bloque = scrapertools.find_single_match(data, 'sources:.\[.*?]')
     matches = scrapertools.find_multiple_matches(bloque, '(http.*?)"')
     for videourl in matches:
-        extension = videourl[-4:]
+        extension = videourl.split('.')[-1]
         if extension == 'm3u8':
             continue
-        video_urls.append(["%s [vidlox]" % extension, videourl])
-    video_urls.reverse()
+        video_urls.append({'type':extension, 'url':videourl})
+    # video_urls.reverse()
     return video_urls

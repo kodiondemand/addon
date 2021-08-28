@@ -25,9 +25,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     media_url = scrapertools.find_single_match(data, '<video src="([^"]+)"')
     if media_url:
-        ext = media_url[-4:]
+        ext = media_url.split('.')[-1]
         if ext == 'm3u8':
             media_url = ''
-        video_urls.append(["%s [Jetload]" % (ext), media_url])
+        video_urls.append({'type':ext, 'url':media_url})
 
     return video_urls

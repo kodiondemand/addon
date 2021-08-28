@@ -25,6 +25,6 @@ def get_video_url(page_url, user="", password="", video_password=""):
     bloque = scrapertools.find_single_match(data, 'sources:.\[.*?]')
     matches = scrapertools.find_multiple_matches(bloque, '(http.*?)"')
     for videourl in matches:
-        extension = extension = scrapertools.get_filename_from_url(videourl)[-4:]
-        video_urls.append(["%s [videobin]" %extension, videourl])
+        extension = extension = scrapertools.get_filename_from_url(videourl).split('.')[-1]
+        video_urls.append({'type':extension, 'url':videourl})
     return video_urls

@@ -43,15 +43,15 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
         for source in lSrc:
             quality = source['label'] if 'label' in source else 'auto'
-            video_urls.append(['.' + source['file'].split('.')[-1] + ' [' + quality + '] [SuperVideo]', source['file']])
+            video_urls.append({'type':source['file'].split('.')[-1], 'res':quality, 'url':source['file']})
 
     else:
         matches = scrapertools.find_multiple_matches(data, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:\s*, res:\s(\d+))?')
         for url, quality in matches:
             if url.split('.')[-1] != 'm3u8':
-                video_urls.append([url.split('.')[-1] + ' [' + quality + '] [SuperVideo]', url])
+                video_urls.append({'type':url.split('.')[-1], 'res':quality, 'url':url})
             else:
-                video_urls.append([url.split('.')[-1], url])
+                video_urls.append({'type':url.split('.')[-1], 'url':url})
 
-    video_urls.sort(key=lambda x: x[0].split()[-2])
+    # video_urls.sort(key=lambda x: x[0].split()[-2])
     return video_urls

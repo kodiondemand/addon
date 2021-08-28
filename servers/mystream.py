@@ -25,7 +25,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     global page_data
     video_url = scrapertools.find_single_match(decode(page_data), r"'src',\s*'([^']+)")
-    video_urls.append([video_url.split('.')[-1] + ' [MyStream]', video_url])
+    video_urls.append({'type':video_url.split('.')[-1], 'url':video_url})
     return video_urls
 
 def decode(data):
