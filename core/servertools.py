@@ -976,7 +976,12 @@ if PY3:
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
                 logger.debug(f'The URL list is: ----> {url_list}\n')
-                highest_quality_url = (url_list[-1][-1] if len(url_list) == 1 or not "m3u8" in url_list[-1][-1] else url_list[-2][-1]).split("|")[0]
+                try:
+                    highest_quality_url = (url_list[-1][-1] if not "m3u8" in url_list[-1][-1] else url_list[-2][-1]).split("|")[0]
+                except IndexError:
+                    # this means that the only link available would be an .m3u8 which is not parsable by mediainfo as it is
+                    continue
+
                 if highest_quality_url != "":
                     try:
                         logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
