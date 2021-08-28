@@ -961,12 +961,12 @@ if PY3:
             item.bitrate = 0
             return item
         
-        def set_gathered_videoinfo(item:Item):
+        def set_gathered_videoinfo(item:Item, videoquality_info:dict):
             item.media_url = highest_quality_url
-            item.title += (f'{video_quality["resolution_label"]}, {video_quality["resolution"]}, Bit Rate:{video_quality["bit_rate"] if video_quality["bit_rate"] != 0 else "unknown"}')
-            item.quality = video_quality["resolution_label"]
-            item.resolution = video_quality["resolution"]
-            item.bitrate = video_quality["bit_rate"]
+            item.title += (f'{videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate:{videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
+            item.quality = videoquality_info["resolution_label"]
+            item.resolution = videoquality_info["resolution"]
+            item.bitrate = videoquality_info["bit_rate"]
             return item
 
 
@@ -976,27 +976,25 @@ if PY3:
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
                 logger.debug(f'The URL list is: ----> {url_list}\n')
-                try:
-                    highest_quality_url = (url_list[-1][-1] if not "m3u8" in url_list[-1][-1] else url_list[-2][-1]).split("|")[0]
-                except IndexError:
-                    # this means that the only link available would be an .m3u8 which is not parsable by mediainfo as it is
-                    continue
-
-                if highest_quality_url != "":
-                    try:
-                        logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
-                        video_quality = extract_video_info(get_onlinevideo_chunck(highest_quality_url))
-                        logger.info("Updating the Item's information with the gathered ones")
-                        item = set_gathered_videoinfo(item)
-                        logger.info(f'\n --------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
-                    except Exception:
-                        import traceback
-                        logger.error(traceback.format_exc())
-                        item = set_blank_videoinfo(item)
-                        continue
-                else:
+                if len(url_list) == 1 and url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]:
                     item = set_blank_videoinfo(item)
-                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
+                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk' or it is an .m3u8 file")
+                    continue
+                elif not "m3u8" in url_list[-1][-1]:
+                    highest_quality_url = url_list[-1][-1].split("|")[0]
+                else:
+                    highest_quality_url = url_list[-2][-1].split("|")[0]
+
+                try:
+                    logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
+                    video_quality_info = extract_video_info(get_onlinevideo_chunck(highest_quality_url))
+                    logger.info("Updating the Item's information with the gathered ones")
+                    item = set_gathered_videoinfo(item, video_quality_info)
+                    logger.info(f'\n --------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                except Exception:
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    item = set_blank_videoinfo(item)
                     continue
 
             else:
