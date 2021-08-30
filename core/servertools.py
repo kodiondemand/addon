@@ -724,11 +724,12 @@ def sort_servers(servers_list):
         element["index_server"] = index(favorite_servers, item.server.lower())
         element["index_quality"] = platformtools.calcResolution(item.quality)
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
+        element["bit_rate"] = item.bitrate
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'] , element['videoitem'].server))
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['videoitem'].server))
     elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'])) # Servers and Qualities
     elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['index_server'])) # Qualities and Servers
 
@@ -834,13 +835,16 @@ def translate_server_name(name):
 #     return server_json
 
 if PY3:
-    from pymediainfo import MediaInfo
+    from lib.pymediainfo import MediaInfo
     import pathlib
 
     def correct_onlinemedia_info(video_itemlist:list):
         """This function aims at correctly identifying video information
         of an online mediafile and writes them back selectively in the corresponding 
         properties of each Item;
+        Examples can be the 'quality_label', 'resolution' and 'bit_rate'
+
+        IN ADDITION it sets also the final media url!
         -------------------
         Parameters
         -------------------
@@ -915,9 +919,7 @@ if PY3:
                 info_dict["resolution_label"] = "4K"
             
             info_dict["resolution"] = (f'{videoinfo["width"]} x {videoinfo["height"]}')
-            info_dict["bit_rate"] = videoinfo.get("bit_rate", 0)
-            if info_dict["bit_rate"] == 0:
-                info_dict["bit_rate"] = videoinfo.get("maximum_bit_rate", 0)
+            info_dict["bit_rate"] = float(videoinfo.get("other_bit_rate", 0)[0].split(" ")[0]) if videoinfo.get("other_bit_rate", 0) != 0 else videoinfo.get("other_bit_rate", 0)
 
             os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
 
@@ -960,7 +962,7 @@ if PY3:
 
             logger.info("Updating the Item's information with the gathered ones")
             item.media_url = media_url
-            item.title += (f'{videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate:{videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
+            item.title += (f'{videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
             item.quality = videoquality_info["resolution_label"]
             item.resolution = videoquality_info["resolution"]
             item.bitrate = videoquality_info["bit_rate"]
@@ -973,11 +975,12 @@ if PY3:
             url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
             if url_exists:
                 logger.debug(f'The URL list is: ----> {url_list}\n')
-                if len(url_list) == 1 and url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]:
+                if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
                     item = set_blank_videoinfo(item)
                     if "m3u8" in url_list[-1][-1]:
                         logger.debug("'resolve_video_urls_for_playing' found only an .m3u8 url which cannot be parsed, but the 'media_url' attribute of the item will be set anyway")
-                        item.media_url = highest_quality_url
+                        item.media_url = url_list[-1][-1].split("|")[0]
+                        logger.info(f"'resolve_video_urls_for_playing' set the attribute 'media_url' to {item.media_url}")
                         continue
                     logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
                 elif not "m3u8" in url_list[-1][-1]:
@@ -990,13 +993,15 @@ if PY3:
                     path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
                     video_quality_info = extract_video_info(path_to_chunck)
                     item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
-                    logger.info(f'\n --------\n THE INFORMATION THAT GOT SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                    logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
                 except Exception:
                     import traceback
                     logger.error(traceback.format_exc())
                     item = set_blank_videoinfo(item)
-                    os.remove(path_to_chunck)
-                    continue
+                    try:
+                        os.remove(path_to_chunck)
+                    except FileNotFoundError:
+                        continue
             else:
                 logger.debug(url_error)
                 item = set_blank_videoinfo(item)
