@@ -955,14 +955,42 @@ if PY3:
             return info_dict
 
         def set_blank_videoinfo(item:Item):
+            """This function sets BLANK attributes of the 'item' object and returns
+            its modified version;
+            -------------------
+            Parameters
+            -------------------
+            - item: the Item whose parameters need to be modified
+            -------------------
+
+            @return: it returns the abovementioned 'item' with 'blank' set attributes
+            @rtype: Item
+            """
+
+            logger.info("Updating the Item's information with BLANK ones")
             item.title += "... x ..., Bit Rate: unknown"
             # i won't set alternative values for the "item.quality" parameter
             # i won't set alternative values for the "item.resolution" parameter
             item.bitrate = 0
             return item
         
-        def set_gathered_videoinfo(item:Item, videoquality_info:dict):
-            item.media_url = highest_quality_url
+        def set_gathered_videoinfo(item:Item, videoquality_info:dict, media_url:str):
+            """This function sets the 'media_url', 'title', 'quality', 'resolution' and
+            'bitrate' attributes of the 'item' object and returns its modified version;
+            -------------------
+            Parameters
+            -------------------
+            - item: the Item whose parameters need to be modified
+            - videoquality_info: a dictionary containing all the media quality info
+            - media_url: the url of the real mediafile
+            -------------------
+
+            @return: it returns the abovementioned 'item' with the modified attributes
+            @rtype: Item
+            """
+
+            logger.info("Updating the Item's information with the gathered ones")
+            item.media_url = media_url
             item.title += (f'{videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate:{videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
             item.quality = videoquality_info["resolution_label"]
             item.resolution = videoquality_info["resolution"]
@@ -978,8 +1006,11 @@ if PY3:
                 logger.debug(f'The URL list is: ----> {url_list}\n')
                 if len(url_list) == 1 and url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]:
                     item = set_blank_videoinfo(item)
-                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk' or it is an .m3u8 file")
-                    continue
+                    if "m3u8" in url_list[-1][-1]:
+                        logger.debug("'resolve_video_urls_for_playing' found only an .m3u8 url which cannot be parsed, but the 'media_url' attribute of the item will be set anyway")
+                        item.media_url = highest_quality_url
+                        continue
+                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
                 elif not "m3u8" in url_list[-1][-1]:
                     highest_quality_url = url_list[-1][-1].split("|")[0]
                 else:
@@ -988,18 +1019,15 @@ if PY3:
                 try:
                     logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
                     video_quality_info = extract_video_info(get_onlinevideo_chunck(highest_quality_url))
-                    logger.info("Updating the Item's information with the gathered ones")
-                    item = set_gathered_videoinfo(item, video_quality_info)
-                    logger.info(f'\n --------\n {item.url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                    item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
+                    logger.info(f'\n --------\n THE INFORMATION THAT GOT SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
                 except Exception:
                     import traceback
                     logger.error(traceback.format_exc())
                     item = set_blank_videoinfo(item)
                     continue
-
             else:
                 logger.debug(url_error)
                 item = set_blank_videoinfo(item)
-                continue
         
         return video_itemlist
