@@ -721,19 +721,16 @@ def sort_servers(servers_list):
         if item.server.lower() in blacklisted_servers:
             continue
 
-        # if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
         element["index_server"] = index(favorite_servers, item.server.lower())
         element["index_quality"] = platformtools.calcResolution(item.quality)
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
-        element["bit_rate"] = item.bitrate
-
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'], element['videoitem'].server))
-    elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'])) # Servers and Qualities
-    elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'], element['index_server'])) # Qualities and Servers
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'] , element['videoitem'].server))
+    elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'])) # Servers and Qualities
+    elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['index_server'])) # Qualities and Servers
 
     return [v['videoitem'] for v in sorted_list if v]
 

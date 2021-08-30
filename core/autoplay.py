@@ -47,8 +47,7 @@ def start(itemlist, item):
         # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
         if not user_config_setting_action: config.set_setting("default_action", 2)
 
-        from core.servertools import sort_servers, correct_onlinemedia_info
-        itemlist = correct_onlinemedia_info(itemlist)
+        from core.servertools import sort_servers
         autoplay_list = sort_servers(itemlist)
 
         if autoplay_list:
