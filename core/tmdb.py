@@ -1564,10 +1564,12 @@ class Tmdb(object):
         :rtype: list of Dict
         """
         ret = []
+
         if self.result['id']:
             if self.result['videos']:
                 self.result["videos"] = self.result["videos"]['results']
             else:
+                self.result["videos"] = []
                 # First video search in the search language
                 url = "{}/{}/{}/videos?api_key={}&language={}".format(host, self.search_type, self.result['id'], api, self.search_language)
 

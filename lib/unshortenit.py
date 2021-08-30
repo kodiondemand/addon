@@ -45,7 +45,7 @@ class UnshortenIt(object):
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|uprot\.net'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|uprot\.net|is\.gd'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
@@ -59,6 +59,7 @@ class UnshortenIt(object):
     def unshorten(self, uri, type=None):
         code = 0
         while True:
+            uri = uri.strip()
             oldUri = uri
             domain = urlsplit(uri).netloc
             if not domain:

@@ -6,14 +6,31 @@
 		<top>0</top>
 	</coordinates>
 	<controls>
+		<control type='label' id='200'>
+			<description>Background Color</description>
+			<visible>False</visible>
+		</control>
+		<control type='label' id='201'>
+			<description>Overlay Color</description>
+			<visible>False</visible>
+		</control>
+		<control type='label' id='202'>
+			<description>Selection Color</description>
+			<visible>False</visible>
+		</control>
+		<control type='label' id='203'>
+			<description>Text Color</description>
+			<visible>False</visible>
+		</control>
+
 		<control type="button">
 			<description>Close Button</description>
 			<left>0</left>
 			<top>0</top>
 			<width>100%</width>
 			<height>100%</height>
-			<texturefocus colordiffuse="77232323">white.png</texturefocus>
-			<texturenofocus colordiffuse="77232323">white.png</texturenofocus>
+			<texturefocus colordiffuse="Control.GetLabel(201)">white.png</texturefocus>
+			<texturenofocus colordiffuse="Control.GetLabel(201)">white.png</texturenofocus>
 			<animation effect="fade" time="200">WindowOpen</animation>
 			<animation effect="fade" time="200">WindowClose</animation>
 			<onclick>Action(close)</onclick>
@@ -44,7 +61,7 @@
 				<left>0</left>
 				<width>100%</width>
 				<height>100%</height>
-				<texture colordiffuse="Container(1).ListItem.Property(background)">white.png</texture>
+				<texture colordiffuse="Control.GetLabel(200)">white.png</texture>
 			</control>
 
 			<control type="grouplist">
@@ -52,7 +69,7 @@
 				<top>0</top>
 				<left>0</left>
 				<width>100%</width>
-				<height>220</height>
+				<height>100%</height>
 				<orientation>vertical</orientation>
 
 				<control type="list" id="1">
@@ -68,6 +85,7 @@
 					<pagecontrol>61</pagecontrol>
 					<itemlayout height="220" width="220">
 						<control type="image">
+							<description>Icon</description>
 							<width>220</width>
 							<height>220</height>
 							<texture>$INFO[ListItem.Property(thumbnail)]</texture>
@@ -77,12 +95,15 @@
 					</itemlayout>
 					<focusedlayout height="220" width="220">
 						<control type="image">
-							<top>1</top>
-							<width>220</width>
-							<height>218</height>
-							<texture colordiffuse="Container(1).ListItem.Property(select)">white.png</texture>
+							<description>Selection</description>
+							<top>0</top>
+							<left>0</left>
+							<width>100%</width>
+							<height>100%</height>
+							<texture colordiffuse="Control.GetLabel(202)">white.png</texture>
 						</control>
 						<control type="image">
+							<description>Icon</description>
 							<width>220</width>
 							<height>220</height>
 							<texture>$INFO[ListItem.Property(thumbnail)]</texture>
@@ -90,13 +111,13 @@
 							<align>center</align>
 						</control>
 						<control type="textbox">
-							<description>Selected Item</description>
+							<description>Item Title</description>
 							<left>0</left>
 							<top>180</top>
 							<width>100%</width>
 							<height>40</height>
 							<font>font13</font>
-							<textcolor>FFFFFFFF</textcolor>
+							<textcolor>Control.GetLabel(203)</textcolor>
 							<label>$INFO[ListItem.Label]</label>
 							<align>center</align>
 							<aligny>center</aligny>
@@ -117,6 +138,7 @@
 					<pagecontrol>61</pagecontrol>
 					<itemlayout height="220" width="220">
 						<control type="image">
+							<description>Icon</description>
 							<width>220</width>
 							<height>220</height>
 							<texture>$INFO[ListItem.Property(thumbnail)]</texture>
@@ -126,12 +148,15 @@
 					</itemlayout>
 					<focusedlayout height="220" width="220">
 						<control type="image">
-							<top>1</top>
-							<width>220</width>
-							<height>218</height>
-							<texture colordiffuse="Container(1).ListItem.Property(select)">white.png</texture>
+							<description>Selection</description>
+							<top>0</top>
+							<left>0</left>
+							<width>100%</width>
+							<height>100%</height>
+							<texture colordiffuse="Control.GetLabel(202)">white.png</texture>
 						</control>
 						<control type="image">
+							<description>Icon</description>
 							<width>220</width>
 							<height>220</height>
 							<texture>$INFO[ListItem.Property(thumbnail)]</texture>
@@ -139,13 +164,13 @@
 							<align>center</align>
 						</control>
 						<control type="textbox">
-							<description>Selected Item</description>
+							<description>Item Title</description>
 							<left>0</left>
 							<top>180</top>
 							<width>100%</width>
 							<height>40</height>
 							<font>font13</font>
-							<textcolor>FFFFFFFF</textcolor>
+							<textcolor>Control.GetLabel(203)</textcolor>
 							<label>$INFO[ListItem.Label]</label>
 							<align>center</align>
 							<aligny>center</aligny>
@@ -155,38 +180,28 @@
 			</control>
 
 			<control type="button" id='101'>
+				<description>Row Down</description>
 				<visible>!String.IsEmpty(Container(1).ListItem.Property(sub)) + !Control.HasFocus(2) + !Control.HasFocus(102)</visible>
 				<animation effect="fade" start="0" end="100" time="200" reversible="true" condition="Control.IsVisible(101)">Conditional</animation>
-				<!-- <animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,0)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,1)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,2)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,3)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,4)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(1).Position,5)">Conditional</animation> -->
-				<left>520</left>
-				<top>240</top>
-				<width>60</width>
-				<height>60</height>
-				<texturefocus colordiffuse="Container(1).ListItem.Property(text)">down.png</texturefocus>
-				<texturenofocus colordiffuse="Container(1).ListItem.Property(text)">down.png</texturenofocus>
+				<left>540</left>
+				<top>260</top>
+				<width>20</width>
+				<height>20</height>
+				<texturefocus colordiffuse="Control.GetLabel(203)">dd.png</texturefocus>
+				<texturenofocus colordiffuse="Control.GetLabel(203)">dd.png</texturenofocus>
 				<aspectratio>keep</aspectratio>
 			</control>
 
 			<control type="button" id='102'>
+				<description>Row Up</description>
 				<visible>!Control.HasFocus(1) + !Control.HasFocus(101)</visible>
 				<animation effect="fade" start="0" end="100" time="200" reversible="true" condition="Control.IsVisible(102)">Conditional</animation>
-				<!-- <animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,0)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,1)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,2)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,3)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,4)">Conditional</animation>
-				<animation effect="slide" end="220,0" condition="Integer.IsGreater(Container(2).Position,5)">Conditional</animation> -->
-				<left>520</left>
+				<left>540</left>
 				<top>-80</top>
-				<width>60</width>
-				<height>60</height>
-				<texturefocus colordiffuse="Container(1).ListItem.Property(text)">up.png</texturefocus>
-				<texturenofocus colordiffuse="Container(1).ListItem.Property(text)">up.png</texturenofocus>
+				<width>20</width>
+				<height>20</height>
+				<texturefocus colordiffuse="Control.GetLabel(203)">uu.png</texturefocus>
+				<texturenofocus colordiffuse="Control.GetLabel(203)">uu.png</texturenofocus>
 				<aspectratio>keep</aspectratio>
 			</control>
 		</control> <!-- GROUP CONTROLS END -->
