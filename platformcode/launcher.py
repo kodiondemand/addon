@@ -235,9 +235,9 @@ def run(item=None):
                 if config.get_setting("max_links", "videolibrary") != 0:
                     itemlist = limit_itemlist(itemlist)
                 
-                # if PY3:
-                #     from core.servertools import correct_onlinemedia_info
-                #     itemlist = correct_onlinemedia_info(itemlist)
+                if PY3:
+                    from core.servertools import correct_onlinemedia_info
+                    itemlist = correct_onlinemedia_info(itemlist)
                 platformtools.render_items(itemlist, item)
 
             # Special action for adding a movie to the library
@@ -314,6 +314,9 @@ def run(item=None):
                 else:
                     config.set_setting('install_trakt', True)
 
+                if PY3:
+                    from core.servertools import correct_onlinemedia_info
+                    itemlist = correct_onlinemedia_info(itemlist)
                 platformtools.render_items(itemlist, item)
 
 

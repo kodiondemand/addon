@@ -838,7 +838,7 @@ if PY3:
     from lib.pymediainfo import MediaInfo
     import pathlib
 
-    def correct_onlinemedia_info(video_itemlist:list):
+    def correct_onlinemedia_info(video_itemlist: list) -> list:
         """This function aims at correctly identifying video information
         of an online mediafile and writes them back selectively in the corresponding 
         properties of each Item;
@@ -855,7 +855,7 @@ if PY3:
         @rtype: list.
         """
 
-        def get_onlinevideo_chunck(url:str):
+        def get_onlinevideo_chunck(url: str) -> str:
             """This function downloads a chunck of the mediafile which resides at the link
             provided as parameter to the function and returns the path to it;
             -------------------
@@ -880,7 +880,7 @@ if PY3:
 
             return video_chunk
 
-        def extract_video_info(path_to_videochunk:str):
+        def extract_video_info(path_to_videochunk: str) -> dict:
             """This function determines and generates a dictionary containing
             the correct "resolution", "resolution_label" and "bit_rate" of a video file;
             -------------------
@@ -925,7 +925,7 @@ if PY3:
 
             return info_dict
 
-        def set_blank_videoinfo(item:Item):
+        def set_blank_videoinfo(item: Item) -> Item:
             """This function sets BLANK attributes of the 'item' object and returns
             its modified version;
             -------------------
@@ -945,7 +945,7 @@ if PY3:
             item.bitrate = 0
             return item
         
-        def set_gathered_videoinfo(item:Item, videoquality_info:dict, media_url:str):
+        def set_gathered_videoinfo(item: Item, videoquality_info: dict, media_url: str) -> Item:
             """This function sets the 'media_url', 'title', 'quality', 'resolution' and
             'bitrate' attributes of the 'item' object and returns its modified version;
             -------------------
@@ -962,48 +962,50 @@ if PY3:
 
             logger.info("Updating the Item's information with the gathered ones")
             item.media_url = media_url
-            item.title += (f'{videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
+            item.title += (f' {videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
             item.quality = videoquality_info["resolution_label"]
             item.resolution = videoquality_info["resolution"]
             item.bitrate = videoquality_info["bit_rate"]
             return item
 
+        if isinstance(video_itemlist, list):
+            logger.info("Parsing the provided 'video_itemlist'")
+            for item in video_itemlist:
+                if item.action == "play":
+                    url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
+                    if url_exists:
+                        logger.debug(f'The URL list is: ----> {url_list}\n')
+                        if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
+                            item = set_blank_videoinfo(item)
+                            if "m3u8" in url_list[-1][-1]:
+                                logger.debug("'resolve_video_urls_for_playing' found only an .m3u8 url which cannot be parsed, but the 'media_url' attribute of the item will be set anyway")
+                                item.media_url = url_list[-1][-1].split("|")[0]
+                                logger.info(f"'resolve_video_urls_for_playing' set the attribute 'media_url' to {item.media_url}")
+                                continue
+                            logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
+                        elif not "m3u8" in url_list[-1][-1]:
+                            highest_quality_url = url_list[-1][-1].split("|")[0]
+                        else:
+                            highest_quality_url = url_list[-2][-1].split("|")[0]
 
-        logger.info('Parsing the provided Itemlist')
-        for item in video_itemlist:
-            # logger.debug(item.tostring('/n'))  
-            url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
-            if url_exists:
-                logger.debug(f'The URL list is: ----> {url_list}\n')
-                if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
-                    item = set_blank_videoinfo(item)
-                    if "m3u8" in url_list[-1][-1]:
-                        logger.debug("'resolve_video_urls_for_playing' found only an .m3u8 url which cannot be parsed, but the 'media_url' attribute of the item will be set anyway")
-                        item.media_url = url_list[-1][-1].split("|")[0]
-                        logger.info(f"'resolve_video_urls_for_playing' set the attribute 'media_url' to {item.media_url}")
-                        continue
-                    logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
-                elif not "m3u8" in url_list[-1][-1]:
-                    highest_quality_url = url_list[-1][-1].split("|")[0]
-                else:
-                    highest_quality_url = url_list[-2][-1].split("|")[0]
+                        try:
+                            logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
+                            path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
+                            video_quality_info = extract_video_info(path_to_chunck)
+                            item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
+                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                        except Exception:
+                            import traceback
+                            logger.error(traceback.format_exc())
+                            item = set_blank_videoinfo(item)
+                            try:
+                                os.remove(path_to_chunck)
+                            except FileNotFoundError:
+                                continue
+                    else:
+                        logger.debug(url_error)
+                        item = set_blank_videoinfo(item)
+        else:
+            return []
 
-                try:
-                    logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
-                    path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
-                    video_quality_info = extract_video_info(path_to_chunck)
-                    item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
-                    logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
-                except Exception:
-                    import traceback
-                    logger.error(traceback.format_exc())
-                    item = set_blank_videoinfo(item)
-                    try:
-                        os.remove(path_to_chunck)
-                    except FileNotFoundError:
-                        continue
-            else:
-                logger.debug(url_error)
-                item = set_blank_videoinfo(item)
-        
         return video_itemlist
