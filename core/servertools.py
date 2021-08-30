@@ -691,33 +691,25 @@ def sort_servers(servers_list):
         servers_list = sorted(servers_list, key=lambda x: favorite_servers.index(x) if x in favorite_servers else 999)
         return servers_list
 
-    quality_list = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
+    favorite_quality = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
                     'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
                     'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
                     'sd', '480p', '480', '360p', '360', '240p', '240']
 
     sorted_list = []
-    url_list_valid = []
-    favorite_quality = quality_list.reverse() if config.get_setting('default_action') == 1 else quality_list
+    inverted = False
+
+    if config.get_setting('default_action') == 2:
+        inverted = True
 
     # Priorities when ordering itemlist:
-    #       0: Servers and Qualities
-    #       1: Qualities and Servers
-    #       2: Servers only
-    #       3: Only qualities
-    #       4: Do not order
+    #       0: Only Qualities
+    #       1: Servers and Qualities
+    #       2: Qualities and Servers
 
-    if config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and not config.get_setting('quality_priority'):
-        priority = 0  # 0: Servers and Qualities
-    elif config.get_setting('favorites_servers') and favorite_servers and config.get_setting('default_action') and config.get_setting('quality_priority'):
-        priority = 1  # 0: Qualities and Servers
-    elif config.get_setting('favorites_servers') and favorite_servers:
-        priority = 2  # Servers only
-    elif config.get_setting('default_action'):
-        priority = 3  # Only qualities
-    else:
-        priority = 4  # Do not order
-
+    priority = 0
+    if config.get_setting('favorites_servers') and favorite_servers: priority = 1
+    if config.get_setting('quality_priority'): priority = 2
 
     for item in servers_list:
         element = dict()
@@ -729,39 +721,19 @@ def sort_servers(servers_list):
         if item.server.lower() in blacklisted_servers:
             continue
 
-
         # if priority < 2:  # 0: Servers and qualities or 1: Qualities and servers
-        element["indice_server"] = index(favorite_servers, item.server.lower())
-        element["indice_quality"] = index(favorite_quality, item.quality.lower())
+        element["index_server"] = index(favorite_servers, item.server.lower())
+        element["index_quality"] = platformtools.calcResolution(item.quality)
+        element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
         element["bit_rate"] = item.bitrate
-
-        # elif priority == 2:  # Servers only
-        #     element["indice_server"] = index(favorite_servers, item.server.lower())
-
-        # elif priority == 3:  # Only qualities
-        #     element["indice_quality"] = index(favorite_quality, item.quality.lower())
-
-        # else:  # Do not order
-        #     if item.url in url_list_valid:
-        #         continue
-
-        element['indice_language'] = 0 if item.contentLanguage == 'ITA' else 1
 
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    # if priority == 0: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'], orden['indice_quality'])) # Servers and Qualities
-    # elif priority == 1: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'], orden['indice_server'])) # Qualities and Servers
-    # elif priority == 2: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_server'])) # Servers only
-    # elif priority == 3: sorted_list.sort(key=lambda orden: (orden['indice_language'], orden['indice_quality'])) # Only qualities
-    # else: sorted_list.sort(key=lambda orden: orden['indice_language'])
-
-    if priority == 0: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'], row['indice_quality'], row['bit_rate'])) # Servers and Qualities
-    elif priority == 1: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate'], row['indice_server'])) # Qualities and Servers
-    elif priority == 2: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_server'])) # Servers only
-    elif priority == 3: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate'])) # Only qualities
-    else: sorted_list.sort(key=lambda row: (row['indice_language'], row['indice_quality'], row['bit_rate']))
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'], element['videoitem'].server))
+    elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'])) # Servers and Qualities
+    elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['bit_rate'], element['index_server'])) # Qualities and Servers
 
     return [v['videoitem'] for v in sorted_list if v]
 
@@ -1018,13 +990,15 @@ if PY3:
 
                 try:
                     logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
-                    video_quality_info = extract_video_info(get_onlinevideo_chunck(highest_quality_url))
+                    path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
+                    video_quality_info = extract_video_info(path_to_chunck)
                     item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
                     logger.info(f'\n --------\n THE INFORMATION THAT GOT SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
                 except Exception:
                     import traceback
                     logger.error(traceback.format_exc())
                     item = set_blank_videoinfo(item)
+                    os.remove(path_to_chunck)
                     continue
             else:
                 logger.debug(url_error)
