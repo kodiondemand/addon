@@ -424,6 +424,8 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                         if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
                             # If the search has been successful and you are not looking for a list of items,
                             # carry out another search to expand the information
+                            if search_type == 'multi':
+                                search_type = 'movie' if otmdb.result.get('media_type') else 'tv'
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
 
