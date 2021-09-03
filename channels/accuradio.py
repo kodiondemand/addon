@@ -4,7 +4,7 @@
 # ------------------------------------------------------------
 
 import random
-from core import httptools, support
+from core import httptools, support, config
 from platformcode import logger
 
 host = 'https://www.accuradio.com'
@@ -12,29 +12,27 @@ api_url = host + '/c/m/json/{}/'
 headers = [['Referer', host]]
 
 
-
 def mainlist(item):
+    js = httptools.downloadpage(api_url.format('brands')).json
     itemlist = []
     item.action = 'peliculas'
     js = httptools.downloadpage(api_url.format('brands')).json
-    for it in js.get('features',[]):
+    for it in js.get('features',[]) + js.get('brands',[]):
         itemlist.append(
             item.clone(url= '{}/{}'.format(host,it.get('canonical_url','')),
-                       title=support.typo(it['name'],'italic') + support.typo(it.get('channels',''),'_ [] color kod')
-            ))
-    for it in js.get('brands',[]):
-        itemlist.append(
-            item.clone(url= '{}/{}'.format(host,it.get('canonical_url','')),
-                       title=support.typo(it['name'],'bullet bold') + support.typo(it.get('channels',''),'_ [] color kod')
+                       extraInfo = it.get('channels',''),
+                       title=it['name'],
+                       thumbnail = support.thumb('music')
             ))
 
-    itemlist.append(item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb('search')))
+    itemlist.append(item.clone(title=support.typo(config.get_localized_string(70741) % 'Musica… ', 'bold'), action='search', thumbnail=support.thumb('music_search')))
     support.channel_config(item, itemlist)
     return itemlist
 
 
 @support.scrape
 def peliculas(item):
+    disabletmdb = True
     action = 'playradio'
     patron = r'data-id="(?P<id>[^"]+)"\s*data-oldid="(?P<oldid>[^"]+)".*?data-name="(?P<title>[^"]+)(?:[^>]+>){5}<img class="[^"]+"\s*src="(?P<thumb>[^"]+)(?:[^>]+>){6}\s*(?P<plot>[^<]+)'
     return locals()

@@ -59,7 +59,7 @@
                 <width>60</width>
                 <height>60</height>
                 <texture colordiffuse='$INFO[Container(100).ListItem.Property(color)]'>Circular/$INFO[Container(100).ListItem.Property(rating)].png</texture>
-                <aspectratio>scale</aspectratio>
+                <aspectratio aligny='center'>keep</aspectratio>
             </control>
             <control type='textbox'>
                 <description>Rating</description>
@@ -145,7 +145,7 @@
                         <aligny>center</aligny>
                     </control>
                     <control type='textbox'>
-                        <description>Year</description>
+                        <description>Duration</description>
                         <height>30</height>
                         <width>50</width>
                         <font>font13</font>
@@ -168,7 +168,7 @@
                         <aligny>center</aligny>
                     </control>
                     <control type='textbox'>
-                        <description>Year</description>
+                        <description>Mpaa</description>
                         <height>30</height>
                         <width>60</width>
                         <font>font13</font>
@@ -180,6 +180,18 @@
                     </control>
                 </control>
                 <control type='textbox'>
+                    <description>Genre</description>
+                    <right>0</right>
+                    <height>30</height>
+                    <width>400</width>
+                    <font>font13</font>
+                    <textcolor>ffFFFFFF</textcolor>
+                    <shadowcolor>00000000</shadowcolor>
+                    <label>$INFO[Container(100).ListItem.Genre]</label>
+                    <align>right</align>
+                    <aligny>center</aligny>
+                </control>
+                <control type='textbox'>
                     <description>Plot</description>
                     <top>50</top>
                     <left>0</left>
@@ -188,7 +200,7 @@
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
                     <label>$INFO[Container(100).ListItem.Plot]</label>
-                    <align>left</align>
+                    <align>justify</align>
                     <aligny>top</aligny>
                     <autoscroll time='3000' delay='3000' repeat='3000'>True</autoscroll>
                 </control>
@@ -376,6 +388,7 @@
                         <top>20</top>
                         <left>40</left>
                         <height>30</height>
+                        <width>450</width>
                         <font>font13</font>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
@@ -383,13 +396,14 @@
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Name</description>
                         <top>20</top>
                         <right>50</right>
                         <width>40</width>
                         <height>30</height>
                         <font>font13</font>
+                        <scroll>true</scroll>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[Container(102).ListItem.Rating][/B]</label>
@@ -403,7 +417,7 @@
                         <width>30</width>
                         <height>30</height>
                         <texture colordiffuse='$INFO[Container(102).ListItem.Property(color)]'>Circular/$INFO[Container(102).ListItem.Property(rating)].png</texture>
-                        <aspectratio>scale</aspectratio>
+                        <aspectratio aligny='center'>keep</aspectratio>
                     </control>
                     <control type='textbox'>
                         <description>Plot</description>

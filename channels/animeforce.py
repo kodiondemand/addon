@@ -27,12 +27,12 @@ def mainlist(item):
 def submenu(item):
     action = 'peliculas'
     patronBlock = r'data-taxonomy="' + item.args + r'"(?P<block>.*?)</select'
-    patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<t>[^(]+)[^\(]+\((?P<num>\d+)'
+    patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<title>[^(]+)[^\(]+\((?P<num>\d+)'
     if 'genre' in item.args:
         patronGenreMenu = patronMenu
     def itemHook(item):
         item.url += host + '/anime/' + item.args + '/' + item.u
-        item.title = support.typo(item.t, 'bold')
+        # item.title = support.typo(item.t, 'bold')
         return item
     return locals()
 
@@ -90,7 +90,6 @@ def peliculas(item):
 
     def itemHook(item):
         if 'sub-ita' in item.url:
-            if item.args != 'newest': item.title = item.title + support.typo('Sub-ITA','_ [] color kod')
             item.contentLanguage = 'Sub-ITA'
         return item
 

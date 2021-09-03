@@ -8,7 +8,7 @@ from core.item import Item
 from platformcode import config, logger
 
 def findhost(url):
-    return support.match(url, patron=r'Il nuovo indirizzo di FILMPERTUTTI è ?<a href="([^"]+)', debug=True).match
+    return support.match(url, patron=r'Il nuovo indirizzo di FILMPERTUTTI è ?<a href="([^"]+)').match
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
@@ -58,10 +58,11 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    # debug=True
     data = support.match(item.url, headers=headers).data
     if 'accordion-item' in data:
         patronBlock = r'<span class="season[^>]*>\d+[^>]+>[^>]+>[^>]+>[^>]+>\D*(?:STAGIONE|Stagione)[ -]+(?P<lang>[a-zA-Z\- ]+)[^<]*</span>(?P<block>.*?)<div id="(?:season|disqus)'
-        patron = r'<img src="(?P<thumb>[^"]+)">.*?<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<data>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
+        patron = r'data-src="(?P<thumb>[^"]+)"[^>]*>.*?<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<data>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
     else:
         patronBlock = r'(?:STAGIONE|Stagione)(?:<[^>]+>)?\s*(?:(?P<lang>[A-Za-z- ]+))?(?P<block>.*?)(?:&nbsp;|<strong>|<div class="addtoany)'
         patron = r'(?:/>|p>)\s*(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<]+(?P<data>.*?)(?:<br|</p)'

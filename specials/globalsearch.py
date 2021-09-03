@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import threading
-from core import support
+from core import jsontools, support
 
 import xbmc, xbmcgui, sys, channelselector, time, os
 from core.support import dbg, tmdb
@@ -67,6 +67,7 @@ MENU = 502
 BACK = 503
 CLOSE = 504
 QUALITYTAG = 505
+TAB = 506
 
 # Servers
 EPISODESLIST = 200
@@ -165,7 +166,8 @@ class SearchWindow(xbmcgui.WindowXML):
             tmdb_info = tmdb.Tmdb(searched_text=self.item.text, search_type=self.item.mode.replace('show', ''))
             results = tmdb_info.results
 
-        for result in results:
+        
+        def make(n, result):
             result = tmdb_info.get_infoLabels(result, origen=result)
             if self.item.mode == 'movie':
                 title = result['title']
@@ -177,17 +179,12 @@ class SearchWindow(xbmcgui.WindowXML):
                 title = result.get('title', '')
                 result['mode'] = result['media_type'].replace('tv', 'tvshow')
 
-            thumbnail = result.get('thumbnail', '')
             noThumb = 'Infoplus/' + result['mode'].replace('show','') + '.png'
-            fanart = result.get('fanart', '')
-            year = result.get('release_date', '')
-            rating = str(result.get('vote_average', ''))
+            rating = result.get('vote_average', 0)
 
             new_item = Item(channel='globalsearch',
                             action=True,
                             title=title,
-                            thumbnail=thumbnail,
-                            fanart=fanart,
                             mode='search',
                             type=result['mode'],
                             contentType=result['mode'],
@@ -198,12 +195,26 @@ class SearchWindow(xbmcgui.WindowXML):
                 new_item.contentTitle = result['title']
             else:
                 new_item.contentSerieName = result['name']
+            tmdb.set_infoLabels(new_item)
+            tagline = new_item.infoLabels.get('tagline')
+            it = xbmcgui.ListItem('[B]{}[/B]'.format(title) + ('\n[I]{}[/I]'.format(tagline if tagline else '')))
+            it.setArt({'poster':result.get('thumbnail', noThumb), 'fanart':result.get('fanart', '')})
 
-            it = xbmcgui.ListItem(title)
-            it.setProperties({'thumb': result.get('thumbnail', noThumb), 'fanart': result.get('fanart', ''), 'rating': '    [' + rating + ']' if rating else '',
-                              'plot': result.get('overview', ''), 'search': 'search', 'release_date': '', 'item': new_item.tourl(),
-                              'year': '   [' + year.split('/')[-1] + ']' if year else '    [' + result.get('first_air_date','').split('-')[0] + ']'})
-            self.items.append(it)
+            platformtools.set_infolabels(it, new_item)
+            # logger.debug(jsontools.dump(result))
+            # logger.debug(new_item)
+
+            color = 'FFFFFFFF' if not rating else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
+            it.setProperties({'rating': str(int(rating) * 10) if rating else 100, 'color':color, 'item': new_item.tourl(), 'search': 'search'})
+            return n, it
+
+        r_list = []
+        with futures.ThreadPoolExecutor() as executor:
+            searchList = [executor.submit(make, n, result) for n, result in enumerate(results)]
+            for res in futures.as_completed(searchList):
+                r_list.append(res.result())
+        r_list.sort(key=lambda r: r[0] )
+        self.items = [r[1] for r in r_list]
 
         if self.items:
             self.RESULTS.reset()
@@ -248,19 +259,22 @@ class SearchWindow(xbmcgui.WindowXML):
                             action=True,
                             title=name,
                             thumbnail=thumb,
+                            plot= plot,
                             mode='search')
 
             it = xbmcgui.ListItem(name)
-            it.setProperties({'thumb': thumb, 'plot': plot, 'search': 'persons', 'item': new_item.tourl()})
+            platformtools.set_infolabels(it, new_item)
+            it.setArt({'poster':thumb})
+            it.setProperties({'search': 'persons', 'item': new_item.tourl()})
             items.append(it)
         if len(results) > 19:
             it = xbmcgui.ListItem(config.get_localized_string(70006))
-            it.setProperty('thumb', 'Infoplus/next_focus.png')
+            it.setArt({'poster':'Infoplus/next_focus.png'})
             it.setProperty('search','next')
             items.append(it)
         if self.page > 1:
             it = xbmcgui.ListItem(config.get_localized_string(70005))
-            it.setProperty('thumb', 'Infoplus/previous_focus.png')
+            it.setArt({'poster':'Infoplus/previous_focus.png'})
             it.setProperty('search','previous')
             items.insert(0, it)
 
@@ -308,7 +322,8 @@ class SearchWindow(xbmcgui.WindowXML):
             except ZeroDivisionError:
                 percent = 0
             self.PROGRESS.setPercent(percent)
-            self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
+            self.MAINTITLE.setText('{} | {}/{} [{}"]'.format(self.mainTitle,self.count, len(self.searchActions), int(time.time() - self.time)))
+            # self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
             if percent == 100:
                 self.channels = []
                 self.moduleDict = {}
@@ -393,13 +408,20 @@ class SearchWindow(xbmcgui.WindowXML):
     def makeItem(self, url):
         item = Item().fromurl(url)
         channelParams = channeltools.get_channel_parameters(item.channel)
+        info = item.infoLabels
+        tagline = info.get('tagline')
+        title = '[B]{}[/B]'.format(item.fulltitle) + ('\n[I]{}[/I]'.format(tagline) if tagline else '')
         thumb = item.thumbnail if item.thumbnail else 'Infoplus/' + item.contentType.replace('show', '') + '.png'
-        logger.info('THUMB', thumb)
-        it = xbmcgui.ListItem(item.title)
-        year = str(item.year if item.year else item.infoLabels.get('year', ''))
-        rating = str(item.infoLabels.get('rating', ''))
-        it.setProperties({'thumb': thumb, 'fanart': item.fanart, 'plot': item.plot,
-                          'year': '    [' + year + ']' if year else '', 'rating':'    [' + rating + ']' if rating else '',
+
+        it = xbmcgui.ListItem(title)
+        it.setArt({'poster':thumb, 'fanart':item.fanart})
+        platformtools.set_infolabels(it, item)
+        logger.debug(item)
+
+        rating = info.get('rating')
+        color = 'FFFFFFFF' if not rating else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
+
+        it.setProperties({'rating': str(int(info.get('rating',10) * 10)), 'color': color,
                           'item': url, 'verified': item.verified, 'channel':channelParams['title'], 'channelthumb': channelParams['thumbnail'] if item.verified else ''})
         if item.server:
             color = scrapertools.find_single_match(item.alive, r'(FF[^\]]+)')
@@ -485,6 +507,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
     def onInit(self):
         self.time = time.time()
+        self.mainTitle = config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text
 
         # collect controls
         self.CHANNELS = self.getControl(CHANNELS)
@@ -492,7 +515,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.PROGRESS = self.getControl(PROGRESS)
         self.COUNT = self.getControl(COUNT)
         self.MAINTITLE = self.getControl(MAINTITLE)
-        self.MAINTITLE.setText(config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text)
+        self.MAINTITLE.setText(self.mainTitle)
         self.SEARCH = self.getControl(SEARCH)
         self.EPISODES = self.getControl(EPISODES)
         self.EPISODESLIST = self.getControl(EPISODESLIST)
@@ -589,7 +612,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         if self.RESULTS.getSelectedItem(): search = self.RESULTS.getSelectedItem().getProperty('search')
         else: search = None
-        if control_id in [CHANNELS]:
+        if control_id in [CHANNELS, TAB]:
             items = []
             name = self.CHANNELS.getSelectedItem().getLabel()
             subpos = int(self.CHANNELS.getSelectedItem().getProperty('position'))
@@ -600,6 +623,7 @@ class SearchWindow(xbmcgui.WindowXML):
             self.RESULTS.addItems(items)
             self.RESULTS.selectItem(subpos)
             self.CHANNELS.getSelectedItem().setProperty('position', str(subpos))
+            self.setFocusId(CHANNELS)
 
         elif control_id in [BACK]:
             self.Back()

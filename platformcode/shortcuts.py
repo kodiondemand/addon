@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-from platformcode import logger
-
+from platformcode import logger, platformtools
 
 def context():
 	from platformcode import config

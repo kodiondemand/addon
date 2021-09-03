@@ -346,9 +346,9 @@ def render_items(itemlist, parent_item):
         itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=thumb('nofolder')))
 
     dirItems = []
-    # for n, item in enumerate(itemlist):
+
     def set_item(n, item, parent_item):
-        item.itemlistPosition = n + 1
+        item.itemlistPosition = n
         item_url = item.tourl()
 
         if item.category == "":
@@ -379,15 +379,16 @@ def render_items(itemlist, parent_item):
             if episode: title = '{}. {}'.format(episode, title)
             if item.title2: title = '{} - {}'.format(title, item.title2)
 
-            if config.get_setting('format_title'):
-                server = typo(item.serverName, '_ []') if item.server else ''
+            if config.get_setting('format_title') or item.server:
+                server = typo(item.serverName, '__ [] bold') if item.server else ''
                 quality = typo(item.quality, '_ [] color kod') if item.quality else ''
                 lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
                 extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
                 size = typo(item.size, '_ [] color kod') if item.size else ''
                 seed = typo('Seed: ' + item.seed, '_ [] color kod') if item.seed else ''
 
-                title = '{}{}{}{}{}{}{}'.format(title, server, quality, lang, extra, size, seed)
+                title = '{}{}{}{}{}{}{}'.format(server, title, quality, lang, extra, size, seed)
+
 
         listitem = xbmcgui.ListItem(title)
         art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
@@ -426,6 +427,7 @@ def render_items(itemlist, parent_item):
     # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
 
     r_list = []
+    position = 0
 
     with futures.ThreadPoolExecutor() as executor:
         searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
@@ -434,9 +436,10 @@ def render_items(itemlist, parent_item):
     r_list.sort(key=lambda it: it[0].itemlistPosition)
 
 
+
     for item, item_url, listitem in r_list:
-        # item, item_url, listitem = v
-        # if item.infoLabels.get('playcount', 0): pos = n + 2
+        if not position and not item.infoLabels.get('playcount', 0):
+            position = item.itemlistPosition
         dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder, len(r_list)))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
@@ -464,12 +467,15 @@ def render_items(itemlist, parent_item):
     logger.debug('END render_items')
 
     if parent_item.channel == 'videolibrary' and parent_item.action in ['get_episodes', 'get_season']:
-        _id = xbmcgui.getCurrentWindowId()
-        win = xbmcgui.Window(_id)
+
+        while xbmcgui.getCurrentWindowDialogId() == 10138:
+            logger.debug('WINDOW ID', xbmcgui.getCurrentWindowDialogId())
+            xbmc.sleep(100)
+        xbmc.sleep(100)
+        win = xbmcgui.Window(10025)
         cid = win.getFocusId()
         ctl = win.getControl(cid)
-        xbmc.sleep(50)
-        pos = int(xbmc.getInfoLabel('Container.TotalWatched')) + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
+        pos = position + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
         ctl.selectItem(pos)
 
 
@@ -486,8 +492,8 @@ def viewmodeMonitor():
                     logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
                     config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
                     dialog_notification(config.get_localized_string(70153),
-                                                      config.get_localized_string(70187) % (content, currentModeName),
-                                                      sound=False)
+                                        config.get_localized_string(70187) % (content, currentModeName),
+                                        sound=False)
     except:
         import traceback
         logger.error(traceback.print_exc())
@@ -659,6 +665,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         return context_commands
         # Options according to criteria, only if the item is not a tag, nor is it "Add to the video library", etc...
     if item.action and item.action not in ["add_movie_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
+        if item.nextPage:
+            context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
@@ -734,8 +742,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
-        if item.nextPage:
-            context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
+        
     if config.dev_mode():
         context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
     return context_commands

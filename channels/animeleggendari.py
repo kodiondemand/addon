@@ -63,7 +63,7 @@ def peliculas(item):
     def itemHook(item):
         if 'movie' in item.title.lower():
             item.title = support.re.sub(' - [Mm][Oo][Vv][Ii][Ee]|[Mm][Oo][Vv][Ii][Ee]','',item.title)
-            item.title += support.typo('Movie','_ () bold')
+            # item.title += support.typo('Movie','_ () bold')
             item.contentType = 'movie'
             item.action = 'findvideos'
         return item
@@ -107,10 +107,10 @@ def episodios(item):
             if not item.url:
                 item.url = url
             if 'Movie Parte' in data:
-                item.title = support.typo(item.fulltitle + ' - Part ','bold') + item.title
+                item.title = item.fulltitle + ' - Part ' + item.title
                 item.contentType = 'movie'
             else:
-                item.title = support.typo('Episodio ', 'bold') + item.title
+                item.title = 'Episodio ' + item.title
             return item
     return locals()
 

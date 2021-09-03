@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # Canale per Altadefinizione Community
 
-from core import support
+from core import jsontools, support
 from lib.fakeMail import Gmailnator
 from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
@@ -132,7 +132,7 @@ def peliculas(item):
     json = {}
 
     if item.contentType == 'undefined':
-        disabletmdb = True
+        # disabletmdb = True
         action = 'check'
     elif item.contentType == 'movie':
         action = 'findvideos'
@@ -149,15 +149,17 @@ def peliculas(item):
     else:
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>(?P<rating>[^<]+)</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)(?:[^>]+>){1,2}\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
+    logger.debug('JSON FIND',jsontools.load(json))
     if json.get('have_next'):
         def fullItemlistHook(itemlist):
             spl = item.url.split('=')
             url = '='.join(spl[:-1])
             page = str(int(spl[-1])+1)
-            support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas')
+            total_pages = json.get('lastPage', 0)
+            support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas', total_pages=total_pages)
             return itemlist
 
     return locals()

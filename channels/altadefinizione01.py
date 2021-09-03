@@ -65,8 +65,9 @@ def peliculas(item):
     else:
         patronBlock = r'<div class="cover_kapsul ml-mask">(?P<block>.*)<div class="page_nav">'
 
-    patronNext =  '<span>\d</span> <a href="([^"]+)">'
-    # debug = True
+    patronNext =  '<a href="([^"]+)">&raquo;'
+    patronTotalPages = r'>(\d+)(?:[^>]+>){3}&raquo;'
+    # debugBlock = True
     return locals()
 
 
@@ -97,7 +98,6 @@ def orderalf(item):
     patron = r'<td class="mlnh-thumb"><a href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
              '.+?[^>]+>[^>]+ [^>]+[^>]+ [^>]+>(?P<title>[^<]+).*?[^>]+>(?P<year>\d{4})<'\
              '[^>]+>[^>]+>(?P<quality>[A-Z]+)[^>]+> <td class="mlnh-5">(?P<lang>.*?)</td>'
-    patronNext = r'<span>[^<]+</span>[^<]+<a href="(.*?)">'
 
     return locals()
 
@@ -105,7 +105,7 @@ def orderalf(item):
 def search(item, text):
     support.info(item, text)
 
-    
+
     itemlist = []
     text = text.replace(" ", "+")
     item.url = host + "/index.php?do=search&story=%s&subaction=search" % (text)

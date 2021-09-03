@@ -110,17 +110,17 @@ def peliculas(item):
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?P<title2>\([\D*]+\))?(?:\[(?P<quality1>HD)\])?\s?(?:[\(\[])?(?P<lang>[sS]ub-[iI][tT][aA])?(?:[\)\]])?\s?(?:\[(?P<quality>.+?)\])?\s?(?:\((?P<year>\d+)\))?(?:\(\D{2}\s\d{4}\))?<'
 
     patronNext = r'<a href="([^"]+)"\s*>Pagina'
-    # debug = True
+    patronTotalPages = r'>(\d+)(?:[^>]+>){4}Pagina'
 
     def itemHook(item):
         if item.quality1:
             item.quality = item.quality1
-            item.title += support.typo(item.quality, '_ [] color kod')
+            # item.title += support.typo(item.quality, '_ [] color kod')
         if item.lang2:
             item.contentLanguage = item.lang2
-            item.title += support.typo(item.lang2, '_ [] color kod')
-        if item.args == 'novita':
-            item.title = item.title
+            # item.title += support.typo(item.lang2, '_ [] color kod')
+        # if item.args == 'novita':
+        #     item.title = item.title
         # if 'wp-content' in item.thumbnail and not item.infoLabels['year']:
         #     item.infoLabels['year'] = item.thumbnail.split('/')[5]
         return item

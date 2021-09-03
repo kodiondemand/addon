@@ -52,8 +52,9 @@ def peliculas(item):
     if not item.args:
         # patronBlock = r'(?:ULTIMI INSERITI|Serie TV)(?P<block>.*?)</section'
         patronBlock = r'({})(?P<block>.*?)</section'.format('ULTIMI INSERITI' if item.contentType == 'movie' else 'Serie TV')
-
+    # debugBlock = True
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
+    patronTotalPages = r'>(\d+)(?:[^>]+>){3}<a class="next'
 
     return locals()
 

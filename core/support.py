@@ -232,7 +232,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
     matches = scrapertools.find_multiple_matches_groups(block, patron)
     logger.debug('MATCHES =', matches)
 
-    known_keys = ['url', 'title', 'title2', 'season', 'episode', 'episode2', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang', 'other', 'size', 'seed']
+    known_keys = ['url', 'title', 'title2', 'season', 'episode', 'episode2', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang', 'size', 'seed']
     # Legenda known_keys per i groups nei patron
     # known_keys = ['url', 'title', 'title2', 'season', 'episode', 'thumb', 'quality',
     #                'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang']
@@ -440,7 +440,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 contentSeason= infolabels.get('season', ''),
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news = item.news if item.news else '',
-                other = scraped['other'] if scraped['other'] else '',
+                # other = scraped['other'] if scraped['other'] else '',
                 grouped = group,
                 title2 = cleantitle(title2) if title2 else '',
                 episode2 = second_episode,
@@ -502,6 +502,7 @@ def scrape(func):
         else:
             headers = ''
         patronNext = args.get('patronNext', '')
+        patronTotalPages = args.get('patronTotalPages', '')
         patronBlock = args.get('patronBlock', '')
         typeActionDict = args.get('typeActionDict', {})
         typeContentDict = args.get('typeContentDict', {})
@@ -581,7 +582,7 @@ def scrape(func):
             @scrape
             def newFunc():
                 return nextArgs
-            nextArgs['item'] = nextPage(itemlist, item, data, patronNext, function)
+            nextArgs['item'] = nextPage(itemlist, item, data, patronNext, function, patron_total_pages=patronTotalPages)
             nextArgs['group'] = False
             if nextArgs['item']:
                 nextArgs['groupExplode'] = True
@@ -603,7 +604,7 @@ def scrape(func):
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
-                nextPage(itemlist, item, data, patronNext, function)
+                nextPage(itemlist, item, data, patronNext, function, patron_total_pages=patronTotalPages)
 
 
         # next page for pagination
@@ -851,7 +852,7 @@ def menu(func):
                              contentType= var[3] if len(var) > 3 else 'movie',)
 
         if single_search:
-            menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)
+            menuItem(itemlist, filename, config.get_localized_string(70741).replace(' %s', '… {bold}'), 'search', host + dictUrl['search'], style=not global_search)
 
         if not global_search:
             channel_config(item, itemlist)
@@ -919,6 +920,9 @@ def typo(string, typography=''):
     if 'italic' in typography:
         string = '[I]' + string + '[/I]'
         typography = typography.replace('italic', '')
+    if '__' in typography:
+        string = string + ' ' 
+        typography = typography.replace('__', '')
     if '_' in typography:
         string = ' ' + string
         typography = typography.replace('_', '')
@@ -1180,10 +1184,12 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
     return itemlist
 
 
-def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page='', resub=[]):
+def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page='', resub=[], patron_total_pages='', total_pages=0):
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
     logger.debug()
+    page=None
+    # page = item.page if item.page else 2
     action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level
 
     if not data and not patron and not next_page:
@@ -1196,6 +1202,11 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
 
     if next_page == '':
         next_page = scrapertools.find_single_match(data, patron)
+
+    if patron_total_pages:
+        found = scrapertools.find_single_match(data, patron_total_pages).replace('.','').replace(',','')
+        if found.isdigit():
+            total_pages = int(found)
 
     if next_page != "":
         if resub: next_page = re.sub(resub[0], resub[1], next_page)
@@ -1211,22 +1222,29 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
                        title=typo(config.get_localized_string(30992), 'color kod bold'),
                        url=next_page,
                        nextPage=True,
+                       total_pages=total_pages,
+                       page = page,
                        thumbnail=thumb()))
         return itemlist[-1]
 
 
 def pagination(itemlist, item, page, perpage, function_level=1):
+    itlist = []
+    for i, it in enumerate(itemlist):
+        if perpage and (page - 1) * perpage > i: continue  # pagination
+        if perpage and i >= page * perpage: break          # pagination
+        itlist.append(it)
     if len(itemlist) >= page * perpage:
-        itemlist.append(
-            Item(channel=item.channel,
-                 action=inspect.stack()[function_level][3],
-                 contentType=item.contentType,
-                 title=typo(config.get_localized_string(30992), 'color kod bold'),
-                 url=item.url,
-                 args=item.args,
-                 page=page + 1,
-                 thumbnail=thumb()))
-    return itemlist
+        itlist.append(
+            item.clone(channel=item.channel,
+                       action=inspect.stack()[function_level][3],
+                       contentType=item.contentType,
+                       title=typo(config.get_localized_string(30992), 'color kod bold'),
+                       page=page + 1,
+                       total_pages=round(len(itemlist)/perpage),
+                       nextPage=True,
+                       thumbnail=thumb()))
+    return itlist
 
 
 def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):

@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "userload.co/embed/([a-z0-9]+)",
+        "pattern": "userload.co/(?:embed|f)/([a-z0-9]+)",
         "url": "https://userload.co/e/\\1"
       }
     ]

@@ -49,7 +49,7 @@ def episodios(item):
     if 'clicca qui per aprire' in data.lower(): data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
     elif 'clicca qui</span>' in data.lower(): data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
     patronBlock = r'</span>(?P<block>[a-zA-Z\s]+\d+(.+?)?(?:\()?(?P<lang>ITA|SUB ITA)(?:\))?.*?)</div></div>'
-    patron = r'(?P<season>\d+)&#\d+;(?P<episode>\d+(?:-\d+)?)\s*(?:</strong>|<em>)?\s*(?P<title>.*?)(?:â|-.+?-|Ã¢ÂÂ.+?Ã¢ÂÂ|Ã¢ÂÂ|em|.)?(?:/em.*?)?(?:<a (?P<other>.*?))?<br />'
+    patron = r'(?P<season>\d+)&#\d+;(?P<episode>\d+(?:-\d+)?)\s*(?:</strong>|<em>)?\s*(?P<title>.*?)(?:â|-.+?-|Ã¢ÂÂ.+?Ã¢ÂÂ|Ã¢ÂÂ|em|.)?(?:/em.*?)?(?:<a (?P<data>.*?))<br />'
 
     def itemHook(i):
         i.url = item.url
@@ -98,4 +98,4 @@ def newest(categoria):
 
 def findvideos(item):
     support.info()
-    return support.server(item, item.other)
+    return support.server(item, item.data)

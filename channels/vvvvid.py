@@ -100,12 +100,16 @@ def newest(categoria):
 
 
 def peliculas(item):
+
     itemlist = []
     # support.dbg()
     if not item.args:
         json_file =loadjs(item.url + 'channel/10005/last/')
         support.logger.debug(json_file)
         make_itemlist(itemlist, item, json_file)
+        itemlist = support.pagination(itemlist, item, item.page if item.page else 1, 20)
+        if item.contentType != 'movie': autorenumber.start(itemlist)
+        tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     elif ('=' not in item.args) and ('=' not in item.url):
         json_file=loadjs(item.url + item.args)
@@ -123,15 +127,14 @@ def peliculas(item):
                                action = 'peliculas',
                                args = 'filters'))
 
-    else :
+    else:
         json_file=loadjs(item.url)
         item.args=''
         make_itemlist(itemlist, item, json_file)
+
     if 'category' in item.args:
         support.thumb(itemlist,mode='genre')
-    elif not 'filter' in item.args:
-        if item.contentType != 'movie': autorenumber.start(itemlist)
-        tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
     return itemlist
 
 
@@ -214,6 +217,7 @@ def findvideos(item):
 def make_itemlist(itemlist, item, data):
     search = item.search if item.search else ''
     infoLabels = {}
+
     for key in data['data']:
         if search.lower() in encode(key['title']).lower():
             title = encode(key['title'])

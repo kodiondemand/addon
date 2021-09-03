@@ -33,6 +33,7 @@ def mainlist(item):
     search =''
     return locals()
 
+
 def menu(item):
     item.action = 'peliculas'
     ITA = copy.copy(item.args)
@@ -200,11 +201,12 @@ def episodios(item):
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
     for it in item.episodes:
         itemlist.append(
-            item.clone(title=support.typo(title + it['number'], 'bold'),
+            item.clone(title=title,
                        episode = it['number'],
                        fulltitle=item.title,
                        show=item.title,
                        contentTitle='',
+                       contentEpisodeNumber=it['number'],
                        contentSerieName=item.contentSerieName,
                        thumbnail=item.thumbnail,
                        plot=item.plot,

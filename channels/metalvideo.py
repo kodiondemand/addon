@@ -3,7 +3,7 @@
 # Canale per altadefinizione01
 # ------------------------------------------------------------
 
-from core import support
+from core import support, config
 
 host = 'https://metalvideo.com'
 headers = {'X-Requested-With': 'XMLHttpRequest'}
@@ -24,11 +24,11 @@ def mainlist(item):
         itemlist.append(
             support.Item(
                 channel=item.channel,
-                title=support.typo('Cerca...', 'bold'),
+                title=support.typo(config.get_localized_string(70741) % 'Musica… ', 'bold'),
                 contentType='music',
                 url=item.url,
                 action='search',
-                thumbnail=support.thumb('search')))
+                thumbnail=support.thumb('music_search')))
 
         support.channel_config(item, itemlist)
         return itemlist

@@ -408,12 +408,11 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                         if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
                             # If the search has been successful and you are not looking for a list of items,
                             # carry out another search to expand the information
+                            if search_type == 'multi':
+                                search_type = 'movie' if otmdb.result.get('media_type') else 'tv'
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
-                    if otmdb and config.get_setting('tmdb_plus_info'):
-                        info = otmdb.get_infoLabels(item.infoLabels)
-                        otmdb = Tmdb(id_Tmdb=info['tmdb_id'], search_type=search_type,
-                                 search_language=search_language)
+
 
                 if otmdb is not None and otmdb.get_id():
                     # The search has found a valid result
@@ -437,8 +436,11 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
 
         ret = search(otmdb_global, search_type)
         if not ret:  # try with unified title
+            backup = [item.fulltitle, item.infoLabels['tvshowtitle'], item.infoLabels['title']]
             if unify():
                 ret = search(otmdb_global, search_type)
+            if not ret:
+                item.fulltitle, item.infoLabels['tvshowtitle'], item.infoLabels['title'] = backup
         return ret
     # Search in tmdb is deactivated or has not given result
     # item.contentType = item.infoLabels['mediatype']
@@ -607,6 +609,7 @@ def discovery(item, dict_=False, cast=False):
 
     if dict_:
         if item.page:
+            item.discovery={}
             item.discovery['page'] = item.page
         listado = Tmdb(discover = dict_, cast=cast)
 

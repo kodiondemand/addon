@@ -149,15 +149,23 @@ def run(item=None):
                 else:
                     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join([item.url[j:j+57] for j in range(0, len(item.url), 57)]))
         elif item.action == "gotopage":
-            page = platformtools.dialog_numeric(0, config.get_localized_string(70513))
-            if page:
+            from core import scrapertools
+            head = config.get_localized_string(70511)
+            scraped_page = scrapertools.find_single_match(item.url,'[=/]([0-9]+)')
+            if item.total_pages and (item.page or scraped_page.isdigit()):
+                pages = [str(p) for p in range(1, item.total_pages + 1)]
+                page = item.page if item.page else int(scraped_page)
+                page = platformtools.dialog_select(head, pages, page - 2) + 1
+            else:
+                page = platformtools.dialog_numeric(0, head)
+            if page and int(page) > -1:
                 import xbmc
                 item.action = item.real_action
                 if item.page:
                     item.page = page
                 else:
                     import re
-                    item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>' + page + '\g<2>', item.url)
+                    item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>{}\g<2>'.format(page), item.url)
                 xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
         else:
             # Checks if channel exists

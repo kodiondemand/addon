@@ -3,7 +3,7 @@
 # Canale per tunein
 # ------------------------------------------------------------
 
-from core import scrapertools, support
+from core import scrapertools, support, config
 from platformcode import logger
 
 host = 'http://api.radiotime.com'
@@ -21,7 +21,7 @@ def mainlist(item):
         return item
     def itemlistHook(itemlist):
         itemlist.append(
-            item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb('search')))
+            item.clone(title=support.typo(config.get_localized_string(70741) % 'Musica… ', 'bold'), action='search', thumbnail=support.thumb('search')))
         support.channel_config(item, itemlist)
         return itemlist
     return locals()
@@ -35,7 +35,8 @@ def radio(item):
         for title, location, url, quality, song, type, thumbnail in data.matches:
             title = scrapertools.decodeHtmlentities(title)
             itemlist.append(
-                item.clone(title = support.typo(title, 'bold') + support.typo(quality + ' kbps','_ [] bold color kod'),
+                item.clone(contentTitle = title,
+                           quality= quality, 
                            thumbnail = thumbnail,
                            url = url,
                            contentType = 'music',
@@ -49,7 +50,7 @@ def radio(item):
                 infoLabels={}
                 infoLabels['duration'] = duration
                 itemlist.append(
-                    item.clone(title = support.typo(title, 'bold'),
+                    item.clone(contentTitle = title,
                                thumbnail = thumbnail,
                                infolLbels = infoLabels,
                                url = url,
@@ -62,7 +63,7 @@ def radio(item):
                 title = scrapertools.unescape(title)
                 itemlist.append(
                     item.clone(channel = item.channel,
-                               title = support.typo(title, 'bold'),
+                               contentTitle = title,
                                thumbnail = item.thumbnail,
                                url = url,
                                action = 'radio'))
@@ -76,10 +77,11 @@ def findvideos(item):
     item.action = 'play'
     urls = support.match(item.url).data.strip().split()
     for url in urls:
+        item.title = 'TuneIn'
         item.url= url
         item.server = 'directo'
         itemlist.append(item)
-    return itemlist
+    return support.server(item, itemlist=itemlist)
 
 
 def search(item, text):

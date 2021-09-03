@@ -4,9 +4,8 @@
 # ------------------------------------------------------------
 
 import requests
-from core import support, jsontools
-from platformcode import logger, config
-typo = support.typo
+from core import support
+from platformcode import logger
 session = requests.Session()
 host = support.config.get_channel_url()
 
@@ -65,7 +64,7 @@ def live(item):
     logger.debug()
     itemlist =[]
     for name, values in liveDict().items():
-        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=name, fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
     return support.thumb(itemlist, mode='live')
 
 
@@ -116,7 +115,7 @@ def peliculas(item):
             fanarts = [image['attributes']['src'] for image in images if len(key['relationships']['images']['data']) > 1 and image['id'] == key['relationships']['images']['data'][1]['id']]
             fanart = fanarts[0] if fanarts else item.fanart
             itemlist.append(
-                item.clone(title=typo(title,'bold'),
+                item.clone(title=title,
                             fulltitle=title,
                             plot=plot,
                             url=url,
@@ -163,7 +162,7 @@ def episodios(item):
                             title = '{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name'])
                             plot = episode['attributes']['description']
                             itemlist.append(
-                                item.clone(title=typo(title,'bold'),
+                                item.clone(title=title,
                                            fulltitle=title,
                                            plot=plot,
                                            id=episode['id'],

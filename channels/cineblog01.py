@@ -122,6 +122,7 @@ def peliculas(item):
         item.contentType = 'tvshow'
 
     patronNext = '<a class="?page-link"? href="?([^>"]+)"?><i class="fa fa-angle-right">'
+    patronTotalPages = '(\d+[\.]?\d+)</option>\s*</sele'
 
     def itemHook(item):
         if item.quality2:
