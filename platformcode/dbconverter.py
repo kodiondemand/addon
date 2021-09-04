@@ -289,9 +289,9 @@ class addMovie(object):
 
     def set_files(self):
         self.idFile = get_id('idFile', 'files')
-        if self.item.playcount:
+        if self.info.get('playcount', None):
             sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, playCount, lastPlayed, dateAdded) VALUES ( ?,  ?,  ?,  ?,  ?,  ?)'
-            params = (self.idFile, self.idPath, self.strFilename, self.item.playcount, self.item.lastplayed, date)
+            params = (self.idFile, self.idPath, self.strFilename, self.info.get('playcount', None), self.item.lastplayed, date)
         else:
             sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
             params = (self.idFile, self.idPath, self.strFilename, date)
@@ -331,7 +331,7 @@ class addMovie(object):
         writer_link_params = []
         directors = self.info.get('director', '').split(', ')
         directors_image = self.info.get('director_image', [])
-        if not directors_image: writers_image = ['' for d in directors]
+        if not directors_image: directors_image = ['' for d in directors]
         writers = self.info.get('writer', '').split(', ')
         writers_image = self.info.get('writer_image', [])
         if not writers_image: writers_image = ['' for w in writers]
@@ -590,13 +590,16 @@ class addTvShow(object):
             files = {r[1].replace('.strm',''):r[0] for r in records}
         self.idFiles = {}
         idFile = get_id('idFile', 'files')
+        # support.dbg()
         for episode in self.idEpisodes.keys():
             if episode in files.keys():
                 self.idFiles[episode] = files[episode]
+                sql = 'update files set playCount= {} where idFile= {}'.format(self.episodes[episode]['item'].infoLabels.get('playcount', None), files[episode])
+                self.sql_actions.append([sql, ''])
             else:
-                if self.item.playcount:
+                if self.episodes[episode]['item'].infoLabels.get('playcount', None):
                     sql = 'INSERT INTO files (idFile, idPath, strFilename, playCount, lastPlayed, dateAdded) VALUES ( ?,  ?,  ?,  ?,  ?,  ?)'
-                    params = (idFile, self.idPath, episode + '.strm', self.item.playcount, self.item.lastplayed, date)
+                    params = (idFile, self.idPath, episode + '.strm', self.episodes[episode]['item'].infoLabels.get('playcount', None), self.item.lastplayed, date)
                 else:
                     sql = 'INSERT INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
                     params = (idFile, self.idPath, episode + '.strm', date)

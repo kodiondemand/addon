@@ -683,17 +683,7 @@ def sort_servers(servers_list):
         return []
 
     blacklisted_servers = config.get_setting("black_list", server='servers', default=[])
-    favorite_servers = config.get_setting('favorites_servers_list', server='servers', default=[])
-    favorite_servers = [s for s in favorite_servers if s not in blacklisted_servers]
-
-    if isinstance(servers_list[0], str):
-        servers_list = sorted(servers_list, key=lambda x: favorite_servers.index(x) if x in favorite_servers else 999)
-        return servers_list
-
-    favorite_quality = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
-                    'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
-                    'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
-                    'sd', '480p', '480', '360p', '360', '240p', '240']
+    favorite_servers = [s for s in config.get_setting('favorites_servers_list', server='servers', default=[]) if s not in blacklisted_servers]
 
     sorted_list = []
     inverted = False
@@ -721,9 +711,8 @@ def sort_servers(servers_list):
             continue
 
         element["index_server"] = index(favorite_servers, item.server.lower())
-        element["index_quality"] = index(favorite_quality, item.quality.lower())
+        element["index_quality"] = platformtools.calcResolution(item.quality)
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
-
         element['videoitem'] = item
         sorted_list.append(element)
 

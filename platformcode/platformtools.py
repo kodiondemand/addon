@@ -293,26 +293,28 @@ def dialog_busy(state):
     else: xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
 
-def itemlist_refresh(offset=0):
-    try:
-        _id = xbmcgui.getCurrentWindowId()
-        win = xbmcgui.Window(_id)
-        cid = win.getFocusId()
-        ctl = win.getControl(cid)
-        pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
-        logger.debug('ID:', _id, 'POSITION:', pos)
+def itemlist_refresh(offset=0, disable=False):
+    if disable:
         xbmc.executebuiltin("Container.Refresh")
-        # xbmc.executebuiltin('ReloadSkin()')
+    else:
+        try:
+            _id = xbmcgui.getCurrentWindowId()
+            win = xbmcgui.Window(_id)
+            cid = win.getFocusId()
+            ctl = win.getControl(cid)
+            pos = Item().fromurl(xbmc.getInfoLabel('ListItem.FileNameAndPath')).itemlistPosition + offset
+            logger.debug('ID:', _id, 'POSITION:', pos)
+            xbmc.executebuiltin("Container.Refresh")
+            # xbmc.executebuiltin('ReloadSkin()')
 
-        while xbmcgui.getCurrentWindowDialogId() != 10138:
-            pass
-        while xbmcgui.getCurrentWindowDialogId() == 10138:
-            pass
+            while xbmcgui.getCurrentWindowDialogId() != 10138:
+                pass
+            while xbmcgui.getCurrentWindowDialogId() == 10138:
+                pass
 
-        ctl.selectItem(pos)
-    except:
-        xbmc.executebuiltin("Container.Refresh")
-        # xbmc.executebuiltin('ReloadSkin()')
+            ctl.selectItem(pos)
+        except:
+            xbmc.executebuiltin("Container.Refresh")
 
 
 def itemlist_update(item, replace=False):
@@ -427,7 +429,7 @@ def render_items(itemlist, parent_item):
     # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
 
     r_list = []
-    position = 0
+    position = None
 
     with futures.ThreadPoolExecutor() as executor:
         searchList = [executor.submit(set_item, i, item, parent_item) for i, item in enumerate(itemlist)]
@@ -438,7 +440,7 @@ def render_items(itemlist, parent_item):
 
 
     for item, item_url, listitem in r_list:
-        if not position and not item.infoLabels.get('playcount', 0):
+        if position == None and not item.infoLabels.get('playcount', 0) and item.channel != 'downloads':
             position = item.itemlistPosition
         dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder, len(r_list)))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
@@ -466,8 +468,7 @@ def render_items(itemlist, parent_item):
 
     logger.debug('END render_items')
 
-    if parent_item.channel == 'videolibrary' and parent_item.action in ['get_episodes', 'get_season']:
-
+    if parent_item.channel == 'videolibrary' and parent_item.action in ['get_episodes', 'get_seasons'] and position:
         while xbmcgui.getCurrentWindowDialogId() == 10138:
             logger.debug('WINDOW ID', xbmcgui.getCurrentWindowDialogId())
             xbmc.sleep(100)
@@ -475,7 +476,7 @@ def render_items(itemlist, parent_item):
         win = xbmcgui.Window(10025)
         cid = win.getFocusId()
         ctl = win.getControl(cid)
-        pos = position + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
+        pos = position  + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
         ctl.selectItem(pos)
 
 
@@ -711,12 +712,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
 
         if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
             # Add Series to the video library
-            if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
-                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
-            # Add Movie to Video Library
-            elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_movie_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
-            elif item.action in ['check'] and item.contentTitle or item.contentSerieName:
+            if item.contentTitle or item.contentSerieName:
                 context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action={}&contentChannel=videolibrary'.format(item.action))))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled') and not item.disable_videolibrary:

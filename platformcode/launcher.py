@@ -260,13 +260,8 @@ def run(item=None):
             elif item.action == "add_serie_to_library":
                 from core import videolibrarytools
                 videolibrarytools.add_tvshow(item, channel)
-                
-            # Special action for adding a serie to the library
-            elif item.action == "add_to_library":
-                from core import videolibrarytools
-                videolibrarytools.add_to_videolibrary(item, channel)
 
-            # Special action for adding a undefined to the library
+            # Special action for adding a serie to the library
             elif item.action == "add_to_library":
                 from core import videolibrarytools
                 videolibrarytools.add_to_videolibrary(item, channel)

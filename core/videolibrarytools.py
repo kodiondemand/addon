@@ -687,11 +687,16 @@ def add_to_videolibrary(item, channel):
 
 
 def add_to_videolibrary(item, channel):
-    itemlist = getattr(channel, item.from_action)(item)
-    if itemlist and itemlist[0].contentType == 'episode':
-        return add_tvshow(item, channel, itemlist)
-    else:
+    if item.contentType == 'movie':
         return add_movie(item)
+    elif item.contentType == 'tvshow':
+        return add_tvshow(item)
+    else:
+        itemlist = getattr(channel, item.from_action)(item)
+        if itemlist and itemlist[0].contentType == 'episode':
+            return add_tvshow(item, channel, itemlist)
+        else:
+            return add_movie(item)
 
 
 def add_movie(item):
@@ -769,11 +774,6 @@ def add_tvshow(item, channel=None, itemlist=[]):
         itemlist = [item.clone()]
 
     else:
-        # This mark is because the item has something else apart in the "extra" attribute
-        # item.action = item.extra if item.extra else item.action
-        if isinstance(item.extra, str) and "###" in item.extra:
-            item.action = item.extra.split("###")[0]
-            item.extra = item.extra.split("###")[1]
 
         if item.from_action:
             item.__dict__["action"] = item.__dict__.pop("from_action")
@@ -811,7 +811,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
             if not check(item, itemlist):
                 action = item.action
                 item.setrenumber = True
-                start(item)
+                start(itemlist, item)
                 item.setrenumber = False
                 item.action = action
                 if not item.exit:
@@ -820,8 +820,6 @@ def add_tvshow(item, channel=None, itemlist=[]):
             else:
                 itemlist = getattr(channel, item.action)(item)
 
-    global magnet_caching
-    magnet_caching = False
 
     inserted, overwritten, failed, path = save_tvshow(item, itemlist)
 

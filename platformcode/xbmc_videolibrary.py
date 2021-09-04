@@ -260,33 +260,33 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
-    # from core.support import dbg;dbg()
 
-    conn = sqlite3.connect(get_file_db())
-    view = 'episode' if item.contentType != 'movie' else 'movie'
-    path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
+    if item.contentType == 'movie':
+        conn = sqlite3.connect(get_file_db())
+        path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
+        sql = 'select idMovie from movie_view where strPath like "{}"'.format(path)
 
-    request_season = ''
-    request_episode = ''
-    if item.contentType in ['season', 'episode'] and item.contentSeason: request_season = ' and c12= {}'.format(item.contentSeason)
-    if item.contentType in ['episode'] and item.contentEpisodeNumber: request_episode = ' and strFileName= "{}"'.format(item.strm_path.split('\\')[-1].split('/')[-1])
-    sql = 'select idFile from {}_view where strPath like "{}"{}{}'.format(view, path, request_episode, request_season)
+        n, r = execute_sql_kodi(sql)
+        if r:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": r[0][0], "playcount": value}, "id": 1}
+            data = get_data(payload)
 
-    n, r = execute_sql_kodi(sql, conn=conn)
-    if r:
-        sql = 'update files set playCount= {} where idFile= {}'
-        sql_actions = [sql.format(value, i[0]) for i in r]
+    else:
+        nun_records, records = execute_sql_kodi('SELECT idShow FROM tvshow_view WHERE uniqueid_value LIKE "{}"'.format(item.videolibrary_id))
+        # delete TV show
+        if records:
+            tvshowid = records[0][0]
 
-        cursor = conn.cursor()
-        for sql in sql_actions:
-            if type(sql) == list:
-                cursor.executemany(sql)
-            else:
-                cursor.execute(sql)
-        conn.commit()
-        conn.close()
+            nun_records, records = execute_sql_kodi('SELECT idFile FROM episode WHERE idShow={}'.format(tvshowid))
+            sql = 'DELETE FROM files WHERE idFile IN (?)'
+            params = [record[0] for record in records]
+            sql = 'DELETE FROM files WHERE idFile IN {}'.format(tuple(params))
+            execute_sql_kodi(sql)
 
-    # platformtools.itemlist_refresh()
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveTVShow", "id": 1, "params": {"tvshowid": tvshowid}}
+            data = get_data(payload)
+
+    from platformcode.dbconverter import add_video;add_video(item)
 
 
 def set_watched_on_kod(data):

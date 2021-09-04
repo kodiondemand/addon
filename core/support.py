@@ -597,7 +597,7 @@ def scrape(func):
         if anime and inspect.stack()[1][3] not in ['find_episodes']:
             from platformcode import autorenumber
             if function == 'episodios': autorenumber.start(itemlist, item)
-            else: autorenumber.start(itemlist)
+            else: autorenumber.start(itemlist, item)
 
         if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args and not disabletmdb and inspect.stack()[1][3] not in ['add_tvshow'] and function not in ['episodios', 'mainlist'] or (function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -1139,12 +1139,10 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
     logger.debug()
 
     if item.contentType == 'movie':
-        action = 'add_movie_to_library'
-        extra = 'findvideos'
+        action = 'add_to_library'
         contentType = 'movie'
     else:
-        action = 'add_serie_to_library'
-        extra = 'episodios'
+        action = 'add_to_library'
         contentType = 'tvshow'
 
     function = function if function else inspect.stack()[function_level][3]
@@ -1176,7 +1174,6 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
                            url=item.url,
                            action=action,
                            from_action=item.action,
-                           extra=extra,
                            path=item.path,
                            thumbnail=thumb('add_to_videolibrary')
                     ))

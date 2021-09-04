@@ -331,7 +331,7 @@ def get_episodes(item):
 
 
 def findvideos(item):
-    from core import autoplay
+    from core import autoplay, servertools
     from platformcode import platformtools
     logger.debug()
     if config.get_setting('next_ep') == 3 and item.contentType != 'movie':
@@ -413,10 +413,9 @@ def findvideos(item):
     if config.get_setting('autoplay'):
         itemlist = autoplay.start(itemlist, item)
     else:
-        itemlist.sort(key=lambda it: (videolibrarytools.quality_order.index(it.quality.lower()) if it.quality and it.quality.lower() in videolibrarytools.quality_order else 999, it.server))
+        servertools.sort_servers(itemlist)
 
     if config.get_setting('checklinks') and not config.get_setting('autoplay'):
-        from core import servertools
         itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))
 
     if item.window:
@@ -643,7 +642,7 @@ def mark_content_as_watched(item):
                 self.seasons = videolibrarydb['season'][self.item.videolibrary_id]
                 self.episodes = videolibrarydb['episode'][self.item.videolibrary_id]
 
-            getattr(self, 'mark_' + self.item.contentType)()
+            getattr(self, 'mark_' + (self.item.mark if self.item.mark else self.item.contentType))()
             videolibrarydb.close()
 
             if config.is_xbmc() and not self.item.not_update:
@@ -653,13 +652,51 @@ def mark_content_as_watched(item):
                         xbmc_videolibrary.mark_content_as_watched_on_kodi(movie, self.playcount)
                 else:
                     it = None
-                    if item.contentType == 'movie': it = self.movie
-                    elif item.contentType == 'episode': it = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item']
-                    elif item.contentType == 'tvshow': it = self.tvshow['item']
-                    elif item.contentType == 'season': it = self.seasons[self.s]
+                    if self.item.contentType == 'movie': it = self.movie['item']
+                    elif self.item.contentType == 'episode': it = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item']
+                    else: it = self.tvshow['item']
+                    # elif self.item.contentType == 'season': it = self.seasons[self.s]
                     if it: xbmc_videolibrary.mark_content_as_watched_on_kodi(it, self.playcount)
 
-                platformtools.itemlist_refresh()
+                platformtools.itemlist_refresh(1, True if item.contentType in ['season', 'episode'] else False)
+
+        def mark_previous(self):
+            if self.item.contentType == 'episode':
+                current_episode = current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item']
+                seasons = [s for s in self.seasons.keys()]
+                seasons.sort()
+                for it in self.episodes.values():
+                    if (it['item'].contentSeason == current_episode.contentSeason and it['item'].contentEpisodeNumber < current_episode.contentEpisodeNumber) or it['item'].contentSeason < current_episode.contentSeason:
+                        it['item'].infoLabels['playcount'] = 1
+                videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
+                for s in range(seasons[0], self.item.contentSeason + 1):
+                    self.s = s
+                    self.check_playcount('episode')
+            elif self.item.contentType == 'season':
+                seasons = [s for s in self.seasons.keys()]
+                seasons.sort()
+                for s in range(seasons[0], self.s):
+                    self.s = s
+                    self.mark_season()
+
+        def mark_following(self):
+            if self.item.contentType == 'episode':
+                current_episode = current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item']
+                seasons = [s for s in self.seasons.keys()]
+                seasons.sort()
+                for it in self.episodes.values():
+                    if (it['item'].contentSeason == current_episode.contentSeason and it['item'].contentEpisodeNumber > current_episode.contentEpisodeNumber) or it['item'].contentSeason > current_episode.contentSeason:
+                        it['item'].infoLabels['playcount'] = 0
+                videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
+                for s in range(self.item.contentSeason, seasons[-1] + 1):
+                    self.s = s
+                    self.check_playcount('episode')
+            elif self.item.contentType == 'season':
+                seasons = [s for s in self.seasons.keys()]
+                seasons.sort()
+                for s in range(self.s + 1, seasons[-1] + 1):
+                    self.s = s
+                    self.mark_season()
 
         def mark_episode(self):
             current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount']
@@ -683,7 +720,7 @@ def mark_content_as_watched(item):
                 self.seasons[self.s].infoLabels['playcount'] = 0
 
             videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
-            self.mark_all('episodes')
+            self.mark_all('season_episodes')
 
             if current_playcount == 0 or self.playcount == 0:
                 self.check_playcount('season')
@@ -729,7 +766,10 @@ def mark_content_as_watched(item):
                 if len(watched) == len(episodes):
                     season_playcount = self.playcount
                 self.tvshow['item'].infoLabels['playcount'] = tv_playcount
-                self.seasons[self.s].infoLabels['playcount'] = season_playcount
+                try:
+                    self.seasons[self.s].infoLabels['playcount'] = season_playcount
+                except:
+                    logger.debug('No Season')
                 videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
             else:
                 watched = [s for s in self.seasons.values() if s.infoLabels['playcount'] > 0]
@@ -739,8 +779,11 @@ def mark_content_as_watched(item):
             videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
 
         def mark_all(self, _type):
-            episodes = [e for e in self.episodes.values() if e['item'].contentSeason == self.s]
-            if _type == 'episodes':
+            if _type == 'season_episodes':
+                episodes = [e for e in self.episodes.values() if e['item'].contentSeason == self.s]
+                for e in episodes:
+                    e['item'].infoLabels['playcount'] = self.playcount
+            elif _type == 'episodes':
                 for n, ep in self.episodes.items():
                     self.episodes[n]['item'].infoLabels['playcount'] = self.playcount
                 # self.check_playcount('season')
@@ -842,6 +885,7 @@ class subcontext(object):
          return config.get_localized_string(self.titledict[self.item.contentType][_type])
 
     def makecontext(self):
+        # support.dbg()
         # set watched
         # if not self.item.set:
         watched = self.item.infoLabels.get('playcount', 0)
@@ -852,7 +896,11 @@ class subcontext(object):
             title = self.title('watched')
             value = 1
         self.context.append(title)
+        self.context.append('Segna precedenti come visti')
+        self.context.append('Segna successivi come non visti')
         self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value))
+        self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value, mark='previous'))
+        self.commands.append(self.item.clone(action='mark_content_as_watched', playcount=value, mark='following'))
 
         if self.item.contentType in ['movie', 'tvshow', 'list']:
             # delete
@@ -1058,7 +1106,8 @@ def delete(item):
             if config.is_xbmc() and config.get_setting('videolibrary_kodi'):
                 from platformcode import xbmc_videolibrary
                 xbmc_videolibrary.clean_by_id(item)
-            platformtools.itemlist_refresh(-1)
+            else:
+                platformtools.itemlist_refresh(-1)
 
         # delete channel from video item
         if select and select > 0:

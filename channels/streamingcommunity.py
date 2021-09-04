@@ -52,7 +52,7 @@ def genres(item):
     args = support.match(data, patronBlock=r'genre-options-json="([^\]]+)\]', patron=r'name"\s*:\s*"([^"]+)').matches
     for arg in args:
         itemlist.append(item.clone(title=support.typo(arg, 'bold'), args=arg, action='peliculas'))
-    support.thumb(itemlist, mode='genre')
+    support.thumb(itemlist, genre=True)
     return itemlist
 
 
@@ -129,7 +129,7 @@ def peliculas(item):
             itemlist.append(makeItem(i, it, item))
         else:
             recordlist.append(it)
-    
+
     itemlist.sort(key=lambda item: item.n)
     if recordlist:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
@@ -143,10 +143,7 @@ def makeItem(n, it, item):
     title, lang = support.match(info['name'], patron=r'([^\[|$]+)(?:\[([^\]]+)\])?').match
     if not lang:
         lang = 'ITA'
-    itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
-    itm.contentType = info['type'].replace('tv', 'tvshow')
-    itm.language = lang
-    itm.year = info['release_date'].split('-')[0]
+    itm = item.clone(title=title, contentType = info['type'].replace('tv', 'tvshow'), contentLanguage = lang, year = info['release_date'].split('-')[0])
 
 
     if itm.contentType == 'movie':
@@ -176,18 +173,15 @@ def episodios(item):
     for episodes in js:
         for it in episodes['episodes']:
             itemlist.append(
-                support.Item(channel=item.channel,
-                             title=it['name'],
-                             episode = it['number'],
-                             season=episodes['number'],
+                item.clone(
+                             contentEpisodeNumber = it['number'],
+                             contentSeason=episodes['number'],
                              thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
                              fanart=item.fanart,
                              plot=it['plot'],
                              action='findvideos',
                              contentType='episode',
-                             contentSeason = int(episodes['number']),
-                             contentEpisodeNumber = int(it['number']),
-                             contentSerieName=item.fulltitle,
+                             contentTitle=support.cleantitle(it['name']),
                              url=host + '/watch/' + str(episodes['title_id']),
                              episodeid= '?e=' + str(it['id'])))
 
@@ -215,16 +209,16 @@ def findvideos(item):
         return s
     token = calculateToken()
 
-    def videourls(res):
-        newurl = '{}/{}{}'.format(url, res, token)
-        if requests.head(newurl, headers=headers).status_code == 200:
-            video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
 
-    with futures.ThreadPoolExecutor() as executor:
-        for res in ['480p', '720p', '1080p']:
-            executor.submit(videourls, res) 
+    # def videourls(res):
+    #     newurl = '{}/{}{}'.format(url, res, token)
+    #     if requests.head(newurl, headers=headers).status_code == 200:
+    #         video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
+
+    # with futures.ThreadPoolExecutor() as executor:
+    #     for res in ['480p', '720p', '1080p']:
+    #         executor.submit(videourls, res) 
 
     if not video_urls: video_urls = [{'type':'m3u8', 'url':url + token}]
-    else: video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
     return support.server(item, itemlist=itemlist)
