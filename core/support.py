@@ -287,6 +287,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
         contents.append(title)
         title2 = cleantitle(scraped.get('title2', '')) if not group or item.grouped else ''
         quality = scraped.get('quality', '')
+        if not quality: quality = item.quality
         # Type = scraped['type'] if scraped['type'] else ''
         plot = cleantitle(scraped.get("plot", ''))
 
@@ -449,7 +450,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news= item.news if item.news else '',
                 other = scraped['other'] if scraped['other'] else '',
-                grouped=group,
+                q=group,
                 disable_videolibrary = not args.get('addVideolibrary', True)
             )
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
