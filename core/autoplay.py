@@ -27,7 +27,7 @@ def start(itemlist, item):
     :return: try to auto-reproduce, in case of failure it returns the itemlist that it received in the beginning
     '''
 
-    if item.global_search:
+    if item.global_search or item.from_action:  # from_action means that's a special function calling this (ex: add to videolibrary)
         return itemlist
     logger.debug()
 
