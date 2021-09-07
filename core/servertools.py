@@ -835,7 +835,7 @@ def translate_server_name(name):
 #     return server_json
 
 if PY3:
-    from lib.pymediainfo import MediaInfo
+    from pymediainfo import MediaInfo
     import pathlib
 
     def correct_onlinemedia_info(video_itemlist: list) -> list:
@@ -869,10 +869,22 @@ if PY3:
             """
 
             video_chunk =  str(pathlib.Path(__file__).parent.parent.resolve()) + "/header_mediafile"
-            logger.info(f'Saving the chunk to the location: {video_chunk}')
 
-            r = requests.get(url, stream=True)
+            link = url.split("|")
+            if len(link) == 1:
+                directUrl, headersUrl = link[0], ''
+            elif len(link) == 2:
+                directUrl, headersUrl = link
+            headers = {}
+            if headersUrl:
+                for name in headersUrl.split('&'):
+                    h, v = name.split('=')
+                    h = str(h)
+                    headers[h] = str(v)
+
+            r = requests.get(directUrl, headers=headers, stream=True)
             with open(video_chunk, 'wb') as f:
+                logger.info(f'Saving the chunk to the location: {video_chunk}')
                 for chunk in r.iter_content(chunk_size=100000):
                     if chunk:
                         f.write(chunk)
@@ -925,13 +937,14 @@ if PY3:
 
             return info_dict
 
-        def set_blank_videoinfo(item: Item) -> Item:
+        def set_blank_videoinfo(item: Item, media_url: str) -> Item:
             """This function sets BLANK attributes of the 'item' object and returns
             its modified version;
             -------------------
             Parameters
             -------------------
             - item: the Item whose parameters need to be modified
+            - media_url: the url of the real mediafile
             -------------------
 
             @return: it returns the abovementioned 'item' with 'blank' set attributes
@@ -939,7 +952,13 @@ if PY3:
             """
 
             logger.info("Updating the Item's information with BLANK ones")
-            item.title += "... x ..., Bit Rate: unknown"
+            if "m3u8" in media_url:
+                logger.debug("'resolve_video_urls_for_playing' found only an '.m3u8' url which cannot be parsed")
+            else:
+                logger.debug("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
+
+            item.media_url = media_url
+            item.title += f"{' [m3u8]' if 'm3u8' in media_url else ''} ... x ..., Bit Rate: unknown"
             # i won't set alternative values for the "item.quality" parameter
             # i won't set alternative values for the "item.resolution" parameter
             item.bitrate = 0
@@ -976,17 +995,12 @@ if PY3:
                     if url_exists:
                         logger.debug(f'The URL list is: ----> {url_list}\n')
                         if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
-                            item = set_blank_videoinfo(item)
-                            if "m3u8" in url_list[-1][-1]:
-                                logger.debug("'resolve_video_urls_for_playing' found only an .m3u8 url which cannot be parsed, but the 'media_url' attribute of the item will be set anyway")
-                                item.media_url = url_list[-1][-1].split("|")[0]
-                                logger.info(f"'resolve_video_urls_for_playing' set the attribute 'media_url' to {item.media_url}")
-                                continue
-                            logger.error("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
+                            item = set_blank_videoinfo(item, url_list[-1][-1])
+                            continue
                         elif not "m3u8" in url_list[-1][-1]:
-                            highest_quality_url = url_list[-1][-1].split("|")[0]
+                            highest_quality_url = url_list[-1][-1]
                         else:
-                            highest_quality_url = url_list[-2][-1].split("|")[0]
+                            highest_quality_url = url_list[-2][-1]
 
                         try:
                             logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
@@ -997,14 +1011,14 @@ if PY3:
                         except Exception:
                             import traceback
                             logger.error(traceback.format_exc())
-                            item = set_blank_videoinfo(item)
+                            item = set_blank_videoinfo(item, media_url=highest_quality_url)
                             try:
                                 os.remove(path_to_chunck)
-                            except FileNotFoundError:
+                            except (FileNotFoundError, UnboundLocalError):
                                 continue
                     else:
                         logger.debug(url_error)
-                        item = set_blank_videoinfo(item)
+                        item = set_blank_videoinfo(item, media_url="")
         else:
             return []
 

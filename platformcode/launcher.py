@@ -17,6 +17,8 @@ from platformcode import config, logger, platformtools
 from platformcode.logger import WebErrorException
 temp_search_file = config.get_temp_file('temp-search')
 
+if PY3: from core.servertools import correct_onlinemedia_info
+
 
 def start():
     """ First function that is executed when entering the plugin.
@@ -236,7 +238,6 @@ def run(item=None):
                     itemlist = limit_itemlist(itemlist)
                 
                 if PY3:
-                    from core.servertools import correct_onlinemedia_info
                     itemlist = correct_onlinemedia_info(itemlist)
                 platformtools.render_items(itemlist, item)
 
@@ -315,7 +316,6 @@ def run(item=None):
                     config.set_setting('install_trakt', True)
 
                 if PY3:
-                    from core.servertools import correct_onlinemedia_info
                     itemlist = correct_onlinemedia_info(itemlist)
                 platformtools.render_items(itemlist, item)
 
