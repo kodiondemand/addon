@@ -8,11 +8,11 @@ from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
 
-def findhost(url):
-    return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
+# def findhost(url):
+#     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 register_url = 'https://altaregistrazione.com'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
@@ -23,17 +23,17 @@ def mainlist(item):
 
     film = ['/load-more-film?anno=&order=&support_webp=1&type=movie&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Film', ['', 'genres', 'genres']),
+        ('Generi Film', ['/film/movie', 'genres', 'genres']),
         ]
 
     tvshow = ['/load-more-film?type=tvshow&anno=&order=&support_webp=1&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Serie TV', ['', 'genres', 'genres']),
+        ('Generi Serie TV', ['/film/movie', 'genres', 'genres']),
         ]
 
     altri = [
         # ('A-Z', ['/lista-film', 'genres', 'letters']),
-        ('Qualità', ['', 'genres', 'quality']),
+        ('Qualità', ['/film/movie', 'genres', 'quality']),
         ('Anni', ['/anno', 'genres', 'years'])
     ]
     search = ''
@@ -200,8 +200,9 @@ def genres(item):
 @support.scrape
 def episodios(item):
     logger.debug(item)
+    # debug = True
     data = item.data
-    patron = r'class="playtvshow " data-href="(?P<url>[^"]+)'
+    patron = r'class="playtvshow "\s+data-href="(?P<url>[^"]+)'
 
     def itemHook(it):
         spl = it.url.split('/')[-2:]
