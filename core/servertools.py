@@ -13,8 +13,8 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 if PY3: import urllib.parse as urlparse
 else: import urlparse
 
-from future.builtins import range
-from past.utils import old_div
+from lib.future.builtins import range
+from lib.past.utils import old_div
 
 import re
 
@@ -835,7 +835,7 @@ def translate_server_name(name):
 #     return server_json
 
 if PY3:
-    from pymediainfo import MediaInfo
+    from lib.pymediainfo import MediaInfo
     import pathlib
 
     def correct_onlinemedia_info(video_itemlist: list) -> list:
