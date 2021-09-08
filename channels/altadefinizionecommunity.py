@@ -23,12 +23,12 @@ def mainlist(item):
 
     film = ['/load-more-film?anno=&order=&support_webp=1&type=movie&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Film', ['/film/movie', 'genres', 'genres']),
+        ('Generi', ['/film/movie', 'genres', 'genres']),
         ]
 
     tvshow = ['/load-more-film?type=tvshow&anno=&order=&support_webp=1&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Serie TV', ['/film/movie', 'genres', 'genres']),
+        ('Generi', ['/film/movie', 'genres', 'genres']),
         ]
 
     altri = [
@@ -151,7 +151,7 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
 
-    patron = 'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*</div>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
     if json.get('have_next'):
         def fullItemlistHook(itemlist):
