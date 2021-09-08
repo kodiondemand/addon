@@ -4,8 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support, httptools
-from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 import sys
 if sys.version_info[0] >= 3:
     from urllib.parse import unquote
@@ -32,14 +31,14 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.info("[streamingaltadefinizione.py] " + item.url + " search " + text)
+    logger.debug(text)
     item.url = item.url + "/?s=" + text
     try:
         return support.dooplay_search(item)
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 

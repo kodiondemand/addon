@@ -4,14 +4,13 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.info(item)
-
     anime = ['/search?typeY=tv',
             ('Movie', ['/search?typeY=movie', 'peliculas', '', 'movie']),
             ('OAV', ['/search?typeY=oav', 'peliculas', '', 'tvshow']),
@@ -37,7 +36,6 @@ def menu(item):
         patronGenreMenu = patronMenu
 
     def itemHook(item):
-        support.info(item.type)
         for Type, ID in support.match(item.other, patron=r'data-type="([^"]+)" data-id="([^"]+)"').matches:
             item.url = host + '/search?' + Type + 'Y=' + ID
         return item
@@ -45,7 +43,7 @@ def menu(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
 
     text = text.replace(' ', '+')
     item.url = host + '/search/' + text
@@ -56,12 +54,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -72,7 +70,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
@@ -80,7 +78,7 @@ def newest(categoria):
 @support.scrape
 def peliculas(item):
     # debug = True
-    anime = True
+    numerationEnabled = True
     if 'movie' in item.url:
         item.contentType = 'movie'
         action = 'findvideos'
@@ -105,7 +103,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     pagination = 100
 
     if item.data:
@@ -118,7 +116,7 @@ def episodios(item):
 
 def findvideos(item):
     itemlist = []
-    support.info()
+    logger.debug()
     # support.dbg()
 
     matches = support.match(item, patron=r'href="([^"]+)"', patronBlock=r'<div style="white-space: (.*?)<div id="main-content"')
@@ -131,7 +129,7 @@ def findvideos(item):
     if 'vvvvid' in matches.data:
         itemlist.append(item.clone(action="play", title='VVVVID', url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match, server='vvvvid'))
     else:
-        support.info('VIDEO')
+        logger.debug('VIDEO')
         for url in matches.matches:
             lang = url.split('/')[-2]
             if 'ita' in lang.lower():

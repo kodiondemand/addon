@@ -82,22 +82,22 @@ def genres(item):
 
     return locals()
 
-def search(item, texto):
-    support.info("search ", texto)
+def search(item, text):
+    logger.debug(text)
 
     item.args = 'search'
-    item.url = host + "?s=" + texto
+    item.url = host + "?s=" + text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
     try:

@@ -388,7 +388,7 @@ def get_newest(channel_id, categoria):
 
 
 def get_title(item):
-    # support.info("ITEM NEWEST ->", item)
+    # logger.debug("ITEM NEWEST ->", item)
     # item.contentSerieName c'è anche se è un film
     if item.contentSerieName and item.contentType != 'movie':  # Si es una serie
         title = item.contentSerieName
@@ -442,7 +442,7 @@ def no_group(list_result_canal):
     global channels_id_name
 
     for i in list_result_canal:
-        # support.info("NO GROUP i -> ", i)
+        # logger.debug("NO GROUP i -> ", i)
         canale = channels_id_name[i.channel]
         canale = canale # to differentiate it from the color of the other items
         i.title = get_title(i) + " [" + canale + "]"

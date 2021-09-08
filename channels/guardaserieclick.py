@@ -16,8 +16,7 @@
 
 from core import support
 from core.item import Item
-from platformcode import config
-from core.support import info
+from platformcode import config, logger
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -38,7 +37,7 @@ def mainlist(item):
 ##@support.scrape
 ##def peliculas(item):
 ####    import web_pdb; web_pdb.set_trace()
-##    info('peliculas ->\n', item)
+##    logger.debug('peliculas ->\n', item)
 ##
 ##    action = 'episodios'
 ##    block = r'(?P<block>.*?)<div\s+class="btn btn-lg btn-default btn-load-other-series">'
@@ -75,7 +74,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     ##    import web_pdb; web_pdb.set_trace()
-    info('peliculas ->\n', item)
+    logger.debug('peliculas ->\n', item)
 
     action = 'episodios'
     blacklist = ['DMCA']
@@ -120,7 +119,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    info()
+    logger.debug()
 
     action = 'findvideos'
     patron = r'<div class="number-episodes-on-img">\s?\d+.\d+\s?(?:\((?P<lang>[a-zA-Z\-]+)\))?</div>.+?(?:<span class="pull-left bottom-year">(?P<title2>[^<]+)<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<[^>]+>[^>]+>[^>]+>\s?)?<span(?: meta-nextep="[^"]+")? class="[^"]+" meta-serie="(?P<title>[^"]+)" meta-stag="(?P<season>\d+)" meta-ep="(?P<episode>\d+)" meta-embed="(?P<url>[^>]+)">'
@@ -136,7 +135,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    info()
+    logger.debug()
 
     action = 'peliculas'
     patronMenu = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
@@ -146,7 +145,7 @@ def genres(item):
 
 
 def search(item, text):
-    info(text)
+    logger.debug(text)
     item.url = host + "/?s=" + text
     item.contentType = 'tvshow'
     item.args = 'search'
@@ -156,12 +155,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    info()
+    logger.debug()
     itemlist = []
     item = Item()
     item.contentType = 'tvshow'
@@ -176,12 +175,12 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    info('--->', item)
+    logger.debug('--->', item)
     return support.server(item, item.url)

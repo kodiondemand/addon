@@ -55,7 +55,7 @@ def menu(item):
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
 
     item = support.Item()
     try:
@@ -133,60 +133,66 @@ def peliculas(item):
     return locals()
 
 
-@support.scrape
+
 def episodios(item):
     @support.scrape
-    def folder(item, data):
-        """
-            Quando c'è un link ad una cartella contenente più stagioni
-        """
+    def listed(item, data):
         actLike = 'episodios'
-        addVideolibrary = False
-        downloadEnabled = False
+        disableAll = True
 
-        folderUrl = scrapertools.find_single_match(data, r'TUTTA L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
-        data = httptools.downloadpage(folderUrl, disable_directIP=True).data
-        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
-        sceneTitle = True
-        # debug = True
+        patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:(?:DA)?\s*[0-9]+\s*A)?\s*[0-9]+|MINISSERIE)(?::\s*PARTE\s*[0-9]+)? - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
+        patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
 
-        def itemHook(item):
-            item.serieFolder = True
-            return item
         return locals()
 
-    # debugBlock=True
+    @support.scrape
+    def folder(item, data):
+         # Quando c'è un link ad una cartella contenente più stagioni
+
+        actLike = 'episodios'
+        disableAll = True
+        sceneTitle = True
+
+        folderUrl = scrapertools.find_single_match(data, r'TUTT[EA] L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
+        data = httptools.downloadpage(folderUrl, disable_directIP=True).data
+        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
+
+        return locals()
+
     data = support.match(item.url, headers=headers).data
-    folderItemlist = folder(item, data) if '<p>TUTTA L' in data else []
+    itemlist = listed(item, data)
+    if not item.itemlist:
+        itemlist.extend(folder(item, data) if 'TUTTE LE' in data or 'TUTTA LA' in data else [])
 
-    patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:(?:DA)?\s*[0-9]+\s*A)?\s*[0-9]+|MINISSERIE)(?::\s*PARTE\s*[0-9]+)? - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
-    patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
-    def itemlistHook(itemlist):
-        title_dict = {}
-        itlist = []
-        for i in itemlist:
-            i.url = item.url
-            i.title = re.sub(r'\.(\D)',' \\1', i.title)
-            match = support.match(i.title, patron=r'(\d+.\d+)').match.replace('x','')
-            i.order = match
-            if match not in title_dict:
-                title_dict[match] = i
-            elif match in title_dict and i.contentLanguage == title_dict[match].contentLanguage \
-                or i.contentLanguage == 'ITA' and not title_dict[match].contentLanguage \
-                or title_dict[match].contentLanguage == 'ITA' and not i.contentLanguage:
-                title_dict[match].url = i.url
-            else:
-                title_dict[match + '1'] = i
+    itemDict = {'ITA':{}, 'Sub-ITA':{}}
+    seasons = []
 
-        for key, value in title_dict.items():
-            itlist.append(value)
+    for it in itemlist:
+        if it.contentSeason and it.contentSeason not in seasons:
+            seasons.append(it.contentSeason)
+            itemDict['ITA'][it.contentSeason] = []
+            itemDict['Sub-ITA'][it.contentSeason] = []
+        if it.contentSeason:
+            itemDict[it.contentLanguage][it.contentSeason].append(it)
 
-        itlist = sorted(itlist, key=lambda it: (it.contentLanguage, int(it.order)))
 
-        itlist.extend(folderItemlist)
+    itlist = []
+    for season in sorted(seasons):
+        itlist.extend(sorted(itemDict['ITA'].get(season, []), key=lambda it: (it.contentSeason, it.contentEpisodeNumber)))
+        itlist.extend(sorted(itemDict['Sub-ITA'].get(season, []), key=lambda it: (it.contentSeason, it.contentEpisodeNumber)))
+    itemlist = itlist
 
-        return itlist
-    return locals()
+
+    import inspect
+    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
+        if len(seasons) > 1:
+            itemlist = support.season_pagination(itemlist, item, [], 'episodios')
+        else:
+            itemlist = support.pagination(itemlist, item, 'episodios')
+        support.videolibrary(itemlist, item)
+        support.download(itemlist, item)
+
+    return itemlist
 
 
 def findvideos(item):

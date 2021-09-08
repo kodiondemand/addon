@@ -3,7 +3,9 @@
 # Canale per animealtadefinizione
 # ----------------------------------------------------------
 
+from platformcode import platformtools
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -33,21 +35,21 @@ def menu(item):
     return locals()
 
 
-def search(item, texto):
-    support.info(texto)
-    item.search = texto
+def search(item, text):
+    logger.debug(text)
+    item.search = text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -58,7 +60,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
@@ -79,10 +81,15 @@ def peliculas(item):
     else:
         query='category_name'
         searchtext = item.url.split('/')[-2]
-    if not item.pag: item.pag = 1
-    # debug = True
-    anime = True
-    data = support.match(host + '/wp-admin/admin-ajax.php', post='action=itajax-sort&loop=main+loop&location=&thumbnail=1&rating=1sorter=recent&columns=4&numarticles='+perpage+'&paginated='+str(item.pag)+'&currentquery%5B'+query+'%5D='+searchtext).data.replace('\\','')
+
+    page = 1 if not item.page else item.page
+
+    numerationEnabled = True
+    post = 'action=itajax-sort&loop=main+loop&location=&thumbnail=1&rating=1sorter=recent&columns=4&numarticles={}&paginated={}&currentquery%5B{}%5D={}'.format(perpage, page, query, searchtext)
+    res = support.match(host + '/wp-admin/admin-ajax.php', post=post, patron=r'"pages":(\d+)')
+    data= res.data.replace('\\','')
+    # item.total_pages = int(res.match)
+
     patron = r'<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>[^"]+?)\s+(?P<type>Movie)?\s*(?P<lang>Sub Ita|Ita)?\s*[sS]treaming'
     typeContentDict = {'movie':['movie']}
     typeActionDict = {'findvideos':['movie']}
@@ -91,15 +98,14 @@ def peliculas(item):
         if item.search:
             itemlist = [ it for it in itemlist if ' Episodio ' not in it.title ]
         if len(itemlist) == int(perpage):
-            item.pag += 1
-            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), action='peliculas'))
+            support.nextPage(itemlist, item, function_or_level='peliculas', page=page + 1, total_pages=int(res.match))
         return itemlist
     return locals()
 
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     pagination = int(perpage)
     patron = epPatron
     return locals()

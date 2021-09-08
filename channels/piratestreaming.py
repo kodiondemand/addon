@@ -5,7 +5,8 @@
 
 
 from core import support
-from core.support import config, info
+from core.support import config
+from platformcode import logger
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -23,7 +24,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    info(texto)
+    logger.debug(texto)
     item.url = host + "/?s=" + texto
     try:
         return peliculas(item)
@@ -31,12 +32,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -56,7 +57,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist

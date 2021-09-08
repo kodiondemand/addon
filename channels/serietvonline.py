@@ -15,9 +15,9 @@
             Altrimenti:
                 - Prima fare la 'Rinumerazione' dal menu contestuale dal titolo della serie
 """
-import re
-from core import support, httptools, scrapertools
-from platformcode import config
+
+from core import support,  scrapertools
+from platformcode import config, logger
 from core.item import Item
 
 
@@ -31,7 +31,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.info()
+    logger.debug()
 
 
     film = ['/ultimi-film-aggiunti/',
@@ -56,8 +56,8 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.info()
-    anime = True
+    logger.debug()
+    numerationEnabled = True
 
     blacklist = ['DMCA', 'Contatti', 'Attenzione NON FARTI OSCURARE', 'Lista Cartoni Animati e Anime']
     patronBlock = r'<h1>.+?</h1>(?P<block>.*?)<div class="footer_c">'
@@ -79,7 +79,7 @@ def peliculas(item):
         if not item.args and 'anime' not in item.url:
             patron = r'<div class="movie">[^>]+>.+?src="(?P<thumb>[^"]+)" alt="[^"]+".+? href="(?P<url>[^"]+)">.*?<h2>(?P<title>[^"]+)</h2>\s?(?:<span class="year">(?P<year>\d+|\-\d+))?<'
         else:
-            anime = True
+            numerationEnabled = True
             patron = r'(?:<td>)?<a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>[^<]+)(?P<episode>[\d\-x]+)?(?P<title2>[^<]+)?<'
     else:
         # SEZIONE FILM
@@ -106,8 +106,8 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.info()
-    anime = True
+    logger.debug()
+    numerationEnabled = True
     action = 'findvideos'
     patronBlock = r'<table>(?P<block>.*)<\/table>'
     patron = r'<tr><td>(?P<title>.*?)?[ ](?:Parte)?(?P<episode>\d+x\d+|\d+)(?:|[ ]?(?P<title2>.+?)?(?:avi)?)<(?P<data>.*?)<\/td><tr>'
@@ -121,7 +121,7 @@ def episodios(item):
 
 
 def search(item, text):
-    support.info("CERCA :" ,text, item)
+    logger.debug("CERCA :" ,text, item)
 
     item.url = "%s/?s=%s" % (host, text)
 
@@ -132,11 +132,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("%s" % line)
         return []
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
 
     itemlist = []
     item = Item()
@@ -155,13 +155,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     if item.contentType == 'movie':
         return support.server(item, headers=headers)
     else:

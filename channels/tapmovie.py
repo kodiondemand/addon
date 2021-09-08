@@ -4,6 +4,7 @@
 
 from core import support, httptools
 from core.item import Item
+from platformcode import logger
 import sys
 if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
@@ -26,7 +27,7 @@ def mainlist(item):
 
 
 def episodios(item):
-    support.info(item)
+    logger.debug(item)
     itemlist = []
 
     with futures.ThreadPoolExecutor() as executor:
@@ -53,7 +54,7 @@ def genres(item):
 
 
 def peliculas(item, text=''):
-    support.info('search', item)
+    logger.debug('search', item)
     itemlist = []
     filter_type = False
     if item.genre:

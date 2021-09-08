@@ -28,7 +28,7 @@ def mainlist(item):
 
 
 def radio(item):
-    support.info()
+    logger.debug()
     itemlist = []
     data = support.match(item, patron= r'text="(?P<title>[^\("]+)(?:\((?P<location>[^\)]+)\))?" URL="(?P<url>[^"]+)" bitrate="(?P<quality>[^"]+)" reliability="[^"]+" guide_id="[^"]+" subtext="(?P<song>[^"]+)" genre_id="[^"]+" formats="(?P<type>[^"]+)" (?:playing="[^"]+" )?(?:playing_image="[^"]+" )?(?:show_id="[^"]+" )?(?:item="[^"]+" )?image="(?P<thumb>[^"]+)"')
     if data.matches:
@@ -85,7 +85,7 @@ def findvideos(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     item.url = host + '/Search.ashx?query=' +text
     try:
         return radio(item)

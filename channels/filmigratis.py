@@ -15,7 +15,7 @@ import re
 
 from core import httptools, support
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 host = config.get_channel_url()
 
@@ -41,7 +41,6 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.info()
 
     if item.args == 'search':
         action = ''
@@ -88,8 +87,6 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.info()
-
     action = 'findvideos'
     patronBlock = r'<div class="row">(?P<block>.*?)<section class="main-content">'
     patron = r'href="(?P<url>.*?)">(?:.+?)?\s+S(?P<season>\d+)\s\-\sEP\s(?P<episode>\d+)[^<]+<'
@@ -98,8 +95,6 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    support.info()
-
     if item.contentType == 'movie':
         action = 'peliculas'
         patron = r'<a href="(?P<url>.*?)">(?P<title>.*?)<'
@@ -115,7 +110,7 @@ def genres(item):
 
 
 def search(item, text):
-    support.info('search', item)
+    logger.debug('search', text)
 
     text = text.replace(' ', '+')
     item.url = host + '/search/?s=' + text
@@ -126,11 +121,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 def newest(categoria):
-    support.info('newest ->', categoria)
+    logger.debug('newest ->', categoria)
     itemlist = []
     item = Item()
     try:
@@ -146,11 +141,11 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info({0}.format(line))
+            logger.error({0}.format(line))
         return []
 
     return itemlist
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     return support.server(item)

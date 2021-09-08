@@ -75,7 +75,6 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.info(item)
 
     # Ordine delle voci
     # Voce FILM, puoi solo impostare l'url
@@ -146,7 +145,6 @@ def mainlist(item):
 # AVVERTENZE: Se il titolo è trovato nella ricerca TMDB/TVDB/Altro allora le locandine e altre info non saranno quelle recuperate nel sito.!!!!
 @support.scrape
 def peliculas(item):
-    support.info(item)
     #support.dbg() # decommentare per attivare web_pdb
 
     action = ''
@@ -161,7 +159,6 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    support.info(item)
     #support.dbg()
 
     action = ''
@@ -178,7 +175,6 @@ def episodios(item):
 # per genere, per anno, per lettera, per qualità ecc ecc
 @support.scrape
 def genres(item):
-    support.info(item)
     #support.dbg()
 
     action = ''
@@ -198,7 +194,7 @@ def genres(item):
 # e la ricerca porta i titoli mischiati senza poterli distinguere tra loro
 # andranno modificate anche le def peliculas e episodios ove occorre
 def select(item):
-    support.info('select --->', item)
+    logger.debug()
     #support.dbg()
     data = httptools.downloadpage(item.url, headers=headers).data
     # pulizia di data, in caso commentare le prossime 2 righe
@@ -206,7 +202,7 @@ def select(item):
     data = re.sub(r'>\s+<', '> <', data)
     block = scrapertools.find_single_match(data, r'')
     if re.findall('', data, re.IGNORECASE):
-        support.info('select = ### è una serie ###')
+        logger.debug('select = ### è una serie ###')
         return episodios(Item(channel=item.channel,
                               title=item.title,
                               fulltitle=item.fulltitle,
@@ -219,7 +215,7 @@ def select(item):
 ############## Fondo Pagina
 # da adattare al canale
 def search(item, text):
-    support.info('search', item)
+    logger.debug(text)
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + '/index.php?do=search&story=%s&subaction=search' % (text)
@@ -232,7 +228,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 
@@ -240,7 +236,7 @@ def search(item, text):
 # inserire newest solo se il sito ha la pagina con le ultime novità/aggiunte
 # altrimenti NON inserirlo
 def newest(categoria):
-    support.info('newest ->', categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
     try:
@@ -255,7 +251,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('newest log: ', {0}.format(line))
+            logger.debug('newest log: ', {0}.format(line))
         return []
 
     return itemlist
@@ -265,5 +261,5 @@ def newest(categoria):
 # sia per i siti con hdpass
 #support.server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True)
 def findvideos(item):
-    support.info('findvideos ->', item)
+    logger.debug()
     return support.server(item, headers=headers)

@@ -5,6 +5,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url() + '/cb01-anime-cartoon'
 
@@ -37,19 +38,19 @@ def menu(item):
 
 
 def search(item, texto):
-    support.info(texto)
+    logger.debug(texto)
     item.url = host + "/search/" + texto
     try:
         return peliculas(item)
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error(line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -61,7 +62,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
@@ -93,7 +94,7 @@ def check(item):
 
 @support.scrape
 def episodios(item):
-    support.info('EPISODIOS ', item.data)
+    logger.debug('EPISODIOS ', item.data)
     data = ''
     matches = item.data
     season = 1

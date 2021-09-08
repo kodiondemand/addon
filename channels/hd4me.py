@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 
 host = support.config.get_channel_url()
@@ -43,7 +44,7 @@ def genre(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     item.url = host + '/?s=' + text
     try:
         return peliculas(item)
@@ -51,7 +52,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("search except: %s" % line)
+            logger.error("search except: %s" % line)
         return []
 
 

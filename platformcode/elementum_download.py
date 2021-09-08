@@ -1,6 +1,6 @@
 
 from core import filetools, downloadtools, support
-from platformcode import config, platformtools, updater
+from platformcode import config, platformtools, updater, logger
 import xbmc, xbmcaddon, sys, platform
 
 host = 'https://github.com'
@@ -28,9 +28,9 @@ def download(item=None):
         if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70782)):
             pform = get_platform()
             url = support.match(elementum_url, patronBlock=r'<div class="release-entry">(.*?)<!-- /.release-body -->', patron=r'<a href="([a-zA-Z0-9/\.-]+%s.zip)' % pform).match
-            support.info('OS:', pform)
-            support.info('Extract IN:', elementum_path)
-            support.info('URL:', url)
+            logger.debug('OS:', pform)
+            logger.debug('Extract IN:', elementum_path)
+            logger.debug('URL:', url)
             if url:
                 downloadtools.downloadfile(host + url, filename)
                 extract()
@@ -44,19 +44,19 @@ def download(item=None):
 def extract():
     import zipfile
     from platformcode.updater import fixZipGetHash
-    support.info('Estraggo Elementum in:', elementum_path)
+    logger.debug('Estraggo Elementum in:', elementum_path)
     try:
         # hash = fixZipGetHash(filename)
-        # support.info(hash)
+        # logger.debug(hash)
 
         with zipfile.ZipFile(filetools.file_open(filename, 'rb', vfs=False)) as zip_ref:
             zip_ref.extractall(xbmc.translatePath(addon_path))
 
     except Exception as e:
-        support.info('Non sono riuscito ad estrarre il file zip')
-        support.logger.error(e)
+        logger.debug('Non sono riuscito ad estrarre il file zip')
+        logger.error(e)
         import traceback
-        support.logger.error(traceback.print_exc())
+        logger.error(traceback.print_exc())
 
 
 def setting():
@@ -74,7 +74,7 @@ def setting():
                 __settings__.setSetting('do_not_disturb', 'true')
                 Continue = False
             except:
-                support.info('RIPROVO')
+                logger.debug('RIPROVO')
                 xbmc.sleep(100)
     else:
         if not filetools.exists(elementum_path):

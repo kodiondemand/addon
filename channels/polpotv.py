@@ -6,7 +6,7 @@
 
 from core import support, jsontools
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 import datetime
 
 host = config.get_channel_url()
@@ -34,7 +34,7 @@ def mainlist(item):
     return locals()
 
 def newest(categoria):
-    support.info()
+    logger.debug()
     item = Item()
     if categoria == 'peliculas':
         item.contentType = 'movie'
@@ -45,7 +45,7 @@ def newest(categoria):
     return peliculas(item)
 
 def peliculas(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
     data = support.match(item.url, headers=headers).data
@@ -67,7 +67,7 @@ def peliculas(item):
     return itemlist
 
 def episodios(item):
-    support.info()
+    logger.debug()
     itemlist = []
     data = support.match(item.url, headers=headers).data
     json_object = jsontools.load(data)
@@ -83,7 +83,7 @@ def episodios(item):
     return itemlist
 
 def get_season(item, seas_url, seasonNumber):
-    support.info()
+    logger.debug()
     itemlist = []
     data = support.match(seas_url, headers=headers).data
     json_object = jsontools.load(data)
@@ -97,7 +97,7 @@ def get_season(item, seas_url, seasonNumber):
     return itemlist[::-1]
 
 def search(item, texto):
-    support.info(item.url, "search", texto)
+    logger.debug(item.url, "search", texto)
     itemlist=[]
     try:
         item.url = host + "/api/movies?originalTitle="+texto+"&translations.name=" +texto
@@ -118,12 +118,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def search_movie_by_genre(item):
-    support.info()
+    logger.debug()
     itemlist = []
     data = support.match(item.url, headers=headers).data
     json_object = jsontools.load(data)
@@ -137,7 +137,7 @@ def search_movie_by_genre(item):
 
 
 def search_movie_by_year(item):
-    support.info()
+    logger.debug()
     now = datetime.datetime.now()
     year = int(now.year)
     itemlist = []
@@ -153,7 +153,7 @@ def search_movie_by_year(item):
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     itemlist = []
     try:
         data = support.match(item.url, headers=headers).data
@@ -175,7 +175,7 @@ def findvideos(item):
 
 
 def get_itemlist_element(element,item):
-    support.info()
+    logger.debug()
     contentSerieName = ''
     contentTitle =''
     try:

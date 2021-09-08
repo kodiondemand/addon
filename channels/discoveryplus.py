@@ -55,7 +55,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
 
     return itemlist
 

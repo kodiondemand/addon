@@ -4,11 +4,8 @@
 # ------------------------------------------------------------
 
 import cloudscraper, json, copy, inspect
-from core import jsontools, support, httptools, filetools
+from core import jsontools, support
 from platformcode import autorenumber, logger
-import re
-import xbmc
-
 
 session = cloudscraper.create_scraper()
 
@@ -54,7 +51,7 @@ def menu(item):
 
 
 def genres(item):
-    support.info()
+    logger.debug()
     # support.dbg()
     itemlist = []
 
@@ -66,7 +63,7 @@ def genres(item):
     return support.thumb(itemlist)
 
 def years(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
     from datetime import datetime
@@ -80,7 +77,7 @@ def years(item):
 
 
 def search(item, text):
-    support.info('search', item)
+    logger.debug(text)
     if not item.args:
         item.args = {'title':text}
     else:
@@ -93,12 +90,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.debug('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     item.url = host
@@ -112,13 +109,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info(line)
+            logger.debug(line)
         return []
 
     return itemlist
 
 def news(item):
-    support.info()
+    logger.debug()
     item.contentType = 'episode'
     itemlist = []
     import cloudscraper
@@ -143,7 +140,7 @@ def news(item):
 
 
 def peliculas(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
     page = item.page if item.page else 0
@@ -196,7 +193,7 @@ def peliculas(item):
     return itemlist
 
 def episodios(item):
-    support.info()
+    logger.debug()
     itemlist = []
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
     for it in item.episodes:

@@ -5,9 +5,8 @@
 
 
 from core import support
-from core.support import info
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -54,7 +53,7 @@ def genres(item):
     return locals()
 
 def search(item, text):
-    info(text)
+    logger.debug(text)
     text = text.replace(' ', '+')
     item.url = host + "/search/" + text
     try:
@@ -62,12 +61,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info("%s" % line)
+            logger.error("%s" % line)
 
     return []
 
 def newest(categoria):
-    info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
 
@@ -81,14 +80,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    info()
+    logger.debug()
     urls = []
     data = support.match(item).data
     urls += support.match(data, patron=r'id="urlEmbed" value="([^"]+)').matches

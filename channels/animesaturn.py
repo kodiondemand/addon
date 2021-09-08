@@ -3,9 +3,8 @@
 # Canale per AnimeSaturn
 # ----------------------------------------------------------
 
-from lib import js2py
 from core import support
-from platformcode import config
+from platformcode import logger
 
 host = support.config.get_channel_url()
 __channel__ = 'animesaturn'
@@ -43,9 +42,9 @@ def mainlist(item):
     return locals()
 
 
-def search(item, texto):
-    support.info(texto)
-    item.url = host + '/animelist?search=' + texto
+def search(item, text):
+    logger.debug(text)
+    item.url = host + '/animelist?search=' + text
     item.contentType = 'tvshow'
     try:
         return peliculas(item)
@@ -53,12 +52,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info()
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -70,7 +69,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
@@ -110,7 +109,7 @@ def menu(item):
 
 @support.scrape
 def peliculas(item):
-    anime = True
+    numerationEnabled = True
 
     deflang= 'Sub-ITA'
     action = 'check'
@@ -169,13 +168,13 @@ def check(item):
 
 @support.scrape
 def episodios(item):
-    if item.contentType != 'movie': anime = True
+    if item.contentType != 'movie': numerationEnabled = True
     patron = r'episodi-link-button">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
     return locals()
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     itemlist = []
     links = []
     # page_data = ''

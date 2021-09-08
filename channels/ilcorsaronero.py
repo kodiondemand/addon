@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 # def findhost(url):
 #     data = support.httptools.downloadpage(url).data
@@ -11,7 +12,7 @@ from core import support
 #     return url[:-1] if url.endswith('/') else url
 
 host = support.config.get_channel_url()
-support.info('HOST',host)
+logger.debug('HOST',host)
 # host = 'https://ilcorsaronero.xyz'
 headers = [['Referer', host]]
 
@@ -65,7 +66,7 @@ def peliculas(item):
 
 
 def search(item, text):
-    support.info(item, text)
+    logger.debug( text)
     if 'all' in item.args:
         item.url += text
     else:
@@ -76,7 +77,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("search except: %s" % line)
+            logger.error("search except: %s" % line)
         return []
 
 

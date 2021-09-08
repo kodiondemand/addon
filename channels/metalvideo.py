@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support, config
+from platformcode import logger
 
 host = 'https://metalvideo.com'
 headers = {'X-Requested-With': 'XMLHttpRequest'}
@@ -49,7 +50,7 @@ def findvideos(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     item.url = host + '/search.php?keywords=' + text + '&video-id='
     try:
         return peliculas(item)
@@ -57,5 +58,5 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []

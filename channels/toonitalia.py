@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import scrapertools, support
+from platformcode import logger
 import sys
 
 host = support.config.get_channel_url()
@@ -24,7 +25,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     # item.args='search'
     item.text = text
     item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
@@ -35,12 +36,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         item.contentType = 'undefined'
@@ -51,7 +52,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
@@ -60,7 +61,7 @@ def peliculas(item):
     # debugBlock = True
     # debug = True
     # search = item.text
-    if item.contentType != 'movie': anime = True
+    if item.contentType != 'movie': numerationEnabled = True
     action = 'findvideos' if item.contentType == 'movie' else 'episodios'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
@@ -82,7 +83,7 @@ def peliculas(item):
         patronNext = '<a class="next page-numbers" href="([^"]+)">'
 
     def itemHook(item):
-        support.info(item.title)
+        logger.debug(item.title)
         if item.args == 'sub':
             item.title += support.typo('Sub-ITA', 'bold color kod _ []')
             item.contentLanguage = 'Sub-ITA'
@@ -92,7 +93,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     # debug = True
     patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
     # data = ''

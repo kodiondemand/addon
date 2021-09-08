@@ -4,8 +4,9 @@
 # by Greko
 # ------------------------------------------------------------
 
-from core import httptools, support
+from core import support
 from core.item import Item
+from platformcode import logger
 
 # def findhost(url):
 #     permUrl = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers
@@ -17,7 +18,6 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.info()
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
     mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
@@ -58,10 +58,10 @@ def episodios(item):
     return locals()
 
 
-def search(item, texto):
-    support.info()
+def search(item, text):
+    logger.debug(text)
 
-    item.url = "%s/?s=%s" % (host, texto)
+    item.url = "%s/?s=%s" % (host, text)
     item.contentType = 'tvshow'
 
     try:
@@ -71,12 +71,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info(line)
+            logger.error(line)
         return []
 
 
 def newest(categoria):
-    support.info()
+    logger.debug()
 
     itemlist = []
     item = Item()
@@ -90,12 +90,12 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     return support.server(item, item.data)

@@ -3,8 +3,8 @@
 import re, os, sys, time, requests, xbmc, xbmcaddon
 
 from core import filetools, jsontools
-from core.support import info, match
-from platformcode import config, platformtools
+from core.support import match
+from platformcode import config, platformtools, logger
 from lib.guessit import guessit
 
 if sys.version_info[0] >= 3:
@@ -26,7 +26,7 @@ def get_video_url(page_url, premium=False, user='', password='', video_password=
     if len(torrent_options) == 0:
         from platformcode import elementum_download
         elementum_download.download()
-    info('server=torrent, the url is the good')
+    logger.debug('server=torrent, the url is the good')
 
     if page_url.startswith('magnet:'):
         video_urls = [{'type':'magnet', 'url':page_url}]

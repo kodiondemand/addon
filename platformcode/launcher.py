@@ -161,12 +161,21 @@ def run(item=None):
             if page and int(page) > -1:
                 import xbmc
                 item.action = item.real_action
-                if item.page:
-                    item.page = page
-                else:
-                    import re
-                    item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>{}\g<2>'.format(page), item.url)
+                item.page = page
+                import re
+                item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>{}\g<2>'.format(page), item.url)
                 xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
+        elif item.action == "gotoseason":
+            head = 'Seleziona la stagione'
+            seasons = [str(s) for s in item.allSeasons]
+            season = platformtools.dialog_select(head, seasons, item.nextSeason - 1)
+            if int(season) > -1:
+                import xbmc
+                item.action = item.real_action
+                item.nextSeason = item.allSeasons.index(season + 1)
+                run(item)
+                # logger.debug(item)
+                # xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], new_item.tourl()))
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):

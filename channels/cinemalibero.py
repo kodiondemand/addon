@@ -7,7 +7,7 @@ import re
 
 from core import httptools, support, scrapertools
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 
 # rimanda a .today che contiene tutti link a .plus
@@ -90,13 +90,13 @@ def episodios(item):
     data=item.data
     # debug=True
     if item.args == 'anime':
-        support.info("Anime :", item)
+        logger.debug("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         # item.contentType = 'tvshow'
     elif item.args == 'serie':
-        support.info("Serie :", item)
+        logger.debug("Serie :", item)
         patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         # item.contentType = 'tvshow'
@@ -122,7 +122,7 @@ def genres(item):
 
 
 def search(item, texto):
-    support.info(item.url,texto)
+    logger.debug(item.url,texto)
     texto = texto.replace(' ', '+')
     item.url = host + "/?s=" + texto
     # item.contentType = 'tv'
@@ -133,11 +133,11 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("%s" % line)
     return []
 
 def newest(categoria):
-    support.info('newest ->', categoria)
+    logger.debug('newest ->', categoria)
     itemlist = []
     item = Item()
     item.args = 'newest'
@@ -151,14 +151,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('newest log: ', (line))
+            logger.error('newest log: ', (line))
         return []
 
     return itemlist
 
 
 def check(item):
-    support.info()
+    logger.debug()
     data = support.match(item.url, headers=headers).data
     if data:
         ck = support.match(data, patron=r'Supportaci condividendo quest[oa] ([^:]+)').match.lower()
@@ -192,6 +192,6 @@ def check(item):
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     item.data = item.data.replace('http://rapidcrypt.net/verys/', '').replace('http://rapidcrypt.net/open/', '') #blocca la ricerca
     return support.server(item, data=item.data)

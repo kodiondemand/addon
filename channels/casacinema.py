@@ -5,6 +5,7 @@
 
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -38,17 +39,17 @@ def genres(item):
 def select(item):
     item.data = support.match(item).data
     if 'continua con il video' in item.data.lower():
-        support.info('select = ### è un film ###')
+        logger.debug('select = ### è un film ###')
         item.contentType = 'movie'
         return findvideos(item)
     else:
-        support.info('select = ### è una serie ###')
+        logger.debug('select = ### è una serie ###')
         item.contentType = 'tvshow'
         return episodios(item)
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     text = text.replace(' ', '+')
     item.url = host + '/?s=' + text
     item.args = 'search'
@@ -58,7 +59,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error(line)
         return []
 
 
@@ -86,7 +87,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error(line)
         return []
 
     return itemlist
@@ -148,7 +149,7 @@ def findvideos(item):
     data = ''
     from lib.unshortenit import unshorten_only
     for link in links:
-        support.info('URL=',link)
+        logger.debug('URL=',link)
         url, c = unshorten_only(link.replace('#', 'speedvideo.net'))
         data += url + '\n'
     return support.server(item, data)

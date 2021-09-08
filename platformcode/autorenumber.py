@@ -109,6 +109,7 @@ class autorenumber():
         self.selectspecials = False
         self.manual = False
         self.auto = False
+
         if self.item:
             from core.videolibrarytools import check_renumber_options
             check_renumber_options(self.item)
@@ -186,7 +187,7 @@ class autorenumber():
                     if number in self.episodes:
                         item.contentSeason = int(self.episodes[number].split('x')[0])
                         item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
-                    
+
         # support.dbg()
         # for i in self.itemlist:
         #     sub_thread(i)
@@ -203,7 +204,7 @@ class autorenumber():
         self.epdict = {}
         self.group = self.renumberdict[self.title].get(GROUP, None)
         busy(True)
-        itemlist = find_episodes(self.item)
+        itemlist = self.itemlist if self.itemlist else find_episodes(self.item)
 
 
         if not self.group:

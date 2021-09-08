@@ -32,7 +32,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    disabletmdb = True
+    tmdbEnabled = False
     action = 'playradio'
     patron = r'data-id="(?P<id>[^"]+)"\s*data-oldid="(?P<oldid>[^"]+)".*?data-name="(?P<title>[^"]+)(?:[^>]+>){5}<img class="[^"]+"\s*src="(?P<thumb>[^"]+)(?:[^>]+>){6}\s*(?P<plot>[^<]+)'
     return locals()
@@ -66,7 +66,7 @@ def playradio(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     item.url = host + '/search/' + text
     itemlist = []
     try:

@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 
@@ -38,7 +39,7 @@ def menu(item):
 
 
 def search(item, text):
-    support.info('search', item)
+    logger.debug('search', item)
     itemlist = []
     text = text.replace(' ', '+')
     item.url = host + '/search/keyword/' + text
@@ -52,12 +53,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     item.url = host
@@ -77,7 +78,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
     return itemlist
@@ -109,6 +110,6 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     # match = support.match(item, patron='wstream', debug=True)
     return support.server(item)

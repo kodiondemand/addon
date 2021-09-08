@@ -2,21 +2,10 @@
 # ------------------------------------------------------------
 # Canale per altadefinizione01
 # ------------------------------------------------------------
-"""
-    
-    Eccezioni note che non superano il test del canale:
 
-    Avvisi:
-        - L'url si prende da questo file.
-        - è presente nelle novità-> Film.
-
-    Ulteriori info:
-
-"""
 from core import scrapertools, httptools, support
 from core.item import Item
 from platformcode import config, logger
-
 
 # def findhost(url):
 #     data = httptools.downloadpage(url).data
@@ -35,7 +24,7 @@ def mainlist(item):
         ('Al Cinema', ['/cinema/', 'peliculas', 'pellicola']),
         ('Ultimi Aggiornati-Aggiunti', ['','peliculas', 'update']),
         ('Generi', ['', 'genres', 'genres']),
-        ('Lettera', ['/catalog/a/', 'genres', 'orderalf']),
+        ('Lettera', ['/catalog/a/', 'genres', 'az']),
         ('Anni', ['', 'genres', 'years']),
         ('Sub-ITA', ['/sub-ita/', 'peliculas', 'pellicola'])
     ]
@@ -45,35 +34,32 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.info('peliculas', item)
 
-##    deflang = 'ITA'
     action="findvideos"
 
     patron = r'<div class="cover boxcaption"> +<h2>\s*<a href="(?P<url>[^"]+)">(?P<title>[^<]+).*?src="(?P<thumb>[^"]+).*?<div class="trdublaj">(?P<quality>[^<]+).*?<span class="ml-label">(?P<year>[0-9]+).*?<span class="ml-label">(?P<duration>[^<]+).*?<p>(?P<plot>[^<]+)'
 
     if item.args == "search":
         patronBlock = r'</script> <div class="boxgrid caption">(?P<block>.*)<div id="right_bar">'
-        
+
     elif item.args == 'update':
         patronBlock = r'<div class="widget-title">Ultimi Film Aggiunti/Aggiornati</div>(?P<block>.*?)<div id="alt_menu">'
         patron = r'style="background-image:url\((?P<thumb>[^\)]+).+?<p class="h4">(?P<title>.*?)</p>[^>]+> [^>]+> [^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+> [^>]+> [^>]+>[^>]+>(?P<year>\d{4})[^>]+>[^>]+> [^>]+>[^>]+>(?P<duration>\d+|N/A).+?>.*?(?:>Film (?P<lang>Sub ITA)</a></p> )?<p>(?P<plot>[^<]+)<.*?href="(?P<url>[^"]+)'
-    elif item.args == 'orderalf':
+    elif item.args == 'az':
         patron = r'<td class="mlnh-thumb"><a href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"' \
                  '.+?[^>]+>[^>]+ [^>]+[^>]+ [^>]+>(?P<title>[^<]+).*?[^>]+>(?P<year>\d{4})<' \
                  '[^>]+>[^>]+>(?P<quality>[A-Z]+)[^>]+> <td class="mlnh-5">(?P<lang>.*?)</td>'
     else:
         patronBlock = r'<div class="cover_kapsul ml-mask">(?P<block>.*)<div class="page_nav">'
 
-    patronNext =  '<a href="([^"]+)">&raquo;'
+    patronNext =  r'<a href="([^"]+)">&raquo;'
     patronTotalPages = r'>(\d+)(?:[^>]+>){3}&raquo;'
-    # debugBlock = True
+
     return locals()
 
 
 @support.scrape
 def genres(item):
-    support.info('genres',item)
     action = "peliculas"
 
     blacklist = ['Altadefinizione01']
@@ -83,16 +69,14 @@ def genres(item):
     elif item.args == 'years':
         patronBlock = r'<ul class="anno_list">(?P<block>.*?)</li> </ul> </div>'
         patronMenu = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
-    elif item.args == 'orderalf':
+    elif item.args == 'az':
         patronBlock = r'<div class="movies-letter">(?P<block>.*?)<div class="clearfix">'
         patronMenu = '<a title=.*?href="(?P<url>[^"]+)"><span>(?P<title>.*?)</span>'
 
-    #debug = True
     return locals()
 
 @support.scrape
-def orderalf(item):
-    support.info('orderalf',item)
+def az(item):
 
     action = 'findvideos'
     patron = r'<td class="mlnh-thumb"><a href="(?P<url>[^"]+)".*?src="(?P<thumb>[^"]+)"'\
@@ -103,7 +87,7 @@ def orderalf(item):
 
 
 def search(item, text):
-    support.info(item, text)
+    logger.debug(text)
 
 
     itemlist = []
@@ -120,7 +104,7 @@ def search(item, text):
         return []
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
 
     itemlist = []
     item = Item()
@@ -142,7 +126,7 @@ def newest(categoria):
     return itemlist
 
 def findvideos(item):
-    support.info('findvideos', item)
+    logger.debug()
     data = httptools.downloadpage(item.url).data
     iframe = support.match(data, patron='player-container[^>]+>\s*<iframe[^>]+src="([^"]+)').match
     if iframe:

@@ -5,6 +5,7 @@
 
 import requests
 from core import support
+from platformcode import logger
 
 DRM = 'com.widevine.alpha'
 key_widevine = "https://la7.prod.conax.cloud/widevine/license"
@@ -69,6 +70,7 @@ def replay(item):
     return locals()
 
 def search(item, text):
+    logger.debug(text)
     item.url = host + '/tutti-i-programmi'
     item.search = text
     try:
@@ -76,15 +78,15 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 
 @support.scrape
 def peliculas(item):
     search = item.search
-    disabletmdb = True
-    addVideolibrary = False
+    tmdbEnabled = False
+    videlibraryEnabled = False
     downloadEnabled = False
     action = 'episodios'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
@@ -110,7 +112,7 @@ def episodios(item):
 
     patron = r'(?:<a href="(?P<url>[^"]+)">[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]*)">[^>]+>[^>]+>[^>]+>(?:[^>]+>)?(?:[^>]+>){6}?)\s*(?P<title>[^<]+)<(?:[^>]+>[^>]+>[^>]+><div class="data">(?P<date>[^<]+))?|class="heading">[^>]+>(?P<Title>[^<]+).*?window.shareUrl = "(?P<Url>[^"]+)".*?poster:\s*"(?P<Thumb>[^"]+)", title: "(?P<desc>[^"]+)"'
     patronNext = r'<a href="([^"]+)">›'
-    addVideolibrary = False
+    videlibraryEnabled = False
     downloadEnabled = False
 
     def itemHook(item):
@@ -128,7 +130,7 @@ def episodios(item):
 
 
 def play(item):
-    support.info()
+    logger.debug()
     if item.livefilter:
         for it in live(item):
             if it.fulltitle == item.livefilter:

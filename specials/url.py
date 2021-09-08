@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from core import servertools
-from core.support import match, info, server
+from core.support import match, server
 from core.item import Item
 from platformcode import config, logger
 
 
 def mainlist(item):
-    info()
+    logger.debug()
 
     itemlist = []
     itemlist.append(Item(channel=item.channel, action="search", title=config.get_localized_string(60089), thumbnail=item.thumbnail, args='server'))
@@ -19,7 +19,7 @@ def mainlist(item):
 
 # When the function "search" is called, the launcher asks for a text to search for and adds it as a parameter
 def search(item, text):
-    info(text)
+    logger.debug(text)
 
     if not text.startswith("http"):
         text = "http://" + text

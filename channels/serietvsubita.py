@@ -9,7 +9,6 @@ import time
 
 from core import httptools, tmdb, scrapertools, support
 from core.item import Item
-from core.support import info
 from platformcode import logger, config
 
 host = config.get_channel_url()
@@ -21,7 +20,6 @@ list_language = IDIOMAS.values()
 
 @support.menu
 def mainlist(item):
-    info()
     itemlist = []
     tvshowSub = [
         ('Novità {bold}',[ '', 'peliculas_tv', '', 'tvshow']),
@@ -52,7 +50,7 @@ def cleantitle(scrapedtitle):
 
 # ----------------------------------------------------------------------------------------------------------------
 def findvideos(item):
-    info()
+    logger.debug()
     data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
     data = re.sub(r'\n|\t|\s+', ' ', data)
     # recupero il blocco contenente i link
@@ -66,8 +64,8 @@ def findvideos(item):
 
     episodio = item.infoLabels['episode']
     patron = r'\.\.:: Episodio %s([\s\S]*?)(<div class="post|..:: Episodio)' % episodio
-    info(patron)
-    info(blocco)
+    logger.debug(patron)
+    logger.debug(blocco)
 
     matches = scrapertools.find_multiple_matches(blocco, patron)
     if len(matches):
@@ -89,7 +87,7 @@ def findvideos(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def lista_serie(item):
-    info()
+    logger.debug()
     itemlist = []
 
     PERPAGE = 15
@@ -137,7 +135,7 @@ def lista_serie(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def episodios(item, itemlist=[]):
-    info()
+    logger.debug()
     patron = r'<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>.*?'
     patron += r'<p><a href="([^"]+)">'
 
@@ -212,7 +210,7 @@ def episodios(item, itemlist=[]):
 
 # ----------------------------------------------------------------------------------------------------------------
 def peliculas_tv(item):
-    info()
+    logger.debug()
     itemlist = []
 
     patron = r'<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>'
@@ -265,7 +263,7 @@ def peliculas_tv(item):
 
 # ----------------------------------------------------------------------------------------------------------------
 def newest(categoria):
-    info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
     item.url = host
@@ -289,7 +287,7 @@ def newest(categoria):
 
 # ----------------------------------------------------------------------------------------------------------------
 def search(item, texto):
-    info(texto)
+    logger.debug(texto)
     itemlist = []
     try:
         patron = r'<li class="cat-item cat-item-\d+"><a href="([^"]+)"\s?>([^<]+)</a>'
@@ -313,7 +311,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('search log:', line)
+            logger.error('search log:', line)
         return []
 
     return itemlist
@@ -325,7 +323,7 @@ def search(item, texto):
 
 
 def list_az(item):
-    info()
+    logger.debug()
     itemlist = []
 
     alphabet = dict()

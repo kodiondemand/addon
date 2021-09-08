@@ -4,6 +4,7 @@
 # ----------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = {'Referer': host}
@@ -30,7 +31,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     if item.contentType == 'movie' or item.extra == 'movie':
         action = 'findvideos'
     else:
@@ -43,12 +44,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "series":
@@ -64,14 +65,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
 @support.scrape
 def peliculas(item):
     pagination = ''
-    anime = True
+    numerationEnabled = True
     patronNext = r'href="([^"]+)" title="[^"]+" class="lcp_nextlink"'
     action = 'findvideos'
     # debug=True
@@ -97,13 +98,13 @@ def peliculas(item):
         patron = r'<li\s*><a href="(?P<url>[^"]+)" title="(?P<title>.*?)(?:\s(?P<year>\d{4}))?"[^>]*>'
     if item.contentType == 'tvshow':
         action = 'episodios'
-        anime = True
+        numerationEnabled = True
     return locals()
 
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     pagination = 50
     patronBlock = r'<table>(?P<block>.*?)</table>'
     patron = r'<tr><td><b>(?P<title>(?:\d+)?.*?)\s*(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<data>.*?)<tr>'

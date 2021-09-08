@@ -2,9 +2,9 @@
 # ------------------------------------------------------------
 # Canale per cinetecadibologna
 # ------------------------------------------------------------
-from core.item import Item
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 
@@ -34,7 +34,7 @@ def menu(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     item.args = 'noorder'
     item.url = host + '/ricerca/type_ALL/ricerca_' + text
     item.contentType = 'movie'
@@ -44,7 +44,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
@@ -62,7 +62,7 @@ def peliculas(item):
 
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     itemlist = []
 
     matches = support.match(item, patron=r'filename: "(.*?)"').matches

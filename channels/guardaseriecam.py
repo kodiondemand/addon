@@ -11,7 +11,6 @@
 # possibilità di miglioramento: inserire menu per genere - lista serie tv e gestire le novità
 
 from core import support
-from core.support import info
 from platformcode import logger, config
 
 host = config.get_channel_url()
@@ -51,7 +50,7 @@ def episodios(item):
 
 
 def search(item, text):
-    support.info('search', text)
+    logger.debug('search', text)
     item.contentType = 'tvshow'
     itemlist = []
     text = text.replace(' ', '+')
@@ -61,7 +60,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info('search log:', line)
+            logger.error('search log:', line)
         return []
 
 

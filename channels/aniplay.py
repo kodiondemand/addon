@@ -93,7 +93,7 @@ def submenu_top_of(item):
 
 
 def search(item, texto):
-    support.info(texto)
+    logger.debug(texto)
     item.url = host + '/api/anime/advanced-search'
     item.variable = '&query=' + texto
 
@@ -103,12 +103,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -117,7 +117,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 

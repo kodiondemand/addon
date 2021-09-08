@@ -10,9 +10,9 @@
 
 # possibilità di miglioramento: gestire le novità (sezione Ultimi episodi sul sito)
 
-from core.support import info
+
 from core import support
-from platformcode import config
+from platformcode import config, logger
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
@@ -40,7 +40,7 @@ def episodios(item):
     return locals()
 
 def search(item, text):
-    info(text)
+    logger.debug(text)
     item.contentType = 'tvshow'
     item.url = host + "/?s=" + text
     try:
@@ -49,11 +49,11 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info("%s" % line)
+            logger.error("%s" % line)
 
     return []
 
 def findvideos(item):
-    support.info('findvideos', item)
+    logger.debug('findvideos', item)
     data = support.match(item, headers=headers, patron=r'div class="movieplay">([^>]+)').matches
     return support.server(item, data=data )

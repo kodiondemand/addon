@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 from lib.js2py.host import jsfunctions
 
 host = support.config.get_channel_url()
@@ -30,10 +31,10 @@ def mainlist(item):
     return locals()
 
 
-def search(item, texto):
-    support.info(texto)
+def search(item, text):
+    logger.debug(text)
 
-    item.url = host + "/?s=" + texto
+    item.url = host + "/?s=" + text
     try:
         return peliculas(item)
 
@@ -41,7 +42,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
@@ -56,7 +57,7 @@ def genres(item):
 
 @support.scrape
 def peliculas(item):
-    anime = True
+    numerationEnabled = True
     blacklist = ['top 10 anime da vedere']
     if item.url != host: patronBlock = r'<div id="main-content(?P<block>.*?)<aside'
     patron = r'<figure class="(?:mh-carousel-thumb|mh-posts-grid-thumb)">\s*<a (?:class="[^"]+" )?href="(?P<url>[^"]+)" title="(?P<title>.*?)(?: \((?P<year>\d+)\))? (?:(?P<lang>SUB ITA|ITA))(?: (?P<title2>[Mm][Oo][Vv][Ii][Ee]))?[^"]*"><img (?:class="[^"]+"|width="[^"]+" height="[^"]+") src="(?P<thumb>[^"]+)"[^>]+'
@@ -83,7 +84,7 @@ def peliculas(item):
 def episodios(item):
     data = support.match(item, headers=headers, patronBlock=r'entry-content clearfix">(.*?)class="mh-widget mh-posts-2 widget_text').block
     if not 'pagination clearfix' in data:
-        support.info('NOT IN DATA')
+        logger.debug('NOT IN DATA')
         patron = r'<iframe.*?src="(?P<url>[^"]+)"'
         title = item.title
         def fullItemlistHook(itemlist):
@@ -100,7 +101,7 @@ def episodios(item):
             return itemlist
     else:
         url = item.url
-        anime = True
+        numerationEnabled = True
         patronBlock = r'(?:<p style="text-align: left;">|<div class="pagination clearfix">\s*)(?P<block>.*?)</span></a></div>'
         patron = r'(?:<a href="(?P<url>[^"]+)"[^>]+>)?<span class="pagelink">(?P<episode>\d+)'
         def itemHook(item):
@@ -124,7 +125,7 @@ def check(item):
     return data
 
 def findvideos(item):
-    support.info()
+    logger.debug()
     if item.data:
         data = item.data
     else:

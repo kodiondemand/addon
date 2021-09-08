@@ -5,6 +5,7 @@
 # ----------------------------------------------------------
 
 from core import httptools, support, jsontools
+from platformcode import logger
 
 host = support.config.get_channel_url()
 __channel__ = 'animeworld'
@@ -86,7 +87,7 @@ def submenu(item):
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -97,12 +98,12 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
 def search(item, texto):
-    support.info(texto)
+    logger.debug(texto)
     if item.search:
         item.url = host + '/filter?dub=' + item.args + '&keyword=' + texto + '&sort='
     else:
@@ -115,13 +116,13 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 @support.scrape
 def peliculas(item):
-    anime = True
+    numerationEnabled = True
     # debug = True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
     data = get_data(item)
@@ -153,20 +154,20 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = get_data(item)
-    anime = True
-    pagination = 50
+    numerationEnabled = True
+    # pagination = 50
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^-<]+)(?:-(?P<episode2>[^<]+))?'
-    def itemHook(item):
-        item.title = item.fulltitle
-        return item
+    # def itemHook(item):
+    #     item.title = item.fulltitle
+    #     return item
     action='findvideos'
     return locals()
 
 
 def findvideos(item):
     import time
-    support.info(item)
+    logger.debug()
     itemlist = []
     urls = []
     # resp = support.match(get_data(item), headers=headers, patron=r'data-name="(\d+)">([^<]+)<')
@@ -186,8 +187,7 @@ def findvideos(item):
                 title = support.match(url, patron=r'http[s]?://(?:www.)?([^.]+)', string=True).match
                 itemlist.append(item.clone(action="play", title=title, url=url, server='directo'))
             else:
-                dataJson = support.match(host + '/api/episode/info?id=' + epID + '&alt=0', headers=headers).data
-                json = jsontools.load(dataJson)
+                json = support.match(host + '/api/episode/info?id=' + epID + '&alt=0', headers=headers).response.json
                 title = support.match(json['grabber'], patron=r'server\d+.([^.]+)', string=True).match
                 if title: itemlist.append(item.clone(action="play", title=title, url=json['grabber'].split('=')[-1], server='directo'))
                 else: urls.append(json['grabber'])

@@ -132,7 +132,7 @@ def peliculas(item):
     json = {}
 
     if item.contentType == 'undefined':
-        # disabletmdb = True
+        # tmdbEnabled = False
         action = 'check'
     elif item.contentType == 'movie':
         action = 'findvideos'
@@ -159,7 +159,7 @@ def peliculas(item):
             url = '='.join(spl[:-1])
             page = str(int(spl[-1])+1)
             total_pages = json.get('lastPage', 0)
-            support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas', total_pages=total_pages)
+            support.nextPage(itemlist, item, 'peliculas', next_page='='.join((url, page)), total_pages=total_pages)
             return itemlist
 
     return locals()
@@ -176,7 +176,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 

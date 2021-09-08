@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -38,7 +39,7 @@ def submenu(item):
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = support.Item()
     try:
@@ -51,13 +52,13 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 def search(item, text):
-    support.info('search',text)
+    logger.debug(text)
     item.search = text
     item.url = host + '/lista-anime/'
     item.contentType = 'tvshow'
@@ -67,14 +68,14 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 @support.scrape
 def peliculas(item):
     search = item.search
-    anime = True
+    numerationEnabled = True
     if 'movie' in item.url:
         action = 'findvideos'
     else:
@@ -108,7 +109,7 @@ def check(item):
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     data = item.data
 
     if '<h6>Streaming</h6>' in data:
@@ -116,7 +117,6 @@ def episodios(item):
     else:
         patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)"\s*class="btn btn-dark mb-1">'
     def itemHook(item):
-        support.info(item)
         if item.url.startswith('//'): item.url= 'https:' + item.url
         elif item.url.startswith('/'): item.url= 'https:/' + item.url
         return item
@@ -125,7 +125,7 @@ def episodios(item):
 
 
 def findvideos(item):
-    support.info(item)
+    logger.debug()
     itemlist = []
 
     if 'adf.ly' in item.url:

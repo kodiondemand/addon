@@ -666,8 +666,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         return context_commands
         # Options according to criteria, only if the item is not a tag, nor is it "Add to the video library", etc...
     if item.action and item.action not in ["add_movie_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
-        if item.nextPage:
-            context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
+        # if item.nextPage:
+        #     context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))

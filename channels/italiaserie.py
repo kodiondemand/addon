@@ -71,9 +71,9 @@ def category(item):
     return locals()
 
 
-def search(item, texto):
-    support.info("s=", texto)
-    item.url = host + "/?s=" + texto
+def search(item, text):
+    logger.debug(text)
+    item.url = host + "/?s=" + text
     item.contentType = 'tvshow'
     try:
         return peliculas(item)
@@ -81,12 +81,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info("newest", categoria)
+    logger.debug("newest", categoria)
     itemlist = []
     item = Item()
     try:

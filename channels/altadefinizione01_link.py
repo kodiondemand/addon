@@ -15,8 +15,6 @@ headers = [['Referer', host]]
 # =========== home menu ===================
 @support.menu
 def mainlist(item):
-    support.info('mainlist',item)
-
     film = [
         ('Al Cinema', ['/film-del-cinema', 'peliculas', '']),
         ('Generi', ['', 'genres', 'genres']),
@@ -39,7 +37,6 @@ def peliculas(item):
 # =========== def pagina categorie ======================================
 @support.scrape
 def genres(item):
-    support.info('genres',item)
 
     action = 'peliculas'
     if item.args == 'genres':
@@ -57,7 +54,7 @@ def genres(item):
 # =========== def per cercare film/serietv =============
 #host+/index.php?do=search&story=avatar&subaction=search
 def search(item, text):
-    support.info('search', item)
+    logger.debug(text)
     itemlist = []
     text = text.replace(" ", "+")
     item.url = host+"/index.php?do=search&story=%s&subaction=search" % (text)
@@ -73,7 +70,7 @@ def search(item, text):
 # =========== def per le novità nel menu principale =============
 
 def newest(categoria):
-    support.info('newest', categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
     try:
@@ -95,5 +92,5 @@ def newest(categoria):
     return itemlist
 
 def findvideos(item):
-    support.info('findvideos', item)
+    logger.debug('findvideos', item)
     return support.server(item, support.match(item, patron='<ul class="playernav">.*?</ul>', headers=headers).match)

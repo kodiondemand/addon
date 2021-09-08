@@ -166,7 +166,7 @@ class SearchWindow(xbmcgui.WindowXML):
             tmdb_info = tmdb.Tmdb(searched_text=self.item.text, search_type=self.item.mode.replace('show', ''))
             results = tmdb_info.results
 
-        
+
         def make(n, result):
             result = tmdb_info.get_infoLabels(result, origen=result)
             if self.item.mode == 'movie':

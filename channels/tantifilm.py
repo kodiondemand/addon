@@ -3,11 +3,9 @@
 # Canale per Tantifilm
 # ------------------------------------------------------------
 
-from core import scrapertools, httptools, support
+from core import support
 from core.item import Item
-from core.support import info
-from platformcode import logger
-from platformcode import config
+from platformcode import logger, config
 
 
 # def findhost(url):
@@ -23,7 +21,7 @@ player_iframe = r'<iframe.*?src="([^"]+)"[^>]+></iframe>\s*<div class="player'
 
 @support.menu
 def mainlist(item):
-    info()
+    logger.debug()
 
     top = [('Generi', ['', 'category'])]
     film = ['/film',
@@ -114,7 +112,7 @@ def category(item):
 
 
 def search(item, texto):
-    info(texto)
+    logger.debug(texto)
 
 
     item.url = host + "/?s=" + texto
@@ -126,7 +124,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("%s" % line)
+            logger.error('{}'.format(line))
         return []
 
 
@@ -155,17 +153,17 @@ def hdpass(item):
 
 
 def findvideos(item):
-    info()
-    support.info("ITEMLIST: ", item)
+    logger.debug()
+    logger.debug("ITEMLIST: ", item)
     data = support.match(item.url, headers=headers).data
     check = support.match(data, patron=r'<div class="category-film">(.*?)</div>').match
     if 'sub' in check.lower():
         item.contentLanguage = 'Sub-ITA'
-    support.info("CHECK : ", check)
+    logger.debug("CHECK : ", check)
     if 'anime' in check.lower():
         item.contentType = 'tvshow'
         item.data = data
-        support.info('select = ### è una anime ###')
+        logger.debug('select = ### è una anime ###')
         try:
             return episodios(item)
         except:
@@ -180,7 +178,7 @@ def findvideos(item):
 
     # if 'protectlink' in data:
     #     urls = scrapertools.find_multiple_matches(data, r'<iframe src="[^=]+=(.*?)"')
-    #     support.info("SONO QUI: ", urls)
+    #     logger.debug("SONO QUI: ", urls)
     #     for url in urls:
     #         url = url.decode('base64')
     #         # tiro via l'ultimo carattere perchè non c'entra
@@ -191,7 +189,7 @@ def findvideos(item):
     #         if url:
     #             listurl.add(url)
     # data += '\n'.join(listurl)
-    info(data)
+    logger.debug(data)
     itemlist = []
     # support.dbg()
 
@@ -203,7 +201,7 @@ def findvideos(item):
         if item.otherLinks:
             urls += support.match(item.otherLinks, patron=r'href="([^"]+)').matches
 
-        info('URLS', urls)
+        logger.debug('URLS', urls)
         for u in urls:
             if 'hdplayer.casa/series/' in u:
                 urls.remove(u)

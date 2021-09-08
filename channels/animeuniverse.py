@@ -4,6 +4,7 @@
 # ----------------------------------------------------------
 
 from core import support
+from platformcode import logger
 
 host = support.config.get_channel_url()
 headers = {}
@@ -34,21 +35,21 @@ def menu(item):
     return locals()
 
 
-def search(item, texto):
-    support.info(texto)
-    item.search = texto
+def search(item, text):
+    logger.debug(text)
+    item.search = text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
     item = support.Item()
     try:
         if categoria == "anime":
@@ -59,7 +60,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
 
@@ -85,7 +86,7 @@ def peliculas(item):
         searchtext = item.url.split('/')[-2] if item.url != host else ''
     if not item.pag: item.pag = 1
 
-    anime=True
+    numerationEnabled = False
     # blacklist=['Altri Hentai']
     data = support.match(host + '/wp-content/themes/animeuniverse/functions/ajax.php', post='sorter=recent&location=&loop=main+loop&action=sort&numarticles='+perpage+'&paginated='+str(item.pag)+'&currentquery%5B'+query+'%5D='+searchtext+'&thumbnail=1').data.replace('\\','')
     patron=r'<a href="(?P<url>[^"]+)"><img width="[^"]+" height="[^"]+" src="(?P<thumb>[^"]+)" class="[^"]+" alt="" title="(?P<title>.*?)\s*(?P<lang>Sub ITA|ITA)?(?:"| \[)'
@@ -102,7 +103,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    anime = True
+    numerationEnabled = True
     pagination = int(perpage)
     patron = epPatron
     return locals()

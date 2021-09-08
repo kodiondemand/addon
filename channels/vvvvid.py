@@ -3,7 +3,7 @@
 # Canale per vvvvid
 # ----------------------------------------------------------
 import requests, sys, inspect
-from core import jsontools, support, tmdb
+from core import support, tmdb
 from platformcode import autorenumber, logger, config
 
 host = support.config.get_channel_url()
@@ -68,7 +68,7 @@ def mainlist(item):
 
 
 def search(item, text):
-    support.info(text)
+    logger.debug(text)
     itemlist = []
     if conn_id:
         if 'film' in item.url: item.contentType = 'movie'
@@ -79,7 +79,7 @@ def search(item, text):
         except:
             import sys
             for line in sys.exc_info():
-                support.logger.error("%s" % line)
+                logger.error("%s" % line)
             return []
     return itemlist
 
@@ -105,7 +105,7 @@ def peliculas(item):
     # support.dbg()
     if not item.args:
         json_file =loadjs(item.url + 'channel/10005/last/')
-        support.logger.debug(json_file)
+        logger.debug(json_file)
         make_itemlist(itemlist, item, json_file)
         itemlist = support.pagination(itemlist, item, item.page if item.page else 1, 20)
         if item.contentType != 'movie': autorenumber.start(itemlist)
@@ -241,7 +241,7 @@ def make_itemlist(itemlist, item, data):
 def loadjs(url):
     if '?category' not in url:
         url += '?full=true'
-    support.info('Json URL;',url)
+    logger.debug('Json URL;',url)
     json = current_session.get(url, headers=headers, params=payload).json()
     return json
 

@@ -5,6 +5,7 @@
 
 
 from core import support
+from platformcode import logger
 # def findhost(url):
 #     return support.match(url, patron=r'<h2[^>]+><a href="([^"]+)"').match
 
@@ -27,7 +28,7 @@ def mainlist(item):
 
 
 def search(item, texto):
-    support.info(texto)
+    logger.debug(texto)
 
 
     item.contentType = 'tvshow'
@@ -38,12 +39,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error("%s" % line)
         return []
 
 
 def newest(categoria):
-    support.info(categoria)
+    logger.debug(categoria)
 
     itemlist = []
     item = support.Item()
@@ -57,7 +58,7 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
@@ -142,7 +143,7 @@ def menu(item):
 
 def findvideos(item):
     item.url = item.url.replace('&amp;', '&')
-    support.info(item)
+    logger.debug(item)
     if item.args == 'last':
         url = support.match(item, patron = r'<iframe id="iframeVid" width="[^"]+" height="[^"]+" src="([^"]+)" allowfullscreen').match
         matches = support.match(url,patron=r'<a href="([^"]+)">(\d+)<', patronBlock=r'<h3>EPISODIO</h3><ul>(.*?)</ul>').matches

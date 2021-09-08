@@ -6,16 +6,14 @@
 
 
 from core import support
-from core.support import info
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 host = config.get_channel_url()
 headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    support.info(item)
 
     film = ['/film/',
         ('Generi',['', 'genres', 'genres']),
@@ -46,7 +44,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    info()
+    logger.debug()
     # debugBlock = True
     # debug=True
 
@@ -96,7 +94,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    info()
+    logger.debug()
 
     patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" style="display:block">\s*<ul class="episodios">(?P<block>.*?)</ul>\s*</div>\s*</div>\s*</div>\s*</div>\s*</div>'
     patron = r'<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)">.*?'\
@@ -108,7 +106,7 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-    info(item)
+    logger.debug(item)
 
     action='peliculas'
     if item.args == 'genres':
@@ -126,7 +124,7 @@ def genres(item):
 
 
 def search(item, text):
-    info(text)
+    logger.debug(text)
     import uuid
     text = text.replace(' ', '+')
     item.url = host + '/?' + uuid.uuid4().hex + '=' + uuid.uuid4().hex + '&s=' + text
@@ -136,12 +134,12 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            info("%s" % line)
+            logger.error("%s" % line)
 
     return []
 
 def newest(categoria):
-    info(categoria)
+    logger.debug(categoria)
     itemlist = []
     item = Item()
 
@@ -162,14 +160,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            info("{0}".format(line))
+            logger.error("{0}".format(line))
         return []
 
     return itemlist
 
 
 def findvideos(item):
-    info()
+    logger.debug()
     matches = support.match(item, patron=[r'var ilinks\s?=\s?([^;]+)',r' href="#option-\d">([^\s]+)\s*([^\s]+)']).matches
     itemlist = []
     list_url = []
