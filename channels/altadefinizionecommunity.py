@@ -36,7 +36,6 @@ def mainlist(item):
         ('Qualità', ['/film/movie', 'genres', 'quality']),
         ('Anni', ['/anno', 'genres', 'years'])
     ]
-    search = ''
 
     return locals()
 
@@ -151,7 +150,7 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
 
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
     if json.get('have_next'):
         def fullItemlistHook(itemlist):
@@ -168,7 +167,7 @@ def search(item, texto):
     logger.debug("search ", texto)
 
     item.args = 'search'
-    item.url = host + "/search?s={}&page=1".format(texto)
+    item.url = host + "/search?s={}&f={}&page=1".format(texto, item.contentType)
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
