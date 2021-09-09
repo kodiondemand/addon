@@ -104,7 +104,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     numerationEnabled = True
-    pagination = 100
+    pagination = True
 
     if item.data:
         data = item.data

@@ -24,7 +24,7 @@ def load(*args, **kwargs):
     except:
         logger.error("**NOT** able to load the JSON")
         logger.error(traceback.format_exc())
-        logger.error('ERROR STACK ' + str(stack()[1][3]))
+        logger.error('ERROR STACK:', stack()[1])
         value = {}
 
     return value

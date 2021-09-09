@@ -23,7 +23,7 @@ def mainlist(item):
 def peliculas(item):
     # debug = True
     if item.args == 'alternative':
-        pagination = ''
+        pagination = True
         patron = r'<a title="(?P<title>[^\(]+)\(\s*(?P<year>\d+)\)\s\D+(?P<quality>\d+p).{3}(?P<lang>[^ ]+).*?[^"]+"\s*href="(?P<url>[^"]+)'
     else:
         patron = r'<a href="(?P<url>[^"]+)" (?:rel="?[0-9]+"?)? title="(?P<title>[^\(]+)(?!\()\s*\((?P<year>\d+)\)\s(?:[^\]]+\])?\D+(?P<quality>\d+p).{3}(?P<lang>[^ ]+).*?<img id="?cov"?.*?src="(?P<thumb>[^"]+)'

@@ -5,7 +5,7 @@
     "active": true,
     "thumbnail": "altadefinizionecommunity.png",
     "banner": "",
-    "categories": ["movie", "tvshow", "vos"],
+    "categories": ["movie", "tvshow", "sub"],
     "not_active": ["include_in_newest"],
     "settings": [
         {

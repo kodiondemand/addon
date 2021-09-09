@@ -66,7 +66,7 @@ def peliculas(item):
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if item.action == 'search':
-        pagination = ''
+        pagination = True
         #patronBlock = '"lcp_catlist"[^>]+>(?P<block>.*)</ul>'
         patronBlock = '<main[^>]+>(?P<block>.*?)</ma'
         #patron = r'href="(?P<url>[^"]+)" title="(?P<title>[^"]+)"'

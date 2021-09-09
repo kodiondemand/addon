@@ -488,7 +488,7 @@ def setting_channel_new(item):
     # presel_values = ['skip', 'actual', 'recom', 'freq', 'all', 'none', 'cast', 'lat']
     presel_values = ['skip', 'actual', 'all', 'none']
 
-    categs = ['movie', 'tvshow', 'documentary', 'anime', 'vos', 'direct', 'torrent']
+    categs = ['movie', 'tvshow', 'documentary', 'anime', 'sub', 'live', 'torrent']
     for c in categs:
         preselecciones.append(config.get_localized_string(70577) + config.get_localized_category(c))
         presel_values.append(c)

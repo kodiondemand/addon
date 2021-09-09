@@ -41,7 +41,7 @@ def peliculas(item):
     else:
         action = 'findvideos'
         patron = r'<div class="item">\s*?<a href="(?P<url>[^"]+)"\s*?data-original="(?P<thumb>[^"]+)"(?:[^>]+>){5}(?P<title>.+?)<[^>]+>\((?P<episode>[\dx\-]+)\s+?(?P<lang>Sub-Ita|[iITtAa]+)\)<'
-        pagination = 25
+        pagination = True
 
     patronNext = r'<li><a href="([^"]+)"\s+?>Pagina successiva'
     return locals()

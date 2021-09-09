@@ -98,7 +98,7 @@ def peliculas(item):
         if item.search:
             itemlist = [ it for it in itemlist if ' Episodio ' not in it.title ]
         if len(itemlist) == int(perpage):
-            support.nextPage(itemlist, item, function_or_level='peliculas', page=page + 1, total_pages=int(res.match))
+            support.nextPage(itemlist, item, 'peliculas', page=page + 1, total_pages=int(res.match))
         return itemlist
     return locals()
 
@@ -106,7 +106,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     numerationEnabled = True
-    pagination = int(perpage)
+    pagination = True
     patron = epPatron
     return locals()
 

@@ -82,7 +82,7 @@ def peliculas(item):
         action = 'check'
 
     if not item.args:
-        pagination = ''
+        pagination = True
         patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)">'
     else:
         patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'

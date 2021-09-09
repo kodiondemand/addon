@@ -5,7 +5,7 @@
     "language": ["ita", "sub-ita"],
     "thumbnail": "aniplay.png",
     "banner": "aniplay.png",
-    "categories": ["anime", "vos"],
+    "categories": ["anime", "sub"],
     "settings": [
         {
             "id": "sort",

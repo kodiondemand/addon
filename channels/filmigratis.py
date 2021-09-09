@@ -61,7 +61,7 @@ def peliculas(item):
             data = re.sub('\n|\t', ' ', data)
             patron = r'<div class="cnt">\s.*?src="([^"]+)".+?title="((?P<title>.+?)(?:[ ]\[(?P<lang>Sub-ITA|SUB-ITA)\])?(?:[ ]\[(?P<quality>.*?)\])?(?:[ ]\((?P<year>\d+)\))?)"\s*[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s+<a href="(?P<url>[^"]+)"'
             patronBlock = r'<div class="container">(?P<block>.*?)</main>'
-            pagination = ''
+            pagination = True
 
         patronNext = '<a class="page-link" href="([^"]+)">>>'
     else:

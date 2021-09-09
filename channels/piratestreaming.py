@@ -25,7 +25,7 @@ def mainlist(item):
 
 def search(item, texto):
     logger.debug(texto)
-    item.url = host + "/?s=" + texto
+    item.url = host + "/search/" + texto
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore

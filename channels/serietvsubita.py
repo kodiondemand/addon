@@ -253,7 +253,7 @@ def peliculas_tv(item):
 
     # Paginazione
     patron = r'<strong class="on">\d+</strong>\s?<a href="([^<]+)">\d+</a>'
-    support.nextPage(itemlist, item, data, patron)
+    support.nextPage(itemlist, item, data=data, patron=patron)
 
     return itemlist
 

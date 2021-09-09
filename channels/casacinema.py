@@ -100,7 +100,7 @@ def peliculas(item):
         action = 'findvideos'
     elif item.contentType == 'tvshow':
         action = 'episodios'
-        pagination = ''
+        pagination = True
     else:
         action = 'select'
 

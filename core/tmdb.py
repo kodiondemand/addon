@@ -182,7 +182,7 @@ def set_infoLabels(source, seekTmdb=True, search_language=def_lang, forced=False
     return ret
 
 
-def set_infoLabels_itemlist(item_list, seekTmdb=False, search_language=def_lang, forced=False):
+def set_infoLabels_itemlist(itemlist, seekTmdb=False, search_language=def_lang, forced=False):
     """
     Concurrently, it gets the data of the items included in the item_list.
 
@@ -215,15 +215,15 @@ def set_infoLabels_itemlist(item_list, seekTmdb=False, search_language=def_lang,
 
         return (_i, _item, ret)
 
-    # for i, item in enumerate(item_list):
+    # for i, item in enumerate(itemlist):
     #     r_list.append(sub_thread(item, i, seekTmdb))
     with futures.ThreadPoolExecutor() as executor:
-        searchList = [executor.submit(sub_thread, item, i, seekTmdb) for i, item in enumerate(item_list)]
+        searchList = [executor.submit(sub_thread, item, i, seekTmdb) for i, item in enumerate(itemlist)]
         for res in futures.as_completed(searchList):
             r_list.append(res.result())
 
 
-    # Sort results list by call order to keep the same order q item_list
+    # Sort results list by call order to keep the same order q itemlist
     r_list.sort(key=lambda i: i[0])
 
     # Rebuild and return list only with results of individual calls

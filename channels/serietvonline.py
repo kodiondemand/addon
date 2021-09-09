@@ -68,13 +68,13 @@ def peliculas(item):
         patronBlock = r'>Lista Serie Tv</a></li></ul></div><div id="box_movies">(?P<block>.*?)<div id="paginador">'
         patron = r'<div class="movie">[^>]+[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)(?:(?P<year>\d{4})|")[^>]*>\s*<a href="(?P<url>[^"]+)'
     elif item.contentType == 'episode':
-        pagination = 35
+        pagination = True
         action = 'findvideos'
         patron = r'<td><a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>.*?)(?P<episode>\d+x\d+)[ ]?(?P<title2>[^<]+)?<'
 
     elif item.contentType == 'tvshow':
         # SEZIONE Serie TV- Anime - Documentari
-        pagination = 35
+        pagination = True
 
         if not item.args and 'anime' not in item.url:
             patron = r'<div class="movie">[^>]+>.+?src="(?P<thumb>[^"]+)" alt="[^"]+".+? href="(?P<url>[^"]+)">.*?<h2>(?P<title>[^"]+)</h2>\s?(?:<span class="year">(?P<year>\d+|\-\d+))?<'
@@ -83,7 +83,7 @@ def peliculas(item):
             patron = r'(?:<td>)?<a href="(?P<url>[^"]+)"(?:[^>]+)?>\s?(?P<title>[^<]+)(?P<episode>[\d\-x]+)?(?P<title2>[^<]+)?<'
     else:
         # SEZIONE FILM
-        pagination = 25
+        pagination = True
 
         if item.args == 'lista':
             patron = r'href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)(?:\s(?P<year>\d{4})|<)'

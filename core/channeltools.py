@@ -108,7 +108,7 @@ def get_channel_json(channel_name):
     except Exception as ex:
         template = "An exception of type %s occured. Arguments:\n%r"
         message = template % (type(ex).__name__, ex.args)
-        logger.error(" %s" % message)
+        logger.error("{} | {}".format(channel_name,message))
 
     return channel_json
 

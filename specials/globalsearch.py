@@ -356,7 +356,8 @@ class SearchWindow(xbmcgui.WindowXML):
         self.count = len(self.searchActions)
 
     def get_channel_results(self, searchAction):
-        def search(text):
+        def channel_search(text):
+            logger.debug('Search on channel:', channel)
             valid = []
             other = []
             results = self.moduleDict[channel].search(searchAction, text)
@@ -381,19 +382,19 @@ class SearchWindow(xbmcgui.WindowXML):
         other = []
 
         try:
-            results, valid, other = search(self.item.text)
+            results, valid, other = channel_search(self.item.text)
 
             # if we are on movie search but no valid results is found, and there's a lot of results (more pages), try
             # to add year to search text for better filtering
             if self.item.contentType == 'movie' and not valid and other and other[-1].nextPage \
                     and self.item.infoLabels['year']:
                 logger.debug('retring adding year on channel ' + channel)
-                dummy, valid, dummy = search(self.item.text + " " + str(self.item.infoLabels['year']))
+                dummy, valid, dummy = channel_search(self.item.text + " " + str(self.item.infoLabels['year']))
 
             # some channels may use original title
             if self.item.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
                 logger.debug('retring with original title on channel ' + channel)
-                dummy, valid, dummy = search(self.item.infoLabels.get('originaltitle'))
+                dummy, valid, dummy = channel_search(self.item.infoLabels.get('originaltitle'))
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -402,15 +403,19 @@ class SearchWindow(xbmcgui.WindowXML):
             return
         update_lock.acquire()
         self.count += 1
+        logger.debug('Results:', channel, results, valid, other)
         self.update(channel, valid, other if other else results)
         update_lock.release()
 
-    def makeItem(self, url):
-        item = Item().fromurl(url)
+    def makeItem(self, item):
+        if type(item) == str: item = Item().fromurl(item)
         channelParams = channeltools.get_channel_parameters(item.channel)
         info = item.infoLabels
         tagline = info.get('tagline')
-        title = '[B]{}[/B]'.format(item.fulltitle) + ('\n[I]{}[/I]'.format(tagline) if tagline else '')
+        if 'download' in item.action or 'videolibrary' in item.action:
+            title = '{}{}'.format(item.title, item.contentTitle)
+        else:
+            title = '[B]{}[/B]'.format(item.contentTitle) + ('\n[I]{}[/I]'.format(tagline) if tagline else '')
         thumb = item.thumbnail if item.thumbnail else 'Infoplus/' + item.contentType.replace('show', '') + '.png'
 
         it = xbmcgui.ListItem(title)
@@ -422,11 +427,11 @@ class SearchWindow(xbmcgui.WindowXML):
         color = 'FFFFFFFF' if not rating else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
 
         it.setProperties({'rating': str(int(info.get('rating',10) * 10)), 'color': color,
-                          'item': url, 'verified': item.verified, 'channel':channelParams['title'], 'channelthumb': channelParams['thumbnail'] if item.verified else ''})
+                          'item': item.tourl(), 'verified': item.verified, 'channel':channelParams['title'], 'channelthumb': channelParams['thumbnail'], 'sub':'true' if 'sub' in item.contentLanguage.lower() else ''})
         if item.server:
             color = scrapertools.find_single_match(item.alive, r'(FF[^\]]+)')
+            it.setArt({'poster': config.get_online_server_thumb(item.server)})
             it.setProperties({'channel': channeltools.get_channel_parameters(item.channel).get('title', ''),
-                              'thumb': config.get_online_server_thumb(item.server),
                               'servername': servertools.get_server_parameters(item.server.lower()).get('name', item.server),
                               'color': color if color else 'FF0082C2'})
 
@@ -436,12 +441,12 @@ class SearchWindow(xbmcgui.WindowXML):
         self.LOADING.setVisible(False)
         if self.exit:
             return
-        logger.debug('Search on channel', channel)
+
         if self.item.mode != 'all' and 'valid' not in self.results:
             self.results['valid'] = 0
             item = xbmcgui.ListItem('valid')
-            item.setProperties({'thumb': 'valid.png',
-                                'position': '0',
+            item.setArt({'poster':'valid.png'})
+            item.setProperties({'position': '0',
                                 'results': '0'})
             self.channels.append(item)
             pos = self.CHANNELS.getSelectedPosition()
@@ -460,7 +465,7 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.CHANNELS.getSelectedPosition() == 0:
                 items = []
                 for result in valid:
-                    if result: items.append(self.makeItem(result.tourl()))
+                    if result: items.append(self.makeItem(result))
                 pos = self.RESULTS.getSelectedPosition()
                 self.RESULTS.addItems(items)
                 if pos < 0:
@@ -474,8 +479,8 @@ class SearchWindow(xbmcgui.WindowXML):
             name = channelParams['title']
             if name not in self.results:
                 item = xbmcgui.ListItem(name)
-                item.setProperties({'thumb': channelParams['thumbnail'],
-                                    'position': '0',
+                item.setArt({'poster':channelParams['thumbnail']})
+                item.setProperties({'position': '0',
                                     'results': str(len(results))
                                     })
                 for result in results:
@@ -700,7 +705,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 other = []
                 for i, item in enumerate(servers):
                     if item.server:
-                        it = self.makeItem(item.tourl())
+                        it = self.makeItem(item)
                         it.setProperty('index', str(i))
                         if item.quality.lower() in ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k']:
                             it.setProperty('quality', 'uhd.png')
@@ -720,8 +725,9 @@ class SearchWindow(xbmcgui.WindowXML):
                     elif not item.action:
                         self.getControl(QUALITYTAG).setText(item.fulltitle)
                     else:
-                        it = self.makeItem(item.tourl())
+                        it = self.makeItem(item)
                         other.append(it)
+                    logger.debug(it)
 
                 uhd.sort(key=lambda it: it.getProperty('index'))
                 fhd.sort(key=lambda it: it.getProperty('index'))
@@ -732,7 +738,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 serverlist = uhd + fhd + hd + sd + unknown + other
                 if not serverlist:
                     serverlist = [xbmcgui.ListItem(config.get_localized_string(60347))]
-                    serverlist[0].setProperty('thumb', support.thumb('nofolder'))
+                    serverlist[0].setArt({'poster': support.thumb('nofolder')})
 
                 self.Focus(SERVERS)
                 self.SERVERLIST.reset()
@@ -747,7 +753,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.itemsResult = []
                 ep = []
                 for item in self.episodes:
-                    title = item.title
+                    title = item.contentTitle
                     if item.contentEpisodeNumber: title = '{:02d}. {}'.format(item.contentEpisodeNumber, title)
                     if item.contentSeason: title = '{}x{}'.format(item.contentSeason, title)
 
@@ -757,7 +763,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
                 if not ep:
                     ep = [xbmcgui.ListItem(config.get_localized_string(60347))]
-                    ep[0].setProperty('thumb', support.thumb('nofolder'))
+                    ep[0].setArt({'poster', support.thumb('nofolder')})
 
                 self.Focus(EPISODES)
                 self.EPISODESLIST.reset()

@@ -243,7 +243,7 @@ class scrape:
         if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
             if len(self.seasons) > 1 and self.seasonPagination:
                 self.itemlist = season_pagination(self.itemlist, self.item, self.seasons, self.function)
-            elif self.pagination or self.seasonPagination:
+            elif self.pagination:
                 self.itemlist = pagination(self.itemlist, self.item, self.function)
 
         if self.action != 'play' and 'patronMenu' not in self.args and 'patronGenreMenu' not in self.args and self.tmdbEnabled and inspect.stack()[1][3] not in ['add_tvshow'] and self.function not in ['episodios', 'mainlist'] or (self.function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
@@ -291,72 +291,72 @@ class scrape:
 
         for match in matches:
             self.scraped = {}
-            for kk in self.known_keys:
-                val = match[kk] if kk in match else ''
-                if val and (kk == "url" or kk == 'thumb') and 'http' not in val:
+            for k, v in match.items():
+                if v and k in ['url', 'thumb'] and 'http' not in v:
                     domain = ''
-                    if val.startswith('//'):
+                    if v.startswith('//'):
                         domain = scrapertools.find_single_match(self.item.url, 'https?:')
-                    elif val.startswith('/'):
+                    elif v.startswith('/'):
                         domain = scrapertools.find_single_match(self.item.url, 'https?://[a-z0-9.-]+')
-                    val = domain + val
-                self.scraped[kk] = val.strip() if type(val) == str else val
+                    v = domain + v
+                self.itemParams.__setattr__(k, v.strip() if type(v) == str else v)
 
-            self.itemParams.title = cleantitle(self.scraped.get('title', ''))
-            if self.group and self.scraped.get('title', '') in contents and not self.item.grouped:  # same title and grouping enabled
+            self.itemParams.title = cleantitle(self.itemParams.title)
+            if self.group and self.itemParams.title in contents and not self.item.grouped:  # same title and grouping enabled
                 continue
-            if self.item.grouped and self.scraped.get('title', '') != self.item.fulltitle:  # inside a group different tvshow should not be included
+            if self.item.grouped and self.itemParams.title != self.item.fulltitle:  # inside a group different tvshow should not be included
                 continue
 
             contents.append(self.itemParams.title)
 
-            self.itemParams.title2 = cleantitle(self.scraped.get('title2', '')) if not self.group or self.item.grouped else ''
-            self.itemParams.quality = self.scraped.get('quality')
-            self.itemParams.plot = cleantitle(self.scraped.get("plot", ''))
+            self.itemParams.title2 = cleantitle(self.itemParams.title2) if not self.group or self.item.grouped else ''
+            self.itemParams.quality = self.itemParams.quality
+            self.itemParams.plot = cleantitle(self.itemParams.plot)
             self.itemParams.language = scrapeLang(self.scraped, self.lang)
 
             self.set_infolabels()
             if self.sceneTitle: self.set_sceneTitle()
- 
+
             if not self.group or self.item.grouped:
                 self.set_episodes()
 
-            if self.scraped['episode2']: self.itemParams.second_episode = scrapertools.find_single_match(self.scraped['episode2'], r'(\d+)').split('x')
+            if self.itemParams.episode2: self.itemParams.second_episode = scrapertools.find_single_match(self.itemParams.episode2, r'(\d+)').split('x')
             if self.itemParams.season: self.itemParams.infoLabels['season'] = int(self.itemParams.season)
             if self.itemParams.episode: self.itemParams.infoLabels['episode'] = int(self.itemParams.episode)
 
-            itemlist.append(self.set_item(match))
+            it = self.set_item(match)
+            if it: itemlist.append(it)
 
         self.itemlist.extend(itemlist)
         self.matches.extend(matches)
 
     def set_infolabels(self):
-        if self.item.infoLabels["title"] == self.scraped["title"]:
+        if self.item.infoLabels["title"] == self.itemParams.title:
             infolabels = self.item.infoLabels
         else:
             if self.function == 'episodios':
                 infolabels = self.item.infoLabels
             else:
                 infolabels = {}
-            if self.scraped['year']:
-                infolabels['year'] = self.scraped['year']
-            if self.scraped["plot"]:
+            if self.itemParams.year:
+                infolabels['year'] = self.itemParams.year
+            if self.itemParams.plot:
                 infolabels['plot'] = self.itemParams.plot
-            if self.scraped['duration']:
-                dur = scrapertools.find_multiple_matches(self.scraped['duration'], r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
+            if self.itemParams.duration:
+                dur = scrapertools.find_multiple_matches(self.itemParams.duration, r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
                 for h, m in dur:
-                    self.scraped['duration'] = int(h) * 60 + int(m)
+                    self.itemParams.duration = int(h) * 60 + int(m)
                 if not dur:
-                    self.scraped['duration'] = scrapertools.find_single_match(self.scraped['duration'], r'(\d+)')
+                    self.itemParams.duration = scrapertools.find_single_match(self.itemParams.duration, r'(\d+)')
                 try:
-                    infolabels['duration'] = int(self.scraped['duration']) * 60
+                    infolabels['duration'] = int(self.itemParams.duration) * 60
                 except:
-                    self.scraped['duration'] = ''
-            if self.scraped['genere']:
-                genres = scrapertools.find_multiple_matches(self.scraped['genere'], '[A-Za-z]+')
+                    self.itemParams.duration = ''
+            if self.itemParams.genre:
+                genres = scrapertools.find_multiple_matches(self.itemParams.genre, '[A-Za-z]+')
                 infolabels['genere'] = ", ".join(genres)
-            if self.scraped["rating"]:
-                infolabels['rating'] = scrapertools.decodeHtmlentities(self.scraped["rating"])
+            if self.itemParams.rating:
+                infolabels['rating'] = scrapertools.decodeHtmlentities(self.itemParams.rating)
 
         self.itemParams.infoLabels = infolabels
 
@@ -370,7 +370,7 @@ class scrape:
                 self.itemParams.quality = str(parsedTitle.get('source'))
                 if parsedTitle.get('screen_size'):
                     self.itemParams.quality += ' ' + str(parsedTitle.get('screen_size', ''))
-            if not self.scraped['year']:
+            if not self.itemParams.year:
                 if type(parsedTitle.get('year', '')) == list:
                     self.itemParams.infoLabels['year'] = parsedTitle.get('year', '')[0]
                 else:
@@ -398,8 +398,8 @@ class scrape:
             logger.error(traceback.format_exc())
 
     def set_episodes(self):
-        ep = unifyEp(self.scraped['episode']) if self.scraped['episode'] else ''
-        se = self.scraped['season'] if self.scraped['season'].isdigit() else ''
+        ep = unifyEp(self.itemParams.episode) if self.itemParams.episode else ''
+        se = self.itemParams.season if self.itemParams.season.isdigit() else ''
         if ep and se:
             self.itemParams.season = int(se)
             if 'x' in ep:
@@ -411,9 +411,9 @@ class scrape:
 
         elif self.item.season:
             self.itemParams.season = int(self.item.season)
-            if ep: self.itemParams.episode = int(scrapertools.find_single_match(self.scraped['episode'], r'(\d+)'))
+            if ep: self.itemParams.episode = int(scrapertools.find_single_match(self.itemParams.episode, r'(\d+)'))
 
-        elif self.item.contentType == 'tvshow' and (self.scraped['episode'] == '' and self.scraped['season'] == '' and self.itemParams.season == ''):
+        elif self.item.contentType == 'tvshow' and (self.itemParams.episode == '' and self.itemParams.season == '' and self.itemParams.season == ''):
             self.item.news = 'season_completed'
 
         else:
@@ -435,17 +435,17 @@ class scrape:
         CT = ''
         if self.typeContentDict:
             for name, variants in self.typeContentDict.items():
-                if str(self.scraped['type']).lower() in variants:
+                if str(self.itemParams.type).lower() in variants:
                     CT = name
                     break
                 else: CT = self.item.contentType
         if self.typeActionDict:
             for name, variants in self.typeActionDict.items():
-                if str(self.scraped['type']).lower() in variants:
+                if str(self.itemParams.type).lower() in variants:
                     AC = name
                     break
                 else: AC = self.action
-        if (not self.scraped['title'] or self.scraped["title"] not in self.blacklist) and (self.search.lower() in self.itemParams.title.lower()):
+        if (not self.itemParams.title or self.itemParams.title not in self.blacklist) and (self.search.lower() in self.itemParams.title.lower()):
 
             it = self.item.clone(title=self.itemParams.title,
                                  fulltitle=self.itemParams.title,
@@ -457,15 +457,15 @@ class scrape:
                                  episode2 = self.itemParams.second_episode,
                                  extraInfo = self.itemParams.extraInfo,
                                  disable_videolibrary = not self.args.get('addVideolibrary', True),
-                                 size = self.scraped['size'],
-                                 seed = self.scraped['seed'])
+                                 size = self.itemParams.size,
+                                 seed = self.itemParams.seed)
 
-            if self.scraped["url"]: it.url = self.scraped["url"]
+            if self.itemParams.url: it.url = self.itemParams.url
             if self.function == 'episodios': it.fulltitle = it.show = self.itemParams.title
             if self.itemParams.quality: it.quality = self.itemParams.quality
             if self.itemParams.language: it.contentLanguage = self.itemParams.language
             if self.item.prevthumb: it.thumbnail = self.item.prevthumb
-            elif self.scraped["thumb"]: it.thumbnail = self.scraped["thumb"]
+            elif self.itemParams.thumb: it.thumbnail = self.itemParams.thumb
             it.contentType = 'episode' if self.function == 'episodios' else CT if CT else self.item.contentType
             if it.contentType not in ['movie'] and self.function != 'episodios' or it.contentType in ['undefined']: it.contentSerieName = self.itemParams.title
             if self.function == 'peliculas': it.contentTitle= self.itemParams.title
@@ -473,7 +473,7 @@ class scrape:
             it.contentEpisodeNumber= self.itemParams.infoLabels.get('episode', ''),
             if self.itemParams.title2: it.title2 = self.itemParams.title2
 
-            if self.scraped['episode'] and self.group and not self.item.grouped:
+            if self.itemParams.episode and self.group and not self.item.grouped:
                 it.action = self.function
             elif AC:
                 it.action = AC
@@ -848,6 +848,8 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     total_pages = integer, the number of total pages
     '''
     logger.debug()
+    if 'channel_search' in [s[3] for s in inspect.stack()]:
+        return itemlist
 
     # get optional args
     data = kwargs.get('data', '')
@@ -857,14 +859,6 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     resub = kwargs.get('resub', [])
     page = kwargs.get('page', None)
     total_pages = kwargs.get('total_pages', None)
-
-    # create Item
-    if patron or page or next_page:
-        nextItem = item.clone(action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
-                            title=typo(config.get_localized_string(30992), 'color kod bold'),
-                            nextPage=True,
-                            page=page if page else item.page + 1 if item.page else 2,
-                            thumbnail=thumb())
 
     # get next_page from data
     if data and patron:
@@ -891,6 +885,7 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     if total_pages:
         item.total_pages = total_pages
 
+    # create Item
     if next_page or page:
         itemlist.append(item.clone(action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
                                    title=typo(config.get_localized_string(30992), 'color kod bold'),
@@ -902,6 +897,8 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
 
 
 def pagination(itemlist, item, function_level=1):
+    if 'channel_search' in [s[3] for s in inspect.stack()]:
+        return itemlist
     itemlistdb(itemlist)
     page = item.page if item.page else 1
     perpage = config.get_setting('pagination', default=20)
@@ -927,6 +924,8 @@ def pagination(itemlist, item, function_level=1):
 
 
 def season_pagination(itemlist, item, seasons, function_level=1):
+    if 'channel_search' in [s[3] for s in inspect.stack()]:
+        return itemlist
     itemlistdb(itemlist)
     action = function_level if type(function_level) == str else inspect.stack()[function_level][3]
     itlist = []

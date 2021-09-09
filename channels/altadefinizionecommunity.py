@@ -176,7 +176,7 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("%s" % line)
+            logger.error('{}'.format(line))
         return []
 
 

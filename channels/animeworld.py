@@ -155,7 +155,7 @@ def peliculas(item):
 def episodios(item):
     data = get_data(item)
     numerationEnabled = True
-    # pagination = 50
+    # pagination = True
     patronBlock= r'<div class="server\s*active\s*"(?P<block>.*?)(?:<div class="server|<link)'
     patron = r'<li[^>]*>\s*<a.*?href="(?P<url>[^"]+)"[^>]*>(?P<episode>[^-<]+)(?:-(?P<episode2>[^<]+))?'
     # def itemHook(item):

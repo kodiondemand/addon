@@ -59,7 +59,7 @@ def peliculas(item):
         def itemlistHook(itemlist):
             args = item.args
             args[0] += 1
-            support.nextPage(itemlist, item, next_page=item.url, function_or_level="peliculas")
+            support.nextPage(itemlist, item, next_page=item.url, "peliculas")
             # itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), args=args, thumbnail=support.thumb()))
             return itemlist
     return locals()

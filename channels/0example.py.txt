@@ -152,7 +152,7 @@ def peliculas(item):
     patron = r''
     patronBlock = r''
     patronNext = ''
-    pagination = ''
+    pagination = True
 
     #debug = True  # True per testare le regex sul sito
     return locals()
@@ -166,7 +166,7 @@ def episodios(item):
     patron = r''
     patronBlock = r''
     patronNext = ''
-    pagination = ''
+    pagination = True
 
     #debug = True
     return locals()
@@ -182,7 +182,7 @@ def genres(item):
     patron = r''
     patronBlock = r''
     patronNext = ''
-    pagination = ''
+    pagination = True
 
     #debug = True
     return locals()

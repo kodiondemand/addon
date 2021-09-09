@@ -107,7 +107,7 @@ def peliculas(item):
         json_file =loadjs(item.url + 'channel/10005/last/')
         logger.debug(json_file)
         make_itemlist(itemlist, item, json_file)
-        itemlist = support.pagination(itemlist, item, item.page if item.page else 1, 20)
+        itemlist = support.pagination(itemlist, item, 'peliculas')
         if item.contentType != 'movie': autorenumber.start(itemlist)
         tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 

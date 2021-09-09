@@ -46,7 +46,7 @@ def mainlist(item):
 ##        deflang = 'SUB-ITA'
 ##        patronBlock = r'<span\s+class="label label-default label-title-typology">'+block
 ##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##        pagination = 25
+##        pagination = True
 ##    elif item.args == 'update':
 ##        patronBlock = r'<div\s+class="container-fluid greybg title-serie-lastep title-last-ep fixed-title-wrapper containerBottomBarTitle">'+block
 ##        patron = r'<a(?: rel="[^"]+")? href="(?P<url>[^"]+)"(?: class="[^"]+")?>[ ]<img class="[^"]+"[ ]title="[^"]+"[ ]alt="[^"]+"[ ]src="(?P<thumb>[^"]+)"[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<episode>\d+.\d+)[ ]\((?P<lang>[a-zA-Z\-]+)[^<]+<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+)<'
@@ -58,15 +58,15 @@ def mainlist(item):
 ##    elif item.args == 'nolost':
 ##        patronBlock = r'<h2 class="title-typology styck-top" meta-class="title-serie-danonperd">'+block
 ##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##        pagination = 25
+##        pagination = True
 ##    elif item.args == 'classic':
 ##        patronBlock = r'<h2 class="title-typology  styck-top" meta-class="title-serie-classiche">'+block
 ##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##        pagination = 25
+##        pagination = True
 ##    else:
 ##        patronBlock = r'<div\s+class="container container-title-serie-new container-scheda" meta-slug="new">'+block
 ##        patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-##        pagination = 25
+##        pagination = True
 ##
 ##    debug = True
 ##    return locals()
@@ -90,28 +90,28 @@ def peliculas(item):
     else:
         end_block = r'(?P<block>.*?)<div\s+class="btn btn-lg btn-default btn-load-other-series">'
         patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-        pagination = 25
+        pagination = True
         if item.args == 'ined':
             deflang = 'SUB-ITA'
             patronBlock = r'<span\s+class="label label-default label-title-typology">' + end_block
         ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-        ##            pagination = 25
+        ##            pagination = True
         elif item.args == 'update':
             patronBlock = r'<div\s+class="container-fluid greybg title-serie-lastep title-last-ep fixed-title-wrapper containerBottomBarTitle">' + end_block
             patron = r'href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>.+?class="strongText">(?P<title>.+?)<'
         # elif item.args == 'nolost':
         #     patronBlock = r'<h2 class="title-typology styck-top" meta-class="title-serie-danonperd">' + end_block
-        #            pagination = 25
+        #            pagination = True
         # elif item.args == 'classic':
         #     patronBlock = r'<h2 class="title-typology  styck-top" meta-class="title-serie-classiche">' + end_block
         ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-        ##            pagination = 25
+        ##            pagination = True
         ##        elif item.args == 'anime':
         ##
         else:
             patronBlock = r'<div\s+class="container container-title-serie-new container-scheda" meta-slug="new">' + end_block
     ##            patron = r'<a href="(?P<url>[^"]+)".*?>\s<img\s.*?src="(?P<thumb>[^"]+)"\s/>[^>]+>[^>]+>\s[^>]+>\s(?P<year>\d{4})?\s.+?class="strongText">(?P<title>.+?)<'
-    ##            pagination = 25
+    ##            pagination = True
     # support.regexDbg(item, patronBlock, headers)
     # debug = True
     return locals()
@@ -146,7 +146,7 @@ def genres(item):
 
 def search(item, text):
     logger.debug(text)
-    item.url = host + "/?s=" + text
+    item.url = host + "/search/" + text
     item.contentType = 'tvshow'
     item.args = 'search'
     try:

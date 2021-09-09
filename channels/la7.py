@@ -91,6 +91,7 @@ def peliculas(item):
     action = 'episodios'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     def itemHook(item):
+        logger.debug(item)
         item.thumbnail = 'http:' + item.t if item.t.startswith('//') else item.t if item.t else item.thumbnail
         item.fanart = item.thumb
         return item

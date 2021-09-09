@@ -67,7 +67,7 @@ def radio(item):
                                thumbnail = item.thumbnail,
                                url = url,
                                action = 'radio'))
-    support.nextPage(itemlist, item, data.data, r'(?P<url>[^"]+)" key="nextStations')
+    support.nextPage(itemlist, item, data=data.data, patron=r'(?P<url>[^"]+)" key="nextStations')
     return itemlist
 
 

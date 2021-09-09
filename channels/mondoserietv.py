@@ -71,7 +71,7 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    pagination = ''
+    pagination = True
     numerationEnabled = True
     patronNext = r'href="([^"]+)" title="[^"]+" class="lcp_nextlink"'
     action = 'findvideos'
@@ -105,7 +105,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     numerationEnabled = True
-    pagination = 50
+    pagination = True
     patronBlock = r'<table>(?P<block>.*?)</table>'
     patron = r'<tr><td><b>(?P<title>(?:\d+)?.*?)\s*(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<data>.*?)<tr>'
     def itemHook(item):
