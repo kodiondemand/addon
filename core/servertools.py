@@ -990,12 +990,41 @@ if PY3:
             item.bitrate = videoquality_info["bit_rate"]
             return item
 
+        def find_obfuscated_url(item: Item):
+            # Checks if channel exists
+            CHANNELS = 'channels' if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")) else 'specials'
+
+            channel_file = os.path.join(config.get_runtime_path(), CHANNELS, item.channel + ".py")
+            logger.debug("channel_file= " + channel_file + ' - ' + CHANNELS + ' - ' + item.channel)
+
+            channel = None
+
+            if os.path.exists(channel_file):
+                try:
+                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
+                except ImportError:
+                    exec("import " + CHANNELS + "." + item.channel + " as channel")
+            logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
+
+            if hasattr(channel, 'play'):
+                logger.debug("Executing channel 'play' method")
+                itemlist = channel.play(item)
+                if len(itemlist) > 0 and isinstance(itemlist[0], Item):
+                    item = itemlist[0]
+
+            return item
+
         if isinstance(video_itemlist, list):
             logger.info("Parsing the provided 'video_itemlist'")
             for number, item in enumerate(video_itemlist):
                 logger.debug(f'Parsing the item n°: {number}')
                 if item.action == "play":
                     url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
+                    if not url_exists:
+                        logger.debug(url_error)
+                        item = find_obfuscated_url(item)  # Let's try another way before giving up
+                        url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
+
                     if url_exists:
                         logger.debug(f'The URL list is: ----> {url_list}\n')
                         if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
