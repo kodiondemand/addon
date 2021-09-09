@@ -869,20 +869,23 @@ if PY3:
             """
 
             video_chunk =  str(pathlib.Path(__file__).parent.parent.resolve()) + "/header_mediafile"
-
-            link = url.split("|")
-            if len(link) == 1:
-                directUrl, headersUrl = link[0], ''
-            elif len(link) == 2:
-                directUrl, headersUrl = link
             headers = {}
+
+            urlList = url.split("|")
+            if len(urlList) == 1:
+                directUrl, headersUrl = urlList[0], ''
+            elif len(urlList) == 2:
+                directUrl, headersUrl = urlList
+
             if headersUrl:
                 for name in headersUrl.split('&'):
                     h, v = name.split('=')
                     h = str(h)
                     headers[h] = str(v)
 
-            r = requests.get(directUrl, headers=headers, stream=True)
+            with requests.Session() as session:
+                r = session.get(directUrl, headers=headers, stream=True)
+
             with open(video_chunk, 'wb') as f:
                 logger.info(f'Saving the chunk to the location: {video_chunk}')
                 for chunk in r.iter_content(chunk_size=100000):
@@ -905,7 +908,7 @@ if PY3:
             @rtype: dictionary
             """
             info_dict = dict()  # dictionary to store resolution, resolution_label and bitrate information that will be returned
-            resolutions = {"sd_width" : 720, "hd_width" : 1366, "fullhd_width" : 1920, "2k" : 2560, "4k" : 3840}
+            resolutions = {"sd_width" : 1024, "hd_width" : 1366, "fullhd_width" : 1920, "2k_width" : 2560, "4k_width" : 3840}
 
             logger.info(f'"Mediainfo" will parse the file located at: {path_to_videochunk}')
             media_info = MediaInfo.parse(path_to_videochunk)  # analyses the file in the "path_to_videochunk" location
@@ -925,9 +928,9 @@ if PY3:
                 info_dict["resolution_label"] = "HD"
             elif videoinfo["width"] <= resolutions["fullhd_width"]:
                 info_dict["resolution_label"] = "Full HD"
-            elif videoinfo["width"] <= resolutions["2k"]:
+            elif videoinfo["width"] <= resolutions["2k_width"]:
                 info_dict["resolution_label"] = "2K"
-            elif videoinfo["width"] <= resolutions["4k"]:
+            elif videoinfo["width"] <= resolutions["4k_width"]:
                 info_dict["resolution_label"] = "4K"
             
             info_dict["resolution"] = (f'{videoinfo["width"]} x {videoinfo["height"]}')
@@ -989,7 +992,8 @@ if PY3:
 
         if isinstance(video_itemlist, list):
             logger.info("Parsing the provided 'video_itemlist'")
-            for item in video_itemlist:
+            for number, item in enumerate(video_itemlist):
+                logger.debug(f'Parsing the item n°: {number}')
                 if item.action == "play":
                     url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
                     if url_exists:
@@ -1019,6 +1023,8 @@ if PY3:
                     else:
                         logger.debug(url_error)
                         item = set_blank_videoinfo(item, media_url="")
+                else:
+                    logger.debug(f'The intem n°: {number} is not a valid item to parse')
         else:
             return []
 
