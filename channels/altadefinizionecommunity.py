@@ -8,11 +8,11 @@ from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
 
-def findhost(url):
-    return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
+# def findhost(url):
+#     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 
 
-host = config.get_channel_url(findhost)
+host = config.get_channel_url()
 register_url = 'https://altaregistrazione.com'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
@@ -23,20 +23,19 @@ def mainlist(item):
 
     film = ['/load-more-film?anno=&order=&support_webp=1&type=movie&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Film', ['', 'genres', 'genres']),
+        ('Generi', ['/film/movie', 'genres', 'genres']),
         ]
 
     tvshow = ['/load-more-film?type=tvshow&anno=&order=&support_webp=1&page=1',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi Serie TV', ['', 'genres', 'genres']),
+        ('Generi', ['/film/movie', 'genres', 'genres']),
         ]
 
     altri = [
         # ('A-Z', ['/lista-film', 'genres', 'letters']),
-        ('Qualità', ['', 'genres', 'quality']),
+        ('Qualità', ['/film/movie', 'genres', 'quality']),
         ('Anni', ['/anno', 'genres', 'years'])
     ]
-    search = ''
 
     return locals()
 
@@ -151,7 +150,7 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
 
-    patron = 'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>[^<]+</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>\s*</div>\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
     if json.get('have_next'):
         def fullItemlistHook(itemlist):
@@ -168,7 +167,7 @@ def search(item, texto):
     logger.debug("search ", texto)
 
     item.args = 'search'
-    item.url = host + "/search?s={}&page=1".format(texto)
+    item.url = host + "/search?s={}&f={}&page=1".format(texto, item.contentType)
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -200,8 +199,9 @@ def genres(item):
 @support.scrape
 def episodios(item):
     logger.debug(item)
+    # debug = True
     data = item.data
-    patron = r'class="playtvshow " data-href="(?P<url>[^"]+)'
+    patron = r'class="playtvshow "\s+data-href="(?P<url>[^"]+)'
 
     def itemHook(it):
         spl = it.url.split('/')[-2:]

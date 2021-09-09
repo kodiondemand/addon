@@ -74,6 +74,10 @@ chNumRis = {
         'Film': 16,
         'Serie TV': 16,
     },
+    'altadefinizionecommunity': {
+        'Film': 22,
+        'Serie TV': 22,
+    },
     'altadefinizioneclick': {
         'Film': 36,
         'Serie TV': 36,

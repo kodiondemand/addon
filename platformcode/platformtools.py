@@ -1727,18 +1727,16 @@ def get_played_time(item):
     if not ID:
         return 0
 
-    S = item.infoLabels.get('season', 0)
-    E = item.infoLabels.get('episode')
+    s = item.infoLabels.get('season', 0)
+    e = item.infoLabels.get('episode')
+
     result = None
 
     try:
-        if item.contentType == 'movie':
-            result = db['viewed'].get(ID)
-        elif S and E:
-            result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
-
-        if result:
-            played_time = result
+        result = db['viewed'].get(ID)
+        if type(result) == dict:
+            result = db['viewed'].get(ID, {}).get('{}x{}'.format(s, e), 0)
+        played_time = result
     except:
         import traceback
         logger.error(traceback.format_exc())
@@ -1759,20 +1757,21 @@ def set_played_time(item):
     if not ID:
         return
 
-    S = item.infoLabels.get('season', 0)
-    E = item.infoLabels.get('episode')
+    s = item.infoLabels.get('season', 0)
+    e = item.infoLabels.get('episode')
 
     try:
-        if item.contentType == 'movie':
-            db['viewed'][ID] = played_time
-        elif E:
+        if e:
             newDict = db['viewed'].get(ID, {})
-            newDict[str(S) + 'x' + str(E)] = played_time
+            newDict['{}x{}'.format(s, e)] = played_time
             db['viewed'][ID] = newDict
+        else:
+            db['viewed'][ID] = played_time
     except:
         import traceback
         logger.error(traceback.format_exc())
         del db['viewed'][ID]
+
 
 
 def prevent_busy(item):
