@@ -984,7 +984,7 @@ if PY3:
 
             logger.info("Updating the Item's information with the gathered ones")
             item.media_url = media_url
-            item.title += (f' {videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] if videoquality_info["bit_rate"] != 0 else "unknown"}')
+            item.title += (f' {videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] + " kb/s" if videoquality_info["bit_rate"] != 0 else "unknown"}')
             item.quality = videoquality_info["resolution_label"]
             item.resolution = videoquality_info["resolution"]
             item.bitrate = videoquality_info["bit_rate"]
@@ -1022,7 +1022,7 @@ if PY3:
                     url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
                     if not url_exists:
                         logger.debug(url_error)
-                        item = find_obfuscated_url(item)  # Let's try another way before giving up
+                        item.url = find_obfuscated_url(item).url  # Let's try another way before giving up
                         url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
 
                     if url_exists:
@@ -1040,7 +1040,7 @@ if PY3:
                             path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
                             video_quality_info = extract_video_info(path_to_chunck)
                             item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
-                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate + " kb/s"}\n --------')
                         except Exception:
                             import traceback
                             logger.error(traceback.format_exc())
