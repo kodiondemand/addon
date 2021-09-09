@@ -1801,6 +1801,7 @@ def get_played_time(item):
         if type(result) == dict:
             result = db['viewed'].get(ID, {}).get('{}x{}'.format(s, e), 0)
         played_time = result
+
     except:
         import traceback
         logger.error(traceback.format_exc())
@@ -1826,12 +1827,13 @@ def set_played_time(item):
     e = item.infoLabels.get('episode')
 
     try:
-        if item.contentType == 'movie':
-            db['viewed'][ID] = played_time
-        elif e:
+        if e:
             newDict = db['viewed'].get(ID, {})
             newDict['{}x{}'.format(s, e)] = played_time
             db['viewed'][ID] = newDict
+        else:
+            db['viewed'][ID] = played_time
+
     except:
         import traceback
         logger.error(traceback.format_exc())
