@@ -933,8 +933,8 @@ if PY3:
             elif videoinfo["width"] <= resolutions["4k_width"]:
                 info_dict["resolution_label"] = "4K"
             
-            info_dict["resolution"] = (f'{videoinfo["width"]} x {videoinfo["height"]}')
-            info_dict["bit_rate"] = float(videoinfo.get("other_bit_rate", 0)[0].split(" ")[0]) if videoinfo.get("other_bit_rate", 0) != 0 else videoinfo.get("other_bit_rate", 0)
+            info_dict["resolution"] = (videoinfo["width"], videoinfo["height"])
+            info_dict["bit_rate"] = float(videoinfo.get("other_bit_rate")[0].split(" ")[0]) if videoinfo.get("other_bit_rate", 0) != 0 else 0
 
             os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
 
@@ -961,9 +961,9 @@ if PY3:
                 logger.debug("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
 
             item.media_url = media_url
-            item.title += f"{' [m3u8]' if 'm3u8' in media_url else ''} ... x ..., Bit Rate: unknown"
+            item.title += f"{' [B][COLOR 0xFF65B3DA][m3u8][/COLOR][/B]' if 'm3u8' in media_url else ''}  [COLOR 0xFF999999]... x ...,  Bit Rate: unknown[/COLOR]"
             # i won't set alternative values for the "item.quality" parameter
-            # i won't set alternative values for the "item.resolution" parameter
+            item.resolution = (0, 0)
             item.bitrate = 0
             return item
         
@@ -984,7 +984,7 @@ if PY3:
 
             logger.info("Updating the Item's information with the gathered ones")
             item.media_url = media_url
-            item.title += (f' {videoquality_info["resolution_label"]}, {videoquality_info["resolution"]}, Bit Rate: {videoquality_info["bit_rate"] + " kb/s" if videoquality_info["bit_rate"] != 0 else "unknown"}')
+            item.title += (f' [COLOR 0xFF999999]{videoquality_info["resolution_label"]},  {videoquality_info["resolution"][0]} x {videoquality_info["resolution"][1]},  Bit Rate: {str(videoquality_info["bit_rate"]) + " kb/s" if videoquality_info["bit_rate"] != 0 else "unknown"}[/COLOR]')
             item.quality = videoquality_info["resolution_label"]
             item.resolution = videoquality_info["resolution"]
             item.bitrate = videoquality_info["bit_rate"]
@@ -1012,7 +1012,7 @@ if PY3:
                 if len(itemlist) > 0 and isinstance(itemlist[0], Item):
                     item = itemlist[0]
 
-            return item
+            return item.url
 
         if isinstance(video_itemlist, list):
             logger.info("Parsing the provided 'video_itemlist'")
@@ -1020,9 +1020,9 @@ if PY3:
                 logger.debug(f'Parsing the item n°: {number}')
                 if item.action == "play":
                     url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
-                    if not url_exists:
+                    if not url_exists:  # if we encountered some errors
                         logger.debug(url_error)
-                        item.url = find_obfuscated_url(item).url  # Let's try another way before giving up
+                        item.url = find_obfuscated_url(item)  # Let's try a different way before giving up
                         url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
 
                     if url_exists:
@@ -1040,7 +1040,7 @@ if PY3:
                             path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
                             video_quality_info = extract_video_info(path_to_chunck)
                             item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
-                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate + " kb/s"}\n --------')
+                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
                         except Exception:
                             import traceback
                             logger.error(traceback.format_exc())
