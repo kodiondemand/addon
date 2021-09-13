@@ -147,9 +147,11 @@ def peliculas(item):
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
     else:
-        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-        data = "\n".join(json['data'])
-
+        page = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True)
+        if page.json:
+            data = "\n".join(page.json['data'])
+        else:
+            data = page.data
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
     if json.get('have_next'):
