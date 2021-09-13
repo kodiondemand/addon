@@ -136,7 +136,7 @@ def newest(categoria):
         item = Item(url=host + '/aggiornamenti-serie-tv')
         data = support.match(item).data.replace('<u>','').replace('</u>','')
         item.contentType = 'episode'
-        patronBlock = r'Aggiornamenti Giornalieri Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'
+        patronBlock = r'Aggiornamenti (?:Giornalieri )?Serie TV.*?<div class="sp-body folded">(?P<block>.*?)</div>'
         patron = r'<p>(?P<title>.*?)\((?P<year>[0-9]{4})[^\)]*\)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+) (?P<lang>[Ss][Uu][Bb].[Ii][Tt][Aa])?(?P<title2>[^<]+)?'
 
     return locals()
