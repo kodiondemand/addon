@@ -137,9 +137,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     secureProof = scrapertools.find_single_match(unpacked, """X-Secure-Proof['"]\s*,\s*['"]([^"']+)""")
     logger.debug('X-Secure-Proof=' + secureProof)
 
-    data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '') + '.m3u8', headers=[['X-Secure-Proof', secureProof]]).data
-    filetools.write(xbmc.translatePath('special://temp/hdmario.m3u8'), data, 'w')
+    data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', ''), headers=[['X-Secure-Proof', secureProof]]).data
+    filetools.write(xbmc.translatePath('special://temp/hdmario'), data, 'w')
 
-    video_urls = [['.m3u8 [HDmario]', 'special://temp/hdmario.m3u8']]
+    video_urls = [['.m3u8 [HDmario]', 'special://temp/hdmario']]
 
     return video_urls
