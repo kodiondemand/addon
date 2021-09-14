@@ -210,14 +210,14 @@ def findvideos(item):
     token = calculateToken()
 
 
-    # def videourls(res):
-    #     newurl = '{}/{}{}'.format(url, res, token)
-    #     if requests.head(newurl, headers=headers).status_code == 200:
-    #         video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
+    def videourls(res):
+        newurl = '{}/{}{}'.format(url, res, token)
+        if requests.head(newurl, headers=headers).status_code == 200:
+            video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
 
-    # with futures.ThreadPoolExecutor() as executor:
-    #     for res in ['480p', '720p', '1080p']:
-    #         executor.submit(videourls, res) 
+    with futures.ThreadPoolExecutor() as executor:
+        for res in ['480p', '720p', '1080p']:
+            executor.submit(videourls, res) 
 
     if not video_urls: video_urls = [{'type':'m3u8', 'url':url + token}]
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]

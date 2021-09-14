@@ -7,7 +7,7 @@ from platformcode.xbmc_videolibrary import execute_sql_kodi, get_data, get_file_
 from time import time, strftime, localtime
 import sqlite3
 
-conn = sqlite3.connect(get_file_db())
+# conn = sqlite3.connect(get_file_db())
 date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
 
 def save_all():
@@ -23,7 +23,7 @@ def save_all():
         item = tvshow['item']
         item.no_reload = True
         add_video(item)
-    conn.close()
+    # conn.close()
 
     reload()
 
@@ -50,6 +50,8 @@ def reload():
 
 
 def add_video(item):
+    global conn
+    conn = sqlite3.connect(get_file_db())
     progress = platformtools.dialog_progress_bg('Sincronizzazione Libreria', item.title)
     progress.update(0)
     if item.contentType == 'movie':
@@ -61,6 +63,7 @@ def add_video(item):
         addTvShow(item=item)
         logger.debug('TOTAL TIME:', time() - start)
     videolibrarydb.close()
+    conn.close()
     progress.close()
 
 
@@ -223,7 +226,7 @@ class addMovie(object):
                     get_data(payload)
                 else:
                     xbmc.executebuiltin('ReloadSkin()')
-                conn.close()
+                # conn.close()
 
     def get_id(self):
         Type = 'id' + self.item.contentType.replace('tv', '').capitalize()
@@ -433,7 +436,9 @@ class addMovie(object):
         params = []
         art_urls = []
         _id = get_id('art_id', 'art')
-        art_urls = [[u[0], u[1], u[2]] for u in execute_sql_kodi('select media_id, media_type, type from art', conn=conn)[1]]
+        arts = execute_sql_kodi('select media_id, media_type, type from art', conn=conn)[1]
+        if arts:
+            art_urls = [[u[0], u[1], u[2]] for u in arts]
         for art in self.art:
             if [art ['media_id'], art['media_type'], art['type']] not in art_urls:
                 params.append((_id, art['media_id'], art['media_type'], art['type'], art['url']))
@@ -490,7 +495,7 @@ class addTvShow(object):
                 get_data(payload)
             else:
                 xbmc.executebuiltin('ReloadSkin()')
-            conn.close()
+            # conn.close()
 
     def get_idShow(self):
         sql = 'select idShow from tvshow_view where uniqueid_value = {} and uniqueid_type = "kod"'.format(self.info['tmdb_id'])
@@ -867,7 +872,9 @@ class addTvShow(object):
         params = []
         art_urls = []
         _id = get_id('art_id', 'art')
-        art_urls = [[u[0], u[1], u[2]] for u in execute_sql_kodi('select media_id, media_type, type from art', conn=conn)[1]]
+        arts = execute_sql_kodi('select media_id, media_type, type from art', conn=conn)[1]
+        if arts:
+            art_urls = [[u[0], u[1], u[2]] for u in arts]
         for art in self.art:
             if [art['media_id'], art['media_type'], art['type']] not in art_urls:
                 params.append((_id, art['media_id'], art['media_type'], art['type'], art['url']))

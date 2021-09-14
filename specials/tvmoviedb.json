@@ -30,7 +30,7 @@
       ]
     },
     {
-      "id": "tmdb_alternativo",
+      "id": "tmdbfallback",
       "type": "list",
       "label": "@70426",
       "default": 6,

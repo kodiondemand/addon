@@ -365,18 +365,18 @@ def render_items(itemlist, parent_item):
 
         icon_image = "DefaultFolder.png" if item.folder else "DefaultVideo.png"
 
-        title = item.title
+        title = item.title if item.title else item.contentTitle
         episode = ''
 
         if title[:1] not in ['[', '•']:
-            if item.contentTitle: title = item.contentTitle
-            elif item.contentSerieName: title = item.contentSerieName
+            # if item.contentTitle: title = item.contentTitle
+            # elif item.contentSerieName: title = item.contentSerieName
             if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
                 episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
             elif type(item.contentEpisodeNumber) == int:
                 episode = '{:02d}'.format(item.contentEpisodeNumber)
             if episode and item.episode2:
-                if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(e) for e in item.episode2))
+                if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(int(e)) for e in item.episode2))
                 else: episode = '{} -> {:02d}'.format(episode, item.episode2[-1])
             if episode: title = '{}. {}'.format(episode, title)
             if item.title2: title = '{} - {}'.format(title, item.title2)
@@ -481,23 +481,24 @@ def render_items(itemlist, parent_item):
 
 
 def viewmodeMonitor():
-    try:
-        currentModeName = xbmc.getInfoLabel('Container.Viewmode')
-        win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-        currentMode = int(win.getFocusId())
-        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
-            content, Type = getCurrentView()
-            if content:
-                defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
-                if currentMode != defaultMode:
-                    logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                    config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
-                    dialog_notification(config.get_localized_string(70153),
-                                        config.get_localized_string(70187) % (content, currentModeName),
-                                        sound=False)
-    except:
-        import traceback
-        logger.error(traceback.print_exc())
+    if get_window() == 'WINDOW_VIDEO_NAV':
+        try:
+            currentModeName = xbmc.getInfoLabel('Container.Viewmode')
+            win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+            currentMode = int(win.getFocusId())
+            if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
+                content, Type = getCurrentView()
+                if content:
+                    defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
+                    if currentMode != defaultMode:
+                        logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
+                        config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                        dialog_notification(config.get_localized_string(70153),
+                                            config.get_localized_string(70187) % (content, currentModeName),
+                                            sound=False)
+        except:
+            import traceback
+            logger.error(traceback.print_exc())
 
 
 def getCurrentView(item=None, parent_item=None):
@@ -1884,7 +1885,7 @@ def serverwindow(item, itemlist):
                         title = self.item.contentTitle
 
                     it.setProperties({'name': title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
-                    it.setArt({'poster':self.item.contentThumbnail, 'thumb':videoitem.thumbnail,  'fanart':item.fanart})
+                    it.setArt({'poster':self.item.contentThumbnail if self.item.contentThumbnail else self.item.thumbnail, 'thumb':videoitem.thumbnail,  'fanart':videoitem.fanart})
                     self.servers.append(it)
             self.doModal()
             return self.selection

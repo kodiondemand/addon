@@ -26,7 +26,7 @@ def getmainlist(view="thumb_"):
     if addon.getSetting('enable_search_menu') == "true":
         itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
                              thumbnail=thumb("search"), category=config.get_localized_string(30119), viewmode="list",
-                             context = [{"title": config.get_localized_string(60412), "action": "setting_channel_new", "channel": "search"},
+                             context = [{"title": config.get_localized_string(60412), "action": "channels_selections", "channel": "search"},
                                        {"title": config.get_localized_string(70286), "channel": "shortcuts", "action": "SettingOnPosition", "category":5 , "setting":1}]))
 
     if addon.getSetting('enable_onair_menu') == "true":

@@ -92,7 +92,7 @@ class AddonMonitor(xbmc.Monitor):
             if wait > 0:
                 xbmc.sleep(wait)
             if not config.get_setting("update", "videolibrary") == 2:
-                run_threaded(check_for_update, (False,))
+                run_threaded(check_for_update, [])
             self.scheduleVideolibrary()
         super(AddonMonitor, self).__init__()
 
@@ -181,8 +181,9 @@ class AddonMonitor(xbmc.Monitor):
             logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
 
     def scheduleScreenOnJobs(self):
+        # pass
         schedule.every().second.do(platformtools.viewmodeMonitor).tag('screenOn')
-        schedule.every().second.do(torrent.elementum_monitor).tag('screenOn')
+        # schedule.every().second.do(torrent.elementum_monitor).tag('screenOn')
 
     def onDPMSActivated(self):
         logger.debug('DPMS activated, un-scheduling screen-on jobs')

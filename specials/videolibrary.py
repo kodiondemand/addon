@@ -413,7 +413,7 @@ def findvideos(item):
     if config.get_setting('autoplay'):
         itemlist = autoplay.start(itemlist, item)
     else:
-        servertools.sort_servers(itemlist)
+        itemlist = servertools.sort_servers(itemlist)
 
     if config.get_setting('checklinks') and not config.get_setting('autoplay'):
         itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))

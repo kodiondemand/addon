@@ -305,6 +305,11 @@ def get_localized_category(categ):
     return categories[categ] if categ in categories else categ
 
 
+def get_localized_language(lang):
+    languages = {'ita': 'ITA', 'sub-ita': 'Sub-ITA'}
+    return languages[lang] if lang in languages else lang
+
+
 
 def get_videolibrary_config_path():
     value = get_setting("videolibrarypath")

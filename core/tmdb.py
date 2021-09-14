@@ -1082,7 +1082,7 @@ class Tmdb(object):
 
             if total_results > 0 or self.cast:
                 if self.cast:
-                    results = result[self.cast]
+                    results = result['self.cast']
                     total_results = len(results)
                 else:
                     results = result["results"]
@@ -1685,7 +1685,7 @@ class Tmdb(object):
             elif k == 'vote_count':
                 ret_infoLabels['votes'] = v
 
-            elif k == 'poster_path':
+            elif k in ['poster_path', 'profile_path']:
                 ret_infoLabels['thumbnail'] = 'https://image.tmdb.org/t/p/original' + v
 
             elif k == 'backdrop_path':

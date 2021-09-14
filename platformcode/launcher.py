@@ -3,6 +3,7 @@
 # XBMC Launcher (xbmc / kodi)
 # ------------------------------------------------------------
 
+import platformcode
 from specials import videolibrary
 import sys, os
 
@@ -112,7 +113,8 @@ def run(item=None):
 
         elif item.channel == "infoplus":
             from platformcode import infoplus
-            return infoplus.start(item)
+            action = getattr(infoplus, item.action)
+            return action(item)
 
         elif item.channel == "backup":
             from platformcode import backup

@@ -120,9 +120,9 @@ def token_trakt(item):
 
     itemlist = []
     if token:
-        itemlist.append(item.clone(config.get_localized_string(60256), action=""))
+        itemlist.append(item.clone(title=config.get_localized_string(60256), action=""))
     else:
-        itemlist.append(item.clone(config.get_localized_string(60260), action=""))
+        itemlist.append(item.clone(title=config.get_localized_string(60260), action=""))
 
     return itemlist
 

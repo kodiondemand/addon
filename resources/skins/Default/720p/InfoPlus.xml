@@ -399,18 +399,18 @@
                     <control type='label'>
                         <description>Name</description>
                         <top>20</top>
-                        <right>50</right>
+                        <right>15</right>
                         <width>40</width>
                         <height>30</height>
                         <font>font13</font>
                         <scroll>true</scroll>
-                        <textcolor>ffFFFFFF</textcolor>
+                        <textcolor>Container(102).ListItem.Property(color)</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[Container(102).ListItem.Rating][/B]</label>
                         <align>right</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='image'>
+                    <!-- <control type='image'>
                         <description>Rating Circle</description>
                         <top>20</top>
                         <right>15</right>
@@ -418,7 +418,7 @@
                         <height>30</height>
                         <texture colordiffuse='$INFO[Container(102).ListItem.Property(color)]'>Circular/$INFO[Container(102).ListItem.Property(rating)].png</texture>
                         <aspectratio aligny='center'>keep</aspectratio>
-                    </control>
+                    </control> -->
                     <control type='textbox'>
                         <description>Plot</description>
                         <top>60</top>

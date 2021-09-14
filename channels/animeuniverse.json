@@ -5,7 +5,7 @@
     "language": ["ita", "sub-ita"],
     "thumbnail": "animeuniverse.png",
     "banner": "animeuniverse.png",
-    "categories": ["anime", "sub-ita"],
+    "categories": ["anime", "sub"],
     "default_off": ["include_in_newest"],
     "settings": [
         {

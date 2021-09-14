@@ -146,7 +146,7 @@ class InfoPlus(xbmcgui.WindowXML):
             back(self)
         elif action in [UP, DOWN, LEFT, RIGHT] and focus not in [LIST, CAST, RECOMANDED, TRAILERS, FANARTS, SEARCH, BACK, CLOSE]:
             self.setFocusId(LIST)
-        if focus > 0:
+        if focus > 0 and focus not in [SEARCH, BACK, CLOSE]:
             self.item.setFocus = focus
             self.item.focus[focus] = self.getControl(focus).getSelectedPosition()
 
@@ -155,13 +155,13 @@ class InfoPlus(xbmcgui.WindowXML):
         global info_list
 
         if control in [SEARCH]:
-            from specials.globalsearch import Search
+            from specials.globalsearch import new_search
             if self.item.contentType == 'episode':
-                self.item.mode = 'tvshow'
+                self.item.contentType = 'tvshow'
                 self.item.text = self.item.contentSerieName
-            else:
-                self.item.mode = self.item.contentType
-            Search(self.item)
+            self.item.mode = 'all'
+            self.item.type = self.item.contentType
+            new_search(self.item)
 
         elif control in [CLOSE]:
             self.close()
@@ -281,7 +281,7 @@ class CastWindow(xbmcgui.WindowXML):
         place = info.get('place_of_birth')
         self.castitem = xbmcgui.ListItem(info.get('name'))
         birth = born + (' - ' + dead if dead else '') + ('   [B]•[/B]   ' + place if place else '')
-        self.castitem.setArt({'poster':self.item.poster})
+        self.castitem.setArt({'poster':self.item.poster if self.item.poster else self.item.infoLabels.get('thumbnail', '')})
         self.castitem.setProperties({'birth':birth, 'plot':biography})
 
     def onInit(self):

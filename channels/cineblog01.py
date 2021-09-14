@@ -76,7 +76,8 @@ def newest(categoria):
 
 
 def search(item, text):
-    logger.info("search", text)
+
+    logger.info("search", item, text)
     if item.contentType == 'tvshow': item.url = host + '/serietv'
     else: item.url = host
     try:
@@ -160,19 +161,21 @@ def episodios(item):
         return locals()
 
     data = support.match(item.url, headers=headers).data
-    itemlist = listed(item, data)
+    # itemlist = listed(item, data)
+    itemlist = []
     if not item.itemlist:
         itemlist.extend(folder(item, data) if 'TUTTE LE' in data or 'TUTTA LA' in data else [])
 
     itemDict = {'ITA':{}, 'Sub-ITA':{}}
     seasons = []
-
+    # support.dbg()
     for it in itemlist:
         if it.contentSeason and it.contentSeason not in seasons:
             seasons.append(it.contentSeason)
             itemDict['ITA'][it.contentSeason] = []
             itemDict['Sub-ITA'][it.contentSeason] = []
         if it.contentSeason:
+            if not it.contentLanguage: it.contentLanguage = 'ITA'
             itemDict[it.contentLanguage][it.contentSeason].append(it)
 
 

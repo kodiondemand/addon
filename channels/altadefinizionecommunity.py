@@ -130,6 +130,7 @@ def registerOrLogin():
 @support.scrape
 def peliculas(item):
     json = {}
+    # debug=True
 
     if item.contentType == 'undefined':
         # tmdbEnabled = False
@@ -149,7 +150,7 @@ def peliculas(item):
     else:
         json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
         data = "\n".join(json['data'])
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>(?P<rating>[^<]+)</span>\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)(?:[^>]+>){1,2}\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>(?P<rating>[^<]+)</span>\s*<span class="qual">(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumbnail>[^"]+)(?:[^>]+>){1,6}\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
     logger.debug('JSON FIND',jsontools.load(json))

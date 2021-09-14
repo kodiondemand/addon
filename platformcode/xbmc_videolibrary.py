@@ -32,6 +32,7 @@ def mark_auto_as_watched(item):
         sync = False
         next_episode = None
         show_server = True
+        mark_time = 100
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
@@ -47,9 +48,9 @@ def mark_auto_as_watched(item):
         while not xbmc.Monitor().abortRequested():
             if not platformtools.is_playing(): break
             try: actual_time = xbmc.Player().getTime()
-            except: pass
+            except: actual_time = 0
             try: total_time = xbmc.Player().getTotalTime()
-            except: pass
+            except: total_time = 0
             if item.played_time and xbmcgui.getCurrentWindowId() == 12005:
                 xbmc.Player().seekTime(item.played_time)
                 item.played_time = 0 # Fix for Slow Devices
@@ -262,7 +263,6 @@ def mark_content_as_watched_on_kodi(item, value=1):
     logger.debug()
 
     if item.contentType == 'movie':
-        conn = sqlite3.connect(get_file_db())
         path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
         sql = 'select idMovie from movie_view where strPath like "{}"'.format(path)
 
@@ -270,7 +270,15 @@ def mark_content_as_watched_on_kodi(item, value=1):
         if r:
             payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": r[0][0], "playcount": value}, "id": 1}
             data = get_data(payload)
+    elif item.contentType == 'episode':
+        from core.support import dbg;dbg()
+        path = '%{}'.format(item.strm_path.replace('\\','%').replace('/', '%'))
+        sql = 'select idEpisode from episode_view where c18 like "{}"'.format(path)
 
+        n, r = execute_sql_kodi(sql)
+        if r:
+            payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetEpisodeDetails", "params": {"episodeid": r[0][0], "playcount": value}, "id": 1}
+            data = get_data(payload)
     else:
         nun_records, records = execute_sql_kodi('SELECT idShow FROM tvshow_view WHERE uniqueid_value LIKE "{}"'.format(item.videolibrary_id))
         # delete TV show
@@ -286,7 +294,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
             payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveTVShow", "id": 1, "params": {"tvshowid": tvshowid}}
             data = get_data(payload)
 
-    from platformcode.dbconverter import add_video;add_video(item)
+        from platformcode.dbconverter import add_video;add_video(item)
 
 
 def set_watched_on_kod(data):

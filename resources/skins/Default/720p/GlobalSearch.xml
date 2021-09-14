@@ -12,7 +12,6 @@
         <control type='group' id="2"/>
         <control type='group' id="3"/>
         <control type='group' id="4"/>
-        <control type='group' id="5"/>
 
         <control type="image"> <!-- BACKGROUND -->
             <description>Window Background</description>
@@ -38,6 +37,7 @@
                 <height>100%</height>
                 <aspectratio>scale</aspectratio>
                 <texture colordiffuse="FF555555">$INFO[Container(102).ListItem.Art(fanart)]</texture>
+                <visible>!String.IsEmpty(Container(102).ListItem.Art(fanart))</visible>
             </control>
 
 
@@ -154,6 +154,18 @@
                         <control type='group'>
                             <description>Video Info</description>
                             <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
+                            <animation type="Visible" reversible="false">
+                                <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                                <effect type="fade" delay="160" start="0" end="100" time="200" />
+                            </animation>
+                            <animation type="Hidden" reversible="false">
+                                <effect type="slide" start="0,0" end="100,0" time="200" />
+                                <effect type="fade" start="100" end="0" time="200" />
+                            </animation>
+                            <animation type="WindowClose" reversible="false">
+                                <effect type="slide" start="0,0" end="100,0" time="200" />
+                                <effect type="fade" start="100" end="0" time="200" />
+                            </animation>
                             <top>80</top>
                             <height>120</height>
                             <width>840</width>
@@ -254,6 +266,11 @@
                     </control>
 
                     <control type="fixedlist" id="102">
+                        <animation effect="slide" start="0,100" time="200" condition="Integer.IsGreater(Container(102).NumItems, 0)">Conditional</animation>
+                        <animation effect="fade" start="0" time="200" condition="Integer.IsGreater(Container(102).NumItems, 0)">Conditional</animation>
+                        <animation effect="slide" end="0,100" time="200">WindowClose</animation>
+                        <animation effect="fade" time="100">WindowClose</animation>
+
                         <description>Search Results list</description>
                         <bottom>70</bottom>
                         <left>0</left>
@@ -285,6 +302,7 @@
                                     <texture>$INFO[ListItem.Property(channelthumb)]</texture>
                                     <bordersize>10</bordersize>
                                     <aspectratio>scale</aspectratio>
+                                    <visible>!String.IsEmpty(ListItem.Property(verified))</visible>
                                 </control>
                                 <control type="image">
                                     <description>Item Poster</description>
@@ -478,6 +496,15 @@
 
                 <control type="image">
                     <description>Poster</description>
+                    <visible>Control.IsVisible(2)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="-100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="-100,0" time="200" />
+                        <effect type="fade" start="100" end="" time="200" />
+                    </animation>
                     <top>0</top>
                     <left>0</left>
                     <width>480</width>
@@ -487,6 +514,15 @@
 
                 <control type="textbox">
                     <description>Main Title</description>
+                    <visible>Control.IsVisible(2)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="100,0" time="200" />
+                        <effect type="fade" start="100" end="0" time="200" />
+                    </animation>
                     <left>520</left>
                     <top>40</top>
                     <width>1150</width>
@@ -501,6 +537,15 @@
 
                 <control type="list" id="200"> <!-- Episodes List -->
                     <description>Episodes List</description>
+                    <visible>Control.IsVisible(2)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="100,0" time="200" />
+                        <effect type="fade" start="100" end="0" time="200" />
+                    </animation>
                     <top>110</top>
                     <left>520</left>
                     <width>700</width>
@@ -555,6 +600,15 @@
                 <visible>Control.IsVisible(3)</visible>
 
                 <control type="image">
+                    <visible>Control.IsVisible(3)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="-100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="-100,0" time="200" />
+                        <effect type="fade" start="100" end="" time="200" />
+                    </animation>
                     <description>Poster</description>
                     <top>0</top>
                     <left>0</left>
@@ -564,6 +618,16 @@
                 </control>
 
                 <control type="textbox">
+                    <visible>Control.IsVisible(3)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="100,0" time="200" />
+                        <effect type="fade" start="100" end="0" time="200" />
+                    </animation>
+                    <visible>Control.IsVisible(3)</visible>
                     <description>Main Title</description>
                     <left>520</left>
                     <top>40</top>
@@ -578,6 +642,15 @@
                 </control>
 
                 <control type="list" id="300"> <!-- Servers List -->
+                    <visible>Control.IsVisible(3)</visible>
+                    <animation type="Visible" reversible="false">
+                        <effect type="slide" delay="160" start="100,0" end="0,0" time="200" />
+                        <effect type="fade" delay="160" start="0" end="100" time="200" />
+                    </animation>
+                    <animation type="Hidden" reversible="false">
+                        <effect type="slide" start="0,0" end="100,0" time="200" />
+                        <effect type="fade" start="100" end="0" time="200" />
+                    </animation>
                     <description>Servers List</description>
                     <bottom>40</bottom>
                     <left>520</left>
@@ -596,58 +669,31 @@
                             <texture>$INFO[ListItem.Art(poster)]</texture>
                             <aspectratio>scale</aspectratio>
                         </control>
-                        <control type="group">
-                            <visible>ListItem.Property(quality)</visible>
-                            <control type="image">
-                                <description>Servers Quality</description>
-                                <top>35</top>
-                                <left>150</left>
-                                <width>60</width>
-                                <height>60</height>
-                                <texture>$INFO[ListItem.Property(quality)]</texture>
-                                <aspectratio>scale</aspectratio>
-                            </control>
-                            <control type="textbox">
-                                <description>Server Title</description>
-                                <left>220</left>
-                                <top>35</top>
-                                <width>450</width>
-                                <height>60</height>
-                                <font>font13</font>
-                                <textcolor>FFFFFFFF</textcolor>
-                                <shadowcolor>00000000</shadowcolor>
-                                <align>left</align>
-                                <aligny>center</aligny>
-                                <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
-                            </control>
-                        </control>
                         <control type="textbox">
-                            <visible>!ListItem.Property(quality)</visible>
                             <description>Server Title</description>
                             <left>150</left>
-                            <top>35</top>
+                            <top>30</top>
                             <width>450</width>
-                            <height>60</height>
+                            <height>30</height>
                             <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
                             <aligny>center</aligny>
-                            <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
+                            <label>[B]$INFO[ListItem.Label][/B]</label>
                         </control>
                         <control type="textbox">
-                            <description>No Server Title</description>
+                            <description>Channel</description>
                             <left>150</left>
-                            <top>35</top>
+                            <top>60</top>
                             <width>450</width>
-                            <height>60</height>
+                            <height>30</height>
                             <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
                             <aligny>center</aligny>
-                            <label>$INFO[ListItem.Label]</label>
-                            <visible>!ListItem.Property(servername)</visible>
+                            <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
                         </control>
                     </itemlayout>
                     <focusedlayout height="140" width="700">
@@ -664,10 +710,8 @@
                             <left>0</left>
                             <width>130</width>
                             <height>130</height>
-                            <visible>Control.HasFocus(300)</visible>
                             <texture colordiffuse="$INFO[ListItem.Property(color)]">white.png</texture>
                             <aspectratio>scale</aspectratio>
-                            <visible>ListItem.Property(servername)</visible>
                         </control>
                         <control type="image">
                             <description>Servers Icon</description>
@@ -678,58 +722,31 @@
                             <texture>$INFO[ListItem.Art(poster)]</texture>
                             <aspectratio>scale</aspectratio>
                         </control>
-                        <control type="group">
-                            <visible>ListItem.Property(quality)</visible>
-                            <control type="image">
-                                <description>Servers Quality</description>
-                                <top>35</top>
-                                <left>150</left>
-                                <width>60</width>
-                                <height>60</height>
-                                <texture>$INFO[ListItem.Property(quality)]</texture>
-                                <aspectratio>scale</aspectratio>
-                            </control>
-                            <control type="textbox">
-                                <description>Server Title</description>
-                                <left>220</left>
-                                <top>35</top>
-                                <width>450</width>
-                                <height>60</height>
-                                <font>font13</font>
-                                <textcolor>FFFFFFFF</textcolor>
-                                <shadowcolor>00000000</shadowcolor>
-                                <align>left</align>
-                                <aligny>center</aligny>
-                                <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
-                            </control>
-                        </control>
                         <control type="textbox">
-                            <visible>!ListItem.Property(quality)</visible>
                             <description>Server Title</description>
                             <left>150</left>
-                            <top>35</top>
+                            <top>30</top>
                             <width>450</width>
-                            <height>60</height>
+                            <height>30</height>
                             <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
                             <aligny>center</aligny>
-                            <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(servername)][/COLOR][/B]</label>
+                            <label>[B]$INFO[ListItem.Label][/B]</label>
                         </control>
                         <control type="textbox">
-                            <description>No Server Title</description>
+                            <description>Channel</description>
                             <left>150</left>
-                            <top>35</top>
+                            <top>60</top>
                             <width>450</width>
-                            <height>60</height>
+                            <height>30</height>
                             <font>font13</font>
                             <textcolor>FFFFFFFF</textcolor>
                             <shadowcolor>00000000</shadowcolor>
                             <align>left</align>
                             <aligny>center</aligny>
-                            <label>$INFO[ListItem.Label]</label>
-                            <visible>!ListItem.Property(servername)</visible>
+                            <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
                         </control>
                     </focusedlayout>
                 </control> <!-- END Servers List -->
@@ -781,60 +798,52 @@
             <visible>Control.IsVisible(4)</visible>
         </control>
 
-        <control type="textbox">
-            <description>Load Channels</description>
-            <top>300</top>
-            <left>0</left>
-            <width>100%</width>
-            <height>40</height>
-            <font>font13</font>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>00000000</shadowcolor>
-            <align>center</align>
-            <aligny>center</aligny>
-            <label>[UPPERCASE]$ADDON[plugin.video.kod 60519][/UPPERCASE]</label>
-            <visible>Control.IsVisible(5)</visible>
-        </control>
-
-        <control type="button" id="502">
-            <description>Menu</description>
-            <top>30</top>
-            <right>110</right>
-            <height>40</height>
-            <width>40</width>
-            <onleft>504</onleft>
-            <onright>503</onright>
-            <texturefocus colordiffuse="FFFFFFFF">menu.png</texturefocus>
-            <texturenofocus colordiffuse="80FFFFFF">menu.png</texturenofocus>
-            <visible>Integer.IsGreater(Container(101).NumItems, 0)</visible>
-        </control>
-
-        <control type="button" id="503">
-            <description>Back</description>
-            <top>30</top>
-            <right>70</right>
-            <height>40</height>
-            <width>40</width>
-            <onleft>502</onleft>
-            <onright>504</onright>
-            <texturefocus colordiffuse="FFFFFFFF">left.png</texturefocus>
-            <texturenofocus colordiffuse="80FFFFFF">left.png</texturenofocus>
-        </control>
-
-        <control type="button" id="504">
-            <description>Close</description>
+        <control type="group">
+            <description>Buttons Group</description>
             <top>30</top>
             <right>30</right>
+            <width>150</width>
             <height>40</height>
-            <width>40</width>
-            <onleft>503</onleft>
-            <onright>502</onright>
-            <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
-            <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+            <control type="button" id="502">
+                <description>Menu</description>
+                <top>0</top>
+                <right>80</right>
+                <height>40</height>
+                <width>40</width>
+                <onleft>504</onleft>
+                <onright>503</onright>
+                <texturefocus colordiffuse="FFFFFFFF">menu.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">menu.png</texturenofocus>
+                <visible>Integer.IsGreater(Container(101).NumItems, 0)</visible>
+            </control>
+
+            <control type="button" id="503">
+                <description>Back</description>
+                <top>0</top>
+                <right>40</right>
+                <height>40</height>
+                <width>40</width>
+                <onleft>502</onleft>
+                <onright>504</onright>
+                <texturefocus colordiffuse="FFFFFFFF">left.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">left.png</texturenofocus>
+            </control>
+
+            <control type="button" id="504">
+                <description>Close</description>
+                <top>0</top>
+                <right>0</right>
+                <height>40</height>
+                <width>40</width>
+                <onleft>503</onleft>
+                <onright>502</onright>
+                <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+            </control>
         </control>
 
         <control type="textbox" id="505">
-            <description>Load Channels</description>
+            <description>Quality Tag</description>
             <top>670</top>
             <right>20</right>
             <width>200</width>

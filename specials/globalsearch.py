@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from logging import Logger
 import threading
 from core import jsontools, support
 
@@ -30,7 +31,7 @@ def set_workers():
     workers = config.get_setting('thread_number') if config.get_setting('thread_number') > 0 else None
     return workers
 
-def Search(*args):
+def new_search(*args):
     xbmc.executebuiltin('Dialog.Close(all)')
     w = SearchWindow('GlobalSearch.xml', config.get_runtime_path())
     w.start(*args)
@@ -54,7 +55,6 @@ SEARCH = 1
 EPISODES = 2
 SERVERS = 3
 NORESULTS = 4
-LOADING = 5
 
 # Search
 MAINTITLE = 100
@@ -79,7 +79,6 @@ class SearchWindow(xbmcgui.WindowXML):
 
         self.exit = False
         self.item = item
-        self.type = self.item.mode
         self.channels = []
         self.persons = []
         self.episodes = []
@@ -95,7 +94,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.search_threads = []
         self.reload = False
 
-        if not thActions:
+        if not thActions and not self.searchActions:
             self.thActions = Thread(target=self.getActionsThread)
             self.thActions.start()
         else:
@@ -126,15 +125,15 @@ class SearchWindow(xbmcgui.WindowXML):
     def getActionsThread(self):
         logger.debug()
         self.channelsList = self.get_channels()
+
         for channel in self.channelsList:
             logger.debug(channel)
             try:
                 module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
                 mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
-                action = [elem for elem in mainlist if elem.action == "search" and (
-                            self.item.mode in ['all', 'person'] or elem.contentType in [self.item.mode, 'undefined'])]
+                actions = [elem for elem in mainlist if elem.action == "search" and (self.item.mode in ['all', 'person'] or elem.contentType in [self.item.mode, 'undefined'])]
                 self.moduleDict[channel] = module
-                self.searchActions += action
+                self.searchActions.append(actions)
             except:
                 import traceback
                 logger.error('error importing/getting search items of ' + channel)
@@ -147,19 +146,20 @@ class SearchWindow(xbmcgui.WindowXML):
 
         # wait and return as getActionsThread load
         lastLen = len(self.searchActions)
-        while self.thActions.is_alive():
-            while len(self.searchActions) == lastLen:
-                if not self.thActions.is_alive():
-                    return
-                time.sleep(0.1)
-            yield self.searchActions[lastLen-1]
-            lastLen = len(self.searchActions)
+        if self.thActions:
+            while self.thActions.is_alive():
+                while len(self.searchActions) == lastLen:
+                    if not self.thActions.is_alive():
+                        return
+                    time.sleep(0.1)
+                yield self.searchActions[lastLen-1]
+                lastLen = len(self.searchActions)
 
     def select(self):
         logger.debug()
         self.PROGRESS.setVisible(False)
         self.items = []
-        if self.item.mode == 'person_':
+        if self.item.mode == 'filmography':
             tmdb_info = tmdb.discovery(self.item, dict_=self.item.discovery)
             results = tmdb_info.results.get('cast',[])
         else:
@@ -255,12 +255,12 @@ class SearchWindow(xbmcgui.WindowXML):
             discovery = {'url': 'person/%s/combined_credits' % cast_id, 'page': '1', 'sort_by': 'primary_release_date.desc', 'language': def_lang}
             self.persons.append(discovery)
 
-            new_item = Item(channel='search',
+            new_item = Item(channel='globalsearch',
                             action=True,
                             title=name,
                             thumbnail=thumb,
                             plot= plot,
-                            mode='search')
+                            mode='search_filmography')
 
             it = xbmcgui.ListItem(name)
             platformtools.set_infolabels(it, new_item)
@@ -306,7 +306,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 n = list_cat.index('anime')
                 list_cat[n] = 'tvshow'
 
-            if self.item.mode in ['all', 'person'] or self.item.mode in list_cat or self.item.type in list_cat:
+            if self.item.mode in ['all', 'person'] or self.item.mode in list_cat:
                 if config.get_setting("include_in_global_search", channel) and ch_param.get("active", False):
                     channels_list.append(channel)
 
@@ -315,7 +315,7 @@ class SearchWindow(xbmcgui.WindowXML):
         return channels_list
 
     def timer(self):
-        while self.searchActions or self.thActions.is_alive():
+        while self.searchActions or (self.thActions and self.thActions.is_alive()):
             if self.exit: return
             try:
                 percent = (float(self.count) / len(self.searchActions)) * 100
@@ -323,28 +323,27 @@ class SearchWindow(xbmcgui.WindowXML):
                 percent = 0
             self.PROGRESS.setPercent(percent)
             self.MAINTITLE.setText('{} | {}/{} [{}"]'.format(self.mainTitle,self.count, len(self.searchActions), int(time.time() - self.time)))
-            # self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
+
             if percent == 100:
+                if len(self.channels) == 1:
+                    self.setFocusId(RESULTS)
+                elif not self.results:
+                    self.PROGRESS.setVisible(False)
+                    self.NORESULTS.setVisible(True)
+                    self.setFocusId(CLOSE)
                 self.channels = []
                 self.moduleDict = {}
                 self.searchActions = []
 
-                # if no results
-                total = 0
-                for num in self.results.values():
-                    total += num
-                if not total:
-                    self.PROGRESS.setVisible(False)
-                    self.NORESULTS.setVisible(True)
-                    self.setFocusId(CLOSE)
             time.sleep(1)
 
     def search(self):
         logger.debug()
         self.count = 0
-        self.LOADING.setVisible(True)
         Thread(target=self.timer).start()
 
+        # for searchAction in self.getActions():
+        #     self.search_threads.append(self.get_channel_results(searchAction))
         try:
             with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
                 for searchAction in self.getActions():
@@ -357,10 +356,13 @@ class SearchWindow(xbmcgui.WindowXML):
 
     def get_channel_results(self, searchAction):
         def channel_search(text):
-            logger.debug('Search on channel:', channel)
+            results = []
             valid = []
             other = []
-            results = self.moduleDict[channel].search(searchAction, text)
+
+            for a in searchAction:
+                logger.debug('Search on channel:', a.channel)
+                results.extend(self.moduleDict[a.channel].search(a, text))
             if len(results) == 1:
                 if not results[0].action or results[0].nextPage:
                     results = []
@@ -368,7 +370,7 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.item.mode != 'all':
                 for elem in results:
                     if elem.infoLabels.get('tmdb_id') == self.item.infoLabels.get('tmdb_id'):
-                        elem.from_channel = channel
+                        elem.from_channel = elem.channel
                         elem.verified = 1
                         valid.append(elem)
                     else:
@@ -376,10 +378,10 @@ class SearchWindow(xbmcgui.WindowXML):
             return results, valid, other
 
         logger.debug()
-        channel = searchAction.channel
         results = []
         valid = []
         other = []
+
 
         try:
             results, valid, other = channel_search(self.item.text)
@@ -388,12 +390,12 @@ class SearchWindow(xbmcgui.WindowXML):
             # to add year to search text for better filtering
             if self.item.contentType == 'movie' and not valid and other and other[-1].nextPage \
                     and self.item.infoLabels['year']:
-                logger.debug('retring adding year on channel ' + channel)
+                logger.debug('retring adding year on channel ')
                 dummy, valid, dummy = channel_search(self.item.text + " " + str(self.item.infoLabels['year']))
 
             # some channels may use original title
             if self.item.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
-                logger.debug('retring with original title on channel ' + channel)
+                logger.debug('retring with original title on channel ')
                 dummy, valid, dummy = channel_search(self.item.infoLabels.get('originaltitle'))
         except:
             import traceback
@@ -401,10 +403,11 @@ class SearchWindow(xbmcgui.WindowXML):
 
         if self.exit:
             return
+
         update_lock.acquire()
         self.count += 1
-        logger.debug('Results:', channel, results, valid, other)
-        self.update(channel, valid, other if other else results)
+
+        self.update(valid, other if other else results)
         update_lock.release()
 
     def makeItem(self, item):
@@ -429,16 +432,19 @@ class SearchWindow(xbmcgui.WindowXML):
         it.setProperties({'rating': str(int(info.get('rating',10) * 10)), 'color': color,
                           'item': item.tourl(), 'verified': item.verified, 'channel':channelParams['title'], 'channelthumb': channelParams['thumbnail'], 'sub':'true' if 'sub' in item.contentLanguage.lower() else ''})
         if item.server:
+            servername = servertools.get_server_parameters(item.server.lower()).get('name', item.server)
+            if item. quality: servername ='{} [{}]'.format(servername, item.quality)
+            it.setLabel(servername)
             color = scrapertools.find_single_match(item.alive, r'(FF[^\]]+)')
             it.setArt({'poster': config.get_online_server_thumb(item.server)})
-            it.setProperties({'channel': channeltools.get_channel_parameters(item.channel).get('title', ''),
-                              'servername': servertools.get_server_parameters(item.server.lower()).get('name', item.server),
+
+            it.setProperties({'quality':'[{}]'.format(item.quality) if item.quality else '',
+                              'channel': channeltools.get_channel_parameters(item.channel).get('title', ''),
                               'color': color if color else 'FF0082C2'})
 
         return it
 
-    def update(self, channel, valid, results):
-        self.LOADING.setVisible(False)
+    def update(self, valid, results):
         if self.exit:
             return
 
@@ -452,7 +458,6 @@ class SearchWindow(xbmcgui.WindowXML):
             pos = self.CHANNELS.getSelectedPosition()
             self.CHANNELS.addItems(self.channels)
             self.CHANNELS.selectItem(pos)
-            self.setFocusId(RESULTS)
 
         if valid and self.CHANNELS.size():
             item = self.CHANNELS.getListItem(0)
@@ -475,27 +480,18 @@ class SearchWindow(xbmcgui.WindowXML):
 
         if results:
             resultsList = ''
-            channelParams = channeltools.get_channel_parameters(channel)
+            channelParams = channeltools.get_channel_parameters(results[0].channel)
             name = channelParams['title']
-            if name not in self.results:
-                item = xbmcgui.ListItem(name)
-                item.setArt({'poster':channelParams['thumbnail']})
-                item.setProperties({'position': '0',
-                                    'results': str(len(results))
-                                    })
-                for result in results:
-                    resultsList += result.tourl() + '|'
-                item.setProperty('items',resultsList)
-                self.results[name] = len(self.results)
-                self.channels.append(item)
-            else:
-                item = self.CHANNELS.getListItem(self.results[name])
-                resultsList = item.getProperty('items')
-                for result in results:
-                    resultsList += result.tourl() + '|'
-                item.setProperty('items',resultsList)
-                logger.log(self.channels[int(self.results[name])])
-                self.channels[int(self.results[name])].setProperty('results', str(len(resultsList.split('|')) - 1))
+            item = xbmcgui.ListItem(name)
+            item.setArt({'poster':channelParams['thumbnail']})
+            item.setProperties({'position': '0',
+                                'results': str(len(results))
+                                })
+            for result in results:
+                resultsList += result.tourl() + '|'
+            item.setProperties({'items': resultsList, 'results': str(len(resultsList.split('|')) - 1)})
+            self.results[name] = len(self.results)
+            self.channels.append(item)
             pos = self.CHANNELS.getSelectedPosition()
             self.CHANNELS.reset()
             self.CHANNELS.addItems(self.channels)
@@ -511,6 +507,9 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.RESULTS.addItems(items)
 
     def onInit(self):
+        self.NORESULTS = self.getControl(NORESULTS)
+        self.NORESULTS.setVisible(False)
+
         self.time = time.time()
         self.mainTitle = config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text
 
@@ -526,25 +525,18 @@ class SearchWindow(xbmcgui.WindowXML):
         self.EPISODESLIST = self.getControl(EPISODESLIST)
         self.SERVERS = self.getControl(SERVERS)
         self.SERVERLIST = self.getControl(SERVERLIST)
-        self.NORESULTS = self.getControl(NORESULTS)
-        self.NORESULTS.setVisible(False)
-        self.LOADING = self.getControl(LOADING)
-        self.LOADING.setVisible(False)
-
         self.Focus(self.focus)
 
-        if self.type:
-            self.type = None
-            if self.item.mode in ['all', 'search']:
-                if self.item.type:
-                    self.item.mode = self.item.type
-                    self.item.text = scrapertools.title_unify(self.item.text)
-                self.thread = Thread(target=self.search)
-                self.thread.start()
-            elif self.item.mode in ['movie', 'tvshow', 'person_']:
-                self.select()
-            elif self.item.mode in ['person']:
-                self.actors()
+        if self.item.mode.split('_')[0] in ['all', 'search']:
+            if 'search' in self.item.mode:
+                self.item.mode = self.item.mode.split('_')[-1]
+                self.item.text = scrapertools.title_unify(self.item.text)
+            self.thread = Thread(target=self.search)
+            self.thread.start()
+        elif self.item.mode in ['movie', 'tvshow', 'filmography']:
+            self.select()
+        elif self.item.mode in ['person']:
+            self.actors()
 
     def Focus(self, focusid):
         if focusid in [SEARCH]:
@@ -608,7 +600,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         elif action in [EXIT]:
             self.Close()
-            reload()
+            # reload()
             close_action = True
             xbmc.sleep(500)
 
@@ -635,7 +627,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         elif control_id in [CLOSE]:
             self.Close()
-            reload()
+            # reload()
             close_action = True
 
         elif control_id in [MENU]:
@@ -651,7 +643,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                Search(item, self.moduleDict, self.searchActions, self.thActions)
+                new_search(item, self.moduleDict, self.searchActions)
                 if close_action:
                     self.close()
             else:
@@ -659,7 +651,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                Search(item, self.moduleDict, self.searchActions, self.thActions)
+                new_search(item, self.moduleDict, self.searchActions)
                 if close_action:
                     self.close()
 
@@ -695,54 +687,16 @@ class SearchWindow(xbmcgui.WindowXML):
 
                 if config.get_setting('checklinks') and not config.get_setting('autoplay'):
                     self.itemsResult = servertools.check_list_links(self.itemsResult, config.get_setting('checklinks_number'))
-                servers = self.itemsResult if self.itemsResult else []
-                self.itemsResult = []
-                uhd = []
-                fhd = []
-                hd = []
-                sd = []
-                unknown = []
-                other = []
-                for i, item in enumerate(servers):
-                    if item.server:
-                        it = self.makeItem(item)
-                        it.setProperty('index', str(i))
-                        if item.quality.lower() in ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k']:
-                            it.setProperty('quality', 'uhd.png')
-                            uhd.append(it)
-                        elif item.quality.lower() in ['fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p']:
-                            it.setProperty('quality', 'Fhd.png')
-                            fhd.append(it)
-                        elif item.quality.lower() in ['hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv']:
-                            it.setProperty('quality', 'hd.png')
-                            hd.append(it)
-                        elif item.quality.lower() in ['sd', '480p', '480', '360p', '360', '240p', '240']:
-                            it.setProperty('quality', 'sd.png')
-                            sd.append(it)
-                        else:
-                            it.setProperty('quality', '')
-                            unknown.append(it)
-                    elif not item.action:
-                        self.getControl(QUALITYTAG).setText(item.fulltitle)
-                    else:
-                        it = self.makeItem(item)
-                        other.append(it)
-                    logger.debug(it)
+                for s in self.itemsResult: logger.debug(s)
+                servers = [self.makeItem(s) for s in self.itemsResult if s.server]
 
-                uhd.sort(key=lambda it: it.getProperty('index'))
-                fhd.sort(key=lambda it: it.getProperty('index'))
-                hd.sort(key=lambda it: it.getProperty('index'))
-                sd.sort(key=lambda it: it.getProperty('index'))
-                unknown.sort(key=lambda it: it.getProperty('index'))
-
-                serverlist = uhd + fhd + hd + sd + unknown + other
-                if not serverlist:
-                    serverlist = [xbmcgui.ListItem(config.get_localized_string(60347))]
-                    serverlist[0].setArt({'poster': support.thumb('nofolder')})
+                if not servers:
+                    servers = [xbmcgui.ListItem(config.get_localized_string(60347))]
+                    servers[0].setArt({'poster': support.thumb('nofolder')})
 
                 self.Focus(SERVERS)
                 self.SERVERLIST.reset()
-                self.SERVERLIST.addItems(serverlist)
+                self.SERVERLIST.addItems(servers)
                 self.setFocusId(SERVERLIST)
 
                 if config.get_setting('autoplay'):
@@ -772,9 +726,11 @@ class SearchWindow(xbmcgui.WindowXML):
 
             platformtools.dialog_busy(False)
 
+
         elif control_id in [SERVERLIST]:
             server = Item().fromurl(self.getControl(control_id).getSelectedItem().getProperty('item'))
             return self.play(server)
+
 
     def Back(self):
         self.getControl(QUALITYTAG).setText('')

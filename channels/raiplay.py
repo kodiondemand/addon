@@ -258,7 +258,7 @@ def getUrl(url):
 
 def addinfo(items, item):
     def itInfo(key, item):
-        logger.debug(jsontools.dump(key))
+        # logger.debug(jsontools.dump(key))
         item.forcethumb = True
         if key.get('titolo', ''):
             key = requests.get(getUrl(key['path_id'])).json()['program_info']
