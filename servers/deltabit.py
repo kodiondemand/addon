@@ -24,5 +24,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data, real_url
     post = {k: v for k, v in scrapertools.find_multiple_matches(data, "name='([^']+)' value='([^']*)'")}
     time.sleep(2.5)
-    link = support.match(real_url, post=post, patron='sources:\s*\["([^"]+)').match
+    link = support.match(real_url, post=post, patron='sources:\s*\["([^"]+)').match.replace('https:', 'http:')
     return [[".mp4" + " [deltabit]", link]]
