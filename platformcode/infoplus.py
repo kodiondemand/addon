@@ -65,6 +65,7 @@ class InfoPlus(xbmcgui.WindowXML):
         platformtools.dialog_busy(True)
         if self.item:
             # Find Video Info
+
             tmdb.set_infoLabels_item(self.item)
             self.info = self.item.infoLabels
             title = typo(self.info.get('title'), 'bold')
@@ -83,9 +84,17 @@ class InfoPlus(xbmcgui.WindowXML):
             rating = self.info.get('rating', 'N/A')
             color = 'FFFFFFFF' if rating == 'N/A' else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
             self.listitem.setProperty('color',color)
+            
+            info = ''
+            if self.info.get('year'): info = str(self.info.get('year'))
+            if self.info.get('duration'): info = '{}[B]•[/B]{}'.format(info, self.info.get('duration'))
+            if self.info.get('Mpaa'): info = '{}[B]•[/B]{}'.format(info, self.info.get('Mpaa'))
+            self.listitem.setProperty('info',info)
 
             # Set infoLabels
             platformtools.set_infolabels(self.listitem, self.item)
+            
+            
 
             # Add Cast Info
             for cast in self.info.get('castandrole',[]):
@@ -365,9 +374,9 @@ class CastWindow(xbmcgui.WindowXML):
 
 def showImages(images, position):
     xbmc.executebuiltin('Dialog.Close(all)')
-    ImagesWindow('imageWindow.xml', config.get_runtime_path(), images=images, position=position)
+    return ImagesWindow('imageWindow.xml', config.get_runtime_path()).start(images=images, position=position)
 class ImagesWindow(xbmcgui.WindowXMLDialog):
-    def __init__(self, *args, **kwargs):
+    def start(self, *args, **kwargs):
         self.images = []
         self.position = kwargs.get('position')
         for i, image in enumerate(kwargs.get('images', [])):

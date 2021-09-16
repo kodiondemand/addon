@@ -155,14 +155,16 @@ class scrape:
         return self.itemlist
 
     def _scrape(self, item):
-
         if item.itemlist:
             scrapingTime = time()
             self.itemlist = itemlistdb()
             self.seasons = item.allSeasons
+
         else:
             for n in range(2):
                 logger.debug('PATRON= ', self.patron)
+                if self.data and item.data:
+                    item.data = ''
                 if not self.data:
                     page = httptools.downloadpage(item.url, headers=self.headers, ignore_response_code=True)
                     item.url = page.url  # might be a redirect
@@ -230,7 +232,7 @@ class scrape:
             if self.numerationEnabled and inspect.stack()[1][3] not in ['find_episodes']:
                 from platformcode import autorenumber
                 if self.function == 'episodios':
-                    autorenumber.start(self.itemlist, self.item)
+                    autorenumber.start(self.itemlist, item)
 
                     for i in self.itemlist:
                         if i.contentSeason and i.contentSeason not in self.seasons:
@@ -336,7 +338,7 @@ class scrape:
             if self.function == 'episodios':
                 infolabels = item.infoLabels
             else:
-                infolabels = {}
+                infolabels = {'mediatype':item.contentType}
             if self.itemParams.year:
                 infolabels['year'] = self.itemParams.year
             if self.itemParams.plot:
@@ -447,17 +449,17 @@ class scrape:
         if (not self.itemParams.title or self.itemParams.title not in self.blacklist) and (self.search.lower() in self.itemParams.title.lower()):
 
             it = item.clone(title=self.itemParams.title,
-                                 fulltitle=self.itemParams.title,
-                                 show=self.itemParams.title,
-                                 infoLabels=self.itemParams.infoLabels,
-                                 contentSeason= self.itemParams.infoLabels.get('season', ''),
-                                 contentEpisodeNumber= self.itemParams.infoLabels.get('episode', ''),
-                                 grouped = self.group,
-                                 episode2 = self.itemParams.second_episode,
-                                 extraInfo = self.itemParams.extraInfo,
-                                 disable_videolibrary = not self.args.get('addVideolibrary', True),
-                                 size = self.itemParams.size,
-                                 seed = self.itemParams.seed)
+                            fulltitle=self.itemParams.title,
+                            show=self.itemParams.title,
+                            infoLabels=self.itemParams.infoLabels,
+                            contentSeason= self.itemParams.infoLabels.get('season', ''),
+                            contentEpisodeNumber= self.itemParams.infoLabels.get('episode', ''),
+                            grouped = self.group,
+                            episode2 = self.itemParams.second_episode,
+                            extraInfo = self.itemParams.extraInfo,
+                            disable_videolibrary = not self.args.get('addVideolibrary', True),
+                            size = self.itemParams.size,
+                            seed = self.itemParams.seed)
 
             if self.itemParams.url: it.url = self.itemParams.url
             if self.function == 'episodios': it.fulltitle = it.show = self.itemParams.title
@@ -899,22 +901,24 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
 def pagination(itemlist, item, function_level=1):
     if 'channel_search' in [s[3] for s in inspect.stack()]:
         return itemlist
-    itemlistdb(itemlist)
-    page = item.page if item.page else 1
+
+    if not item.page:
+        item.page = 1
     perpage = config.get_setting('pagination', default=20)
     action = function_level if type(function_level) == str else inspect.stack()[function_level][3]
     itlist = []
     for i, it in enumerate(itemlist):
-        if perpage and (page - 1) * perpage > i: continue  # pagination
-        if perpage and i >= page * perpage: break          # pagination
+        if perpage and (item.page - 1) * perpage > i: continue  # pagination
+        if perpage and i >= item.page * perpage: break          # pagination
         itlist.append(it)
-    if len(itemlist) >= page * perpage:
+    if len(itemlist) >= item.page * perpage:
+        itemlistdb(itemlist)
         itlist.append(
             item.clone(channel=item.channel,
                        action=action,
                        contentType=item.contentType,
                        title=typo(config.get_localized_string(30992), 'color kod bold'),
-                       page=page + 1,
+                       page=item.page + 1,
                        total_pages=round(len(itemlist)/perpage),
                        nextPage = True,
                        itemlist = True,
@@ -926,7 +930,7 @@ def pagination(itemlist, item, function_level=1):
 def season_pagination(itemlist, item, seasons, function_level=1):
     if 'channel_search' in [s[3] for s in inspect.stack()]:
         return itemlist
-    itemlistdb(itemlist)
+
     action = function_level if type(function_level) == str else inspect.stack()[function_level][3]
     itlist = []
     if itemlist and not seasons:
@@ -936,8 +940,10 @@ def season_pagination(itemlist, item, seasons, function_level=1):
                 seasons.append(it.contentSeason)
 
     if seasons:
+        itemlistdb(itemlist)
         seasons.sort()
-        if not item.nextSeason: item.nextSeason = 0
+        if not item.nextSeason:
+            item.nextSeason = 0
         try:
             current = seasons[item.nextSeason]
 
@@ -949,22 +955,24 @@ def season_pagination(itemlist, item, seasons, function_level=1):
 
             if item.nextSeason + 1 < len(seasons):
                 itlist.append(
-                    item.clone(action=action,
-                               title=typo('Stagione Successiva [{}]'.format(seasons[item.nextSeason + 1]), 'bold'),
-                               allSeasons = seasons,
-                               nextSeason = item.nextSeason + 1,
-                               itemlist = True,
-                               prevthumb = item.thumbnail,
-                               thumbnail=thumb()))
+                    Item(channel=item.channel,
+                         action=action,
+                         title=typo('Stagione Successiva [{}]'.format(seasons[item.nextSeason + 1]), 'bold'),
+                         allSeasons = seasons,
+                         nextSeason = item.nextSeason + 1,
+                         itemlist = True,
+                         prevthumb = item.thumbnail,
+                         thumbnail=thumb()))
             itlist.append(
-                    item.clone(action='gotoseason',
-                               real_action=action,
-                               title=typo('Vai alla stagione…', 'bold'),
-                               allSeasons = seasons,
-                               nextSeason = item.nextSeason + 1,
-                               itemlist = True,
-                               prevthumb = item.thumbnail,
-                               thumbnail=thumb()))
+                    Item(channel=item.channel,
+                         action='gotoseason',
+                         real_action=action,
+                         title=typo('Vai alla stagione…', 'bold'),
+                         allSeasons = seasons,
+                         nextSeason = item.nextSeason + 1,
+                         itemlist = True,
+                         prevthumb = item.thumbnail,
+                         thumbnail=thumb()))
             return itlist
         except:
             return itemlist
@@ -1015,6 +1023,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             videoitem.channel = item.channel
             videoitem.fulltitle = item.fulltitle
             videoitem.show = item.show
+            videoitem.ch_name = channeltools.get_channel_parameters(item.channel)['title']
             if not videoitem.video_urls:  videoitem.thumbnail = item.thumbnail
             videoitem.contentType = item.contentType
             videoitem.infoLabels = item.infoLabels

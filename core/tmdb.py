@@ -214,7 +214,7 @@ def set_infoLabels_itemlist(itemlist, seekTmdb=False, search_language=def_lang, 
             logger.error(traceback.format_exc(1))
 
         return (_i, _item, ret)
-
+    # from core.support import dbg;dbg()
     # for i, item in enumerate(itemlist):
     #     r_list.append(sub_thread(item, i, seekTmdb))
     with futures.ThreadPoolExecutor() as executor:
@@ -248,11 +248,11 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
     def read_data(otmdb_aux):
         # item.infoLabels = otmdb_aux.get_infoLabels(item.infoLabels)
         infoLabels = otmdb_aux.get_infoLabels(item.infoLabels)
-        if not infoLabels['plot']: infoLabels['plot'] = otmdb_aux.get_plot('en')
+        if not infoLabels.get('plot'): infoLabels['plot'] = otmdb_aux.get_plot('en')
         item.infoLabels = infoLabels
         if item.infoLabels.get('thumbnail'):
             item.thumbnail = item.infoLabels['thumbnail']
-        if item.infoLabels['fanart']:
+        if item.infoLabels.get('fanart'):
             item.fanart = item.infoLabels['fanart']
 
     if seekTmdb:
@@ -290,6 +290,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                     if episode:
                         # Update data
                         read_data(otmdb_global)
+                        item.infoLabels['mediatype'] = 'episode'
                         if episode.get('episode_title'):
                             item.infoLabels['title'] = episode['episode_title']
                         if episode.get('episode_plot'):
@@ -409,10 +410,10 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                             # If the search has been successful and you are not looking for a list of items,
                             # carry out another search to expand the information
                             if search_type == 'multi':
-                                search_type = 'movie' if otmdb.result.get('media_type') else 'tv'
+                                search_type = otmdb.result.get('media_type')
+
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
-
 
                 if otmdb is not None and otmdb.get_id():
                     # The search has found a valid result
@@ -427,6 +428,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                 item.fulltitle = new_title
                 return True
         # We check what type of content it is...
+        # from core.support import dbg;dbg()
         if item.contentType == 'movie':
             search_type = 'movie'
         elif item.contentType == 'undefined':  # don't know
@@ -977,6 +979,7 @@ class Tmdb(object):
                 self.total_results = 1
                 self.total_pages = 1
                 self.result = ResultDictDefault(result)
+                self.result['media_type'] = self.search_type.replace('tv', 'tvshow')
 
             else:
                 # No search results
@@ -984,7 +987,6 @@ class Tmdb(object):
                 logger.debug(msg)
 
     def __search(self, index_results=0, page=1):
-        # from core.support import dbg;dbg()
         self.result = ResultDictDefault()
         results = []
         text_simple = self.search_text.lower()
@@ -1044,6 +1046,8 @@ class Tmdb(object):
             self.total_results = total_results
             self.total_pages = total_pages
             self.result = ResultDictDefault(self.results[index_results])
+            # self.result['mediatype'] = self.result['media_type']
+
             if not config.get_setting('tmdb_plus_info'):
                 self.result = self.get_mpaa(self.result)
             return len(self.results)
@@ -1649,7 +1653,8 @@ class Tmdb(object):
                     continue
 
             if k == 'media_type':
-                ret_infoLabels['mediatype'] = 'tvshow' if v == 'tv' else 'movie'
+                # from core.support import dbg;dbg()
+                ret_infoLabels['mediatype'] = v if v in ['tv', 'tvshow'] else 'movie'
 
             elif k == 'overview':
                 if origen:

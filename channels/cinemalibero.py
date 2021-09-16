@@ -77,8 +77,8 @@ def peliculas(item):
             item.title += support.typo(item.lang2, '_ [] color kod')
         if item.args == 'update':
             item.title = item.title.replace('-', ' ')
-        # if item.args == 'search':
-        #     item.contentType = 'tvshow' if 'serie-' in item.url else 'movie'
+        if item.args == 'search':
+            item.contentType = 'undefined'
 
         return item
 
@@ -123,6 +123,7 @@ def genres(item):
 
 def search(item, texto):
     logger.debug(item.url,texto)
+    item.contentType = 'undefined'
     texto = texto.replace(' ', '+')
     item.url = host + "/?s=" + texto
     # item.contentType = 'tv'

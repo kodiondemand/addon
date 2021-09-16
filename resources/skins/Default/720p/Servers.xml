@@ -99,15 +99,15 @@
                     <control type="textbox">
                         <description>Channel</description>
                         <left>150</left>
-                        <top>60</top>
+                        <top>65</top>
                         <width>450</width>
                         <height>30</height>
                         <font>font13</font>
-                        <textcolor>FFFFFFFF</textcolor>
+                        <textcolor>FFAAAAAA</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
+                        <label>[B]$INFO[ListItem.Property(channel)][/B]</label>
                     </control>
                 </itemlayout>
                 <focusedlayout height="140" width="700">
@@ -115,7 +115,7 @@
                         <description>Selection Background</description>
                         <width>700</width>
                         <height>130</height>
-                        <texture colordiffuse="88000000">white.png</texture>
+                        <texture colordiffuse="CCFFFFFF">white.png</texture>
                         <aspectratio>scale</aspectratio>
                     </control>
                     <control type="image">
@@ -143,7 +143,7 @@
                         <width>450</width>
                         <height>30</height>
                         <font>font13</font>
-                        <textcolor>FFFFFFFF</textcolor>
+                        <textcolor>FF232323</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <align>left</align>
                         <aligny>center</aligny>
@@ -152,15 +152,15 @@
                     <control type="textbox">
                         <description>Channel</description>
                         <left>150</left>
-                        <top>60</top>
+                        <top>65</top>
                         <width>450</width>
                         <height>30</height>
                         <font>font13</font>
-                        <textcolor>FFFFFFFF</textcolor>
+                        <textcolor>FF555555</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <align>left</align>
                         <aligny>center</aligny>
-                        <label>[B][COLOR FFAAAAAA]$INFO[ListItem.Property(channel)][/COLOR][/B]</label>
+                        <label>[B]$INFO[ListItem.Property(channel)][/B]</label>
                     </control>
                 </focusedlayout>
             </control>

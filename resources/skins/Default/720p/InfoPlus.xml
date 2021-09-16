@@ -113,18 +113,18 @@
                 <description>Video Info</description>
                 <visible>Integer.IsGreater(Container(100).NumItems, 0)</visible>
                 <top>0</top>
-                <height>261</height>
+                <height>311</height>
                 <control type='grouplist'>
                     <top>0</top>
                     <height>30</height>
-                    <width>300</width>
+                    <width>100%</width>
                     <itemgap>10</itemgap>
                     <orientation>horizontal</orientation>
                     <align>left</align>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Year</description>
                         <height>30</height>
-                        <width>45</width>
+                        <width>auto</width>
                         <font>font13</font>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
@@ -132,7 +132,7 @@
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Separator</description>
                         <height>30</height>
                         <width>10</width>
@@ -144,10 +144,10 @@
                         <align>center</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Duration</description>
                         <height>30</height>
-                        <width>50</width>
+                        <width>auto</width>
                         <font>font13</font>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
@@ -155,7 +155,7 @@
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Separator</description>
                         <height>30</height>
                         <width>10</width>
@@ -167,10 +167,10 @@
                         <align>center</align>
                         <aligny>center</aligny>
                     </control>
-                    <control type='textbox'>
+                    <control type='label'>
                         <description>Mpaa</description>
                         <height>30</height>
-                        <width>60</width>
+                        <width>auto</width>
                         <font>font13</font>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
@@ -178,22 +178,46 @@
                         <align>left</align>
                         <aligny>center</aligny>
                     </control>
+                    <control type='label'>
+                        <description>Separator</description>
+                        <height>30</height>
+                        <width>10</width>
+                        <font>font13</font>
+                        <textcolor>ffFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <visible>!String.IsEmpty(Container(100).ListItem.Status)</visible>
+                        <label>[B]•[/B]</label>
+                        <align>center</align>
+                        <aligny>center</aligny>
+                    </control>
+                    <control type='label'>
+                        <description>Status</description>
+                        <height>30</height>
+                        <width>auto</width>
+                        <font>font13</font>
+                        <textcolor>ffFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>$INFO[Container(100).ListItem.Status]</label>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                    </control>
                 </control>
-                <control type='textbox'>
+                <control type='label'>
                     <description>Genre</description>
-                    <right>0</right>
+                    <top>40</top>
+                    <left>0</left>
                     <height>30</height>
-                    <width>400</width>
+                    <width>100%</width>
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
                     <label>$INFO[Container(100).ListItem.Genre]</label>
-                    <align>right</align>
+                    <align>left</align>
                     <aligny>center</aligny>
                 </control>
                 <control type='textbox'>
                     <description>Plot</description>
-                    <top>50</top>
+                    <top>90</top>
                     <left>0</left>
                     <height>200</height>
                     <font>font13</font>
@@ -206,7 +230,7 @@
                 </control>
                 <control type='image'>
                     <description>Separator</description>
-                    <top>260</top>
+                    <top>310</top>
                     <left>0</left>
                     <height>0.5</height>
                     <texture>white.png</texture>
@@ -439,7 +463,7 @@
                     <top>240</top>
                     <left>0</left>
                     <height>0.5</height>
-                    <texture>white.png</texture>ù
+                    <texture>white.png</texture>
                 </control>
             </control>
             <!-- Trailers -->
