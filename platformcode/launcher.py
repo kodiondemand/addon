@@ -151,6 +151,7 @@ def run(item=None):
                 else:
                     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join([item.url[j:j+57] for j in range(0, len(item.url), 57)]))
         elif item.action == "gotopage":
+            # from core.support import dbg;dbg()
             from core import scrapertools
             head = config.get_localized_string(70511)
             scraped_page = scrapertools.find_single_match(item.url,'[=/]([0-9]+)')
@@ -166,7 +167,8 @@ def run(item=None):
                 item.page = page
                 import re
                 item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>{}\g<2>'.format(page), item.url)
-                xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
+                run(item)
+                # xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
         elif item.action == "gotoseason":
             head = 'Seleziona la stagione'
             seasons = [str(s) for s in item.allSeasons]

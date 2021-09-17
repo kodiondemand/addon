@@ -6535,3 +6535,24 @@ msgstr "No options"
 msgctxt "#90005"
 msgid "Search on KOD"
 msgstr "Search with KOD"
+
+
+msgctxt "#90006"
+msgid "Next page >"
+msgstr ""
+
+msgctxt "#90007"
+msgid "Go to page…"
+msgstr ""
+
+msgctxt "#90008"
+msgid "Next Season >"
+msgstr ""
+
+msgctxt "#90009"
+msgid "Go to season…"
+msgstr ""
+
+msgctxt "#90010"
+msgid "What title do you want to search for?"
+msgstr ""

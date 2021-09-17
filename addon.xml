@@ -19,7 +19,7 @@
     <summary lang="it">Kodi on Demand è un addon di Kodi per cercare e guardare contenuti sul web.</summary>
     <assets>
       <icon>resources/media/logo.png</icon>
-      <fanart>resources/media/fanart.jpg</fanart>
+      <fanart>resources/media/dark_background.jpg</fanart>
       <screenshot>resources/media/screenshot-1.png</screenshot>
       <screenshot>resources/media/screenshot-2.png</screenshot>
       <screenshot>resources/media/screenshot-3.png</screenshot>

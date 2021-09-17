@@ -31,7 +31,7 @@
                 <textcolor>FFFFFFFF</textcolor>
                 <align>left</align>
                 <aligny>center</aligny>
-                <label>[B]ADDON[plugin.video.kod 70000][/B]</label>
+                <label>[B]$ADDON[plugin.video.kod 70000][/B]</label>
             </control>
             <control type="button" id="102">
                 <description>Close</description>

@@ -46,9 +46,10 @@
                 <texture colordiffuse="FF555555">$INFO[Container(103).ListItem.Art(thumb)]</texture>
                 <visible>Control.IsVisible(2) + !String.IsEmpty(Container(103).ListItem.Art(thumb))</visible>
             </control>
-            
+
             <control type="textbox" id='100'>
                 <description>Title</description>
+                <visible>Control.IsVisible(500)</visible>
                 <left>480</left>
                 <top>270</top>
                 <width>1000</width>
@@ -56,7 +57,6 @@
                 <font>font13</font>
                 <textcolor>FFFFFFFF</textcolor>
                 <shadowcolor>00000000</shadowcolor>
-                <!-- <visible>Integer.IsGreater(Container(101).NumItems, 0)</visible> -->
                 <align>left</align>
                 <aligny>center</aligny>
                 <animation effect="slide" tween="linear" center="0" end="-450,-240" time="600" condition="Integer.IsGreater(Container(101).NumItems, 0)">Conditional</animation>
@@ -672,21 +672,6 @@
             <midtexture colordiffuse="FF0082C2">progress.png</midtexture>
             <animation effect="zoom" center="auto" end="163,40" time="600" condition="Integer.IsGreater(Container(102).NumItems, 0)">Conditional</animation>
             <animation effect="slide" tween="linear" center="auto" end="0,-890" time="600" condition="Integer.IsGreater(Container(102).NumItems, 0)">Conditional</animation>
-        </control>
-
-        <control type="label" id="501">
-            <description>Progress Count</description>
-            <top>270</top>
-            <left>450</left>
-            <width>180</width>
-            <height>30</height>
-            <font>font13</font>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>00000000</shadowcolor>
-            <align>right</align>
-            <aligny>center</aligny>
-            <animation effect="slide" tween="linear" center="0" end="-450,-240" time="600" condition="Integer.IsGreater(Container(102).NumItems, 0)">Conditional</animation>
-            <!-- <visible>Control.IsVisible(500)</visible> -->
         </control>
 
         <control type="textbox">

@@ -890,8 +890,17 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     # create Item
     if next_page or page:
         itemlist.append(item.clone(action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
-                                   title=typo(config.get_localized_string(30992), 'color kod bold'),
+                                   title=typo(config.get_localized_string(90006), 'color kod bold'),
                                    nextPage=True,
+                                   page=page if page else item.page + 1 if item.page else 2,
+                                   prevthumb = item.thumbnail,
+                                   thumbnail=thumb()))
+    if total_pages:
+        itemlist.append(item.clone(action='gotopage',
+                                   real_action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
+                                   title=typo(config.get_localized_string(90007), 'color kod bold'),
+                                   nextPage=True,
+                                   total_pages = total_pages,
                                    page=page if page else item.page + 1 if item.page else 2,
                                    prevthumb = item.thumbnail,
                                    thumbnail=thumb()))
@@ -957,7 +966,7 @@ def season_pagination(itemlist, item, seasons, function_level=1):
                 itlist.append(
                     Item(channel=item.channel,
                          action=action,
-                         title=typo('Stagione Successiva [{}]'.format(seasons[item.nextSeason + 1]), 'bold'),
+                         title=typo(config.get_localized_string(90008), 'color kod bold'),
                          allSeasons = seasons,
                          nextSeason = item.nextSeason + 1,
                          itemlist = True,
@@ -967,7 +976,7 @@ def season_pagination(itemlist, item, seasons, function_level=1):
                     Item(channel=item.channel,
                          action='gotoseason',
                          real_action=action,
-                         title=typo('Vai alla stagione…', 'bold'),
+                         title=typo(config.get_localized_string(90009), 'color kod bold'),
                          allSeasons = seasons,
                          nextSeason = item.nextSeason + 1,
                          itemlist = True,
@@ -1310,7 +1319,7 @@ def addQualityTag(item, itemlist, data, patron):
 def thumb(data=None, mode=None):
     '''
         data = str, item or itemlist
-        mode = str, genre, live, quality
+        mode = genre, live, quality
     '''
 
     if mode == 'live':

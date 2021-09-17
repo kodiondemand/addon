@@ -97,8 +97,6 @@
                     <orientation>horizontal</orientation>
                     <itemlayout/>
                     <focusedlayout/>
-                    <onup>201</onup>
-                    <ondown>101</ondown>
                 </control>
                 <control type='textbox'>
                     <description>Birth</description>
@@ -134,7 +132,7 @@
             <!-- Movie -->
             <control type='group'>
                 <description>Movie Group</description>
-                <!-- <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible> -->
+                <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                 <height>241</height>
                 <control type='textbox'>
                     <description>Movie Title</description>
@@ -143,15 +141,14 @@
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
-                    <label>Movie</label>
+                    <label>$ADDON[plugin.video.kod 30122]</label>
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
                 <control type='fixedlist' id='101'>
                     <description>Movie List</description>
+                    <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                     <top>30</top>
-                    <onup>100</onup>
-                    <ondown>102</ondown>
                     <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
@@ -236,24 +233,15 @@
                     <control type='textbox'>
                         <description>Rating</description>
                         <top>20</top>
-                        <right>50</right>
+                        <right>15</right>
                         <width>40</width>
                         <height>30</height>
                         <font>font13</font>
-                        <textcolor>ffFFFFFF</textcolor>
+                        <textcolor>Container(101).ListItem.Property(color)</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[Container(101).ListItem.Rating][/B]</label>
                         <align>right</align>
                         <aligny>center</aligny>
-                    </control>
-                    <control type='image'>
-                        <description>Rating Circle</description>
-                        <top>20</top>
-                        <right>15</right>
-                        <width>30</width>
-                        <height>30</height>
-                        <texture colordiffuse='$INFO[Container(101).ListItem.Property(color)]'>Circular/$INFO[Container(101).ListItem.Property(rating)].png</texture>
-                        <aspectratio>scale</aspectratio>
                     </control>
                 </control>
                 <control type='image'>
@@ -267,7 +255,7 @@
             <!-- Show -->
             <control type='group'>
                 <description>Show Group</description>
-                <!-- <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible> -->
+                <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                 <height>241</height>
                 <control type='textbox'>
                     <description>Show Title</description>
@@ -276,14 +264,14 @@
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
-                    <label>Show</label>
+                    <label>$ADDON[plugin.video.kod 30123]</label>
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
                 <control type='fixedlist' id='102'>
                     <description>Show List</description>
+                    <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                     <top>30</top>
-                    <onup>101</onup>
                     <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
@@ -368,36 +356,25 @@
                     <control type='textbox'>
                         <description>Rating</description>
                         <top>20</top>
-                        <right>50</right>
+                        <right>15</right>
                         <width>40</width>
                         <height>30</height>
                         <font>font13</font>
-                        <textcolor>ffFFFFFF</textcolor>
+                        <textcolor>Container(102).ListItem.Property(color)</textcolor>
                         <shadowcolor>00000000</shadowcolor>
                         <label>[B]$INFO[Container(102).ListItem.Rating][/B]</label>
                         <align>right</align>
                         <aligny>center</aligny>
-                    </control>
-                    <control type='image'>
-                        <description>Rating Circle</description>
-                        <top>20</top>
-                        <right>15</right>
-                        <width>30</width>
-                        <height>30</height>
-                        <texture colordiffuse='$INFO[Container(102).ListItem.Property(color)]'>Circular/$INFO[Container(102).ListItem.Property(rating)].png</texture>
-                        <aspectratio>scale</aspectratio>
                     </control>
                 </control>
             </control>
         </control>
 
         <control type='grouplist'>
-            <ondown>100</ondown>
             <top>30</top>
             <right>30</right>
             <height>40</height>
             <width>80</width>
-            <!-- <itemgap>10</itemgap> -->
             <orientation>horizontal</orientation>
 
             <control type="button" id="201">

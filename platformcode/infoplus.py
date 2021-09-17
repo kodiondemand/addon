@@ -3,31 +3,25 @@
 # infoplus window with item information
 # ------------------------------------------------------------
 
-from typing import List
-import xbmc, xbmcgui, sys, requests, re
-from core import httptools, support, tmdb, filetools, channeltools, servertools, jsontools
+import xbmc, xbmcgui, sys
+from core import httptools,  tmdb
 from core.item import Item
-from platformcode import config, platformtools, logger, xbmc_videolibrary
-from platformcode.logger import log
-from core.scrapertools import decodeHtmlentities, htmlclean
+from platformcode import config, platformtools, logger
 
-from core.support import typo, dbg
+from core.support import match, typo, dbg
 
-PY3 = False
-if sys.version_info[0] >= 3: PY3 = True
-if PY3: from concurrent import futures
-else: from concurrent_py2 import futures
 
 info_list = []
 SearchWindows = []
-api = 'k_0tdb8a8y'
 
 # Control ID
 LIST = 100
-CAST = 101
-RECOMANDED = 102
-TRAILERS = 103
-FANARTS = 104
+CAST = MOVIE = 101
+SET = SHOW = 102
+RECOMANDED = 103
+TRAILERS = 104
+FANARTS = 105
+
 
 
 SEARCH = 200
@@ -61,6 +55,7 @@ class InfoPlus(xbmcgui.WindowXML):
         self.trailers = []
         self.images = []
         self.fanarts = []
+        self.collection = []
         if not self.item.focus: self.item.focus = {}
         platformtools.dialog_busy(True)
         if self.item:
@@ -84,7 +79,7 @@ class InfoPlus(xbmcgui.WindowXML):
             rating = self.info.get('rating', 'N/A')
             color = 'FFFFFFFF' if rating == 'N/A' else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
             self.listitem.setProperty('color',color)
-            
+
             info = ''
             if self.info.get('year'): info = str(self.info.get('year'))
             if self.info.get('duration'): info = '{}[B]•[/B]{}'.format(info, self.info.get('duration'))
@@ -93,8 +88,6 @@ class InfoPlus(xbmcgui.WindowXML):
 
             # Set infoLabels
             platformtools.set_infolabels(self.listitem, self.item)
-            
-            
 
             # Add Cast Info
             for cast in self.info.get('castandrole',[]):
@@ -103,6 +96,21 @@ class InfoPlus(xbmcgui.WindowXML):
                 castitem.setProperties({'order':str(cast[3]), 'id':cast[4]})
                 self.cast.append(castitem)
             self.cast.sort(key=lambda c: c.getProperty('order'))
+
+            if self.info.get('setid'):
+                url = '{}/collection/{}?api_key={}&language={}'.format(tmdb.host, self.info.get('setid'), tmdb.api, tmdb.def_lang)
+                parts = match(url).response.json['parts']
+                for part in parts:
+                    poster = 'https://image.tmdb.org/t/p/original/' + part.get('poster_path') if part.get('poster_path') else ''
+                    setitem = xbmcgui.ListItem(part.get('title'), self.info.get('set'))
+                    setitem.setArt({'poster': poster})
+                    rating = part.get('vote_average', 'N/A')
+                    color = 'FFFFFFFF' if rating == 'N/A' else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
+
+                    setitem.setProperties({'id':part.get('id'), 'mediatype':'movie', 'color':color})
+                    setitem.setInfo("video", {'plot':self.info.get('setoverview'), 'rating':rating})
+                    self.collection.append(setitem)
+
 
             directors = self.info.get('director')
             if directors:
@@ -137,6 +145,9 @@ class InfoPlus(xbmcgui.WindowXML):
         self.getControl(TRAILERS).addItems(self.trailers)
         self.getControl(FANARTS).addItems(self.fanarts)
 
+        if self.collection:
+            self.getControl(SET).addItems(self.collection)
+
         # Set Focus
         if self.item.focus:
             for k, v in self.item.focus.items():
@@ -149,13 +160,26 @@ class InfoPlus(xbmcgui.WindowXML):
     def onAction(self, action):
         action = action.getId()
         focus = self.getFocusId()
+        infoList = [LIST, CAST, SET, RECOMANDED, TRAILERS, FANARTS]
+        actionList = [SEARCH, BACK, CLOSE]
         if action in [EXIT]:
             self.close()
         elif action in [BACKSPACE]:
             back(self)
-        elif action in [UP, DOWN, LEFT, RIGHT] and focus not in [LIST, CAST, RECOMANDED, TRAILERS, FANARTS, SEARCH, BACK, CLOSE]:
-            self.setFocusId(LIST)
-        if focus > 0 and focus not in [SEARCH, BACK, CLOSE]:
+        elif action in [UP, DOWN]:
+            A = 1 if action == DOWN else -1
+            if focus not in infoList or focus in actionList:
+                self.setFocusId(infoList[0])
+            elif focus + A in infoList and not focus in actionList:
+                while focus in infoList:
+                    focus += A
+                    if self.getControl(focus).isVisible():
+                        self.setFocusId(focus)
+                        break
+            else:
+                self.setFocusId(SEARCH)
+
+        if focus > 0 and focus not in actionList:
             self.item.setFocus = focus
             self.item.focus[focus] = self.getControl(focus).getSelectedPosition()
 
@@ -164,13 +188,23 @@ class InfoPlus(xbmcgui.WindowXML):
         global info_list
 
         if control in [SEARCH]:
-            from specials.globalsearch import new_search
+            selection = 0
+            original = self.item.infoLabels.get('originaltitle')
+
             if self.item.contentType == 'episode':
                 self.item.contentType = 'tvshow'
                 self.item.text = self.item.contentSerieName
-            self.item.mode = 'all'
-            self.item.type = self.item.contentType
-            new_search(self.item)
+            else:
+                self.item.text = self.item.contentTitle
+            titles = [self.item.text] + [original] if original else []
+            if original and original != self.item.text:
+                selection = platformtools.dialog_select(config.get_localized_string(90010), titles)
+            if selection > -1:
+                self.item.text = titles[selection]
+                self.item.mode = 'search_' + self.item.contentType
+                item = self.item.clone(channel='globalsearch', action='new_search')
+                xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
+                # new_search(self.item.clone())
 
         elif control in [CLOSE]:
             self.close()
@@ -185,9 +219,9 @@ class InfoPlus(xbmcgui.WindowXML):
             self.close()
             showCast(it)
 
-        elif control in [RECOMANDED]:
+        elif control in [RECOMANDED, SET]:
             info_list.append(self.item)
-            listitem = self.getControl(RECOMANDED).getSelectedItem()
+            listitem = self.getControl(control).getSelectedItem()
             it = Item(title=listitem.getLabel(), infoLabels={'tmdb_id':listitem.getProperty('id'), 'mediatype':listitem.getProperty('mediatype')})
             self.close()
             start(it)
@@ -255,8 +289,6 @@ class CastWindow(xbmcgui.WindowXML):
         self.item = kwargs.get('item')
         self.id = self.item.id
         self.item.InfoWindow = 'cast'
-        self.host = tmdb.host
-        self.api = tmdb.api
         self.movies = []
         self.tvshows = []
         self.movieItems = []
@@ -271,8 +303,8 @@ class CastWindow(xbmcgui.WindowXML):
 
     def get_person_info(self):
         # Function for Person Info
-        url = '{}/person/{}?api_key={}&language=en'.format(self.host, self.id, self.api)
-        translation_url = '{}/person/{}/translations?api_key={}'.format(self.host, self.id, self.api)
+        url = '{}/person/{}?api_key={}&language=en'.format(tmdb.host, self.id, tmdb.api)
+        translation_url = '{}/person/{}/translations?api_key={}'.format(tmdb.host, self.id, tmdb.api)
         info = httptools.downloadpage(url).json
 
 
@@ -295,8 +327,8 @@ class CastWindow(xbmcgui.WindowXML):
 
     def onInit(self):
         self.getControl(LIST).addItem(self.castitem)
-        self.getControl(CAST).addItems(self.movies)
-        self.getControl(RECOMANDED).addItems(self.tvshows)
+        self.getControl(MOVIE).addItems(self.movies)
+        self.getControl(SHOW).addItems(self.tvshows)
 
         # Set Focus
         xbmc.sleep(200)
@@ -309,16 +341,28 @@ class CastWindow(xbmcgui.WindowXML):
     def onAction(self, action):
         action = action.getId()
         focus = self.getFocusId()
+        infoList = [LIST, MOVIE, SHOW]
+        actionList = [BACK, CLOSE]
         if action in [EXIT]:
             self.close()
         elif action in [BACKSPACE]:
             back(self)
-        elif action in [UP, DOWN, LEFT, RIGHT] and focus not in [LIST, CAST, RECOMANDED, TRAILERS, FANARTS, SEARCH, BACK, CLOSE]:
-            self.setFocusId(LIST)
-        if focus > 0:
+        elif action in [UP, DOWN] and focus in infoList + actionList:
+            A = 1 if action == DOWN else -1
+            if focus not in infoList or focus in actionList:
+                self.setFocusId(infoList[0])
+            elif focus + A in infoList and not focus in actionList:
+                while focus in infoList:
+                    focus += A
+                    if self.getControl(focus).isVisible():
+                        self.setFocusId(focus)
+                        break
+            else:
+                self.setFocusId(BACK)
+
+        if focus > 0 and focus not in actionList:
             self.item.setFocus = focus
             self.item.focus[focus] = self.getControl(focus).getSelectedPosition()
-
 
     def onClick(self, control):
         global info_list
@@ -329,20 +373,20 @@ class CastWindow(xbmcgui.WindowXML):
         elif control in [BACK]:
             back(self)
 
-        elif control in [CAST]:
+        elif control in [MOVIE]:
             info_list.append(self.item)
             self.close()
-            start(self.movieItems[self.getControl(CAST).getSelectedPosition()])
+            start(self.movieItems[self.getControl(MOVIE).getSelectedPosition()])
 
-        elif control in [RECOMANDED]:
+        elif control in [SHOW]:
             info_list.append(self.item)
             self.close()
-            start(self.tvshowItems[self.getControl(RECOMANDED).getSelectedPosition()])
+            start(self.tvshowItems[self.getControl(SHOW).getSelectedPosition()])
 
 
     def get_credits(self):
         # Function for Credits Info
-        url = '{}/person/{}/combined_credits?api_key={}&language=it'.format(self.host, self.id, self.api)
+        url = '{}/person/{}/combined_credits?api_key={}&language='.format(tmdb.host, self.id, tmdb.api, tmdb.def_lang)
         info = httptools.downloadpage(url).json
 
         for video in info.get('cast',[]) + info.get('crew',[]):

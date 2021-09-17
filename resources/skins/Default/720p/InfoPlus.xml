@@ -39,6 +39,7 @@
                 <effect type="slide" start="0,0" end='-200,0' time="200" />
             </animation>
         </control>
+
         <!-- Header Group -->
         <control type='group'>
             <top>30</top>
@@ -246,8 +247,6 @@
                     <orientation>horizontal</orientation>
                     <itemlayout/>
                     <focusedlayout/>
-                    <onup>200</onup>
-                    <ondown>101</ondown>
                 </control>
                 <control type='textbox'>
                     <description>Cast Title</description>
@@ -256,16 +255,14 @@
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
-                    <label>Cast</label>
+                    <label>$ADDON[plugin.video.kod 60501]</label>
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
                 <control type='fixedlist' id='101'>
                     <description>Cast List</description>
+                    <visible>Integer.IsGreater(Container(101).NumItems, 0)</visible>
                     <top>30</top>
-                    <onup>100</onup>
-                    <ondown>102</ondown>
-                    <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
                     <itemlayout width='133' height='200'>
@@ -342,27 +339,26 @@
                     <texture>white.png</texture>ù
                 </control>
             </control>
-            <!-- Recomended -->
+            <!-- Collection -->
             <control type='group'>
-                <description>Recomanded Group</description>
-                <!-- <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible> -->
+                <description>Collection Group</description>
+                <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                 <height>241</height>
                 <control type='textbox'>
-                    <description>Cast Title</description>
+                    <description>Collection Title</description>
                     <left>10</left>
                     <height>30</height>
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
-                    <label>Recomanded</label>
+                    <label>$INFO[Container(102).ListItem.Label2]</label>
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
                 <control type='fixedlist' id='102'>
-                    <description>Recomanded List</description>
+                    <description>Collection List</description>
+                    <visible>Integer.IsGreater(Container(102).NumItems, 0)</visible>
                     <top>30</top>
-                    <onup>101</onup>
-                    <ondown>103</ondown>
                     <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
@@ -434,15 +430,6 @@
                         <align>right</align>
                         <aligny>center</aligny>
                     </control>
-                    <!-- <control type='image'>
-                        <description>Rating Circle</description>
-                        <top>20</top>
-                        <right>15</right>
-                        <width>30</width>
-                        <height>30</height>
-                        <texture colordiffuse='$INFO[Container(102).ListItem.Property(color)]'>Circular/$INFO[Container(102).ListItem.Property(rating)].png</texture>
-                        <aspectratio aligny='center'>keep</aspectratio>
-                    </control> -->
                     <control type='textbox'>
                         <description>Plot</description>
                         <top>60</top>
@@ -466,10 +453,124 @@
                     <texture>white.png</texture>
                 </control>
             </control>
+            <!-- Recomended -->
+            <control type='group'>
+                <description>Recomanded Group</description>
+                <visible>Integer.IsGreater(Container(103).NumItems, 0)</visible>
+                <height>241</height>
+                <control type='textbox'>
+                    <description>Cast Title</description>
+                    <left>10</left>
+                    <height>30</height>
+                    <font>font13</font>
+                    <textcolor>ffFFFFFF</textcolor>
+                    <shadowcolor>00000000</shadowcolor>
+                    <label>$ADDON[plugin.video.kod 70315]</label>
+                    <align>left</align>
+                    <aligny>center</aligny>
+                </control>
+                <control type='fixedlist' id='103'>
+                    <description>Recomanded List</description>
+                    <visible>Integer.IsGreater(Container(103).NumItems, 0)</visible>
+                    <top>30</top>
+                    <height>200</height>
+                    <orientation>horizontal</orientation>
+                    <itemgap>10</itemgap>
+                    <itemlayout width='133' height='200'>
+                        <control type='image'>
+                            <texture>Infoplus/no_photo.png</texture>
+                            <bordersize>10</bordersize>
+                            <aspectratio>scale</aspectratio>
+                        </control>
+                        <control type='image'>
+                            <texture>$INFO[ListItem.Art(poster)]</texture>
+                            <bordersize>10</bordersize>
+                            <aspectratio>scale</aspectratio>
+                        </control>
+                    </itemlayout>
+                    <focusedlayout width='133' height='200'>
+                        <control type='image'>
+                            <texture colordiffuse='FF0082C2'>white.png</texture>
+                            <bordersize>5</bordersize>
+                            <aspectratio>scale</aspectratio>
+                            <visible>Control.HasFocus(103)</visible>
+                        </control>
+                        <control type='image'>
+                            <texture>Infoplus/no_photo.png</texture>
+                            <bordersize>10</bordersize>
+                            <aspectratio>scale</aspectratio>
+                        </control>
+                        <control type='image'>
+                            <texture>$INFO[ListItem.Art(poster)]</texture>
+                            <bordersize>10</bordersize>
+                            <aspectratio>scale</aspectratio>
+                        </control>
+                    </focusedlayout>
+                </control>
+                <control type='group'>
+                    <top>30</top>
+                    <left>133</left>
+                    <height>200</height>
+                    <visible>Control.HasFocus(103)</visible>
+                    <animation effect='zoom' start='0,100' center='720,0' reversible='true' time='160' condition='Control.HasFocus(103)'>Conditional</animation>
+                    <animation effect='fade' start='0' reversible='true' time='100' condition='Control.HasFocus(103)'>Conditional</animation>
+                    <control type='image'>
+                        <texture colordiffuse='CC000000'>white.png</texture>
+                    </control>
+                    <control type='textbox'>
+                        <description>Name</description>
+                        <top>20</top>
+                        <left>40</left>
+                        <height>30</height>
+                        <width>450</width>
+                        <font>font13</font>
+                        <textcolor>ffFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>[B]$INFO[Container(103).ListItem.Label][/B]</label>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                    </control>
+                    <control type='label'>
+                        <description>Name</description>
+                        <top>20</top>
+                        <right>15</right>
+                        <width>40</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <scroll>true</scroll>
+                        <textcolor>Container(103).ListItem.Property(color)</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>[B]$INFO[Container(103).ListItem.Rating][/B]</label>
+                        <align>right</align>
+                        <aligny>center</aligny>
+                    </control>
+                    <control type='textbox'>
+                        <description>Plot</description>
+                        <top>60</top>
+                        <left>40</left>
+                        <height>100</height>
+                        <width>520</width>
+                        <font>font13</font>
+                        <textcolor>ffFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>$INFO[Container(103).ListItem.Plot]</label>
+                        <autoscroll time='3000' delay='3000' repeat='3000'>True</autoscroll>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                    </control>
+                </control>
+                <control type='image'>
+                    <description>Separator</description>
+                    <top>240</top>
+                    <left>0</left>
+                    <height>0.5</height>
+                    <texture>white.png</texture>
+                </control>
+            </control>
             <!-- Trailers -->
             <control type='group'>
                 <description>Trailers Group</description>
-                <visible>Integer.IsGreater(Container(103).NumItems, 0)</visible>
+                <visible>Integer.IsGreater(Container(104).NumItems, 0)</visible>
                 <height>241</height>
                 <visible></visible>
                 <control type='textbox'>
@@ -483,11 +584,10 @@
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
-                <control type='fixedlist' id='103'>
+                <control type='fixedlist' id='104'>
                     <description>Trailers List</description>
+                    <visible>Integer.IsGreater(Container(104).NumItems, 0)</visible>
                     <top>30</top>
-                    <onup>102</onup>
-                    <ondown>104</ondown>
                     <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
@@ -503,7 +603,7 @@
                             <texture colordiffuse='FF0082C2'>white.png</texture>
                             <bordersize>5</bordersize>
                             <aspectratio>scale</aspectratio>
-                            <visible>Control.HasFocus(103)</visible>
+                            <visible>Control.HasFocus(104)</visible>
                         </control>
                         <control type='image'>
                             <texture>$INFO[ListItem.Art(thumb)]</texture>
@@ -516,9 +616,9 @@
                     <top>30</top>
                     <left>340</left>
                     <height>200</height>
-                    <visible>Control.HasFocus(103)</visible>
-                    <animation effect='zoom' start='0,100' center='720,0' reversible='true' time='160' condition='Control.HasFocus(103)'>Conditional</animation>
-                    <animation effect='fade' start='0' reversible='true' time='100' condition='Control.HasFocus(103)'>Conditional</animation>
+                    <visible>Control.HasFocus(104)</visible>
+                    <animation effect='zoom' start='0,100' center='720,0' reversible='true' time='160' condition='Control.HasFocus(104)'>Conditional</animation>
+                    <animation effect='fade' start='0' reversible='true' time='100' condition='Control.HasFocus(104)'>Conditional</animation>
                     <control type='image'>
                         <texture colordiffuse='CC000000'>white.png</texture>
                     </control>
@@ -531,7 +631,7 @@
                         <font>font13</font>
                         <textcolor>ffFFFFFF</textcolor>
                         <shadowcolor>00000000</shadowcolor>
-                        <label>[B]$INFO[Container(103).ListItem.Label][/B]</label>
+                        <label>[B]$INFO[Container(104).ListItem.Label][/B]</label>
                         <autoscroll time='1000' delay='1000' repeat='1000'>True</autoscroll>
                         <align>left</align>
                         <aligny>center</aligny>
@@ -548,7 +648,7 @@
             <!-- Fanart Group -->
             <control type='group'>
                 <description>Fanart Group</description>
-                <visible>Integer.IsGreater(Container(104).NumItems, 0)</visible>
+                <visible>Integer.IsGreater(Container(105).NumItems, 0)</visible>
                 <height>241</height>
                 <visible></visible>
                 <control type='textbox'>
@@ -558,14 +658,14 @@
                     <font>font13</font>
                     <textcolor>ffFFFFFF</textcolor>
                     <shadowcolor>00000000</shadowcolor>
-                    <label>FANARTS</label>
+                    <label>Fanarts</label>
                     <align>left</align>
                     <aligny>center</aligny>
                 </control>
-                <control type='fixedlist' id='104'>
+                <control type='fixedlist' id='105'>
                     <description>Fanart List</description>
-                    <top>30</top>
-                    <onup>103</onup>
+                    <visible>Integer.IsGreater(Container(105).NumItems, 0)</visible>
+                    <top>30</top>>
                     <height>200</height>
                     <orientation>horizontal</orientation>
                     <itemgap>10</itemgap>
@@ -581,7 +681,7 @@
                             <texture colordiffuse='FF0082C2'>white.png</texture>
                             <bordersize>5</bordersize>
                             <aspectratio>scale</aspectratio>
-                            <visible>Control.HasFocus(104)</visible>
+                            <visible>Control.HasFocus(105)</visible>
                         </control>
                         <control type='image'>
                             <texture>$INFO[ListItem.Art(fanart)]</texture>
@@ -591,15 +691,14 @@
                     </focusedlayout>
                 </control>
             </control>
+
         </control>
 
         <control type='grouplist'>
-            <ondown>100</ondown>
             <top>30</top>
             <right>30</right>
             <height>40</height>
             <width>120</width>
-            <!-- <itemgap>10</itemgap> -->
             <orientation>horizontal</orientation>
             <control type="button" id="200">
                 <description>search</description>

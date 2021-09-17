@@ -90,7 +90,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.next = None
         self.previous = None
         self.FOCUS = False
-
+        self.mode = self.item.mode.split('_')[-1]
 
         if not thActions and not self.searchActions:
             self.thActions = Thread(target=self.getActionsThread)
@@ -129,7 +129,7 @@ class SearchWindow(xbmcgui.WindowXML):
             try:
                 module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
                 mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
-                actions = [elem for elem in mainlist if elem.action == "search" and (self.item.mode in ['all', 'person'] or elem.contentType in [self.item.mode, 'undefined'])]
+                actions = [elem for elem in mainlist if elem.action == "search" and (self.mode in ['all', 'person'] or elem.contentType in [self.mode, 'undefined'])]
                 self.moduleDict[channel] = module
                 self.searchActions.append(actions)
             except:
@@ -157,20 +157,20 @@ class SearchWindow(xbmcgui.WindowXML):
         logger.debug()
         self.PROGRESS.setVisible(False)
         self.items = []
-        if self.item.mode == 'filmography':
+        if self.mode == 'filmography':
             tmdb_info = tmdb.discovery(self.item, dict_=self.item.discovery)
             results = tmdb_info.results.get('cast',[])
         else:
-            tmdb_info = tmdb.Tmdb(searched_text=self.item.text, search_type=self.item.mode.replace('show', ''))
+            tmdb_info = tmdb.Tmdb(searched_text=self.item.text, search_type=self.mode.replace('show', ''))
             results = tmdb_info.results
 
 
         def make(n, result):
             result = tmdb_info.get_infoLabels(result, origen=result)
-            if self.item.mode == 'movie':
+            if self.mode == 'movie':
                 title = result['title']
                 result['mode'] = 'movie'
-            elif self.item.mode == 'tvshow':
+            elif self.mode == 'tvshow':
                 title = result['name']
                 result['mode'] = 'tvshow'
             else:
@@ -189,7 +189,7 @@ class SearchWindow(xbmcgui.WindowXML):
                             text=title,
                             infoLabels=result)
 
-            if self.item.mode == 'movie':
+            if self.mode == 'movie':
                 new_item.contentTitle = result['title']
             else:
                 new_item.contentSerieName = result['name']
@@ -284,7 +284,7 @@ class SearchWindow(xbmcgui.WindowXML):
             self.setFocusId(CLOSE)
 
     def get_channels(self):
-        logger.debug()
+        logger.debug('MODE:', self.mode)
         channels_list = []
         all_channels = channelselector.filterchannels('all')
 
@@ -302,7 +302,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 n = list_cat.index('anime')
                 list_cat[n] = 'tvshow'
 
-            if self.item.mode in ['all', 'person'] or self.item.mode in list_cat:
+            if self.mode in ['all', 'person'] or self.mode in list_cat:
                 if config.get_setting("include_in_global_search", channel) and ch_param.get("active", False):
                     channels_list.append(channel)
 
@@ -374,7 +374,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if not results[0].action or results[0].nextPage:
                     results = []
 
-            if self.item.mode != 'all':
+            if self.mode != 'all':
                 for elem in results:
                     if elem.infoLabels.get('tmdb_id') == self.item.infoLabels.get('tmdb_id'):
                         elem.from_channel = elem.channel
@@ -404,7 +404,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 dummy, valid, dummy = channel_search(self.item.text + " " + str(self.item.infoLabels['year']))
 
             # some channels may use original title
-            if self.item.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
+            if self.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
                 logger.debug('retring with original title on channel ')
                 dummy, valid, dummy = channel_search(self.item.infoLabels.get('originaltitle'))
         except:
@@ -509,13 +509,12 @@ class SearchWindow(xbmcgui.WindowXML):
 
         if self.item.mode.split('_')[0] in ['all', 'search']:
             if 'search' in self.item.mode:
-                self.item.mode = self.item.mode.split('_')[-1]
                 self.item.text = scrapertools.title_unify(self.item.text)
             self.thread = Thread(target=self.search)
             self.thread.start()
-        elif self.item.mode in ['movie', 'tvshow', 'filmography']:
+        elif self.mode in ['movie', 'tvshow', 'filmography']:
             self.select()
-        elif self.item.mode in ['person']:
+        elif self.mode in ['person']:
             self.actors()
 
     def Focus(self, focusid):
@@ -612,7 +611,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     self.close()
             else:
                 item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item'))
-                if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
+                if self.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
                 new_search(item, self.moduleDict, self.searchActions)
