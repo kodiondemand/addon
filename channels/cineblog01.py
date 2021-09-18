@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # Canale per cineblog01
 # ------------------------------------------------------------
-import datetime
+
 import re
 
 from core import scrapertools, httptools, servertools, support
@@ -142,7 +142,7 @@ def episodios(item):
         disableAll = True
 
         patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:(?:DA)?\s*[0-9]+\s*A)?\s*[0-9]+|MINISSERIE)(?::\s*PARTE\s*[0-9]+)? - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
-        patron = r'(?:/>|<p>|<strong>)(?P<other>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
+        patron = r'(?:/>|<p>|<strong>)(?P<data>.*?(?P<episode>[0-9]+(?:&#215;|ÃÂ)[0-9]+)\s*(?P<title2>.*?)?(?:\s*&#8211;|\s*-|\s*<).*?)(?:<\/p>|<br)'
 
         return locals()
 
@@ -156,20 +156,21 @@ def episodios(item):
 
         folderUrl = scrapertools.find_single_match(data, r'TUTT[EA] L[EA] \w+\s+(?:&#8211;|-)\s+<a href="?([^" ]+)')
         data = httptools.downloadpage(folderUrl, disable_directIP=True).data
-        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
+        patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<folderdata>[^"]+)[^>]+>'
 
         return locals()
 
+
     data = support.match(item.url, headers=headers).data
-    # itemlist = listed(item, data)
-    itemlist = []
-    if not item.itemlist:
-        itemlist.extend(folder(item, data) if 'TUTTE LE' in data or 'TUTTA LA' in data else [])
+
+    itemlist = listed(item, data)
+    itemlist.extend(folder(item, data) if 'TUTTE LE' in data or 'TUTTA LA' in data else [])
 
     itemDict = {'ITA':{}, 'Sub-ITA':{}}
     seasons = []
-    # support.dbg()
+
     for it in itemlist:
+        it.contentType = 'episode'
         if it.contentSeason and it.contentSeason not in seasons:
             seasons.append(it.contentSeason)
             itemDict['ITA'][it.contentSeason] = []
@@ -185,13 +186,15 @@ def episodios(item):
         itlist.extend(sorted(itemDict['Sub-ITA'].get(season, []), key=lambda it: (it.contentSeason, it.contentEpisodeNumber)))
     itemlist = itlist
 
-
+    for i in itemlist: logger.debug(i.title, i.contentType)
     import inspect
     if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
         if len(seasons) > 1:
             itemlist = support.season_pagination(itemlist, item, [], 'episodios')
         else:
             itemlist = support.pagination(itemlist, item, 'episodios')
+        if config.get_setting('episode_info'):
+            support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         support.videolibrary(itemlist, item)
         support.download(itemlist, item)
 
@@ -199,56 +202,51 @@ def episodios(item):
 
 
 def findvideos(item):
-    if item.serieFolder:
-        return support.server(item, data=item.url)
-    if item.contentType == "episode":
-        return findvid_serie(item)
-
-    def load_links(itemlist, re_txt, desc_txt, quality=""):
-        streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
-        logger.debug('STREAMING', streaming)
-        logger.debug('STREAMING=', streaming)
-        matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
-        for scrapedurl, scrapedtitle in matches:
-            logger.debug("##### findvideos %s ## %s ## %s ##" % (desc_txt, scrapedurl, scrapedtitle))
-            itemlist.append(item.clone(action="play", title=scrapedtitle, url=scrapedurl, server=scrapedtitle, quality=quality))
-
     logger.debug()
+    if item.folderdata:
+        return support.server(item, data=item.folderdata)
+    elif item.data:
+        return support.server(item, data=re.sub(r'((?:<p>|<strong>)?[^\d]*\d*(?:&#215;|Ã)[0-9]+[^<]+)', '', item.data))
+    else:
 
-    itemlist = []
+        def load_links(itemlist, re_txt, desc_txt, quality=""):
+            streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
+            logger.debug('STREAMING', streaming)
+            logger.debug('STREAMING=', streaming)
+            matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
+            for scrapedurl, scrapedtitle in matches:
+                logger.debug("##### findvideos %s ## %s ## %s ##" % (desc_txt, scrapedurl, scrapedtitle))
+                itemlist.append(item.clone(action="play", title=scrapedtitle, url=scrapedurl, server=scrapedtitle, quality=quality))
 
-    # Carica la pagina
-    data = httptools.downloadpage(item.url).data
-    data = re.sub('\n|\t', '', data)
+        logger.debug()
 
-    # Estrae i contenuti - Streaming
-    load_links(itemlist, '<strong>Streamin?g:</strong>(.*?)cbtable', "Streaming", "SD")
+        itemlist = []
 
-    # Estrae i contenuti - Streaming HD
-    load_links(itemlist, '<strong>Streamin?g HD[^<]+</strong>(.*?)cbtable', "Streaming HD", "HD")
+        # Carica la pagina
+        data = httptools.downloadpage(item.url).data
+        data = re.sub('\n|\t', '', data)
 
-    # Estrae i contenuti - Streaming 3D
-    load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "Streaming 3D")
+        # Estrae i contenuti - Streaming
+        load_links(itemlist, '<strong>Streamin?g:</strong>(.*?)cbtable', "Streaming", "SD")
 
-    itemlist = support.server(item, itemlist=itemlist)
-    # Extract the quality format
-    patronvideos = r'([\w.]+)</strong></div></td>'
-    support.addQualityTag(item, itemlist, data, patronvideos)
+        # Estrae i contenuti - Streaming HD
+        load_links(itemlist, '<strong>Streamin?g HD[^<]+</strong>(.*?)cbtable', "Streaming HD", "HD")
 
-    return itemlist
+        # Estrae i contenuti - Streaming 3D
+        load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "Streaming 3D")
 
-    # Estrae i contenuti - Download
-    # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")
+        itemlist = support.server(item, itemlist=itemlist)
+        # Extract the quality format
+        patronvideos = r'([\w.]+)</strong></div></td>'
+        support.addQualityTag(item, itemlist, data, patronvideos)
 
-    # Estrae i contenuti - Download HD
-    # load_links(itemlist, '<strong>Download HD[^<]+</strong>(.*?)<tableclass=cbtable width=100% height=20>', "azure", "Download HD")
+        return itemlist
 
+        # Estrae i contenuti - Download
+        # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")
 
-def findvid_serie(item):
-    logger.debug()
-    data = re.sub(r'((?:<p>|<strong>)?[^\d]*\d*(?:&#215;|Ã)[0-9]+[^<]+)', '', item.other)
-
-    return support.server(item, data=data)
+        # Estrae i contenuti - Download HD
+        # load_links(itemlist, '<strong>Download HD[^<]+</strong>(.*?)<tableclass=cbtable width=100% height=20>', "azure", "Download HD")
 
 
 def play(item):

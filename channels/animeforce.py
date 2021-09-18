@@ -3,7 +3,7 @@
 # Canale per AnimeForce
 # ------------------------------------------------------------
 
-from core import support
+from core import scrapertools, support
 from platformcode import logger
 
 host = support.config.get_channel_url()
@@ -106,22 +106,39 @@ def check(item):
     else:
         return episodios(item)
 
-
-@support.scrape
 def episodios(item):
-    numerationEnabled = True
-    data = item.data
+    @support.scrape
+    def _episodes(item):
+        actLike = 'episodios'
+        disableAll = True
+        data = item.data
 
-    if '<h6>Streaming</h6>' in data:
-        patron = r'<td style[^>]+>\s*.*?(?:<span[^>]+)?<strong>(?P<title>[^<]+)<\/strong>.*?<td style[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>'
-    else:
-        patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)"\s*class="btn btn-dark mb-1">'
-    def itemHook(item):
-        if item.url.startswith('//'): item.url= 'https:' + item.url
-        elif item.url.startswith('/'): item.url= 'https:/' + item.url
-        return item
-    action = 'findvideos'
-    return locals()
+        if '<h6>Streaming</h6>' in data:
+            patron = r'<td style[^>]+>\s*.*?(?:<span[^>]+)?<strong>(?P<episode>[^<]+)<\/strong>.*?<td style[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>'
+        else:
+            patron = r'<a\s*href="(?P<url>[^"]+)"[^>]+>(?P<episode>\d+)[<-](?P<episode2>\d+)?'
+
+        def itemHook(item):
+            if item.url.startswith('//'): item.url= 'https:' + item.url
+            elif item.url.startswith('/'): item.url= 'https:/' + item.url
+            return item
+        action = 'findvideos'
+        return locals()
+
+    itemlist = support.itemlistdb() if item.itemlist else []
+    groups = support.match(item.data, patron=[r'"tabpanel">.*?</div', r'Special-tab">.*?</div']).matches
+    for group in groups:
+        item.data = group
+        if 'Special' in group:
+            item.contentSeason = 0
+        itemlist.extend(_episodes(item))
+
+    from platformcode.autorenumber import start
+    start(itemlist, item)
+    itemlist = support.season_pagination(itemlist, item, function_level='episodios')
+    return itemlist
+
+
 
 
 def findvideos(item):

@@ -138,6 +138,7 @@ class scrape:
         self.downloadEnabled = self.args.get('downloadEnabled', True)
 
         if self.args.get('disableAll', False):
+            self.tmdbEnabled = False
             self.videlibraryEnabled = False
             self.downloadEnabled = False
             self.seasonPagination = False
@@ -235,7 +236,7 @@ class scrape:
                     autorenumber.start(self.itemlist, item)
 
                     for i in self.itemlist:
-                        if i.contentSeason and i.contentSeason not in self.seasons:
+                        if type(i.contentSeason) == int and i.contentSeason not in self.seasons:
                             self.seasons.append(i.contentSeason)
 
                 else: autorenumber.start(self.itemlist)
@@ -244,10 +245,14 @@ class scrape:
         if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
             if len(self.seasons) > 1 and self.seasonPagination:
                 self.itemlist = season_pagination(self.itemlist, item, self.seasons, self.function)
-            elif self.pagination:
+            elif self.pagination or (self.function in ['episodios'] and self.seasonPagination):
                 self.itemlist = pagination(self.itemlist, item, self.function)
 
-        if self.action != 'play' and 'patronMenu' not in self.args and 'patronGenreMenu' not in self.args and self.tmdbEnabled and inspect.stack()[1][3] not in ['add_tvshow'] and self.function not in ['episodios', 'mainlist'] or (self.function in ['episodios'] and config.get_setting('episode_info')): # and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']
+        if self.tmdbEnabled and (
+            self.action != 'play' and 'patronMenu' not in self.args and 'patronGenreMenu' not in self.args
+            and inspect.stack()[1][3] not in ['add_tvshow'] and (self.function not in ['episodios', 'mainlist']
+            or (self.function in ['episodios'] and config.get_setting('episode_info')))):
+
             tmdb.set_infoLabels_itemlist(self.itemlist, seekTmdb=True)
 
         if inspect.stack()[1][3] not in ['find_episodes', 'add_tvshow']:
@@ -332,7 +337,7 @@ class scrape:
         self.matches.extend(matches)
 
     def set_infolabels(self, item):
-        if item.infoLabels["title"] == self.itemParams.title:
+        if item.infoLabels["title"]:
             infolabels = item.infoLabels
         else:
             if self.function == 'episodios':
@@ -360,6 +365,7 @@ class scrape:
                 infolabels['rating'] = scrapertools.decodeHtmlentities(self.itemParams.rating)
 
         self.itemParams.infoLabels = infolabels
+        logger.debug
 
     def set_sceneTitle(self):
         from lib.guessit import guessit
@@ -447,20 +453,18 @@ class scrape:
                     break
                 else: AC = self.action
         if (not self.itemParams.title or self.itemParams.title not in self.blacklist) and (self.search.lower() in self.itemParams.title.lower()):
-
             it = item.clone(title=self.itemParams.title,
                             fulltitle=self.itemParams.title,
                             show=self.itemParams.title,
                             infoLabels=self.itemParams.infoLabels,
-                            contentSeason= self.itemParams.infoLabels.get('season', ''),
-                            contentEpisodeNumber= self.itemParams.infoLabels.get('episode', ''),
                             grouped = self.group,
                             episode2 = self.itemParams.second_episode,
                             extraInfo = self.itemParams.extraInfo,
                             disable_videolibrary = not self.args.get('addVideolibrary', True),
                             size = self.itemParams.size,
                             seed = self.itemParams.seed)
-
+            if self.itemParams.infoLabels.get('season'): it.contentSeason = self.itemParams.infoLabels.get('season')
+            if self.itemParams.infoLabels.get('episode'): it.contentEpisodeNumber = self.itemParams.infoLabels.get('episode')
             if self.itemParams.url: it.url = self.itemParams.url
             if self.function == 'episodios': it.fulltitle = it.show = self.itemParams.title
             if self.itemParams.quality: it.quality = self.itemParams.quality
@@ -470,8 +474,6 @@ class scrape:
             it.contentType = 'episode' if self.function == 'episodios' else CT if CT else item.contentType
             if it.contentType not in ['movie'] and self.function != 'episodios' or it.contentType in ['undefined']: it.contentSerieName = self.itemParams.title
             if self.function == 'peliculas': it.contentTitle= self.itemParams.title
-            it.contentSeason= self.itemParams.infoLabels.get('season', ''),
-            it.contentEpisodeNumber= self.itemParams.infoLabels.get('episode', ''),
             if self.itemParams.title2: it.title2 = self.itemParams.title2
 
             if self.itemParams.episode and self.group and not item.grouped:
@@ -494,7 +496,7 @@ class scrape:
                 except:
                     raise logger.ChannelScraperException
 
-            if it.contentSeason and it.contentSeason not in self.seasons:
+            if type(it.contentSeason) == int and it.contentSeason not in self.seasons:
                 self.seasons.append(it.contentSeason)
 
             return it
@@ -903,7 +905,8 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
                                    total_pages = total_pages,
                                    page=page if page else item.page + 1 if item.page else 2,
                                    prevthumb = item.thumbnail,
-                                   thumbnail=thumb()))
+                                   thumbnail=thumb(),
+                                   folder = False))
     return itemlist
 
 
@@ -923,20 +926,44 @@ def pagination(itemlist, item, function_level=1):
     if len(itemlist) >= item.page * perpage:
         itemlistdb(itemlist)
         itlist.append(
-            item.clone(channel=item.channel,
-                       action=action,
-                       contentType=item.contentType,
-                       title=typo(config.get_localized_string(30992), 'color kod bold'),
-                       page=item.page + 1,
-                       total_pages=round(len(itemlist)/perpage),
-                       nextPage = True,
-                       itemlist = True,
-                       prevthumb = item.thumbnail,
-                       thumbnail=thumb()))
+            Item(channel=item.channel,
+                 contentType=item.contentType,
+                 action=action,
+                 title=typo(config.get_localized_string(90006), 'color kod bold'),
+                 page=item.page + 1,
+                 total_pages=round(len(itemlist)/perpage),
+                 nextPage = True,
+                 itemlist = True,
+                 prevthumb = item.thumbnail,
+                 thumbnail=thumb()))
+    itlist.append(
+        Item(channel=item.channel,
+             contentType=item.contentType,
+             action='gotopage',
+             real_action=action,
+             title=typo(config.get_localized_string(90007), 'color kod bold'),
+             page=item.page + 1,
+             total_pages=round(len(itemlist)/perpage),
+             nextPage = True,
+             itemlist = True,
+             prevthumb = item.thumbnail,
+             thumbnail=thumb(),
+             folder = False))
+        # itlist.append(
+        #     item.clone(channel=item.channel,
+        #                action=action,
+        #                contentType=item.contentType,
+        #                title=typo(config.get_localized_string(90006), 'color kod bold'),
+        #                page=item.page + 1,
+        #                total_pages=round(len(itemlist)/perpage),
+        #                nextPage = True,
+        #                itemlist = True,
+        #                prevthumb = item.thumbnail,
+        #                thumbnail=thumb()))
     return itlist
 
 
-def season_pagination(itemlist, item, seasons, function_level=1):
+def season_pagination(itemlist, item, seasons=[], function_level=1):
     if 'channel_search' in [s[3] for s in inspect.stack()]:
         return itemlist
 
@@ -945,21 +972,23 @@ def season_pagination(itemlist, item, seasons, function_level=1):
     if itemlist and not seasons:
         seasons = []
         for it in itemlist:
-            if it.contentSeason and it.contentSeason not in seasons:
+            if type(it.contentSeason) == int and it.contentSeason not in seasons:
                 seasons.append(it.contentSeason)
 
-    if seasons:
+    if len(seasons) > 1:
         itemlistdb(itemlist)
         seasons.sort()
         if not item.nextSeason:
             item.nextSeason = 0
         try:
+
             current = seasons[item.nextSeason]
 
-            for it in itemlist:
-                if it.contentSeason and it.contentSeason == current:
+            for it in sorted(itemlist, key=lambda it: (it.contentSeason, it.contentEpisodeNumber)):
+                logger.debug('SEASON',it.contentSeason)
+                if type(it.contentSeason) == int and it.contentSeason == current:
                     itlist.append(it)
-                elif it.contentSeason and it.contentSeason > current:
+                elif type(it.contentSeason) == int and it.contentSeason > current:
                     break
 
             if item.nextSeason + 1 < len(seasons):
@@ -981,10 +1010,14 @@ def season_pagination(itemlist, item, seasons, function_level=1):
                          nextSeason = item.nextSeason + 1,
                          itemlist = True,
                          prevthumb = item.thumbnail,
-                         thumbnail=thumb()))
+                         thumbnail=thumb(),
+                         folder = False))
             return itlist
         except:
             return itemlist
+    else:
+        return pagination(itemlist, item, function_level)
+
 
 
 # Find servers

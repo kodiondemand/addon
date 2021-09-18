@@ -21,12 +21,13 @@ def get_cookie(data):
 
 
 def get_data(item):
-    # support.dbg()
-    url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
-    data = support.match(url, headers=headers, follow_redirects=True).data
-    if 'AWCookieVerify' in data:
-        get_cookie(data)
-        data = get_data(item)
+    data = ''
+    if item.url:
+        url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
+        data = support.match(url, headers=headers, follow_redirects=True).data
+        if 'AWCookieVerify' in data:
+            get_cookie(data)
+            data = get_data(item)
     return data
 
 
