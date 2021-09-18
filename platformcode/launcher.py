@@ -2,7 +2,12 @@
 # ------------------------------------------------------------
 # XBMC Launcher (xbmc / kodi)
 # ------------------------------------------------------------
+import datetime
+import json
 import sys, os
+
+import requests
+
 PY3 = False
 if sys.version_info[0] >= 3:PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -144,7 +149,18 @@ def run(item=None):
                 if xbmc.getCondVisibility('system.platform.linux') and xbmc.getCondVisibility('system.platform.android'):  # android
                     xbmc.executebuiltin('StartAndroidActivity("", "android.intent.action.VIEW", "", "%s")' % item.url)
                 else:
-                    platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join((item.url[j:j+57] for j in range(0, len(item.url), 57))))
+                    platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join([item.url[j:j+57] for j in range(0, len(item.url), 57)]))
+        elif item.action == "gotopage":
+            page = platformtools.dialog_numeric(0, config.get_localized_string(70513))
+            if page:
+                import xbmc
+                item.action = item.real_action
+                if item.page:
+                    item.page = page
+                else:
+                    import re
+                    item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>' + page + '\g<2>', item.url)
+                xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
@@ -159,10 +175,10 @@ def run(item=None):
             channel = None
 
             if os.path.exists(channel_file):
-                # try:
-                channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
-                # except ImportError:
-                #     exec("import " + CHANNELS + "." + item.channel + " as channel")
+                try:
+                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
+                except ImportError:
+                    exec("import " + CHANNELS + "." + item.channel + " as channel")
 
             logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 

@@ -68,7 +68,7 @@ def episodios(item):
     data = support.match(item.url, headers=headers).data
     if 'accordion-item' in data:
         patronBlock = r'<span class="season[^>]*>\d+[^>]+>[^>]+>[^>]+>[^>]+>\D*(?:STAGIONE|Stagione)[ -]+(?P<lang>[a-zA-Z\- ]+)[^<]*</span>(?P<block>.*?)<div id="(?:season|disqus)'
-        patron = r'<img src="(?P<thumb>[^"]+)">.*?<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<data>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
+        patron = r'<img src="(?P<thumb>[^"]+)"(?:[^>]*>){4}\s*<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<data>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
     else:
         patronBlock = r'(?:STAGIONE|Stagione)(?:<[^>]+>)?\s*(?:(?P<lang>[A-Za-z- ]+))?(?P<block>.*?)(?:&nbsp;|<strong>|<div class="addtoany)'
         patron = r'(?:/>|p>)\s*(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<]+(?P<data>.*?)(?:<br|</p)'

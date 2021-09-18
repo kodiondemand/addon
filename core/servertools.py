@@ -9,24 +9,17 @@ import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-if PY3:
-    #from future import standard_library
-    #standard_library.install_aliases()
-    import urllib.parse as urlparse                             #It is very slow in PY2. In PY3 it is native
-else:
-    import urlparse                                             # We use the native of PY2 which is faster
+if PY3: import urllib.parse as urlparse
+else: import urlparse
 
 from future.builtins import range
 from past.utils import old_div
 
 import re
 
-from core import filetools
-from core import httptools
-from core import jsontools
+from core import filetools, httptools, jsontools
 from core.item import Item
-from platformcode import config, logger
-from platformcode import platformtools
+from platformcode import config, logger, platformtools
 from lib import unshortenit
 
 dict_servers_parameters = {}
@@ -522,26 +515,6 @@ def get_server_parameters(server):
     return dict_servers_parameters[server]
 
 
-# def get_server_json(server_name):
-#     # logger.info("server_name=" + server_name)
-#     try:
-#         server_path = filetools.join(config.get_runtime_path(), "servers", server_name + ".json")
-#         if not filetools.exists(server_path):
-#             server_path = filetools.join(config.get_runtime_path(), "servers", "debriders", server_name + ".json")
-#
-#         # logger.info("server_path=" + server_path)
-#         server_json = jsontools.load(filetools.read(server_path))
-#         # logger.info("server_json= %s" % server_json)
-#
-#     except Exception as ex:
-#         template = "An exception of type %s occured. Arguments:\n%r"
-#         message = template % (type(ex).__name__, ex.args)
-#         logger.error(" %s" % message)
-#         server_json = None
-#
-#     return server_json
-
-
 def get_server_host(server_name):
     from core import scrapertools
     return [scrapertools.get_domain_from_url(pattern['url']) for pattern in get_server_parameters(server_name)['find_videos']['patterns']]
@@ -669,9 +642,10 @@ def get_servers_list():
         for server in filetools.listdir(filetools.join(config.get_runtime_path(), "servers")):
             if server.endswith(".json") and not server == "version.json":
                 server_parameters = get_server_parameters(server)
-                server_list[server.split(".")[0]] = server_parameters
+                if server_parameters['active']:
+                    server_list[server.split(".")[0]] = server_parameters
 
-        # if type(server_list) != dict: server_list = sort_servers(server_list)
+        if type(server_list) != dict: server_list = sort_servers(server_list)
     return server_list
 
 
@@ -696,16 +670,67 @@ def sort_servers(servers_list):
     """
     If the option "Order servers" is activated in the server configuration and there is a list of servers
     favorites in settings use it to sort the servers_list list
-    :param servers_list: List of servers to order. The items in the servers_list can be strings or Item objects. In which case it is necessary that they have an item.server attribute of type str.
+    :param servers_list: List of servers to order. The items in the servers_list can be strings or Item objects. In both cases it is necessary to have an item.server attribute of type str.
     :return: List of the same type of objects as servers_list ordered according to the favorite servers.
     """
-    if servers_list:
-        if isinstance(servers_list[0], Item):
-            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x.server))
+    def index(lst, value):
+        if value in lst:
+            return lst.index(value)
         else:
-            servers_list = sorted(servers_list, key=lambda x: config.get_setting("favorites_servers_list", server=x))
+            logger.debug('Index not found: ' + value)
+            return 999
+    if not servers_list:
+        return []
 
-    return servers_list
+    blacklisted_servers = config.get_setting("black_list", server='servers', default=[])
+    favorite_servers = config.get_setting('favorites_servers_list', server='servers', default=[])
+    favorite_servers = [s for s in favorite_servers if s not in blacklisted_servers]
+    if isinstance(servers_list[0], str):
+        servers_list = sorted(servers_list, key=lambda x: favorite_servers.index(x) if x in favorite_servers else 999)
+        return servers_list
+
+    favorite_quality = ['4k', '2160p', '2160', '4k2160p', '4k2160', '4k 2160p', '4k 2160', '2k',
+                    'fullhd', 'fullhd 1080', 'fullhd 1080p', 'full hd', 'full hd 1080', 'full hd 1080p', 'hd1080', 'hd1080p', 'hd 1080', 'hd 1080p', '1080', '1080p',
+                    'hd', 'hd720', 'hd720p', 'hd 720', 'hd 720p', '720', '720p', 'hdtv',
+                    'sd', '480p', '480', '360p', '360', '240p', '240']
+
+    sorted_list = []
+    inverted = False
+
+    if config.get_setting('default_action') == 2:
+        inverted = True
+
+    # Priorities when ordering itemlist:
+    #       0: Only Qualities
+    #       1: Servers and Qualities
+    #       2: Qualities and Servers
+
+    priority = 0
+    if config.get_setting('favorites_servers') and favorite_servers: priority = 1
+    if config.get_setting('quality_priority'): priority = 2
+
+    for item in servers_list:
+        element = dict()
+
+        # We check that it is a video item
+        if 'server' not in item:
+            continue
+
+        if item.server.lower() in blacklisted_servers:
+            continue
+
+        element["index_server"] = index(favorite_servers, item.server.lower())
+        element["index_quality"] = platformtools.calcResolution(item.quality)
+        element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
+        element['videoitem'] = item
+        sorted_list.append(element)
+
+    # We order according to priority
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'] , element['videoitem'].server))
+    elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'])) # Servers and Qualities
+    elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['index_server'])) # Qualities and Servers
+
+    return [v['videoitem'] for v in sorted_list if v]
 
 
 # Checking links
@@ -733,9 +758,10 @@ def check_list_links(itemlist, numero='', timeout=3):
                 it = res[0]
                 verificacion = res[1]
                 it.title = verificacion + ' ' + it.title.strip()
-                logger.info('VERIFICATION= ' + verificacion)
+                logger.debug('VERIFICATION= ' + verificacion)
                 it.alive = verificacion
     return itemlist
+
 
 def check_video_link(item, timeout=3):
     """
@@ -777,11 +803,30 @@ def check_video_link(item, timeout=3):
             httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = ant_timeout  # Restore download time
             return item, resultado
 
-    logger.debug("[check_video_link] There is no test_video_exists for server: %s" % server)
+    logger.debug("[check_video_link] There is no test_video_exists for server:", server)
     return item, NK
 
+
 def translate_server_name(name):
-    if '@' in name:
-        return config.get_localized_string(int(name.replace('@','')))
-    else:
-        return name
+    if '@' in name: return config.get_localized_string(int(name.replace('@','')))
+    else: return name
+
+
+# def get_server_json(server_name):
+#     # logger.info("server_name=" + server_name)
+#     try:
+#         server_path = filetools.join(config.get_runtime_path(), "servers", server_name + ".json")
+#         if not filetools.exists(server_path):
+#             server_path = filetools.join(config.get_runtime_path(), "servers", "debriders", server_name + ".json")
+#
+#         # logger.info("server_path=" + server_path)
+#         server_json = jsontools.load(filetools.read(server_path))
+#         # logger.info("server_json= %s" % server_json)
+#
+#     except Exception as ex:
+#         template = "An exception of type %s occured. Arguments:\n%r"
+#         message = template % (type(ex).__name__, ex.args)
+#         logger.error(" %s" % message)
+#         server_json = None
+#
+#     return server_json

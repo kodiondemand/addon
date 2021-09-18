@@ -84,6 +84,8 @@ def search(item, text):
 def peliculas(item):
     search = item.search
     disabletmdb = True
+    addVideolibrary = False
+    downloadEnabled = False
     action = 'episodios'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     def itemHook(item):
@@ -96,7 +98,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = support.match(item).data
-    debug = True
+    # debug = True
     action = 'play'
     if '>puntate<' in data:
         patronBlock = r'>puntate<(?P<block>.*?)home-block-outbrain'
@@ -109,6 +111,7 @@ def episodios(item):
     patron = r'(?:<a href="(?P<url>[^"]+)">[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]*)">[^>]+>[^>]+>[^>]+>(?:[^>]+>)?(?:[^>]+>){6}?)\s*(?P<title>[^<]+)<(?:[^>]+>[^>]+>[^>]+><div class="data">(?P<date>[^<]+))?|class="heading">[^>]+>(?P<Title>[^<]+).*?window.shareUrl = "(?P<Url>[^"]+)".*?poster:\s*"(?P<Thumb>[^"]+)", title: "(?P<desc>[^"]+)"'
     patronNext = r'<a href="([^"]+)">›'
     addVideolibrary = False
+    downloadEnabled = False
 
     def itemHook(item):
         if item.Thumb: item.t = item.Thumb

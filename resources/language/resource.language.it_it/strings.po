@@ -4844,16 +4844,16 @@ msgid "Manual Search"
 msgstr "Ricerca Manuale"
 
 msgctxt "#70511"
-msgid ""
-msgstr ""
+msgid "Goto page"
+msgstr "Vai a pagina"
 
 msgctxt "#70512"
 msgid "Searching in Mymovies"
 msgstr "Ricerca in Mymovies"
 
 msgctxt "#70513"
-msgid ""
-msgstr ""
+msgid "Insert page number"
+msgstr "Inserisci numero di pagina"
 
 msgctxt "#70514"
 msgid ""

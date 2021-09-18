@@ -364,7 +364,7 @@ def render_items(itemlist, parent_item):
     xbmcplugin.addDirectoryItems(_handle, dirItems)
 
     if parent_item.list_type == '':
-        breadcrumb = parent_item.category.capitalize()
+        breadcrumb = parent_item.category #.capitalize()
     else:
         if 'similar' in parent_item.list_type:
             if parent_item.contentTitle != '':
@@ -614,7 +614,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append((config.get_localized_string(60350), "Container.Refresh (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
-        if item.channel != "videolibrary" and item.videolibrary != False:
+        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
             # Add Series to the video library
             if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
                 context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
@@ -625,7 +625,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             elif item.action in ['check'] and item.contentTitle:
                 context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
 
-        if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled'):
+        if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled') and not item.disable_videolibrary:
             # Download movie
             if item.contentType == "movie":
                 context_commands.append((config.get_localized_string(60354), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&from_channel=' + item.channel + '&from_action=' + item.action)))
@@ -648,6 +648,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
+        if item.nextPage:
+            context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
     if config.dev_mode():
         context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
     return context_commands
@@ -974,7 +976,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
-        elif item.manifest == 'hls' or mediaurl.split('|')[0].endswith('m3u8'):
+        elif item.manifest == 'hls' or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
@@ -1055,23 +1057,23 @@ def get_seleccion(default_action, opciones, seleccion, video_urls):
 
 
 def calcResolution(option):
-    match = scrapertools.find_single_match(option, '([0-9]{2,4})x([0-9]{2,4})')
-    resolution = False
+    match = scrapertools.find_single_match(option, '([0-9]{2,4})(?:p|i|x[0-9]{2,4}|)')
+    resolution = 0
+
     if match:
-        resolution = int(match[0]) * int(match[1])
-    else:
-        if '240p' in option:
-            resolution = 320 * 240
-        elif '360p' in option:
-            resolution = 480 * 360
-        elif ('480p' in option) or ('480i' in option):
-            resolution = 720 * 480
-        elif ('576p' in option) or ('576p' in option):
-            resolution = 720 * 576
-        elif ('720p' in option) or ('HD' in option):
-            resolution = 1280 * 720
-        elif ('1080p' in option) or ('1080i' in option) or ('Full HD' in option):
-            resolution = 1920 * 1080
+        resolution = int(match)
+    elif 'sd' in option.lower():
+        resolution = 480
+    elif 'hd' in option.lower():
+        resolution = 720
+        if 'full' in option.lower():
+            resolution = 1080
+    elif '2k' in option.lower():
+        resolution = 1440
+    elif '4k' in option.lower():
+        resolution = 2160
+    elif 'auto' in option.lower():
+        resolution = 10000
 
     return resolution
 
@@ -1725,18 +1727,16 @@ def get_played_time(item):
     if not ID:
         return 0
 
-    S = item.infoLabels.get('season', 0)
-    E = item.infoLabels.get('episode')
+    s = item.infoLabels.get('season', 0)
+    e = item.infoLabels.get('episode')
+
     result = None
 
     try:
-        if item.contentType == 'movie':
-            result = db['viewed'].get(ID)
-        elif S and E:
-            result = db['viewed'].get(ID, {}).get(str(S)+'x'+str(E))
-
-        if result:
-            played_time = result
+        result = db['viewed'].get(ID)
+        if type(result) == dict:
+            result = db['viewed'].get(ID, {}).get('{}x{}'.format(s, e), 0)
+        played_time = result
     except:
         import traceback
         logger.error(traceback.format_exc())
@@ -1757,20 +1757,21 @@ def set_played_time(item):
     if not ID:
         return
 
-    S = item.infoLabels.get('season', 0)
-    E = item.infoLabels.get('episode')
+    s = item.infoLabels.get('season', 0)
+    e = item.infoLabels.get('episode')
 
     try:
-        if item.contentType == 'movie':
-            db['viewed'][ID] = played_time
-        elif E:
+        if e:
             newDict = db['viewed'].get(ID, {})
-            newDict[str(S) + 'x' + str(E)] = played_time
+            newDict['{}x{}'.format(s, e)] = played_time
             db['viewed'][ID] = newDict
+        else:
+            db['viewed'][ID] = played_time
     except:
         import traceback
         logger.error(traceback.format_exc())
         del db['viewed'][ID]
+
 
 
 def prevent_busy(item):
@@ -1780,3 +1781,7 @@ def prevent_busy(item):
         else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
         xbmc.sleep(200)
         xbmc.Player().stop()
+        # xbmc.executebuiltin('Action(Stop)')
+        # xbmc.sleep(500)
+        # xbmc.Player().stop()
+        # xbmc.sleep(500)

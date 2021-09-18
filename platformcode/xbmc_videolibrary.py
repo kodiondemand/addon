@@ -114,7 +114,6 @@ def mark_auto_as_watched(item):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
 
 
-
 def sync_trakt_addon(path_folder):
     """
        Updates the values ​​of episodes seen if

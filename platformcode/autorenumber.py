@@ -132,11 +132,12 @@ class autorenumber():
         else:
             self.renumberdict = {}
             for item in self.itemlist:
-                item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
-                                 "action": "start",
-                                 "channel": "autorenumber",
-                                 "from_channel": item.channel,
-                                 "from_action": item.action}]
+                if item.contentType != 'movie':
+                    item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
+                                     "action": "start",
+                                     "channel": "autorenumber",
+                                     "from_channel": item.channel,
+                                     "from_action": item.action}]
 
     def config(self):
         # Pulizia del Titolo

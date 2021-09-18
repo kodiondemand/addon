@@ -424,6 +424,8 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang, lock=None
                         if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
                             # If the search has been successful and you are not looking for a list of items,
                             # carry out another search to expand the information
+                            if search_type == 'multi':
+                                search_type = 'movie' if otmdb.result.get('media_type') else 'tv'
                             otmdb = Tmdb(id_Tmdb=otmdb.result.get("id"), search_type=search_type,
                                          search_language=search_language)
 
@@ -619,6 +621,8 @@ def discovery(item, dict_=False, cast=False):
     from core.item import Item
 
     if dict_:
+        if item.page:
+            item.discovery['page'] = item.page
         listado = Tmdb(discover = dict_, cast=cast)
 
     elif item.search_type == 'discover':
@@ -1562,10 +1566,12 @@ class Tmdb(object):
         :rtype: list of Dict
         """
         ret = []
+
         if self.result['id']:
             if self.result['videos']:
                 self.result["videos"] = self.result["videos"]['results']
             else:
+                self.result["videos"] = []
                 # First video search in the search language
                 url = "{}/{}/{}/videos?api_key={}&language={}".format(host, self.search_type, self.result['id'], api, self.search_language)
 

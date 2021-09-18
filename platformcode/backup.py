@@ -3,7 +3,7 @@
 # Backup and restore video library
 # ------------------------------------------------------------
 
-import datetime, xbmc, os, shutil
+import datetime, xbmc, os, shutil, sys
 
 from zipfile import ZipFile
 from core import videolibrarytools, filetools
@@ -11,12 +11,15 @@ from platformcode import logger, config, platformtools, xbmc_videolibrary
 from distutils.dir_util import copy_tree
 from specials import videolibrary
 
-temp_path = u'' + xbmc.translatePath("special://userdata/addon_data/plugin.video.kod/temp/")
-videolibrary_temp_path = u'' + xbmc.translatePath("special://userdata/addon_data/plugin.video.kod/temp/videolibrary")
-movies_path = u'' + filetools.join(videolibrary_temp_path, "movies")
-tvshows_path = u'' + filetools.join(videolibrary_temp_path, "tvshows")
-videolibrary_movies_path = u'' + videolibrarytools.MOVIES_PATH
-videolibrary_tvshows_path = u'' + videolibrarytools.TVSHOWS_PATH
+PY3 = False
+if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
+
+temp_path = unicode(xbmc.translatePath("special://userdata/addon_data/plugin.video.kod/temp/"))
+videolibrary_temp_path = unicode(xbmc.translatePath("special://userdata/addon_data/plugin.video.kod/temp/videolibrary"))
+movies_path = unicode(filetools.join(videolibrary_temp_path, "movies"))
+tvshows_path = unicode(filetools.join(videolibrary_temp_path, "tvshows"))
+videolibrary_movies_path = unicode(videolibrarytools.MOVIES_PATH)
+videolibrary_tvshows_path = unicode(videolibrarytools.TVSHOWS_PATH)
 
 
 def export_videolibrary(item):
@@ -25,7 +28,7 @@ def export_videolibrary(item):
     zip_file_folder = platformtools.dialog_browse(3, config.get_localized_string(80002))
     if zip_file_folder == "":
         return
-    zip_file = u'' + xbmc.translatePath(zip_file_folder + "KoD_video_library-" + str(datetime.date.today()) + ".zip")
+    zip_file = unicode(xbmc.translatePath(zip_file_folder + "KoD_video_library-" + str(datetime.date.today()) + ".zip"))
 
     p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80003))
     # p_dialog.update(0)
@@ -53,7 +56,7 @@ def export_videolibrary(item):
 def import_videolibrary(item):
     logger.info()
 
-    zip_file = u'' + platformtools.dialog_browse(1, config.get_localized_string(80005), mask=".zip")
+    zip_file = unicode(platformtools.dialog_browse(1, config.get_localized_string(80005), mask=".zip"))
     if zip_file == "":
         return
     if not platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80006)):
@@ -111,6 +114,7 @@ def zip(dir, file):
         zf.close()
     if smb:
         filetools.move(file, temp)
+
 
 def unzip(dir, file):
     if file.lower().startswith('smb://'):

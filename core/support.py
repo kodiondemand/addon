@@ -24,6 +24,56 @@ from platformcode import config
 from platformcode.logger import info
 from platformcode import logger
 
+channels_order = {'Rai 1': 1,
+                  'Rai 2': 2,
+                  'Rai 3': 3,
+                  'Rete 4': 4,
+                  'Canale 5': 5,
+                  'Italia 1': 6,
+                  'La7': 7,
+                  'NOVE': 9,
+                  '20': 20,
+                  'Rai 4': 21,
+                  'Iris': 22,
+                  'Rai 5': 23,
+                  'Rai Movie': 24,
+                  'Rai Premium': 25,
+                  'Paramount': 27,
+                  'La7d': 29,
+                  'La 5': 30,
+                  'Real Time': 31,
+                  'Food Network': 33,
+                  'Cine34': 34,
+                  'Focus': 35,
+                  'Giallo': 38,
+                  'Top Crime': 39,
+                  'Boing': 40,
+                  'K2': 41,
+                  'Rai Gulp': 42,
+                  'Rai Yoyo': 43,
+                  'Frisbee': 44,
+                  'Cartoonito': 46,
+                  'Super': 46,
+                  'Rai News 24': 48,
+                  'Spike': 49,
+                  'TGCom': 51,
+                  'DMAX': 52,
+                  'Rai Storia': 54,
+                  'Mediaset Extra': 55,
+                  'Home and Garden TV': 56,
+                  'Rai Sport piu HD': 57,
+                  'Rai Sport': 58,
+                  'Motor Trend': 59,
+                  'Italia 2': 66,
+                  'VH1': 67,
+                  'Rai Scuola': 146,
+                  'Radio 105': 157,
+                  'R101tv': 167,
+                  'RMC': 256,
+                  'Virgin Radio': 257,
+                  'Rai Radio 2': 999,
+                  }
+
 
 def hdpass_get_servers(item):
     def get_hosts(url, quality):
@@ -53,7 +103,7 @@ def hdpass_get_servers(item):
 
     data = httptools.downloadpage(url, CF=False).data
     patron_res = '<div class="buttons-bar resolutions-bar">(.*?)<div class="buttons-bar'
-    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)<div id="main-player'
+    patron_mir = '<div class="buttons-bar hosts-bar">(.*?)(?:<div id="main-player|<script)'
     patron_option = r'<a href="([^"]+?)"[^>]+>([^<]+?)</a'
 
     res = scrapertools.find_single_match(data, patron_res)
@@ -237,6 +287,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
         contents.append(title)
         title2 = cleantitle(scraped.get('title2', '')) if not group or item.grouped else ''
         quality = scraped.get('quality', '')
+        if not quality: quality = item.quality
         # Type = scraped['type'] if scraped['type'] else ''
         plot = cleantitle(scraped.get("plot", ''))
 
@@ -399,7 +450,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 contentEpisodeNumber=infolabels.get('episode', ''),
                 news= item.news if item.news else '',
                 other = scraped['other'] if scraped['other'] else '',
-                grouped=group
+                q=group,
+                disable_videolibrary = not args.get('addVideolibrary', True)
             )
             if scraped['episode'] and group and not item.grouped:  # some adjustment for grouping feature
                 it.action = function
@@ -1214,7 +1266,9 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.title = findS[0]
                 videoitem.url = findS[1]
                 srv_param = servertools.get_server_parameters(videoitem.server.lower())
-        logger.debug(videoitem)
+            else:
+                videoitem.server = videoitem.server.lower()
+
         if videoitem.video_urls or srv_param.get('active', False):
             item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
@@ -1270,7 +1324,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         logger.error(traceback.format_exc())
         pass
 
-    # verifiedItemlist = servertools.sort_servers(verifiedItemlist)
+    verifiedItemlist = servertools.sort_servers(verifiedItemlist)
 
     if Videolibrary and item.contentChannel != 'videolibrary':
         videolibrary(verifiedItemlist, item)
@@ -1412,6 +1466,7 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
 
 def thumb(item_itemlist_string=None, genre=False, live=False):
     from channelselector import get_thumb
+
     if live:
         if type(item_itemlist_string) == list:
             for item in item_itemlist_string:

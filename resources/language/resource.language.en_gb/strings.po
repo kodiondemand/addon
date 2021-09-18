@@ -4845,7 +4845,7 @@ msgid "Manual Search"
 msgstr ""
 
 msgctxt "#70511"
-msgid ""
+msgid "Goto page"
 msgstr ""
 
 msgctxt "#70512"
@@ -4853,7 +4853,7 @@ msgid "Searching in Mymovies"
 msgstr ""
 
 msgctxt "#70513"
-msgid ""
+msgid "Insert page number"
 msgstr ""
 
 msgctxt "#70514"
