@@ -82,11 +82,11 @@ def live(item):
         if it['callSign'] in allguide:
 
             guide = allguide[it['callSign']]
-            plot = '[B]{}[/B]\n{}\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide['currentListing']['mediasetlisting$epgTitle'],
-                                                                        guide['currentListing']['description'],
-                                                                        guide['nextListing']['mediasetlisting$epgTitle'],
-                                                                        guide['nextListing']['description'],)
-
+            plot = '[B]{}[/B]\n{}'.format(guide.get('currentListing', {}).get('mediasetlisting$epgTitle', ''),
+                                                                       guide.get('currentListing', {}).get('description', ''))
+            if 'nextListing' in guide.keys():
+                plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),
+                                                               guide.get('nextListing', {}).get('description', ''))
             itemlist.append(item.clone(title=support.typo(title, 'bold'), fulltitle=title, callSign=it['callSign'], urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'], plot=plot, url=url, action='play', forcethumb=True))
 
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))

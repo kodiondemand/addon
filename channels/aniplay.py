@@ -128,7 +128,7 @@ def latest_added(item):
     js = httptools.downloadpage(url).json
 
     for episode in js:
-        title = episode['title']
+        title = episode['title'] if episode['title'] else ''
         animeTitle, lang =  get_lang(episode['animeTitle'])
         quality = 'Full HD' if episode['fullHd'] else 'HD'
         long_title = support.typo('{}. {}{}'.format(int(float(episode['episodeNumber'])), title + ' - ' if title else '', animeTitle), 'bold') + support.typo(lang, '_ [] color kod') + support.typo(quality, '_ [] color kod')
