@@ -262,7 +262,7 @@ def live(item):
     # make itemlist
     for ch in channel_list:
         itemlist += channels_dict[ch]
-    itemlist.sort(key=lambda it: support.channels_order[it.fulltitle])
+    itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 1000))
     return itemlist
 
 
