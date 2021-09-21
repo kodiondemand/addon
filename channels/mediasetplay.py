@@ -195,15 +195,18 @@ def episodios(item):
     except:  # per i test, xbmc.getLocalizedString non è supportato
         for month in range(21, 33): months.append('dummy')
 
+    # i programmi tv vanno ordinati per data decrescente, gli episodi delle serie per data crescente
+    order = 'desc' if '/programmi-tv/' in item.url else 'asc'
+
     itemlist = []
-    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|asc,tvSeasonEpisodeNumber').json()['entries']
+    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|' + order + ',tvSeasonEpisodeNumber').json()['entries']
 
     for it in res:
         thumb = ''
         titleDate = ''
         if 'mediasetprogram$publishInfo_lastPublished' in it:
             date = datetime.date.fromtimestamp(it['mediasetprogram$publishInfo_lastPublished'] / 1000)
-            titleDate ='  [{} {}]'.format(date.day, months[date.month])
+            titleDate ='  [{} {}]'.format(date.day, months[date.month-1])
         title = '[B]{}[/B]{}'.format(it['title'], titleDate)
         for k, v in it['thumbnails'].items():
             if 'image_keyframe' in k and not thumb:

@@ -11,7 +11,12 @@ if sys.version_info[0] >= 3:
 else:
     from concurrent_py2 import futures
 
-host = support.config.get_channel_url()
+
+def findhost(url):
+    return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
+
+
+host = support.config.get_channel_url(findhost)
 session = requests.Session()
 headers = {}
 
