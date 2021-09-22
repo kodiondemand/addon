@@ -622,6 +622,7 @@ def discovery(item, dict_=False, cast=False):
 
     if dict_:
         if item.page:
+            item.discovery={}
             item.discovery['page'] = item.page
         listado = Tmdb(discover = dict_, cast=cast)
 
