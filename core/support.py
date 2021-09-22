@@ -1437,17 +1437,20 @@ def addQualityTag(item, itemlist, data, patron):
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}])') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}?])') if not dataIsBlock else data
     if block:
         json = jsontools.load(block)
         if json:
             sources = []
             for s in json:
-                if 'file' in s.keys():
-                    src = s['file']
+                if isinstance(s, str):
+                    sources.append((s, ''))
                 else:
-                    src = s['src']
-                sources.append((src, s.get('label')))
+                    if 'file' in s.keys():
+                        src = s['file']
+                    else:
+                        src = s['src']
+                    sources.append((src, s.get('label')))
         else:
             if 'file:' in block:
                 sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
