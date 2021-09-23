@@ -22,7 +22,7 @@ addonname = addon.getAddonInfo('name')
 
 _hdr_pat = re.compile("^@@ -(\d+),?(\d+)? \+(\d+),?(\d+)? @@.*")
 
-branch = 'master'
+branch = 'alpha'
 user = 'kodiondemand'
 repo = 'addon'
 addonDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
