@@ -12,12 +12,12 @@ else: from concurrent_py2 import futures
 
 import math, traceback, re, os
 
-from core import filetools, scraper, scrapertools, support, httptools, tmdb
+from core import filetools, scraper, scrapertools, httptools, tmdb
 from core.item import Item
 from lib import generictools
 from platformcode import config, dbconverter, logger, platformtools
 from platformcode.autorenumber import RENUMBER
-from core.videolibrarydb import videolibrarydb
+from core import videolibrarydb
 
 FOLDER_MOVIES = config.get_setting("folder_movies")
 FOLDER_TVSHOWS = config.get_setting("folder_tvshows")

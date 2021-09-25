@@ -29,6 +29,8 @@ class nested_dict_sqlite(defaultdict):
             self[key].close()
         self.clear()
 
-
 db_name = filetools.join(config.get_data_path(), "db.sqlite")
 db = nested_dict_sqlite(lambda table: SqliteDict(db_name, table, 'c', True))
+
+vdb_name = filetools.join(config.get_videolibrary_path(), "videolibrary.sqlite")
+videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True))

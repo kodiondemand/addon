@@ -3,7 +3,7 @@
 # XBMC Library Tools
 # ------------------------------------------------------------
 
-import sys, os, threading, time, re, math, xbmc, xbmcgui, sqlite3
+import sys, os, threading, time, re, math, xbmc, xbmcgui
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
@@ -298,7 +298,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
 
 def set_watched_on_kod(data):
     from specials import videolibrary
-    from core.videolibrarytools import videolibrarydb
+    from core import videolibrarydb
     # from core.support import dbg;dbg()
 
     data = jsontools.load(data)

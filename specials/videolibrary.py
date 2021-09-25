@@ -2,16 +2,13 @@
 
 #from builtins import str
 import sys, os, traceback, xbmc, xbmcgui
-from core import httptools, jsontools, support
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
-from core import filetools, scrapertools, videolibrarytools
-from core.support import typo, thumb, videolibrary
+from core import httptools, support, filetools, scrapertools, videolibrarytools, videolibrarydb
 from core.item import Item
 from platformcode import config, logger, platformtools
-from core.videolibrarytools import MOVIES_PATH, videolibrarydb
 
 if PY3:
     from concurrent import futures
@@ -24,13 +21,13 @@ else:
 
 def mainlist(item):
     logger.debug()
-    itemlist = [item.clone(title=config.get_localized_string(60509), contentType='movie', action='list_movies', thumbnail=thumb('videolibrary_movie')),
-                item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30122) + '...', 'submenu'), contentType='movie',action='search_list',  thumbnail=thumb('search_movie')),
-                item.clone(title=config.get_localized_string(60600), contentType='tvshow', action='list_tvshows', thumbnail=thumb('videolibrary_tvshow'),
+    itemlist = [item.clone(title=config.get_localized_string(60509), contentType='movie', action='list_movies', thumbnail=support.thumb('videolibrary_movie')),
+                item.clone(title=support.typo(config.get_localized_string(70741) % config.get_localized_string(30122) + '...', 'submenu'), contentType='movie',action='search_list',  thumbnail=support.thumb('search_movie')),
+                item.clone(title=config.get_localized_string(60600), contentType='tvshow', action='list_tvshows', thumbnail=support.thumb('videolibrary_tvshow'),
                            context=[{'channel':'videolibrary', 'action':'update_videolibrary', 'title':config.get_localized_string(70269)}]),
-                item.clone(title=typo(config.get_localized_string(70741) % config.get_localized_string(30123) + '...', 'submenu'),contentType='tvshow', action='search_list', thumbnail=thumb('search_tvshow')),
-                item.clone(channel='shortcuts', title=typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
-                           category=2, setting=1, thumbnail = thumb('setting'),folder=False)]
+                item.clone(title=support.typo(config.get_localized_string(70741) % config.get_localized_string(30123) + '...', 'submenu'),contentType='tvshow', action='search_list', thumbnail=support.thumb('search_tvshow')),
+                item.clone(channel='shortcuts', title=support.typo(config.get_localized_string(70287),'bold color kod'), action='SettingOnPosition',
+                           category=2, setting=1, thumbnail = support.thumb('setting'),folder=False)]
     support.thumb(itemlist)
     return itemlist
 
@@ -87,7 +84,7 @@ def list_genres(item):
             itemlist.append(it)
 
     itemlist.sort(key=lambda it: it.list_genre)
-    thumb(itemlist, True)
+    support.thumb(itemlist, True)
     return itemlist
 
 
@@ -239,10 +236,10 @@ def list_tvshows(item):
     if itemlist:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
         add_context(itemlist)
-        thumbnail = thumb('videolibrary_tvshow')
+        thumbnail = support.thumb('videolibrary_tvshow')
         itemlist += [Item(channel=item.channel, action='update_videolibrary', thumbnail=thumbnail,
                           fanart=thumbnail, landscape=thumbnail,
-                          title=typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
+                          title=support.typo(config.get_localized_string(70269), 'bold color kod'), folder=False)]
     videolibrarydb.close()
     return itemlist
 
@@ -1014,7 +1011,7 @@ def add_download_items(item, itemlist):
         if not item.fromLibrary and not localOnly:
             downloadItem = Item(channel='downloads',
                                 from_channel=item.channel,
-                                title=typo(config.get_localized_string(60355), 'color kod bold'),
+                                title=support.typo(config.get_localized_string(60355), 'color kod bold'),
                                 fulltitle=item.fulltitle,
                                 show=item.fulltitle,
                                 contentType=item.contentType,
@@ -1024,22 +1021,22 @@ def add_download_items(item, itemlist):
                                 from_action='findvideos',
                                 contentTitle=config.get_localized_string(60355),
                                 path=item.path,
-                                thumbnail=thumb('download'),
+                                thumbnail=support.thumb('download'),
                                 parent=item.tourl())
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
-                    downloadItem.title = '{} {}'.format(typo(config.get_localized_string(60356), 'color kod bold'), item.title)
+                    downloadItem.title = '{} {}'.format(support.typo(config.get_localized_string(60356), 'color kod bold'), item.title)
                 else:  # film
-                    downloadItem.title = typo(config.get_localized_string(60354), 'color kod bold')
+                    downloadItem.title = support.typo(config.get_localized_string(60354), 'color kod bold')
                 downloadItem.downloadItemlist = [i.tourl() for i in itemlist]
                 itemlist.append(downloadItem)
             else:
                 if item.contentSeason:  # season
-                    downloadItem.title = typo(config.get_localized_string(60357), 'color kod bold')
+                    downloadItem.title = support.typo(config.get_localized_string(60357), 'color kod bold')
                     itemlist.append(downloadItem)
                 else:  # tvshow + not seen
                     itemlist.append(downloadItem)
-                    itemlist.append(downloadItem.clone(title=typo(config.get_localized_string(60003), 'color kod bold'), contentTitle=config.get_localized_string(60003), unseen=True))
+                    itemlist.append(downloadItem.clone(title=support.typo(config.get_localized_string(60003), 'color kod bold'), contentTitle=config.get_localized_string(60003), unseen=True))
 
 #-------------- DELETE --------------
 

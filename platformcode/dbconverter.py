@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import xbmc
-from core import filetools, support, videolibrarytools
-from core.videolibrarydb import videolibrarydb
+from core import filetools, videolibrarytools
+from core import videolibrarydb
 from platformcode import config, logger, platformtools
 from platformcode.xbmc_videolibrary import execute_sql_kodi, get_data, get_file_db
 from time import time, strftime, localtime

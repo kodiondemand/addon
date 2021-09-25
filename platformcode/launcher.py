@@ -3,7 +3,6 @@
 # XBMC Launcher (xbmc / kodi)
 # ------------------------------------------------------------
 
-import platformcode
 from specials import videolibrary
 import sys, os
 
@@ -497,12 +496,12 @@ def play_from_library(item):
     xbmc.Player().stop()
     if xbmc.getCondVisibility('Window.IsMedia') and not item.window_type == 0:
         if item.contentType == 'episode':
-            it = videolibrarydb.videolibrarydb[item.contentType][item.videolibrary_id]['{}x{:02d}'.format(item.infoLabels['season'], item.infoLabels['episode'])]['item']
+            it = videolibrarydb[item.contentType][item.videolibrary_id]['{}x{:02d}'.format(item.infoLabels['season'], item.infoLabels['episode'])]['item']
         else:
-            it = videolibrarydb.videolibrarydb[item.contentType][item.videolibrary_id]['item']
+            it = videolibrarydb[item.contentType][item.videolibrary_id]['item']
         it.from_library = True
         xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + it.tourl() + ")")
-        videolibrarydb.videolibrarydb.close()
+        videolibrarydb.close()
     else:
         item.window = True
         return videolibrary.findvideos(item)
