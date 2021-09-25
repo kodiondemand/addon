@@ -17,10 +17,9 @@ from future.builtins import object
 
 import ast, copy, re, time
 
-from core import filetools, httptools, jsontools, scrapertools, support
+from core import filetools, httptools, jsontools, scrapertools
 from core.item import InfoLabels
 from platformcode import config, logger, platformtools
-import threading
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
@@ -214,7 +213,8 @@ def set_infoLabels_itemlist(itemlist, seekTmdb=False, search_language=def_lang, 
             logger.error(traceback.format_exc(1))
 
         return (_i, _item, ret)
-    # from core.support import dbg;dbg()
+
+    # from core.support import dbg; dbg()
     # for i, item in enumerate(itemlist):
     #     r_list.append(sub_thread(item, i, seekTmdb))
     with futures.ThreadPoolExecutor() as executor:
@@ -428,7 +428,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                 item.fulltitle = new_title
                 return True
         # We check what type of content it is...
-        # from core.support import dbg;dbg()
+
         if item.contentType == 'movie':
             search_type = 'movie'
         elif item.contentType == 'undefined':  # don't know
@@ -537,10 +537,7 @@ def get_nfo(item, search_groups=False):
                 info_nfo = 'https://www.themoviedb.org/tv/{}/episode_group/{}'.format(item.infoLabels['tmdb_id'], Id)
                 return info_nfo + '\n'
             else: return
-    # from core.support import dbg;dbg()
-    # if "season" in item.infoLabels and "episode" in item.infoLabels:
-    #     info_nfo = "https://www.themoviedb.org/tv/{}/season/{}/episode/{}" .format(item.infoLabels['tmdb_id'], item.contentSeason, item.contentEpisodeNumber)
-    # else:
+
     info_nfo = ', '.join(item.infoLabels['url_scraper'])
 
     return info_nfo + '\n'
@@ -586,7 +583,6 @@ def select_group(groups, item):
     return ''
 
 def get_group(Id):
-    # from core.support import dbg;dbg()
     url = '{}/tv/episode_group/{}?api_key={}&language={}'.format(host, Id, api, def_lang)
     group = requests.get(url).json().get('groups',[])
     return group
@@ -627,7 +623,6 @@ def discovery(item, dict_=False, cast=False):
 
 def get_dic_genres(search_type):
     lang = def_lang
-    # from core.support import dbg;dbg()
     genres = Tmdb(search_type=search_type)
 
     return genres.dic_genres[lang]
@@ -891,7 +886,6 @@ class Tmdb(object):
     @staticmethod
     @cache_response
     def get_json(url, cache=True):
-        # from core.support import dbg;dbg()
         try:
             result = httptools.downloadpage(url, cookies=False, ignore_response_code=True)
 
@@ -948,14 +942,12 @@ class Tmdb(object):
                 logger.error(traceback.format_exc())
 
     def __by_id(self, source='tmdb'):
-        # from core.support import dbg;dbg()
-
         if self.search_id:
             if source == "tmdb":
                 url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},en,null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
                 searching = "id_Tmdb: {}".format(self.search_id)
             else:
-                url = ('{}/find/{}?external_source={}&api_key={}8&language={}'.format(host, self.search_id, source, api, self.search_language))
+                url = ('{}/find/{}?external_source={}&api_key={}&language={}'.format(host, self.search_id, source, api, self.search_language))
                 searching = "{}: {}".format(source.capitalize(), self.search_id)
 
             logger.debug("[Tmdb.py] Searching %s:\n%s" % (searching, url))
@@ -999,7 +991,7 @@ class Tmdb(object):
             url = ('{}/search/{}?api_key={}&query={}&language={}&include_adult={}&page={}'.format(host, self.search_type, api, text_quote, self.search_language, True, page))
 
             if self.search_year:
-                if self.search_type == 'movie':
+                if self.search_type in ['movie', 'multi']:
                     url += '&primary_release_year=%s' % self.search_year
                 else:
                     url += '&first_air_date_year=%s' % self.search_year
@@ -1220,7 +1212,6 @@ class Tmdb(object):
         :rtype: str
         """
         ret = ""
-        # from core.support import dbg;dbg()
 
         if 'id' in self.result:
             ret = self.result.get('overview')
@@ -1366,7 +1357,6 @@ class Tmdb(object):
 
             searching = "id_Tmdb: " + str(self.result["id"]) + " season: " + str(seasonNumber) + "\nURL: " + url
             logger.debug("[Tmdb.py] Searching " + searching)
-            # from core.support import dbg;dbg()
             try:
                 self.season[seasonNumber] = self.get_json(url)
                 if not isinstance(self.season[seasonNumber], dict):
@@ -1482,7 +1472,6 @@ class Tmdb(object):
 
 
         # Obtain chapter data if applicable
-        # from core.support import dbg;dbg()
         ret_dic = {}
         if chapter > 0:
             # episode = season["episodes"][chapter - 1]
@@ -1653,7 +1642,6 @@ class Tmdb(object):
                     continue
 
             if k == 'media_type':
-                # from core.support import dbg;dbg()
                 ret_infoLabels['mediatype'] = v if v in ['tv', 'tvshow'] else 'movie'
 
             elif k == 'overview':
@@ -1745,7 +1733,6 @@ class Tmdb(object):
                     ret_infoLabels[k] = v
 
             elif k == 'production_countries' or k == 'origin_country':
-                # support.dbg()
                 if isinstance(v, str):
                     l_country = list(set(l_country + v.split(',')))
 
@@ -1762,7 +1749,6 @@ class Tmdb(object):
             elif k == 'credits_crew' or k == 'episode_crew' or k == 'season_crew':
                 for crew in v:
                     if crew['job'].lower() == 'director':
-                        # from core.support import dbg;dbg()
                         l_director = list(set(l_director + [crew['name']]))
                         l_director_image += ['https://image.tmdb.org/t/p/original' + crew['profile_path'] if crew['profile_path'] else '']
                         l_director_id += [crew['id']]

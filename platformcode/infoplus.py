@@ -75,6 +75,7 @@ class InfoPlus(xbmcgui.WindowXML):
             else:
                 self.listitem.setArt({'poster':self.item.thumbnail, 'fanart':self.item.fanart})
             # Set Rating
+            if 'trakt_rating' in self.info: self.info['rating'] = self.info['trakt_rating']
             self.listitem.setProperty('rating',str(int(self.info.get('rating',10) * 10)))
             rating = self.info.get('rating', 'N/A')
             color = 'FFFFFFFF' if rating == 'N/A' else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
@@ -303,7 +304,12 @@ class CastWindow(xbmcgui.WindowXML):
 
     def get_person_info(self):
         # Function for Person Info
-        url = '{}/person/{}?api_key={}&language=en'.format(tmdb.host, self.id, tmdb.api)
+        if not self.id and self.item.text:
+            res = httptools.downloadpage('{}/search/person?api_key={}&language={}&query={}'.format(tmdb.host, tmdb.api, tmdb.def_lang, self.item.text)).json.get('results',[])
+            if res: self.id = res[0]['id']
+            else: self.close()
+
+        url = '{}/person/{}?api_key={}&language={}'.format(tmdb.host, self.id, tmdb.api, tmdb.def_lang)
         translation_url = '{}/person/{}/translations?api_key={}'.format(tmdb.host, self.id, tmdb.api)
         info = httptools.downloadpage(url).json
 
@@ -322,7 +328,7 @@ class CastWindow(xbmcgui.WindowXML):
         place = info.get('place_of_birth')
         self.castitem = xbmcgui.ListItem(info.get('name'))
         birth = born + (' - ' + dead if dead else '') + ('   [B]•[/B]   ' + place if place else '')
-        self.castitem.setArt({'poster':self.item.poster if self.item.poster else self.item.infoLabels.get('thumbnail', '')})
+        self.castitem.setArt({'poster':self.item.poster if self.item.poster else self.item.infoLabels.get('thumbnail', self.item.thumbnail)})
         self.castitem.setProperties({'birth':birth, 'plot':biography})
 
     def onInit(self):

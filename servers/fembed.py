@@ -32,6 +32,6 @@ def get_video_url(page_url, user="", password="", video_password=""):
         media_url = file['file']
         label = file['label']
         extension = file['type']
-        video_urls.append({'type':extension, 'quality':label, 'url':media_url})
+        video_urls.append({'type':extension, 'res':label, 'url':media_url})
     # video_urls.sort(key=lambda x: int(x[0].split()[1].replace('p','')))
     return video_urls

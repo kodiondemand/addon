@@ -271,7 +271,6 @@ def mark_content_as_watched_on_kodi(item, value=1):
             payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": r[0][0], "playcount": value}, "id": 1}
             data = get_data(payload)
     elif item.contentType == 'episode':
-        from core.support import dbg;dbg()
         path = '%{}'.format(item.strm_path.replace('\\','%').replace('/', '%'))
         sql = 'select idEpisode from episode_view where c18 like "{}"'.format(path)
 

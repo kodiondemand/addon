@@ -4188,20 +4188,20 @@ msgid "[Trakt] Mark %s as seen"
 msgstr "[Trakt] Segna %s come vista"
 
 msgctxt "#70343"
-msgid "[Trakt] Remove %s from your watchlist"
-msgstr "[Trakt] Rimuovi %s dalla tua watchlist"
+msgid "Remove %s from your watchlist"
+msgstr "Rimuovi %s dalla tua watchlist"
 
 msgctxt "#70344"
 msgid "Add to %s your watchlist"
-msgstr "[Trakt] Aggiungi %s alla tua watchlist"
+msgstr "Aggiungi %s alla tua watchlist"
 
 msgctxt "#70345"
-msgid "[Trakt] Remove %s from your collection"
-msgstr "[Trakt] Rimuovi %s dalla tua collezione"
+msgid "Remove %s from your collection"
+msgstr "Rimuovi %s dalla tua collezione"
 
 msgctxt "#70346"
-msgid "[Trakt] Add %s to your collection"
-msgstr "[Trakt] Aggiungi %s alla tua collezione"
+msgid "Add %s to your collection"
+msgstr "Aggiungi %s alla tua collezione"
 
 msgctxt "#70347"
 msgid "Action performed correctly"

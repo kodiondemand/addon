@@ -58,16 +58,17 @@ def list_az(item):
         else:
             v = v['item'].infoLabels
             if 'director' in v:
-                v = v.get('director').split(',')
+                v = v.get('director','').split(',')
             else:
-                v= v.get('writer').split(',')
-        cast += [c[0].strip() for c in v]
+                v= v.get('writer','').split(',')
+        cast += [c[0].strip() for c in v if c]
 
-    az = [] #[c[0] for c in cast if c[0] not in az]
+    az = []
     for c in cast:
         if c[0] not in az:
             az.append(c[0])
-    return [item.clone(title=i, action=item.next_action) for i in az]#['A','B','C','D','I','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']]
+    itemlist = [item.clone(title=i, action=item.next_action) for i in az]
+    return sorted(itemlist, key=lambda it: it.title)
 
 
 def list_genres(item):
@@ -81,11 +82,11 @@ def list_genres(item):
     itemlist = []
     for g in genres:
         g = g.strip()
-        if g and g not in [it.genre for it in itemlist]:
-            it = item.clone(title = g, action='list_{}s'.format(item.contentType), genre=g)
+        if g and g not in [it.list_genre for it in itemlist]:
+            it = item.clone(title = g, action='list_{}s'.format(item.contentType), list_genre=g)
             itemlist.append(it)
 
-    itemlist.sort(key=lambda it: it.genre)
+    itemlist.sort(key=lambda it: it.list_genre)
     thumb(itemlist, True)
     return itemlist
 
@@ -116,11 +117,11 @@ def list_directors(item):
     itemlist = []
     for i, d in enumerate(directors):
         d = d.strip()
-        if d and d[0][0] == item.title and d not in [it.director for it in itemlist]:
-            it = item.clone(title = d, action='list_{}s'.format(item.contentType), director=d, thumbnail=director_images[i] if len(director_images) > i else '')
+        if d and d[0][0] == item.title and d not in [it.list_director for it in itemlist]:
+            it = item.clone(title = d, action='list_{}s'.format(item.contentType), list_director=d, thumbnail=director_images[i] if len(director_images) > i else filetools.join(config.get_runtime_path(), 'resources','skins','Default','media','Infoplus','no_photo.png'))
             itemlist.append(it)
 
-    itemlist.sort(key=lambda it: it.director)
+    itemlist.sort(key=lambda it: it.list_director)
     return itemlist
 
 
@@ -132,11 +133,11 @@ def list_years(item):
 
     itemlist = []
     for y in years:
-        if y and y not in [it.year for it in itemlist]:
-            it = item.clone(title = str(y), action='list_{}s'.format(item.contentType), year=y)
+        if y and y not in [it.list_year for it in itemlist]:
+            it = item.clone(title = str(y), action='list_{}s'.format(item.contentType), list_year=y)
             itemlist.append(it)
 
-    itemlist.sort(key=lambda it: it.year, reverse=True)
+    itemlist.sort(key=lambda it: it.list_year, reverse=True)
     return itemlist
 
 
@@ -148,11 +149,11 @@ def list_ratings(item):
 
     itemlist = []
     for r in ratings:
-        if r and r not in [it.rating for it in itemlist]:
-            it = item.clone(title = str(r), action='list_{}s'.format(item.contentType), rating=r)
+        if r and r not in [it.list_rating for it in itemlist]:
+            it = item.clone(title = str(r), action='list_{}s'.format(item.contentType), list_rating=r)
             itemlist.append(it)
 
-    itemlist.sort(key=lambda it: it.rating, reverse=True)
+    itemlist.sort(key=lambda it: it.list_rating, reverse=True)
     return itemlist
 
 
@@ -166,11 +167,11 @@ def list_actors(item):
 
     itemlist = []
     for a in actors:
-        if a and a[0][0] == item.title and a[0] not in [it.initial for it in itemlist]:
-            it = item.clone(title = a[0], action='list_{}s'.format(item.contentType), initial=a[0], thumbnail=a[1])
+        if a and a[0][0] == item.title and a[0] not in [it.list_actor for it in itemlist]:
+            it = item.clone(title = a[0], action='list_{}s'.format(item.contentType), list_actor=a[0], thumbnail=a[1] if a[1] else filetools.join(config.get_runtime_path(), 'resources','skins','Default','media','Infoplus','no_photo.png'))
             itemlist.append(it)
 
-    itemlist.sort(key=lambda it: it.actor)
+    itemlist.sort(key=lambda it: it.list_actor)
     return itemlist
 
 
@@ -186,12 +187,11 @@ def list_movies(item, silent=False):
     logger.debug()
 
     videos = dict(videolibrarydb['movie']).values()
-
-    if item.year: itemlist = [v['item'] for v in videos if item.year == v['item'].infoLabels['year']]
-    elif item.rating: itemlist = [v['item'] for v in videos if item.rating == int(float(v['item'].infoLabels['rating']))]
-    elif item.genre: itemlist = [v['item'] for v in videos if item.genre in v['item'].infoLabels['genre']]
-    elif item.actor: itemlist = [v['item'] for v in videos if item.actor in str(v['item'].infoLabels['castandrole'])]
-    elif item.director: itemlist = [v['item'] for v in videos if item.actor in v['item'].infoLabels['director']]
+    if item.list_year: itemlist = [v['item'] for v in videos if item.list_year == v['item'].infoLabels['year']]
+    elif item.list_rating: itemlist = [v['item'] for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.list_genre: itemlist = [v['item'] for v in videos if item.list_genre in v['item'].infoLabels['genre']]
+    elif item.list_actor: itemlist = [v['item'] for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.list_director: itemlist = [v['item'] for v in videos if item.list_director in v['item'].infoLabels['director']]
     elif item.set: itemlist = [v['item'] for v in videos if item.set == v['item'].infoLabels.get('setid', '')]
     elif config.get_setting('collection') and not item.text: itemlist = [v['item'] for v in videos if (item.text.lower() in v['item'].title.lower() and not 'setid' in v['item'].infoLabels)] + [v for v in dict(videolibrarydb['collection']).values()]
     else: itemlist = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
@@ -212,11 +212,11 @@ def list_tvshows(item):
 
     videos = dict(videolibrarydb['tvshow']).values()
 
-    if item.year: series = [v['item'] for v in videos if item.year == v['item'].infoLabels['year']]
-    elif item.rating: series = [v['item'] for v in videos if item.rating == int(float(v['item'].infoLabels['rating']))]
-    elif item.genre: series = [v['item'] for v in videos if item.genre in v['item'].infoLabels['genre']]
-    elif item.actor: series = [v['item'] for v in videos if item.actor in str(v['item'].infoLabels['castandrole'])]
-    elif item.director: series = [v['item'] for v in videos if item.actor in v['item'].infoLabels['director']]
+    if item.list_year: series = [v['item'] for v in videos if item.list_year == v['item'].infoLabels['year']]
+    elif item.list_rating: series = [v['item'] for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.list_genre: series = [v['item'] for v in videos if item.list_genre in v['item'].infoLabels['genre']]
+    elif item.list_actor: series = [v['item'] for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.list_director: series = [v['item'] for v in videos if item.list_director in v['item'].infoLabels['director'] or item.list_director in v['item'].infoLabels['writer']]
     else: series = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
 
     def sub_thread(it):
@@ -936,7 +936,6 @@ class subcontext(object):
         index = xbmcgui.Dialog().contextmenu(self.context)
         if index >= 0: xbmc.executebuiltin('RunPlugin({}?{})'.format(sys.argv[0], self.commands[index].tourl()))
 
-
 class set_images(object):
     def __init__(self, item):
         self.item = item
@@ -1045,6 +1044,7 @@ def add_download_items(item, itemlist):
 #-------------- DELETE --------------
 
 def delete(item):
+    # support.dbg()
     from platformcode import xbmc_videolibrary
     select = None
     delete = None
@@ -1109,44 +1109,44 @@ def delete(item):
             else:
                 platformtools.itemlist_refresh(-1)
 
-        # delete channel from video item
-        if select and select > 0:
-            channel_name = channels[select - 1]
+    # delete channel from video item
+    if select and select > 0:
+        channel_name = channels[select - 1]
 
-            if item.contentType != 'movie':
-                episodes = videolibrarydb['episode'][item.videolibrary_id]
-                seasons = videolibrarydb['season'][item.videolibrary_id]
-                episodes_dict = dict(episodes)
-                seasons_dict = dict(seasons)
+        if item.contentType != 'movie':
+            episodes = videolibrarydb['episode'][item.videolibrary_id]
+            seasons = videolibrarydb['season'][item.videolibrary_id]
+            episodes_dict = dict(episodes)
+            seasons_dict = dict(seasons)
 
-                # delete episodes if they have no channels
-                for key, episode in episodes_dict.items():
-                    if len(episode['channels']) > 1 and channel_name in episode['channels']:
-                        del episode['channels'][channel_name]
-                    elif channel_name in episode['channels']:
-                        xbmc_videolibrary.clean_by_id(episodes[key]['item'])
-                        del episodes[key]
+            # delete episodes if they have no channels
+            for key, episode in episodes_dict.items():
+                if len(episode['channels']) > 1 and channel_name in episode['channels']:
+                    del episode['channels'][channel_name]
+                elif channel_name in episode['channels']:
+                    xbmc_videolibrary.clean_by_id(episodes[key]['item'])
+                    del episodes[key]
 
-                videolibrarydb['episode'][item.videolibrary_id] = episodes
-                seasons_list = []
+            videolibrarydb['episode'][item.videolibrary_id] = episodes
+            seasons_list = []
 
-                # delete seasons if they have no channels
-                for episode in episodes:
-                    season = int(episode.split('x')[0])
-                    if season not in seasons_list:
-                        seasons_list.append(season)
+            # delete seasons if they have no channels
+            for episode in episodes:
+                season = int(episode.split('x')[0])
+                if season not in seasons_list:
+                    seasons_list.append(season)
 
-                for season in seasons_dict.keys():
-                    if season not in seasons_list:
-                        xbmc_videolibrary.clean_by_id(seasons[season])
-                        del seasons[season]
-                videolibrarydb['season'][item.videolibrary_id] = seasons
+            for season in seasons_dict.keys():
+                if season not in seasons_list:
+                    xbmc_videolibrary.clean_by_id(seasons[season])
+                    del seasons[season]
+            videolibrarydb['season'][item.videolibrary_id] = seasons
 
-            channel = videolibrarydb[item.contentType][item.videolibrary_id]
-            channels = channel['channels']
-            del channels[channel_name]
-            channel['channels'] = channels
-            videolibrarydb[item.contentType][item.videolibrary_id] = channel
+        channel = videolibrarydb[item.contentType][item.videolibrary_id]
+        channels = channel['channels']
+        del channels[channel_name]
+        channel['channels'] = channels
+        videolibrarydb[item.contentType][item.videolibrary_id] = channel
 
     videolibrarydb.close()
 
@@ -1360,41 +1360,6 @@ def get_results(nfo_path, root, Type, local=False):
     else: item = Item()
     return item, value
 
-# def add_local_episodes(item):
-#     logger.debug()
-
-#     done, local_episodes_path = videolibrarytools.config_local_episodes_path(item.path, item, silent=True)
-#     if done < 0:
-#         logger.debug('An issue has occurred while configuring local episodes')
-#     elif local_episodes_path:
-#         nfo_path = filetools.join(item.path, 'tvshow.nfo')
-#         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-#         item_nfo.local_episodes_path = local_episodes_path
-#         if not item_nfo.active:
-#             item_nfo.active = 1
-#         filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-#         update_tvshow(item)
-
-#         platformtools.itemlist_refresh()
-
-
-# def remove_local_episodes(item):
-#     logger.debug()
-
-#     nfo_path = filetools.join(item.path, 'tvshow.nfo')
-#     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-
-#     for season_episode in item_nfo.local_episodes_list:
-#         filetools.remove(filetools.join(item.path, season_episode + '.strm'))
-
-#     item_nfo.local_episodes_list = []
-#     item_nfo.local_episodes_path = ''
-#     filetools.write(nfo_path, head_nfo + item_nfo.tojson())
-
-#     update_tvshow(item)
-
-#     platformtools.itemlist_refresh()
 
 def convert_videolibrary(item):
     videolibrarytools.convert_videolibrary()

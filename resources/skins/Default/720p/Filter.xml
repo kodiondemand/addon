@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<window>
+    <zorder>0.52</zorder>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
+    <defaultcontrol>100</defaultcontrol>
+    <controls>
+        <control type="group">
+            <top>125</top>
+            <left>250</left>
+            <width>780</width>
+            <height>470</height>
+            <control type="image">
+                <description>Window Background</description>
+                <width>100%</width>
+                <height>100%</height>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+            <control type='group'>
+                <top>30</top>
+                <left>40</left>
+                <control type="label">
+                    <description>Title</description>
+                    <top>0</top>
+                    <left>0</left>
+                    <height>40</height>
+                    <width>700</width>
+                    <font>font13</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <label>$ADDON[plugin.video.kod 70320]</label>
+                    <aligny>center</aligny>
+                    <align>left</align>
+                    <label/>
+                </control>
+                <control type="image">
+                    <description>Divider</description>
+                    <top>50</top>
+                    <left>0</left>
+                    <height>1</height>
+                    <width>700</width>
+                    <texture colordiffuse="33FFFFFF">white.png</texture>
+                </control>
+            </control>
+            <control type='grouplist' id='1'>
+                <top>100</top>
+                <left>40</left>
+                <width>700</width>
+                <ondown>2</ondown>
+                <itemgap>10</itemgap>
+                <control type='button' id='100'>
+                    <height>60</height>
+                    <label>$INFO[Listitem.Label]</label>
+                    <textoffsetx>20</textoffsetx>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                </control>
+                <control type='button' id='101'>
+                    <height>60</height>
+                    <label>$INFO[Listitem.Label]</label>
+                    <textoffsetx>20</textoffsetx>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                </control>
+                <control type='button' id='102'>
+                    <height>60</height>
+                    <label>$INFO[Listitem.Label]</label>
+                    <textoffsetx>20</textoffsetx>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                </control>
+                <control type='button' id='103'>
+                    <height>60</height>
+                    <ondown>200</ondown>
+                    <label>$INFO[Listitem.Label]</label>
+                    <textoffsetx>20</textoffsetx>
+                    <texturefocus colordiffuse="FF0082C2">white.png</texturefocus>
+                    <texturenofocus colordiffuse="FF232323">white.png</texturenofocus>
+                </control>
+                <control type='grouplist' id = '2'>
+                    <onup>1</onup>
+                    <itemgap>10</itemgap>
+                    <align>center</align>
+                    <orientation>horizontal</orientation>
+                    <control type='button' id='200'>
+                        <height>60</height>
+                        <width>60</width>
+                        <label>$INFO[Listitem.Label]</label>
+                        <texturefocus colordiffuse="FFFFFFFF">search.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">search.png</texturenofocus>
+                    </control>
+                    <control type='button' id='201'>
+                        <height>60</height>
+                        <width>60</width>
+                        <label>$INFO[Listitem.Label]</label>
+                        <texturefocus colordiffuse="FFFFFFFF">save.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">save.png</texturenofocus>
+                    </control>
+                    <control type='button' id='202'>
+                        <height>60</height>
+                        <width>60</width>
+                        <label>$INFO[Listitem.Label]</label>
+                        <texturefocus colordiffuse="FFFFFFFF">reset.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">reset.png</texturenofocus>
+                    </control>
+                    <control type='button' id='203'>
+                        <height>60</height>
+                        <width>60</width>
+                        <label>$INFO[Listitem.Label]</label>
+                        <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                        <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                    </control>
+                </control>
+            </control>
+        </control>
+    </controls>
+</window>

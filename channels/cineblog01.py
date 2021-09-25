@@ -186,9 +186,7 @@ def episodios(item):
         itlist.extend(sorted(itemDict['Sub-ITA'].get(season, []), key=lambda it: (it.contentSeason, it.contentEpisodeNumber)))
     itemlist = itlist
 
-    for i in itemlist: logger.debug(i.title, i.contentType)
-    import inspect
-    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']:
+    if not support.stackCheck(['add_tvshow', 'get_episodes', 'update', 'find_episodes']):
         if len(seasons) > 1:
             itemlist = support.season_pagination(itemlist, item, [], 'episodios')
         else:

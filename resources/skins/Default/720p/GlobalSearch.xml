@@ -50,8 +50,8 @@
             <control type="textbox" id='100'>
                 <description>Title</description>
                 <visible>Control.IsVisible(500)</visible>
-                <left>480</left>
-                <top>270</top>
+                <left>260</left>
+                <top>280</top>
                 <width>1000</width>
                 <height>30</height>
                 <font>font13</font>
@@ -59,7 +59,7 @@
                 <shadowcolor>00000000</shadowcolor>
                 <align>left</align>
                 <aligny>center</aligny>
-                <animation effect="slide" tween="linear" center="0" end="-450,-240" time="600" condition="Integer.IsGreater(Container(101).NumItems, 0)">Conditional</animation>
+                <animation effect="slide" tween="linear" center="0" end="-230,-250" time="600" condition="Integer.IsGreater(Container(101).NumItems, 0)">Conditional</animation>
             </control>
 
             <control type="group"> <!-- SEARCH GROUP-->
@@ -538,7 +538,7 @@
                     <onup>503</onup>
                     <scrolltime tween="cubic" easing="out">300</scrolltime>
                     <itemlayout height="60" width="700">
-                        <control type="textbox">
+                        <control type="label">
                             <description>Episode Title</description>
                             <top>0</top>
                             <left>20</left>
@@ -566,7 +566,7 @@
                                 <texture colordiffuse="CCFFFFFF">white.png</texture>
                                 <aspectratio>scale</aspectratio>
                             </control>
-                            <control type="textbox">
+                            <control type="label">
                                 <description>Episode Title</description>
                                 <top>0</top>
                                 <left>20</left>
@@ -577,6 +577,7 @@
                                 <shadowcolor>00000000</shadowcolor>
                                 <align>left</align>
                                 <aligny>center</aligny>
+                                <scroll>true</scroll>
                                 <label>$INFO[ListItem.Label]</label>
                             </control>
                         </control>
@@ -602,17 +603,18 @@
                                 <texture>$INFO[ListItem.Art(thumb)]</texture>
                                 <aspectratio>scale</aspectratio>
                             </control>
-                            <control type="textbox">
+                            <control type="label">
                                 <description>Episode Title</description>
                                 <top>0</top>
                                 <left>180</left>
-                                <width>480</width>
+                                <width>440</width>
                                 <height>100%</height>
                                 <font>font13</font>
                                 <textcolor>FF232323</textcolor>
                                 <shadowcolor>00000000</shadowcolor>
                                 <align>left</align>
                                 <aligny>center</aligny>
+                                <scroll>true</scroll>
                                 <label>$INFO[ListItem.Label]</label>
                             </control>
                         </control>

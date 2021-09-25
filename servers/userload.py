@@ -10,7 +10,7 @@ def test_video_exists(page_url):
     logger.debug('page url=', page_url)
     response = httptools.downloadpage(page_url)
 
-    if response.code == 404:
+    if response.code == 404 or 'We’re Sorry' in response.data:
         return False, config.get_localized_string(70449) % 'Userload'
     else:
         data = response.data

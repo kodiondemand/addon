@@ -67,6 +67,7 @@ def run(item=None):
                 config.set_setting('show_once', True)
 
     logger.info(item.tostring())
+    # from core.support import dbg;dbg()
 
     try:
         if not config.get_setting('tmdb_active'):
@@ -114,6 +115,11 @@ def run(item=None):
         elif item.channel == "infoplus":
             from platformcode import infoplus
             action = getattr(infoplus, item.action)
+            return action(item)
+
+        elif item.channel == 'trakt_tools':
+            from core import trakt_tools
+            action = getattr(trakt_tools, item.action)
             return action(item)
 
         elif item.channel == "backup":

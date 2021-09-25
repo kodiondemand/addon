@@ -474,10 +474,10 @@ def render_items(itemlist, parent_item):
             xbmc.sleep(100)
         xbmc.sleep(100)
         win = xbmcgui.Window(10025)
-        cid = win.getFocusId()
-        ctl = win.getControl(cid)
+        ctrlId = win.getFocusId()
+        ctrl = win.getControl(ctrlId)
         pos = position  + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
-        ctl.selectItem(pos)
+        ctrl.selectItem(pos)
 
 
 def viewmodeMonitor():
@@ -680,7 +680,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
         if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
             context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=start&from_channel=' + item.channel)))
-
+        if config.get_setting("token_trakt", "trakt") and item.contentType in ['movie', 'tvshow']:
+            context_commands.append((config.get_localized_string(70318), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=trakt_tools&action=context')))
         # Open in browser and previous menu
         if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
             context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
@@ -1353,20 +1354,6 @@ def get_selected_video(item, selection, video_urls, autoplay=False):
         file_type = video_url.get('type', 'Video').lower()
         if not item.subtitle: item.subtitle = video_url.get('sub', '')
         view = True
-    # if selection < len(video_urls):
-    #     mediaurl = video_urls[selection][1]
-    #     if len(video_urls[selection]) > 4:
-    #         wait_time = video_urls[selection][2]
-    #         if not item.subtitle:
-    #             item.subtitle = video_urls[selection][3]
-    #         mpd = True
-    #     elif len(video_urls[selection]) > 3:
-    #         wait_time = video_urls[selection][2]
-    #         if not item.subtitle:
-    #             item.subtitle = video_urls[selection][3]
-    #     elif len(video_urls[selection]) > 2:
-    #         wait_time = video_urls[selection][2]
-    #     view = True
 
     if 'mpd' in file_type:
         mpd = True

@@ -4181,15 +4181,15 @@ msgid "No images available"
 msgstr ""
 
 msgctxt "#70341"
-msgid "[Trakt] Mark %s as not seen"
+msgid "Mark %s as not seen"
 msgstr ""
 
 msgctxt "#70342"
-msgid "[Trakt] Mark %s as seen"
+msgid "Mark %s as seen"
 msgstr ""
 
 msgctxt "#70343"
-msgid "[Trakt] Remove %s from your watchlist"
+msgid "Remove %s from your watchlist"
 msgstr ""
 
 msgctxt "#70344"
@@ -4197,11 +4197,11 @@ msgid "Add to %s your watchlist"
 msgstr ""
 
 msgctxt "#70345"
-msgid "[Trakt] Remove %s from your collection"
+msgid "Remove %s from your collection"
 msgstr ""
 
 msgctxt "#70346"
-msgid "[Trakt] Add %s to your collection"
+msgid "Add %s to your collection"
 msgstr ""
 
 msgctxt "#70347"
