@@ -53,47 +53,46 @@ def process_request_proxy(url):
         else:
             print(target_url)
 
-        return_html = session.get(target_url, timeout=20)
-
-        if not return_html:
+        result = session.get(target_url, timeout=20)
+        if not result:
             return
+        data = result.text
+        # logger.debug(data)
+        if '<title>Google Traduttore' in data:
+            url_request = checker_url(
+                result.text,
+                BASE_URL_PROXY + '/translate_p?hl=it&sl=' + SL + '&tl=' + TL + '&u='
+            )
 
-        url_request = checker_url(
-            return_html.text,
-            BASE_URL_PROXY + '/translate_p?hl=it&sl=' + SL + '&tl=' + TL + '&u='
-        )
+            if logger:
+                logger.debug(url_request)
+            else:
+                print(url_request)
 
-        if logger:
-            logger.debug(url_request)
-        else:
-            print(url_request)
-
-        request_final = session.get(
-            url_request,
-            timeout=20
-        )
-
-        url_request_proxy = checker_url(
-            request_final.text, 'translate.google')
-
-        if logger:
-            logger.debug(url_request_proxy)
-        else:
-            print(url_request_proxy)
-
-        data = None
-        result = None
-        while not data or 'Sto traducendo' in data:
-            time.sleep(0.5)
-            result = session.get(
-                url_request_proxy,
+            request_final = session.get(
+                url_request,
                 timeout=20
             )
-            data = result.content.decode('utf-8', 'ignore')
-            if not PY3:
-                data = data.encode('utf-8')
+
+            url_request_proxy = checker_url(
+                request_final.text, 'translate.google')
+
             if logger:
                 logger.debug(url_request_proxy)
+            else:
+                print(url_request_proxy)
+
+            data = None
+            result = None
+            while not data or 'Sto traducendo' in data:
+                time.sleep(0.5)
+                result = session.get(
+                    url_request_proxy,
+                    timeout=20
+                )
+                data = result.text
+                if logger:
+                    logger.debug(url_request_proxy)
 
         data = re.sub('\s(\w+)=(?!")([^<>\s]+)', r' \1="\2"', data)
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)

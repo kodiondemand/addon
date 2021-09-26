@@ -128,7 +128,7 @@ def latest_added(item):
     js = httptools.downloadpage(url).json
 
     for episode in js:
-        title = episode['title']
+        title = episode['title'] if episode['title'] else ''
         animeTitle, lang =  get_lang(episode['animeTitle'])
         quality = 'Full HD' if episode['fullHd'] else 'HD'
         long_title = support.typo('{}. {}{}'.format(int(float(episode['episodeNumber'])), title + ' - ' if title else '', animeTitle), 'bold') + support.typo(lang, '_ [] color kod') + support.typo(quality, '_ [] color kod')
@@ -176,7 +176,7 @@ def peliculas(item):
                                    contentSerieName = title if it['type'] == 'Serie' else '',
                                    action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
                                    plot = it['storyline'],
-                                   year = it['startDate'].split('-')[0],
+                                #    year = it['startDate'].split('-')[0],
                                    url = '{}/api/anime/{}'.format(host, it['id']),
                                    thumbnail = get_thumbnail(it),
                                    fanart = get_thumbnail(it, 'horizontalImages')))

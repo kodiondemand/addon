@@ -74,6 +74,10 @@ chNumRis = {
         'Film': 16,
         'Serie TV': 16,
     },
+    'altadefinizionecommunity': {
+        'Film': 22,
+        'Serie TV': 22,
+    },
     'altadefinizioneclick': {
         'Film': 36,
         'Serie TV': 36,
@@ -315,7 +319,7 @@ class GenericServerTest(unittest.TestCase):
     def test_get_video_url(self):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
-        # httptools.default_headers['Referer'] = self.server.referer
+        httptools.default_headers['Referer'] = self.server.referer
         print('testing ' + page_url)
         print('Found on ' + self.server.foundOn)
         print()

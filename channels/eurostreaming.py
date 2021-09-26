@@ -20,7 +20,7 @@ def mainlist(item):
     support.info()
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
-    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
+    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-nuovi-episodi/', 'peliculas', 'newest']),
            ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
     search = ''
 
@@ -41,6 +41,7 @@ def peliculas(item):
         patronNext=r'a class="next page-numbers" href="?([^>"]+)">Avanti &raquo;</a>'
 
     return locals()
+
 
 @support.scrape
 def episodios(item):
@@ -83,7 +84,7 @@ def newest(categoria):
     item.contentType = 'tvshow'
     item.args = 'newest'
     try:
-        item.url = "%s/aggiornamento-episodi/" % host
+        item.url = "%s/aggiornamento-nuovi-episodi/" % host
         item.action = "peliculas"
         itemlist = peliculas(item)
     # Continua la ricerca in caso di errore

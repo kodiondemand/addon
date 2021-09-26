@@ -82,11 +82,11 @@ def live(item):
         if it['callSign'] in allguide:
 
             guide = allguide[it['callSign']]
-            plot = '[B]{}[/B]\n{}\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide['currentListing']['mediasetlisting$epgTitle'],
-                                                                        guide['currentListing']['description'],
-                                                                        guide['nextListing']['mediasetlisting$epgTitle'],
-                                                                        guide['nextListing']['description'],)
-
+            plot = '[B]{}[/B]\n{}'.format(guide.get('currentListing', {}).get('mediasetlisting$epgTitle', ''),
+                                                                       guide.get('currentListing', {}).get('description', ''))
+            if 'nextListing' in guide.keys():
+                plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),
+                                                               guide.get('nextListing', {}).get('description', ''))
             itemlist.append(item.clone(title=support.typo(title, 'bold'), fulltitle=title, callSign=it['callSign'], urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'], plot=plot, url=url, action='play', forcethumb=True))
 
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
@@ -195,15 +195,18 @@ def episodios(item):
     except:  # per i test, xbmc.getLocalizedString non è supportato
         for month in range(21, 33): months.append('dummy')
 
+    # i programmi tv vanno ordinati per data decrescente, gli episodi delle serie per data crescente
+    order = 'desc' if '/programmi-tv/' in item.url else 'asc'
+
     itemlist = []
-    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|asc,tvSeasonEpisodeNumber').json()['entries']
+    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|' + order + ',tvSeasonEpisodeNumber').json()['entries']
 
     for it in res:
         thumb = ''
         titleDate = ''
         if 'mediasetprogram$publishInfo_lastPublished' in it:
             date = datetime.date.fromtimestamp(it['mediasetprogram$publishInfo_lastPublished'] / 1000)
-            titleDate ='  [{} {}]'.format(date.day, months[date.month])
+            titleDate ='  [{} {}]'.format(date.day, months[date.month-1])
         title = '[B]{}[/B]{}'.format(it['title'], titleDate)
         for k, v in it['thumbnails'].items():
             if 'image_keyframe' in k and not thumb:

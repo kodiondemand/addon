@@ -42,6 +42,7 @@ class UnshortenIt(object):
     _swzz_regex = r'swzz\.xyz'
     _stayonline_regex = r'stayonline\.pro'
     _snip_regex = r'[0-9a-z]+snip\.|uprotector\.xyz'
+    _linksafe_regex = r'linksafe\.cc'
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
     # for services that only do redirects
@@ -49,7 +50,7 @@ class UnshortenIt(object):
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
-                 _swzz_regex, _stayonline_regex, _snip_regex, _simple_redirect]
+                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _simple_redirect]
 
     _maxretries = 5
 
@@ -98,6 +99,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_stayonline(uri)
             if re.search(self._snip_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_snip(uri)
+            if re.search(self._linksafe_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_linksafe(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -665,6 +668,9 @@ class UnshortenIt(object):
             # if new_uri and new_uri != uri:
             #     uri = new_uri
         return uri, 200
+
+    def _unshorten_linksafe(self, uri):
+        return b64decode(uri.split('?url=')[-1]).decode(), 200
 
 
 def decrypt_aes(text, key):

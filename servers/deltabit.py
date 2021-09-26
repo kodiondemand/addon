@@ -24,8 +24,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data, real_url
     post = {k: v for k, v in scrapertools.find_multiple_matches(data, "name='([^']+)' value='([^']*)'")}
     time.sleep(2.5)
-    data = httptools.downloadpage(real_url, post=post).data
-
-    # videos_packed = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
-    # video_unpacked = jsunpack.unpack(videos_packed)
-    return support.get_jwplayer_mediaurl(data, 'DeltaBit', True)
+    link = support.match(real_url, post=post, patron='sources:\s*\["([^"]+)').match.replace('https:', 'http:')
+    return [[".mp4" + " [deltabit]", link]]

@@ -18,9 +18,10 @@ def test_video_exists(page_url):
 
     referer = {"Referer": page_url}
 
-    data = httptools.downloadpage(page_url, headers=referer).data
+    page = httptools.downloadpage(page_url, headers=referer)
+    data = page.data
 
-    if "Video not found" in data:
+    if "Video not found" in data or page.code >= 400:
         return False, config.get_localized_string(70449) % 'Streamtape'
 
     return True, ""
@@ -29,7 +30,7 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     video_urls = []
-    find_url = match(data, patron=r'innerHTML = ([^;]+)').match
+    find_url = match(data, patron=r'innerHTML = ([^;]+)').matches[-1]
     possible_url = js2py.eval_js(find_url)
     url = "https:" + possible_url
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers.get("location", "")
