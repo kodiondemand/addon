@@ -6,14 +6,15 @@
 from __future__ import division
 from __future__ import absolute_import
 import sys
+import os
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 if PY3: import urllib.parse as urlparse
 else: import urlparse
 
-from future.builtins import range
-from past.utils import old_div
+from lib.future.builtins import range
+from lib.past.utils import old_div
 
 import re
 
@@ -21,6 +22,7 @@ from core import filetools, httptools, jsontools
 from core.item import Item
 from platformcode import config, logger, platformtools
 from lib import unshortenit
+import requests
 
 dict_servers_parameters = {}
 server_list = {}
@@ -722,11 +724,12 @@ def sort_servers(servers_list):
         element["index_server"] = index(favorite_servers, item.server.lower())
         element["index_quality"] = platformtools.calcResolution(item.quality)
         element['index_language'] = 0 if item.contentLanguage == 'ITA' else 1
+        element["bit_rate"] = item.bitrate
         element['videoitem'] = item
         sorted_list.append(element)
 
     # We order according to priority
-    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'] , element['videoitem'].server))
+    if priority == 0: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['videoitem'].server))
     elif priority == 1: sorted_list.sort(key=lambda element: (element['index_language'], element['index_server'], -element['index_quality'] if inverted else element['index_quality'])) # Servers and Qualities
     elif priority == 2: sorted_list.sort(key=lambda element: (element['index_language'], -element['index_quality'] if inverted else element['index_quality'], element['index_server'])) # Qualities and Servers
 
@@ -738,7 +741,7 @@ def check_list_links(itemlist, numero='', timeout=3):
     """
     Check a list of video links and return it by modifying the title with verification.
     The number parameter indicates how many links to check (0:5, 1:10, 2:15, 3:20)
-    The timeout parameter indicates a waiting limit to download the page
+    The timeout parameter indicates a waiting limit to download the page.
     """
     numero = numero if numero > 4 else ((int(numero) + 1) * 5) if numero != '' else 5
     import sys
@@ -830,3 +833,228 @@ def translate_server_name(name):
 #         server_json = None
 #
 #     return server_json
+
+if PY3:
+    from lib.pymediainfo import MediaInfo
+    import pathlib
+
+    def correct_onlinemedia_info(video_itemlist: list) -> list:
+        """This function aims at correctly identifying video information
+        of an online mediafile and writes them back selectively in the corresponding 
+        properties of each Item;
+        Examples can be the 'quality_label', 'resolution' and 'bit_rate'
+
+        IN ADDITION it sets also the final media url!
+        -------------------
+        Parameters
+        -------------------
+        - video_itemlist: a list of Items (custom type)
+        -------------------
+
+        @return: it returns the modified parameter passed to the function "video_itemlist"
+        @rtype: list.
+        """
+
+        def get_onlinevideo_chunck(url: str) -> str:
+            """This function downloads a chunck of the mediafile which resides at the link
+            provided as parameter to the function and returns the path to it;
+            -------------------
+            Parameters
+            -------------------
+            - url: a string containig the url/link to the video/mediafile you want to gather info from
+            -------------------
+
+            @return: the path to the "video_chunk"
+            @rtype: string.
+            """
+
+            video_chunk =  str(pathlib.Path(__file__).parent.parent.resolve()) + "/header_mediafile"
+            headers = {}
+
+            urlList = url.split("|")
+            if len(urlList) == 1:
+                directUrl, headersUrl = urlList[0], ''
+            elif len(urlList) == 2:
+                directUrl, headersUrl = urlList
+
+            if headersUrl:
+                for name in headersUrl.split('&'):
+                    h, v = name.split('=')
+                    h = str(h)
+                    headers[h] = str(v)
+
+            with requests.Session() as session:
+                r = session.get(directUrl, headers=headers, stream=True)
+
+            with open(video_chunk, 'wb') as f:
+                logger.info(f'Saving the chunk to the location: {video_chunk}')
+                for chunk in r.iter_content(chunk_size=100000):
+                    if chunk:
+                        f.write(chunk)
+                        break
+
+            return video_chunk
+
+        def extract_video_info(path_to_videochunk: str) -> dict:
+            """This function determines and generates a dictionary containing
+            the correct "resolution", "resolution_label" and "bit_rate" of a video file;
+            -------------------
+            Parameters
+            -------------------
+            - path_to_videochunk: path to the video chunk downloaded previously
+            -------------------
+
+            @return: it returns a dictionary containing only the selected video information ("resolution", "resolution_label" and "bit_rate")
+            @rtype: dictionary
+            """
+            info_dict = dict()  # dictionary to store resolution, resolution_label and bitrate information that will be returned
+            resolutions = {"sd_width" : 1024, "hd_width" : 1366, "fullhd_width" : 1920, "2k_width" : 2560, "4k_width" : 3840}
+
+            logger.info(f'"Mediainfo" will parse the file located at: {path_to_videochunk}')
+            media_info = MediaInfo.parse(path_to_videochunk)  # analyses the file in the "path_to_videochunk" location
+            for track in media_info.tracks:
+                if track.track_type == "Video":               # there can be video tracks and audio tracks, we ensure it is the video one
+                    videoinfo = track.to_data()               # save all the data as a dictionary in the variable "videoinfo"
+
+            for k,v in videoinfo.items():
+                logger.debug(f'{k}:{v}')
+
+            # if the width information available in the dictionary passed as parameter 
+            # to the function is comparable to the dictionary of "resolutions" defined above:
+                # set the "resolution_label" accordingly
+            if videoinfo["width"] <= resolutions["sd_width"]:
+                info_dict["resolution_label"] = "SD"
+            elif videoinfo["width"] <= resolutions["hd_width"]:
+                info_dict["resolution_label"] = "HD"
+            elif videoinfo["width"] <= resolutions["fullhd_width"]:
+                info_dict["resolution_label"] = "Full HD"
+            elif videoinfo["width"] <= resolutions["2k_width"]:
+                info_dict["resolution_label"] = "2K"
+            elif videoinfo["width"] <= resolutions["4k_width"]:
+                info_dict["resolution_label"] = "4K"
+            
+            info_dict["resolution"] = (videoinfo["width"], videoinfo["height"])
+            info_dict["bit_rate"] = float(videoinfo.get("other_bit_rate")[0].split(" ")[0]) if videoinfo.get("other_bit_rate", 0) != 0 else 0
+
+            os.remove(path_to_videochunk)                     # remove the video chunck downloaded at the beginning used to retrieve the necessary information
+
+            return info_dict
+
+        def set_blank_videoinfo(item: Item, media_url: str) -> Item:
+            """This function sets BLANK attributes of the 'item' object and returns
+            its modified version;
+            -------------------
+            Parameters
+            -------------------
+            - item: the Item whose parameters need to be modified
+            - media_url: the url of the real mediafile
+            -------------------
+
+            @return: it returns the abovementioned 'item' with 'blank' set attributes
+            @rtype: Item
+            """
+
+            logger.info("Updating the Item's information with BLANK ones")
+            if "m3u8" in media_url:
+                logger.debug("'resolve_video_urls_for_playing' found only an '.m3u8' url which cannot be parsed")
+            else:
+                logger.debug("'resolve_video_urls_for_playing' was not able to find a valid url to be passed to 'get_onlinevideo_chunk'")
+
+            item.media_url = media_url
+            item.title += f"{' [B][COLOR 0xFF65B3DA][m3u8][/COLOR][/B]' if 'm3u8' in media_url else ''}  [COLOR 0xFF999999]... x ...,  Bit Rate: unknown[/COLOR]"
+            # i won't set alternative values for the "item.quality" parameter
+            item.resolution = (0, 0)
+            item.bitrate = 0
+            return item
+        
+        def set_gathered_videoinfo(item: Item, videoquality_info: dict, media_url: str) -> Item:
+            """This function sets the 'media_url', 'title', 'quality', 'resolution' and
+            'bitrate' attributes of the 'item' object and returns its modified version;
+            -------------------
+            Parameters
+            -------------------
+            - item: the Item whose parameters need to be modified
+            - videoquality_info: a dictionary containing all the media quality info
+            - media_url: the url of the real mediafile
+            -------------------
+
+            @return: it returns the abovementioned 'item' with the modified attributes
+            @rtype: Item
+            """
+
+            logger.info("Updating the Item's information with the gathered ones")
+            item.media_url = media_url
+            item.title += (f' [COLOR 0xFF999999]{videoquality_info["resolution_label"]},  {videoquality_info["resolution"][0]} x {videoquality_info["resolution"][1]},  Bit Rate: {str(videoquality_info["bit_rate"]) + " kb/s" if videoquality_info["bit_rate"] != 0 else "unknown"}[/COLOR]')
+            item.quality = videoquality_info["resolution_label"]
+            item.resolution = videoquality_info["resolution"]
+            item.bitrate = videoquality_info["bit_rate"]
+            return item
+
+        def find_obfuscated_url(item: Item):
+            # Checks if channel exists
+            CHANNELS = 'channels' if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")) else 'specials'
+
+            channel_file = os.path.join(config.get_runtime_path(), CHANNELS, item.channel + ".py")
+            logger.debug("channel_file= " + channel_file + ' - ' + CHANNELS + ' - ' + item.channel)
+
+            channel = None
+
+            if os.path.exists(channel_file):
+                try:
+                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
+                except ImportError:
+                    exec("import " + CHANNELS + "." + item.channel + " as channel")
+            logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
+
+            if hasattr(channel, 'play'):
+                logger.debug("Executing channel 'play' method")
+                itemlist = channel.play(item)
+                if len(itemlist) > 0 and isinstance(itemlist[0], Item):
+                    item = itemlist[0]
+
+            return item.url
+
+        if isinstance(video_itemlist, list):
+            logger.info("Parsing the provided 'video_itemlist'")
+            for number, item in enumerate(video_itemlist):
+                logger.debug(f'Parsing the item n°: {number}')
+                if item.action == "play":
+                    url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
+                    if not url_exists:  # if we encountered some errors
+                        logger.debug(url_error)
+                        item.url = find_obfuscated_url(item)  # Let's try a different way before giving up
+                        url_list, url_exists, url_error = resolve_video_urls_for_playing(item.server, item.url, item.password)
+
+                    if url_exists:
+                        logger.debug(f'The URL list is: ----> {url_list}\n')
+                        if len(url_list) == 1 and (url_list[-1][-1] == "" or "m3u8" in url_list[-1][-1]):
+                            item = set_blank_videoinfo(item, url_list[-1][-1])
+                            continue
+                        elif not "m3u8" in url_list[-1][-1]:
+                            highest_quality_url = url_list[-1][-1]
+                        else:
+                            highest_quality_url = url_list[-2][-1]
+
+                        try:
+                            logger.info(f'For the Server: "{item.server}"  we will pass to "correct_onlinemedia_info" the url: "{highest_quality_url}"')
+                            path_to_chunck = get_onlinevideo_chunck(highest_quality_url)
+                            video_quality_info = extract_video_info(path_to_chunck)
+                            item = set_gathered_videoinfo(item, video_quality_info, highest_quality_url)
+                            logger.info(f'\n --------\n THE INFORMATION THAT WERE SET ARE:\n {item.url}\n {item.media_url}\n {item.title}\n {item.quality}\n {item.resolution}\n {item.bitrate}\n --------')
+                        except Exception:
+                            import traceback
+                            logger.error(traceback.format_exc())
+                            item = set_blank_videoinfo(item, media_url=highest_quality_url)
+                            try:
+                                os.remove(path_to_chunck)
+                            except (FileNotFoundError, UnboundLocalError):
+                                continue
+                    else:
+                        logger.debug(url_error)
+                        item = set_blank_videoinfo(item, media_url="")
+                else:
+                    logger.debug(f'The intem n°: {number} is not a valid item to parse')
+        else:
+            return []
+
+        return video_itemlist
