@@ -176,7 +176,7 @@ def peliculas(item):
                                    contentSerieName = title if it['type'] == 'Serie' else '',
                                    action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
                                    plot = it['storyline'],
-                                   year = it['startDate'].split('-')[0],
+                                #    year = it['startDate'].split('-')[0],
                                    url = '{}/api/anime/{}'.format(host, it['id']),
                                    thumbnail = get_thumbnail(it),
                                    fanart = get_thumbnail(it, 'horizontalImages')))

@@ -23,5 +23,15 @@
       "label": "password",
       "type": "text",
       "visible": true
-    }]
+    },
+    {
+      "id": "order",
+      "type": "list",
+      "label": "Ordine di Visualizzazione",
+      "default": 0,
+      "enabled": true,
+      "visible": true,
+      "lvalues": [ "Nessuno", "I più visti", "I più votati", "I più votati dell'ultimo mese", "Titolo A-Z", "Voto IMDB più alto"]
+    }
+  ]
 }

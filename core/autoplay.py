@@ -39,7 +39,7 @@ def start(itemlist, item):
     if not config.is_xbmc():
         return itemlist
 
-    if config.get_setting('autoplay') or (item.channel == 'community' and item.autoplay):
+    if config.get_setting('autoplay') or item.autoplay:
         # Save the current value of "Action and Player Mode" in preferences
         user_config_setting_action = config.get_setting("default_action")
         # user_config_setting_player = config.get_setting("player_mode")

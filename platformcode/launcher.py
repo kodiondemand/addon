@@ -156,7 +156,7 @@ def run(item=None):
                 import xbmc
                 item.action = item.real_action
                 if item.page:
-                    item.page = page
+                    item.page = int(page)
                 else:
                     import re
                     item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>' + page + '\g<2>', item.url)
@@ -180,7 +180,7 @@ def run(item=None):
                 except ImportError:
                     exec("import " + CHANNELS + "." + item.channel + " as channel")
 
-            logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
+                logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 
             # Special play action
             if item.action == "play":

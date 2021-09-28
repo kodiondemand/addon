@@ -13,29 +13,34 @@ from core import scrapertools, httptools
 
 
 host = config.get_channel_url()
-register_url = 'https://altaregistrazione.com'
+register_url = 'https://altaregistrazione.net'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
+order = ['', 'i_piu_visti', 'i_piu_votati', 'i_piu_votati_dellultimo_mese', 'titolo_az', 'voto_imdb_piu_alto'][config.get_setting('order', 'altadefinizionecommunity')]
 
 
 @support.menu
 def mainlist(item):
     logger.debug(item)
 
-    film = ['/load-more-film?anno=&order=&support_webp=1&type=movie&page=1',
+    film = ['/type/movie',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi', ['/film/movie', 'genres', 'genres']),
+        ('Generi', ['/type/movie', 'genres', 'genres']),
+        ('Anni', ['/type/movie', 'genres', 'year']),
+        # ('Qualità', ['', 'genres', 'quality']),
         ]
 
-    tvshow = ['/load-more-film?type=tvshow&anno=&order=&support_webp=1&page=1',
+    tvshow = ['/serie-tv/tvshow',
         # Voce Menu,['url','action','args',contentType]
-        ('Generi', ['/film/movie', 'genres', 'genres']),
+        ('Generi', ['/serie-tv/tvshow', 'genres', 'genres']),
+        ('Anni', ['/serie-tv/tvshow', 'genres', 'year']),
+        # ('Qualità', ['', 'genres', 'quality']),
         ]
 
-    altri = [
-        # ('A-Z', ['/lista-film', 'genres', 'letters']),
-        ('Qualità', ['/film/movie', 'genres', 'quality']),
-        ('Anni', ['/anno', 'genres', 'years'])
-    ]
+    # altri = [
+    #     # ('A-Z', ['/lista-film', 'genres', 'letters']),
+    #     ('Qualità', ['', 'genres', 'quality']),
+    #     ('Anni', ['/anno', 'genres', 'years'])
+    # ]
 
     return locals()
 
@@ -128,38 +133,35 @@ def registerOrLogin():
 
 @support.scrape
 def peliculas(item):
-    import ast
     json = {}
-    # debug = True
+    params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'order':order}
 
-    if item.contentType == 'undefined':
-        disabletmdb = True
-        action = 'check'
-    elif item.contentType == 'movie':
+    # if item.contentType == 'undefined':
+    #     action = 'check'
+    if item.contentType == 'movie':
         action = 'findvideos'
     else:
         action = 'episodios'
-
-    if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
-        ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)', cloudscraper=True).match
-        item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
-    if '/search' not in item.url:
-        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-        data = "\n".join(json['data'])
-    else:
+    if not item.page: item.page = 1
+    if item.args == 'search':
         page = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True)
         if page.json:
             data = "\n".join(page.json['data'])
         else:
             data = page.data
+    else:
+        params['page'] = item.page
+
+        url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
+        json = support.httptools.downloadpage(url, headers=headers, cloudscraper=True).json
+        data = "\n".join(json['data'])
+
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
     if json.get('have_next'):
         def fullItemlistHook(itemlist):
-            spl = item.url.split('=')
-            url = '='.join(spl[:-1])
-            page = str(int(spl[-1])+1)
-            support.nextPage(itemlist, item, next_page='='.join((url, page)), function_or_level='peliculas')
+            item.page += 1
+            support.nextPage(itemlist, item, function_or_level='peliculas')
             return itemlist
 
     return locals()
@@ -184,16 +186,20 @@ def search(item, texto):
 def genres(item):
     logger.debug(item)
     data = support.httptools.downloadpage(item.url, cloudscraper=True).data
-
+    debugBlock=True
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
-    if item.args == 'quality':
-        item.contentType = 'undefined'
+
+    if item.args == 'year':
+        patron = r'value="(?P<year_id>[^"]+)">(?P<title>\d+)'
+        patronBlock = r'Anno</option>(?P<block>.*?</select>)'
+    elif item.args == 'quality':
+        patronMenu = r'quality/(?P<quality_id>[^"]+)">(?P<title>[^<]+)'
         patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
-    elif item.args == 'years':
-        item.contentType = 'undefined'
-        patronBlock = r'ANNO(?P<block>.*?</section>)'
-    else:
-        patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
+    # elif item.args == 'years':
+    #     item.contentType = 'undefined'
+    #     patronBlock = r'ANNO(?P<block>.*?</section>)'
+    # else:
+    #     patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
     action = 'peliculas'
     return locals()
 
@@ -216,14 +222,14 @@ def episodios(item):
     return locals()
 
 
-def check(item):
-    resolve_url(item)
-    if '/tvshow' in item.url:
-        item.contentType = 'tvshow'
-        return episodios(item)
-    else:
-        item.contentType = 'movie'
-        return findvideos(item)
+# def check(item):
+#     resolve_url(item)
+#     if '/tvshow' in item.url:
+#         item.contentType = 'tvshow'
+#         return episodios(item)
+#     else:
+#         item.contentType = 'movie'
+#         return findvideos(item)
 
 
 def findvideos(item):
