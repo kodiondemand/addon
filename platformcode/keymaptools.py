@@ -186,7 +186,7 @@ class Main(xbmcgui.WindowXMLDialog):
             import channelselector
             itemlist = self.menulist(channelselector.getchanneltypes())
         elif channel_name not in ['downloads', 'setting', 'help']:
-            channel = __import__('specials.%s' % channel_name, fromlist=["specials.%s" % channel_name])
+            channel = platformtools.channel_import(channel_name)
             itemlist = self.menulist(channel.mainlist(Item().fromurl(self.MENU.getSelectedItem().getProperty('run'))))
         self.SUBMENU.reset()
         self.SUBMENU.addItems(itemlist)

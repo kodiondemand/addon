@@ -191,13 +191,13 @@ def findvideos(item):
     # data += '\n'.join(listurl)
     logger.debug(data)
     itemlist = []
-    # support.dbg()
+    # logger.dbg()
 
     if '/serietv/series/names' in item.url:
         itemlist.extend(support.server(item, itemlist=hdpass(Item(url=item.url))))
     else:
         urls = support.match(data, patron=player_iframe).matches
-        # support.dbg()
+        # logger.dbg()
         if item.otherLinks:
             urls += support.match(item.otherLinks, patron=r'href="([^"]+)').matches
 

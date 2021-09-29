@@ -444,7 +444,7 @@ def findvideos(item):
         item.url = {}
         json.append({"url": url})
 
-    # support.dbg()
+    # logger.dbg()
     for option in json:
         extra = set_extra_values(item, option, item.path)
         itemlist.append(

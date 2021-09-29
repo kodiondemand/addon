@@ -30,7 +30,7 @@ current_session.headers.update({'Content-Type': 'application/json', 'User-Agent'
 
 # login anonimo
 res = current_session.post(loginUrl, json=loginData, verify=False)
-support.dbg()
+logger.dbg()
 Token = res.json['response']['beToken']
 sid = res.json['response']['sid']
 current_session.headers.update({'authorization': 'Bearer' + Token})
@@ -318,7 +318,7 @@ def get_from_id(item):
 def get_programs(item, ret=[], args={}):
     hasMore = False
     url = ''
-    # support.dbg()
+    # logger.dbg()
 
     if 'search' in item.args:
         args['uxReference'] = item.args[2]

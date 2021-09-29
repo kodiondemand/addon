@@ -120,7 +120,7 @@ def save_movie(item, silent=False):
 
 
         # get extra info from fanart tv
-        # support.dbg()
+        # logger.dbg()
         extra_info = get_fanart_tv(item)
         if not item.infoLabels.get('posters', []): item.infoLabels['posters'] = []
         item.infoLabels['posters'] += extra_info['poster']
@@ -443,33 +443,34 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
         episode = None
         season_episode = None
 
-
         if e.contentSeason and e.contentEpisodeNumber:
             season_episode = '{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber)
-            strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
-
-            if item.infoLabels.get('imdb_id'): e.infoLabels['imdb_id'] = item.infoLabels['imdb_id']
-            if item.infoLabels.get('tmdb_id'): e.infoLabels['tmdb_id'] = item.infoLabels['tmdb_id']
-            if item.infoLabels.get('tvdb_id'): e.infoLabels['tvdb_id'] = item.infoLabels['tvdb_id']
-
-            tmdb.set_infoLabels_item(e)
-            if not e.infoLabels.get('playcount'): e.infoLabels['playcount'] = 0
-            head_nfo = scraper.get_nfo(e)
-
-            episode_item = Item(action='findvideos',
-                                channel='videolibrary',
-                                strm_path=strm_path,
-                                contentSeason = e.contentSeason,
-                                contentEpisodeNumber = e.contentEpisodeNumber,
-                                contentType = e.contentType,
-                                infoLabels = e.infoLabels,
-                                head_nfo = head_nfo,
-                                videolibrary_id = item.videolibrary_id,
-                                thumbnail = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.thumbnail,
-                                fanart = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.fanart,
-                                title = e.infoLabels['title'])
-
             episode = episodes.get(season_episode, {})
+            if episode:
+                episode_item = episode['item']
+            else:
+                strm_path = filetools.join(item.base_name, '{}.strm'.format(season_episode))
+
+                if item.infoLabels.get('imdb_id'): e.infoLabels['imdb_id'] = item.infoLabels['imdb_id']
+                if item.infoLabels.get('tmdb_id'): e.infoLabels['tmdb_id'] = item.infoLabels['tmdb_id']
+                if item.infoLabels.get('tvdb_id'): e.infoLabels['tvdb_id'] = item.infoLabels['tvdb_id']
+
+                tmdb.set_infoLabels_item(e)
+                if not e.infoLabels.get('playcount'): e.infoLabels['playcount'] = 0
+                # head_nfo = scraper.get_nfo(e)
+
+                episode_item = Item(action='findvideos',
+                                    channel='videolibrary',
+                                    strm_path=strm_path,
+                                    contentSeason = e.contentSeason,
+                                    contentEpisodeNumber = e.contentEpisodeNumber,
+                                    contentType = e.contentType,
+                                    infoLabels = e.infoLabels,
+                                    # head_nfo = head_nfo,
+                                    videolibrary_id = item.videolibrary_id,
+                                    thumbnail = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.thumbnail,
+                                    fanart = e.infoLabels.get('poster_path') if e.infoLabels.get('poster_path') else item.fanart,
+                                    title = e.infoLabels['title'])
 
             try:
                 if not episode:
@@ -526,9 +527,9 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
             # add strm_file if episode is not present in db or inside videolibrary path
             # if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
             if season_episode not in local_files.get('db',{}).keys():
-                logger.debug("Creating .strm: " + strm_path)
-                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
-                filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+                logger.debug("Creating .strm: " + episode_item.strm_path)
+                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=episode_item.strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                filetools.write(filetools.join(TVSHOWS_PATH, episode_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
             # update db if episode added
             # if failed == 0 and config.get_setting('kod_scraper'):
@@ -610,14 +611,14 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                 if episode:
                     episodes[season_episode] = episode
                     e = episode['item']
-                    if not e.contentSeason in current_seasons: current_seasons.append(e.contentSeason)
+                    if not e.contentSeason in current_seasons or e.contentSeason not in seasons: current_seasons.append(e.contentSeason)
                     if not lang: lang = item.contentLanguage if item.contentLanguage else 'ITA'
                     if not lang in item.lang_list: item.lang_list.append(lang)
                     if not silent:
                         i += 1
                         p_dialog.update(int(math.ceil(i * t)), message=e.title)
 
-    # support.dbg()
+    # logger.dbg()
     # for e in episodelist:
     #     item, episode, season_episode, lang, I, O, F = save_episode(item, episodes, e)
     #     inserted += I
@@ -781,11 +782,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
             item.__dict__["channel"] = item.__dict__.pop("from_channel")
 
         if not channel:
-            try:
-                channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
-                # channel = __import__('specials.%s' % item.channel, fromlist=["specials.%s" % item.channel])
-            except ImportError:
-                exec("import channels." + item.channel + " as channel")
+            channel = platformtools.channel_import(item.channel)
 
         # To disambiguate titles, TMDB is caused to ask for the really desired title
         # The user can select the title among those offered on the first screen
@@ -806,7 +803,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
             itemlist = getattr(channel, it.action)(it)
         item.host = channel.host
         if itemlist:
-            # support.dbg()
+            # logger.dbg()
             from platformcode.autorenumber import start, check
             if not check(item, itemlist):
                 action = item.action
@@ -881,7 +878,7 @@ def get_fanart_tv(item, set='', ret={}):
         return d
 
     _id = item.infoLabels.get('tmdb_id')
-    # support.dbg()
+    # logger.dbg()
 
     if _id:
         _type = item.contentType.replace('show','').replace('movie','movies')
@@ -1085,48 +1082,59 @@ def restore_videolibrary():
     try: os.mkdir(TVSHOWS_PATH)
     except: pass
 
+    movie_files = []
+    for root, dir, files in filetools.walk(MOVIES_PATH):
+        movie_files.extend(files)
+
     for item in movies:
+        dialog.update(int(progress / total * 100), item.title)
         base_name = set_base_name(item, item.videolibrary_id)
-        path = filetools.join(MOVIES_PATH, base_name)
-        try: os.mkdir(path)
+
+        try: os.mkdir(filetools.join(MOVIES_PATH, base_name))
         except: pass
-        nfo_path = filetools.join(base_name, "{}.nfo".format(base_name))
-        strm_path = filetools.join(base_name, "{}.strm".format(base_name))
-        nfo_exists = filetools.exists(filetools.join(MOVIES_PATH, nfo_path))
-        strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+
         local = True if 'local' in  videolibrarydb['movie'][item.videolibrary_id]['channels'] else False
-        if not nfo_exists:
+
+        if not "{}.nfo".format(base_name) in movie_files:
             if not item.head_nfo: item.head_nfo = scraper.get_nfo(item)
             filetools.write(filetools.join(MOVIES_PATH, item.nfo_path), item.head_nfo)
-        if not strm_exists and not local:
+
+        if not "{}.strm".format(base_name) in movie_files and not local:
             item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=item.videolibrary_id)
             filetools.write(filetools.join(MOVIES_PATH, item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
+
         progress += 1
-        dialog.update(int(progress / total * 100))
+        dialog.update(int(progress / total * 100), item.title)
 
     for item in tvshows:
+        dialog.update(int(progress / total * 100), item.title)
         base_name = set_base_name(item, item.videolibrary_id)
-        path = filetools.join(TVSHOWS_PATH, base_name)
-        try: os.mkdir(path)
+
+        try: os.mkdir(filetools.join(TVSHOWS_PATH, base_name))
         except: pass
-        nfo_path = filetools.join(base_name, "tvshow.nfo")
-        nfo_exists = filetools.exists(filetools.join(TVSHOWS_PATH, nfo_path))
-        if not nfo_exists:
+
+        if not filetools.exists(filetools.join(TVSHOWS_PATH, base_name, 'tvshow.nfo')):
             if not item.head_nfo: item.head_nfo = scraper.get_nfo(item)
             filetools.write(filetools.join(TVSHOWS_PATH, item.nfo_path), item.head_nfo)
 
         episodes = [x['item'] for x in dict(videolibrarydb['episode'][item.videolibrary_id]).values()]
-        for e in episodes:
+
+        episode_files = []
+
+        for root, dir, files in filetools.walk(filetools.join(TVSHOWS_PATH, base_name)):
+            episode_files.extend(files)
+
+        for e in sorted(episodes, key=lambda e: (e.contentSeason, e.contentEpisodeNumber)):
+            dialog.update(int(progress / total * 100), item.title + '\n{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber))
             season_episode = '{}x{:02d}'.format(e.contentSeason, e.contentEpisodeNumber)
-            strm_path = filetools.join(item.base_name, "{}.strm".format(season_episode))
-            strm_exists = filetools.exists(filetools.join(MOVIES_PATH, strm_path))
+            strm_path = filetools.join(item.base_name, '{}.strm'.format(season_episode))
             local = True if 'local' in videolibrarydb['episode'][item.videolibrary_id][season_episode]['channels'] else False
-            if not strm_exists and not local:
+            if not '{}.strm'.format(season_episode) in episode_files and not local:
                 logger.debug("Creating .strm: " + strm_path)
                 item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=e.videolibrary_id, contentSeason = e.contentSeason, contentEpisodeNumber = e.contentEpisodeNumber,)
                 filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
         progress += 1
-        dialog.update(int(progress / total * 100))
+        dialog.update(int(progress / total * 100), item.title)
     videolibrarydb.close()
 
     dbconverter.save_all()
@@ -1178,8 +1186,7 @@ def convert_videolibrary():
                     it.url = channels_dict[ch]
                     remove_host(it)
                     tmdb.find_and_set_infoLabels(it)
-                    try: channel = __import__('channels.%s' % ch, fromlist=['channels.%s' % ch])
-                    except: channel = __import__('specials.%s' % ch, fromlist=['specials.%s' % ch])
+                    channel = platformtools.channel_import(ch)
                     it.host = channel.host
                     it.url = channel.host + it.url
                     episodes = getattr(channel, 'episodios')(it)

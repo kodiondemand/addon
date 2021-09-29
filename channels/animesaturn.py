@@ -20,8 +20,6 @@ def get_cookie(data):
 
 
 def get_data(item):
-    # support.dbg()
-    # url = support.match(item.url, headers=headers, follow_redirects=True, only_headers=True).url
     data = support.match(item.url, headers=headers, follow_redirects=True).data
     if 'ASCookie' in data:
         get_cookie(data)
@@ -177,46 +175,11 @@ def findvideos(item):
     logger.debug()
     itemlist = []
     links = []
-    # page_data = ''
-    # titles =['Primario', 'Secondario', 'Alternativo Primario', 'Alternativo Secondario']
-    # pre_data = support.match(item, headers=headers).data
-    # url = support.match(pre_data , patron=r'<a href="([^"]+)">[^>]+>[^>]+>G').match
-    # urls = [url, url+'&extra=1', url+'&s=alt', url+'&s=alt&extra=1']
-    # links = []
-    # support.dbg()
-    # for i, url in enumerate(urls):
-    #     data = support.match(url, headers=headers).data
-    #     if not '&s' in url:
-    #         link = support.match(data, patron=r'(?:<source type="[^"]+"\s*src=|file:\s*)"([^"]+)"', headers=headers).match
-    #     else:
-    #         link = support.match(data, headers=headers, patron=r'file:\s*"([^"]+)"').match
-    #     if not link:
-    #         page_data += data
-    #     if link and link not in links:
-    #         links.append(link)
-    #         # link += '|Referer=' + item.url
-    #         itemlist.append(item.clone(action="play", title=titles[i], url=link, server='directo'))
 
-    # return support.server(item, data=data, itemlist=itemlist)
     main_url = support.match(item, patron=r'<a href="([^"]+)">[^>]+>[^>]+>G').match
-    # internal = support.match(data, patron=r'<a href="([^"]+)">[^>]+>[^>]+>G').match
     urls = support.match(support.match(main_url, headers=headers).data, patron=r'<a class="dropdown-item"\s*href="([^"]+)', headers=headers).matches
     itemlist.append(item.clone(action="play", title='Primario', url=main_url, server='directo'))
     itemlist.append(item.clone(action="play", title='Secondario', url=main_url + '&s=alt', server='directo'))
-    # support.dbg()
-    # for i, url in enumerate(internal_urls):
-    #     internal_data = support.match(url, headers=headers).data
-    #     if not '&s' in url:
-    #         link = support.match(internal_data, patron=r'(?:<source type="[^"]+"\s*src=|file:\s*)"([^"]+)"', headers=headers).match
-    #     else:
-    #         link = support.match(internal_data, headers=headers, patron=r'file:\s*"([^"]+)"').match
-    #     if not link:
-    #         links.append(internal_data)
-    #     if link and link not in links:
-    #         links.append(link)
-    #         itemlist.append(item.clone(action="play", title=internal_titles[i], url=link, server='directo'))
-    # link = support.match(external[0], patron=r'href="([^"]+)', headers=headers, debug=True).match
-    # support.dbg()
     for url in urls:
         link = support.match(url, patron=r'<a href="([^"]+)"[^>]+><button', headers=headers).match
         if link:

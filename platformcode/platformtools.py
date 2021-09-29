@@ -18,7 +18,7 @@ else:
 
 import os, xbmc, xbmcgui, xbmcplugin
 from past.utils import old_div
-from core import scrapertools
+from core import filetools, scrapertools
 from core.item import Item
 from platformcode import logger, config
 
@@ -425,7 +425,7 @@ def render_items(itemlist, parent_item):
         return item, item_url, listitem
 
     # For Debug
-    # from core.support import dbg;dbg()
+    # logger.dbg()
     # r_list = [set_item(i, item, parent_item) for i, item in enumerate(itemlist)]
 
     r_list = []
@@ -674,7 +674,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
         # InfoPlus
-        # from core.support import dbg;dbg()
         # if config.get_setting("infoplus"):
             #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
             #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
@@ -1054,7 +1053,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         if not mediaurl: return
 
         # video information is obtained.
-        xlistitem = xbmcgui.ListItem(item.title, path=item.url)
+        xlistitem = xbmcgui.ListItem(item.contentTitle, path=item.url)
         xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
         set_infolabels(xlistitem, item, True)
 
@@ -1771,7 +1770,6 @@ def get_platform():
 def get_played_time(item):
     logger.debug()
     from core import db
-    # from core.support import dbg;dbg()
 
     played_time = 0
     if not item.infoLabels:
@@ -1801,7 +1799,6 @@ def get_played_time(item):
 def set_played_time(item):
     logger.debug()
     from core import db
-    # from core.support import dbg;dbg()
 
     played_time = item.played_time
     if not item.infoLabels:
@@ -1815,6 +1812,7 @@ def set_played_time(item):
     e = item.infoLabels.get('episode')
 
     try:
+        # logger.dbg()
         if e:
             newDict = db['viewed'].get(ID, {})
             newDict['{}x{}'.format(s, e)] = played_time
@@ -1828,16 +1826,9 @@ def set_played_time(item):
         del db['viewed'][ID]
 
 
-# def prevent_busy(item):
-#     logger.debug()
-#     if not item.autoplay and not item.window:
-#         xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
-#         xbmc.sleep(200)
-#         xbmc.Player().stop()
-
 def prevent_busy(item):
     logger.debug()
-    if not item.autoplay and not item.window:
+    if item.action == 'play_from_library' or (not item.autoplay and not item.window):
         if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
         xbmc.sleep(200)
@@ -1910,3 +1901,24 @@ def serverwindow(item, itemlist):
                     from platformcode.launcher import run
                     run(selection)
                     reopen = True
+
+
+def window_type(item):
+    if type(item.window) == bool:
+        pass
+    elif config.get_setting('window_type') == 0 or (config.get_setting('next_ep') == 3 and item.contentType != 'movie'):
+        item.window = True
+    else:
+        item.window = False
+    return item
+
+
+def channel_import(channel_id):
+    if filetools.exists(filetools.join(config.get_runtime_path(), 'channels', channel_id + ".py")):
+        channel = __import__('channels.'+ channel_id, None, None, ["channels." + channel_id])
+    elif filetools.exists(filetools.join(config.get_runtime_path(), 'specials', channel_id + ".py")):
+        channel = __import__('specials.' + channel_id, None, None, ["specials." + channel_id])
+    else:
+        logger.info('Channel {} not Exist')
+        channel = None
+    return channel

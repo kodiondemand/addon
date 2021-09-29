@@ -105,7 +105,7 @@ def episodios(item):
     data = ''
 
     # debugging
-    # support.dbg()
+    # logger.dbg()
     # for i, season in enumerate(seasons.matches):
     #     data += get_season(seasons.data if i == 0 else '', season[0], season[1])
     import sys

@@ -46,6 +46,8 @@ def run(item=None):
             if len(sp) > 1:
                 for e in sp[1:]:
                     key, val = e.split('=')
+                    if val.lower() == 'false': val = False
+                    elif val.lower() == 'true': val = True
                     item.__setattr__(key, val)
         # If no item, this is mainlist
         else:
@@ -66,7 +68,6 @@ def run(item=None):
                 config.set_setting('show_once', True)
 
     logger.info(item.tostring())
-    # from core.support import dbg;dbg()
 
     try:
         if not config.get_setting('tmdb_active'):
@@ -113,8 +114,7 @@ def run(item=None):
 
         elif item.channel == "infoplus":
             from platformcode import infoplus
-            action = getattr(infoplus, item.action)
-            return action(item)
+            return getattr(infoplus, item.action)(item)
 
         elif item.channel == 'trakt_tools':
             from core import trakt_tools
@@ -156,7 +156,6 @@ def run(item=None):
                 else:
                     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70740) % "\n".join([item.url[j:j+57] for j in range(0, len(item.url), 57)]))
         elif item.action == "gotopage":
-            # from core.support import dbg;dbg()
             from core import scrapertools
             head = config.get_localized_string(70511)
             scraped_page = scrapertools.find_single_match(item.url,'[=/]([0-9]+)')
@@ -184,23 +183,9 @@ def run(item=None):
                 item.nextSeason = season
                 xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
         else:
-            # Checks if channel exists
-            if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
-                CHANNELS = 'channels'
-            else:
-                CHANNELS = 'specials'
-
-            channel_file = os.path.join(config.get_runtime_path(), CHANNELS, item.channel + ".py")
-
-            logger.debug("channel_file= " + channel_file + ' - ' + CHANNELS + ' - ' + item.channel)
-
-            channel = None
-
-            if os.path.exists(channel_file):
-                try:
-                    channel = __import__('%s.%s' % (CHANNELS, item.channel), None, None, ['%s.%s' % (CHANNELS, item.channel)])
-                except ImportError:
-                    exec("import " + CHANNELS + "." + item.channel + " as channel")
+            channel = platformtools.channel_import(item.channel)
+            if not channel:
+                return
 
             logger.info("Running channel %s | %s" % (channel.__name__, channel.__file__))
 
@@ -244,7 +229,8 @@ def run(item=None):
             # Special action for findvideos, where the plugin looks for known urls
             elif item.action == "findvideos":
                 from core import servertools
-                if item.window and item.channel != 'videolibrary':
+                p_dialog = None
+                if item.window:
                     p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
                     p_dialog.update(0)
 
@@ -260,7 +246,7 @@ def run(item=None):
                 if config.get_setting("max_links", "videolibrary") != 0:
                     itemlist = limit_itemlist(itemlist)
 
-                if item.window and item.channel not in ['videolibrary', 'local']:
+                if p_dialog:
                     p_dialog.update(100)
                     p_dialog.close()
                     platformtools.serverwindow(item, itemlist)
@@ -291,7 +277,6 @@ def run(item=None):
 
             # Special action for searching, first asks for the words then call the "search" function
             elif item.action == "search":
-                # from core.support import dbg;dbg()
                 if filetools.isfile(temp_search_file) and config.get_setting('videolibrary_kodi'):
                     itemlist = []
                     f = filetools.read(temp_search_file)
@@ -474,27 +459,19 @@ def play_from_library(item):
         @param item: item with information
     """
 
-    # def get_played_time(item):
-    #     if item.contentType == 'movie': nfo_path = item.nfo
-    #     else: nfo_path = item.strm_path.replace('strm','nfo')
-    #     if nfo_path and filetools.isfile(nfo_path):
-    #         from core import videolibrarytools
-    #         head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-    #         sleep(1)
-    #         played_time = platformtools.get_played_time(item_nfo)
-    #     else: played_time = 0
-    #     return played_time
-
-    
-    # from time import sleep
-
-    # logger.debug("item: \n" + item.tostring('\n'))
-    # from core.support import dbg; dbg()
     import xbmc, xbmcgui, xbmcplugin
-    item.window_type = config.get_setting("window_type") if config.get_setting('next_ep') < 3 and item.contentType != 'movie' else 0
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-    xbmc.Player().stop()
-    if xbmc.getCondVisibility('Window.IsMedia') and not item.window_type == 0:
+
+    platformtools.window_type(item)
+    platformtools.prevent_busy(item)
+    item.action = item.next_action if item.next_action else 'findvideos'
+
+    if not item.videolibrary_id:
+        if item.window and item.action == 'findvideos':
+            return run(item)
+        else:
+            xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
+
+    elif xbmc.getCondVisibility('Window.IsMedia') and not item.window:
         if item.contentType == 'episode':
             it = videolibrarydb[item.contentType][item.videolibrary_id]['{}x{:02d}'.format(item.infoLabels['season'], item.infoLabels['episode'])]['item']
         else:
@@ -504,4 +481,4 @@ def play_from_library(item):
         videolibrarydb.close()
     else:
         item.window = True
-        return videolibrary.findvideos(item)
+        return run(item)

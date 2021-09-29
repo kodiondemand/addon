@@ -197,7 +197,7 @@ def update_title(item):
         # new_item.infoLabels['year'] = '-'
         # if new_item.contentSeason:
         #     del new_item.infoLabels['season']                           # It works wrong with num. seasonal
-        # support.dbg()
+        # logger.dbg()
         # scraper_return = scraper.find_and_set_infoLabels(new_item)
 
     #logger.debug(item)

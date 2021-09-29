@@ -63,7 +63,7 @@ def find_video_items(item=None, data=None):
     for label, url, server, thumbnail in findvideos(data):
         title = label
         itemlist.append(
-            item.clone(title=title, action="play", url=url, thumbnail=thumbnail, server=server, folder=False))
+            item.clone(serverName=title, action="play", url=url, thumbnail=thumbnail, server=server, folder=False))
 
     return itemlist
 
@@ -118,7 +118,7 @@ def get_servers_itemlist(itemlist, fnc=None, sort=False):
             item.server = "directo"
 
         if fnc:
-            item.title = fnc(item)
+            item.serverName = fnc(item)
 
 
     # Sort according to favoriteslist if necessary
@@ -751,7 +751,7 @@ def check_list_links(itemlist, numero='', timeout=3):
             if res:
                 it = res[0]
                 verificacion = res[1]
-                it.title = verificacion + ' ' + it.title.strip()
+                it.serverName = verificacion + ' ' + it.title.strip()
                 logger.debug('VERIFICATION= ' + verificacion)
                 it.alive = verificacion
     return itemlist

@@ -10,9 +10,9 @@ import sqlite3
 # conn = sqlite3.connect(get_file_db())
 date = strftime('%Y-%m-%d %H:%M:%S', localtime(float(time())))
 
-def save_all():
-    movies = dict(videolibrarydb['movie'])
-    tvshows = dict(videolibrarydb['tvshow'])
+def save_all(_type=''):
+    movies = dict(videolibrarydb['movie']) if _type == 'movie' or not _type else {}
+    tvshows = dict(videolibrarydb['tvshow']) if _type == 'tvshow' or not _type else {}
     videolibrarydb.close()
 
     for movie in movies.values():
@@ -93,6 +93,12 @@ def get_id(column, table):
     else: _id = 1
     return _id
 
+def exist(value, column, table):
+    statement = False
+    sql = 'SELECT * FROM {} WHERE {} = {}'.format(table, column, value)
+    nun_records, records = execute_sql_kodi(sql, conn=conn)
+    if nun_records: statement = True
+    return statement
 
 def get_images(item):
 
@@ -292,13 +298,19 @@ class addMovie(object):
 
     def set_files(self):
         self.idFile = get_id('idFile', 'files')
-        if self.info.get('playcount', None):
-            sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, playCount, lastPlayed, dateAdded) VALUES ( ?,  ?,  ?,  ?,  ?,  ?)'
-            params = (self.idFile, self.idPath, self.strFilename, self.info.get('playcount', None), self.item.lastplayed, date)
+        if exist(self.idPath, 'idpath', 'files'):
+            if self.info.get('playcount', None):
+                sql = 'UPDATE path SET playCount=? WHERE idPath=?'
+                params = (self.info.get('playcount', None), self.idPath)
+                self.sql_actions.append([sql, params])
         else:
-            sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
-            params = (self.idFile, self.idPath, self.strFilename, date)
-        self.sql_actions.append([sql, params])
+            if self.info.get('playcount', None):
+                sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, playCount, lastPlayed, dateAdded) VALUES ( ?,  ?,  ?,  ?,  ?,  ?)'
+                params = (self.idFile, self.idPath, self.strFilename, self.info.get('playcount', None), self.item.lastplayed, date)
+            else:
+                sql = 'INSERT OR IGNORE INTO files (idFile, idPath, strFilename, dateAdded) VALUES ( ?,  ?,  ?,  ?)'
+                params = (self.idFile, self.idPath, self.strFilename, date)
+            self.sql_actions.append([sql, params])
 
     def set_rating(self):
         self.rating_id = get_id('rating_id', 'rating')
@@ -595,7 +607,7 @@ class addTvShow(object):
             files = {r[1].replace('.strm',''):r[0] for r in records}
         self.idFiles = {}
         idFile = get_id('idFile', 'files')
-        # support.dbg()
+        # logger.dbg()
         for episode in self.idEpisodes.keys():
             if episode in files.keys():
                 self.idFiles[episode] = files[episode]

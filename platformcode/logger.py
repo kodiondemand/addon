@@ -51,6 +51,17 @@ def log(*args, **kwargs):
                               function=frame.f_code.co_name,
                               message=msg), kwargs.get('level', DEF_LEVEL))
 
+def dbg(open=True):
+    if config.dev_mode():
+        try:
+            import web_pdb
+            if not web_pdb.WebPdb.active_instance and open:
+                import webbrowser
+                webbrowser.open('http://127.0.0.1:5555')
+            web_pdb.set_trace()
+        except:
+            pass
+
 
 class WebErrorException(Exception):
     def __init__(self, url, channel, *args, **kwargs):

@@ -355,7 +355,7 @@ def filter(item):
             elif control in [101]: # Genre
                 genresIds = []
                 genresNames = []
-                # support.dbg()
+                # logger.dbg()
                 if self.item.db_type == 'tmdb':
                     url = ('{}/genre/{}/list?api_key={}&language={}'.format(tmdb.host, item.args, tmdb.api, langs.tmdb))
                     genres = httptools.downloadpage(url).json['genres']

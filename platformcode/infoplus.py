@@ -8,7 +8,7 @@ from core import httptools,  tmdb
 from core.item import Item
 from platformcode import config, platformtools, logger
 
-from core.support import match, typo, dbg
+from core.support import match, typo
 
 
 info_list = []

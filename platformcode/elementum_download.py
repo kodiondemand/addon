@@ -60,7 +60,7 @@ def extract():
 
 
 def setting():
-    # support.dbg()
+    # logger.dbg()
     xbmc.executebuiltin('UpdateLocalAddons')
     xbmc.sleep(1000)
     if filetools.isfile(elementum_setting_file):

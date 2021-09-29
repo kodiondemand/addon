@@ -81,7 +81,6 @@ def peliculas(item):
     return locals()
 
 def check(item):
-    # support.dbg()
     item.url = support.match(item, patron=r'(?:<p>|/>)(.*?)(?:<br|</td>|</p>)', patronBlock=r'Streaming:(.*?)</tr>').matches
     if 'Episodio' in str(item.url):
         item.contentType = 'tvshow'

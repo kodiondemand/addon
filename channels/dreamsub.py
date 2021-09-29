@@ -117,7 +117,6 @@ def episodios(item):
 def findvideos(item):
     itemlist = []
     logger.debug()
-    # support.dbg()
 
     matches = support.match(item, patron=r'href="([^"]+)"', patronBlock=r'<div style="white-space: (.*?)<div id="main-content"')
 

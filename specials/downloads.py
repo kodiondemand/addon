@@ -4,6 +4,7 @@
 # ------------------------------------------------------------
 
 from __future__ import division
+import channels
 #from builtins import str
 import sys, os
 PY3 = False
@@ -645,10 +646,7 @@ def download_from_server(item):
     progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70178) % item.server)
 
     try:
-        if item.contentChannel in ['community', 'videolibrary']:
-            channel = __import__('specials.%s' % item.contentChannel, None, None, ['specials.%s' % item.contentChannel])
-        else:
-            channel = __import__('channels.%s' % item.contentChannel, None, None, ['channels.%s' % item.contentChannel])
+        channel = platformtools.channel_import(item.contentChannel)
         if hasattr(channel, "play") and not item.play_menu:
 
             progreso.update(50, config.get_localized_string(70178) % item.server + '\n' + config.get_localized_string(70180) % item.contentChannel)
@@ -725,10 +723,7 @@ def download_from_best_server(item):
             logger.debug('using cached servers')
             play_items = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            if item.contentChannel in ['community', 'videolibrary']:
-                channel = __import__('specials.%s' % item.contentChannel, None, None, ['specials.%s' % item.contentChannel])
-            else:
-                channel = __import__('channels.%s' % item.contentChannel, None, None, ['channels.%s' % item.contentChannel])
+            channel = platformtools.channel_import(item.contentChannel)
 
             progreso.update(50, config.get_localized_string(70184) + '\n' + config.get_localized_string(70180) % item.contentChannel)
 
@@ -778,10 +773,7 @@ def select_server(item):
             logger.debug('using cached servers')
             play_items = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            if item.contentChannel in ['community', 'videolibrary']:
-                channel = __import__('specials.%s' % item.contentChannel, None, None, ['specials.%s' % item.contentChannel])
-            else:
-                channel = __import__('channels.%s' % item.contentChannel, None, None, ['channels.%s' % item.contentChannel])
+            channel = platformtools.channel_import(item.contentChannel)
             progreso.update(50, config.get_localized_string(70184) + '\n' + config.get_localized_string(70180) % item.contentChannel)
 
             if hasattr(channel, item.contentAction):
@@ -853,18 +845,14 @@ def get_episodes(item):
         if item.downloadItemlist:
             episodes = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            # The item is a series or season...
-            if item.contentChannel in ['community', 'videolibrary']:
-                channel = __import__('specials.%s' % item.contentChannel, None, None, ["specials.%s" % item.contentChannel])
-            else:
-                channel = __import__('channels.%s' % item.contentChannel, None, None, ["channels.%s" % item.contentChannel])
+            channel = platformtools.channel_import(item.contentChannel)
             # We get the list of episodes
             episodes = getattr(channel, item.contentAction)(item)
 
     itemlist = []
     # if episodes and not scrapertools.find_single_match(episodes[0].title, r'(\d+.\d+)') and item.channel not in ['videolibrary'] and item.action != 'season':
     #     from platformcode.autorenumber import select_type, renumber, check
-    #     # support.dbg()
+    #     # logger.dbg()
     #     if not check(item):
     #         select_type(item)
     #         return get_episodes(item)

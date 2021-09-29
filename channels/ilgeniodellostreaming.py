@@ -191,7 +191,7 @@ def findvideos(item):
         for i, url in enumerate(list_url):
             itemlist.append(support.Item(
                     channel=item.channel,
-                    title=list_servers[i],
+                    # title=list_servers[i],
                     url=url,
                     action='play',
                     quality=list_quality[i],

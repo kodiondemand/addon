@@ -141,7 +141,7 @@ def channel_search(item):
     module_dict = {}
     for ch in channel_list:
         try:
-            module = __import__('channels.%s' % ch, fromlist=["channels.%s" % ch])
+            module = platformtools.channel_import(ch)
             mainlist = getattr(module, 'mainlist')(Item(channel=ch, global_search=True))
 
             module_dict[ch] = module

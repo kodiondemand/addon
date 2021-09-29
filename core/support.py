@@ -20,7 +20,7 @@ from time import time
 from core import httptools, scrapertools, servertools, tmdb, channeltools, autoplay
 from core.item import Item
 from lib import unshortenit
-from platformcode import config, logger
+from platformcode import config, logger, platformtools
 
 channels_order = {'Rai 1': 1,
                   'Rai 2': 2,
@@ -486,7 +486,8 @@ class scrape:
                 it.action=self.action
 
             if it.action == 'findvideos':
-                it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
+                platformtools.window_type(it)
+                # it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
                 if it.window: it.folder = False
 
             for lg in list(set(match.keys()).difference(self.known_keys)):
@@ -571,20 +572,6 @@ def html_uniform(data):
         replace all ' with " and eliminate newline, so we don't need to worry about
     """
     return re.sub("='([^']+)'", '="\\1"', data.replace('\n', ' ').replace('\t', ' ').replace('&nbsp;', ' '))
-
-
-# Debug
-
-def dbg():
-    if config.dev_mode():
-        try:
-            import web_pdb
-            if not web_pdb.WebPdb.active_instance:
-                import webbrowser
-                webbrowser.open('http://127.0.0.1:5555')
-            web_pdb.set_trace()
-        except:
-            pass
 
 
 # Menu
@@ -914,7 +901,7 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
 
 
 def pagination(itemlist, item, function_level=1):
-    if stackCheck('channel_search'):
+    if stackCheck(['channel_search', 'update_videolibrary']):
         return itemlist
 
     if not item.page:
@@ -959,7 +946,7 @@ def pagination(itemlist, item, function_level=1):
 
 
 def season_pagination(itemlist, item, seasons=[], function_level=1):
-    if stackCheck('channel_search'):
+    if stackCheck(['channel_search', 'update_videolibrary']):
         return itemlist
 
     action = function_level if type(function_level) == str else inspect.stack()[function_level][3]
@@ -1020,6 +1007,8 @@ def season_pagination(itemlist, item, seasons=[], function_level=1):
 def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
     logger.debug()
 
+    if item.autoplay != '': AutoPlay = item.autoplay
+
     if not data and not itemlist:
         data = httptools.downloadpage(item.url, headers=headers, ignore_response_code=True).data
     if data:
@@ -1050,26 +1039,36 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.server = videoitem.server.lower()
 
         if videoitem.video_urls or srv_param.get('active', False):
-            logger.debug(item)
-            quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
-            # videoitem = item.clone(url=videoitem.url, serverName=videoitem.serverName, server=videoitem.server, action='play')
-            videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
-            videoitem.serverName = videoitem.title if videoitem.server == 'directo' else servertools.get_server_parameters(videoitem.server).get('name', videoitem.server.capitalize())
-            # videoitem.title = item.contentTitle.strip() if item.contentType == 'movie' and item.contentTitle or (config.get_localized_string(30161) in item.fulltitle) else item.fulltitle
-            videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
-            videoitem.channel = item.channel
-            videoitem.fulltitle = item.fulltitle
-            videoitem.show = item.show
-            videoitem.ch_name = channeltools.get_channel_parameters(item.channel)['title']
-            if not videoitem.video_urls:  videoitem.thumbnail = item.thumbnail
-            videoitem.contentType = item.contentType
-            videoitem.infoLabels = item.infoLabels
-            videoitem.quality = quality
-            videoitem.referer = item.referer if item.referer else item.url
-            videoitem.action = "play"
-            videoitem.videolibrary_id = item.videolibrary_id
-            videoitem.from_library = item.from_library
-            videoitem.fanart = item.fanart if item.contentType == 'movie' else item.thumbnail
+
+            vi = item.clone(server=videoitem.server,
+                            serverName=videoitem.serverName,
+                            url=videoitem.url,
+                            video_urls= videoitem.video_urlsn,
+                            ch_name=channeltools.get_channel_parameters(item.channel)['title'],
+                            action = "play")
+            if videoitem.title: vi.serverName = videoitem.serverName
+            if videoitem.quality: vi.quality = videoitem.quality
+            if not vi.referer: vi.referer = item.url
+            if videoitem.contentType == 'episode': vi.fanart=videoitem.thumbnail
+            videoitem = vi
+            # videoitem = item.clone(serverName = videoitem.title if videoitem.title else videoitem.ser)
+            # quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
+            # videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'
+            # videoitem.serverName = videoitem.serverName if videoitem.server == 'directo' else servertools.get_server_parameters(videoitem.server).get('name', videoitem.server.capitalize())
+            # videoitem.plot = typo(videoitem.serverName, 'bold') + (typo(quality, '_ [] bold') if quality else '')
+            # videoitem.channel = item.channel
+            # videoitem.fulltitle = item.fulltitle
+            # videoitem.show = item.show
+            # videoitem.ch_name = channeltools.get_channel_parameters(item.channel)['title']
+            # if not videoitem.video_urls:  videoitem.thumbnail = item.thumbnail
+            # videoitem.contentType = item.contentType
+            # videoitem.infoLabels = item.infoLabels
+            # videoitem.quality = quality
+            # videoitem.referer = item.referer if item.referer else item.url
+            # videoitem.action = "play"
+            # videoitem.videolibrary_id = item.videolibrary_id
+            # videoitem.from_library = item.from_library
+            # videoitem.fanart = item.fanart if item.contentType == 'movie' else item.thumbnail
             return videoitem
 
     # non threaded for webpdb
@@ -1084,10 +1083,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         for it in futures.as_completed(thL):
             if it.result():
                 verifiedItemlist.append(it.result())
-    try:
-        verifiedItemlist.sort(key=lambda it: int(re.sub(r'\D','',it.quality)))
-    except:
-        verifiedItemlist.sort(key=lambda it: it.quality, reverse=True)
+
     if patronTag:
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
@@ -1840,17 +1836,20 @@ def dooplay_menu(item, type):
 def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
     video_urls = []
-    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}])') if not dataIsBlock else data
+    block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}?])') if not dataIsBlock else data
     if block:
         json = jsontools.load(block)
         if json:
             sources = []
             for s in json:
-                if 'file' in s.keys():
-                    src = s['file']
+                if isinstance(s, str):
+                    sources.append((s, ''))
                 else:
-                    src = s['src']
-                sources.append((src, s.get('label')))
+                    if 'file' in s.keys():
+                        src = s['file']
+                    else:
+                        src = s['src']
+                    sources.append((src, s.get('label')))
         else:
             if 'file:' in block:
                 sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')

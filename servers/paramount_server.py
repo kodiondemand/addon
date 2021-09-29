@@ -18,7 +18,6 @@ def test_video_exists(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    # from core.support import dbg;dbg()
     qualities = []
     video_urls = []
     mgid = support.match(data, patron=r'uri":"([^"]+)"').match

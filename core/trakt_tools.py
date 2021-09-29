@@ -275,7 +275,6 @@ def wait_for_update_trakt():
 
 
 def update_all():
-    # from core.support import dbg;dbg()
     from time import sleep
     logger.debug()
     sleep(20)
@@ -306,7 +305,6 @@ def context(item):
         pass
 
     try:
-        from core.support import dbg;dbg()
         result = execute(item.clone(url="/sync/watchlist/" + Type))
         post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if condition in str(result):

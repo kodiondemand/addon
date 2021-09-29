@@ -102,7 +102,6 @@ def channels_menu(item):
 def check_channels(item):
 	from specials import setting
 	from platformcode import config, platformtools
-	# from core.support import dbg; dbg()
 	item.channel = 'setting'
 	item.extra = 'lib_check_datajson'
 	itemlist = setting.conf_tools(item)
@@ -131,7 +130,6 @@ def SettingOnPosition(item):
 
 
 def select(item):
-	# from core.support import dbg;dbg()
 	from platformcode import config, platformtools
 	# item.id = setting ID
 	# item.type = labels or values

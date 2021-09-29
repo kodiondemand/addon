@@ -261,6 +261,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
+    logger.dbg()
 
     if item.contentType == 'movie':
         path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
@@ -270,6 +271,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
         if r:
             payload = {"jsonrpc": "2.0", "method": "VideoLibrary.SetMovieDetails", "params": {"movieid": r[0][0], "playcount": value}, "id": 1}
             data = get_data(payload)
+            logger.debug(data)
     elif item.contentType == 'episode':
         path = '%{}'.format(item.strm_path.replace('\\','%').replace('/', '%'))
         sql = 'select idEpisode from episode_view where c18 like "{}"'.format(path)
@@ -299,7 +301,6 @@ def mark_content_as_watched_on_kodi(item, value=1):
 def set_watched_on_kod(data):
     from specials import videolibrary
     from core import videolibrarydb
-    # from core.support import dbg;dbg()
 
     data = jsontools.load(data)
     Type = data.get('item', {}).get('type','')
@@ -329,7 +330,7 @@ def set_watched_on_kod(data):
             # item.all_ep
 
     else:
-        # support.dbg()
+        # logger.dbg()
         sql = 'select strPath from {}_view where (id{} like "{}")'.format(Type, Type.replace('tv','').capitalize(), ID)
         n, records = execute_sql_kodi(sql)
         if records:
@@ -811,7 +812,7 @@ def clean_by_id(item):
     tmdb_id = item.infoLabels.get('tmdb_id', '')
     season_id = item.infoLabels.get('temporada_id', '')
     episode_id = item.infoLabels.get('episodio_id', '')
-    # support.dbg()
+    # logger.dbg()
 
     # search movie ID
     if item.contentType == 'movie':

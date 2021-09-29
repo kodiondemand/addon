@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #from builtins import str
+import channels
 import sys, os, traceback, xbmc, xbmcgui
 
 PY3 = False
@@ -8,7 +9,7 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 from core import httptools, support, filetools, scrapertools, videolibrarytools, videolibrarydb
 from core.item import Item
-from platformcode import config, logger, platformtools
+from platformcode import config, dbconverter, logger, platformtools
 
 if PY3:
     from concurrent import futures
@@ -16,7 +17,6 @@ if PY3:
 else:
     from concurrent_py2 import futures
     import urlparse
-
 
 
 def mainlist(item):
@@ -91,7 +91,8 @@ def list_genres(item):
 def list_sets(item):
     videos = dict(videolibrarydb['collection']).values()
     videolibrarydb.close()
-    itemlist = [v for v in videos]
+    itemlist = []
+    itemlist = [v.clone(contentType='list') for v in videos]
     itemlist.sort(key=lambda it: it.title)
     add_context(itemlist)
     return itemlist
@@ -184,14 +185,14 @@ def list_movies(item, silent=False):
     logger.debug()
 
     videos = dict(videolibrarydb['movie']).values()
-    if item.list_year: itemlist = [v['item'] for v in videos if item.list_year == v['item'].infoLabels['year']]
-    elif item.list_rating: itemlist = [v['item'] for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
-    elif item.list_genre: itemlist = [v['item'] for v in videos if item.list_genre in v['item'].infoLabels['genre']]
-    elif item.list_actor: itemlist = [v['item'] for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
-    elif item.list_director: itemlist = [v['item'] for v in videos if item.list_director in v['item'].infoLabels['director']]
-    elif item.set: itemlist = [v['item'] for v in videos if item.set == v['item'].infoLabels.get('setid', '')]
-    elif config.get_setting('collection') and not item.text: itemlist = [v['item'] for v in videos if (item.text.lower() in v['item'].title.lower() and not 'setid' in v['item'].infoLabels)] + [v for v in dict(videolibrarydb['collection']).values()]
-    else: itemlist = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
+    if item.list_year: itemlist = [platformtools.window_type(v['item']) for v in videos if item.list_year == v['item'].infoLabels['year']]
+    elif item.list_rating: itemlist = [platformtools.window_type(v['item']) for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.list_genre: itemlist = [platformtools.window_type(v['item']) for v in videos if item.list_genre in v['item'].infoLabels['genre']]
+    elif item.list_actor: itemlist = [platformtools.window_type(v['item']) for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.list_director: itemlist = [platformtools.window_type(v['item']) for v in videos if item.list_director in v['item'].infoLabels['director']]
+    elif item.set: itemlist = [platformtools.window_type(v['item']) for v in videos if item.set == v['item'].infoLabels.get('setid', '')]
+    elif config.get_setting('collection') and not item.text: itemlist = [v['item'] for v in videos if (item.text.lower() in v['item'].title.lower() and not 'setid' in v['item'].infoLabels)] + [v.clone(contentType='list') for v in dict(videolibrarydb['collection']).values()]
+    else: itemlist = [platformtools.window_type(v['item']) for v in videos if item.text.lower() in v['item'].title.lower()]
     videolibrarydb.close()
     add_context(itemlist)
     if silent == False:
@@ -209,12 +210,12 @@ def list_tvshows(item):
 
     videos = dict(videolibrarydb['tvshow']).values()
 
-    if item.list_year: series = [v['item'] for v in videos if item.list_year == v['item'].infoLabels['year']]
-    elif item.list_rating: series = [v['item'] for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
-    elif item.list_genre: series = [v['item'] for v in videos if item.list_genre in v['item'].infoLabels['genre']]
-    elif item.list_actor: series = [v['item'] for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
-    elif item.list_director: series = [v['item'] for v in videos if item.list_director in v['item'].infoLabels['director'] or item.list_director in v['item'].infoLabels['writer']]
-    else: series = [v['item'] for v in videos if item.text.lower() in v['item'].title.lower()]
+    if item.list_year: series = [platformtools.window_type(v['item']) for v in videos if item.list_year == v['item'].infoLabels['year']]
+    elif item.list_rating: series = [platformtools.window_type(v['item']) for v in videos if item.list_rating == int(float(v['item'].infoLabels['rating']))]
+    elif item.list_genre: series = [platformtools.window_type(v['item']) for v in videos if item.list_genre in v['item'].infoLabels['genre']]
+    elif item.list_actor: series = [platformtools.window_type(v['item']) for v in videos if item.list_actor in str(v['item'].infoLabels['castandrole'])]
+    elif item.list_director: series = [platformtools.window_type(v['item']) for v in videos if item.list_director in v['item'].infoLabels['director'] or item.list_director in v['item'].infoLabels['writer']]
+    else: series = [platformtools.window_type(v['item']) for v in videos if item.text.lower() in v['item'].title.lower()]
 
     def sub_thread(it):
         it.contentType = 'tvshow'
@@ -330,17 +331,9 @@ def get_episodes(item):
 def findvideos(item):
     from core import autoplay, servertools
     from platformcode import platformtools
-    logger.debug()
-    if config.get_setting('next_ep') == 3 and item.contentType != 'movie':
-        platformtools.prevent_busy(item)
-        item.window = True
 
     videolibrarytools.check_renumber_options(item)
     itemlist = []
-    if item.window:
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60683))
-        p_dialog.update(0)
-
 
     if not item.strm_path:
         logger.debug('Unable to search for videos due to lack of parameters')
@@ -363,8 +356,7 @@ def findvideos(item):
             item.infoLabels = videolibrarydb['episode'][item.videolibrary_id][ep]['item'].infoLabels
 
     videolibrarydb.close()
-    if item.window:
-        p_dialog.update(50)
+
     if videolibrary_items.get('local'):
         try:
             local = videolibrary_items['local']
@@ -400,8 +392,6 @@ def findvideos(item):
 
         pl = [s for s in itemlist if s.contentLanguage in [prefered_lang, '']]
         if pl: itemlist = pl
-        if item.window:
-            p_dialog.update(100)
 
         if len(itlist) > 1:
             for it in itemlist:
@@ -415,13 +405,10 @@ def findvideos(item):
     if config.get_setting('checklinks') and not config.get_setting('autoplay'):
         itemlist = servertools.check_list_links(itemlist, config.get_setting('checklinks_number'))
 
-    if item.window:
-        p_dialog.close()
-        platformtools.serverwindow(item, itemlist)
-
-    else:
+    if not item.window:
         add_download_items(item, itemlist)
-        return itemlist
+
+    return itemlist
 
 
 def servers(item, ch, items):
@@ -446,10 +433,7 @@ def servers(item, ch, items):
         return serverlist
 
     if ch_params.get('active', False):
-
-        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', ch + '.py')): _channel = 'channels'
-        else: _channel = 'specials'
-        channel = __import__('{}.{}'.format(_channel, ch), fromlist=['{}.{}'.format(_channel, ch)])
+        channel = platformtools.channel_import(ch)
 
         with futures.ThreadPoolExecutor() as executor:
             itlist = [executor.submit(channel_servers, item, it, channel, ch_name) for it in items]
@@ -461,15 +445,12 @@ def servers(item, ch, items):
 
 def play(item):
     logger.log()
-    # support.dbg()
+    # logger.dbg()
     # logger.debug("item:\n" + item.tostring('\n'))
     # platformtools.play_video(item)
 
     if not item.channel == "local":
-        if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + '.py')): _channel = 'channels'
-        else: _channel = 'specials'
-
-        channel = __import__('{}.{}'.format(_channel, item.channel), fromlist=['{}.{}'.format(_channel, item.channel)])
+        channel = platformtools.channel_import(item.channel)
 
         if hasattr(channel, "play"):
             itemlist = getattr(channel, "play")(item)
@@ -538,14 +519,16 @@ def update_videolibrary(item=None):
 
         for it in show_list:
             i += 1
+            it.not_add = True
             chname = channeltools.get_channel_parameters(it.channel)['title']
             p_dialog.update(int(i * t), message=message % (it.fulltitle, chname))
             it = get_host(it)
-            try: channel = __import__('channels.{}'.format(it.channel), fromlist=['channels.{}'.format(it.channel)])
-            except: channel = __import__('specials.{}'.format(it.channel), fromlist=['specials.{}'.format(it.channel)])
+            channel = platformtools.channel_import(it.channel)
             itemlist = getattr(channel, it.action)(it)
             videolibrarytools.save_tvshow(it, itemlist, True)
         p_dialog.close()
+        if config.get_setting("videolibrary_kodi"):
+            dbconverter.save_all('tvshow')
 
     except:
         p_dialog.close()
@@ -838,9 +821,7 @@ def get_host(item , channel=None):
         item.url = urlparse.urlparse(item.url).path
     if item.url.startswith('/'):
         if not channel:
-            try : channel = __import__('channels.' + item.channel, None, None, ['channels.' + item.channel])
-            except: channel = __import__('specials.' + item.channel, None, None, ['specials.' + item.channel])
-
+            channel = platformtools.channel_import(item.channel)
         host = channel.host
         if host.endswith('/'): host = host[:-1]
         item.url = host + item.url
@@ -882,7 +863,7 @@ class subcontext(object):
          return config.get_localized_string(self.titledict[self.item.contentType][_type])
 
     def makecontext(self):
-        # support.dbg()
+        # logger.dbg()
         # set watched
         # if not self.item.set:
         watched = self.item.infoLabels.get('playcount', 0)
@@ -1023,6 +1004,7 @@ def add_download_items(item, itemlist):
                                 path=item.path,
                                 thumbnail=support.thumb('download'),
                                 parent=item.tourl())
+
             if item.action == 'findvideos':
                 if item.contentType != 'movie':
                     downloadItem.title = '{} {}'.format(support.typo(config.get_localized_string(60356), 'color kod bold'), item.title)
@@ -1041,7 +1023,7 @@ def add_download_items(item, itemlist):
 #-------------- DELETE --------------
 
 def delete(item):
-    # support.dbg()
+    # logger.dbg()
     from platformcode import xbmc_videolibrary
     select = None
     delete = None
@@ -1363,3 +1345,4 @@ def convert_videolibrary(item):
 
 def restore_videolibrary(item):
     videolibrarytools.restore_videolibrary()
+

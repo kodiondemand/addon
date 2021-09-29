@@ -171,7 +171,6 @@ def get_default_settings(channel_name):
 
     channel_path = filetools.join(config.get_runtime_path(), 'channels', channel_name + '.json')
 
-    # from core.support import dbg; dbg()
     if filetools.exists(channel_path):
         default_controls = default_file['settings']
         default_controls_renumber = default_file['renumber']

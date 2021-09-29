@@ -21,7 +21,6 @@ def find_and_set_infoLabels(item):
         :param item:
         :return: Boolean indicating if the 'code' could be found
     """
-    # from core.support import dbg;dbg()
     global scraper
     scraper = None
     # logger.debug("item:\n" + item.tostring('\n'))

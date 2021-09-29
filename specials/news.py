@@ -348,17 +348,8 @@ def get_newest(channel_id, categoria):
     # We request the news of the category (item.extra) searched in the channel channel
     # If there are no news for that category in the channel, it returns an empty list
     try:
-
-        puede = True
-        try:
-            modulo = __import__('channels.%s' % channel_id, fromlist=["channels.%s" % channel_id])
-        except:
-            try:
-                exec("import channels." + channel_id + " as modulo")
-            except:
-                puede = False
-
-        if not puede:
+        modulo = platformtools.channel_import(channel_id)
+        if not modulo:
             return
 
         logger.debug("running channel " + modulo.__name__ + " " + modulo.__file__)

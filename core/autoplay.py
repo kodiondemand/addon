@@ -32,7 +32,7 @@ def start(itemlist, item):
     if not config.is_xbmc():
         return itemlist
 
-    if config.get_setting('autoplay') or (item.channel == 'community' and item.autoplay):
+    if config.get_setting('autoplay') or item.autoplay:
         # Save the current value of "Action and Player Mode" in preferences
         user_config_setting_action = config.get_setting("default_action")
         # user_config_setting_player = config.get_setting("player_mode")
@@ -72,8 +72,9 @@ def start(itemlist, item):
                     platformtools.dialog_notification('AutoPlay', '{}{}{}'.format(name, lang, quality), sound=False)
 
                     # Try to play the links If the channel has its own play method, use it
-                    try: channel = __import__('channels.%s' % channel_id, None, None, ["channels.%s" % channel_id])
-                    except: channel = __import__('specials.%s' % channel_id, None, None, ["specials.%s" % channel_id])
+                    channel = platformtools.channel_import(channel_id)
+                    if not channel:
+                        return
                     if hasattr(channel, 'play'):
                         resolved_item = getattr(channel, 'play')(videoitem)
                         if len(resolved_item) > 0:

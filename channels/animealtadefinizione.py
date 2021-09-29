@@ -116,7 +116,6 @@ def findvideos(item):
     if item.contentType == 'movie':
         matches = support.match(item, patron=epPatron).matches
         for title, url in matches:
-            # support.dbg()
             get_video_list(item, url, title, itemlist)
     else:
         get_video_list(item, item.url, support.config.get_localized_string(30137), itemlist)

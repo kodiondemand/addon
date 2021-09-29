@@ -121,7 +121,7 @@ def get_id():
     return dbid
 
 def check_condition():
-    # support.dbg()
+    # logger.dbg()
     global path
     path = search_paths(get_id())
     return path

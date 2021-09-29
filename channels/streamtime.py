@@ -134,7 +134,7 @@ def episodios(item):
 
 
 def findvideos(item):
-    # support.dbg()
+    # logger.dbg()
     domain = scrapertools.find_single_match(item.url, 'https?://[a-z0-9.-]+')
     if item.contentType == 'movie':
         id = item.url.split('/')[-1]

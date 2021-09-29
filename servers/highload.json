@@ -1,0 +1,42 @@
+{
+    "active": true,
+    "find_videos": {
+      "ignore_urls": [],
+      "patterns": [
+        {
+          "pattern": "(https://highload.to/[ef]/[A-z0-9]+)",
+          "url": "\\1"
+        }
+      ]
+    },
+    "free": true,
+    "id": "highload",
+    "name": "HighLoad",
+    "settings": [
+      {
+        "default": false,
+        "enabled": true,
+        "id": "black_list",
+        "label": "@60654",
+        "type": "bool",
+        "visible": true
+      },
+      {
+        "default": 0,
+        "enabled": true,
+        "id": "favorites_servers_list",
+        "label": "@60655",
+        "lvalues": [
+          "No",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5"
+        ],
+        "type": "list",
+        "visible": false
+      }
+    ],
+    "thumbnail": "https://i.postimg.cc/3JrRZv5w/highload.png"
+  }

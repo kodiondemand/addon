@@ -4,7 +4,7 @@
 
 
 import xbmc, xbmcgui, sys, channelselector, time, threading
-from core.support import dbg, tmdb
+from core.support import tmdb
 from core.item import Item
 from core import channeltools, scrapertools, support
 from platformcode import platformtools, config, logger
@@ -127,7 +127,7 @@ class SearchWindow(xbmcgui.WindowXML):
         for channel in self.channelsList:
             logger.debug(channel)
             try:
-                module = __import__('channels.%s' % channel, fromlist=["channels.%s" % channel])
+                module = platformtools.channel_import(channel)
                 mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
                 actions = [elem for elem in mainlist if elem.action == "search" and (self.mode in ['all', 'person'] or elem.contentType in [self.mode, 'undefined'])]
                 self.moduleDict[channel] = module
@@ -658,7 +658,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
     def loadEpisodes(self ,item):
         try:
-            self.channel = __import__('channels.%s' % item.channel, fromlist=["channels.%s" % item.channel])
+            self.channel = platformtools.channel_import(item.channel)
             self.itemsResult = getattr(self.channel, item.action)(item)
         except:
             import traceback

@@ -145,7 +145,7 @@ def mainlist(item):
 # AVVERTENZE: Se il titolo è trovato nella ricerca TMDB/TVDB/Altro allora le locandine e altre info non saranno quelle recuperate nel sito.!!!!
 @support.scrape
 def peliculas(item):
-    #support.dbg() # decommentare per attivare web_pdb
+    #logger.dbg() # decommentare per attivare web_pdb
 
     action = ''
     blacklist = ['']
@@ -159,7 +159,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    #support.dbg()
+    #logger.dbg()
 
     action = ''
     blacklist = ['']
@@ -175,7 +175,7 @@ def episodios(item):
 # per genere, per anno, per lettera, per qualità ecc ecc
 @support.scrape
 def genres(item):
-    #support.dbg()
+    #logger.dbg()
 
     action = ''
     blacklist = ['']
@@ -195,7 +195,7 @@ def genres(item):
 # andranno modificate anche le def peliculas e episodios ove occorre
 def select(item):
     logger.debug()
-    #support.dbg()
+    #logger.dbg()
     data = httptools.downloadpage(item.url, headers=headers).data
     # pulizia di data, in caso commentare le prossime 2 righe
     data = re.sub('\n|\t', ' ', data)

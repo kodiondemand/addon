@@ -102,7 +102,7 @@ def newest(categoria):
 def peliculas(item):
 
     itemlist = []
-    # support.dbg()
+    # logger.dbg()
     if not item.args:
         json_file =loadjs(item.url + 'channel/10005/last/')
         logger.debug(json_file)

@@ -78,7 +78,6 @@ otvdb_global = None
 
 def find_and_set_infoLabels(item):
     logger.debug()
-    # from core.support import dbg;dbg()
     # logger.debug("item es %s" % item)
 
     p_dialog = None
@@ -665,8 +664,6 @@ class Tvdb(object):
         logger.debug()
 
         url = HOST + "/episodes/%s" % _id
-
-        # from core.support import dbg;dbg()
 
         try:
             DEFAULT_HEADERS["Accept-Language"] = lang

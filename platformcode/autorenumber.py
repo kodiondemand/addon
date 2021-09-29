@@ -7,7 +7,7 @@
 import xbmc, xbmcgui, re, base64, sys
 from core import jsontools, tmdb, filetools
 from core.item import Item
-from core.support import typo, dbg, Item
+from core.support import typo, Item
 from platformcode import config, platformtools, logger
 PY3 = True if sys.version_info[0] >= 3 else False
 if PY3:
@@ -70,7 +70,7 @@ def b64(json, mode = 'encode'):
 
 def find_episodes(item):
     logger.debug()
-    ch = __import__('channels.' + item.channel, fromlist=["channels.{}".format(item.channel)])
+    ch = platformtools.channel_import(item.channel)
     itemlist = getattr(ch, item.action)(item)
     return itemlist
 
@@ -187,7 +187,7 @@ class autorenumber():
                         item.contentSeason = int(self.episodes[number].split('x')[0])
                         item.contentEpisodeNumber = int(self.episodes[number].split('x')[1])
 
-        # dbg()
+        # logger.dbg()
         # for i in self.itemlist:
         #     sub_thread(i)
 

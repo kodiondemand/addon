@@ -39,7 +39,6 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    # support.dbg()
     deflang = 'Sub-ITA'
 
     # è una singola pagina con tutti gli episodi
@@ -81,7 +80,6 @@ def peliculas(item):
 
 def episodios_args(item):
     actLike = 'episodios'
-    # support.dbg()
 
     deflang = 'Sub-ITA'
     action = 'findvideos'
@@ -101,7 +99,6 @@ def episodios(item):
 @support.scrape
 def genres(item):
     logger.debug()
-    #support.dbg()
 
     action = 'peliculas'
     patronBlock = r'<div id="mcTagMapNav">(?P<block>.+?)</div>'

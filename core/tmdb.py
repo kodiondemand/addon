@@ -214,7 +214,7 @@ def set_infoLabels_itemlist(itemlist, seekTmdb=False, search_language=def_lang, 
 
         return (_i, _item, ret)
 
-    # from core.support import dbg; dbg()
+    # logger.dbg()
     # for i, item in enumerate(itemlist):
     #     r_list.append(sub_thread(item, i, seekTmdb))
     with futures.ThreadPoolExecutor() as executor:
