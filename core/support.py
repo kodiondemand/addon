@@ -1401,7 +1401,7 @@ def thumb(data=None, mode=None):
     _thriller = ['thriller']
     _western = ['western']
     _romance = ['romantico', 'sentimentale', 'romance', 'soap']
-    _family = ['famiglia','famiglie', 'family']
+    _family = ['famiglia','famiglie', 'familiare', 'family']
     _historical = ['storia', 'storico', 'history', 'historical']
     _setting = ['impostazioni', 'settaggi', 'configura', 'configurare', 'gestire', 'gestisci', 'gestione', 'setting', 'config']
     _talk = ['talk']
@@ -1415,6 +1415,7 @@ def thumb(data=None, mode=None):
     _fhd = ['fullhd']
     _2k = ['2k']
     _4k = ['4k']
+    _short = ['corto','short']
 
     main_dict = {'movie':_movie,
                  'tvshow':_tvshow,
@@ -1478,7 +1479,10 @@ def thumb(data=None, mode=None):
                   'news':_news,
                   'talk':_talk,
                   'reality':_reality,
-                  'tvmovie':_movie}
+                  'tvmovie':_movie,
+                  'sub':_sub,
+                  'cinema':_cinema,
+                  'short':_short}
 
     search = ['cerca', 'cercare', 'ricerca', 'ricercare', 'trova', 'trovare', 'search', 'searching', 'find', 'finding']
 

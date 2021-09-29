@@ -185,8 +185,8 @@ def search(item, texto):
 def genres(item):
     logger.debug(item)
     data = support.httptools.downloadpage(item.url, cloudscraper=True).data
-
-    patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
+    blacklist = ['Film', 'Serie TV', 'Trovatore', 'Lista A-Z']
+    patronGenreMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
     if item.args == 'quality':
         item.contentType = 'undefined'
         patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
@@ -207,14 +207,14 @@ def genres(item):
 
 @support.scrape
 def episodios(item):
-    logger.debug(item)
+    logger.debug()
     data = item.data
-    patron = r'class="playtvshow " data-href="(?P<url>[^"]+)'
+    patron = r'class="playtvshow "\s*data-href="(?P<url>[^"]+)'
 
     def itemHook(it):
         spl = it.url.split('/')[-2:]
-        it.infoLabels['season'] = int(spl[0])+1
-        it.infoLabels['episode'] = int(spl[1])+1
+        it.contentSeason = int(spl[0])+1
+        it.contentEpisodeNumber = int(spl[1])+1
         it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
         return it
 
