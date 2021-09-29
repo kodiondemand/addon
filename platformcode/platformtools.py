@@ -1776,7 +1776,7 @@ def set_played_time(item):
 
 def prevent_busy(item):
     logger.debug()
-    if not item.autoplay and not item.window:
+    if item.action == 'play_from_library' or (not item.autoplay and not item.window):
         if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
         else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
         xbmc.sleep(200)
