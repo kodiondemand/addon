@@ -1849,10 +1849,7 @@ def serverwindow(item, itemlist):
                 quality = ' [' + videoitem.quality + ']' if videoitem.quality else ''
                 if videoitem.server:
                     color = scrapertools.find_single_match(videoitem.alive, r'(FF[^\]]+)')
-                    path = filetools.join(config.get_runtime_path(), 'servers', videoitem.server.lower() + '.json')
-                    name = jsontools.load(open(path, "rb").read())['name']
-                    if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
-                    it = xbmcgui.ListItem('{}{}'.format(name, quality))
+                    it = xbmcgui.ListItem('{}{}'.format(videoitem.serverName, quality))
 
                     # format Title
                     if self.item.contentSeason and self.item.contentEpisodeNumber:

@@ -70,8 +70,12 @@ def run_threaded(job_func, args):
 
 
 def join_threads():
+    logger.debug(threads)
     for th in threads:
-        th.join()
+        try:
+            th.join()
+        except:
+            logger.error(traceback.format_exc())
 
 
 class AddonMonitor(xbmc.Monitor):

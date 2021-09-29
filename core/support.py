@@ -277,7 +277,7 @@ class scrape:
         if config.get_setting('trakt_sync'):
             from core import trakt_tools
             trakt_tools.trakt_check(self.itemlist)
-        logger.debug('scraping time: ', time()-scrapingTime)
+        logger.debug(item.channel, 'scraping time:', time()-scrapingTime)
 
     def _scrapeBlock(self, item, block):
         itemlist = []
@@ -1046,7 +1046,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                             video_urls= videoitem.video_urlsn,
                             ch_name=channeltools.get_channel_parameters(item.channel)['title'],
                             action = "play")
-            if videoitem.title: vi.serverName = videoitem.serverName
+
+            if videoitem.title: vi.serverName = videoitem.title
             if videoitem.quality: vi.quality = videoitem.quality
             if not vi.referer: vi.referer = item.url
             if videoitem.contentType == 'episode': vi.fanart=videoitem.thumbnail
@@ -1073,16 +1074,16 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
 
     # non threaded for webpdb
     # dbg()
-    # thL = [getItem(videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
-    # for it in thL:
-    #     if it and not config.get_setting("black_list", server=it.server.lower()):
-    #         verifiedItemlist.append(it)
+    thL = [getItem(videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
+    for it in thL:
+        if it and not config.get_setting("black_list", server=it.server.lower()):
+            verifiedItemlist.append(it)
 
-    with futures.ThreadPoolExecutor() as executor:
-        thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
-        for it in futures.as_completed(thL):
-            if it.result():
-                verifiedItemlist.append(it.result())
+    # with futures.ThreadPoolExecutor() as executor:
+    #     thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
+    #     for it in futures.as_completed(thL):
+    #         if it.result():
+    #             verifiedItemlist.append(it.result())
 
     if patronTag:
         addQualityTag(item, verifiedItemlist, data, patronTag)

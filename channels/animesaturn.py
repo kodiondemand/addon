@@ -175,7 +175,6 @@ def findvideos(item):
     logger.debug()
     itemlist = []
     links = []
-
     main_url = support.match(item, patron=r'<a href="([^"]+)">[^>]+>[^>]+>G').match
     urls = support.match(support.match(main_url, headers=headers).data, patron=r'<a class="dropdown-item"\s*href="([^"]+)', headers=headers).matches
     itemlist.append(item.clone(action="play", title='Primario', url=main_url, server='directo'))
@@ -185,6 +184,11 @@ def findvideos(item):
         if link:
             links.append(link)
     return support.server(item, data=links, itemlist=itemlist)
+
+def play(item):
+    if item.server == 'directo':
+        item.url = support.match(item.url, patron=r'(?:source type="[^"]+"\s*src=|file:[^"]+)"([^"]+)').match
+    return[item]
 
 
 
