@@ -186,7 +186,9 @@ def search(item, texto):
 def genres(item):
     logger.debug(item)
     data = support.httptools.downloadpage(item.url, cloudscraper=True).data
-    debugBlock=True
+    blacklist= ['Film', 'Serie TV']
+
+    patronBlock = r'{}<span></span>(?P<block>.*?)</ul>\s*</li'.format('Film' if item.contentType == 'movie' else 'Serie TV')
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
 
     if item.args == 'year':
