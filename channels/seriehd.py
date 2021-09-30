@@ -18,12 +18,12 @@ def mainlist(item):
 
     tvshow = [('Genere', ['', 'menu', 'genre']),
               ('A-Z', ['', 'menu', 'a-z']),
-              ('In Corso', ['/category/serie-tv-streaming/serie-in-corso', 'peliculas']),
-              ('Complete', ['/category/serie-tv-streaming/serie-complete', 'peliculas']),
-              ('Americane', ['/category/serie-tv-streaming/serie-tv-americane', 'peliculas']),
-              ('Italiane', ['/category/serie-tv-streaming/serie-tv-italiane', 'peliculas']),
-              ('Ultimi Episodi', ['/aggiornamenti', 'peliculas', 'last']),
-              ('Evidenza', ['', 'peliculas', 'best'])]
+              ('In Corso', ['/category/serie-tv-streaming/serie-in-corso', 'movies']),
+              ('Complete', ['/category/serie-tv-streaming/serie-complete', 'movies']),
+              ('Americane', ['/category/serie-tv-streaming/serie-tv-americane', 'movies']),
+              ('Italiane', ['/category/serie-tv-streaming/serie-tv-italiane', 'movies']),
+              ('Ultimi Episodi', ['/aggiornamenti', 'movies', 'last']),
+              ('Evidenza', ['', 'movies', 'best'])]
     return locals()
 
 
@@ -34,7 +34,7 @@ def search(item, texto):
     item.contentType = 'tvshow'
     item.url = host + "/?s=" + texto
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore .
     except:
         import sys
@@ -43,17 +43,17 @@ def search(item, texto):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
 
     itemlist = []
     item = support.Item()
     item.url = host + '/aggiornamenti'
     item.args = 'last'
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.contentType = 'tvshow'
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -65,17 +65,17 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
 
     if item.args == 'last':
         action = 'findvideos'
         patron = r'singleUpdate">(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){14,16}\s*<a href="(?P<url>[^"]+)">(?:[^>]+>){3}\s*(?P<season>\d+)\D+(?P<episode>\d+)(?:[^\(]*\()?(?P<lang>[^\)]+)?(?:\))?'
     elif item.args == 'best':
-        action='episodios'
+        action='episodes'
         patron = r'col-md-3">\s*<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoVetrina">[^>]+>(?P<year>\d{4})(?:[^>]+>){2}(?P<title>[^<]+)<(?:[^>]+>){4}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)"'
     else:
-        action='episodios'
+        action='episodes'
         # patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+)<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*<img src="(?P<thumb>[^"]+)"(?:[^>]+>){3}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
         patron = r'<a href="(?P<url>[^"]+)">[^>]+>\s*<div class="infoSeries">\s*<h2>(?P<title>[^<]+?)(?:\[(?P<lang>[^\]]+)\])?<(?:[^>]+>){5}(?P<rating>[^<]+)?(?:[^>]+>){3}\s*(?:<img src="(?P<thumb>[^"]+)"[^>]+>)?(?:[^>]+>){0,2}(?P<quality>[^<]+)<(?:[^>]+>){2}(?P<year>\d{4})'
         patronNext=r'next page-numbers" href="([^"]+)"'
@@ -84,7 +84,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     def get_season(pageData, seas_url, season):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
@@ -137,7 +137,7 @@ def menu(item):
         patronMenu = r'<a href="(?P<url>[^"]+)" class="">(?P<title>[^<]+)'
 
     blacklist = ['Serie TV Streaming','Serie TV Americane','Serie TV Italiane','Serie Complete','Serie in Corso','altadefinizione']
-    action = 'peliculas'
+    action = 'movies'
     return locals()
 
 

@@ -6,6 +6,6 @@
 	"thumbnail": "film4k.png",
 	"banner": "film4k.png",
 	"categories": ["tvshow", "movie", "anime"],
-	"not_active": ["include_in_newest_peliculas", "include_in_newest_anime", "include_in_newest_series"],
+	"not_active": ["include_in_newest_movie", "include_in_newest_anime", "include_in_newest_tvshow"],
 	"settings": []
 }

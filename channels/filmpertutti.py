@@ -22,7 +22,7 @@ def mainlist(item):
            ]
 
     tvshow = ['/category/serie-tv/',
-              ('Aggiornamenti', ['/aggiornamenti-serie-tv/', 'peliculas', 'newest']),
+              ('Aggiornamenti', ['/aggiornamenti-serie-tv/', 'movies', 'newest']),
               ('Per Lettera', ['/category/serie-tv/', 'genres', 'lettersS'])
              ]
 
@@ -31,7 +31,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
 
     if item.args != 'newest':
         patronBlock = r'<ul class="posts">(?P<block>.*)<\/ul>'
@@ -44,7 +44,7 @@ def peliculas(item):
     if item.args == 'search':
         action = 'check'
     elif item.contentType == 'tvshow':
-        action = 'episodios'
+        action = 'episodes'
     elif item.contentType == 'movie':
         action ='findvideos'
     else:
@@ -57,7 +57,7 @@ def peliculas(item):
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     # debug=True
     data = support.match(item.url, headers=headers).data
     if 'accordion-item' in data:
@@ -84,7 +84,7 @@ def genres(item):
     else:
         item.contentType = 'tvshow'
 
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = r'<select class="cats">(?P<block>.*?)<\/select>'
     patronGenreMenu = r'<option data-src="(?P<url>[^"]+)">(?P<title>[^<]+)<\/option>'
 
@@ -98,7 +98,7 @@ def check(item):
     if block.lower() != 'film':
         logger.debug('### è una Serie ###')
         item.contentType='tvshow'
-        return episodios(item)
+        return episodes(item)
     else:
         logger.debug(' ### è un Film ###')
         item.contentType='movie'
@@ -110,7 +110,7 @@ def search(item, texto):
     item.url = host + "/?s=" + texto
     item.args = 'search'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -119,23 +119,23 @@ def search(item, texto):
         return []
 
 
-def newest(categoria):
+def newest(category):
     logger.debug()
     itemlist = []
     item = Item()
     try:
-        if categoria == "peliculas":
+        if category == "movie":
             item.url = host + "/category/film/"
-            item.action = "peliculas"
+            item.action = "movies"
             item.extra = "movie"
             item.contentType = 'movie'
-            itemlist = peliculas(item)
+            itemlist = movies(item)
         else:
             item.url = host + "/aggiornamenti-serie-tv/"
-            item.action = "peliculas"
+            item.action = "movies"
             item.args = "newest"
             item.contentType = 'tvshow'
-            itemlist = peliculas(item)
+            itemlist = movies(item)
 
     # Continua la ricerca in caso di errore
     except:

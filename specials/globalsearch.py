@@ -674,7 +674,7 @@ class SearchWindow(xbmcgui.WindowXML):
         for e in self.episodes:
             if e.action in ['findvideos']:
                 ep.append(self.makeItem(e))
-            if e.nextSeason and e.action in ['episodios']:
+            if e.nextSeason and e.action in ['episodes']:
                 self.nextAction = e.clone()
                 isnext = True
 

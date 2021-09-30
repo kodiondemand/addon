@@ -45,7 +45,7 @@ pagination = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100][config.get_setting('pagin
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live'])]
 
-    menu = [('Film {bullet bold}', ['/cinema', 'peliculas', {'uxReference':'filmUltimiArrivi'}, 'movie']),
+    menu = [('Film {bullet bold}', ['/cinema', 'movies', {'uxReference':'filmUltimiArrivi'}, 'movie']),
             ('Fiction / Serie TV {bullet bold}', ['/fiction', 'menu', '5acfcb3c23eec6000d64a6a4', 'tvshow']),
             ('Programmi TV{ bullet bold}', ['/programmitv', 'menu', '5acfc8011de1c4000b6ec953', 'tvshow']),
             ('Documentari {bullet bold}', ['/documentari', 'menu', '5bfd17c423eec6001aec49f9', 'undefined']),
@@ -63,7 +63,7 @@ def menu(item):
             itemlist.append(item.clone(title=support.typo(it['title'], 'bullet bold'),
                             url= it['landingUrl'],
                             args={'uxReference':it.get('uxReferenceV2', ''), 'params':it.get('uxReferenceV2Params', ''), 'feed':it.get('feedurlV2','')},
-                            action='peliculas'))
+                            action='movies'))
     return itemlist
 
 
@@ -98,7 +98,7 @@ def search(item, text):
     item.args = {'uxReference':'main', 'params':'channel≈', 'query':text}
 
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -107,7 +107,7 @@ def search(item, text):
         return []
 
 
-def peliculas(item):
+def movies(item):
     itemlist = []
     res = get_programs(item)
     video_id= ''
@@ -181,13 +181,13 @@ def epmenu(item):
                     item.clone(seriesid = '',
                                title=support.typo(it['description'], 'bold'),
                                subbrand=it['mediasetprogram$subBrandId'],
-                               action='episodios'))
+                               action='episodes'))
             itemlist = sorted(itemlist, key=lambda it: it.title, reverse=True)
-            if len(itemlist) == 1: return episodios(itemlist[0])
+            if len(itemlist) == 1: return episodes(itemlist[0])
 
     return itemlist
 
-def episodios(item):
+def episodes(item):
     # create month list
     months = []
     try:

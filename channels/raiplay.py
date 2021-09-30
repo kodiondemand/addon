@@ -43,7 +43,7 @@ def menu(item):
     logger.debug()
     itemlist = []
     item.disable_videolibrary = True
-    action = 'peliculas'
+    action = 'movies'
 
     if item.data:
         for it in item.data:
@@ -68,7 +68,7 @@ def genres(item):
     itemlist = []
     items = requests.get(getUrl(item.genre_url)).json()['contents']
     for title, it in items.items():
-        if it: itemlist.append(item.clone(title=support.typo(title, 'bold'), data=it, action='peliculas', thumbnail=support.thumb('az')))
+        if it: itemlist.append(item.clone(title=support.typo(title, 'bold'), data=it, action='movies', thumbnail=support.thumb('az')))
     return itemlist
 
 
@@ -78,7 +78,7 @@ def search(item, text):
 
     try:
         item.data = requests.post(host + '/atomatic/raiplay-search-service/api/v3/search', json=post).json()['agg']['titoli']['cards']
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -87,12 +87,12 @@ def search(item, text):
         return []
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     return addinfo(item.data, item)
 
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist = []
 
@@ -286,7 +286,7 @@ def addinfo(items, item):
             it.action = 'play'
             it.contentTitle = it.fulltitle
         else:
-            it.action = 'episodios'
+            it.action = 'episodes'
             it.contentSerieName = it.fulltitle
         return it
 

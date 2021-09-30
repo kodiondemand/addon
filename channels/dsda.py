@@ -11,7 +11,7 @@ host = config.get_channel_url()
 
 @support.menu
 def mainlist(item):
-    docu = [('Documentari {bullet bold}',('/elenco-documentari','peliculas')),
+    docu = [('Documentari {bullet bold}',('/elenco-documentari','movies')),
             ('Categorie {submenu documentary}',('','menu')),
             ('Cerca... {bullet bold documentary}',('','search')),]
     return locals()
@@ -19,7 +19,7 @@ def mainlist(item):
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     patronMenu = r'<li class="menu-item menu-item-type-taxonomy[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)<'
     def fullItemlistHook(itemlist):
         item_list = []
@@ -32,14 +32,14 @@ def menu(item):
         return itemlist
     return locals()
 
-def newest(categoria):
+def newest(category):
     logger.debug()
     item = Item()
     try:
-        if categoria == "documentales":
+        if category == "documentales":
             item.url = host + "/elenco-documentari"
-            item.action = "peliculas"
-            return peliculas(item)
+            item.action = "movies"
+            return movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -53,7 +53,7 @@ def search(item, texto):
     logger.debug(texto)
     item.url = host + "/?s=" + texto
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore 
     except:
         import sys
@@ -63,7 +63,7 @@ def search(item, texto):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     blacklist = ['GUIDA PRINCIPIANTI Vedere film e documentari streaming gratis', 'Guida Dsda']
     data = support.match(item).data
     # debug =True
@@ -83,14 +83,14 @@ def peliculas(item):
         title = support.re.sub(r'(?:[Ss]erie\s*|[Ss]treaming(?:\s*[Dd][Aa])?\s*|[Cc]ollezione\s*|[Rr]accolta\s*|[Dd]ocumentari(?:o)?\s*)?','',item.fulltitle).strip()
         if 'serie' in item.fulltitle.lower():
             item.contentType = 'tvshow'
-            item.action = 'episodios'
+            item.action = 'episodes'
             item.contentSerieName = title
             item.contentTitle = ''
         elif 'collezion' in item.fulltitle.lower() or \
              'raccolt' in item.fulltitle.lower() or \
              'filmografia' in item.fulltitle.lower():
             item.args = 'collection'
-            item.action = 'peliculas'
+            item.action = 'movies'
             item.contentTitle = title
             item.contentSerieName = ''
         else:
@@ -113,7 +113,7 @@ def peliculas(item):
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     html = support.match(item, patron=r'class="title-episodio">(\d+x\d+)')
     data = html.data
     if html.match:

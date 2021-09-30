@@ -429,7 +429,7 @@ def get_season_and_episode(title):
         "Temp 3 episodio 2.avi" -> '3x02'
         "Alcantara season 13 episodie 12.avi" -> '13x12'
         "Temp1 capitulo 14" -> '1x14'
-        "Temporada 1: El origen Episodio 9" -> '' (entre el numero de temporada y los episodios no puede haber otro texto)
+        "Temporada 1: El origen Episodio 9" -> '' (entre el numero de temporada y los episodes no puede haber otro texto)
         "Episodio 25: titulo episodio" -> '' (no existe el numero de temporada)
         "Serie X Temporada 1" -> '' (no existe el numero del episodio)
     @type title: str

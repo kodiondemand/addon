@@ -232,7 +232,7 @@ class scrape:
 
             if self.numerationEnabled and not stackCheck('find_episodes'):
                 from platformcode import autorenumber
-                if self.function == 'episodios':
+                if self.function == 'episodes':
                     autorenumber.start(self.itemlist, item)
 
                     for i in self.itemlist:
@@ -245,13 +245,13 @@ class scrape:
         if not stackCheck(['add_tvshow', 'get_episodes', 'update', 'find_episodes']):
             if len(self.seasons) > 1 and self.seasonPagination:
                 self.itemlist = season_pagination(self.itemlist, item, self.seasons, self.function)
-            elif self.pagination or (self.function in ['episodios'] and self.seasonPagination):
+            elif self.pagination or (self.function in ['episodes'] and self.seasonPagination):
                 self.itemlist = pagination(self.itemlist, item, self.function)
 
         if self.tmdbEnabled and (
             self.action != 'play' and 'patronMenu' not in self.args and 'patronGenreMenu' not in self.args
-            and not stackCheck('add_tvshow') and (self.function not in ['episodios', 'mainlist']
-            or (self.function in ['episodios'] and config.get_setting('episode_info')))):
+            and not stackCheck(['add_tvshow', 'get_newest']) and (self.function not in ['episodes', 'mainlist']
+            or (self.function in ['episodes'] and config.get_setting('episode_info')))):
 
             tmdb.set_infoLabels_itemlist(self.itemlist, seekTmdb=True)
 
@@ -259,7 +259,7 @@ class scrape:
             if self.videlibraryEnabled and (item.infoLabels["title"] or item.fulltitle):
                 # item.fulltitle = item.infoLabels["title"]
                 videolibrary(self.itemlist, item, function=self.function)
-            if self.downloadEnabled and self.function == 'episodios' or self.function == 'findvideos':
+            if self.downloadEnabled and self.function == 'episodes' or self.function == 'findvideos':
                 download(self.itemlist, item, function=self.function)
 
         if 'patronGenreMenu' in self.args and self.itemlist:
@@ -340,7 +340,7 @@ class scrape:
         if item.infoLabels["title"]:
             infolabels = item.infoLabels
         else:
-            if self.function == 'episodios':
+            if self.function == 'episodes':
                 infolabels = item.infoLabels
             else:
                 infolabels = {'mediatype':item.contentType}
@@ -468,14 +468,14 @@ class scrape:
             if self.itemParams.infoLabels.get('season'): it.contentSeason = self.itemParams.infoLabels.get('season')
             if self.itemParams.infoLabels.get('episode'): it.contentEpisodeNumber = self.itemParams.infoLabels.get('episode')
             if self.itemParams._url: it.url = self.itemParams._url
-            if self.function == 'episodios': it.fulltitle = it.show = self.itemParams._title
+            if self.function == 'episodes': it.fulltitle = it.show = self.itemParams._title
             if self.itemParams._quality: it.quality = self.itemParams._quality
             if self.itemParams._language: it.contentLanguage = self.itemParams._language
             if item.prevthumb: it.thumbnail = item.prevthumb
             elif self.itemParams._thumb: it.thumbnail = self.itemParams._thumb
-            it.contentType = 'episode' if self.function == 'episodios' else CT if CT else item.contentType
-            if it.contentType not in ['movie'] and self.function != 'episodios' or it.contentType in ['undefined']: it.contentSerieName = self.itemParams._title
-            if self.function == 'peliculas': it.contentTitle= self.itemParams._title
+            it.contentType = 'episode' if self.function == 'episodes' else CT if CT else item.contentType
+            if it.contentType not in ['movie'] and self.function != 'episodes' or it.contentType in ['undefined']: it.contentSerieName = self.itemParams._title
+            if self.function == 'movies': it.contentTitle= self.itemParams._title
             if self.itemParams._title2: it.title2 = self.itemParams._title2
 
             if self.itemParams._episode and self.group and not item.grouped:
@@ -636,7 +636,7 @@ def menu(func):
                         menuItem(itemlist, channel,
                                  title = sub + '{italic bold}',
                                  url = host + var[0] if len(var) > 0 else '',
-                                 action = var[1] if len(var) > 1 else 'peliculas',
+                                 action = var[1] if len(var) > 1 else 'movies',
                                  args=var[2] if len(var) > 2 else '',
                                  contentType= var[3] if len(var) > 3 else 'movie')
 
@@ -649,7 +649,7 @@ def menu(func):
 
                 if not global_search:
                     menuItem(itemlist, channel,
-                             title + '{bullet bold}', 'peliculas',
+                             title + '{bullet bold}', 'movies',
                              host + url,
                              contentType='movie' if name == 'film' else 'tvshow')
 
@@ -661,7 +661,7 @@ def menu(func):
                             menuItem(itemlist, channel,
                                  title = sub + '{submenu}  {' + title + '}',
                                  url = host + var[0] if len(var) > 0 else '',
-                                 action = var[1] if len(var) > 1 else 'peliculas',
+                                 action = var[1] if len(var) > 1 else 'movies',
                                  args=var[2] if len(var) > 2 else '',
                                  contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow')
                 # add search menu for category
@@ -679,7 +679,7 @@ def menu(func):
                 menuItem(itemlist, channel,
                              title = sub,
                              url = host + var[0] if len(var) > 0 else '',
-                             action = var[1] if len(var) > 1 else 'peliculas',
+                             action = var[1] if len(var) > 1 else 'movies',
                              args=var[2] if len(var) > 2 else '',
                              contentType= var[3] if len(var) > 3 else 'movie',)
 
@@ -841,7 +841,7 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     total_pages = integer, the number of total pages
     '''
     logger.debug()
-    if stackCheck('channel_search'):
+    if stackCheck(['channel_search', 'get_newest']):
         return itemlist
 
     # get optional args
@@ -901,7 +901,7 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
 
 
 def pagination(itemlist, item, function_level=1):
-    if stackCheck(['channel_search', 'update_videolibrary']):
+    if stackCheck(['channel_search', 'update_videolibrary', 'get_newest']) and function_level != 'news':
         return itemlist
 
     if not item.page:
@@ -1127,8 +1127,8 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
         contentType = 'tvshow'
 
     function = function if function else inspect.stack()[function_level][3]
-    # go up until find findvideos/episodios
-    while function not in ['findvideos', 'episodios']:
+    # go up until find findvideos/episodes
+    while function not in ['findvideos', 'episodes']:
         function_level += 1
         try:
             function = inspect.stack()[function_level][3]
@@ -1142,7 +1142,7 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
     contentTitle=item.contentTitle if item.contentTitle else item.fulltitle if item.contentType == 'movie' else ''
 
     if (function == 'findvideos' and contentType == 'movie') \
-        or (function == 'episodios' and contentType != 'movie'):
+        or (function == 'episodes' and contentType != 'movie'):
         if config.get_videolibrary_support() and len(itemlist) > 0:
             itemlist.append(
                 item.clone(channel=item.channel,
@@ -1177,7 +1177,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
             if item.channel == 'community' and config.get_setting('show_seasons', item.channel):
                 from_action = 'season'
             else:
-                from_action = 'episodios'
+                from_action = 'episodes'
             title = typo(config.get_localized_string(60355), typography)
         elif item.contentType in 'season':
             from_action = 'get_seasons'
@@ -1216,7 +1216,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
                          thumbnail=thumb('download'),
                          downloadItemlist=downloadItemlist
                     ))
-            if from_action == 'episodios':
+            if from_action == 'episodes':
                 itemlist.append(
                     Item(channel='downloads',
                          from_channel=item.channel,
@@ -1734,7 +1734,7 @@ def search(channel, item, texto):
     logger.debug(item.url + " search " + texto)
     item.url = channel.host + "/?s=" + texto
     try:
-        return channel.peliculas(item)
+        return channel.movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -1778,14 +1778,14 @@ def dooplay_get_links(item, host, paramList=[]):
 def dooplay_get_episodes(item):
     item.contentType = 'tvshow'
     patron = '<li class="mark-[0-9]+">.*?<img.*?(?:data-lazy-)?src="(?P<thumb>[^"]+).*?(?P<episode>[0-9]+ - [0-9]+).*?<a href="(?P<url>[^"]+)">(?P<title>[^<>]+).*?(?P<year>[0-9]{4})'
-    actLike = 'episodios'
+    actLike = 'episodes'
 
     return locals()
 
 
 @scrape
-def dooplay_peliculas(item, mixed=False, blacklist=""):
-    actLike = 'peliculas'
+def dooplay_movies(item, mixed=False, blacklist=""):
+    actLike = 'movies'
     # debug = True
     if item.args == 'searchPage':
         return dooplay_search_vars(item, blacklist)
@@ -1794,13 +1794,13 @@ def dooplay_peliculas(item, mixed=False, blacklist=""):
             action = 'findvideos'
             patron = '<article id="post-[0-9]+" class="item movies">.*?<img src="(?!data)(?P<thumb>[^"]+)".*?(?:<span class="quality">(?P<quality>[^<>]+).*?)?<a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a></h3>.*?(?:<span>[^<>]*(?P<year>[0-9]{4})</span>|</article>)'
         else:
-            action = 'episodios'
+            action = 'episodes'
             patron = '<article id="post-[0-9]+" class="item (?P<type>' + ('\w+' if mixed else 'tvshows') + ')">.*?<img src="(?!data)(?P<thumb>[^"]+)".*?(?:<span class="quality">(?P<quality>[^<>]+))?.*?<a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a></h3>.*?(?:<span>(?P<year>[0-9]{4})</span>|</article>).*?(?:<div class="texto">(?P<plot>[^<>]+)|</article>).*?(?:genres">(?P<genre>.*?)</div>|</article>)'
         patronNext = '<div class="pagination">.*?class="current".*?<a href="([^"]+)".*?<div class="resppages">'
         videlibraryEnabled = False
 
         if mixed:
-            typeActionDict={'findvideos': ['movies'], 'episodios': ['tvshows']}
+            typeActionDict={'findvideos': ['movies'], 'episodes': ['tvshows']}
             typeContentDict={'film': ['movies'], 'serie': ['tvshows']}
 
         return locals()
@@ -1814,14 +1814,14 @@ def dooplay_search(item, blacklist=""):
 def dooplay_search_vars(item, blacklist):
     if item.contentType == 'list':  # ricerca globale
         type = '(?P<type>movies|tvshows)'
-        typeActionDict = {'findvideos': ['movies'], 'episodios': ['tvshows']}
+        typeActionDict = {'findvideos': ['movies'], 'episodes': ['tvshows']}
         typeContentDict = {'movie': ['movies'], 'tvshow': ['tvshows']}
     elif item.contentType == 'movie':
         type = 'movies'
         action = 'findvideos'
     else:
         type = 'tvshows'
-        action = 'episodios'
+        action = 'episodes'
     patron = '<div class="result-item">.*?<img src="(?P<thumb>[^"]+)".*?<span class="' + type + '">(?P<quality>[^<>]+).*?<a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a>.*?<span class="year">(?P<year>[0-9]{4}).*?<div class="contenido"><p>(?P<plot>[^<>]+)'
     patronNext = '<a class="arrow_pag" href="([^"]+)"><i id="nextpagination"'
 
@@ -1831,7 +1831,7 @@ def dooplay_search_vars(item, blacklist):
 def dooplay_menu(item, type):
     patronMenu = '<a href="(?P<url>[^"#]+)"(?: title="[^"]+")?>(?P<title>[a-zA-Z0-9]+)'
     patronBlock = '<nav class="' + item.args + '">(?P<block>.*?)</nav>'
-    action = 'peliculas'
+    action = 'movies'
 
     return locals()
 
@@ -1884,6 +1884,7 @@ def itemlistdb(itemlist=None):
 
 def stackCheck(values):
     stacks = [s[3] for s in inspect.stack()]
+    logger.debug('STAKS', stacks)
     if type(values) == str:
         return values in stacks
     else:

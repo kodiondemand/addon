@@ -16,20 +16,20 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     film = [
-        ('Al Cinema', ['/film-del-cinema', 'peliculas', '']),
+        ('Al Cinema', ['/film-del-cinema', 'movies', '']),
         ('Generi', ['', 'genres', 'genres']),
         ('Anni', ['', 'genres', 'years']),
         ('Qualità', ['/piu-visti.html', 'genres', 'quality']),
         ('Mi sento fortunato', ['/piu-visti.html', 'genres', 'lucky']),
-        ('Popolari', ['/piu-visti.html', 'peliculas', '']),
-        ('Sub-ITA', ['/film-sub-ita/', 'peliculas', ''])
+        ('Popolari', ['/piu-visti.html', 'movies', '']),
+        ('Sub-ITA', ['/film-sub-ita/', 'movies', ''])
     ]
     return locals()
 
 # ======== def in ordine di action dal menu ===========================
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)(?:[^>]+>){5}\s*<div class="[^"]+" style="background-image:url\((?P<thumb>[^\)]+)(?:[^>]+>){6}\s*(?P<year>\d{4})[^>]+>[^>]+>(?:\s*(?P<duration>\d+))?(?:[^>]+>){0,2}\s+(?P<quality>[a-zA-Z]+)\s+(?:[^>]+>){2}\s*(?P<lang>[^>]+)\s+[^>]+>'
     patronNext = r'<span>\d</span> <a href="([^"]+)">'
     return locals()
@@ -38,7 +38,7 @@ def peliculas(item):
 @support.scrape
 def genres(item):
 
-    action = 'peliculas'
+    action = 'movies'
     if item.args == 'genres':
         patronBlock = r'<ul class="listSubCat" id="Film">(?P<block>.*)<ul class="listSubCat" id="Anno">'
     elif item.args == 'years':
@@ -59,7 +59,7 @@ def search(item, text):
     text = text.replace(" ", "+")
     item.url = host+"/index.php?do=search&story=%s&subaction=search" % (text)
     try:
-        return peliculas(item)
+        return movies(item)
     # Se captura la excepcion, para no interrumpir al buscador global si un canal falla
     except:
         import sys
@@ -69,18 +69,18 @@ def search(item, text):
 
 # =========== def per le novità nel menu principale =============
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
     try:
-        if categoria == "peliculas":
+        if category == "movie":
             item.url = host
-            item.action = "peliculas"
+            item.action = "movies"
             item.contentType='movie'
-            itemlist = peliculas(item)
+            itemlist = movies(item)
 
-            if itemlist[-1].action == "peliculas":
+            if itemlist[-1].action == "movies":
                 itemlist.pop()
     # Continua la ricerca in caso di errore
     except:

@@ -4,7 +4,7 @@
 # ------------------------------------------------------------
 """
 
-    Su questo canale, nella categoria 'Ricerca Globale'
+    Su questo canale, nella category 'Ricerca Globale'
     non saranno presenti le voci 'Aggiungi alla Videoteca'
     e 'Scarica Film'/'Scarica Serie', dunque,
     la loro assenza, nel Test, NON dovrà essere segnalata come ERRORE.
@@ -28,7 +28,7 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     Tvshow = [
-        ('Aggiornamenti', ['', 'peliculas', 'update']),
+        ('Aggiornamenti', ['', 'movies', 'update']),
         ('Cerca... {bold}{TV}', ['', 'search'])
     ]
 
@@ -38,25 +38,25 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     deflang = 'Sub-ITA'
 
     # è una singola pagina con tutti gli episodi
     if item.grouped and not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
         item.grouped = False
-        return episodios_args(item)
+        return episodes_args(item)
 
     # ogni puntata è un articolo a se
     if item.fulltitle:
         item.url = host + '?s=' + item.fulltitle
-        actLike = 'episodios'
+        actLike = 'episodes'
 
     action = 'findvideos'
     blacklist = ['']
     if item.args == 'genres':
         patronBlock = r'<h4 id="mctm1-.">'+item.fulltitle+'</h4>(?P<block>.+?)</div>'
         patron = r'[^>]+>[^>]+>.+?href="(?P<url>[^"]+)[^>]>(?P<title>[^<]+)\s<'
-        action = 'episodios'
+        action = 'episodes'
     elif item.args == 'search':
         group = True
         patronBlock = r'</header>(?P<block>.*?)</main>'
@@ -64,7 +64,7 @@ def peliculas(item):
     else:
         # è una singola pagina con tutti gli episodi
         if item.args != 'update' and not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
-            return episodios_args(item)
+            return episodes_args(item)
         patron = r'<div class="featured-thumb"> +<a href="(?P<url>[^"]+)" title="(?P<title>[^[]+)\[(?P<episode>\d+&#215;\d+)?'
         patronBlock = r'<main id="main"[^>]+>(?P<block>.*?)<div id="secondary'
 
@@ -78,8 +78,8 @@ def peliculas(item):
     return locals()
 
 
-def episodios_args(item):
-    actLike = 'episodios'
+def episodes_args(item):
+    actLike = 'episodes'
 
     deflang = 'Sub-ITA'
     action = 'findvideos'
@@ -92,15 +92,15 @@ def episodios_args(item):
 
 
 @support.scrape
-def episodios(item):
-    return episodios_args(item)
+def episodes(item):
+    return episodes_args(item)
 
 
 @support.scrape
 def genres(item):
     logger.debug()
 
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = r'<div id="mcTagMapNav">(?P<block>.+?)</div>'
     patron = r'<a href="(?P<url>[^"]+)">(?P<title>.+?)</a>'
 
@@ -120,7 +120,7 @@ def search(item, text):
     try:
         item.args = 'search'
         item.contentType = 'tvshow'
-        return peliculas(item)
+        return movies(item)
     # Se captura la excepcion, para no interrumpir al buscador global si un canal falla
     except:
         import sys
@@ -129,19 +129,19 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug('newest ->', categoria)
+def newest(category):
+    logger.debug('newest ->', category)
     itemlist = []
     item = Item()
-    if categoria == 'series':
+    if category == 'tvshow':
         try:
             item.contentType = 'tvshow'
             item.args = 'newest'
             item.url = host
-            item.action = 'peliculas'
-            itemlist = peliculas(item)
+            item.action = 'movies'
+            itemlist = movies(item)
 
-            if itemlist[-1].action == 'peliculas':
+            if itemlist[-1].action == 'movies':
                 itemlist.pop()
         # Continua la ricerca in caso di errore
         except:
@@ -170,14 +170,14 @@ def findvideos(item):
                 resp = httptools.downloadpage(scrapedurl, follow_redirects=False)
                 data += resp.headers.get("location", "") + '\n'
     elif not support.scrapertools.find_single_match(item.url, '-[0-9]+x[0-9]+-'):
-        return episodios(item)
+        return episodes(item)
     else:
         patronBlock = '<div class="entry-content">(?P<block>.*)<footer class="entry-footer">'
         html = support.match(item, patron=patron, patronBlock=patronBlock, headers=headers)
         matches = html.matches
         data= html.data
 
-        if item.args != 'episodios':
+        if item.args != 'episodes':
             item.infoLabels['mediatype'] = 'episode'
         for scrapedurl in matches:
             if 'is.gd' in scrapedurl:
@@ -200,7 +200,7 @@ def findvideos(item):
     #                contentType='tvshow',
     #                contentSerieName=series,
     #                url=host+"/serietv/"+series,
-    #                action='episodios',
+    #                action='episodes',
     #                contentTitle=titles,
     #                plot = "Vai alla Serie " + titles + " con tutte le puntate",
     #                ))

@@ -1189,7 +1189,7 @@ def convert_videolibrary():
                     channel = platformtools.channel_import(ch)
                     it.host = channel.host
                     it.url = channel.host + it.url
-                    episodes = getattr(channel, 'episodios')(it)
+                    episodes = getattr(channel, 'episodes')(it)
                     for ep in episodes:
                         logger.debug('EPISODE URL', ep.url)
                     it.no_reload = True

@@ -381,7 +381,7 @@ def genres_menu(item):
         discovery = {'url': 'discover/%s' % mode, 'with_genres': key,
                      'language': def_lang, 'page': '1'}
 
-        itemlist.append(Item(channel=item.channel, title=typo(value, 'bold'), page=1,
+        itemlist.append(Item(channel=item.channel, title=value, page=1,
                              action='discover_list', discovery=discovery,
                              mode=item.mode))
     from core import support
@@ -410,7 +410,7 @@ def years_menu(item):
                      '%s' % par_year: '%s' % year,
                      'sort_by': 'popularity.desc', 'language': def_lang}
 
-        itemlist.append(Item(channel=item.channel, title=typo(str(year), 'bold'), action='discover_list',
+        itemlist.append(Item(channel=item.channel, title=str(year), action='discover_list',
                              discovery=discovery, mode=item.mode, year_=str(year), thumbnail=thumb))
     itemlist.reverse()
     itemlist.append(Item(channel=item.channel, title=typo(config.get_localized_string(70745),'color kod bold'), url='',
@@ -467,7 +467,7 @@ def actor_list(item):
                 plot = '%s in %s' % (rol, t_k)
 
         thumbnail = 'https://image.tmdb.org/t/p/original%s' % elem.get('profile_path', '')
-        title = typo(name,'bold')+typo(rol,'_ [] color kod bold')
+        title = name + typo(rol,'_ [] color kod')
 
         discovery = {'url': 'person/%s/combined_credits' % cast_id, 'page': '1',
                      'sort_by': 'primary_release_date.desc', 'language': def_lang}
@@ -475,9 +475,9 @@ def actor_list(item):
         itemlist.append(Item(channel=item.channel, title=title, action='discover_list', cast_='cast',
                              discovery=discovery, thumbnail=thumbnail, plot=plot, page=1))
 
-    if len(results) > 19:
+    if len(results) >= config.get_setting('pagination', default=20):
         next_ = item.page + 1
-        itemlist.append(Item(channel=item.channel, title=typo(config.get_localized_string(30992),'bold color kod'), action='actor_list',
+        itemlist.append(Item(channel=item.channel, title=typo(config.get_localized_string(90006),'bold color kod'), action='actor_list',
                              page=next_, thumbnail=thumbnail,
                              searched_text=item.searched_text))
     return itemlist
@@ -488,8 +488,10 @@ def discover_list(item):
     itemlist = []
 
     year = 0
+
     tmdb_inf = tmdb.discovery(item, dict_=item.discovery, cast=item.cast_)
     result = tmdb_inf.results
+    total_pages = tmdb_inf.total_pages
     tvshow = False
 
     for elem in result:
@@ -511,13 +513,13 @@ def discover_list(item):
 
         if not item.cast_ or (item.cast_ and (int(year) <= int(datetime.datetime.today().year))):
             if config.get_setting('new_search'):
-                new_item = Item(channel='globalsearch', title=typo(title, 'bold'), infoLabels=elem,
+                new_item = Item(channel='globalsearch', title=title, infoLabels=elem,
                                 action='Search', text=title,
                                 thumbnail=thumbnail, fanart=fanart,
                                 context='', mode='search', type = mode, contentType=mode,
                                 release_date=year, folder = False)
             else:
-                new_item = Item(channel='search', title=typo(title, 'bold'), infoLabels=elem,
+                new_item = Item(channel='search', title=title, infoLabels=elem,
                                 action='channel_search', text=title,
                                 thumbnail=thumbnail, fanart=fanart,
                                 context='', mode=mode, contentType=mode,
@@ -536,17 +538,12 @@ def discover_list(item):
         itemlist.sort(key=lambda it: int(it.release_date), reverse=True)
         return itemlist
 
-    elif len(result) > 19 and item.discovery:
-        item.discovery['page'] = str(int(item.discovery['page']) + 1)
-        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
-                             title=typo(config.get_localized_string(30992), 'color kod bold'),
-                             list_type=item.list_type, discovery=item.discovery, thumbnail=thumb(), page=item.discovery['page']))
-    elif len(result) > 19:
-        next_page = str(int(item.page) + 1)
-
-        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
-                             title=typo(config.get_localized_string(30992), 'color kod bold'),
-                             list_type=item.list_type, search_type=item.search_type, mode=item.mode, page=next_page, thumbnail=thumb()))
+    elif config.get_setting('pagination', default=20):
+        if item.discovery:
+            page = item.discovery['page'] = int(item.discovery['page']) + 1
+        else:
+            page = item.page + 1
+        support.nextPage(itemlist, item, page=page, total_pages=total_pages)
 
     return itemlist
 

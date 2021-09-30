@@ -21,13 +21,13 @@ def mainlist(item):
            ('Tipo',['', 'menu', 'Anime']),
            ('Anno',['', 'menu', 'Anno']),
            ('Genere', ['', 'menu','Genere']),
-           ('Ultimi Episodi',['', 'peliculas', 'last'])]
+           ('Ultimi Episodi',['', 'movies', 'last'])]
     return locals()
 
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     patronBlock= r'<a href="' + host + r'/category/' + item.args.lower() + r'/">' + item.args + r'</a>\s*<ul class="sub-menu">(?P<block>.*?)</ul>'
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
     if 'genere' in item.args.lower():
@@ -39,7 +39,7 @@ def search(item, text):
     logger.debug(text)
     item.search = text
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -48,14 +48,14 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host
             item.args = "last"
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -65,7 +65,7 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     if '/movie/' in item.url:
         item.contentType = 'movie'
         action='findvideos'
@@ -74,7 +74,7 @@ def peliculas(item):
         action='findvideos'
     else:
         item.contentType = 'tvshow'
-        action='episodios'
+        action='episodes'
     if item.search:
         query = 's'
         searchtext = item.search
@@ -98,13 +98,13 @@ def peliculas(item):
         if item.search:
             itemlist = [ it for it in itemlist if ' Episodio ' not in it.title ]
         if len(itemlist) == int(perpage):
-            support.nextPage(itemlist, item, 'peliculas', page=page + 1, total_pages=int(res.match))
+            support.nextPage(itemlist, item, 'movies', page=page + 1, total_pages=int(res.match))
         return itemlist
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     numerationEnabled = True
     pagination = True
     patron = epPatron

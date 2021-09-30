@@ -13,7 +13,7 @@ headers = {'X-Requested-With': 'XMLHttpRequest'}
 @support.scrape
 def mainlist(item):
     item.url = host
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = r'<ul class="dropdown-menu(?P<block>.*?)</ul>\s*</div'
     patron = r'<a href="(?P<url>[^"]+)"(?: class="")?>(?P<title>[^<]+)<'
     def itemHook(item):
@@ -36,7 +36,7 @@ def mainlist(item):
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug=True
     action = 'findvideos'
     patron= r'<img src="[^"]+" alt="(?P<title>[^"]+)" data-echo="(?P<thumb>[^"]+)"(?:[^>]+>){7}<a href="(?P<url>[^"]+)"'
@@ -53,7 +53,7 @@ def search(item, text):
     logger.debug(text)
     item.url = host + '/search.php?keywords=' + text + '&video-id='
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys

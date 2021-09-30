@@ -19,14 +19,14 @@ def mainlist(item):
         ('Generi',['', 'genres', 'genres']),
         ('Per Lettera',['/film-a-z/', 'genres', 'letter']),
         ('Anni',['', 'genres', 'year']),
-        ('Popolari',['/trending/?get=movies', 'peliculas', 'populared']),
-        ('Più Votati', ['/ratings/?get=movies', 'peliculas', 'populared'])
+        ('Popolari',['/trending/?get=movies', 'movies', 'populared']),
+        ('Più Votati', ['/ratings/?get=movies', 'movies', 'populared'])
         ]
 
     tvshow = ['/serie/',
-        ('Aggiornamenti', ['/aggiornamenti-serie/', 'peliculas', 'update']),
-        ('Popolari',['/trending/?get=tv', 'peliculas', 'populared']),
-        ('Più Votati', ['/ratings/?get=tv', 'peliculas', 'populared'])
+        ('Aggiornamenti', ['/aggiornamenti-serie/', 'movies', 'update']),
+        ('Popolari',['/trending/?get=tv', 'movies', 'populared']),
+        ('Più Votati', ['/ratings/?get=tv', 'movies', 'populared'])
 
         ]
 
@@ -34,7 +34,7 @@ def mainlist(item):
         ]
 
     Tvshow = [
-        ('Show TV {bullet bold}', ['/tv-show/', 'peliculas', '', 'tvshow'])
+        ('Show TV {bullet bold}', ['/tv-show/', 'movies', '', 'tvshow'])
         ]
 
     search = ''
@@ -43,7 +43,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     logger.debug()
     # debugBlock = True
     # debug=True
@@ -53,7 +53,7 @@ def peliculas(item):
         patron = r'<img src="(?P<thumb>[^"]+)" alt="[^"]+" ?/?>[^>]+>(?P<type>[^<]+)</span>.*?<a href="(?P<url>[^"]+)">(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA)\])?</a>[^>]+>[^>]+>(?:<span class="rating">IMDb\s*(?P<rating>[^>]+)</span>)?.?(?:<span class="year">(?P<year>[0-9]+)</span>)?.*?<p>(?P<plot>.*?)</p>'
 
         typeContentDict={'movie': ['film'], 'tvshow': ['tv']}
-        typeActionDict={'findvideos': ['film'], 'episodios': ['tv']}
+        typeActionDict={'findvideos': ['film'], 'episodes': ['tv']}
     else:
 
         if item.contentType == 'movie':
@@ -75,7 +75,7 @@ def peliculas(item):
                 patron = r'<div class="poster">\s?<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="[^"]+"><\/a>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[0-9.]+)<\/div>(?:<span class="quality">(?:SUB-ITA|)?(?P<quality>|[^<]+)?<\/span>)?[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>.+?)[ ]?(?:\[(?P<lang>Sub-ITA)\])?<\/a>[^>]+>[^>]+>(?P<year>[^<]+)<\/span>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<plot>[^<]+)<div'
         else:
             # TVSHOW
-            action = 'episodios'
+            action = 'episodes'
             if item.args == 'update':
                 action = 'findvideos'
                 patron = r'<div class="poster"><img src="(?P<thumb>[^"]+)"(?:[^>]+>){2}<a href="(?P<url>[^"]+)">[^>]+>(?P<episode>[\d\-x]+)(?:[^>]+>){4}(?P<title>.+?)(?:\[(?P<lang>[SsuUbBiItTaA-]{7})\])?<(?:[^>]+>){4}(?P<quality>[HDWEBRIP-]+)?(?:.+?)?/span><p class="serie"'
@@ -93,10 +93,10 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     logger.debug()
 
-    patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" style="display:block">\s*<ul class="episodios">(?P<block>.*?)</ul>\s*</div>\s*</div>\s*</div>\s*</div>\s*</div>'
+    patronBlock = r'<h1>.*?[ ]?(?:\[(?P<lang>.+?\]))?</h1>.+?<div class="se-a" style="display:block">\s*<ul class="episodes">(?P<block>.*?)</ul>\s*</div>\s*</div>\s*</div>\s*</div>\s*</div>'
     patron = r'<a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)">.*?'\
              '<div class="numerando">(?P<episode>[^<]+).*?<div class="episodiotitle">'\
              '[^>]+>(?P<title>[^<]+)<\/a>'
@@ -108,7 +108,7 @@ def episodios(item):
 def genres(item):
     logger.debug(item)
 
-    action='peliculas'
+    action='movies'
     if item.args == 'genres':
         patronBlock = r'<div class="sidemenu"><h2>Genere</h2>(?P<block>.*?)/li></ul></div>'
     elif item.args == 'year':
@@ -130,7 +130,7 @@ def search(item, text):
     item.url = host + '/?' + uuid.uuid4().hex + '=' + uuid.uuid4().hex + '&s=' + text
     try:
         item.args = 'search'
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -138,24 +138,24 @@ def search(item, text):
 
     return []
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
 
-    if categoria == 'peliculas':
+    if category == 'movie':
         item.contentType = 'movie'
         item.url = host + '/film/'
-    elif categoria == 'series':
+    elif category == 'tvshow':
         item.args = 'update'
         item.contentType = 'tvshow'
         item.url = host + '/aggiornamenti-serie/'
-##    elif categoria == 'anime':
+##    elif category == 'anime':
 ##        item.contentType = 'tvshow'
 ##        item.url = host + '/anime/'
     try:
-        item.action = 'peliculas'
-        itemlist = peliculas(item)
+        item.action = 'movies'
+        itemlist = movies(item)
 
     except:
         import sys

@@ -143,7 +143,7 @@ def get_environment():
 
         try:
             environment['videolab_series'] = '?'
-            environment['videolab_episodios'] = '?'
+            environment['videolab_episodes'] = '?'
             environment['videolab_pelis'] = '?'
             environment['videolab_path'] = str(xbmc.translatePath(config.get_videolibrary_path()))
             if filetools.exists(filetools.join(environment['videolab_path'],  config.get_setting("folder_tvshows"))):
@@ -152,7 +152,7 @@ def get_environment():
                 for root, folders, files in filetools.walk(filetools.join(environment['videolab_path'], config.get_setting("folder_tvshows"))):
                     for file in files:
                         if file.endswith('.strm'): counter += 1
-                environment['videolab_episodios'] = str(counter)
+                environment['videolab_episodes'] = str(counter)
             if filetools.exists(filetools.join(environment['videolab_path'], config.get_setting("folder_movies"))):
                 environment['videolab_pelis'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.get_setting("folder_movies")))))
         except:
@@ -321,7 +321,7 @@ def get_environment():
         environment['kodi_bmode'] = ''
         environment['kodi_rfactor'] = ''
         environment['videolab_series'] = ''
-        environment['videolab_episodios'] = ''
+        environment['videolab_episodes'] = ''
         environment['videolab_pelis'] = ''
         environment['videolab_update'] = ''
         environment['debug'] = ''
@@ -366,7 +366,7 @@ def list_env(environment={}):
                 environment['userdata_free'].replace('.', ',') + ' GB')
 
     logger.info('Videolibrary: Series/Episodes: ' + environment['videolab_series'] + '/' +
-                environment['videolab_episodios'] + ' - Pelis: ' +
+                environment['videolab_episodes'] + ' - Pelis: ' +
                 environment['videolab_pelis'] + ' - Upd: ' +
                 environment['videolab_update'] + ' - Path: ' +
                 environment['videolab_path'] + ' - Free: ' +
@@ -520,7 +520,7 @@ def paint_env(item, environment={}):
                                                      ' GB', action="", plot=userdata, thumbnail=thumb, folder=False))
 
     itemlist.append(Item(channel=item.channel, title='Video store: Series/Epis: ' +
-                                                     environment['videolab_series'] + '/' + environment['videolab_episodios'] +
+                                                     environment['videolab_series'] + '/' + environment['videolab_episodes'] +
                                                      ' - Movie: ' + environment['videolab_pelis'] + ' - Upd: ' + environment['videolab_update'] + ' - Path: ' +
                                                      environment['videolab_path'] + ' - Free: ' + environment[ 'videolab_free'].replace('.', ',') +
                                                      ' GB', action="", plot=videoteca, thumbnail=thumb, folder=False))

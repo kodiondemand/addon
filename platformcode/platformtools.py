@@ -461,10 +461,10 @@ def render_items(itemlist, parent_item):
             breadcrumb = config.get_localized_string(70693)
 
     xbmcplugin.setPluginCategory(handle=_handle, category=breadcrumb)
-
     set_view_mode(itemlist[0], parent_item)
 
-    xbmcplugin.endOfDirectory(_handle)
+    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=False)
+
 
     logger.debug('END render_items')
 
@@ -489,10 +489,10 @@ def viewmodeMonitor():
             if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
                 content, Type = getCurrentView()
                 if content:
-                    defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
+                    defaultMode = int(config.get_setting('view_mode_{}'.format(content)).split(',')[-1])
                     if currentMode != defaultMode:
                         logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                        config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                        config.set_setting('view_mode_{}'.format(content), currentModeName + ', ' + str(currentMode))
                         dialog_notification(config.get_localized_string(70153),
                                             config.get_localized_string(70187) % (content, currentModeName),
                                             sound=False)
@@ -512,8 +512,8 @@ def getCurrentView(item=None, parent_item=None):
         if not info:
             return None, None
         item = Item().fromurl(info) if info else Item()
-    parent_actions = ['peliculas', 'novedades', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
-
+    parent_actions = ['movies', 'news', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
+    logger.debug('PARENT:',parent_item.action)
     if parent_item.action == 'findvideos' or (parent_item.action in ['channel_search', 'new_search'] and parent_item.infoLabels['tmdb_id']):
         return 'server', 'addons' if config.get_setting('touch_view') else ''
 
@@ -533,8 +533,14 @@ def getCurrentView(item=None, parent_item=None):
     elif parent_item.action in ['get_seasons'] or item.contentType == 'season':
         return 'season', 'tvshows'
 
-    elif parent_item.action in ['episodios', 'get_episodes'] or item.contentType == 'episode':
+    elif parent_item.action in ['episodes', 'get_episodes'] or item.contentType == 'episode':
         return 'episode', 'episodes'
+
+    elif not parent_item.action or parent_item.action in ['getmainlist']:
+        return 'home', 'addons' if config.get_setting('touch_view') else ''
+
+    elif parent_item.action in ['filterchannels']:
+        return 'channels', 'addons' if config.get_setting('touch_view') else ''
 
     else:
         return 'menu', 'addons' if config.get_setting('touch_view') else ''
@@ -542,23 +548,23 @@ def getCurrentView(item=None, parent_item=None):
 
 def set_view_mode(item, parent_item):
     def reset_view_mode():
-        for mode in ['menu','channel','movie','tvshow','season','episode','server']:
+        for mode in ['menu','channel','channels','home', 'movie','tvshow','season','episode','server']:
             config.set_setting('skin_name', xbmc.getSkinDir())
-            config.set_setting('view_mode_%s' % mode, config.get_localized_string(70003) + ' , 0')
+            config.set_setting('view_mode_{}'.format(mode), config.get_localized_string(70003) + ' , 0')
 
     if xbmc.getSkinDir() != config.get_setting('skin_name') or not config.get_setting('skin_name'):
         reset_view_mode()
         xbmcplugin.setContent(handle=int(sys.argv[1]), content='')
-        xbmc.executebuiltin('Container.SetViewMode(%s)' % 55)
+        xbmc.executebuiltin('Container.SetViewMode({})'.format(55))
 
     content, Type = getCurrentView(item, parent_item)
     if content:
-        mode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
+        mode = int(config.get_setting('view_mode_{}'.format(content)).split(',')[-1])
         if mode == 0:
             logger.debug('default mode')
             mode = 55
         xbmcplugin.setContent(handle=int(sys.argv[1]), content=Type)
-        xbmc.executebuiltin('Container.SetViewMode(%s)' % mode)
+        xbmc.executebuiltin('Container.SetViewMode({})'.format(mode))
         logger.debug('TYPE: ' + Type + ' - ' + 'CONTENT: ' + content)
 
 

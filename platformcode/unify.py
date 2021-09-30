@@ -15,7 +15,7 @@ from platformcode import config, logger
 from core.item import Item
 from core import scrapertools
 
-thumb_dict = {"movies": "https://s10.postimg.cc/fxtqzdog9/peliculas.png",
+thumb_dict = {"movies": "https://s10.postimg.cc/fxtqzdog9/movies.png",
               "tvshows": "https://s10.postimg.cc/kxvslawe1/series.png",
               "on air": "https://i.postimg.cc/HLLJWMcr/en-emision.png",
               "all": "https://s10.postimg.cc/h1igpgw0p/todas.png",
@@ -131,7 +131,7 @@ def set_genre(string):
                    'thriller': ['thriller', 'thrillers'],
                    'western': ['western', 'westerns', 'oeste western']
                    }
-    string = re.sub(r'peliculas de |pelicula de la |peli |cine ', '', string)
+    string = re.sub(r'movies de |pelicula de la |peli |cine ', '', string)
     for genre, variants in list(genres_dict.items()):
         if string in variants:
             string = genre

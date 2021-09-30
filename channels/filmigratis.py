@@ -28,7 +28,7 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     film = [
-        ('Al Cinema ', ['', 'peliculas', 'cinema']),
+        ('Al Cinema ', ['', 'movies', 'cinema']),
         ('Categorie', ['', 'genres', 'genres']),
     ]
 
@@ -40,7 +40,7 @@ def mainlist(item):
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
 
     if item.args == 'search':
         action = ''
@@ -65,7 +65,7 @@ def peliculas(item):
 
         patronNext = '<a class="page-link" href="([^"]+)">>>'
     else:
-        action = 'episodios'
+        action = 'episodes'
         patron = r'<div class="cnt">\s.*?src="([^"]+)".+?title="((?P<title>.+?)(?:[ ]\[(?P<lang>Sub-ITA|SUB-ITA)\])?(?:[ ]\[(?P<quality>.*?)\])?(?:[ ]\((?P<year>\d+)\))?)"\s*[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s+<a href="(?P<url>[^"]+)"'
 ##        if item.args == 'search':
 ##            patron = r'<div class="cnt">.*?src="([^"]+)".+?[^>]+>[^>]+>[^>]+>\s+((?P<title>.+?)(?:[ ]\[(?P<lang>Sub-ITA|SUB-ITA)\])?(?:[ ]\[(?P<quality>.*?)\])?(?:[ ]\((?P<year>\d+)\))?)\s+<[^>]+>[^>]+>[^>]+>[ ]<a href="(?P<url>[^"]+)"'
@@ -74,7 +74,7 @@ def peliculas(item):
     def itemHook(item):
         if item.args == 'search':
             if 'series' in item.url:
-                item.action = 'episodios'
+                item.action = 'episodes'
                 item.contentType = 'tvshow'
             else:
                 item.action = 'findvideos'
@@ -86,7 +86,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     action = 'findvideos'
     patronBlock = r'<div class="row">(?P<block>.*?)<section class="main-content">'
     patron = r'href="(?P<url>.*?)">(?:.+?)?\s+S(?P<season>\d+)\s\-\sEP\s(?P<episode>\d+)[^<]+<'
@@ -96,12 +96,12 @@ def episodios(item):
 @support.scrape
 def genres(item):
     if item.contentType == 'movie':
-        action = 'peliculas'
+        action = 'movies'
         patron = r'<a href="(?P<url>.*?)">(?P<title>.*?)<'
         patronBlock = r'CATEGORIES.*?<ul>(?P<block>.*?)</ul>'
     else:
         item.contentType = 'tvshow'
-        action = 'peliculas'
+        action = 'movies'
         blacklist = ['Al-Cinema']
         patron = r'<a href="(?P<url>.*?)">(?P<title>.*?)<'
         patronBlock = r'class="material-button submenu-toggle"> SERIE TV.*?<ul>.*?</li>(?P<block>.*?)</ul>'
@@ -116,7 +116,7 @@ def search(item, text):
     item.url = host + '/search/?s=' + text
     try:
         item.args = 'search'
-        return peliculas(item)
+        return movies(item)
     # Se captura la excepcion, para no interrumpir al buscador global si un canal falla
     except:
         import sys
@@ -124,18 +124,18 @@ def search(item, text):
             logger.error('search log:', line)
         return []
 
-def newest(categoria):
-    logger.debug('newest ->', categoria)
+def newest(category):
+    logger.debug('newest ->', category)
     itemlist = []
     item = Item()
     try:
-        if categoria == 'peliculas':
+        if category == 'movie':
             item.url = host
             item.contentType = 'movie'
-            item.action = 'peliculas'
-            itemlist = peliculas(item)
+            item.action = 'movies'
+            itemlist = movies(item)
 
-            if itemlist[-1].action == 'peliculas':
+            if itemlist[-1].action == 'movies':
                 itemlist.pop()
     # Continua la ricerca in caso di errore
     except:

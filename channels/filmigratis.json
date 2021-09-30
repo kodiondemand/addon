@@ -8,7 +8,7 @@
   "categories": ["movie","tvshow"],
   "settings": [
 		{
-		  "id": "include_in_newest_peliculas",
+		  "id": "include_in_newest_movie",
 		  "type": "bool",
 		  "label": "@70727",
 		  "default": false,
@@ -16,7 +16,7 @@
 		  "visible": false
         },    
 		{
-		  "id": "include_in_newest_series",
+		  "id": "include_in_newest_tvshow",
 		  "type": "bool",
 		  "label": "@70727",
 		  "default": false,

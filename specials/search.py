@@ -44,7 +44,7 @@ def sub_menu(item):
                 Item(channel=channel, action='genres_menu', title=config.get_localized_string(70310), mode='tvshow'),
                 Item(channel=channel, action='years_menu', title=config.get_localized_string(70743), mode='tvshow'),
                 Item(channel=channel, action='discover_list', title=config.get_localized_string(70311), search_type='list', list_type='tv/popular', mode='tvshow'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70312), search_type='list', list_type='tv/on_air', mode='tvshow'),
+                Item(channel=channel, action='discover_list', title=config.get_localized_string(70312), search_type='list', list_type='tv/on_the_air', mode='tvshow'),
                 Item(channel=channel, action='discover_list', title=config.get_localized_string(70313), search_type='list', list_type='tv/top_rated', mode='tvshow')]
 
     itemlist = set_context(itemlist)

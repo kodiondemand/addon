@@ -20,11 +20,11 @@ def mainlist(item):
             ('Qualità', ['', 'menu', 'quality']),
             ('Generi', ['movies', 'menu', 'genres']),
             ('Anno', ['movies', 'menu', 'releases']),
-            ('Più popolari', ['trending/?get=movies', 'peliculas']),
-            ('Più votati', ['ratings/?get=movies', 'peliculas'])]
+            ('Più popolari', ['trending/?get=movies', 'movies']),
+            ('Più votati', ['ratings/?get=movies', 'movies'])]
     tvshow = ['/tvshows',
-              ('Più popolari', ['trending/?get=tv', 'peliculas']),
-              ('Più votati', ['ratings/?get=tv', 'peliculas'])]
+              ('Più popolari', ['trending/?get=tv', 'movies']),
+              ('Più votati', ['ratings/?get=tv', 'movies'])]
     return locals()
 
 
@@ -41,14 +41,14 @@ def search(item, text):
 
 
 
-def peliculas(item):
+def movies(item):
     if 'anime' in item.url:
-        return support.dooplay_peliculas(item, True)
+        return support.dooplay_movies(item, True)
     else:
-        return support.dooplay_peliculas(item, False)
+        return support.dooplay_movies(item, False)
 
 
-def episodios(item):
+def episodes(item):
     itemlist = support.dooplay_get_episodes(item)
     return itemlist
 
@@ -72,7 +72,7 @@ def findvideos(item):
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     if item.args in ['genres','releases']:
         patronBlock = r'<nav class="' + item.args + r'">(?P<block>.*?)</nav'
         patronMenu= r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<'

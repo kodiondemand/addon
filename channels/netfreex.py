@@ -40,14 +40,14 @@ def search(item, text):
         return []
 
 
-def peliculas(item):
+def movies(item):
     if 'anime' in item.url:
-        return support.dooplay_peliculas(item, True)
+        return support.dooplay_movies(item, True)
     else:
-        return support.dooplay_peliculas(item, False)
+        return support.dooplay_movies(item, False)
 
 
-def episodios(item):
+def episodes(item):
     return support.dooplay_get_episodes(item)
 
 
@@ -65,7 +65,7 @@ def findvideos(item):
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     data = support.match(item, patron=r'<a href="#">Genere<(.*?)</ul').match
     patronMenu= r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<'
     return locals()

@@ -27,17 +27,17 @@ def mainlist(item):
         ('Generi', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
         ('Paese', ['', 'menu', 'Film per Paese']),
-        ('Ultimi Aggiornati', ['/ultimi-100-film-aggiornati/', 'peliculas', 'newest']),
-        ('Ultimi Aggiunti', ['/lista-film-ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
+        ('Ultimi Aggiornati', ['/ultimi-100-film-aggiornati/', 'movies', 'newest']),
+        ('Ultimi Aggiunti', ['/lista-film-ultimi-100-film-aggiunti/', 'movies', 'newest'])
     ]
     tvshow = ['/serietv/',
               ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
               ('Per Genere', ['/serietv/', 'menu', 'Serie-Tv per Genere']),
               ('Per anno', ['/serietv/', 'menu', 'Serie-Tv per Anno']),
-              ('Ultime Aggiornate', ['/serietv/ultime-100-serie-tv-aggiornate/', 'peliculas', 'newest'])
+              ('Ultime Aggiornate', ['/serietv/ultime-100-serie-tv-aggiornate/', 'movies', 'newest'])
               ]
-    docu = [('Documentari {bullet bold}', ['/category/documentario/', 'peliculas']),
-            ('HD {submenu} {documentari}', ['/category/hd-alta-definizione/documentario-hd/', 'peliculas'])
+    docu = [('Documentari {bullet bold}', ['/category/documentario/', 'movies']),
+            ('HD {submenu} {documentari}', ['/category/hd-alta-definizione/documentario-hd/', 'movies'])
             ]
 
     return locals()
@@ -49,24 +49,24 @@ def menu(item):
     patronMenu = r'href="?(?P<url>[^">]+)"?>(?P<title>.*?)<\/a>'
     if 'genere' in item.args.lower():
         patronGenreMenu = patronMenu
-    action = 'peliculas'
+    action = 'movies'
 
     return locals()
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
 
     item = support.Item()
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.contentType = 'tvshow'
             item.url = host + '/serietv/'  # aggiornamento-quotidiano-serie-tv/'
         else:
             item.contentType = 'movie'
             item.url = host + '/lista-film-ultimi-100-film-aggiunti/'
             item.args = "newest"
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -82,7 +82,7 @@ def search(item, text):
     else: item.url = host
     try:
         item.url = item.url + "/search/" + text.replace(' ', '+')
-        return peliculas(item)
+        return movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -93,7 +93,7 @@ def search(item, text):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     # esclusione degli articoli 'di servizio'
     # curYear = datetime.date.today().year
@@ -111,7 +111,7 @@ def peliculas(item):
             action = 'findvideos'
         else:
             patron = r'src=(?:")?(?P<thumb>[^ "]+)(?:")? alt=(?:")?(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:>|"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>.*?<a href=(?:")?(?P<url>[^" ]+)(?:")?.*?rpwe-summary[^>]*>(?P<genre>[^\(]*)\((?P<year>\d{4})[^\)]*\) (?P<plot>[^<]+)<'
-            action = 'episodios'
+            action = 'episodes'
 
     elif '/serietv/' not in item.url:
         patron = r'(?<!sticky )hentry.*?<div class="card-image">\s*<a[^>]+>\s*<img src="(?P<thumb>[^" ]+)" alt[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+><a href="?(?P<url>[^" >]+)(?:\/|"|\s+)>(?P<title>[^<[(]+)(?:\[(?P<quality>[a-zA-Z/]+)\]\s*)?(?:\[(?P<lang>Sub-ITA|ITA)\]\s*)?(?:\[(?P<quality2>[a-zA-Z/]+)\]\s*)? (?:\((?P<year>[0-9]{4})\))?[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<genre>[^<>&ÃÂ¢ÃÂÃÂ–]+)(?:[^ ]+\s*DURATA\s*(?P<duration>[0-9]+)[^>]+>[^>]+>[^>]+>(?P<plot>[^<>]+))?'
@@ -119,7 +119,7 @@ def peliculas(item):
 
     else:
         patron = r'(?<!sticky )hentry.*?card-image[^>]*>\s*<a href=(?:")?(?P<url>[^" >]+)(?:")?\s*>\s*<img src=(?:")?(?P<thumb>[^" ]+)(?:")? alt="(?P<title>.*?)(?: &#8211; \d+&#215;\d+)?(?:"| &#8211; )(?:(?P<lang>Sub-ITA|ITA))?[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>[^>]+>[^>]+>[^>]*>(?P<genre>[^\(]+)\((?P<year>\d{4})[^>]*>[^>]+>[^>]+>[^>]+>(?:<p>)?(?P<plot>[^<]+)'
-        action = 'episodios'
+        action = 'episodes'
         item.contentType = 'tvshow'
 
     patronNext = '<a class="?page-link"? href="?([^>"]+)"?><i class="fa fa-angle-right">'
@@ -135,10 +135,10 @@ def peliculas(item):
 
 
 
-def episodios(item):
+def episodes(item):
     @support.scrape
     def listed(item, data):
-        actLike = 'episodios'
+        actLike = 'episodes'
         disableAll = True
 
         patronBlock = r'(?P<block>sp-head[^>]+>\s*(?:STAGION[EI]\s*(?:(?:DA)?\s*[0-9]+\s*A)?\s*[0-9]+|MINISSERIE)(?::\s*PARTE\s*[0-9]+)? - (?P<lang>[^-<]+)(?:- (?P<quality>[^-<]+))?.*?<\/div>.*?)spdiv[^>]*>'
@@ -150,7 +150,7 @@ def episodios(item):
     def folder(item, data):
          # Quando c'è un link ad una cartella contenente più stagioni
 
-        actLike = 'episodios'
+        actLike = 'episodes'
         disableAll = True
         sceneTitle = True
 
@@ -188,9 +188,9 @@ def episodios(item):
 
     if not support.stackCheck(['add_tvshow', 'get_episodes', 'update', 'find_episodes']):
         if len(seasons) > 1:
-            itemlist = support.season_pagination(itemlist, item, [], 'episodios')
+            itemlist = support.season_pagination(itemlist, item, [], 'episodes')
         else:
-            itemlist = support.pagination(itemlist, item, 'episodios')
+            itemlist = support.pagination(itemlist, item, 'episodes')
         if config.get_setting('episode_info'):
             support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         support.videolibrary(itemlist, item)

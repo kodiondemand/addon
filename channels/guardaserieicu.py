@@ -26,15 +26,15 @@ def mainlist(item):
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     patronBlock = r'movies-list movies-list-full(?P<block>.*?)footer>'
     patron = r'<div data-movie-id[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>[^>]+>[^>]+><img src="(?P<thumbnail>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+).*?jt-info[^>]+>[^:]+:\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d*)[^>]+>[^>]+>[^>]+>(?P<duration>\d*)'
     patronNext = '<li class=.active.>.*?href=.(.*?).>'
-    action = 'episodios'
+    action = 'episodes'
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     patronBlock = r'<strong>Stagione (?P<season>[0-9]+)(?P<block>.*?)</div></div>'
     patron = r'<a href="(?P<url>[^"]+)">\s*Episodio\s*(?P<episode>[0-9]+)'
     return locals()
@@ -45,7 +45,7 @@ def search(item, text):
     item.url = host + "/?s=" + text
     try:
         item.args = 'search'
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():

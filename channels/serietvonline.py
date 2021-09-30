@@ -35,27 +35,27 @@ def mainlist(item):
 
 
     film = ['/ultimi-film-aggiunti/',
-            ('A-Z', ['/lista-film/', 'peliculas', 'lista'])
+            ('A-Z', ['/lista-film/', 'movies', 'lista'])
         ]
 
     tvshow = ['',
-            ('Aggiornamenti', ['/ultimi-episodi-aggiunti/', 'peliculas', 'update']),
-            ('Tutte', ['/lista-serie-tv/', 'peliculas', 'qualcosa']),
-            ('Italiane', ['/lista-serie-tv-italiane/', 'peliculas', 'qualcosa']),
-            ('Anni 50-60-70-80', ['/lista-serie-tv-anni-60-70-80/', 'peliculas', 'qualcosa']),
-            ('HD', ['/lista-serie-tv-in-altadefinizione/', 'peliculas', 'qualcosa'])
+            ('Aggiornamenti', ['/ultimi-episodi-aggiunti/', 'movies', 'update']),
+            ('Tutte', ['/lista-serie-tv/', 'movies', 'qualcosa']),
+            ('Italiane', ['/lista-serie-tv-italiane/', 'movies', 'qualcosa']),
+            ('Anni 50-60-70-80', ['/lista-serie-tv-anni-60-70-80/', 'movies', 'qualcosa']),
+            ('HD', ['/lista-serie-tv-in-altadefinizione/', 'movies', 'qualcosa'])
         ]
 
     anime = ['/lista-cartoni-animati-e-anime/']
 
-    documentari = [('Documentari {bullet bold}', ['/lista-documentari/' , 'peliculas' , 'doc', 'tvshow'])]
+    documentari = [('Documentari {bullet bold}', ['/lista-documentari/' , 'movies' , 'doc', 'tvshow'])]
 
     search = ''
 
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     logger.debug()
     numerationEnabled = True
 
@@ -99,13 +99,13 @@ def peliculas(item):
             pass
         else:
             item.contentType = 'tvshow'
-            item.action = 'episodios'
+            item.action = 'episodes'
         return item
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     logger.debug()
     numerationEnabled = True
     action = 'findvideos'
@@ -127,7 +127,7 @@ def search(item, text):
 
     try:
         item.args = 'search'
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -135,22 +135,22 @@ def search(item, text):
             logger.error("%s" % line)
         return []
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
 
     itemlist = []
     item = Item()
 
-    if categoria == 'peliculas':
+    if category == 'movie':
         item.contentType = 'movie'
         item.url = host + '/ultimi-film-aggiunti/'
-    elif categoria == 'series':
+    elif category == 'tvshow':
         item.args = 'update'
         item.contentType = 'episode'
         item.url = host +'/ultimi-episodi-aggiunti/'
     try:
-        item.action = 'peliculas'
-        itemlist = peliculas(item)
+        item.action = 'movies'
+        itemlist = movies(item)
 
     except:
         import sys
@@ -179,6 +179,6 @@ def findvideos(item):
             series = support.typo(item.contentSerieName, ' bold color kod')
             itemlist = support.server(item, data=url_video)
 
-            itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodios', plot = goseries + series + "con tutte le puntate", args=''))
+            itemlist.append(item.clone(title=goseries + series, contentType='tvshow', url=url_serie, action='episodes', plot = goseries + series + "con tutte le puntate", args=''))
 
         return itemlist

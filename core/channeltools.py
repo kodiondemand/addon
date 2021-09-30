@@ -37,8 +37,7 @@ def get_channel_parameters(channel_name):
                 channel_parameters["update_url"] = channel_parameters.get("update_url", DEFAULT_UPDATE_URL)
                 channel_parameters["language"] = channel_parameters.get("language", ["all"])
                 channel_parameters["active"] = channel_parameters.get("active", False)
-                channel_parameters["include_in_global_search"] = channel_parameters.get("include_in_global_search",
-                                                                                        False)
+                channel_parameters["include_in_global_search"] = channel_parameters.get("include_in_global_search", False)
                 channel_parameters["categories"] = channel_parameters.get("categories", list())
 
                 channel_parameters["thumbnail"] = channel_parameters.get("thumbnail", "")
@@ -186,18 +185,17 @@ def get_default_settings(channel_name):
         # Apply default configurations if they do not exist
         for control in copy.deepcopy(default_controls):
             if control['id'] not in str(channel_controls):
-                if 'include_in_newest' in control['id'] and 'include_in_newest' not in not_active and control[
-                    'id'] not in not_active:
+                if 'include_in_newest' in control['id'] and 'include_in_newest' not in not_active and control['id'] not in not_active:
                     label = control['id'].split('_')
                     label = label[-1]
-                    if label == 'peliculas':
+                    if label == 'movies':
                         if 'movie' in categories:
                             control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30122)
-                            control['default'] = False if ('include_in_newest' in default_off) or ( ' include_in_newest_peliculas' in default_off) else True
+                            control['default'] = False if ('include_in_newest' in default_off) or ( ' include_in_newest_movie' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
-                    elif label == 'series':
+                    elif label == 'tvshows':
                         if 'tvshow' in categories:
                             control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30123)
                             control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_series' in default_off) else True

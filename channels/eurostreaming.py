@@ -20,17 +20,17 @@ headers = [['Referer', host]]
 def mainlist(item):
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
-    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest']),
-           ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
+    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'movies', 'newest']),
+           ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'movies'])]
     search = ''
 
     return locals()
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
-    action = 'episodios'
+    action = 'episodes'
     
     if item.args == 'newest':
         item.contentType = 'episode'
@@ -43,7 +43,7 @@ def peliculas(item):
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     # debug = True
     data = support.match(item, headers=headers).data
     if 'clicca qui per aprire' in data.lower(): data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
@@ -65,7 +65,7 @@ def search(item, text):
     item.contentType = 'tvshow'
 
     try:
-        return peliculas(item)
+        return movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -75,7 +75,7 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
+def newest(category):
     logger.debug()
 
     itemlist = []
@@ -84,8 +84,8 @@ def newest(categoria):
     item.args = 'newest'
     try:
         item.url = "%s/aggiornamento-episodi/" % host
-        item.action = "peliculas"
-        itemlist = peliculas(item)
+        item.action = "movies"
+        itemlist = movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys

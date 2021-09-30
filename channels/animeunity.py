@@ -32,7 +32,7 @@ def mainlist(item):
 
 
 def menu(item):
-    item.action = 'peliculas'
+    item.action = 'movies'
     ITA = copy.copy(item.args)
     ITA['title'] = '(ita)'
     InCorso = copy.copy(item.args)
@@ -58,7 +58,7 @@ def genres(item):
 
     for genre in genres:
         item.args['genres'] = [genre]
-        itemlist.append(item.clone(title=support.typo(genre['name'],'bold'), action='peliculas'))
+        itemlist.append(item.clone(title=support.typo(genre['name'],'bold'), action='movies'))
     return support.thumb(itemlist)
 
 def years(item):
@@ -71,7 +71,7 @@ def years(item):
 
     for year in list(reversed(range(oldest_year, current_year + 1))):
         item.args['year']=year
-        itemlist.append(item.clone(title=support.typo(year,'bold'), action='peliculas'))
+        itemlist.append(item.clone(title=support.typo(year,'bold'), action='movies'))
     return itemlist
 
 
@@ -84,7 +84,7 @@ def search(item, text):
     item.search = text
 
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -93,8 +93,8 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     item.url = host
@@ -138,7 +138,7 @@ def news(item):
     return itemlist
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     itemlist = []
 
@@ -179,7 +179,7 @@ def peliculas(item):
             itm.contentType = 'tvshow'
             itm.contentTitle = ''
             itm.fulltitle = itm.show = itm.contentSerieName = title
-            itm.action = 'episodios'
+            itm.action = 'episodes'
             itm.episodes = it['episodes'] if 'episodes' in it else it['scws_id']
             itm.video_url = item.url
 
@@ -191,7 +191,7 @@ def peliculas(item):
 
     return itemlist
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist = []
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '

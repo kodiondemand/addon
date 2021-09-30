@@ -45,7 +45,7 @@ def mainlist(item):
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     if item.args == 'search':
         patron = r'<a href="(?P<url>[^"]+)" title="Permalink to\s*(?P<title>[^"]+) \((?P<year>[0-9]+)[^<]*\)[^"]*"[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)".*?<div class="calitate">\s*<p>(?P<quality>[^<]+)<\/p>'
@@ -55,7 +55,7 @@ def peliculas(item):
         patronBlock = r'<div id="main_col">(?P<block>.*?)<!\-\- main_col \-\->'
 
     # if item.args != 'all' and item.args != 'search':
-    #     action = 'findvideos' if item.extra == 'movie' else 'episodios'
+    #     action = 'findvideos' if item.extra == 'movie' else 'episodes'
     #     item.contentType = 'movie' if item.extra == 'movie' else 'tvshow'
     # debug = True
     return locals()
@@ -63,7 +63,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     def get_season(pageData, seas_url, season):
         data = ''
         episodes = support.match(pageData if pageData else seas_url, patronBlock=patron_episode, patron=patron_option).matches
@@ -106,7 +106,7 @@ def category(item):
     blacklist = ['Ultimi Film Aggiornati', 'Anime', 'Serie TV Altadefinizione', 'HD AltaDefinizione', 'Al Cinema', 'Serie TV', 'Miniserie', 'Programmi Tv', 'Live', 'Trailers', 'Serie TV Aggiornate', 'Aggiornamenti', 'Featured']
     patronGenreMenu = '<li><a href="(?P<url>[^"]+)"><span></span>(?P<title>[^<]+)</a></li>'
     patron_block = '<ul class="table-list">(.*?)</ul>'
-    action = 'peliculas'
+    action = 'movies'
 
     return locals()
 
@@ -118,7 +118,7 @@ def search(item, texto):
     item.url = host + "/?s=" + texto
     try:
         item.args = 'search'
-        return peliculas(item)
+        return movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -129,8 +129,8 @@ def search(item, texto):
 
 
 @support.scrape
-def newest(categoria):
-    if categoria == 'series':
+def newest(category):
+    if category == 'tvshow':
         item = Item(url=host + '/aggiornamenti-serie-tv')
         data = support.match(item).data.replace('<u>','').replace('</u>','')
         item.contentType = 'episode'
@@ -165,13 +165,13 @@ def findvideos(item):
         item.data = data
         logger.debug('select = ### è una anime ###')
         try:
-            return episodios(item)
+            return episodes(item)
         except:
             pass
     elif 'serie' in check.lower():
         item.contentType = 'tvshow'
         item.data = data
-        return episodios(item)
+        return episodes(item)
     else:
         item.contentTitle = item.fulltitle
         item.contentType = 'movie'

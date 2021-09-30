@@ -34,8 +34,8 @@ def mainlist(item):
              ('ITA',['', 'submenu', '/filter?language%5B0%5D=1']),
              ('SUB-ITA',['', 'submenu', '/filter?language%5B0%5D=0']),
              ('Più Votati',['/toplist','menu', 'top']),
-             ('In Corso',['/animeincorso','peliculas','incorso']),
-             ('Ultimi Episodi',['/fetch_pages.php?request=episodes&d=1','peliculas','updated'])]
+             ('In Corso',['/animeincorso','movies','incorso']),
+             ('Ultimi Episodi',['/fetch_pages.php?request=episodes&d=1','movies','updated'])]
 
     return locals()
 
@@ -45,7 +45,7 @@ def search(item, text):
     item.url = host + '/animelist?search=' + text
     item.contentType = 'tvshow'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -54,15 +54,15 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host + '/fetch_pages.php?request=episodes&d=1'
             item.args = "updated"
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -79,7 +79,7 @@ def submenu(item):
     action = 'filter'
     patronMenu = r'<h5 class="[^"]+">(?P<title>[^<]+)[^>]+>[^>]+>\s*<select id="(?P<parameter>[^"]+)"[^>]+>(?P<data>.*?)</select>'
     def itemlistHook(itemlist):
-        itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), url=item.url + item.args, action='peliculas'))
+        itemlist.insert(0, item.clone(title=support.typo('Tutti','bold'), url=item.url + item.args, action='movies'))
         return itemlist[:-1]
     return locals()
 
@@ -88,7 +88,7 @@ def filter(item):
     itemlist = []
     matches = support.match(item.data if item.data else item.url, patron=r'<option value="(?P<value>[^"]+)"[^>]*>(?P<title>[^<]+)').matches
     for value, title in matches:
-        itemlist.append(item.clone(title= support.typo(title,'bold'), url='{}{}&{}%5B0%5D={}'.format(host, item.args, item.parameter, value), action='peliculas', args='filter'))
+        itemlist.append(item.clone(title= support.typo(title,'bold'), url='{}{}&{}%5B0%5D={}'.format(host, item.args, item.parameter, value), action='movies', args='filter'))
     support.thumb(itemlist, mode='genre')
     return itemlist
 
@@ -96,7 +96,7 @@ def filter(item):
 @support.scrape
 def menu(item):
     patronMenu = r'<div class="col-md-13 bg-dark-as-box-shadow p-2 text-white text-center">(?P<title>[^"<]+)<(?P<other>.*?)(?:"lista-top"|"clearfix")'
-    action = 'peliculas'
+    action = 'movies'
     item.args = 'top'
     def itemHook(item2):
         item2.url = item.url
@@ -106,7 +106,7 @@ def menu(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     numerationEnabled = True
 
     deflang= 'Sub-ITA'
@@ -155,17 +155,17 @@ def peliculas(item):
 def check(item):
     movie = support.match(item, patron=r'Episodi:</b> (\d*) Movie')
     if movie.match:
-        episodes = episodios(item)
+        episodes = episodes(item)
         if len(episodes) > 0:
             it = episodes[0].clone(contentType = 'movie', contentTitle=item.fulltitle, contentSerieName='')
         return findvideos(it)
     else:
         item.contentType = 'tvshow'
-        return episodios(item)
+        return episodes(item)
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     if item.contentType != 'movie': numerationEnabled = True
     patron = r'episodi-link-button">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
     return locals()

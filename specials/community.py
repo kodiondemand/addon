@@ -100,12 +100,12 @@ def show_menu(item):
                 if item.filterkey and not item.filter:
                     itemlist += submenu(item, json, key)
                 elif key in ['movies_list', 'tvshows_list', 'generic_list']:
-                    itemlist += peliculas(item, json, key)
+                    itemlist += movies(item, json, key)
                 elif key in ['seasons_list']:
                     item.url = json
                     itemlist += get_seasons(item)
                 elif key in ['episodes_list']:
-                    itemlist += episodios(item, json, key)
+                    itemlist += episodes(item, json, key)
                 elif key in ['links', 'find_links']:
                     itemlist += findvideos(item)
                 elif key in ['search'] and 'url' in json['search']:
@@ -139,7 +139,7 @@ def search(item, text):
                 if item.custom_search and key == 'menu':
                     get_menu(item, json, key, itemlist)
                 else:
-                    peliculas(item, json, key, itemlist)
+                    movies(item, json, key, itemlist)
 
     return itemlist
 
@@ -166,7 +166,7 @@ def global_search(item, text):
     return itemlist
 
 
-def peliculas(item, json='', key='', itemlist=[]):
+def movies(item, json='', key='', itemlist=[]):
     item.plot = item.thumb = item.fanart = ''
     logger.debug('PAGINATION:', item.disable_pagination)
     if not json:
@@ -200,7 +200,7 @@ def peliculas(item, json='', key='', itemlist=[]):
         title = option['title'] if 'title' in option else ''
 
         if 'tvshows_list' in key and 'links' not in option:
-            action = 'episodios'
+            action = 'episodes'
 
         # filter elements
         if (not item.filter or item.filter.lower() in filterkey) and item.search.lower() in title.lower() and title:
@@ -269,7 +269,7 @@ def get_seasons(item):
                              thumbnail=extra.thumb,
                              filterseason=int(option['season']),
                              url=extra.url,
-                             action='episodios',
+                             action='episodes',
                              contentSeason=option['season'],
                              infoLabels=infoLabels,
                              contentType='season' if show_seasons else 'tvshow',
@@ -279,7 +279,7 @@ def get_seasons(item):
                                  'get_newest'] or show_seasons == False:
         itlist = []
         for item in itemlist:
-            itlist = episodios(item)
+            itlist = episodes(item)
         itemlist = itlist
         if inspect.stack()[2][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
                                          'get_newest'] and defp and not item.disable_pagination:
@@ -291,7 +291,7 @@ def get_seasons(item):
     return itemlist
 
 
-def episodios(item, json='', key='', itemlist=[]):
+def episodes(item, json='', key='', itemlist=[]):
     logger.debug()
     infoLabels = item.infoLabels
     itm = item
@@ -300,7 +300,7 @@ def episodios(item, json='', key='', itemlist=[]):
         if 'seasons_list' in item.url:
             return get_seasons(item)
         elif 'tvshows_list' in item.url:
-            return peliculas(item, item.url, 'tvshows_list')
+            return movies(item, item.url, 'tvshows_list')
         else:
             json = {}
             json = item.url['episodes_list']
@@ -312,7 +312,7 @@ def episodios(item, json='', key='', itemlist=[]):
             item.url = json['seasons_list']
             return get_seasons(item)
         elif 'tvshows_list' in json:
-            return peliculas(item, json, 'tvshows_list')
+            return movies(item, json, 'tvshows_list')
 
     # set variable
     ep = 1
@@ -385,7 +385,7 @@ def episodios(item, json='', key='', itemlist=[]):
                                      show=itm.show,
                                      thumbnails=itm.thumbnails,
                                      url=itm.url,
-                                     action='episodios',
+                                     action='episodes',
                                      contentSeason=season,
                                      contentType='episode',
                                      infoLabels=infoLabels,
@@ -652,7 +652,7 @@ def filter_thread(filter, key, item, description):
                 title=support.typo(filter, 'bold'),
                 url=item.url,
                 media_type=item.media_type,
-                action='peliculas',
+                action='movies',
                 thumbnail=thumbnail if thumbnail else item.thumbnail,
                 fanart=fanart if fanart else item.fanart,
                 plot=plot if plot else item.plot,

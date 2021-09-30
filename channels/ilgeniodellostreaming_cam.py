@@ -14,7 +14,7 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     film = ['/film/',
-           ('In Sala', ['', 'peliculas', 'sala']),
+           ('In Sala', ['', 'movies', 'sala']),
            ('Generi',['', 'genres', 'genres']),
            ('Per Lettera',['/catalog/all', 'genres', 'az']),
            ('Anni',['', 'genres', 'year'])]
@@ -23,7 +23,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     if item.args == 'sala':
         patronBlock = r'insala(?P<block>.*?)<header>'
         patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})'
@@ -39,7 +39,7 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    action='peliculas'
+    action='movies'
     if item.args == 'genres':
         patronBlock = r'<div class="sidemenu">\s*<h2>Genere</h2>(?P<block>.*?)</ul'
     elif item.args == 'year':
@@ -57,7 +57,7 @@ def search(item, text):
     text = text.replace(' ', '+')
     item.url = host + "/search/" + text
     try:
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -65,17 +65,17 @@ def search(item, text):
 
     return []
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
 
-    if categoria == 'peliculas':
+    if category == 'movie':
         item.contentType = 'movie'
         item.url = host + '/film/'
     try:
-        item.action = 'peliculas'
-        itemlist = peliculas(item)
+        item.action = 'movies'
+        itemlist = movies(item)
 
     except:
         import sys

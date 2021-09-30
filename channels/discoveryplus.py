@@ -24,7 +24,7 @@ def Dict(item):
 @support.menu
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live']),
-            ('Programmi {bullet bold tv}', ['', 'peliculas', 'programmi']),
+            ('Programmi {bullet bold tv}', ['', 'movies', 'programmi']),
             ('Generi {bullet bold tv}', ['', 'genres'])]
 
     search = ''
@@ -51,7 +51,7 @@ def search(item, text):
     item.args = 'search'
     item.text = text
     try:
-        itemlist = peliculas(item)
+        itemlist = movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -69,7 +69,7 @@ def live(item):
 
 
 def genres(item):
-    item.action = 'peliculas'
+    item.action = 'movies'
     itemlist = [
         item.clone(title='Attualità e inchiesta', args='genere/attualita-e-inchiesta'),
         item.clone(title='Beauty and style', args='genere/beauty-and-style'),
@@ -95,7 +95,7 @@ def genres(item):
     return itemlist
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     itemlist =[]
     if 'search' in item.args:
@@ -122,7 +122,7 @@ def peliculas(item):
                             programid=key['attributes']['alternateId'],
                             id=key['id'],
                             seasons=seasons,
-                            action='episodios',
+                            action='episodes',
                             thumbnail=thumb,
                             fanart=fanart,
                             contentType='tvshow'))
@@ -130,7 +130,7 @@ def peliculas(item):
     return itemlist
 
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist =[]
     pdict = session.get(api + '/cms/routes/programmi/{}?decorators=viewingHistory&include=default'.format(item.programid), headers=headers).json()['included']

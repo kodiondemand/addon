@@ -20,7 +20,7 @@ def mainlist(item):
 
 @support.scrape
 def menu(item):
-    action='peliculas'
+    action='movies'
     blacklist=['Tutti']
     patronMenu = r'<a data-display-name="Link" href="(?P<url>[^"]+)" class="[^"]+">(?P<title>[^<]+)'
     return locals()
@@ -31,7 +31,7 @@ def search(item, text):
 
     item.text = text
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore .
     except:
         import sys
@@ -68,7 +68,7 @@ def live(item):
     return support.thumb(itemlist, mode='live')
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     def load_more(url):
         second_url = host if url.startswith('/') else '' + url.replace('\u002F','/').replace('\\u002F','/').replace('%5C','/')
@@ -101,11 +101,11 @@ def peliculas(item):
                                thumbnail = it['media']['image']['url'],
                                fanart = it['media']['image']['url'],
                                plot = it['meta']['description'],
-                               action = 'findvideos' if item.contentType == 'movie' else 'episodios'))
+                               action = 'findvideos' if item.contentType == 'movie' else 'episodes'))
     return itemlist
 
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     def load_more(url):
         second_url = host if url.startswith('/') else '' + url.replace('\u002F','/').replace('%5C','/')

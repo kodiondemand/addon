@@ -15,26 +15,26 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     tvshow = ['',
-        ('Aggiornamenti', ['/aggiornamento-episodi/', 'peliculas', 'update']),
-        ('Top 10', ['/top-10', 'peliculas', 'top']),
-        ('Netflix {tv submenu}', ['/genere/netflix', 'peliculas'])
+        ('Aggiornamenti', ['/aggiornamento-episodi/', 'movies', 'update']),
+        ('Top 10', ['/top-10', 'movies', 'top']),
+        ('Netflix {tv submenu}', ['/genere/netflix', 'movies'])
         ]
 
     return locals()
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug=True
     blacklist = ['Aggiornamento Episodi']
-    action = 'episodios'
+    action = 'episodes'
     patron = r'<div class="post-thumb">\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"\[]+)[^>]+>\s*<img src="(?P<thumb>[^"]+)"[^>]+>'
 
     if item.args == 'update':
         pagination = True
         #patron = r'br />(?:[^>]+>)?(?P<title>[^–]+)[^<]+<a href="(?P<url>[^"]+)">(?P<episode>[^ ]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
         patron = r'br[\s/]*>(?:\s*<[^>]+>)*(?P<title>[^–<]+)[^<]+<a href="(?P<url>[^"]+)"[^>]*>(?:[^,]{0,80}[, ]{2})*(?P<episode>[\S]+)\s*(?P<title2>[^\(<]+)(?:\((?P<lang>[^\)]+))?'
-        action = 'episodios'
+        action = 'episodes'
     if item.args == 'top':
         patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>(?:[^>]+>){3}<img.*?src="(?P<thumb>[^"]+)"[^>]+>(?:[^>]+>){5}:\s*(?P<rating>[^/]+)'
     if item.args =='a-z':
@@ -50,7 +50,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     res = support.match(item, patron=r'<a href="([^"]+)">&gt;')
     if res.match: data = support.match(res.match).data
     else: data = res.data
@@ -66,7 +66,7 @@ def episodios(item):
 
 @support.scrape
 def category(item):
-    action = 'peliculas'
+    action = 'movies'
     patron = r'<li class="cat-item.*?href="(?P<url>[^"]+)".*?>(?P<title>.*?)</a>'
     return locals()
 
@@ -76,7 +76,7 @@ def search(item, text):
     item.url = host + "/?s=" + text
     item.contentType = 'tvshow'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -85,19 +85,19 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug("newest", categoria)
+def newest(category):
+    logger.debug("newest", category)
     itemlist = []
     item = Item()
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.url = host + "/aggiornamento-episodi/"
-            item.action = "peliculas"
+            item.action = "movies"
             item.args = "update"
             item.contentType = "episode"
-            itemlist = peliculas(item)
+            itemlist = movies(item)
 
-            if itemlist[-1].action == "peliculas":
+            if itemlist[-1].action == "movies":
                 itemlist.pop()
 
     # Continua la ricerca in caso di errore

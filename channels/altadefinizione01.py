@@ -21,19 +21,19 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     film = [
-        ('Al Cinema', ['/cinema/', 'peliculas', 'pellicola']),
-        ('Ultimi Aggiornati-Aggiunti', ['','peliculas', 'update']),
+        ('Al Cinema', ['/cinema/', 'movies', 'pellicola']),
+        ('Ultimi Aggiornati-Aggiunti', ['','movies', 'update']),
         ('Generi', ['', 'genres', 'genres']),
         ('Lettera', ['/catalog/a/', 'genres', 'az']),
         ('Anni', ['', 'genres', 'years']),
-        ('Sub-ITA', ['/sub-ita/', 'peliculas', 'pellicola'])
+        ('Sub-ITA', ['/sub-ita/', 'movies', 'pellicola'])
     ]
 
     return locals()
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
 
     action="findvideos"
 
@@ -60,7 +60,7 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    action = "peliculas"
+    action = "movies"
 
     blacklist = ['Altadefinizione01']
     if item.args == 'genres':
@@ -95,7 +95,7 @@ def search(item, text):
     item.url = host + "/index.php?do=search&story=%s&subaction=search" % (text)
     item.args = "search"
     try:
-        return peliculas(item)
+        return movies(item)
     # Cattura la eccezione così non interrompe la ricerca globle se il canale si rompe!
     except:
         import sys
@@ -103,18 +103,18 @@ def search(item, text):
             logger.error("search except: %s" % line)
         return []
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
 
     itemlist = []
     item = Item()
     try:
-        if categoria == "peliculas":
+        if category == "movie":
             item.url = host
-            item.action = "peliculas"
+            item.action = "movies"
             item.contentType = 'movie'
-            itemlist = peliculas(item)
-            if itemlist[-1].action == "peliculas":
+            itemlist = movies(item)
+            if itemlist[-1].action == "movies":
                 itemlist.pop()
     # Continua la ricerca in caso di errore
     except:

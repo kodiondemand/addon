@@ -27,8 +27,8 @@ def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live']),
             ('Replay {bold}', ['', 'replay_channels'])]
 
-    menu = [('Programmi TV {bullet bold}', ['/tutti-i-programmi', 'peliculas', '', 'tvshow']),
-            ('Teche La7 {bullet bold}', ['/i-protagonisti', 'peliculas', '', 'tvshow'])]
+    menu = [('Programmi TV {bullet bold}', ['/tutti-i-programmi', 'movies', '', 'tvshow']),
+            ('Teche La7 {bullet bold}', ['/i-protagonisti', 'movies', '', 'tvshow'])]
 
     search = ''
     return locals()
@@ -74,7 +74,7 @@ def search(item, text):
     item.url = host + '/tutti-i-programmi'
     item.search = text
     try:
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -83,12 +83,12 @@ def search(item, text):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     search = item.search
     tmdbEnabled = False
     videlibraryEnabled = False
     downloadEnabled = False
-    action = 'episodios'
+    action = 'episodes'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     def itemHook(item):
         logger.debug(item)
@@ -99,7 +99,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     data = support.match(item).data
     # debug = True
     action = 'play'

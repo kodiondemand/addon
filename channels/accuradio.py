@@ -15,7 +15,7 @@ headers = [['Referer', host]]
 def mainlist(item):
     js = httptools.downloadpage(api_url.format('brands')).json
     itemlist = []
-    item.action = 'peliculas'
+    item.action = 'movies'
     js = httptools.downloadpage(api_url.format('brands')).json
     for it in js.get('features',[]) + js.get('brands',[]):
         itemlist.append(
@@ -31,7 +31,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     tmdbEnabled = False
     action = 'playradio'
     patron = r'data-id="(?P<id>[^"]+)"\s*data-oldid="(?P<oldid>[^"]+)".*?data-name="(?P<title>[^"]+)(?:[^>]+>){5}<img class="[^"]+"\s*src="(?P<thumb>[^"]+)(?:[^>]+>){6}\s*(?P<plot>[^<]+)'
@@ -74,9 +74,9 @@ def search(item, text):
         artists = support.match(data, patronBlock=r'artistResults(.*?)</ul', patron=r'href="(?P<url>[^"]+)"\s*>(?P<title>[^<]+)').matches
         if artists:
             for url, artist in artists:
-                itemlist.append(item.clone(title=support.typo(artist,'bullet bold'), thumbnail=support.thumb('music'), url=host+url, action='peliculas'))
+                itemlist.append(item.clone(title=support.typo(artist,'bullet bold'), thumbnail=support.thumb('music'), url=host+url, action='movies'))
         item.data = data
-        itemlist += peliculas(item)
+        itemlist += movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys

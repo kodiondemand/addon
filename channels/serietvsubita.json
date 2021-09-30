@@ -16,7 +16,7 @@
             "visible": true
         },    
         {
-            "id": "include_in_newest_series",
+            "id": "include_in_newest_tvshow",
             "type": "bool",
             "label": "Includi in Novità - Serie TV",
             "default": true,

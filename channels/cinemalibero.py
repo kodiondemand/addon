@@ -29,15 +29,15 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     film = ['/category/film/',
-            ('Novità', ['', 'peliculas', 'update']),
+            ('Novità', ['', 'movies', 'update']),
             ('Generi', ['', 'genres'])]
 
     tvshow = ['/category/serie-tv/']
 
     anime = ['/category/anime-giapponesi/']
 
-##    Sport = [(support.typo('Sport', 'bullet bold'), ['/category/sport/', 'peliculas', 'sport', 'tvshow'])]
-    news = [('Ultimi episodi Serie/Anime', ['/aggiornamenti-serie-tv/', 'peliculas', 'update', 'tvshow'])]
+##    Sport = [(support.typo('Sport', 'bullet bold'), ['/category/sport/', 'movies', 'sport', 'tvshow'])]
+    news = [('Ultimi episodi Serie/Anime', ['/aggiornamenti-serie-tv/', 'movies', 'update', 'tvshow'])]
 
     search = ''
 
@@ -45,7 +45,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     action = 'check'
     patronBlock = r'<div class="container">.*?class="col-md-12[^"]*?">(?P<block>.*?)<div class=(?:"container"|"bg-dark ")>'
@@ -86,7 +86,7 @@ def peliculas(item):
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     data=item.data
     # debug=True
     if item.args == 'anime':
@@ -114,7 +114,7 @@ def episodios(item):
 @support.scrape
 def genres(item):
 
-    action='peliculas'
+    action='movies'
     patron_block=r'<div id="bordobar" class="dropdown-menu(?P<block>.*?)</li>'
     patronGenreMenu=r'<a class="dropdown-item" href="(?P<url>[^"]+)" title="(?P<title>[A-z]+)"'
 
@@ -129,7 +129,7 @@ def search(item, texto):
     # item.contentType = 'tv'
     item.args = 'search'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -137,18 +137,18 @@ def search(item, texto):
             logger.error("%s" % line)
     return []
 
-def newest(categoria):
-    logger.debug('newest ->', categoria)
+def newest(category):
+    logger.debug('newest ->', category)
     itemlist = []
     item = Item()
     item.args = 'newest'
     try:
-        if categoria == 'series' or categoria == 'anime':
+        if category == 'tvshow' or category == 'anime':
             item.args = 'update'
             item.url = host+'/aggiornamenti-serie-tv/'
             item.contentType = 'tvshow'
-        item.action = 'peliculas'
-        itemlist = peliculas(item)
+        item.action = 'movies'
+        itemlist = movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -168,13 +168,13 @@ def check(item):
             item.contentType = 'tvshow'
             item.args = 'serie'
             item.data = data
-            return episodios(item)
+            return episodes(item)
 
         elif ck == 'anime':
             item.contentType = 'tvshow'
             item.args = 'anime'
             item.data = data
-            return episodios(item)
+            return episodes(item)
 
         elif ck == 'film':
             item.contentType = 'movie'
@@ -184,7 +184,7 @@ def check(item):
         else:
             item.contentType = 'tvshow'
             item.data = data
-            itemlist = episodios(item)
+            itemlist = episodes(item)
             if not itemlist:
                 item.contentType = 'movie'
                 item.data = data

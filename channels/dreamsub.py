@@ -12,13 +12,13 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     anime = ['/search?typeY=tv',
-            ('Movie', ['/search?typeY=movie', 'peliculas', '', 'movie']),
-            ('OAV', ['/search?typeY=oav', 'peliculas', '', 'tvshow']),
-            ('Spinoff', ['/search?typeY=spinoff', 'peliculas', '', 'tvshow']),
+            ('Movie', ['/search?typeY=movie', 'movies', '', 'movie']),
+            ('OAV', ['/search?typeY=oav', 'movies', '', 'tvshow']),
+            ('Spinoff', ['/search?typeY=spinoff', 'movies', '', 'tvshow']),
             ('Generi', ['','menu','Generi']),
             ('Stato', ['','menu','Stato']),
-            ('Ultimi Episodi', ['', 'peliculas', ['last', 'episodiRecenti']]),
-            ('Ultimi Aggiornamenti', ['', 'peliculas', ['last', 'episodiNuovi']])
+            ('Ultimi Episodi', ['', 'movies', ['last', 'episodiRecenti']]),
+            ('Ultimi Aggiornamenti', ['', 'movies', ['last', 'episodiNuovi']])
              ]
 
     return locals()
@@ -27,7 +27,7 @@ def mainlist(item):
 @support.scrape
 def menu(item):
     item.contentType = ''
-    action = 'peliculas'
+    action = 'movies'
 
     patronBlock = r'<div class="filter-header"><b>%s</b>(?P<block>.*?)<div class="filter-box">' % item.args
     patronMenu = r'<a class="[^"]+" data-state="[^"]+" (?P<other>[^>]+)>[^>]+></i>[^>]+></i>[^>]+></i>(?P<title>[^>]+)</a>'
@@ -49,7 +49,7 @@ def search(item, text):
     item.url = host + '/search/' + text
     item.args = 'search'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -58,14 +58,14 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host
             item.args = ['last', 'episodiNuovi']
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -76,7 +76,7 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     numerationEnabled = True
     if 'movie' in item.url:
@@ -84,7 +84,7 @@ def peliculas(item):
         action = 'findvideos'
     else:
         item.contentType = 'tvshow'
-        action = 'episodios'
+        action = 'episodes'
 
     if len(item.args) > 1 and item.args[0] == 'last':
         patronBlock = r'<div id="%s"[^>]+>(?P<block>.*?)<div class="vistaDettagliata"' % item.args[1]
@@ -102,7 +102,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     numerationEnabled = True
     pagination = True
 
@@ -123,7 +123,7 @@ def findvideos(item):
     if not matches.matches and item.contentType != 'episode':
         item.data = matches.data
         item.contentType = 'tvshow'
-        return episodios(item)
+        return episodes(item)
 
     if 'vvvvid' in matches.data:
         itemlist.append(item.clone(action="play", title='VVVVID', url=support.match(matches.data, patron=r'(http://www.vvvvid[^"]+)').match, server='vvvvid'))

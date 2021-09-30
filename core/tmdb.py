@@ -616,8 +616,8 @@ def discovery(item, dict_=False, cast=False):
 
     elif item.search_type == 'list':
         if item.page == '':
-            item.page = '1'
-        listado = Tmdb(discover={'url': item.list_type, 'language':def_lang, 'page':item.page})
+            item.page = 1
+        listado = Tmdb(discover={'url': item.list_type, 'language':def_lang, 'page':str(item.page)})
 
     return listado
 

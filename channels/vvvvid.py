@@ -31,35 +31,35 @@ main_host = host + '/vvvvid/ondemand/'
 def mainlist(item):
     if conn_id:
         anime = ['/vvvvid/ondemand/anime/',
-                ('Popolari',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['/vvvvid/ondemand/anime/', 'peliculas', 'channel/10003/last/?filter='])
+                ('Popolari',['/vvvvid/ondemand/anime/', 'movies', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/anime/', 'movies', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/anime/', 'movies', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/anime/', 'movies', 'channel/10003/last/?filter='])
                 ]
         film =  ['/vvvvid/ondemand/film/',
-                ('Popolari',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['/vvvvid/ondemand/film/', 'peliculas', 'channel/10003/last/?filter=']),
+                ('Popolari',['/vvvvid/ondemand/film/', 'movies', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/film/', 'movies', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/film/', 'movies', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/film/', 'movies', 'channel/10003/last/?filter=']),
                 ]
         tvshow = ['/vvvvid/ondemand/series/',
-                ('Popolari',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10002/last/']),
-                ('Nuove Uscite',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10007/last/']),
-                ('Generi',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10004/last/?category=']),
-                ('A-Z',['/vvvvid/ondemand/series/', 'peliculas', 'channel/10003/last/?filter='])
+                ('Popolari',['/vvvvid/ondemand/series/', 'movies', 'channel/10002/last/']),
+                ('Nuove Uscite',['/vvvvid/ondemand/series/', 'movies', 'channel/10007/last/']),
+                ('Generi',['/vvvvid/ondemand/series/', 'movies', 'channel/10004/last/?category=']),
+                ('A-Z',['/vvvvid/ondemand/series/', 'movies', 'channel/10003/last/?filter='])
                 ]
-        show = [('Show {bold} {tv}',['/vvvvid/ondemand/show/', 'peliculas', '', 'tvshow']),
-                ('Popolari {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z {submenu} {tv}',['/vvvvid/ondemand/show/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+        show = [('Show {bold} {tv}',['/vvvvid/ondemand/show/', 'movies', '', 'tvshow']),
+                ('Popolari {submenu} {tv}',['/vvvvid/ondemand/show/', 'movies', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {tv}',['/vvvvid/ondemand/show/', 'movies', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {tv}',['/vvvvid/ondemand/show/', 'movies', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {tv}',['/vvvvid/ondemand/show/', 'movies', 'channel/10003/last/?filter=', 'tvshow']),
                 ('Cerca Show... {bold submenu} {tv}', ['/vvvvid/ondemand/show/', 'search', '', 'tvshow'])
                 ]
-        kids = [('Kids {bold}',['/vvvvid/ondemand/kids/', 'peliculas', '', 'tvshow']),
-                ('Popolari {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10002/last/', 'tvshow']),
-                ('Nuove Uscite {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10007/last/', 'tvshow']),
-                ('Generi {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10004/last/?category=', 'tvshow']),
-                ('A-Z {submenu} {kids}',['/vvvvid/ondemand/kids/', 'peliculas', 'channel/10003/last/?filter=', 'tvshow']),
+        kids = [('Kids {bold}',['/vvvvid/ondemand/kids/', 'movies', '', 'tvshow']),
+                ('Popolari {submenu} {kids}',['/vvvvid/ondemand/kids/', 'movies', 'channel/10002/last/', 'tvshow']),
+                ('Nuove Uscite {submenu} {kids}',['/vvvvid/ondemand/kids/', 'movies', 'channel/10007/last/', 'tvshow']),
+                ('Generi {submenu} {kids}',['/vvvvid/ondemand/kids/', 'movies', 'channel/10004/last/?category=', 'tvshow']),
+                ('A-Z {submenu} {kids}',['/vvvvid/ondemand/kids/', 'movies', 'channel/10003/last/?filter=', 'tvshow']),
                 ('Cerca Kids... {bold submenu} {kids}', ['/vvvvid/ondemand/kids/', 'search', '', 'tvshow'])
                 ]
     else:
@@ -75,7 +75,7 @@ def search(item, text):
         else: item.contentType = 'tvshow'
         item.search = text
         try:
-            itemlist = peliculas(item)
+            itemlist = movies(item)
         except:
             import sys
             for line in sys.exc_info():
@@ -84,22 +84,22 @@ def search(item, text):
     return itemlist
 
 
-def newest(categoria):
+def newest(category):
     item = support.Item()
     item.args = 'channel/10007/last/'
-    if categoria == 'peliculas':
+    if category == 'movie':
         item.contentType = 'movie'
         item.url = main_host + 'film/'
-    if categoria == 'series':
+    if category == 'tvshow':
         item.contentType = 'tvshow'
         item.url = main_host + 'series/'
-    if categoria == 'anime':
+    if category == 'anime':
         item.contentType = 'tvshow'
         item.url = main_host + 'anime/'
-    return peliculas(item)
+    return movies(item)
 
 
-def peliculas(item):
+def movies(item):
 
     itemlist = []
     # logger.dbg()
@@ -107,7 +107,7 @@ def peliculas(item):
         json_file =loadjs(item.url + 'channel/10005/last/')
         logger.debug(json_file)
         make_itemlist(itemlist, item, json_file)
-        itemlist = support.pagination(itemlist, item, 'peliculas')
+        itemlist = support.pagination(itemlist, item, 'movies')
         if item.contentType != 'movie': autorenumber.start(itemlist)
         tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
@@ -124,7 +124,7 @@ def peliculas(item):
                 itemlist.append(
                     item.clone(title = support.typo(key.upper() if Filter == 'filter' else key['name'], 'bold'),
                                url =  item.url + item.args + (key if Filter == 'filter' else str(key['id'])),
-                               action = 'peliculas',
+                               action = 'movies',
                                args = 'filters'))
 
     else:
@@ -138,7 +138,7 @@ def peliculas(item):
     return itemlist
 
 
-def episodios(item):
+def episodes(item):
     itemlist = []
     if item.episodes:
         episodes = item.episodes
@@ -230,7 +230,7 @@ def make_itemlist(itemlist, item, data):
                            fulltitle= title,
                            show= title,
                            url= main_host + str(key['show_id']) + '/seasons/',
-                           action= 'findvideos' if item.contentType == 'movie' else 'episodios',
+                           action= 'findvideos' if item.contentType == 'movie' else 'episodes',
                            contentType = item.contentType,
                            contentSerieName= fulltitle if item.contentType != 'movie' else '',
                            contentTitle= fulltitle if item.contentType == 'movie' else '',

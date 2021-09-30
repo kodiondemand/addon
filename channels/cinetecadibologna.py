@@ -22,7 +22,7 @@ def mainlist(item):
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     if 'epoche' in item.url:
         patronMenu =r'<li>\s*<a href="(?P<url>[^"]+)">(?P<title>[^>]+)<'
     elif 'percorsi' in item.url:
@@ -39,7 +39,7 @@ def search(item, text):
     item.url = host + '/ricerca/type_ALL/ricerca_' + text
     item.contentType = 'movie'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -50,7 +50,7 @@ def search(item, text):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     if 'alfabetico' in item.url:
         patron = r'<img src="(?P<thumb>[^"]+)"[^>]+>\s*[^>]+>\s*<div[^>]+>\s*<div[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>(?:\[)?(?P<title>[^\]<]+)(?:\]|<)'
     else:

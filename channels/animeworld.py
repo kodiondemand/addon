@@ -41,16 +41,16 @@ def mainlist(item):
     anime=['/filter?sort=',
            ('ITA',['/filter?dub=1&sort=', 'menu', '1']),
            ('SUB-ITA',['/filter?dub=0&sort=', 'menu', '0']),
-           ('In Corso', ['/ongoing', 'peliculas','noorder']),
-           ('Ultimi Episodi', ['/updated', 'peliculas', 'updated']),
-           ('Nuove Aggiunte',['/newest', 'peliculas','noorder' ]),
+           ('In Corso', ['/ongoing', 'movies','noorder']),
+           ('Ultimi Episodi', ['/updated', 'movies', 'updated']),
+           ('Nuove Aggiunte',['/newest', 'movies','noorder' ]),
            ('Generi',['/?d=1','genres',])]
     return locals()
 
 
 @support.scrape
 def genres(item):
-    action = 'peliculas'
+    action = 'movies'
     data = get_data(item)
     patronBlock = r'dropdown[^>]*>\s*Generi\s*<span.[^>]+>(?P<block>.*?)</ul>'
     patronGenreMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
@@ -70,7 +70,7 @@ def menu(item):
     def itemlistHook(itemlist):
         for item in itemlist:
             item.title += ' {anime}'
-        itemlist.insert(0, item.clone(title=support.typo('Tutti {anime}','bold'), action='peliculas'))
+        itemlist.insert(0, item.clone(title=support.typo('Tutti {anime}','bold'), action='movies'))
         itemlist.append(item.clone(title=support.typo('Cerca... {anime}','bold'), action='search', search=True, thumbnail=support.thumb('search.png')))
         return itemlist
     return locals()
@@ -78,7 +78,7 @@ def menu(item):
 
 @support.scrape
 def submenu(item):
-    action = 'peliculas'
+    action = 'movies'
     data = item.other
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
     def itemHook(item):
@@ -87,14 +87,14 @@ def submenu(item):
     return locals()
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host + '/updated'
             item.args = "updated"
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -112,7 +112,7 @@ def search(item, texto):
         item.url = host + '/search?keyword=' + texto
     item.contentType = 'tvshow'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -122,7 +122,7 @@ def search(item, texto):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     numerationEnabled = True
     # debug = True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
@@ -134,7 +134,7 @@ def peliculas(item):
         action='findvideos'
     else:
         patron= r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<year>\d+)\) )?(?:\((?P<lang>[^\)]+)\))?(?P<title2>[^"]+)?[^>]+>[^>]+>(?:\s*<div class="(?P<l>[^"]+)">[^>]+>)?\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?'
-        action='episodios'
+        action='episodes'
 
     # Controlla la lingua se assente
     patronNext=r'<a href="([^"]+)" class="[^"]+" id="go-next'
@@ -153,7 +153,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     data = get_data(item)
     numerationEnabled = True
     # pagination = True

@@ -25,21 +25,21 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     tvshow = ['',
-              ('Aggiornamenti', ['', 'peliculas', 'update']),
+              ('Aggiornamenti', ['', 'movies', 'update']),
               ('Generi', ['', 'genres', 'genres']),
-              ('News Sub-ITA', ['', 'peliculas', 'ined']),
-              ('Anime/Cartoni', ["/category/animazione/", 'peliculas', 'genres'])
+              ('News Sub-ITA', ['', 'movies', 'ined']),
+              ('Anime/Cartoni', ["/category/animazione/", 'movies', 'genres'])
               ]
 
     return locals()
 
 
 ##@support.scrape
-##def peliculas(item):
+##def movies(item):
 ####    import web_pdb; web_pdb.set_trace()
-##    logger.debug('peliculas ->\n', item)
+##    logger.debug('movies ->\n', item)
 ##
-##    action = 'episodios'
+##    action = 'episodes'
 ##    block = r'(?P<block>.*?)<div\s+class="btn btn-lg btn-default btn-load-other-series">'
 ##
 ##    if item.args == 'ined':
@@ -72,11 +72,11 @@ def mainlist(item):
 ##    return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     ##    import web_pdb; web_pdb.set_trace()
-    logger.debug('peliculas ->\n', item)
+    logger.debug('movies ->\n', item)
 
-    action = 'episodios'
+    action = 'episodes'
     blacklist = ['DMCA']
 
     if item.args == 'genres' or item.args == 'search':
@@ -118,7 +118,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     logger.debug()
 
     action = 'findvideos'
@@ -137,7 +137,7 @@ def episodios(item):
 def genres(item):
     logger.debug()
 
-    action = 'peliculas'
+    action = 'movies'
     patronMenu = r'<li>\s<a\shref="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)</a></li>'
     patron_block = r'<ul\sclass="dropdown-menu category">(?P<block>.*?)</ul>'
     # debug = True
@@ -150,7 +150,7 @@ def search(item, text):
     item.contentType = 'tvshow'
     item.args = 'search'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -159,17 +159,17 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
+def newest(category):
     logger.debug()
     itemlist = []
     item = Item()
     item.contentType = 'tvshow'
     item.args = 'update'
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.url = host
-            item.action = "peliculas"
-            itemlist = peliculas(item)
+            item.action = "movies"
+            itemlist = movies(item)
 
     # Continua la ricerca in caso di errore
     except:

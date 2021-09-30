@@ -20,14 +20,14 @@ def mainlist(item):
            ('Tipo',['', 'menu', 'Anime']),
            ('Anno',['', 'menu', 'Anno']),
            ('Genere', ['', 'menu','Genere']),
-           ('Ultimi Episodi',['/2/', 'peliculas', 'last']),
-           ('Hentai', ['/hentai/', 'peliculas'])]
+           ('Ultimi Episodi',['/2/', 'movies', 'last']),
+           ('Hentai', ['/hentai/', 'movies'])]
     return locals()
 
 
 @support.scrape
 def menu(item):
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = item.args + r'</a>\s*<ul class="sub-menu">(?P<block>.*?)</ul>'
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
     if 'genere' in item.args.lower():
@@ -39,7 +39,7 @@ def search(item, text):
     logger.debug(text)
     item.search = text
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -48,14 +48,14 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host
             item.args = "last"
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -65,7 +65,7 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     query = ''
     if '/mos/' in item.url:
         item.contentType = 'movie'
@@ -77,7 +77,7 @@ def peliculas(item):
         action='findvideos'
     else:
         item.contentType = 'tvshow'
-        action='episodios'
+        action='episodes'
     if item.search:
         query = 's'
         searchtext = item.search
@@ -94,7 +94,7 @@ def peliculas(item):
     def itemlistHook(itemlist):
         if len(itemlist) == int(perpage):
             item.pag += 1
-            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), action='peliculas'))
+            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), action='movies'))
         return itemlist
     return locals()
 
@@ -102,7 +102,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     numerationEnabled = True
     pagination = True
     patron = epPatron

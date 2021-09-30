@@ -24,7 +24,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     patron = """tgme_widget_message_photo_wrap.*?image:url\("(?P<thumbnail>[^"]+).*?//telegram\.org/img/emoji/40/(?:F09F8EAC|F09F8EA5)\.png"\)">.*?</i>\s?(?:<b>)?(?P<title>[^<]+).*?(?:Audio(?:</b>)?: (?P<lang>.*?<br>))?.*?Anno(?:</b>)?: (?P<year>[0-9]{4}).*?(?:<b>Stream</b>|Risoluzione|<b>Tipo</b>|Tipo|Stream): (?P<quality>[^<]+).*?tgme_widget_message_inline_button url_button" href="(?P<url>[^"]+)"""
     def itemlistHook(itemlist):
         retItemlist = []
@@ -34,7 +34,7 @@ def peliculas(item):
                 i.contentType = 'movie'
             if '/SerieTv/' in i.url:
                 i.contentType = 'tvshow'
-                i.action = 'episodios'
+                i.action = 'episodes'
             if item.contentType == i.contentType or item.contentType == 'list':  # list = ricerca globale quando c'è un solo tipo di risultato
                 retItemlist.append(i)
         # rimuovo duplicati
@@ -66,14 +66,14 @@ def peliculas(item):
     #     return item
 
     if item.contentType == 'tvshow':
-        action = 'episodios'
+        action = 'episodes'
     return locals()
 
 
 def search(item, texto):
     item.url = host + "/?q=" + texto
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -82,19 +82,19 @@ def search(item, texto):
     return []
 
 
-def newest(categoria):
+def newest(category):
     item = Item()
-    if categoria == "series":
+    if category == 'tvshow':
         item.contentType = 'tvshow'
         item.url = host + '?q=%23SerieTv'
     else:
         item.contentType = 'movie'
         item.url = host + '?q=%23Film'
-    return peliculas(item)
+    return movies(item)
 
 
 # cerco il titolo, così mi escono fuori tutti i messaggi contenenti puntate singole o serie
-def episodios(item):
+def episodes(item):
     url = item.url
     item.cercaSerie = True
     itemlist = search(item, item.fulltitle.replace("'", ""))

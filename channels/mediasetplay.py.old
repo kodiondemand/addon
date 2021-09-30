@@ -100,7 +100,7 @@ def search(item, text):
     item.search = text
 
     try:
-        itemlist = peliculas(item)
+        itemlist = movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -117,7 +117,7 @@ def menu(item):
         for it in json:
             logger.debug(jsontools.dump(it))
             if 'uxReference' in it: itemlist.append(
-                item.clone(title=support.typo(it['title'], 'bullet bold'), url= it['landingUrl'], feed = it.get('feedurlV2',''), ref=it['uxReference'], args='', action='peliculas'))
+                item.clone(title=support.typo(it['title'], 'bullet bold'), url= it['landingUrl'], feed = it.get('feedurlV2',''), ref=it['uxReference'], args='', action='movies'))
     return itemlist
 
 
@@ -153,7 +153,7 @@ def live(item):
     return support.thumb(itemlist, mode='live')
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     itemlist = []
     titlelist = []
@@ -228,16 +228,16 @@ def epmenu(item):
         for entry in entries:
             if 'mediasetprogram$subBrandId' in entry:
                 itemlist.append(
-                    item.clone(action='episodios',
+                    item.clone(action='episodes',
                                title=support.typo(entry['description'], 'bold'),
                                url=entry['mediasetprogram$subBrandId'],
                                order=entry.get('mediasetprogram$order',0)))
-        if len(itemlist) == 1: return episodios(itemlist[0])
+        if len(itemlist) == 1: return episodes(itemlist[0])
         itemlist = sorted(itemlist, key=lambda it: it.order)
     return itemlist
 
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist = []
     if not item.nextIndex: item.nextIndex = 1

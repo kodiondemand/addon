@@ -26,7 +26,7 @@ def mainlist(item):
     return locals()
 
 
-def episodios(item):
+def episodes(item):
     logger.debug(item)
     itemlist = []
 
@@ -49,11 +49,11 @@ def episodios(item):
 def genres(item):
     itemlist = []
     for n, genre in enumerate(httptools.downloadpage(host + api_url + 'categories', post={}).json.get('categories', [])):
-        itemlist.append(item.clone(action="peliculas", genre=genre.get('name'), title=genre.get('value'), n=n))
+        itemlist.append(item.clone(action="movies", genre=genre.get('name'), title=genre.get('value'), n=n))
     return support.thumb(itemlist, mode='genre')
 
 
-def peliculas(item, text=''):
+def movies(item, text=''):
     logger.debug('search', item)
     itemlist = []
     filter_type = False
@@ -76,7 +76,7 @@ def peliculas(item, text=''):
             itemlist.append(item.clone(id=result.get('id'), title=result.get('title'), contentTitle=result.get('title'),
                                        contentSerieName='' if contentType == 'movie' else result.get('title'),
                                        contentPlot=result.get('description'), thumbnail=result.get('poster'),
-                                       fanart=result.get('backdrop'), year=result.get('year'), action='episodios' if contentType == 'tvshow' else 'findvideos',
+                                       fanart=result.get('backdrop'), year=result.get('year'), action='episodes' if contentType == 'tvshow' else 'findvideos',
                                        url='{}/{}/{}-{}'.format('https://filmigratis.org', contentType, result.get('id'), support.scrapertools.slugify(result.get('title'))),
                                        contentType=contentType))
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -88,7 +88,7 @@ def peliculas(item, text=''):
 
 
 def search(item, text):
-    return peliculas(item, text)
+    return movies(item, text)
 
 
 def findvideos(item):

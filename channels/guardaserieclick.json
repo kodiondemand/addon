@@ -6,10 +6,10 @@
     "thumbnail": "guardaserieclick.png",
     "bannermenu": "guardaserieclick.png",
     "categories": ["tvshow", "anime"],
-    "not_active": ["include_in_newest_peliculas", "include_in_newest_anime"],
+    "not_active": ["include_in_newest_movie", "include_in_newest_anime"],
     "settings": [
 		{
-		  "id": "include_in_newest_peliculas",
+		  "id": "include_in_newest_movie",
 		  "type": "bool",
 		  "label": "@70727",
 		  "default": false,

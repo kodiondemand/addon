@@ -35,7 +35,7 @@ se vanno cancellati tutti deve rimanere la voce:
 		  "visible": false
 		},
 		{
-		  "id": "include_in_newest_peliculas",
+		  "id": "include_in_newest_movie",
 		  "type": "bool",
 		  "label": "@70727",
 		  "default": false,

@@ -6,6 +6,6 @@
 	"thumbnail": "tantifilm.png",
 	"banner": "tantifilm.png",
     "categories": ["tvshow", "movie", "anime"],
-    "not_active":["include_in_newest_anime", "include_in_newest_peliculas"],
+    "not_active":["include_in_newest_anime", "include_in_newest_movie"],
     "settings": []
 }

@@ -17,8 +17,8 @@ headers = [['Accept', 'application/ld+json']]
 @support.menu
 def mainlist(item):
     # menu = [
-    #     ('Ultimi Film aggiunti', ['/api/movies', 'peliculas', '']),
-    #     ('Ultime Serie TV aggiunte', ['/api/shows', 'peliculas', '']),
+    #     ('Ultimi Film aggiunti', ['/api/movies', 'movies', '']),
+    #     ('Ultime Serie TV aggiunte', ['/api/shows', 'movies', '']),
     #     ('Generi', ['/api/genres', 'search_movie_by_genre', '']),
     #     ('Anni {film}', ['', 'search_movie_by_year', '']),
     #     ('Cerca... bold', ['', 'search', ''])
@@ -33,18 +33,18 @@ def mainlist(item):
 
     return locals()
 
-def newest(categoria):
+def newest(category):
     logger.debug()
     item = Item()
-    if categoria == 'peliculas':
+    if category == 'movie':
         item.contentType = 'movie'
         item.url = host + '/api/movies'
-    elif categoria == 'series':
+    elif category == 'tvshow':
         item.contentType = 'tvshow'
         item.url = host+'/api/shows'
-    return peliculas(item)
+    return movies(item)
 
-def peliculas(item):
+def movies(item):
     logger.debug()
     itemlist = []
 
@@ -66,7 +66,7 @@ def peliculas(item):
 
     return itemlist
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist = []
     data = support.match(item.url, headers=headers).data
@@ -129,7 +129,7 @@ def search_movie_by_genre(item):
     json_object = jsontools.load(data)
     for genre in json_object['hydra:member']:
         itemlist.append(
-            item.clone(action="peliculas",
+            item.clone(action="movies",
                        title=support.typo(genre['name'],'bold'),
                        contentType='movie',
                        url="%s/api/movies?genres.id=%s" %(host,genre['id'])))
@@ -148,7 +148,7 @@ def search_movie_by_year(item):
                        plot="1",
                        type="movie",
                        title=support.typo(year_to_search,'bold'),
-                       action="peliculas"))
+                       action="movies"))
     return itemlist
 
 
@@ -209,7 +209,7 @@ def get_itemlist_element(element,item):
         infoLabels['tmdb_id']=element['tmdbId']
     else:
         contentSerieName = scrapedtitle
-        next_action='episodios'
+        next_action='episodes'
         quality=''
         url="%s%s"
 

@@ -27,7 +27,7 @@ def search(item, texto):
     logger.debug(texto)
     item.url = host + "/search/" + texto
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -36,23 +36,23 @@ def search(item, texto):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     try:
-        if categoria == "peliculas":
+        if category == "movie":
             item.url = host + '/category/films'
             item.contentType = 'movies'
-            return peliculas(item)
-        if categoria == "series":
+            return movies(item)
+        if category == 'tvshow':
             item.url = host + '/category/serie'
             item.contentType = 'tvshow'
-            return peliculas(item)
-        if categoria == "anime":
+            return movies(item)
+        if category == "anime":
             item.url = host + '/category/anime-cartoni-animati'
             item.contentType = 'tvshow'
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -64,18 +64,18 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     patron = r'data-placement="bottom" title="(?P<title>[^"]+)" alt=[^=]+="(?P<url>[^"]+)"> <img class="[^"]+" title="[^"]+(?P<type>film|serie)[^"]+" alt="[^"]+" src="(?P<thumb>[^"]+)"'
     patronNext = r'<a\s*class="nextpostslink" rel="next" href="([^"]+)">Avanti'
 
-    typeActionDict = {'findvideos': ['film'], 'episodios': ['serie']}
+    typeActionDict = {'findvideos': ['film'], 'episodes': ['serie']}
     typeContentDict = {'movie': ['film'], 'tvshow': ['serie']}
     # debug = True
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     if item.data: data = item.data
     # debug= True
     title = item.fulltitle
@@ -94,5 +94,5 @@ def findvideos(item):
         data = support.match(item).data
         if 'link-episode' in data:
             item.data = data
-            return episodios(item)
+            return episodes(item)
     return support.server(item, data=data)

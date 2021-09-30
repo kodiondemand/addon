@@ -19,7 +19,7 @@ def mainlist(item):
     anime = [('Genere',['','menu', '2']),
              ('Per Lettera',['','menu', '1']),
              ('Per Anno',['','menu', '3']),
-             ('Ultimi Anime Aggiornati',['','peliculas', 'newest'])]
+             ('Ultimi Anime Aggiornati',['','movies', 'newest'])]
     return locals()
 
 
@@ -30,7 +30,7 @@ def menu(item):
     patronMenu = r'<option value="(?P<url>[^"]+)">(?P<title>[^<]+)</option>'
     if '2' in item.args:
         patronGenreMenu = patronMenu
-    action = 'peliculas'
+    action = 'movies'
     def itemHook(item):
         item.url = item.url.replace('cb01-anime/','cb01-anime-cartoon/')
         return item
@@ -41,7 +41,7 @@ def search(item, texto):
     logger.debug(texto)
     item.url = host + "/search/" + texto
     try:
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():
@@ -49,15 +49,15 @@ def search(item, texto):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.url = host
             item.args = 'newest'
-            itemlist = peliculas(item)
+            itemlist = movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -68,7 +68,7 @@ def newest(categoria):
     return itemlist
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug=True
     blacklist = Blacklist
     item.contentType = 'tvshow'
@@ -84,15 +84,15 @@ def check(item):
     item.url = support.match(item, patron=r'(?:<p>|/>)(.*?)(?:<br|</td>|</p>)', patronBlock=r'Streaming:(.*?)</tr>').matches
     if 'Episodio' in str(item.url):
         item.contentType = 'tvshow'
-        item.action ='episodios'
-        return episodios(item)
+        item.action ='episodes'
+        return episodes(item)
     else:
         item.contentType = 'movie'
         item.action = 'findvideos'
         return findvideos(item)
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     logger.debug('EPISODIOS ', item.data)
     data = ''
     matches = item.data

@@ -15,11 +15,11 @@ headers = [['Referer', host]]
 def mainlist(item):
     film = ['/category/film',
         ('Generi', ['', 'genres', 'genres']),
-        ('Sub-ITA', ['/category/sub-ita/', 'peliculas', 'sub'])
+        ('Sub-ITA', ['/category/sub-ita/', 'movies', 'sub'])
         ]
 
     tvshow = ['/category/serie-tv',
-        ('Novità', ['/aggiornamenti-serie-tv', 'peliculas', '']),
+        ('Novità', ['/aggiornamenti-serie-tv', 'movies', '']),
         ]
 
     search = ''
@@ -29,7 +29,7 @@ def mainlist(item):
 
 @support.scrape
 def genres(item):
-    action = 'peliculas'
+    action = 'movies'
     blacklist = ['PRIME VISIONI', 'ULTIME SERIE TV', 'ULTIMI FILM']
     patronGenreMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<>]+)</a></li>'
     patronBlock = r'<div class="container home-cats">(?P<block>.*?)<div class="clear">'
@@ -45,7 +45,7 @@ def select(item):
     else:
         logger.debug('select = ### è una serie ###')
         item.contentType = 'tvshow'
-        return episodios(item)
+        return episodes(item)
 
 
 def search(item, text):
@@ -54,7 +54,7 @@ def search(item, text):
     item.url = host + '/?s=' + text
     item.args = 'search'
     try:
-        return peliculas(item)
+        return movies(item)
 
     except:
         import sys
@@ -63,13 +63,13 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
+def newest(category):
     itemlist = []
     item = support.Item()
     item.args = 'newest'
 
     try:
-        if categoria == 'series':
+        if category == 'tvshow':
             item.contentType = 'tvshow'
             item.url = host+'/aggiornamenti-serie-tv'
 
@@ -77,10 +77,10 @@ def newest(categoria):
             item.contentType = 'movie'
             item.url = host+'/category/film'
 
-        item.action = 'peliculas'
-        itemlist = peliculas(item)
+        item.action = 'movies'
+        itemlist = movies(item)
 
-        if itemlist[-1].action == 'peliculas':
+        if itemlist[-1].action == 'movies':
             itemlist.pop()
 
     # Continua la ricerca in caso di errore
@@ -94,12 +94,12 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     if item.contentType == 'movie':
         action = 'findvideos'
     elif item.contentType == 'tvshow':
-        action = 'episodios'
+        action = 'episodes'
         pagination = True
     else:
         action = 'select'
@@ -129,7 +129,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     if item.data:
         data = item.data
     action = 'findvideos'

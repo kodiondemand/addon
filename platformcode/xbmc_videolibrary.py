@@ -196,19 +196,19 @@ def sync_trakt_addon(path_folder):
                             serie.library_playcounts[k] = dict_trakt_show.get(k, 0)
 
                         for season in seasons:
-                            episodios_temporada = 0
-                            episodios_vistos_temporada = 0
+                            episodes_temporada = 0
+                            episodes_vistos_temporada = 0
 
                             # we obtain the keys of the episodes of a certain season
                             keys_season_episodes = [key for key in keys_episodes if key.startswith("%sx" % season)]
 
                             for k in keys_season_episodes:
-                                episodios_temporada += 1
+                                episodes_temporada += 1
                                 if serie.library_playcounts[k] > 0:
-                                    episodios_vistos_temporada += 1
+                                    episodes_vistos_temporada += 1
 
                             # it is verified that if all the episodes are watched, the season is marked as watched
-                            if episodios_temporada == episodios_vistos_temporada:
+                            if episodes_temporada == episodes_vistos_temporada:
                                 serie.library_playcounts.update({"season %s" % season: 1})
 
                         temporada = 0

@@ -122,11 +122,11 @@
     <!-- News -->
     <category label="60327">
         <setting label="60525" type="lsep"/>
-        <setting id="news_films" type="action" label="60509" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWwiLA0KICAgICJjaGFubmVsIjoibmV3cyIsDQoJImV4dHJhIjoicGVsaWN1bGFzIg0KfQ==)"/>
-        <setting id="news_series" type="action" label="60511" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWwiLA0KICAgICJjaGFubmVsIjoibmV3cyIsDQoJImV4dHJhIjoic2VyaWVzIg0KfQ==)"/>
-        <setting id="news_anime" type="action" label="60512" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWwiLA0KICAgICJjaGFubmVsIjoibmV3cyIsDQoJImV4dHJhIjoiYW5pbWUiDQp9)"/>
-        <setting id="news_documentaries" type="action" label="60513" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5nX2NoYW5uZWwiLA0KICAgICJjaGFubmVsIjoibmV3cyIsDQoJImV4dHJhIjoiZG9jdW1lbnRhbGVzIg0KfQ==)"/>
-        <setting id="news_options" type="action" label="60415" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiJzZXR0aW5ncyIsDQogICAgImNoYW5uZWwiOiJuZXdzIg0KfQ==)"/>
+        <setting id="news_films" type="action" label="60509" action="RunPlugin(plugin://plugin.video.kod/?action=setting_channel&channel=news&extra=movie)"/>
+        <setting id="news_series" type="action" label="60511" action="RunPlugin(plugin://plugin.video.kod/?action=setting_channel&channel=news&extra=tvshow)"/>
+        <setting id="news_anime" type="action" label="60512" action="RunPlugin(plugin://plugin.video.kod/?action=setting_channel&channel=news&extra=anime)"/>
+        <setting id="news_documentaries" type="action" label="60513" action="RunPlugin(plugin://plugin.video.kod/?action=setting_channel&channel=news&extra=documentary)"/>
+        <setting id="news_options" type="action" label="60415" action="RunPlugin(plugin://plugin.video.kod/?action=settings&channel=news)"/>
     </category>
 
     <!-- Customization -->
@@ -146,6 +146,8 @@
         <setting id="skin_name" label='Skin Name' type="text" default="skin.estuary" visible="false"/>
         <setting id="view_mode_menu" type="action" label="70009" default= "Default, 0" visible="false"/>
         <setting id="view_mode_channel" type="action" label="30118" default= "Default, 0" visible="false"/>
+        <setting id="view_mode_channels" type="action" label="30118" default= "Default, 0" visible="false"/>
+        <setting id="view_mode_home" type="action" label="30118" default= "Default, 0" visible="false"/>
         <setting id="view_mode_movie" type="action" label="30122" default= "Default, 0" visible="false"/>
         <setting id="view_mode_tvshow" type="action" label="30123" default= "Default, 0" visible="false"/>
         <setting id="view_mode_season" type="action" label="30140" default= "Default, 0" visible="false"/>

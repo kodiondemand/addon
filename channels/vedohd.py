@@ -21,8 +21,8 @@ blacklist = ['CB01.UNO &#x25b6; TROVA L&#8217;INDIRIZZO UFFICIALE ', 'AVVISO IMP
 def mainlist(item):
 
     film = [
-        ('I più votati', ["ratings/?get=movies", 'peliculas']),
-        ('I più popolari', ["trending/?get=movies", 'peliculas']),
+        ('I più votati', ["ratings/?get=movies", 'movies']),
+        ('I più popolari', ["trending/?get=movies", 'movies']),
         ('Generi', ['ratings/?get=movies', 'menu', 'genres']),
         ('Anno', ["", 'menu', 'releases']),
     ]
@@ -36,8 +36,8 @@ def search(item, text):
     return support.dooplay_search(item, blacklist)
 
 
-def peliculas(item):
-    return support.dooplay_peliculas(item, False, blacklist)
+def movies(item):
+    return support.dooplay_movies(item, False, blacklist)
 
 
 def findvideos(item):

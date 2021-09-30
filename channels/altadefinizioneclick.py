@@ -19,14 +19,14 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     film = ['',
-        ('Novità', ['/nuove-uscite/', 'peliculas', 'news']),
-        ('Al Cinema', ['/al-cinema/', 'peliculas', 'cinema']),
+        ('Novità', ['/nuove-uscite/', 'movies', 'news']),
+        ('Al Cinema', ['/al-cinema/', 'movies', 'cinema']),
         ('A-Z',['/lista-film/', 'genres', 'az']),
         ('Generi', ['', 'genres', 'genres']),
         ('Anni', ['', 'genres', 'years']),
         ('Qualità', ['', 'genres', 'quality']),
         ('Mi sento Fortunato',[ '', 'genres', 'lucky']),
-        ('Sub-ITA', ['/sub-ita/', 'peliculas', 'sub'])
+        ('Sub-ITA', ['/sub-ita/', 'movies', 'sub'])
     ]
 
     tvshow = ['/serie-tv/']
@@ -35,7 +35,7 @@ def mainlist(item):
     return locals()
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     action = 'check'
 
     patron = r'<div class="wrapperImage">\s*(?:<span class="year">(?P<year>[^<]+)[^>]+>)?(?:<span class="hd">(?P<quality>[^<>]+))?.+?href="(?P<url>[^"]+)".+?src="(?P<thumb>[^"]+)".+?<h2 class="titleFilm">[^>]+>(?P<title>.+?)[ ]?(?:|\[(?P<lang>[^\]]+)\])?</a>.*?(?:IMDB\:</strong>[ ](?P<rating>.+?)<|</div>)'
@@ -60,7 +60,7 @@ def peliculas(item):
 
 @support.scrape
 def genres(item):
-    action = 'peliculas'
+    action = 'movies'
     patronGenreMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
 
     if item.args == 'genres':
@@ -88,7 +88,7 @@ def search(item, text):
     item.args = 'search'
     item.url = host + "?s=" + text
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -96,19 +96,19 @@ def search(item, text):
             logger.error("%s" % line)
         return []
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
     try:
-        if categoria == "peliculas":
+        if category == "movie":
             item.args = 'news'
             item.contentType = 'movie'
             item.url = host + "/nuove-uscite/"
-            item.action = "peliculas"
-            itemlist = peliculas(item)
+            item.action = "movies"
+            itemlist = movies(item)
 
-            if itemlist[-1].action == "peliculas":
+            if itemlist[-1].action == "movies":
                 itemlist.pop()
 
     # Continua la ricerca in caso di errore
@@ -156,10 +156,10 @@ def check(item):
             if res.result():
                 data += res.result()
     item.data = data
-    return episodios(item)
+    return episodes(item)
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     data = item.data
 
     patron = r'(?P<season>\d+)x(?P<episode>\d+)\s*-\s*(?P<title>[^\|]+)\|(?P<url>[^ ]+)'

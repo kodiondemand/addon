@@ -6,6 +6,6 @@
     "thumbnail": "altadefinizioneclick.png",
     "bannermenu": "altadefinizioneciclk.png",
     "categories": ["tvshow","movie","sub"],
-    "not_active":["include_in_newest_series"],
+    "not_active":["include_in_newest_tvshow"],
     "settings": []
 }

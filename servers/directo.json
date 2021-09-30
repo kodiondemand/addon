@@ -37,7 +37,7 @@
         "url": "http://mangaid.com\\1"
       },
       {
-        "pattern": "so\\.addVariable\\(\\’file\\’,\\’(http\\://peliculasid[^\\']+)",
+        "pattern": "so\\.addVariable\\(\\’file\\’,\\’(http\\://moviesid[^\\']+)",
         "url": "\\1"
       }
     ]

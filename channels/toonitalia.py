@@ -14,12 +14,12 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
 
-    top = [('Novità',['', 'peliculas', 'new', 'tvshow']),
-           ('Aggiornamenti', ['', 'peliculas', 'last', 'tvshow'])]
+    top = [('Novità',['', 'movies', 'new', 'tvshow']),
+           ('Aggiornamenti', ['', 'movies', 'last', 'tvshow'])]
     tvshow = ['/category/serie-tv/']
     anime =['/category/anime/',
-               ('Sub-Ita',['/category/anime-sub-ita/', 'peliculas', 'sub']),
-               ('Film Animati',['/category/film-animazione/','peliculas', '', 'movie'])]
+               ('Sub-Ita',['/category/anime-sub-ita/', 'movies', 'sub']),
+               ('Film Animati',['/category/film-animazione/','movies', '', 'movie'])]
     search = ''
     return locals()
 
@@ -31,7 +31,7 @@ def search(item, text):
     item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
 
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -40,14 +40,14 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
         item.contentType = 'undefined'
         item.url= host
         item.args= 'new'
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -57,12 +57,12 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debugBlock = True
     # debug = True
     # search = item.text
     if item.contentType != 'movie': numerationEnabled = True
-    action = 'findvideos' if item.contentType == 'movie' else 'episodios'
+    action = 'findvideos' if item.contentType == 'movie' else 'episodes'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if item.action == 'search':
@@ -92,7 +92,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     numerationEnabled = True
     # debug = True
     patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'

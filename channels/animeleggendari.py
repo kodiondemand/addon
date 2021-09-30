@@ -20,11 +20,11 @@ headers = [['User-Agent', 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/
 def mainlist(item):
 
     anime = [
-        # ('Leggendari', ['/category/anime-leggendari/', 'peliculas']),
-        ('ITA', ['/category/anime-ita/', 'peliculas']),
-        ('SUB-ITA', ['/category/anime-sub-ita/', 'peliculas']),
-        ('Conclusi', ['/category/serie-anime-concluse/', 'peliculas']),
-        ('in Corso', ['/category/serie-anime-in-corso/', 'peliculas']),
+        # ('Leggendari', ['/category/anime-leggendari/', 'movies']),
+        ('ITA', ['/category/anime-ita/', 'movies']),
+        ('SUB-ITA', ['/category/anime-sub-ita/', 'movies']),
+        ('Conclusi', ['/category/serie-anime-concluse/', 'movies']),
+        ('in Corso', ['/category/serie-anime-in-corso/', 'movies']),
         ('Genere', ['', 'genres'])
     ]
 
@@ -36,7 +36,7 @@ def search(item, text):
 
     item.url = host + "/?s=" + text
     try:
-        return peliculas(item)
+        return movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -51,12 +51,12 @@ def genres(item):
     blacklist = ['Contattaci','Privacy Policy', 'DMCA']
     patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<'
     patronBlock = r'Generi</a>\s*<ul[^>]+>(?P<block>.*?)<\/ul>'
-    action = 'peliculas'
+    action = 'movies'
     return locals()
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     numerationEnabled = True
     blacklist = ['top 10 anime da vedere']
     if item.url != host: patronBlock = r'<div id="main-content(?P<block>.*?)<aside'
@@ -76,12 +76,12 @@ def peliculas(item):
         return itlist
 
     patronNext = r'<a class="next page-numbers" href="([^"]+)">'
-    action = 'episodios'
+    action = 'episodes'
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     data = support.match(item, headers=headers, patronBlock=r'entry-content clearfix">(.*?)class="mh-widget mh-posts-2 widget_text').block
     if not 'pagination clearfix' in data:
         logger.debug('NOT IN DATA')

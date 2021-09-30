@@ -29,7 +29,7 @@ def submenu_az(item):
     for letter in ['0-9'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
         itemlist.append(item.clone(title = support.typo(letter, 'bold'),
                                 url= host + '/api/anime/find-by-char',
-                                action= 'peliculas',
+                                action= 'movies',
                                 variable= '&character=' + letter,
                                 thumbnail=support.thumb('az')))
     return itemlist
@@ -67,7 +67,7 @@ def submenu_season(item):
         itemlist.append(item.clone(title=title,
                                 url = '{}/api/seasonal-view/{}-{}'.format(host, s, item.variable),
                                 thumbnail = support.thumb(s),
-                                action = 'peliculas',
+                                action = 'movies',
                                 variable=''))
     return itemlist
 
@@ -86,7 +86,7 @@ def submenu_top_of(item):
                                 id=anime['animeId'],
                                 url = '{}/api/anime/{}'.format(host, anime['animeId']),
                                 thumbnail = get_thumbnail(anime, 'animeHorizontalImages'),
-                                action = 'episodios',
+                                action = 'episodes',
                                 variable=anime['animeId']))
     return itemlist
 
@@ -98,7 +98,7 @@ def search(item, texto):
     item.variable = '&query=' + texto
 
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -107,11 +107,11 @@ def search(item, texto):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             return latest_added(item)
     # Continua la ricerca in caso di errore
     except:
@@ -155,7 +155,7 @@ def latest_added(item):
     return itemlist
 
 
-def peliculas(item):
+def movies(item):
     logger.debug()
 
     itemlist = []
@@ -174,7 +174,7 @@ def peliculas(item):
                                    contentType = 'movie' if it['type'] == 'Movie' else 'tvshow',
                                    contentTitle = title,
                                    contentSerieName = title if it['type'] == 'Serie' else '',
-                                   action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
+                                   action ='findvideos' if it['type'] == 'Movie' else 'episodes',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodes',
                                    plot = it['storyline'],
                                    year = it['startDate'].split('-')[0],
                                    url = '{}/api/anime/{}'.format(host, it['id']),
@@ -189,7 +189,7 @@ def peliculas(item):
     return itemlist
 
 
-def episodios(item):
+def episodes(item):
     logger.debug()
     itemlist = []
 

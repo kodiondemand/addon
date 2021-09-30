@@ -28,20 +28,20 @@ def mainlist(item):
 @support.scrape
 def list(item):
     patronMenu = r'<a title="(?P<title>[^"]+)" href="(?P<url>[^"]+)'
-    action = 'peliculas'
+    action = 'movies'
     return locals()
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     patron = r'<div class="mlnh-thumb"><a href="(?P<url>[^"]+).*?title="(?P<title>[^"]+).*?src="(?P<thumb>[^"]+).*?hdn">(?P<year>[0-9]{4})'
     patronNext = 'pagenavi.*?<span>.</span>.*?<a href="([^"]+)'
-    action = 'episodios'
+    action = 'episodes'
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     patronBlock = r'<div class="tab-pane fade" id="season-(?P<season>.)"(?P<block>.*?)</div>'
     patron = r'<a href="#" allowfullscreen data-link="(?P<url>[^"]+).*?title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]-?[iI][tT][aA])?\s*">(?P<episode>[^<]+)'
     action = 'findvideos'
@@ -56,7 +56,7 @@ def search(item, text):
     text = text.replace(' ', '+')
     item.url = host + '/index.php?story=%s&do=search&subaction=search' % (text)
     try:
-        return peliculas(item)
+        return movies(item)
     except:
         import sys
         for line in sys.exc_info():

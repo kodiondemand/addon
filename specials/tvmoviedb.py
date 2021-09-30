@@ -53,7 +53,7 @@ def tmdbMenu(item):
 
     itemlist = [item.clone(title=config.get_localized_string(70028), action='tmdbResults', args=item.args + '/popular'),
                 item.clone(title=config.get_localized_string(70029), action='tmdbResults', args=item.args + '/top_rated'),
-                item.clone(title=config.get_localized_string(50001), action='tmdbResults', args=item.args + '/now_playing' if item.args == 'movie' else '/on_the_air'),
+                item.clone(title=config.get_localized_string(50001), action='tmdbResults', args=item.args + '/now_playing' if item.args == 'movie' else 'tv/on_the_air'),
                 item.clone(title=config.get_localized_string(70032), action='tmdbIndex', mode='genre'),
                 item.clone(title=config.get_localized_string(70042), action='tmdbIndex', mode='year')]
 
@@ -67,6 +67,7 @@ def tmdbMenu(item):
 
 def tmdbResults(item):
     itemlist = []
+    logger.dbg()
     if not item.page: item.page = 1
     _search = item.search if item.search else {'url': item.args, 'language': lang.tmdb, 'page': item.page}
     obj = tmdb.discovery(item, _search)

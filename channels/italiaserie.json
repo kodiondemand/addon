@@ -6,6 +6,6 @@
     "thumbnail": "italiaserie.png",
     "bannermenu": "italiaserie.png",
     "categories": ["tvshow", "sub"],
-    "not_active": ["include_in_newest_peliculas", "include_in_newest_anime"],
+    "not_active": ["include_in_newest_movie", "include_in_newest_anime"],
     "settings": []
 }

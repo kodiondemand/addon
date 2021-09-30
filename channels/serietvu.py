@@ -23,7 +23,7 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     tvshow = ['/category/serie-tv',
-              ('Ultimi episodi', ['/ultimi-episodi/', 'peliculas', 'update']),
+              ('Ultimi episodi', ['/ultimi-episodi/', 'movies', 'update']),
               ('Generi', ['', 'genres', 'genres'])
     ]
 
@@ -31,12 +31,12 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug=True
     patronBlock = r'<div class="wrap">\s*<h.>.*?</h.>(?P<block>.*?)<footer>'
 
     if item.args != 'update':
-        action = 'episodios'
+        action = 'episodes'
         patron = r'<div class="item">\s*?<a href="(?P<url>[^"]+)" data-original="(?P<thumb>[^"]+)" class="lazy inner">(?:[^>]+>){4}(?P<title>[^<]+)<'
     else:
         action = 'findvideos'
@@ -48,7 +48,7 @@ def peliculas(item):
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     seasons = support.match(item, patron=r'<option value="(\d+)"[^>]*>\D+(\d+)').matches
     patronBlock = r'</select><div style="clear:both"></div></h2>(?P<block>.*?)<div id="trailer" class="tab">'
     patron = r'(?:<div class="list (?:active)?")?\s*<a data-id="\d+(?:[ ](?P<lang>[SuUbBiItTaA\-]+))?"(?P<other>[^>]+)>.*?Episodio [0-9]+\s?(?:<br>(?P<title>[^<]+))?.*?Stagione (?P<season>[0-9]+) , Episodio - (?P<episode>[0-9]+).*?<(?P<url>.*?<iframe)'
@@ -66,7 +66,7 @@ def episodios(item):
 @support.scrape
 def genres(item):
     blacklist = ["Home Page", "Calendario Aggiornamenti"]
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = r'<h2>Sfoglia</h2>\s*<ul>(?P<block>.*?)</ul>\s*</section>'
     patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a></li>'
     return locals()
@@ -77,7 +77,7 @@ def search(item, text):
     item.url = host + "/?s=" + text
     try:
         item.contentType = 'tvshow'
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -86,17 +86,17 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.url = host + "/ultimi-episodi"
-            item.action = "peliculas"
+            item.action = "movies"
             item.contentType = 'tvshow'
             item.args = 'update'
-            itemlist = peliculas(item)
+            itemlist = movies(item)
 
     # Continua la ricerca in caso di errore
     except:
@@ -126,7 +126,7 @@ def findvideos(item):
             item.clone(title=support.typo("Vai alla Serie Completa: " + item.fulltitle, ' bold'),
                         contentType='tvshow',
                         url=url_serie,
-                        action='episodios',
+                        action='episodes',
                         thumbnail = support.thumb('tvshow')))
 
         return itemlist

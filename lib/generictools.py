@@ -36,7 +36,7 @@ def update_title(item):
         # Allow the updating of titles, either for immediate use, or to add to the video library
         item.from_action = item.action      # Save action
         item.from_title = item.title        # Save Title
-        itemlist.append(item.clone(title="** [COLOR limegreen]Update Titles - video library preview[/COLOR] **", action="actualizar_titulos", extra="episodios", tmdb_stat=False))
+        itemlist.append(item.clone(title="** [COLOR limegreen]Update Titles - video library preview[/COLOR] **", action="actualizar_titulos", extra="episodes", tmdb_stat=False))
 
     The channel must add a method to be able to receive the call from Kodi / Alfa, and be able to call this method:
 
@@ -390,7 +390,7 @@ def post_tmdb_listado(item, itemlist):
                     title = '%sx%s al 99 -' % (str(item_local.contentSeason), str(item_local.contentEpisodeNumber))
                 if " al " in title:                         # If they are multiple episodes, we put a series name
                     if " al 99" in title.lower():           # Full season. We are looking for total number of episodes
-                        title = title.replace("99", str(item_local.infoLabels['temporada_num_episodios']))
+                        title = title.replace("99", str(item_local.infoLabels['temporada_num_episodes']))
                     title = '%s %s' % (title, item_local.contentSerieName)
                     item_local.infoLabels['episodio_titulo'] = '%s - %s [%s] [%s]' % (scrapertools.find_single_match(title, r'(al \d+)'), item_local.contentSerieName, item_local.infoLabels['year'], rating)
 
@@ -601,8 +601,8 @@ def post_tmdb_seasons(item, itemlist):
             #if rating and rating > 0.0:
             #    item_local.title += ' [%s]' % str(rating)
 
-            if item_local.infoLabels['temporada_num_episodios']:    # No. of Temp Episodes
-                item_local.title += ' [%s epi]' % str(item_local.infoLabels['temporada_num_episodios'])
+            if item_local.infoLabels['temporada_num_episodes']:    # No. of Temp Episodes
+                item_local.title += ' [%s epi]' % str(item_local.infoLabels['temporada_num_episodes'])
 
             if not config.get_setting("unify"):                     # If Smart Titles NOT selected:
                 item_local.title = '%s [COLOR limegreen][%s][/COLOR] [COLOR red]%s[/COLOR]' % (item_local.title, item_local.quality, str(item_local.language))
@@ -624,7 +624,7 @@ def post_tmdb_seasons(item, itemlist):
     title = ''
     if item.infoLabels['status'] and item.infoLabels['status'].lower() == "ended":
         title += ' [TERMINADA]'
-    itemlist_temporadas.append(item_season.clone(title="[COLOR yellow]Añadir esta serie a videoteca-[/COLOR]" + title, action="add_serie_to_library", extra="episodios", add_menu=True))
+    itemlist_temporadas.append(item_season.clone(title="[COLOR yellow]Añadir esta serie a videoteca-[/COLOR]" + title, action="add_serie_to_library", extra="episodes", add_menu=True))
 
     # If judicial intervention, I warn !!!
     if item.intervencion:
@@ -644,7 +644,7 @@ def post_tmdb_seasons(item, itemlist):
     return (item, itemlist_temporadas)
 
 
-def post_tmdb_episodios(item, itemlist):
+def post_tmdb_episodes(item, itemlist):
     logger.debug()
     itemlist_fo = []
 
@@ -674,12 +674,12 @@ def post_tmdb_episodios(item, itemlist):
         modo_ultima_temp = config.get_setting('seleccionar_ult_temporadda_activa', item.channel)
 
     # Initiates variables to control the number of episodes per season
-    num_episodios = 1
-    num_episodios_lista = []
-    for i in range(0, 50):  num_episodios_lista += [0]
+    num_episodes = 1
+    num_episodes_lista = []
+    for i in range(0, 50):  num_episodes_lista += [0]
     num_temporada = 1
     num_temporada_max = 99
-    num_episodios_flag = True
+    num_episodes_flag = True
 
     # We restore the Season number to make the choice of Video Library more flexible
     contentSeason = item.contentSeason
@@ -805,14 +805,14 @@ def post_tmdb_episodios(item, itemlist):
             if item_local.infoLabels['number_of_seasons']:
                 # If the season num is out of control, it gets 0, and itemlist is reclassified
                 if item_local.contentSeason > item_local.infoLabels['number_of_seasons'] + 1:
-                    logger.error("ERROR 07: EPISODES: Season number out of range " + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(item_local.infoLabels['number_of_seasons']) + " / SEASON_LIST: " + str(num_episodios_lista))
+                    logger.error("ERROR 07: EPISODES: Season number out of range " + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(item_local.infoLabels['number_of_seasons']) + " / SEASON_LIST: " + str(num_episodes_lista))
                     item_local.contentSeason = 0
                     itemlist = sorted(itemlist, key=lambda it: (int(it.contentSeason), int(it.contentEpisodeNumber)))
                 else:
                     num_temporada_max = item_local.infoLabels['number_of_seasons']
             else:
                 if item_local.contentSeason > num_temporada_max + 1:
-                    logger.error("ERROR 07: EPISODES: Season number out of range " + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(num_temporada_max) + " / SEASON_LIST: " + str(num_episodios_lista))
+                    logger.error("ERROR 07: EPISODES: Season number out of range " + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(num_temporada_max) + " / SEASON_LIST: " + str(num_episodes_lista))
                     item_local.contentSeason = 0
                     itemlist = sorted(itemlist, key=lambda it: (int(it.contentSeason), int(it.contentEpisodeNumber)))
 
@@ -820,11 +820,11 @@ def post_tmdb_episodios(item, itemlist):
         try:
             if num_temporada != item_local.contentSeason:
                 num_temporada = item_local.contentSeason
-                num_episodios = 0
-            if item_local.infoLabels['temporada_num_episodios'] and int(item_local.infoLabels['temporada_num_episodios']) > int(num_episodios):
-                num_episodios = item_local.infoLabels['temporada_num_episodios']
+                num_episodes = 0
+            if item_local.infoLabels['temporada_num_episodes'] and int(item_local.infoLabels['temporada_num_episodes']) > int(num_episodes):
+                num_episodes = item_local.infoLabels['temporada_num_episodes']
         except:
-            num_episodios = 0
+            num_episodes = 0
             logger.error(traceback.format_exc())
 
         # We prepare the video Rating
@@ -861,7 +861,7 @@ def post_tmdb_episodios(item, itemlist):
             item_local.title = '%sx%s al 99 -' % (str(item_local.contentSeason), str(item_local.contentEpisodeNumber))
         if " al " in item_local.title:                  # If they are multiple episodes, we put a series name
             if " al 99" in item_local.title.lower():    # Full season. We are looking for the total number of episodes of the season
-                item_local.title = item_local.title.replace("99", str(num_episodios))
+                item_local.title = item_local.title.replace("99", str(num_episodes))
             item_local.title = '%s %s' % (item_local.title, item_local.contentSerieName)
             item_local.infoLabels['episodio_titulo'] = '%s - %s [%s] [%s]' % (scrapertools.find_single_match(item_local.title, r'(al \d+)'), item_local.contentSerieName, item_local.infoLabels['year'], rating)
 
@@ -887,20 +887,20 @@ def post_tmdb_episodios(item, itemlist):
         item_local.title = item_local.title.replace(".", ",").replace("GB", "G B").replace("Gb", "G b").replace("gb", "g b").replace("MB", "M B").replace("Mb", "M b").replace("mb", "m b")
 
         # If the information of num. total episodes of TMDB is not correct, we try to calculate it
-        if num_episodios < item_local.contentEpisodeNumber:
-            num_episodios = item_local.contentEpisodeNumber
-        if num_episodios > item_local.contentEpisodeNumber:
-            item_local.infoLabels['temporada_num_episodios'] = num_episodios
-            num_episodios_flag = False
-        if num_episodios and not item_local.infoLabels['temporada_num_episodios']:
-            item_local.infoLabels['temporada_num_episodios'] = num_episodios
-            num_episodios_flag = False
+        if num_episodes < item_local.contentEpisodeNumber:
+            num_episodes = item_local.contentEpisodeNumber
+        if num_episodes > item_local.contentEpisodeNumber:
+            item_local.infoLabels['temporada_num_episodes'] = num_episodes
+            num_episodes_flag = False
+        if num_episodes and not item_local.infoLabels['temporada_num_episodes']:
+            item_local.infoLabels['temporada_num_episodes'] = num_episodes
+            num_episodes_flag = False
         try:
-            num_episodios_lista[item_local.contentSeason] = num_episodios
+            num_episodes_lista[item_local.contentSeason] = num_episodes
         except:
             logger.error(traceback.format_exc())
 
-        #logger.debug("title: " + item_local.title + " / url: " + item_local.url + " / calidad: " + item_local.quality + " / Season: " + str(item_local.contentSeason) + " / EpisodeNumber: " + str(item_local.contentEpisodeNumber) + " / num_episodios_lista: " + str(num_episodios_lista) + str(num_episodios_flag))
+        #logger.debug("title: " + item_local.title + " / url: " + item_local.url + " / calidad: " + item_local.quality + " / Season: " + str(item_local.contentSeason) + " / EpisodeNumber: " + str(item_local.contentEpisodeNumber) + " / num_episodes_lista: " + str(num_episodes_lista) + str(num_episodes_flag))
         #logger.debug(item_local)
 
     # If you are updating video library of a NewPct1 series, we restore the channel with the name of the clone
@@ -910,11 +910,11 @@ def post_tmdb_episodios(item, itemlist):
     # After reviewing each episode, we close with the footer
     # First we update all episodes with their maximum number of episodes per season
     try:
-        if not num_episodios_flag:  # If the number of episodes is not reported, we update episodes of the entire series
+        if not num_episodes_flag:  # If the number of episodes is not reported, we update episodes of the entire series
             for item_local in itemlist:
-                item_local.infoLabels['temporada_num_episodios'] = int(num_episodios_lista[item_local.contentSeason])
+                item_local.infoLabels['temporada_num_episodes'] = int(num_episodes_lista[item_local.contentSeason])
     except:
-        logger.error("ERROR 07: EPISODES: Season number out of range" + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(num_temporada_max) + " / SEASON_LIST: " + str(num_episodios_lista))
+        logger.error("ERROR 07: EPISODES: Season number out of range" + " / SEASON: " + str(item_local.contentSeason) + " / " + str(item_local.contentEpisodeNumber) + " / MAX_SEASONS: " + str(num_temporada_max) + " / SEASON_LIST: " + str(num_episodes_lista))
         logger.error(traceback.format_exc())
 
     # We allow the updating of titles, either for immediate use, or to add to the video library
@@ -931,8 +931,8 @@ def post_tmdb_episodios(item, itemlist):
         item_local = itemlist[-2]
         title = ''
 
-        if item_local.infoLabels['temporada_num_episodios']:
-            title += ' [Temp. de %s ep.]' % item_local.infoLabels['temporada_num_episodios']
+        if item_local.infoLabels['temporada_num_episodes']:
+            title += ' [Temp. de %s ep.]' % item_local.infoLabels['temporada_num_episodes']
 
         if item_local.infoLabels['status'] and item_local.infoLabels['status'].lower() == "ended":
             title += ' [TERMINADA]'
@@ -968,7 +968,7 @@ def post_tmdb_episodios(item, itemlist):
                 itemlist.append(item.clone(title="[COLOR yellow]Aadd this Temp. to Video Library-[/COLOR]" + title, action="add_serie_to_library", contentType="season", contentSeason=contentSeason, add_menu=True))
 
         else:   # It is a standard channel, just a line of Add to Video Library
-            itemlist.append(item.clone(title="[COLOR yellow]Add this series to video library-[/COLOR]" + title, action="add_serie_to_library", extra="episodios", add_menu=True))
+            itemlist.append(item.clone(title="[COLOR yellow]Add this series to video library-[/COLOR]" + title, action="add_serie_to_library", extra="episodes", add_menu=True))
 
     # If judicial intervention, I warn !!!
     if item.intervencion:
@@ -1035,9 +1035,9 @@ def post_tmdb_findvideos(item, itemlist):
         del item.library_filter_show
 
     # We save the information of max num. of episodes per season after TMDB
-    num_episodios = item.contentEpisodeNumber
-    if item.infoLabels['temporada_num_episodios'] and item.contentEpisodeNumber <= item.infoLabels['temporada_num_episodios']:
-        num_episodios = item.infoLabels['temporada_num_episodios']
+    num_episodes = item.contentEpisodeNumber
+    if item.infoLabels['temporada_num_episodes'] and item.contentEpisodeNumber <= item.infoLabels['temporada_num_episodes']:
+        num_episodes = item.infoLabels['temporada_num_episodes']
 
     # Get updated video information. In a second TMDB reading it gives more information than in the first
     #if not item.infoLabels['tmdb_id'] or (not item.infoLabels['episodio_titulo'] and item.contentType == 'episode'):
@@ -1050,11 +1050,11 @@ def post_tmdb_findvideos(item, itemlist):
         logger.error(traceback.format_exc())
     # We restore the information of max num. of episodes per season after TMDB
     try:
-        if item.infoLabels['temporada_num_episodios']:
-            if int(num_episodios) > int(item.infoLabels['temporada_num_episodios']):
-                item.infoLabels['temporada_num_episodios'] = num_episodios
+        if item.infoLabels['temporada_num_episodes']:
+            if int(num_episodes) > int(item.infoLabels['temporada_num_episodes']):
+                item.infoLabels['temporada_num_episodes'] = num_episodes
         else:
-            item.infoLabels['temporada_num_episodios'] = num_episodios
+            item.infoLabels['temporada_num_episodes'] = num_episodes
     except:
         logger.error(traceback.format_exc())
 
@@ -1143,8 +1143,8 @@ def post_tmdb_findvideos(item, itemlist):
     title_gen = ''
     if item.contentType == "episode":                   # Series
         title = '%sx%s' % (str(item.contentSeason), str(item.contentEpisodeNumber).zfill(2))    # Season and Episode
-        if item.infoLabels['temporada_num_episodios']:
-            title = '%s (de %s)' % (title, str(item.infoLabels['temporada_num_episodios']))     # Total Episodes
+        if item.infoLabels['temporada_num_episodes']:
+            title = '%s (de %s)' % (title, str(item.infoLabels['temporada_num_episodes']))     # Total Episodes
 
         # If they are multiple episodes, and it comes from Video Library, we put series name
         if (" al " in item.title or " Al " in item.title) and not "al " in item.infoLabels['episodio_titulo']:
@@ -1201,10 +1201,10 @@ def post_tmdb_findvideos(item, itemlist):
     # we added the option to Add to Video Library for movies (no series)
     if (item.contentType == 'movie' or item.contentType == 'season') and item.contentChannel != "videolibrary":
         # We allow the updating of titles, either for immediate use, or to add to the video library
-        itemlist.append(item.clone(title="** [COLOR yelow]Actualizar Títulos - vista previa videoteca[/COLOR] **", action="actualizar_titulos", extra="peliculas", tmdb_stat=False, from_action=item.action, from_title_tmdb=item.title, from_update=True))
+        itemlist.append(item.clone(title="** [COLOR yelow]Actualizar Títulos - vista previa videoteca[/COLOR] **", action="actualizar_titulos", extra="movies", tmdb_stat=False, from_action=item.action, from_title_tmdb=item.title, from_update=True))
 
     if item.contentType == 'movie' and item.contentChannel != "videolibrary":
-        itemlist.append(item.clone(title="**-[COLOR yellow] Añadir a la videoteca [/COLOR]-**", action="add_movie_to_library", extra="peliculas", from_action=item.action, from_title_tmdb=item.title))
+        itemlist.append(item.clone(title="**-[COLOR yellow] Añadir a la videoteca [/COLOR]-**", action="add_movie_to_library", extra="movies", from_action=item.action, from_title_tmdb=item.title))
 
     # We added the option to watch trailers
     if item.contentChannel != "videolibrary":
@@ -1371,7 +1371,7 @@ def fail_over_newpct1(item, patron, patron2=None, timeout=None):
 
         if patron == True and active == '1':                            # we have only been asked to verify the clone
             return (item, data)                                         # we leave, with the same clone, if it is active
-        if (item.action == 'episodios' or item.action == "update_tvshow" or item.action == "get_seasons" or item.action == 'findvideos') and item.contentType not in contentType:          # supports fail_over of this content?
+        if (item.action == 'episodes' or item.action == "update_tvshow" or item.action == "get_seasons" or item.action == 'findvideos') and item.contentType not in contentType:          # supports fail_over of this content?
             logger.error("ERROR 99: " + item.action.upper() + ": Unsupported Action for Channel Fail-Over: " + item.url)
             return (item, data)                         # does not support fail_over of this content, we can not do anything
         break
@@ -1386,7 +1386,7 @@ def fail_over_newpct1(item, patron, patron2=None, timeout=None):
         data_alt = ''
         if channel == channel_failed or active == '0' or item.action in action_excluded or item.extra2 in action_excluded:  # is the new channel valid?
             continue
-        if (item.action == 'episodios' or item.action == "update_tvshow" or item.action == "get_seasons" or item.action == 'findvideos') and item.contentType not in contentType:          # does it support content?
+        if (item.action == 'episodes' or item.action == "update_tvshow" or item.action == "get_seasons" or item.action == 'findvideos') and item.contentType not in contentType:          # does it support content?
             continue
 
         # We make the channel and url name change, keeping the previous ones as ALT
@@ -1405,7 +1405,7 @@ def fail_over_newpct1(item, patron, patron2=None, timeout=None):
         # logger.debug(str(url_alt))
 
         # We remove the series code, because it can vary between websites
-        if item.action == "episodios" or item.action == "get_seasons" or item.action == "update_tvshow":
+        if item.action == "episodes" or item.action == "get_seasons" or item.action == "update_tvshow":
             item.url = re.sub(r'\/\d+\/?$', '', item.url)   # it seems that with the title only finds the series, usually ...
             url_alt = [item.url]    # we save the url for the loop, but for now we ignore the initial with serial code
 
@@ -1446,7 +1446,7 @@ def fail_over_newpct1(item, patron, patron2=None, timeout=None):
 
             # We have managed to read the web, we validate if we find a valid link in this structure
             # Avoid misleading pages that can put the channel in an infinite loop
-            if (not ".com/images/no_imagen.jpg" in data and not ".com/images/imagen-no-disponible.jpg" in data) or item.action != "episodios":
+            if (not ".com/images/no_imagen.jpg" in data and not ".com/images/imagen-no-disponible.jpg" in data) or item.action != "episodes":
                 if patron:
                     data_alt = scrapertools.find_single_match(data, patron)
                     if not data_alt:

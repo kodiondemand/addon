@@ -128,7 +128,7 @@ def registerOrLogin():
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     json = {}
     # debug=True
 
@@ -138,7 +138,7 @@ def peliculas(item):
     elif item.contentType == 'movie':
         action = 'findvideos'
     else:
-        action = 'episodios'
+        action = 'episodes'
 
     if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
         import ast
@@ -160,7 +160,7 @@ def peliculas(item):
             url = '='.join(spl[:-1])
             page = str(int(spl[-1])+1)
             total_pages = json.get('lastPage', 0)
-            support.nextPage(itemlist, item, 'peliculas', next_page='='.join((url, page)), total_pages=total_pages)
+            support.nextPage(itemlist, item, 'movies', next_page='='.join((url, page)), total_pages=total_pages)
             return itemlist
 
     return locals()
@@ -172,7 +172,7 @@ def search(item, texto):
     item.args = 'search'
     item.url = host + "/search?s={}&page=1".format(texto)
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -200,13 +200,13 @@ def genres(item):
         patronBlock = r'ANNO(?P<block>.*?</section>)'
     else:
         patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
-    action = 'peliculas'
+    action = 'movies'
 
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     logger.debug()
     data = item.data
     patron = r'class="playtvshow "\s*data-href="(?P<url>[^"]+)'
@@ -225,7 +225,7 @@ def check(item):
     resolve_url(item)
     if '/tvshow' in item.url:
         item.contentType = 'tvshow'
-        return episodios(item)
+        return episodes(item)
     else:
         item.contentType = 'movie'
         return findvideos(item)

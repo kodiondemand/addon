@@ -38,6 +38,9 @@ from threading import Thread
 
 __version__ = '1.7.0.dev0'
 
+import xbmc
+kodi_monitor = xbmc.Monitor()
+
 major_version = sys.version_info[0]
 if major_version < 3:  # py <= 2.x
     if sys.version_info[1] < 5:  # py <= 2.4
@@ -172,6 +175,7 @@ class SqliteDict(DictClass):
         self.encode = encode
         self.decode = decode
         self.timeout = timeout
+        self.cache = {}
 
         logger.info("opening Sqlite table %r in %r" % (tablename, filename))
         self.conn = self._new_conn()
@@ -234,7 +238,9 @@ class SqliteDict(DictClass):
     def iteritems(self):
         GET_ITEMS = 'SELECT key, value FROM "%s" ORDER BY rowid' % self.tablename
         for key, value in self.conn.select(GET_ITEMS):
-            yield key, self.decode(value)
+            ret = key, self.decode(value)
+            self.cache[key] = ret[1]
+            yield ret
 
     def keys(self):
         return self.iterkeys() if major_version > 2 else list(self.iterkeys())
@@ -250,11 +256,15 @@ class SqliteDict(DictClass):
         return self.conn.select_one(HAS_ITEM, (key,)) is not None
 
     def __getitem__(self, key):
+        if key in self.cache.keys():
+            return self.cache[key]
         GET_ITEM = 'SELECT value FROM "%s" WHERE key = ?' % self.tablename
         item = self.conn.select_one(GET_ITEM, (key,))
         if item is None:
             raise KeyError(key)
-        return self.decode(item[0])
+        ret = self.decode(item[0])
+        self.cache[key] = ret
+        return ret
 
     def __setitem__(self, key, value):
         if self.flag == 'r':
@@ -264,6 +274,7 @@ class SqliteDict(DictClass):
         self.conn.execute(ADD_ITEM, (key, self.encode(value)))
         if self.autocommit:
             self.commit()
+        self.cache[key] = value
 
     def __delitem__(self, key):
         if self.flag == 'r':
@@ -275,6 +286,7 @@ class SqliteDict(DictClass):
         self.conn.execute(DEL_ITEM, (key,))
         if self.autocommit:
             self.commit()
+        del self.cache[key]
 
     def update(self, items=(), **kwds):
         if self.flag == 'r':
@@ -292,6 +304,7 @@ class SqliteDict(DictClass):
             self.update(kwds)
         if self.autocommit:
             self.commit()
+        self.cache.update(items)
 
     def __iter__(self):
         return self.iterkeys()
@@ -305,6 +318,7 @@ class SqliteDict(DictClass):
         self.conn.commit()
         self.conn.execute(CLEAR_ALL)
         self.conn.commit()
+        self.cache = {}
 
     @staticmethod
     def get_tablenames(filename):
@@ -403,6 +417,7 @@ class SqliteMultithread(Thread):
         self.log = logging.getLogger('sqlitedict.SqliteMultithread')
         self.start()
 
+
     def run(self):
         try:
             if self.autocommit:
@@ -428,7 +443,7 @@ class SqliteMultithread(Thread):
         self._sqlitedict_thread_initialized = True
 
         res = None
-        while True:
+        while not kodi_monitor.abortRequested():
             req, arg, res, outer_stack = self.reqs.get()
             if req == '--close--':
                 assert res, ('--close-- without return queue', res)

@@ -190,7 +190,7 @@ def filterchannels(category, view="thumb_"):
         if category in ['movie', 'tvshow']:
             ch_list = []
             titles = [config.get_localized_string(70028), config.get_localized_string(30985), config.get_localized_string(70559), config.get_localized_string(60264), config.get_localized_string(70560)]
-            ids = ['popular', 'top_rated', 'now_playing', 'on_air']
+            ids = ['popular', 'top_rated', 'now_playing', 'on_the_air']
             for x in range(0,3):
                 if x == 2 and category != 'movie':
                     title=titles[x+1] + '{tv}'
@@ -199,11 +199,11 @@ def filterchannels(category, view="thumb_"):
                     title=titles[x]  + '{movie}'
                     id = ids[x]
                 ch_list.insert(x,
-                    Item(channel='search', action='discover_list', title=title, search_type='list',
+                    Item(channel='classicsearch', action='discover_list', title=title, search_type='list',
                          list_type='%s/%s' % (category.replace('show',''), id), mode=category))
 
 
-            ch_list.insert(3, Item(channel='search', action='genres_menu', title=config.get_localized_string(30987) + '{' + category.replace('show','') + '}',
+            ch_list.insert(3, Item(channel='classicsearch', action='genres_menu', title=config.get_localized_string(30987) + '{' + category.replace('show','') + '}',
                                         type=category.replace('show',''), mode=category))
             channelslist = thumb(ch_list) + channelslist
 

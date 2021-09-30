@@ -22,7 +22,7 @@ list_language = IDIOMAS.values()
 def mainlist(item):
     itemlist = []
     tvshowSub = [
-        ('Novità {bold}',[ '', 'peliculas_tv', '', 'tvshow']),
+        ('Novità {bold}',[ '', 'movies_tv', '', 'tvshow']),
         ('Serie TV {bold}',[ '', 'lista_serie', '', 'tvshow']),
         ('Per Lettera', ['', 'list_az', 'serie', 'tvshow'])
     ]
@@ -110,7 +110,7 @@ def lista_serie(item):
         if i >= p * PERPAGE: break
         title = cleantitle(scrapedtitle)
         itemlist.append(
-            item.clone(action="episodios",
+            item.clone(action="episodes",
                        title=title,
                        url=scrapedurl,
                        thumbnail=scrapedthumbnail,
@@ -134,7 +134,7 @@ def lista_serie(item):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-def episodios(item, itemlist=[]):
+def episodes(item, itemlist=[]):
     logger.debug()
     patron = r'<div class="post-meta">\s*<a href="([^"]+)"\s*title="([^"]+)"\s*class=".*?"></a>.*?'
     patron += r'<p><a href="([^"]+)">'
@@ -198,7 +198,7 @@ def episodios(item, itemlist=[]):
     next_page = scrapertools.find_single_match(data, patron)
     if next_page != "":
         item.url = next_page
-        itemlist = episodios(item, itemlist)
+        itemlist = episodes(item, itemlist)
     else:
         item.url = item.originalUrl
         support.videolibrary(itemlist, item, 'bold color kod')
@@ -209,7 +209,7 @@ def episodios(item, itemlist=[]):
 # ================================================================================================================
 
 # ----------------------------------------------------------------------------------------------------------------
-def peliculas_tv(item):
+def movies_tv(item):
     logger.debug()
     itemlist = []
 
@@ -262,16 +262,16 @@ def peliculas_tv(item):
 
 
 # ----------------------------------------------------------------------------------------------------------------
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
     item.url = host
     item.extra = 'serie'
     try:
-        if categoria == "series":
-            itemlist = peliculas_tv(item)
-            if itemlist[-1].action == 'peliculas_tv':
+        if category == 'tvshow':
+            itemlist = movies_tv(item)
+            if itemlist[-1].action == 'movies_tv':
                 itemlist.pop(-1)
 
     except:
@@ -298,7 +298,7 @@ def search(item, texto):
                 scrapedplot = ""
                 title = cleantitle(scrapedtitle)
                 itemlist.append(
-                    item.clone(action="episodios",
+                    item.clone(action="episodes",
                             title=title,
                             url=scrapedurl,
                             thumbnail=scrapedthumbnail,

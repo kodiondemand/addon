@@ -20,7 +20,7 @@ def mainlist(item):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     # debug = True
     if item.args == 'alternative':
         pagination = True
@@ -33,7 +33,7 @@ def peliculas(item):
 
 @support.scrape
 def genre(item):
-    action = 'peliculas'
+    action = 'movies'
     blacklist =['prova ']
     patronGenreMenu = r'<a href="(?P<url>[^"]+)" class="menu-link\s*sub-menu-link">(?P<title>[^<]+)<'
     def itemHook(item):
@@ -47,7 +47,7 @@ def search(item, text):
     logger.debug(text)
     item.url = host + '/?s=' + text
     try:
-        return peliculas(item)
+        return movies(item)
     # Cattura la eccezione così non interrompe la ricerca globle se il canale si rompe!
     except:
         import sys

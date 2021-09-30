@@ -14,7 +14,7 @@ headers = {'Referer': host}
 def mainlist(item):
 
     film = ['/lista-film',
-            ('Ultimi Film Aggiunti', ['/ultimi-film-aggiunti', 'peliculas' , 'last'])]
+            ('Ultimi Film Aggiunti', ['/ultimi-film-aggiunti', 'movies' , 'last'])]
 
     tvshow = ['/lista-serie-tv',
               ('HD {TV}', ['/lista-serie-tv-in-altadefinizione']),
@@ -23,7 +23,7 @@ def mainlist(item):
 
     anime = ['/lista-cartoni-animati-e-anime']
 
-    docu = [('Documentari {bullet bold}',['/lista-documentari', 'peliculas', '', 'tvshow'])]
+    docu = [('Documentari {bullet bold}',['/lista-documentari', 'movies', '', 'tvshow'])]
 
     search = ''
 
@@ -35,11 +35,11 @@ def search(item, text):
     if item.contentType == 'movie' or item.extra == 'movie':
         action = 'findvideos'
     else:
-        action = 'episodios'
+        action = 'episodes'
     item.args = 'search'
     item.url = host + "?a=b&s=" + text
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore .
     except:
         import sys
@@ -48,19 +48,19 @@ def search(item, text):
         return []
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     item = support.Item()
     try:
-        if categoria == "series":
+        if category == 'tvshow':
             item.contentType= 'tvshow'
             item.url = host + '/ultimi-episodi-aggiunti'
             item.args = "lastep"
-        if categoria == "peliculas":
+        if category == "movie":
             item.contentType= 'movie'
             item.url = host + '/ultimi-film-aggiunti'
             item.args = "last"
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -70,7 +70,7 @@ def newest(categoria):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     pagination = True
     numerationEnabled = True
     patronNext = r'href="([^"]+)" title="[^"]+" class="lcp_nextlink"'
@@ -83,7 +83,7 @@ def peliculas(item):
         patronBlock = r'<table>(?P<block>.*?)</table>'
         patron = r'<td>\s*<a href="[^>]+>(?P<title>.*?)(?:\s(?P<year>\d{4}))?\s(?:(?P<episode>(?:\d+x\d+|\d+)))\s*(?P<title2>[^<]+)(?P<url>.*?)<tr>'
     elif item.args == 'search':
-        patronBlock = r'<div class="peliculas">(?P<block>.*?)<div id="paginador"'
+        patronBlock = r'<div class="movies">(?P<block>.*?)<div id="paginador"'
         patron = r'class="item">\s*<a href="(?P<url>[^"]+)">\s*<div class="image">\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.+?)(?:"| \d{4}).*?<span class="ttx">(?P<plot>[^<]+)<div class="degradado">[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?:<span class="imdbs">(?P<rating>[^<]+))?(?:[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<year>\d+))?'
         def itemHook(item):
             if '/film/' in item.url:
@@ -91,19 +91,19 @@ def peliculas(item):
                 item.action = 'findvideos'
             else:
                 item.contentType = 'tvshow'
-                item.action = 'episodios'
+                item.action = 'episodes'
             return item
     else:
         patronBlock = r'<div class="entry-content pagess">(?P<block>.*?)</ul>'
         patron = r'<li\s*><a href="(?P<url>[^"]+)" title="(?P<title>.*?)(?:\s(?P<year>\d{4}))?"[^>]*>'
     if item.contentType == 'tvshow':
-        action = 'episodios'
+        action = 'episodes'
         numerationEnabled = True
     return locals()
 
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     numerationEnabled = True
     pagination = True
     patronBlock = r'<table>(?P<block>.*?)</table>'

@@ -46,16 +46,16 @@ def search(item, text):
 def genre(item):
     patronMenu = '<a href="(?P<url>[^"#]+)">(?P<title>[a-zA-Z]+)'
     patronBlock='<a href="#">Genere</a><ul class="sub-menu">(?P<block>.*?)</ul>'
-    action='peliculas'
+    action='movies'
 
     return locals()
 
 
-def peliculas(item):
-    return support.dooplay_peliculas(item, True if "/genere/" in item.url else False)
+def movies(item):
+    return support.dooplay_movies(item, True if "/genere/" in item.url else False)
 
 
-def episodios(item):
+def episodes(item):
     return support.dooplay_get_episodes(item)
 
 

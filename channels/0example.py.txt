@@ -80,14 +80,14 @@ def mainlist(item):
     # Voce FILM, puoi solo impostare l'url
     film = ['', # url per la voce FILM, se possibile la pagina principale con le ultime novità
         #Voce Menu,['url','action','args',contentType]
-        ('Al Cinema', ['', 'peliculas', '']),
+        ('Al Cinema', ['', 'movies', '']),
         ('Generi', ['', 'genres', 'genres']),
         ('Per Lettera', ['', 'genres', 'letters']),
         ('Anni', ['', 'genres', 'years']),
         ('Qualità', ['', 'genres', 'quality']),
         ('Mi sento fortunato', ['', 'genres', 'lucky']),
-        ('Popolari', ['', 'peliculas', '']),
-        ('Sub-ITA', ['', 'peliculas', ''])
+        ('Popolari', ['', 'movies', '']),
+        ('Sub-ITA', ['', 'movies', ''])
         ]
 
     # Voce SERIE, puoi solo impostare l'url
@@ -144,7 +144,7 @@ def mainlist(item):
 # lang = lingua del video. Es: ITA, Sub-ITA, Sub, SUB ITA.
 # AVVERTENZE: Se il titolo è trovato nella ricerca TMDB/TVDB/Altro allora le locandine e altre info non saranno quelle recuperate nel sito.!!!!
 @support.scrape
-def peliculas(item):
+def movies(item):
     #logger.dbg() # decommentare per attivare web_pdb
 
     action = ''
@@ -158,7 +158,7 @@ def peliculas(item):
     return locals()
 
 @support.scrape
-def episodios(item):
+def episodes(item):
     #logger.dbg()
 
     action = ''
@@ -192,7 +192,7 @@ def genres(item):
 
 # per quei casi dove il sito non differenzia film e/o serie e/o anime
 # e la ricerca porta i titoli mischiati senza poterli distinguere tra loro
-# andranno modificate anche le def peliculas e episodios ove occorre
+# andranno modificate anche le def movies e episodes ove occorre
 def select(item):
     logger.debug()
     #logger.dbg()
@@ -203,7 +203,7 @@ def select(item):
     block = scrapertools.find_single_match(data, r'')
     if re.findall('', data, re.IGNORECASE):
         logger.debug('select = ### è una serie ###')
-        return episodios(Item(channel=item.channel,
+        return episodes(Item(channel=item.channel,
                               title=item.title,
                               fulltitle=item.fulltitle,
                               url=item.url,
@@ -223,7 +223,7 @@ def search(item, text):
     # se il canale è solo film, si può omettere, altrimenti bisgona aggiungerlo e discriminare.
     item.contentType = item.contentType
     try:
-        return peliculas(item)
+        return movies(item)
     # Se captura la excepcion, para no interrumpir al buscador global si un canal falla
     except:
         import sys
@@ -235,17 +235,17 @@ def search(item, text):
 # da adattare al canale
 # inserire newest solo se il sito ha la pagina con le ultime novità/aggiunte
 # altrimenti NON inserirlo
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = Item()
     try:
-        if categoria == 'peliculas':
+        if category == 'movie':
             item.url = host
-            item.action = 'peliculas'
-            itemlist = peliculas(item)
+            item.action = 'movies'
+            itemlist = movies(item)
 
-            if itemlist[-1].action == 'peliculas':
+            if itemlist[-1].action == 'movies':
                 itemlist.pop()
     # Continua la ricerca in caso di errore
     except:

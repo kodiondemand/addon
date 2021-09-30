@@ -13,20 +13,20 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
     anime = ['/lista-anime/',
-             ('In Corso',['/anime/anime-status/in-corso/', 'peliculas', 'status']),
-             ('Completi',['/anime/anime-status/completo/', 'peliculas', 'status']),
+             ('In Corso',['/anime/anime-status/in-corso/', 'movies', 'status']),
+             ('Completi',['/anime/anime-status/completo/', 'movies', 'status']),
              ('Genere',['/anime', 'submenu', 'genre']),
              ('Anno',['/anime', 'submenu', 'anime-year']),
              ('Tipologia',['/anime', 'submenu', 'anime-type']),
              ('Stagione',['/anime', 'submenu', 'anime-season']),
-             ('Ultime Serie',['/category/anime/articoli-principali/','peliculas','last'])
+             ('Ultime Serie',['/category/anime/articoli-principali/','movies','last'])
             ]
     return locals()
 
 
 @support.scrape
 def submenu(item):
-    action = 'peliculas'
+    action = 'movies'
     patronBlock = r'data-taxonomy="' + item.args + r'"(?P<block>.*?)</select'
     patronMenu = r'<option class="level-\d+ (?P<u>[^"]+)"[^>]+>(?P<title>[^(]+)[^\(]+\((?P<num>\d+)'
     if 'genre' in item.args:
@@ -38,16 +38,16 @@ def submenu(item):
     return locals()
 
 
-def newest(categoria):
-    logger.debug(categoria)
+def newest(category):
+    logger.debug(category)
     itemlist = []
     item = support.Item()
     try:
-        if categoria == "anime":
+        if category == "anime":
             item.contentType = 'tvshow'
             item.url = host
             item.args = 'newest'
-            return peliculas(item)
+            return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -63,7 +63,7 @@ def search(item, text):
     item.url = host + '/lista-anime/'
     item.contentType = 'tvshow'
     try:
-        return peliculas(item)
+        return movies(item)
     # Continua la ricerca in caso di errore
     except:
         import sys
@@ -73,7 +73,7 @@ def search(item, text):
 
 
 @support.scrape
-def peliculas(item):
+def movies(item):
     search = item.search
     numerationEnabled = True
     if 'movie' in item.url:
@@ -104,12 +104,12 @@ def check(item):
         item.contentType = 'movie'
         return findvideos(item)
     else:
-        return episodios(item)
+        return episodes(item)
 
-def episodios(item):
+def episodes(item):
     @support.scrape
     def _episodes(item):
-        actLike = 'episodios'
+        actLike = 'episodes'
         disableAll = True
         data = item.data
 
@@ -135,7 +135,7 @@ def episodios(item):
 
     from platformcode.autorenumber import start
     start(itemlist, item)
-    itemlist = support.season_pagination(itemlist, item, function_level='episodios')
+    itemlist = support.season_pagination(itemlist, item, function_level='episodes')
     return itemlist
 
 
