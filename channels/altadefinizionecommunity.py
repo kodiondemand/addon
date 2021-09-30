@@ -8,12 +8,13 @@ from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
 
-# def findhost(url):
-#     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
+def findhost(url):
+    global register_url
+    register_url = url
+    return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 
+host = config.get_channel_url(findhost)
 
-host = config.get_channel_url()
-register_url = 'https://altaregistrazione.net'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 order = ['', 'i_piu_visti', 'i_piu_votati', 'i_piu_votati_dellultimo_mese', 'titolo_az', 'voto_imdb_piu_alto'][config.get_setting('order', 'altadefinizionecommunity')]
 
@@ -143,18 +144,21 @@ def peliculas(item):
     else:
         action = 'episodios'
     if not item.page: item.page = 1
-    if item.args == 'search':
-        page = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True)
-        if page.json:
-            data = "\n".join(page.json['data'])
+    try:
+        if item.args == 'search':
+            page = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True)
+            if page.json:
+                data = "\n".join(page.json['data'])
+            else:
+                data = page.data
         else:
-            data = page.data
-    else:
-        params['page'] = item.page
+            params['page'] = item.page
 
-        url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
-        json = support.httptools.downloadpage(url, headers=headers, cloudscraper=True).json
-        data = "\n".join(json['data'])
+            url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
+            json = support.httptools.downloadpage(url, headers=headers, cloudscraper=True).json
+            data = "\n".join(json['data'])
+    except:
+        data = ' '
 
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # paginazione
