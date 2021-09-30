@@ -378,28 +378,29 @@ def render_items(itemlist, parent_item):
 
     set_view_mode(itemlist[0], parent_item)
 
-    xbmcplugin.endOfDirectory(_handle)
+    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=False)
     logger.debug('END render_items')
 
 
 def viewmodeMonitor():
-    try:
-        currentModeName = xbmc.getInfoLabel('Container.Viewmode')
-        win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-        currentMode = int(win.getFocusId())
-        if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
-            content, Type = getCurrentView()
-            if content:
-                defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
-                if currentMode != defaultMode:
-                    logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                    config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
-                    dialog_notification(config.get_localized_string(70153),
-                                                      config.get_localized_string(70187) % (content, currentModeName),
-                                                      sound=False)
-    except:
-        import traceback
-        logger.error(traceback.print_exc())
+    if get_window() == 'WINDOW_VIDEO_NAV':
+        try:
+            currentModeName = xbmc.getInfoLabel('Container.Viewmode')
+            win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+            currentMode = int(win.getFocusId())
+            if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
+                content, Type = getCurrentView()
+                if content:
+                    defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
+                    if currentMode != defaultMode:
+                        logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
+                        config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                        dialog_notification(config.get_localized_string(70153),
+                                                        config.get_localized_string(70187) % (content, currentModeName),
+                                                        sound=False)
+        except:
+            import traceback
+            logger.error(traceback.print_exc())
 
 
 def getCurrentView(item=None, parent_item=None):
@@ -437,13 +438,19 @@ def getCurrentView(item=None, parent_item=None):
     elif parent_item.action in ['episodios', 'get_episodes'] or item.contentType == 'episode':
         return 'episode', 'tvshows'
 
+    elif parent_item.action in ['getmainlist', '']:
+        return 'home', 'addons'
+
+    elif parent_item.action in ['filterchannels']:
+        return 'channels', 'addons'
+
     else:
         return 'menu', 'addons' if config.get_setting('touch_view') else ''
 
 
 def set_view_mode(item, parent_item):
     def reset_view_mode():
-        for mode in ['menu','channel','movie','tvshow','season','episode','server']:
+        for mode in ['home','menu','channels','channel','movie','tvshow','season','episode','server']:
             config.set_setting('skin_name', xbmc.getSkinDir())
             config.set_setting('view_mode_%s' % mode, config.get_localized_string(70003) + ' , 0')
 
