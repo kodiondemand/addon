@@ -130,9 +130,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         page = httptools.downloadpage(page_url)
         data = page.data
 
-    logger.debug(data)
+    # logger.debug(data)
     from lib import jsunpack_js2py
-    unpacked = jsunpack_js2py.unpack(scrapertools.find_single_match(data, '<script type="text/javascript">\n*\s*\n*(eval.*)'))
+    unpacked = jsunpack_js2py.unpack(scrapertools.find_single_match(data, '(eval.*?)</'))
     # p,a,c,k,e,d data -> xhr.setRequestHeader
     secureProof = scrapertools.find_single_match(unpacked, """X-Secure-Proof['"]\s*,\s*['"]([^"']+)""")
     logger.debug('X-Secure-Proof=' + secureProof)

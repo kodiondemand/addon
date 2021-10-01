@@ -49,7 +49,7 @@ def mainlist(item):
 def login():
     r = support.httptools.downloadpage(host, cloudscraper=True)
     Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)', cloudscraper=True).match
-    if 'id="logged"' in r.text:
+    if 'id="logged"' in r.data:
         logger.info('Già loggato')
     else:
         logger.info('Login in corso')
@@ -59,11 +59,11 @@ def login():
                 'password':config.get_setting('password', channel='altadefinizionecommunity')}
 
         r = support.httptools.downloadpage(host + '/login', post=post, headers={'referer': host}, cloudscraper=True)
-        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.text:
+        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.data:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
 
-    return 'id="logged"' in r.text
+    return 'id="logged"' in r.data
 
 
 def registerOrLogin():
@@ -259,6 +259,7 @@ def play(item):
 
 
 def resolve_url(item):
+    registerOrLogin()
     if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
         playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
         video_url = playWindow.match

@@ -21,7 +21,7 @@ def test_video_exists(page_url):
     page = httptools.downloadpage(page_url, headers=referer)
     data = page.data
 
-    if "Video not found" in data or page.code >= 400:
+    if "Video not found" in data or page.code >= 400 or 'Streamtape - Error' in data:
         return False, config.get_localized_string(70449) % 'Streamtape'
 
     return True, ""
