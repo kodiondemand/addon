@@ -420,11 +420,13 @@ def getCurrentView(item=None, parent_item=None):
         item = Item().fromurl(info) if info else Item()
     parent_actions = ['peliculas', 'novedades', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
 
+    addons = 'addons' if config.get_setting('touch_view') else ''
+
     if parent_item.action == 'findvideos' or (parent_item.action in ['channel_search', 'new_search'] and parent_item.infoLabels['tmdb_id']):
-        return 'server', 'addons' if config.get_setting('touch_view') else ''
+        return 'server', addons
 
     elif parent_item.action == 'mainlist':
-        return 'channel', 'addons' if config.get_setting('touch_view') else ''
+        return 'channel', addons
 
     elif (item.contentType in ['movie'] and parent_item.action in parent_actions) \
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_movies']) \
@@ -443,13 +445,13 @@ def getCurrentView(item=None, parent_item=None):
         return 'episode', 'tvshows'
 
     elif parent_item.action in ['getmainlist', '']:
-        return 'home', 'addons'
+        return 'home', addons
 
     elif parent_item.action in ['filterchannels']:
-        return 'channels', 'addons'
+        return 'channels', addons
 
     else:
-        return 'menu', 'addons' if config.get_setting('touch_view') else ''
+        return 'menu', addons
 
 
 def set_view_mode(item, parent_item):
