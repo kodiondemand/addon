@@ -13,7 +13,6 @@ if sys.version_info[0] >= 3:
 else:
     from concurrent_py2 import futures
 
-progress = None
 mode = config.get_setting('result_mode', 'news')
 
 def mainlist(item):
@@ -77,22 +76,27 @@ def news(item):
 
     else:
         itemlist = []
-        results = cache()
+        results = cache(item.extra)
         if not results:
-
-            global progress
             progress = platformtools.dialog_progress(item.category, config.get_localized_string(60519))
             channels = get_channels(item.extra)
 
+            channelNames = [c[0] for c in channels]
+            count = 0
+            progress.update(int(count / len(channels)), ', '.join(c for c in channelNames))
+
             with futures.ThreadPoolExecutor() as executor:
-                itlist = [executor.submit(get_newest, i, channel, item.extra, len(channels)) for i, channel in enumerate(channels)]
+                itlist = [executor.submit(get_newest, channel, item.extra, channels) for channel in channels]
                 for res in futures.as_completed(itlist):
                     if res.result():
+                        name = res.result()[0]
+                        channelNames.remove(name)
+                        progress.update(int(count + 1 / len(channels)), ', '.join(c for c in channelNames))
                         results.append(res.result())
             if progress:
                 progress.close()
 
-            cache(results)
+            cache(item.extra, results)
 
         if mode in [2]:
             for res in results:
@@ -136,23 +140,23 @@ def news(item):
     return itemlist
 
 
-def get_newest(i, channel, category, total):
+def get_newest(channel, category, channels):
     global progress
-    cat = {'movie':'movies', 'tvshow':'shows', 'anime':'anime'}
     name = channel[0]
     _id = channel[1]
-
-    module = platformtools.channel_import(_id)
-    logger.debug('channel_id=', _id, 'category=', category)
-    if progress: progress.update(int(i + 1 / total), name)
     list_newest = []
     try:
+        module = platformtools.channel_import(_id)
+        logger.debug('channel_id=', _id, 'category=', category)
+
         if not module:
             return []
 
         list_newest = module.newest(category)
         for item in list_newest:
             item.channel = _id
+
+
 
     except:
         logger.error("No se pueden recuperar novedades de: " + name)
@@ -168,20 +172,22 @@ def movies(item):
     return itemlist
 
 
-def cache(results=None):
+def cache(_type, results=None):
     from core import db
     from time import time
     news = db['news']
+    # logger.dbg()
 
     if results != None:
-        news['time'] = time()
-        news['results'] = results
+        news[_type] = {}
+        news[_type]['time'] = time()
+        news[_type]['results'] = results
         db['news'] = news
 
-    elif news.get('time', 0) + 60 < time() :
+    elif news.get(_type, {}).get('time', 0) + 60 < time() :
         results = []
     else:
-        results = news.get('results', [])
+        results = news.get(_type, {}).get('results', [])
     db.close()
     return results
 
@@ -240,7 +246,7 @@ def setting_channel(item):
 
 
 def save_settings(item, dict_values):
-    cache([])
+    cache({})
     for v in dict_values:
         config.set_setting("include_in_newest_" + item.extra, dict_values[v], v)
 
