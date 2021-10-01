@@ -106,7 +106,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global page, data
     page_url = page_url.replace('?', '')
     logger.debug("url=" + page_url)
-    logger.dbg()
 
     if 'unconfirmed' in page.url:
         id = page_url.split('/')[-1]
@@ -131,7 +130,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         page = httptools.downloadpage(page_url)
         data = page.data
 
-    logger.debug(data)
+    # logger.debug(data)
     from lib import jsunpack_js2py
     unpacked = jsunpack_js2py.unpack(scrapertools.find_single_match(data, '(eval.*?)</'))
     # p,a,c,k,e,d data -> xhr.setRequestHeader
