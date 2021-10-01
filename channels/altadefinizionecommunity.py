@@ -9,11 +9,13 @@ from core import scrapertools, httptools
 
 
 def findhost(url):
+    global register_url
+    register_url = url
     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 
 
 host = config.get_channel_url(findhost)
-register_url = 'https://altaregistrazione.com'
+# register_url = 'https://altaregistrazione.com'
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 
 
@@ -44,7 +46,7 @@ def mainlist(item):
 def login():
     r = support.httptools.downloadpage(host, cloudscraper=True)
     Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)', cloudscraper=True).match
-    if 'id="logged"' in r.text:
+    if 'id="logged"' in r.data:
         logger.info('Già loggato')
     else:
         logger.info('Login in corso')
@@ -54,11 +56,11 @@ def login():
                 'password':config.get_setting('password', channel='altadefinizionecommunity')}
 
         r = support.httptools.downloadpage(host + '/login', post=post, headers={'referer': host}, cloudscraper=True)
-        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.text:
+        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.data:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
 
-    return 'id="logged"' in r.text
+    return 'id="logged"' in r.data
 
 
 def registerOrLogin():
@@ -139,17 +141,20 @@ def movies(item):
         action = 'findvideos'
     else:
         action = 'episodes'
+    try:
+        if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
+            import ast
+            ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)', cloudscraper=True).match
+            item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
+        if not '/search' in item.url:
+            json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
+            data = "\n".join(json['data'])
+        else:
+            json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
+            data = "\n".join(json['data'])
+    except:
+        data = ' '
 
-    if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
-        import ast
-        ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)', cloudscraper=True).match
-        item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
-    if not '/search' in item.url:
-        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-        data = "\n".join(json['data'])
-    else:
-        json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-        data = "\n".join(json['data'])
     patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>(?P<rating>[^<]+)</span>\s*<span class="qual">(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumbnail>[^"]+)(?:[^>]+>){1,6}\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
@@ -233,6 +238,7 @@ def check(item):
 
 def findvideos(item):
     itemlist = []
+    # logger.dbg()
     resolve_url(item)
 
     itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
@@ -252,8 +258,11 @@ def play(item):
 
 
 def resolve_url(item):
+    registerOrLogin()
     if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
-        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
+        data = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).data
+        logger.debug()
+        playWindow = support.match(data, patron='playWindow" href="([^"]+)')
         video_url = playWindow.match
         item.data = playWindow.data
         item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
