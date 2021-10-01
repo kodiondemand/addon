@@ -378,7 +378,11 @@ def render_items(itemlist, parent_item):
 
     set_view_mode(itemlist[0], parent_item)
 
-    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=False)
+    cacheToDisc = False
+    if (parent_item.action == 'findvideos' and config.get_setting('autoplay')) or parent_item.action == 'search':
+        cacheToDisc = True
+
+    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=cacheToDisc)
     logger.debug('END render_items')
 
 
