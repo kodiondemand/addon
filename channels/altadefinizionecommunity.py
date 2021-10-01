@@ -24,26 +24,153 @@ def mainlist(item):
     logger.debug(item)
 
     film = ['/type/movie',
-        # Voce Menu,['url','action','args',contentType]
-        ('Generi', ['/type/movie', 'genres', 'genres']),
-        ('Anni', ['/type/movie', 'genres', 'year']),
-        # ('Qualità', ['', 'genres', 'quality']),
-        ]
+            ('Generi', ['/type/movie', 'genres', 'genres']),
+            ('Anni', ['/type/movie', 'genres', 'year']),]
 
     tvshow = ['/serie-tv/tvshow',
-        # Voce Menu,['url','action','args',contentType]
-        ('Generi', ['/serie-tv/tvshow', 'genres', 'genres']),
-        ('Anni', ['/serie-tv/tvshow', 'genres', 'year']),
-        # ('Qualità', ['', 'genres', 'quality']),
-        ]
-
-    # altri = [
-    #     # ('A-Z', ['/lista-film', 'genres', 'letters']),
-    #     ('Qualità', ['', 'genres', 'quality']),
-    #     ('Anni', ['/anno', 'genres', 'years'])
-    # ]
+              ('Generi', ['/serie-tv/tvshow', 'genres', 'genres']),
+              ('Anni', ['/serie-tv/tvshow', 'genres', 'year'])]
 
     return locals()
+
+
+def search(item, text):
+    logger.debug("search ", text)
+
+    item.args = 'search'
+    item.url = host + "/search?s={}&f={}&page=1".format(text, item.contentType)
+    try:
+        return peliculas(item)
+
+    # Continua la ricerca in caso di errore
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.logger.error("%s" % line)
+        return []
+
+
+@support.scrape
+def genres(item):
+    logger.debug(item)
+    data = support.httptools.downloadpage(item.url).data
+    blacklist= ['Film', 'Serie TV']
+
+    if item.args == 'genres':
+        categories ={}
+        res = support.match(host + '/cerca', patron=r'for="cat-(\d+)[^>]+>([^<]+)').matches
+        for _id, name in res:
+            categories[name] = _id
+
+        patronBlock = r'{}<span></span>(?P<block>.*?)</ul>\s*</li'.format('Film' if item.contentType == 'movie' else 'Serie TV')
+        patronMenu = r'<a href="[^"]+">(?P<title>[^<]+)'
+
+        def itemHook(it):
+            it.cat_id = categories[it.fulltitle]
+            return it
+
+    if item.args == 'year':
+        patron = r'value="(?P<year_id>[^"]+)"[^>]*>(?P<title>\d+)'
+        patronBlock = r'Anno</option>(?P<block>.*?</select>)'
+
+    elif item.args == 'quality':
+        patronMenu = r'quality/(?P<quality_id>[^"]+)">(?P<title>[^<]+)'
+        patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
+
+    action = 'peliculas'
+    return locals()
+
+
+@support.scrape
+def peliculas(item):
+    item.quality = 'HD'
+    json = {}
+    params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'cat':item.cat_id, 'order':order}
+
+
+    if item.contentType == 'movie':
+        action = 'findvideos'
+    else:
+        action = 'episodios'
+    if not item.page: item.page = 1
+    try:
+        # support.dbg()
+        if item.args in ['search']:
+            page = support.httptools.downloadpage(item.url, headers=headers)
+            if page.json:
+                data = "\n".join(page.json['data'])
+            else:
+                data = page.data
+        else:
+            params['page'] = item.page
+
+            url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
+            json = support.httptools.downloadpage(url, headers=headers).json
+            data = "\n".join(json['data'])
+    except:
+        data = ' '
+
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){2}(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+
+    # paginazione
+    if json.get('have_next') or 'have_next_film=true' in data:
+        def fullItemlistHook(itemlist):
+            cat_id = support.match(data, patron=r''''cat':"(\d+)"''').match
+            if cat_id: item.cat_id = cat_id
+            item.page += 1
+            support.nextPage(itemlist, item, function_or_level='peliculas')
+            return itemlist
+
+    return locals()
+
+
+@support.scrape
+def episodios(item):
+    logger.debug(item)
+    # debug = True
+    data = item.data
+    patron = r'class="playtvshow "\s+data-href="(?P<url>[^"]+)'
+
+    def itemHook(it):
+        spl = it.url.split('/')[-2:]
+        it.infoLabels['season'] = int(spl[0])+1
+        it.infoLabels['episode'] = int(spl[1])+1
+        it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
+        it.title = '{}x{:02d} - {}'.format(it.contentSeason, it.contentEpisodeNumber, it.fulltitle)
+        return it
+
+    return locals()
+
+
+def findvideos(item):
+    itemlist = []
+    resolve_url(item)
+
+    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
+
+    return support.server(item, itemlist=itemlist)
+
+
+def play(item):
+    if host in item.url:  # intercetto il server proprietario
+        if registerOrLogin():
+            return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
+        else:
+            platformtools.play_canceled = True
+            return []
+    else:
+        return [item]
+
+
+def resolve_url(item):
+    registerOrLogin()
+    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
+        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
+        video_url = playWindow.match
+        item.data = playWindow.data
+        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
+    return item
 
 
 def login():
@@ -130,139 +257,3 @@ def registerOrLogin():
         return False
 
     return True
-
-
-@support.scrape
-def peliculas(item):
-    json = {}
-    params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'order':order}
-
-    # if item.contentType == 'undefined':
-    #     action = 'check'
-    if item.contentType == 'movie':
-        action = 'findvideos'
-    else:
-        action = 'episodios'
-    if not item.page: item.page = 1
-    try:
-        if item.args == 'search':
-            page = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True)
-            if page.json:
-                data = "\n".join(page.json['data'])
-            else:
-                data = page.data
-        else:
-            params['page'] = item.page
-
-            url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
-            json = support.httptools.downloadpage(url, headers=headers, cloudscraper=True).json
-            data = "\n".join(json['data'])
-    except:
-        data = ' '
-
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*(?:<span[^>]+>[^<]+</span>)?\s*<span class="qual">(?P<quality>[^<]+).*?<img src="(?P<thumbnail>[^"]+)[^>]+>.*?<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
-    # paginazione
-    if json.get('have_next'):
-        def fullItemlistHook(itemlist):
-            item.page += 1
-            support.nextPage(itemlist, item, function_or_level='peliculas')
-            return itemlist
-
-    return locals()
-
-
-def search(item, texto):
-    logger.debug("search ", texto)
-
-    item.args = 'search'
-    item.url = host + "/search?s={}&f={}&page=1".format(texto, item.contentType)
-    try:
-        return peliculas(item)
-    # Continua la ricerca in caso di errore
-    except:
-        import sys
-        for line in sys.exc_info():
-            support.logger.error("%s" % line)
-        return []
-
-
-@support.scrape
-def genres(item):
-    logger.debug(item)
-    data = support.httptools.downloadpage(item.url, cloudscraper=True).data
-    blacklist= ['Film', 'Serie TV']
-
-    patronBlock = r'{}<span></span>(?P<block>.*?)</ul>\s*</li'.format('Film' if item.contentType == 'movie' else 'Serie TV')
-    patronMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
-
-    if item.args == 'year':
-        patron = r'value="(?P<year_id>[^"]+)">(?P<title>\d+)'
-        patronBlock = r'Anno</option>(?P<block>.*?</select>)'
-    elif item.args == 'quality':
-        patronMenu = r'quality/(?P<quality_id>[^"]+)">(?P<title>[^<]+)'
-        patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
-    # elif item.args == 'years':
-    #     item.contentType = 'undefined'
-    #     patronBlock = r'ANNO(?P<block>.*?</section>)'
-    # else:
-    #     patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
-    action = 'peliculas'
-    return locals()
-
-
-@support.scrape
-def episodios(item):
-    logger.debug(item)
-    # debug = True
-    data = item.data
-    patron = r'class="playtvshow "\s+data-href="(?P<url>[^"]+)'
-
-    def itemHook(it):
-        spl = it.url.split('/')[-2:]
-        it.infoLabels['season'] = int(spl[0])+1
-        it.infoLabels['episode'] = int(spl[1])+1
-        it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
-        it.title = '{}x{:02d} - {}'.format(it.contentSeason, it.contentEpisodeNumber, it.fulltitle)
-        return it
-
-    return locals()
-
-
-# def check(item):
-#     resolve_url(item)
-#     if '/tvshow' in item.url:
-#         item.contentType = 'tvshow'
-#         return episodios(item)
-#     else:
-#         item.contentType = 'movie'
-#         return findvideos(item)
-
-
-def findvideos(item):
-    itemlist = []
-    resolve_url(item)
-
-    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
-
-    return support.server(item, itemlist=itemlist)
-
-
-def play(item):
-    if host in item.url:  # intercetto il server proprietario
-        if registerOrLogin():
-            return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
-        else:
-            platformtools.play_canceled = True
-            return []
-    else:
-        return [item]
-
-
-def resolve_url(item):
-    registerOrLogin()
-    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
-        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
-        video_url = playWindow.match
-        item.data = playWindow.data
-        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
-    return item
