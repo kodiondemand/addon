@@ -28,7 +28,6 @@ def mainlist(item):
               ('Generi', ['/serie-tv/tvshow', 'genres', 'genres']),
               ('Anni', ['/serie-tv/tvshow', 'genres', 'year'])]
 
-    advanced = [('Ricerca Avanzata', ['', 'advanced_search'])]
     return locals()
 
 
