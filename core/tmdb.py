@@ -938,7 +938,7 @@ class Tmdb(object):
                 result = cls.get_json(url)
                 if not isinstance(result, dict):
                     result = ast.literal_eval(result.decode('utf-8'))
-                list_genres = result["genres"]
+                list_genres = result.get("genres", {})
 
                 for i in list_genres:
                     cls.dic_genres[language][search_type][str(i["id"])] = i["name"]
