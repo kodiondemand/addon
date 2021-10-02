@@ -167,8 +167,9 @@ def now_on_tv(item):
     # Carica la pagina
     data = httptools.downloadpage(item.url).data.replace('\n','')
     #patron = r'spanTitleMovie">([A-Za-z À-ÖØ-öø-ÿ\-\']*)[a-z \n<>\/="_\-:0-9;A-Z.]*GenresMovie">([\-\'A-Za-z À-ÖØ-öø-ÿ\/]*)[a-z \n<>\/="_\-:0-9;A-Z.%]*src="([a-zA-Z:\/\.0-9?]*)[a-z \n<>\/="_\-:0-9;A-Z.%\-\']*Year">([A-Z 0-9a-z]*)'
-    patron = r'alt="([a-zA-Z 0-9]*)".*?spanMovieDuration">([^<]+).*?spanTitleMovie">([A-Za-z ,0-9\.À-ÖØ-öø-ÿ\-\']*).*?GenresMovie">([\-\'A-Za-z À-ÖØ-öø-ÿ\/]*).*?src="([a-zA-Z:\/\.0-9?]*).*?Year">([A-Z 0-9a-z]*)'
+    patron = r'<img class="sgtvfullfilmview_logo[^>]+alt="([^"]+)".*?spanMovieDuration">([^<]+).*?spanTitleMovie">([^<]+).*?GenresMovie">([^<]*).*?data-src="([^"]+).*?Year">[^<]+([0-9]{4})'
     matches = re.compile(patron, re.DOTALL).findall(data)
+    # support.regexDbg(item, patron, {}, data)
     for scrapedchannel, scrapedduration, scrapedtitle, scrapedgender, scrapedthumbnail, scrapedyear in matches:
     # for scrapedthumbnail, scrapedtitle, scrapedtv in matches:
         scrapedurl = ""
