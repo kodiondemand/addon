@@ -8,12 +8,17 @@ from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
 
+# def findhost(url):
+#     global register_url
+#     register_url = url
+#     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 def findhost(url):
-    global register_url
-    register_url = url
-    return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
+    return support.match(url, patron=r'<div class="elementor-button-wrapper">\s*<a href="([^"]+)"').match
+
 
 host = config.get_channel_url(findhost)
+if host.endswith('/'):
+        host = host[:-1]
 
 headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
 order = ['', 'i_piu_visti', 'i_piu_votati', 'i_piu_votati_dellultimo_mese', 'titolo_az', 'voto_imdb_piu_alto'][config.get_setting('order', 'altadefinizionecommunity')]
@@ -86,7 +91,7 @@ def peliculas(item):
     item.quality = 'HD'
     json = {}
     params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'cat':item.cat_id, 'order':order}
-
+    # debug = True
 
     if item.contentType == 'movie':
         action = 'findvideos'
@@ -110,8 +115,8 @@ def peliculas(item):
     except:
         data = ' '
 
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
-    # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){2}(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
     if json.get('have_next') or 'have_next_film=true' in data:
