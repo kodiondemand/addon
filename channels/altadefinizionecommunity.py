@@ -159,17 +159,17 @@ def findvideos(item):
 
 def play(item):
     if host in item.url:  # intercetto il server proprietario
-        if registerOrLogin():
-            return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
-        else:
-            platformtools.play_canceled = True
-            return []
+        # if registerOrLogin():
+        return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
+        # else:
+        #     platformtools.play_canceled = True
+        #     return []
     else:
         return [item]
 
 
 def resolve_url(item):
-    registerOrLogin()
+    # registerOrLogin()
     if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
         playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
         video_url = playWindow.match
