@@ -332,8 +332,22 @@ class SearchWindow(xbmcgui.WindowXML):
         try:
             with futures.ThreadPoolExecutor(max_workers=set_workers()) as executor:
                 for searchAction in self.getActions():
-                    if self.exit: return
+                    if self.exit: break
                     self.search_threads.append(executor.submit(self.get_channel_results, searchAction))
+                for res in futures.as_completed(self.search_threads):
+                    if self.exit: break
+                    if res.result():
+                        channel, valid, results = res.result()
+                        self.update(channel, valid, results)
+
+                        # if results:
+                        #     name = results[0].channel
+                        #     if name not in results: 
+                        #         self.channels[name] = []
+                        #     self.channels[name].extend(results)
+
+                        # if valid or results:
+                        #     self.update()
         except:
             import traceback
             logger.error(traceback.format_exc())
@@ -384,10 +398,11 @@ class SearchWindow(xbmcgui.WindowXML):
 
         if self.exit:
             return
-        update_lock.acquire()
+        # update_lock.acquire()
         self.count += 1
-        self.update(channel, valid, other if other else results)
-        update_lock.release()
+        return channel, valid, other if other else results
+        # self.update(channel, valid, other if other else results)
+        # update_lock.release()
 
     def makeItem(self, url):
         item = Item().fromurl(url)
