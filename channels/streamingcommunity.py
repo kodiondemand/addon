@@ -5,7 +5,7 @@
 
 import json, requests, sys
 from core import support, channeltools
-from platformcode import logger
+from platformcode import logger, platformtools
 if sys.version_info[0] >= 3:
     from concurrent import futures
 else:
@@ -104,23 +104,28 @@ def newest(category):
 def peliculas(item):
     # getHeaders()
     logger.debug()
+    global host
     itemlist = []
     recordlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
 
     page = item.page if item.page else 0
     offset = page * 60
-    if item.records:
-        records = item.records
-    elif type(item.args) == int:
-        data = support.scrapertools.decodeHtmlentities(support.match(item).data)
-        records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
-    elif not item.search:
-        payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
-        records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
-    else:
-        payload = json.dumps({'q': item.search})
-        records = session.post(host + '/api/search', headers=headers, data=payload).json()['records']
+    try:
+        if item.records:
+            records = item.records
+        elif type(item.args) == int:
+            data = support.scrapertools.decodeHtmlentities(support.match(item).data)
+            records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
+        elif not item.search:
+            payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
+            records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
+        else:
+            payload = json.dumps({'q': item.search})
+            records = session.post(host + '/api/search', headers=headers, data=payload).json()['records']
+    except:
+        host = support.config.get_channel_url(findhost, forceFindhost=True)
+        return peliculas(item)
 
     if records and type(records[0]) == list:
         js = []
@@ -134,7 +139,7 @@ def peliculas(item):
             itemlist.append(makeItem(i, it, item))
         else:
             recordlist.append(it)
-    
+
     itemlist.sort(key=lambda item: item.n)
     if recordlist:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
@@ -200,14 +205,19 @@ def episodios(item):
 
 
 def findvideos(item):
+    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo')]
+    return support.server(item, itemlist=itemlist)
+
+def play(item):
     video_urls = []
+    from time import time
+    from base64 import b64encode as b64
+    import hashlib
+
     data = support.match(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
-    url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match
+    url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match + 'm3u8'
 
     def calculateToken():
-        from time import time
-        from base64 import b64encode as b64
-        import hashlib
         o = 48
         n = support.match(host + '/client-address').data
         i = 'Yc8U6r8KjAKAepEA'
@@ -216,18 +226,16 @@ def findvideos(item):
         md5 = hashlib.md5(l.encode())
         s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
         return s
+
+
     token = calculateToken()
+    code = support.httptools.downloadpage(url + token).code
+    count = 0
+    while not code == 200:
+        token = calculateToken()
+        code = support.httptools.downloadpage(url + token).code
+        count +=1
+        if count == 30:
+            break
 
-    def videourls(res):
-        newurl = '{}/{}{}'.format(url, res, token)
-        if requests.head(newurl, headers=headers).status_code == 200:
-            video_urls.append(["m3u8 {} [StreamingCommunity]".format(res), newurl])
-
-    with futures.ThreadPoolExecutor() as executor:
-        for res in ['480p', '720p', '1080p']:
-            executor.submit(videourls, res) 
-
-    if not video_urls: video_urls = [["m3u8 [StreamingCommunity]", url + token]]
-    else: video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
-    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
-    return support.server(item, itemlist=itemlist)
+    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url + token)]
