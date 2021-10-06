@@ -43,7 +43,7 @@ def search(item, text):
     logger.debug("search ", text)
 
     item.args = 'search'
-    item.url = host + "/search?s={}&f={}&page=1".format(text, item.contentType)
+    item.url = host + "/search?s={}&f={}".format(text.replace(' ', '+'), item.contentType)
     try:
         return peliculas(item)
 
@@ -75,7 +75,7 @@ def genres(item):
             return it
 
     if item.args == 'year':
-        patron = r'value="(?P<year_id>[^"]+)"[^>]*>(?P<title>\d+)'
+        patronMenu = r'value="(?P<year_id>[^"]+)"[^>]*>(?P<title>\d+)'
         patronBlock = r'Anno</option>(?P<block>.*?</select>)'
 
     elif item.args == 'quality':
@@ -97,12 +97,16 @@ def peliculas(item):
         action = 'findvideos'
     else:
         action = 'episodios'
-    if not item.page: item.page = 1
+    if item.page:
+        item.url= '{}&page={}'.format(item.url, item.page)
+    else:
+        item.page = 1
     try:
         # support.dbg()
         if item.args in ['search']:
             page = support.httptools.downloadpage(item.url, headers=headers)
             if page.json:
+                json=page.json
                 data = "\n".join(page.json['data'])
             else:
                 data = page.data
@@ -119,7 +123,7 @@ def peliculas(item):
     # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     # paginazione
-    if json.get('have_next') or 'have_next_film=true' in data:
+    if json.get('have_next') or support.match(data, patron=r'have_next_film\s*=\s*true').match:
         def fullItemlistHook(itemlist):
             cat_id = support.match(data, patron=r''''cat':"(\d+)"''').match
             if cat_id: item.cat_id = cat_id
@@ -150,115 +154,127 @@ def episodios(item):
 
 def findvideos(item):
     itemlist = []
-    resolve_url(item)
-
-    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
+    playWindow = support.match(item, patron='(?:playWindow|iframe)" (?:href|src)="([^"]+)').match
+    if host in playWindow:
+        url = support.match(playWindow, patron='allowfullscreen[^<]+src="([^"]+)"').match
+    else:
+        url = playWindow
+    itemlist.append(item.clone(action='play', url=url, quality=''))
 
     return support.server(item, itemlist=itemlist)
 
+# def findvideos(item):
+    # return support.server(item, itemlist=itemlist)
+    # itemlist = []
+    # resolve_url(item)
 
-def play(item):
-    if host in item.url:  # intercetto il server proprietario
-        # if registerOrLogin():
-        return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
-        # else:
-        #     platformtools.play_canceled = True
-        #     return []
-    else:
-        return [item]
+    # itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
+
+    # return support.server(item, itemlist=itemlist)
 
 
-def resolve_url(item):
-    # registerOrLogin()
-    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
-        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
-        video_url = playWindow.match
-        item.data = playWindow.data
-        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
-    return item
+# def play(item):
+#     if host in item.url:  # intercetto il server proprietario
+#         # if registerOrLogin():
+#         return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
+#         # else:
+#         #     platformtools.play_canceled = True
+#         #     return []
+#     else:
+#         return [item]
 
 
-def login():
-    r = support.httptools.downloadpage(host, cloudscraper=True)
-    Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)', cloudscraper=True).match
-    if 'id="logged"' in r.data:
-        logger.info('Già loggato')
-    else:
-        logger.info('Login in corso')
-        post = {'_token': '',
-                'form_action':'login', 
-                'email': config.get_setting('username', channel='altadefinizionecommunity'),
-                'password':config.get_setting('password', channel='altadefinizionecommunity')}
-
-        r = support.httptools.downloadpage(host + '/login', post=post, headers={'referer': host}, cloudscraper=True)
-        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.data:
-            platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
-            return False
-
-    return 'id="logged"' in r.data
+# def resolve_url(item):
+#     # registerOrLogin()
+#     if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
+#         playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
+#         video_url = playWindow.match
+#         item.data = playWindow.data
+#         item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
+#     return item
 
 
-def registerOrLogin():
-    if config.get_setting('username', channel='altadefinizionecommunity') and config.get_setting('password', channel='altadefinizionecommunity'):
-        if login():
-            return True
+# def login():
+#     r = support.httptools.downloadpage(host, cloudscraper=True)
+#     Token = support.match(r.data, patron=r'name=\s*"_token"\s*value=\s*"([^"]+)', cloudscraper=True).match
+#     if 'id="logged"' in r.data:
+#         logger.info('Già loggato')
+#     else:
+#         logger.info('Login in corso')
+#         post = {'_token': '',
+#                 'form_action':'login', 
+#                 'email': config.get_setting('username', channel='altadefinizionecommunity'),
+#                 'password':config.get_setting('password', channel='altadefinizionecommunity')}
 
-    action = platformtools.dialog_yesno('AltadefinizioneCommunity',
-                                  'Questo server necessita di un account, ne hai già uno oppure vuoi tentare una registrazione automatica?',
-                                  yeslabel='Accedi', nolabel='Tenta registrazione', customlabel='Annulla')
-    if action == 1:  # accedi
-        from specials import setting
-        from core.item import Item
-        user_pre = config.get_setting('username', channel='altadefinizionecommunity')
-        password_pre = config.get_setting('password', channel='altadefinizionecommunity')
-        setting.channel_config(Item(config='altadefinizionecommunity'))
-        user_post = config.get_setting('username', channel='altadefinizionecommunity')
-        password_post = config.get_setting('password', channel='altadefinizionecommunity')
+#         r = support.httptools.downloadpage(host + '/login', post=post, headers={'referer': host}, cloudscraper=True)
+#         if not r.status_code in [200, 302] or 'Email o Password non validi' in r.data:
+#             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
+#             return False
 
-        if user_pre != user_post or password_pre != password_post:
-            return registerOrLogin()
-        else:
-            return []
-    elif action == 0:  # tenta registrazione
-        import random
-        import string
-        logger.debug('Registrazione automatica in corso')
-        mailbox = Gmailnator()
-        randPsw = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(10))
-        logger.debug('email: ' + mailbox.address)
-        logger.debug('pass: ' + randPsw)
-        reg = platformtools.dialog_register(register_url, email=True, password=True, email_default=mailbox.address, password_default=randPsw)
-        if not reg:
-            return False
-        regPost = httptools.downloadpage(register_url, post={'email': reg['email'], 'password': reg['password']}, cloudscraper=True)
+#     return 'id="logged"' in r.data
 
-        if regPost.url == register_url:
-            error = scrapertools.htmlclean(scrapertools.find_single_match(regPost.data, 'Impossibile proseguire.*?</div>'))
-            error = scrapertools.unescape(scrapertools.re.sub('\n\s+', ' ', error))
-            platformtools.dialog_ok('AltadefinizioneCommunity', error)
-            return False
-        if reg['email'] == mailbox.address:
-            if "L'indirizzo email risulta già registrato" in regPost.data:
-                # httptools.downloadpage(baseUrl + '/forgotPassword', post={'email': reg['email']})
-                platformtools.dialog_ok('AltadefinizioneCommunity', 'Indirizzo mail già utilizzato')
-                return False
-            mail = mailbox.waitForMail()
-            if mail:
-                checkUrl = scrapertools.find_single_match(mail.body, '<a href="([^"]+)[^>]+>Verifica').replace(r'\/', '/')
-                logger.debug('CheckURL: ' + checkUrl)
-                httptools.downloadpage(checkUrl, cloudscraper=True)
-                config.set_setting('username', mailbox.address, channel='altadefinizionecommunity')
-                config.set_setting('password', randPsw, channel='altadefinizionecommunity')
-                platformtools.dialog_ok('AltadefinizioneCommunity',
-                                        'Registrato automaticamente con queste credenziali:\nemail:' + mailbox.address + '\npass: ' + randPsw)
-            else:
-                platformtools.dialog_ok('AltadefinizioneCommunity', 'Impossibile registrarsi automaticamente')
-                return False
-        else:
-            platformtools.dialog_ok('AltadefinizioneCommunity', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
-                                    + ' e clicca sul link. Premi ok quando fatto')
-        logger.debug('Registrazione completata')
-    else:
-        return False
 
-    return True
+# def registerOrLogin():
+#     if config.get_setting('username', channel='altadefinizionecommunity') and config.get_setting('password', channel='altadefinizionecommunity'):
+#         if login():
+#             return True
+
+#     action = platformtools.dialog_yesno('AltadefinizioneCommunity',
+#                                   'Questo server necessita di un account, ne hai già uno oppure vuoi tentare una registrazione automatica?',
+#                                   yeslabel='Accedi', nolabel='Tenta registrazione', customlabel='Annulla')
+#     if action == 1:  # accedi
+#         from specials import setting
+#         from core.item import Item
+#         user_pre = config.get_setting('username', channel='altadefinizionecommunity')
+#         password_pre = config.get_setting('password', channel='altadefinizionecommunity')
+#         setting.channel_config(Item(config='altadefinizionecommunity'))
+#         user_post = config.get_setting('username', channel='altadefinizionecommunity')
+#         password_post = config.get_setting('password', channel='altadefinizionecommunity')
+
+#         if user_pre != user_post or password_pre != password_post:
+#             return registerOrLogin()
+#         else:
+#             return []
+#     elif action == 0:  # tenta registrazione
+#         import random
+#         import string
+#         logger.debug('Registrazione automatica in corso')
+#         mailbox = Gmailnator()
+#         randPsw = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(10))
+#         logger.debug('email: ' + mailbox.address)
+#         logger.debug('pass: ' + randPsw)
+#         reg = platformtools.dialog_register(register_url, email=True, password=True, email_default=mailbox.address, password_default=randPsw)
+#         if not reg:
+#             return False
+#         regPost = httptools.downloadpage(register_url, post={'email': reg['email'], 'password': reg['password']}, cloudscraper=True)
+
+#         if regPost.url == register_url:
+#             error = scrapertools.htmlclean(scrapertools.find_single_match(regPost.data, 'Impossibile proseguire.*?</div>'))
+#             error = scrapertools.unescape(scrapertools.re.sub('\n\s+', ' ', error))
+#             platformtools.dialog_ok('AltadefinizioneCommunity', error)
+#             return False
+#         if reg['email'] == mailbox.address:
+#             if "L'indirizzo email risulta già registrato" in regPost.data:
+#                 # httptools.downloadpage(baseUrl + '/forgotPassword', post={'email': reg['email']})
+#                 platformtools.dialog_ok('AltadefinizioneCommunity', 'Indirizzo mail già utilizzato')
+#                 return False
+#             mail = mailbox.waitForMail()
+#             if mail:
+#                 checkUrl = scrapertools.find_single_match(mail.body, '<a href="([^"]+)[^>]+>Verifica').replace(r'\/', '/')
+#                 logger.debug('CheckURL: ' + checkUrl)
+#                 httptools.downloadpage(checkUrl, cloudscraper=True)
+#                 config.set_setting('username', mailbox.address, channel='altadefinizionecommunity')
+#                 config.set_setting('password', randPsw, channel='altadefinizionecommunity')
+#                 platformtools.dialog_ok('AltadefinizioneCommunity',
+#                                         'Registrato automaticamente con queste credenziali:\nemail:' + mailbox.address + '\npass: ' + randPsw)
+#             else:
+#                 platformtools.dialog_ok('AltadefinizioneCommunity', 'Impossibile registrarsi automaticamente')
+#                 return False
+#         else:
+#             platformtools.dialog_ok('AltadefinizioneCommunity', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
+#                                     + ' e clicca sul link. Premi ok quando fatto')
+#         logger.debug('Registrazione completata')
+#     else:
+#         return False
+
+#     return True
