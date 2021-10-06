@@ -88,7 +88,7 @@ def genres(item):
 
 @support.scrape
 def peliculas(item):
-    item.quality = 'HD'
+    # item.quality = 'HD'
     json = {}
     params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'cat':item.cat_id, 'order':order}
     # debug = True
@@ -119,8 +119,13 @@ def peliculas(item):
     except:
         data = ' '
 
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){2}(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
     # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+
+    def itemHook(item):
+        item.quality = item.quality.replace('2K', 'HD').replace('4K', 'HD')
+        item.title = item.title.replace('2K', 'HD').replace('4K', 'HD')
+        return item
 
     # paginazione
     if json.get('have_next') or support.match(data, patron=r'have_next_film\s*=\s*true').match:
