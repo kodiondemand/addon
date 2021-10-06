@@ -15,6 +15,7 @@ from . import filetools
 from platformcode import config
 from collections import defaultdict
 from lib.sqlitedict import SqliteDict
+import zlib, pickle, sqlite3
 
 
 class nested_dict_sqlite(defaultdict):
@@ -29,8 +30,15 @@ class nested_dict_sqlite(defaultdict):
             self[key].close()
         self.clear()
 
+def encode(obj):
+    return sqlite3.Binary(zlib.compress(pickle.dumps(obj, pickle.HIGHEST_PROTOCOL)))
+
+def decode(obj):
+    return pickle.loads(zlib.decompress(bytes(obj)))
+
 db_name = filetools.join(config.get_data_path(), "db.sqlite")
 db = nested_dict_sqlite(lambda table: SqliteDict(db_name, table, 'c', True))
 
 vdb_name = filetools.join(config.get_videolibrary_path(), "videolibrary.sqlite")
-videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True))
+# videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True))
+videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True, encode=encode, decode=decode))
