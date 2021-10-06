@@ -215,14 +215,15 @@ def replay(item):
     items = requests.get(item.channel_url).json().get('events', {})
     now = datetime.datetime.now()
     h = int('{}{:02d}'.format(now.hour, now.minute))
-
+    today = now.strftime('%d-%m-%Y')
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(itInfo, it) for it in items if it['has_video'] and int(it['hour'].replace(':','')) <= h]
+        itlist = [executor.submit(itInfo, it) for it in items if it['has_video'] and (int(it['hour'].replace(':','')) <= h or item.date != today)]
         for res in futures.as_completed(itlist):
             if res.result():
                 itemlist.append(res.result())
     if not itemlist:
         return [Item(title='Non ci sono Replay per questo Canale')]
+    itemlist.sort(key=lambda it: it.title)
     return itemlist
 
 def play(item):
