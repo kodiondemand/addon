@@ -593,7 +593,7 @@ def set_active_tvshow(value):
         show, ret, update_when_finished = sub_thread(value, update_when_finished)
         if ret:
             videolibrarydb['tvshow'][show['item'].videolibrary_id] = ret
-
+    videolibrarydb.close()
     return update_when_finished
 
 
@@ -677,6 +677,7 @@ def mark_content_as_watched(item):
                 for s in range(self.s + 1, seasons[-1] + 1):
                     self.s = s
                     self.mark_season()
+            videolibrarydb.close()
 
         def mark_episode(self):
             current_playcount = self.episodes['{:d}x{:02d}'.format(self.s, self.e)]['item'].infoLabels['playcount']
@@ -690,6 +691,7 @@ def mark_content_as_watched(item):
 
             if current_playcount == 0 or self.playcount == 0:
                 self.check_playcount('episode')
+            videolibrarydb.close()
 
         def mark_season(self):
             current_playcount = self.seasons[self.s].infoLabels['playcount']
@@ -704,6 +706,7 @@ def mark_content_as_watched(item):
 
             if current_playcount == 0 or self.playcount == 0:
                 self.check_playcount('season')
+            videolibrarydb.close()
 
         def mark_tvshow(self):
             if self.playcount > 0:
@@ -713,11 +716,13 @@ def mark_content_as_watched(item):
 
             videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
             self.mark_all('seasons')
+            videolibrarydb.close()
 
         def mark_collection(self):
             self.collection = videolibrarydb['collection'][self.item.set]
             self.collection.infoLabels['playcount'] = self.playcount
             videolibrarydb['collection'][self.item.set] = self.collection
+            videolibrarydb.close()
 
         def mark_movie(self):
             if self.playcount:
@@ -731,6 +736,7 @@ def mark_content_as_watched(item):
                 if self.playcount == 0 or len(collection_list) == len([v for v in collection_list if v > 0]):
                     self.item.set = movie_collection_id
                     self.mark_collection()
+            videolibrarydb.close()
 
 
         def check_playcount(self, _type):
@@ -757,6 +763,7 @@ def mark_content_as_watched(item):
                     tv_playcount = self.playcount
                 self.tvshow['item'].infoLabels['playcount'] = tv_playcount
             videolibrarydb['tvshow'][self.item.videolibrary_id] = self.tvshow
+            videolibrarydb.close()
 
         def mark_all(self, _type):
             if _type == 'season_episodes':
@@ -774,6 +781,7 @@ def mark_content_as_watched(item):
                     self.episodes[n]['item'].infoLabels['playcount'] = self.playcount
                 videolibrarydb['season'][self.item.videolibrary_id] = self.seasons
             videolibrarydb['episode'][self.item.videolibrary_id] = self.episodes
+            videolibrarydb.close()
 
     mark_as_watched(item=item)
 
@@ -978,6 +986,7 @@ class set_images(object):
                 if t == 'fanart': self.video['item'].fanart = selected
 
         videolibrarydb[self.item_type][self.item.videolibrary_id] = self.video
+        videolibrarydb.close()
         platformtools.itemlist_refresh()
 
 #-------------- DOWNLOAD --------------
