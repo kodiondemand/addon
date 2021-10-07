@@ -7,7 +7,7 @@ from core.item import Item
 import datetime, xbmc
 import requests, sys
 
-from core import jsontools, support
+from core import jsontools, scrapertools, support
 from platformcode import logger
 
 if sys.version_info[0] >= 3:
@@ -114,7 +114,7 @@ def episodios(item):
 
     if not itemlist:
         itemlist = addinfo(items, item)
-
+    # itemlist.sort(key=lambda it: (it.season, it.episode))
     return itemlist
 
 
@@ -126,6 +126,7 @@ def epMenu(item):
             itemlist.append(item.clone(title=support.typo(it['name'], 'bold'), data=[it]))
         else:
             itemlist.append(item.clone(title=support.typo(it['name'], 'bold'), season_url=getUrl(it['path_id']), data=''))
+    # itemlist.sort(key=lambda it: it.title)
     return itemlist
 
 
@@ -195,6 +196,7 @@ def replayChannels(item):
     support.thumb(itemlist, live=True)
     return itemlist
 
+
 def replay(item):
     logger.debug()
 
@@ -225,6 +227,7 @@ def replay(item):
         return [Item(title='Non ci sono Replay per questo Canale')]
     itemlist.sort(key=lambda it: it.title)
     return itemlist
+
 
 def play(item):
     logger.debug()
@@ -258,20 +261,36 @@ def getUrl(url):
 
 
 def addinfo(items, item):
-    def itInfo(key, item):
-        logger.debug(jsontools.dump(key))
+    def itInfo(n, key, item):
+        logger.debug()
         item.forcethumb = True
+        episode = 0
+        season = 0
         if key.get('titolo', ''):
             key = requests.get(getUrl(key['path_id'])).json()['program_info']
 
 
         info = requests.get(getUrl(key['info_url'])).json() if 'info_url' in key else {}
+        details = info.get('details',{})
+        for detail in details:
+            if detail['key'] == 'season':
+                s = scrapertools.find_single_match(detail['value'], '(\d+)')
+                if s: season = int(s)
+            if detail['key'] == 'episode':
+                e = scrapertools.find_single_match(detail['value'], '(\d+)')
+                if e: episode = int(e)
 
         images = info.get('images', {})
         fanart = images.get('landscape', '')
         thumb = images.get('portrait_logo', '')
         if not thumb: thumb = fanart
         title = key.get('name', '')
+        if key.get('episode_title'):
+            title = key.get('episode_title')
+            if episode:
+                title = '{:02d}. {}'.format(episode, title)
+                if season:
+                    title = '{}x{}'.format(season, title)
 
         it = item.clone(title=support.typo(title, 'bold'),
                         data='',
@@ -281,7 +300,10 @@ def addinfo(items, item):
                         fanart=getUrl(fanart),
                         url=getUrl(key.get('weblink', '')),
                         video_url=getUrl(key['path_id']),
-                        plot=info.get('description', ''))
+                        season=season,
+                        episode=episode,
+                        plot=info.get('description', ''),
+                        order=n)
 
         if 'Genere' not in key.get('sub_type', '') and ('layout' not in key or key['layout'] == 'single'):
             it.action = 'play'
@@ -293,8 +315,9 @@ def addinfo(items, item):
 
     itemlist = []
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(itInfo, it, item) for it in items]
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(items)]
         for res in futures.as_completed(itlist):
             if res.result():
                 itemlist.append(res.result())
+    itemlist.sort(key=lambda it: it.order)
     return itemlist
