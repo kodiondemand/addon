@@ -40,8 +40,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         char_codes = ast.literal_eval(match[0])
         hidden_js = "".join([chr(c - int(match[1])) for c in char_codes])
 
-        newurl = scrapertools.find_single_match(hidden_js, r'\$.get\(\'([^\']+)')
-        castpage = httptools.downloadpage(newurl, headers={'x-requested-with': 'XMLHttpRequest', 'Referer': page_url }).data
+        newurl = scrapertools.find_single_match(hidden_js, r'\$.get\(\'([^\']+)').replace('https://', 'http://')
+        castpage = httptools.downloadpage(newurl, headers={'x-requested-with': 'XMLHttpRequest', 'Referer': page_url}).data
         url_video = scrapertools.find_single_match(castpage, r"cc\.cast\('(http[s]?.[^']+)'")
     else:
         logger.debug('Something wrong: no url found before that :(')
