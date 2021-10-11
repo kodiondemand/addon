@@ -766,6 +766,7 @@ def menuItem(itemlist, filename, title='', action='', url='', contentType='undef
         extra = extra,
         args = args,
         contentType = contentType,
+        globalsearch = not style
     ))
 
 
