@@ -7,7 +7,7 @@ from platformcode import logger, config
 import uuid, datetime, xbmc
 
 import requests, sys
-from core import support
+from core import jsontools, support
 if sys.version_info[0] >= 3:
     from urllib.parse import urlencode, quote
 else:
@@ -227,6 +227,7 @@ def episodios(item):
 def play(item):
     logger.debug()
     item.no_return=True
+    # support.dbg()
     mpd = config.get_setting('mpd', item.channel)
 
 
@@ -241,6 +242,8 @@ def play(item):
             if Format in it['format']:
                 item.url = requests.head(it['publicUrls'][0]).headers['Location']
                 pid = it['releasePids'][0]
+                if mpd and 'widevine' in it['assetTypes']:
+                    break
 
         if mpd:
             item.manifest = 'mpd'
