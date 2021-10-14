@@ -118,7 +118,7 @@ def peliculas(item):
     except:
         data = ' '
 
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+    patron = r'wrapFilm"[^>]*>\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA -]+))?'
     # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
 
     def itemHook(item):
