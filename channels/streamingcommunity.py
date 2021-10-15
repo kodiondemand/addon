@@ -4,12 +4,9 @@
 # ------------------------------------------------------------
 
 import json, requests, sys
+from channels.mediasetplay import Token
 from core import support, channeltools
-from platformcode import logger, platformtools
-if sys.version_info[0] >= 3:
-    from concurrent import futures
-else:
-    from concurrent_py2 import futures
+from platformcode import logger
 
 
 def findhost(url):
@@ -145,6 +142,7 @@ def peliculas(item):
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
     elif len(itemlist) >= 20:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
+
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
 
@@ -162,7 +160,6 @@ def makeItem(n, it, item):
     if itm.contentType == 'movie':
         # itm.contentType = 'movie'
         itm.fulltitle = itm.show = itm.contentTitle = title
-        itm.contentTitle = ''
         itm.action = 'findvideos'
         itm.url = host + '/watch/%s' % it['id']
 
@@ -209,33 +206,21 @@ def findvideos(item):
     return support.server(item, itemlist=itemlist)
 
 def play(item):
-    video_urls = []
     from time import time
-    from base64 import b64encode as b64
-    import hashlib
+    from base64 import b64encode
+    from hashlib import md5
 
-    data = support.match(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
-    url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match + 'm3u8'
+    data = support.httptools.downloadpage(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
+    scws_id = support.match(data, patron=r'scws_id"\s*:\s*(\d+)').match
 
-    def calculateToken():
-        o = 48
-        n = support.match(host + '/client-address').data
-        i = 'Yc8U6r8KjAKAepEA'
-        t = int(time() + (3600 * o))
-        l = '{}{} {}'.format(t, n, i)
-        md5 = hashlib.md5(l.encode())
-        s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
-        return s
+    if not scws_id:
+        return []
 
+    # Calculate Token
+    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/' + scws_id, headers=headers).json.get('client_ip')
+    expires = int(time() + 172800)
+    token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    token = calculateToken()
-    code = support.httptools.downloadpage(url + token).code
-    count = 0
-    while not code == 200:
-        token = calculateToken()
-        code = support.httptools.downloadpage(url + token).code
-        count +=1
-        if count == 30:
-            break
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
 
-    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url + token)]
+    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url, manifest='hls')]
