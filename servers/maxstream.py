@@ -46,7 +46,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     else:
         logger.debug('Something wrong: no url found before that :(')
 
-    if url_video:
+    if url_video and url_video.split('/')[-1] == page_url.split('/')[-1]:
         import random, string
         parse = urlparse.urlparse(url_video)
         video_urls.append(['mp4 [MaxStream]', url_video])
