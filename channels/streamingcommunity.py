@@ -19,9 +19,13 @@ headers = {}
 
 def getHeaders():
     global headers
+    global host
+    # support.dbg()
     if not headers:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
         response = session.get(host, headers=headers)
+        if response.status_code != 200 or response.url != host:
+            host = support.config.get_channel_url(findhost, forceFindhost=True)
         csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
                     'content-type': 'application/json;charset=UTF-8',
@@ -101,6 +105,7 @@ def newest(category):
 def peliculas(item):
     # getHeaders()
     logger.debug()
+
     global host
     itemlist = []
     recordlist = []
@@ -108,21 +113,19 @@ def peliculas(item):
 
     page = item.page if item.page else 0
     offset = page * 60
-    try:
-        if item.records:
-            records = item.records
-        elif type(item.args) == int:
-            data = support.scrapertools.decodeHtmlentities(support.match(item).data)
-            records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
-        elif not item.search:
-            payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
-            records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
-        else:
-            payload = json.dumps({'q': item.search})
-            records = session.post(host + '/api/search', headers=headers, data=payload).json()['records']
-    except:
-        host = support.config.get_channel_url(findhost, forceFindhost=True)
-        return peliculas(item)
+
+    if item.records:
+        records = item.records
+    elif type(item.args) == int:
+        data = support.scrapertools.decodeHtmlentities(support.match(item).data)
+        records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
+    elif not item.search:
+        payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
+        records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
+    else:
+        payload = json.dumps({'q': item.search})
+        records = session.post(host + '/api/search', headers=headers, data=payload).json()['records']
+
 
     if records and type(records[0]) == list:
         js = []
