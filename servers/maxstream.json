@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "https?://maxstream.video/(?:e/|embed-|cast/)?([a-z0-9]+)",
-        "url": "http://maxstream.video/castx/\\1"
+        "url": "http://maxstream.video/\\1"
       }
     ]
   },
