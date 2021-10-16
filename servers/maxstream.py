@@ -4,6 +4,7 @@
 # --------------------------------------------------------
 
 from core import httptools, scrapertools, support
+from lib import jsunpack
 from platformcode import logger, config
 import ast, sys
 
@@ -32,8 +33,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     
     # support.dbg()
-
-    url = scrapertools.find_single_match(data, 'src:\s*"([^"]+)')
+    packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*</script").match
+    unpack = jsunpack.unpack(packed)
+    url = scrapertools.find_single_match(unpack, 'src:\s*"([^"]+)')
     if url:
          video_urls.append(['m3u8 [MaxStream]', url])
     # url_video = ''
