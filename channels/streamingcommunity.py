@@ -149,6 +149,7 @@ def peliculas(item):
 def makeItem(n, it, item):
     info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
     title, lang = support.match(info['name'], patron=r'([^\[|$]+)(?:\[([^\]]+)\])?').match
+    title = support.cleantitle(title)
     if not lang:
         lang = 'ITA'
     itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
@@ -184,7 +185,7 @@ def episodios(item):
         for it in episodes['episodes']:
             itemlist.append(
                 support.Item(channel=item.channel,
-                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + it['name'], 'bold'),
+                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + support.cleantitle(it['name']), 'bold'),
                              episode = it['number'],
                              season=episodes['number'],
                              thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
