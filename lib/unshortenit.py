@@ -633,8 +633,8 @@ class UnshortenIt(object):
         try:
             id = uri.split('/')[-2]
             reqUrl = 'https://stayonline.pro/ajax/linkView.php'
-            p = urlencode({"id": id})
-            r = httptools.downloadpage(reqUrl, post=p)
+            p = urlencode({"id": id, "ref": ""})
+            r = httptools.downloadpage(reqUrl, post=p, headers={'Referer': uri})
             data = r.data
             try:
                 import json

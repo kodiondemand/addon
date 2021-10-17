@@ -5,21 +5,14 @@
 
 from core import httptools, scrapertools, support
 from lib import jsunpack
-from platformcode import logger, config
-import ast, sys
+from platformcode import logger, config, platformtools
 
-if sys.version_info[0] >= 3:
-    import urllib.parse as urlparse
-else:
-    import urlparse
-
-headers =({'user-agent':'Mozilla/5.0 (Linux; Android 9; SM-A102U) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.136 Mobile Safari/537.36'})
 
 def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
 
     global data
-    data = httptools.downloadpage(page_url, headers=headers).data
+    data = httptools.downloadpage(page_url).data
 
     if "file was deleted" in data:
         return False, config.get_localized_string(70449) % "MaxStream"
@@ -27,17 +20,36 @@ def test_video_exists(page_url):
     return True, ""
 
 
-
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     video_urls = []
-    
+    global data
+
     # support.dbg()
+
+    sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
+    if sitekey: sitekey = sitekey[-1]
+    captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
+
+    possibleParam = scrapertools.find_multiple_matches(data,
+                                                       r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
+    if possibleParam:
+        post = {param[0]: param[1] for param in possibleParam if param[0]}
+        if captcha: post['g-recaptcha-response'] = captcha
+        if post:
+            data = httptools.downloadpage(page_url, post=post, follow_redirects=True, verify=False).data
+    else:
+        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
+        return []
+
+    # headers = [['Referer', page_url]]
+    # _headers = urllib.urlencode(dict(headers))
+
     packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*</script").match
     unpack = jsunpack.unpack(packed)
     url = scrapertools.find_single_match(unpack, 'src:\s*"([^"]+)')
     if url:
-         video_urls.append(['m3u8 [MaxStream]', url])
+        video_urls.append(['m3u8 [MaxStream]', url])
     # url_video = ''
 
     # lastIndexStart = data.rfind('<script>')
@@ -69,7 +81,3 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     #     except:
     #         logger.debug('Something wrong: Impossible get HLS stream')
     return video_urls
-
-
-
-
