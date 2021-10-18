@@ -2,10 +2,15 @@
 # --------------------------------------------------------
 # Conector MaxStream
 # --------------------------------------------------------
+import ast, sys
 
 from core import httptools, scrapertools, support
 from lib import jsunpack
 from platformcode import logger, config, platformtools
+if sys.version_info[0] >= 3:
+    import urllib.parse as urlparse
+else:
+    import urlparse
 
 
 def test_video_exists(page_url):
@@ -26,58 +31,58 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
 
     # support.dbg()
+    cast_url = support.match('http://maxstream.video/?op=page&tmpl=../../download1', patron='<a\s+id="cast"\s+href="([^"]+)').match
+    data = httptools.downloadpage(cast_url.replace('https:', 'http:') + page_url.split('/')[-1]).data
 
-    sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
-    if sitekey: sitekey = sitekey[-1]
-    captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
 
-    possibleParam = scrapertools.find_multiple_matches(data,
-                                                       r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
-    if possibleParam:
-        post = {param[0]: param[1] for param in possibleParam if param[0]}
-        if captcha: post['g-recaptcha-response'] = captcha
-        if post:
-            data = httptools.downloadpage(page_url, post=post, follow_redirects=True, verify=False).data
-    else:
-        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
-        return []
-
-    # headers = [['Referer', page_url]]
-    # _headers = urllib.urlencode(dict(headers))
-
-    packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*</script").match
-    unpack = jsunpack.unpack(packed)
-    url = scrapertools.find_single_match(unpack, 'src:\s*"([^"]+)')
-    if url:
-        video_urls.append(['m3u8 [MaxStream]', url])
-    # url_video = ''
-
-    # lastIndexStart = data.rfind('<script>')
-    # lastIndexEnd = data.rfind('</script>')
-
-    # script = data[ (lastIndexStart + len('<script>')):lastIndexEnd ]
-
-    # match = scrapertools.find_single_match(script, r'(\[[^\]]+\])[^\{]*\{[^\(]+\(parseInt\(value\)\s?-\s?([0-9]+)')
-    # if match:
-    #     char_codes = ast.literal_eval(match[0])
-    #     hidden_js = "".join([chr(c - int(match[1])) for c in char_codes])
-
-    #     newurl = scrapertools.find_single_match(hidden_js, r'\$.get\(\'([^\']+)').replace('https://', 'http://')
-    #     castpage = httptools.downloadpage(newurl, headers={'x-requested-with': 'XMLHttpRequest', 'Referer': page_url}).data
-    #     url_video = scrapertools.find_single_match(castpage, r"cc\.cast\('(http[s]?.[^']+)'")
+    # sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
+    # if sitekey: sitekey = sitekey[-1]
+    # captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
+    #
+    # possibleParam = scrapertools.find_multiple_matches(data,
+    #                                                    r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
+    # if possibleParam:
+    #     post = {param[0]: param[1] for param in possibleParam if param[0]}
+    #     if captcha: post['g-recaptcha-response'] = captcha
+    #     if post:
+    #         data = httptools.downloadpage(page_url, post=post, follow_redirects=True, verify=False).data
     # else:
-    #     logger.debug('Something wrong: no url found before that :(')
+    #     platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
+    #     return []
 
-    # if url_video:
-    #     import random, string
-    #     parse = urlparse.urlparse(url_video)
-    #     video_urls.append(['mp4 [MaxStream]', url_video])
-    #     try:
-    #         r1 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
-    #         r2 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
-    #         r3 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
-    #         video_urls.append(['m3u8 [MaxStream]', '{}://{}/hls/{},{},{},{},.urlset/master.m3u8'.format(parse.scheme, parse.netloc, parse.path.split('/')[1], r1, r2, r3)])
-    #         # video_urls.append(['m3u8 [MaxStream]', '{}://{}/hls/{},wpsc2hllm5g5fkjvslq,4jcc2hllm5gzykkkgha,fmca2hllm5jtpb7cj5q,.urlset/master.m3u8'.format(parse.scheme, parse.netloc, parse.path.split('/')[1])])
-    #     except:
-    #         logger.debug('Something wrong: Impossible get HLS stream')
+    # packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*</script").match
+    # unpack = jsunpack.unpack(packed)
+    # url = scrapertools.find_single_match(unpack, 'src:\s*"([^"]+)')
+    # if url:
+    #     video_urls.append(['m3u8 [MaxStream]', url])
+    url_video = ''
+
+    lastIndexStart = data.rfind('<script>')
+    lastIndexEnd = data.rfind('</script>')
+
+    script = data[ (lastIndexStart + len('<script>')):lastIndexEnd ]
+
+    match = scrapertools.find_single_match(script, r'(\[[^\]]+\])[^\{]*\{[^\(]+\(parseInt\(value\)\s?-\s?([0-9]+)')
+    if match:
+        char_codes = ast.literal_eval(match[0])
+        hidden_js = "".join([chr(c - int(match[1])) for c in char_codes])
+
+        newurl = scrapertools.find_single_match(hidden_js, r'\$.get\(\'([^\']+)').replace('https://', 'http://')
+        castpage = httptools.downloadpage(newurl, headers={'x-requested-with': 'XMLHttpRequest', 'Referer': page_url}).data
+        url_video = scrapertools.find_single_match(castpage, r"cc\.cast\('(http[s]?.[^']+)'")
+    else:
+        logger.debug('Something wrong: no url found before that :(')
+
+    if url_video:
+        import random, string
+        parse = urlparse.urlparse(url_video)
+        video_urls.append(['mp4 [MaxStream]', url_video])
+        try:
+            r1 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
+            r2 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
+            r3 = ''.join(random.choice(string.ascii_letters + string.digits) for i in range(19))
+            video_urls.append(['m3u8 [MaxStream]', '{}://{}/hls/{},{},{},{},.urlset/master.m3u8'.format(parse.scheme, parse.netloc, parse.path.split('/')[1], r1, r2, r3)])
+            # video_urls.append(['m3u8 [MaxStream]', '{}://{}/hls/{},wpsc2hllm5g5fkjvslq,4jcc2hllm5gzykkkgha,fmca2hllm5jtpb7cj5q,.urlset/master.m3u8'.format(parse.scheme, parse.netloc, parse.path.split('/')[1])])
+        except:
+            logger.debug('Something wrong: Impossible get HLS stream')
     return video_urls
