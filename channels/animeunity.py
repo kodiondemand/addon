@@ -220,67 +220,15 @@ def episodios(item):
 
 
 def findvideos(item):
-    # def calculateToken():
-    #     from time import time
-    #     from base64 import b64encode as b64
-    #     import hashlib
-    #     o = 48
-    #     n = support.match('https://au-1.scws-content.net/get-ip').data
-    #     i = 'Yc8U6r8KjAKAepEA'
-    #     t = int(time() + (3600 * o))
-    #     l = '{}{} {}'.format(t, n, i)
-    #     md5 = hashlib.md5(l.encode())
-    #     s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
-    #     return s
-    # token = calculateToken()
+    from time import time
+    from base64 import b64encode
+    from hashlib import md5
 
-    # url = 'https://streamingcommunityws.com/master/{}{}'.format(item.video_url, token)
+    # Calculate Token
+    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.video_url), headers=headers).json.get('client_ip')
+    expires = int(time() + 172800)
+    token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    # # support.dbg()
-
-    # m3u8_original = httptools.downloadpage(url, CF=False).data
-
-    # m_video = re.search(r'\.\/video\/(\d+p)\/playlist.m3u8', m3u8_original)
-    # video_res = m_video.group(1)
-    # m_audio = re.search(r'\.\/audio\/(\d+k)\/playlist.m3u8', m3u8_original)
-    # audio_res = m_audio.group(1)
-
-    # # https://streamingcommunityws.com/master/5957?type=video&rendition=480p&token=wQLowWskEnbLfOfXXWWPGA&expires=1623437317
-    # video_url = 'https://streamingcommunityws.com/master/{}{}&type=video&rendition={}'.format(item.video_url, token, video_res)
-    # audio_url = 'https://streamingcommunityws.com/master/{}{}&type=audio&rendition={}'.format(item.video_url, token, audio_res)
-
-    # m3u8_original = m3u8_original.replace( m_video.group(0),  video_url )
-    # m3u8_original = m3u8_original.replace( m_audio.group(0),  audio_url )
-
-    # file_path = 'special://temp/animeunity.m3u8'
-
-    # filetools.write(xbmc.translatePath(file_path), m3u8_original, 'w')
-
-    # return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=file_path, manifest = 'hls', server='directo', action='play')])
-    # item.url=item.video_url
-
-    directLink = False
-    if item.video_url == None:
-        if item.extra == "tvshow":
-            epnum = item.episode
-            logger.info('it is a episode', epnum)
-            episode = None
-            for ep in item.episodes:
-                if ep["number"] == epnum:
-                    episode = ep
-                    break
-            if episode == None:
-                logger.warn('cannot found episode')
-            else:
-                item.url = episode["link"]
-                directLink = True
-
-    if directLink:
-        logger.info('try direct link')
-        return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.url, server='directo', action='play')])
-    else:
-        return support.server(item, itemlist=[item.clone(title="StreamingCommunityWS", url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
-
-
-
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.video_url, token, expires)
+    return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play')])
 
