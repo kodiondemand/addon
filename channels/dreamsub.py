@@ -104,12 +104,13 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime = True
+    # debug = True
     pagination = 100
 
     if item.data:
         data = item.data
 
-    patron = r'<div class="sli-name">\s*<a href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)<'
+    patron = r'<div class="sli-name">\s*<a\s+href="(?P<url>[^"]+)"[^>]+>(?P<title>[^<]+)<'
 
     return locals()
 
