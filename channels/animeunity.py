@@ -157,7 +157,7 @@ def peliculas(item):
     records = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
 
     for it in records:
-        logger.debug(jsontools.dump(it))
+        # logger.debug(jsontools.dump(it))
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
 
@@ -210,7 +210,8 @@ def episodios(item):
                        plot=item.plot,
                        action='findvideos',
                        contentType='episode',
-                       video_url=it['scws_id']))
+                       scws_id=it['scws_id'],
+                       video_url=it['link']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -220,15 +221,19 @@ def episodios(item):
 
 
 def findvideos(item):
-    from time import time
-    from base64 import b64encode
-    from hashlib import md5
+    if item.scvs_id:
+        from time import time
+        from base64 import b64encode
+        from hashlib import md5
 
-    # Calculate Token
-    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.video_url), headers=headers).json.get('client_ip')
-    expires = int(time() + 172800)
-    token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+        # Calculate Token
+        client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.scvs_id), headers=headers).json.get('client_ip')
+        expires = int(time() + 172800)
+        token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.video_url, token, expires)
-    return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play')])
+        url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.scvs_id, token, expires)
+        itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play', manifest='hls')]
+    else:
+        itemlist = [item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')]
+    return support.server(item, itemlist=itemlist)
 
