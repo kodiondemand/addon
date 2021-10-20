@@ -1086,7 +1086,7 @@ class Tmdb(object):
 
             if total_results > 0 or self.cast:
                 if self.cast:
-                    results = result['self.cast']
+                    results = result['cast']
                     total_results = len(results)
                 else:
                     results = result["results"]
