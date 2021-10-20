@@ -372,9 +372,14 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 title = longtitle = parsedTitle.get('title', '')
                 logger.debug('TITOLO',title)
                 if parsedTitle.get('source'):
-                    quality = str(parsedTitle.get('source'))
-                    if parsedTitle.get('screen_size'):
-                        quality += ' ' + str(parsedTitle.get('screen_size', ''))
+                    quality = parsedTitle.get('source')
+                    if type(quality) == list:
+                        quality = ','.join(quality)
+                    else:
+                        quality = str(quality) + ' '
+                if parsedTitle.get('screen_size'):
+                    quality += str(parsedTitle.get('screen_size', ''))
+                quality = quality.strip()
                 if not scraped['year']:
                     if type(parsedTitle.get('year', '')) == list:
                         infolabels['year'] =parsedTitle.get('year', '')[0]
