@@ -44,7 +44,7 @@ class UnshortenIt(object):
     _snip_regex = r'[0-9a-z]+snip\.|uprotector\.xyz'
     _linksafe_regex = r'linksafe\.cc'
     # for services that only include real link inside iframe
-    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
+    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link'
     # for services that only do redirects
     _simple_redirect = r'streamcrypt\.net/[^/]+|uprot\.net|is\.gd'
 
