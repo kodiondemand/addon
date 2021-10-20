@@ -549,7 +549,7 @@ class UnshortenIt(object):
                 uri = uri.replace('/tv/', '/tva/')
             elif 'delta' in uri:
                 uri = uri.replace('/delta/', '/adelta/')
-            elif '/ga/' in uri:
+            elif '/ga/' in uri or '/ga2/' in uri:
                 uri = b64decode(uri.split('/')[-1]).strip().decode()
             elif '/speedx/' in uri:
                 uri = uri.replace('http://linkup.pro/speedx', 'http://speedvideo.net')
