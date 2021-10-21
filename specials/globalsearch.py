@@ -150,7 +150,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if not self.thActions.is_alive():
                     return
                 time.sleep(0.1)
-            yield self.searchActions[lastLen]
+            yield self.searchActions[lastLen - 1]
             lastLen = len(self.searchActions)
 
     def select(self):
