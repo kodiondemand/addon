@@ -11,7 +11,7 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    anime = ['/lista-anime/',
+    anime = ['/anime',
              ('In Corso',['/anime/anime-status/in-corso/', 'peliculas', 'status']),
              ('Completi',['/anime/anime-status/completo/', 'peliculas', 'status']),
              ('Genere',['/anime', 'submenu', 'genre']),
@@ -74,18 +74,21 @@ def search(item, text):
 def peliculas(item):
     search = item.search
     anime = True
+    # debug = True
     if 'movie' in item.url:
         action = 'findvideos'
     else:
         action = 'check'
 
-    if not item.args:
-        pagination = ''
-        patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)">'
-    else:
-        patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'
+    # if not item.args:
+    #     pagination = ''
+    #     patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)">'
+    # else:
+    patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'
 
     if item.args == 'newest': item.action = 'findvideos'
+
+    patronNext = '<li class="page-item disabled">(?:[^>]+>){4}<a class="page-link" href="([^"]+)'
 
     def itemHook(item):
         if 'sub-ita' in item.url:
