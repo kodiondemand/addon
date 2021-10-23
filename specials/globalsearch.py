@@ -20,6 +20,8 @@ info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
 def_lang = info_language[config.get_setting("info_language", "videolibrary")]
 close_action = False
 update_lock = threading.Lock()
+moduleDict = {}
+searchActions = []
 
 
 def busy(state):
@@ -73,7 +75,7 @@ EPISODESLIST = 200
 SERVERLIST = 300
 
 class SearchWindow(xbmcgui.WindowXML):
-    def start(self, item, moduleDict={}, searchActions=[], thActions=None):
+    def start(self, item, thActions=None):
         logger.debug()
         self.exit = False
         self.item = item
@@ -142,16 +144,17 @@ class SearchWindow(xbmcgui.WindowXML):
         # return immediately all actions that are already loadead
         for action in self.searchActions:
             yield action
-
         # wait and return as getActionsThread load
         lastLen = len(self.searchActions)
-        while self.thActions.is_alive():
+        logger.debug('LAST LEN:', lastLen)
+        while self.thActions.is_alive() or lastLen < len(self.searchActions):
             while len(self.searchActions) == lastLen:
                 if not self.thActions.is_alive():
                     return
-                time.sleep(0.1)
+                # time.sleep(0.1)
             yield self.searchActions[lastLen - 1]
             lastLen = len(self.searchActions)
+            logger.debug(lastLen)
 
     def select(self):
         logger.debug()
@@ -308,7 +311,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 percent = 0
             self.PROGRESS.setPercent(percent)
             self.COUNT.setText('%s/%s [%s"]' % (self.count, len(self.searchActions), int(time.time() - self.time)))
-            if percent == 100:
+            if percent == 100 and not self.thActions.is_alive():
                 self.channels = []
                 self.moduleDict = {}
                 self.searchActions = []
@@ -334,11 +337,11 @@ class SearchWindow(xbmcgui.WindowXML):
                 for searchAction in self.getActions():
                     if self.exit: break
                     self.search_threads.append(executor.submit(self.get_channel_results, searchAction))
-                for res in futures.as_completed(self.search_threads):
-                    if self.exit: break
-                    if res.result():
-                        channel, valid, results = res.result()
-                        self.update(channel, valid, results)
+                # for res in futures.as_completed(self.search_threads):
+                #     if self.exit: break
+                #     if res.result():
+                #         channel, valid, results = res.result()
+                #         self.update(channel, valid, results)
 
                         # if results:
                         #     name = results[0].channel
@@ -380,6 +383,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         try:
             results, valid, other = search(self.item.text)
+            if self.exit: return
 
             # if we are on movie search but no valid results is found, and there's a lot of results (more pages), try
             # to add year to search text for better filtering
@@ -388,6 +392,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 logger.debug('retring adding year on channel ' + channel)
                 dummy, valid, dummy = search(self.item.text + " " + str(self.item.infoLabels['year']))
 
+            if self.exit: return
             # some channels may use original title
             if self.item.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
                 logger.debug('retring with original title on channel ' + channel)
@@ -396,13 +401,12 @@ class SearchWindow(xbmcgui.WindowXML):
             import traceback
             logger.error(traceback.format_exc())
 
-        if self.exit:
-            return
-        # update_lock.acquire()
+        if self.exit: return
+        update_lock.acquire()
         self.count += 1
-        return channel, valid, other if other else results
-        # self.update(channel, valid, other if other else results)
-        # update_lock.release()
+        # return channel, valid, other if other else results
+        self.update(channel, valid, other if other else results)
+        update_lock.release()
 
     def makeItem(self, url):
         item = Item().fromurl(url)
@@ -563,6 +567,7 @@ class SearchWindow(xbmcgui.WindowXML):
             self.CHANNELS.selectItem(pos)
 
         elif action in [LEFT, RIGHT, MOUSEMOVE] and focus in [CHANNELS] and self.CHANNELS.isVisible():
+            update_lock.acquire()
             items = []
             name = self.CHANNELS.getSelectedItem().getLabel()
             subpos = int(self.CHANNELS.getSelectedItem().getProperty('position'))
@@ -572,6 +577,7 @@ class SearchWindow(xbmcgui.WindowXML):
             self.RESULTS.reset()
             self.RESULTS.addItems(items)
             self.RESULTS.selectItem(subpos)
+            update_lock.release()
 
         elif (action in [DOWN] and focus in [BACK, CLOSE, MENU]) or focus not in [BACK, CLOSE, MENU, SERVERLIST, EPISODESLIST, RESULTS, CHANNELS]:
             if self.SERVERS.isVisible(): self.setFocusId(SERVERLIST)
@@ -634,7 +640,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                Search(item, self.moduleDict, self.searchActions, self.thActions)
+                Search(item, self.thActions)
                 if close_action:
                     self.close()
             else:
@@ -642,7 +648,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                Search(item, self.moduleDict, self.searchActions, self.thActions)
+                Search(item, self.thActions)
                 if close_action:
                     self.close()
 
