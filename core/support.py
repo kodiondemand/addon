@@ -1440,7 +1440,7 @@ def addQualityTag(item, itemlist, data, patron):
         else:
             info('nessun tag qualità trovato')
 
-def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
+def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False, hls=False):
     from core import jsontools
     video_urls = []
     block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}?])') if not dataIsBlock else data
@@ -1467,7 +1467,10 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                video_urls.append(['.' + url.split('.')[-1].split('?')[0] + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])
+                _type = url.split('.')[-1].split('?')[0]
+                if _type == 'm3u8' and hls:
+                    _type = 'hls'
+                video_urls.append([_type + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])
 
         video_urls.sort(key=lambda x: x[0].split()[1])
     return video_urls

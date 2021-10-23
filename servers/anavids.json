@@ -4,8 +4,8 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "anavids.com/((?:embed-)?[0-9a-zA-Z]+)",
-        "url": "https://anavids.com/\\1.html"
+        "pattern": "((?:anavids|vidspeeds|liivideo|liiivideo|allviids|vidbm|vidroba|vidbom|anafasts)).com(?:\\:\\d+)?/((?:embed-)?[0-9a-zA-Z]+)",
+        "url": "https://\\1.com/\\2.html"
       }
     ]
   },

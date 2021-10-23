@@ -21,7 +21,7 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
 
-    if "file was deleted" in data:
+    if scrapertools.find_single_match(data, '(?<!none);[^>]*>file was deleted'):
         return False, config.get_localized_string(70449) % "MaxStream"
 
     return True, ""
@@ -51,8 +51,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     #     return []
 
     packed = support.match(data, patron=r"(eval\(function\(p,a,c,k,e,d\).*?)\s*</script").match
-    unpack = jsunpack.unpack(packed)
-    url = scrapertools.find_single_match(unpack, 'src:\s*"([^"]+)')
+    if packed:
+        data = jsunpack.unpack(packed)
+    url = scrapertools.find_single_match(data, 'src:\s*"([^"]+)')
     if url:
         video_urls.append(['m3u8 [MaxStream]', url])
     return video_urls

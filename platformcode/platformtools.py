@@ -975,7 +975,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
             return
 
         # we get the selected video
-        mediaurl, view, mpd = get_video_seleccionado(item, seleccion, video_urls, autoplay)
+        mediaurl, view, mpd, hls = get_video_seleccionado(item, seleccion, video_urls, autoplay)
         if not mediaurl: return
 
         # video information is obtained.
@@ -995,7 +995,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
-        elif item.manifest == 'hls' or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
+        elif hls or item.manifest == 'hls':# or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
@@ -1304,6 +1304,7 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
     view = False
     wait_time = 0
     mpd = False
+    hls = False
 
     # You have chosen one of the videos
     if seleccion < len(video_urls):
@@ -1323,6 +1324,8 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
 
     if 'mpd' in video_urls[seleccion][0]:
         mpd = True
+    if 'hls' in video_urls[seleccion][0]:
+        hls = True
 
     # If there is no mediaurl it is because the video is not there :)
     logger.debug("mediaurl=" + mediaurl)
@@ -1338,7 +1341,7 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
         if not continuar:
             mediaurl = ""
 
-    return mediaurl, view, mpd
+    return mediaurl, view, mpd, hls
 
 
 def set_player(item, xlistitem, mediaurl, view, strm):

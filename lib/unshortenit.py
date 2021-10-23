@@ -630,6 +630,7 @@ class UnshortenIt(object):
             return uri, str(e)
 
     def _unshorten_stayonline(self, uri):
+        # from core.support import dbg;dbg()
         try:
             id = uri.split('/')[-2]
             reqUrl = 'https://stayonline.pro/ajax/linkView.php'
@@ -641,6 +642,7 @@ class UnshortenIt(object):
                 uri = json.loads(data)['data']['value']
             except:
                 uri = scrapertools.find_single_match(data, r'"value"\s*:\s*"([^"]+)"')
+                uri = httptools.downloadpage(uri, only_headers=True).url
             return uri, r.code
         except Exception as e:
             return uri, str(e)

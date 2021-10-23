@@ -203,7 +203,8 @@ def findvideos(item):
                     item.clone(action= 'play',
                                title=config.get_localized_string(30137),
                                url= item.url + '?' + key,
-                               server= 'directo')
+                               server= 'directo',
+                               manifest='hls')
                 )
 
     return support.server(item, itemlist=itemlist, Download=False)
