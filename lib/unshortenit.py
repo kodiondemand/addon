@@ -44,7 +44,7 @@ class UnshortenIt(object):
     _snip_regex = r'[0-9a-z]+snip\.|uprotector\.xyz'
     _linksafe_regex = r'linksafe\.cc'
     # for services that only include real link inside iframe
-    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club'
+    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link'
     # for services that only do redirects
     _simple_redirect = r'streamcrypt\.net/[^/]+|uprot\.net|is\.gd'
 
@@ -549,7 +549,7 @@ class UnshortenIt(object):
                 uri = uri.replace('/tv/', '/tva/')
             elif 'delta' in uri:
                 uri = uri.replace('/delta/', '/adelta/')
-            elif '/ga/' in uri:
+            elif '/ga/' in uri or '/ga2/' in uri:
                 uri = b64decode(uri.split('/')[-1]).strip().decode()
             elif '/speedx/' in uri:
                 uri = uri.replace('http://linkup.pro/speedx', 'http://speedvideo.net')
@@ -630,17 +630,19 @@ class UnshortenIt(object):
             return uri, str(e)
 
     def _unshorten_stayonline(self, uri):
+        # from core.support import dbg;dbg()
         try:
             id = uri.split('/')[-2]
             reqUrl = 'https://stayonline.pro/ajax/linkView.php'
-            p = urlencode({"id": id})
-            r = httptools.downloadpage(reqUrl, post=p)
+            p = urlencode({"id": id, "ref": ""})
+            r = httptools.downloadpage(reqUrl, post=p, headers={'Referer': uri})
             data = r.data
             try:
                 import json
                 uri = json.loads(data)['data']['value']
             except:
                 uri = scrapertools.find_single_match(data, r'"value"\s*:\s*"([^"]+)"')
+                uri = httptools.downloadpage(uri, only_headers=True).url
             return uri, r.code
         except Exception as e:
             return uri, str(e)
