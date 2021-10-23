@@ -2,45 +2,188 @@
 # ------------------------------------------------------------
 # Canale per Altadefinizione Community
 
-from core import jsontools, support
+from core import support
 from lib.fakeMail import Gmailnator
 from platformcode import config, platformtools, logger
 from core import scrapertools, httptools
 
 
 def findhost(url):
-    global register_url
-    register_url = url
     return support.match(url, patron=r'<a href="([^"]+)/\w+">Accedi').match
 
 
 host = config.get_channel_url(findhost)
-# register_url = 'https://altaregistrazione.com'
-headers = {'Referer': host, 'x-requested-with': 'XMLHttpRequest'}
+register_url = 'https://altaregistrazione.net'
+
+if 'altadefinizionecommunity' not in host:
+    config.get_channel_url(findhost, forceFindhost=True)
+
+if host.endswith('/'):
+    host = host[:-1]
+
+headers = {'Referer': host}
+order = ['', 'i_piu_visti', 'i_piu_votati', 'i_piu_votati_dellultimo_mese', 'titolo_az', 'voto_imdb_piu_alto'][config.get_setting('order', 'altadefinizionecommunity')]
 
 
 @support.menu
 def mainlist(item):
     logger.debug(item)
 
-    film = ['/load-more-film?anno=&order=&support_webp=1&type=movie&page=1',
-        # Voce Menu,['url','action','args',contentType]
-        ('Generi Film', ['', 'genres', 'genres']),
-        ]
+    film = ['/type/movie',
+            ('Generi', ['/type/movie', 'genres', 'genres']),
+            ('Anni', ['/type/movie', 'genres', 'year']),]
 
-    tvshow = ['/load-more-film?type=tvshow&anno=&order=&support_webp=1&page=1',
-        # Voce Menu,['url','action','args',contentType]
-        ('Generi Serie TV', ['', 'genres', 'genres']),
-        ]
-
-    altri = [
-        # ('A-Z', ['/lista-film', 'genres', 'letters']),
-        ('Qualità', ['', 'genres', 'quality']),
-        ('Anni', ['/anno', 'genres', 'years'])
-    ]
-    search = ''
+    tvshow = ['/serie-tv/tvshow',
+              ('Generi', ['/serie-tv/tvshow', 'genres', 'genres']),
+              ('Anni', ['/serie-tv/tvshow', 'genres', 'year'])]
 
     return locals()
+
+
+def search(item, text):
+    logger.debug("search ", text)
+    # per evitare fastidi da ricerca globale
+    if not item.globalsearch:
+        registerOrLogin()
+
+    item.args = 'search'
+    item.url = host + "/search?s={}&f={}".format(text.replace(' ', '+'), item.contentType)
+    try:
+        return movies(item)
+
+    # Continua la ricerca in caso di errore
+    except:
+        import sys
+        for line in sys.exc_info():
+            support.logger.error("%s" % line)
+        return []
+
+
+@support.scrape
+def genres(item):
+    registerOrLogin()
+    logger.debug(item)
+    data = support.httptools.downloadpage(item.url).data
+    blacklist= ['Film', 'Serie TV']
+
+    if item.args == 'genres':
+        categories ={}
+        res = support.match(host + '/cerca', patron=r'for="cat-(\d+)[^>]+>([^<]+)').matches
+        for _id, name in res:
+            categories[name] = _id
+
+        patronBlock = r'{}<span></span>(?P<block>.*?)</ul>\s*</li'.format('Film' if item.contentType == 'movie' else 'Serie TV')
+        patronMenu = r'<a href="[^"]+">(?P<title>[^<]+)'
+
+        def itemHook(it):
+            it.cat_id = categories[it.fulltitle]
+            return it
+
+    if item.args == 'year':
+        patronMenu = r'value="(?P<year_id>[^"]+)"[^>]*>(?P<title>\d+)'
+        patronBlock = r'Anno</option>(?P<block>.*?</select>)'
+
+    elif item.args == 'quality':
+        patronMenu = r'quality/(?P<quality_id>[^"]+)">(?P<title>[^<]+)'
+        patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
+
+    action = 'movies'
+    return locals()
+
+
+@support.scrape
+def movies(item):
+    item.quality = 'HD'
+    json = {}
+    if not item.page: item.page = 1
+    params ={'type':item.contentType, 'anno':item.year_id, 'quality':item.quality_id, 'cat':item.cat_id, 'order':order, 'page':item.page}
+    # debug = True
+
+    action = 'findvideos' if item.contentType == 'movie' else 'episodes'
+
+    try:
+        # support.dbg()
+        if item.args in ['search']:
+            page = support.httptools.downloadpage(item.url, headers=headers)
+            if page.json:
+                data = "\n".join(page.json['data'])
+            else:
+                data = page.data
+        else:
+            params['page'] = item.page
+
+            url = '{}/load-more-film?{}'.format(host, support.urlencode(params))
+            json = support.httptools.downloadpage(url, headers=headers).json
+            data = "\n".join(json['data'])
+    except:
+        data = ' '
+
+    patron = r'wrapFilm"[^>]*>\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){2,6}\s+<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA -]+))?'
+    # patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">[^>]+>(?P<year>\d+)(?:[^>]+>){2}(?P<rating>[^<]+)(?:[^>]+>){4}\s*<img src="(?P<thumb>[^"]+)(?:[^>]+>){3}(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
+
+    def itemHook(item):
+        item.quality = item.quality.replace('2K', 'HD').replace('4K', 'HD')
+        item.title = item.title.replace('2K', 'HD').replace('4K', 'HD')
+        return item
+
+    # paginazione
+    if json.get('have_next') or support.match(data, patron=r'have_next_film\s*=\s*true').match:
+        def fullItemlistHook(itemlist):
+            cat_id = support.match(data, patron=r''''cat':"(\d+)"''').match
+            if cat_id: item.cat_id = cat_id
+            item.page += 1
+            support.nextPage(itemlist, item, function_or_level='movies')
+            return itemlist
+
+    return locals()
+
+
+@support.scrape
+def episodes(item):
+    logger.debug(item)
+    # debug = True
+    data = item.data
+    patron = r'class="playtvshow "\s+data-href="(?P<url>[^"]+)'
+
+    def itemHook(it):
+        spl = it.url.split('/')[-2:]
+        it.infoLabels['season'] = int(spl[0])+1
+        it.infoLabels['episode'] = int(spl[1])+1
+        it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
+        it.title = '{}x{:02d} - {}'.format(it.contentSeason, it.contentEpisodeNumber, it.fulltitle)
+        return it
+
+    return locals()
+
+
+def findvideos(item):
+    itemlist = []
+    resolve_url(item)
+
+    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
+
+    return support.server(item, itemlist=itemlist)
+
+
+def play(item):
+    if host in item.url:  # intercetto il server proprietario
+        # if registerOrLogin():
+        return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
+        # else:
+        #     platformtools.play_canceled = True
+        #     return []
+    else:
+        return [item]
+
+
+def resolve_url(item):
+    registerOrLogin()
+    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
+        playWindow = support.match(support.httptools.downloadpage(item.url, cloudscraper=True).data, patron='playWindow" href="([^"]+)')
+        video_url = playWindow.match
+        item.data = playWindow.data
+        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
+    return item
 
 
 def login():
@@ -51,12 +194,12 @@ def login():
     else:
         logger.info('Login in corso')
         post = {'_token': '',
-                'form_action':'login', 
+                'form_action':'login',
                 'email': config.get_setting('username', channel='altadefinizionecommunity'),
                 'password':config.get_setting('password', channel='altadefinizionecommunity')}
 
         r = support.httptools.downloadpage(host + '/login', post=post, headers={'referer': host}, cloudscraper=True)
-        if not r.status_code in [200, 302] or 'Email o Password non validi' in r.data:
+        if r.code not in [200, 302] or 'Email o Password non validi' in r.data:
             platformtools.dialog_ok('AltadefinizioneCommunity', 'Username/password non validi')
             return False
 
@@ -127,143 +270,3 @@ def registerOrLogin():
         return False
 
     return True
-
-
-@support.scrape
-def movies(item):
-    json = {}
-    # debug=True
-
-    if item.contentType == 'undefined':
-        # tmdbEnabled = False
-        action = 'check'
-    elif item.contentType == 'movie':
-        action = 'findvideos'
-    else:
-        action = 'episodes'
-    try:
-        if '/load-more-film' not in item.url and '/search' not in item.url:  # generi o altri menu, converto
-            import ast
-            ajax = support.match(item.url, patron='ajax_data\s*=\s*"?\s*([^;]+)', cloudscraper=True).match
-            item.url = host + '/load-more-film?' + support.urlencode(ast.literal_eval(ajax)) + '&page=1'
-        if not '/search' in item.url:
-            json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-            data = "\n".join(json['data'])
-        else:
-            json = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).json
-            data = "\n".join(json['data'])
-    except:
-        data = ' '
-
-    patron = r'wrapFilm">\s*<a href="(?P<url>[^"]+)">\s*<span class="year">(?P<year>[0-9]{4})</span>\s*<span[^>]+>(?P<rating>[^<]+)</span>\s*<span class="qual">(?P<quality>[^<]+)(?:[^>]+>){2}\s*<img src="(?P<thumbnail>[^"]+)(?:[^>]+>){1,6}\s*<h3>(?P<title>[^<[]+)(?:\[(?P<lang>[sSuUbBiItTaA-]+))?'
-
-    # paginazione
-    logger.debug('JSON FIND',jsontools.load(json))
-    if json.get('have_next'):
-        def fullItemlistHook(itemlist):
-            spl = item.url.split('=')
-            url = '='.join(spl[:-1])
-            page = str(int(spl[-1])+1)
-            total_pages = json.get('lastPage', 0)
-            support.nextPage(itemlist, item, 'movies', next_page='='.join((url, page)), total_pages=total_pages)
-            return itemlist
-
-    return locals()
-
-
-def search(item, texto):
-    logger.debug("search ", texto)
-
-    item.args = 'search'
-    item.url = host + "/search?s={}&page=1".format(texto)
-    try:
-        return movies(item)
-    # Continua la ricerca in caso di errore
-    except:
-        import sys
-        for line in sys.exc_info():
-            logger.error('{}'.format(line))
-        return []
-
-
-@support.scrape
-def genres(item):
-    logger.debug(item)
-    data = support.httptools.downloadpage(item.url, cloudscraper=True).data
-    blacklist = ['Film', 'Serie TV', 'Trovatore', 'Lista A-Z']
-    patronGenreMenu = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
-    if item.args == 'quality':
-        item.contentType = 'undefined'
-        patronBlock = r'Risoluzione(?P<block>.*?)</ul>'
-        def itemlistHook(itemlist):
-            support.thumb(itemlist, mode='quality')
-            quality_list = ['4k','2k','hd','sd', '2k.md', 'hd.md', 'ts.md', 'cam']
-            itemlist.sort(key=lambda it: quality_list.index(it.title.lower()) if it.title.lower() in quality_list else 99)
-            return itemlist
-    elif item.args == 'years':
-        item.contentType = 'undefined'
-        patronBlock = r'ANNO(?P<block>.*?</section>)'
-    else:
-        patronBlock = ('Film' if item.contentType == 'movie' else 'Serie TV') + r'<span></span></a>\s+<ul class="dropdown-menu(?P<block>.*?)active-parent-menu'
-    action = 'movies'
-
-    return locals()
-
-
-@support.scrape
-def episodes(item):
-    logger.debug()
-    data = item.data
-    patron = r'class="playtvshow "\s*data-href="(?P<url>[^"]+)'
-
-    def itemHook(it):
-        spl = it.url.split('/')[-2:]
-        it.contentSeason = int(spl[0])+1
-        it.contentEpisodeNumber = int(spl[1])+1
-        it.url = it.url.replace('/watch-unsubscribed', '/watch-external')
-        return it
-
-    return locals()
-
-
-def check(item):
-    resolve_url(item)
-    if '/tvshow' in item.url:
-        item.contentType = 'tvshow'
-        return episodes(item)
-    else:
-        item.contentType = 'movie'
-        return findvideos(item)
-
-
-def findvideos(item):
-    itemlist = []
-    # logger.dbg()
-    resolve_url(item)
-
-    itemlist.append(item.clone(action='play', url=support.match(item.url, patron='allowfullscreen[^<]+src="([^"]+)"', cloudscraper=True).match, quality=''))
-
-    return support.server(item, itemlist=itemlist)
-
-
-def play(item):
-    if host in item.url:  # intercetto il server proprietario
-        if registerOrLogin():
-            return support.get_jwplayer_mediaurl(support.httptools.downloadpage(item.url, cloudscraper=True).data, 'Diretto')
-        else:
-            platformtools.play_canceled = True
-            return []
-    else:
-        return [item]
-
-
-def resolve_url(item):
-    registerOrLogin()
-    if '/watch-unsubscribed' not in item.url and '/watch-external' not in item.url:
-        data = support.httptools.downloadpage(item.url, headers=headers, cloudscraper=True).data
-        logger.debug()
-        playWindow = support.match(data, patron='playWindow" href="([^"]+)')
-        video_url = playWindow.match
-        item.data = playWindow.data
-        item.url = video_url.replace('/watch-unsubscribed', '/watch-external')
-    return item

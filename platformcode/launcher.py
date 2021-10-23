@@ -168,7 +168,7 @@ def run(item=None):
             if page and int(page) > -1:
                 import xbmc
                 item.action = item.real_action
-                item.page = page
+                item.page = int(page)
                 import re
                 item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>{}\g<2>'.format(page), item.url)
                 xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
@@ -228,6 +228,7 @@ def run(item=None):
 
             # Special action for findvideos, where the plugin looks for known urls
             elif item.action == "findvideos":
+                # logger.dbg()
                 from core import servertools
                 p_dialog = None
                 if item.window:

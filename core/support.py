@@ -853,6 +853,9 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     page = kwargs.get('page', None)
     total_pages = kwargs.get('total_pages', None)
 
+    if total_pages and total_pages % 1:
+        total_pages = int(total_pages) + 1
+
     # get next_page from data
     if data and patron:
         next_page = scrapertools.find_single_match(data, patron)
@@ -885,9 +888,10 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
                                    nextPage=True,
                                    page=page if page else item.page + 1 if item.page else 2,
                                    prevthumb = item.thumbnail,
+                                   folder=True,
                                    thumbnail=thumb()))
 
-    if total_pages:
+
         itemlist.append(item.clone(action='gotopage',
                                    real_action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
                                    title=typo(config.get_localized_string(90007), 'color kod bold'),
@@ -1051,7 +1055,11 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             if videoitem.quality: vi.quality = videoitem.quality
             if not vi.referer: vi.referer = item.url
             if videoitem.contentType == 'episode': vi.fanart=videoitem.thumbnail
+            if videoitem.forcethumb:
+                vi.thumbnail = videoitem.thumbnail
+                vi.forcethumb = True
             videoitem = vi
+
             # videoitem = item.clone(serverName = videoitem.title if videoitem.title else videoitem.ser)
             # quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
             # videoitem.contentLanguage = videoitem.contentLanguage if videoitem.contentLanguage else item.contentLanguage if item.contentLanguage else 'ITA'

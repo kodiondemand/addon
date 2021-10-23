@@ -1,5 +1,5 @@
 from platformcode import config, logger, autorenumber
-from core import httptools, scrapertools, support, tmdb
+from core import httptools, jsontools, scrapertools, support, tmdb
 from inspect import stack
 
 import sys
@@ -27,7 +27,7 @@ def mainlist(item):
 def submenu_az(item):
     itemlist = []
     for letter in ['0-9'] + list('ABCDEFGHIJKLMNOPQRSTUVWXYZ'):
-        itemlist.append(item.clone(title = support.typo(letter, 'bold'),
+        itemlist.append(item.clone(title = letter,
                                 url= host + '/api/anime/find-by-char',
                                 action= 'movies',
                                 variable= '&character=' + letter,
@@ -40,7 +40,7 @@ def submenu_year(item):
     current = date.today().year
     first = int(httptools.downloadpage('{}/api/anime/advanced-search?page=0&size=1&sort=startDate,asc&sort=id'.format(host)).json[0]['startDate'].split('-')[0]) -1
     for year in range(current, first, -1):
-        itemlist.append(item.clone(title = support.typo(year, 'bold'),
+        itemlist.append(item.clone(title = year,
                                 action= 'submenu_season',
                                 variable= year,
                                 thumbnail=support.thumb('year')))
@@ -51,7 +51,7 @@ def submenu_top(item):
     links = {'Top del giorno':'daily-top', 'Top della settimana':'weekly-top', 'Top del mese':'monthly-top'}
     for label in links:
         link = links[label]
-        itemlist.append(item.clone(title = support.typo(label, 'bold'),
+        itemlist.append(item.clone(title = label,
                                 action= 'submenu_top_of',
                                 variable= link))
     return itemlist
@@ -80,9 +80,9 @@ def submenu_top_of(item):
         title = fulltitle.split('(')[0].strip()
         scrapedlang = scrapertools.find_single_match(fulltitle, r'\(([^\)]+)')
         lang = scrapedlang.upper() if scrapedlang else 'Sub-ITA'
-        long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
+        # long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
 
-        itemlist.append(item.clone(title=long_title,
+        itemlist.append(item.clone(title=title,
                                 id=anime['animeId'],
                                 url = '{}/api/anime/{}'.format(host, anime['animeId']),
                                 thumbnail = get_thumbnail(anime, 'animeHorizontalImages'),
@@ -123,18 +123,21 @@ def newest(category):
 
 def latest_added(item):
     itemlist = []
+    if config.get_setting("window_type") == 0:
+        item.window = True
+        item.folder = False
     page = item.page if item.page else 0
     url= '{}/api/home/latest-episodes?page={}'.format(host, page)
     js = httptools.downloadpage(url).json
 
     for episode in js:
-        title = episode['title']
+        logger.debug(jsontools.dump(episode))
+        title = episode['title'] if episode['title'] else episode['animeTitle']
         animeTitle, lang =  get_lang(episode['animeTitle'])
         quality = 'Full HD' if episode['fullHd'] else 'HD'
-        long_title = support.typo('{}. {}{}'.format(int(float(episode['episodeNumber'])), title + ' - ' if title else '', animeTitle), 'bold') + support.typo(lang, '_ [] color kod') + support.typo(quality, '_ [] color kod')
         image = get_thumbnail(episode, 'episodeImages')
 
-        itemlist.append(item.clone(title=long_title,
+        itemlist.append(item.clone(title=title,
                                    fulltitle=title,
                                    animeId = episode['animeId'],
                                    id=episode['id'],
@@ -165,9 +168,7 @@ def movies(item):
     for it in js:
         title, lang = get_lang(it['title'])
 
-        long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
-
-        itemlist.append(item.clone(title = long_title,
+        itemlist.append(item.clone(title = title,
                                    fulltitle = title,
                                    show = title,
                                    contentLanguage = lang,
@@ -193,6 +194,10 @@ def episodes(item):
     logger.debug()
     itemlist = []
 
+    if config.get_setting("window_type") == 0:
+        item.window = True
+        item.folder = False
+
     # url = '{}/api/anime/{}'.format(host, item.id)
     json = httptools.downloadpage(item.url, CF=False ).json
 
@@ -208,6 +213,7 @@ def episodes(item):
             title = it['name']
 
             itemlist.append(item.clone(title = title,
+                                       contentTitle = title,
                                        id= '{}/season/{}'.format(it['animeId'], it['id']),
                                        contentType = 'season',
                                        action = 'list_episodes',
@@ -259,10 +265,11 @@ def list_episodes(item, json=None):
         else:
             episode = '{:02d}'.format(int(it['episodeNumber'].split('.')[0]))
 
-        title = support.typo('{}. {}'.format(episode, it['title']), 'bold')
+        # title = support.typo('{}. {}'.format(episode, it['title']), 'bold')
         image = get_thumbnail(it, 'episodeImages')
 
-        itemlist.append(item.clone(title = title,
+        itemlist.append(item.clone(title = it['title'],
+                                   contentTitle = it['title'],
                                    id= it['id'],
                                    url= 'api/episode/{}'.format(it['id']),
                                    contentType = 'episode',
@@ -283,7 +290,7 @@ def list_episodes(item, json=None):
 def findvideos(item):
     logger.debug()
 
-    url = '{}/api/{}/{}'.format(host, 'episode' if item.contentType == 'episode' else 'anime', item.id)
+    url = '{}/api/{}/{}'.format(host, 'episode' if item.contentType != 'movie' else 'anime', item.id)
 
     json = httptools.downloadpage(url, CF=False ).json
 

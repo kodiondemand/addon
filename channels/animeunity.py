@@ -4,7 +4,8 @@
 # ------------------------------------------------------------
 
 import cloudscraper, json, copy, inspect
-from core import jsontools, support
+from core import jsontools, support, config
+from core.httptools import downloadpage
 from platformcode import autorenumber, logger
 
 session = cloudscraper.create_scraper()
@@ -13,9 +14,9 @@ host = support.config.get_channel_url()
 response = session.get(host + '/archivio')
 csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
 headers = {'content-type': 'application/json;charset=UTF-8',
+           'Referer': host,
            'x-csrf-token': csrf_token,
            'Cookie' : '; '.join([x.name + '=' + x.value for x in response.cookies])}
-
 
 @support.menu
 def mainlist(item):
@@ -40,13 +41,13 @@ def menu(item):
     Terminato = copy.copy(item.args)
     Terminato['status'] = 'Terminato'
     itemlist = [item.clone(title=support.typo('Tutti','bold')),
-                item.clone(title=support.typo('ITA','bold'), args=ITA),
-                item.clone(title=support.typo('Genere','bold'), action='genres'),
-                item.clone(title=support.typo('Anno','bold'), action='years')]
+                item.clone(title='ITA', args=ITA),
+                item.clone(title='Genere', action='genres'),
+                item.clone(title='Anno', action='years')]
     if item.contentType == 'tvshow':
-        itemlist += [item.clone(title=support.typo('In Corso','bold'), args=InCorso),
-                     item.clone(title=support.typo('Terminato','bold'), args=Terminato)]
-    itemlist +=[item.clone(title=support.typo('Cerca...','bold'), action='search', thumbnail=support.thumb('search'))]
+        itemlist += [item.clone(title='In Corso', args=InCorso),
+                     item.clone(title='Terminato', args=Terminato)]
+    itemlist +=[item.clone(title=support.typo(config.get_localized_string(70741).replace(' %s', '…'),'bold'), action='search', thumbnail=support.thumb('search'))]
     return itemlist
 
 
@@ -58,7 +59,7 @@ def genres(item):
 
     for genre in genres:
         item.args['genres'] = [genre]
-        itemlist.append(item.clone(title=support.typo(genre['name'],'bold'), action='movies'))
+        itemlist.append(item.clone(title=genre['name'], action='movies'))
     return support.thumb(itemlist)
 
 def years(item):
@@ -71,7 +72,7 @@ def years(item):
 
     for year in list(reversed(range(oldest_year, current_year + 1))):
         item.args['year']=year
-        itemlist.append(item.clone(title=support.typo(year,'bold'), action='movies'))
+        itemlist.append(item.clone(title=year, action='movies'))
     return itemlist
 
 
@@ -121,11 +122,14 @@ def news(item):
     session = cloudscraper.create_scraper()
 
     fullJs = json.loads(support.match(session.get(item.url).text, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
+    # logger.debug(jsontools.dump(fullJs))
     js = fullJs['data']
 
     for it in js:
         itemlist.append(
-            item.clone(title= support.typo(it['anime']['title'] + ' - EP. ' + it['number'], 'bold'),
+            item.clone(title=it['anime']['title'],
+                       contentTitle = it['anime']['title'],
+                       contentEpisodeNumber = int(it['number']),
                        fulltitle=it['anime']['title'],
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
@@ -133,8 +137,8 @@ def news(item):
                        plot=it['anime']['plot'],
                        action='findvideos')
         )
-    if 'next_page_url' in fullJs:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),thumbnail=support.thumb(), url=fullJs['next_page_url']))
+    if fullJs.get('next_page_url'):
+        support.nextPage(itemlist, item, 'news', next_page=fullJs['next_page_url'], total_pages=int(fullJs['last_page_url'].split('=')[-1]))
     return itemlist
 
 
@@ -151,7 +155,9 @@ def movies(item):
         item.args['order'] = order_list[order]
 
     payload = json.dumps(item.args)
-    records = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
+    js = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()
+    records = js['records']
+    total_pages = int(js['tot'] / 30)
 
     for it in records:
         logger.debug(jsontools.dump(it))
@@ -161,18 +167,25 @@ def movies(item):
         if 'ita' in lang.lower(): language = 'ITA'
         else: language = 'Sub-ITA'
 
-        itm = item.clone(title=support.typo(title,'bold') + support.typo(language,'_ [] color kod') + (support.typo(it['title_eng'],'_ ()') if it['title_eng'] else ''))
-        itm.contentLanguage = language
-        itm.type = it['type']
-        itm.thumbnail = it['imageurl']
-        itm.plot = it['plot']
-        itm.url = item.url
+        itm = item.clone(title=title,
+                         contentLanguage = language,
+                         type = it['type'],
+                         thumbnail = it['imageurl'],
+                         plot = it['plot'],
+                         url = '{}/{}-{}'.format(item.url, it['id'], it['slug'])
+                         )
+        # itm.contentLanguage = language
+        # itm.type = it['type']
+        # itm.thumbnail = it['imageurl']
+        # itm.plot = it['plot']
+        # itm.url = item.url
 
         if it['episodes_count'] == 1:
             itm.contentType = 'movie'
             itm.fulltitle = itm.show = itm.contentTitle = title
             itm.contentSerieName = ''
-            itm.action = 'findvideos'
+            itm.action = 'play'
+            item.forcethumb=True
             itm.video_url = it['episodes'][0]['scws_id']
 
         else:
@@ -181,33 +194,31 @@ def movies(item):
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodes'
             itm.episodes = it['episodes'] if 'episodes' in it else it['scws_id']
-            itm.video_url = item.url
+            # itm.video_url = item.url
 
         itemlist.append(itm)
 
     autorenumber.start(itemlist)
-    if len(itemlist) >= 30:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page + 1))
+    if len(itemlist) == 30:
+        support.nextPage(itemlist, item, 'movies', page=page + 1, total_pages=total_pages)
 
     return itemlist
 
 def episodes(item):
     logger.debug()
     itemlist = []
-    title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
+    # title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
     for it in item.episodes:
+
+        episode2 = it['number'].split('.')[-1]
+        episode = it['number'].split('.')[0]
         itemlist.append(
-            item.clone(title=title,
-                       episode = it['number'],
-                       fulltitle=item.title,
-                       show=item.title,
-                       contentTitle='',
-                       contentEpisodeNumber=it['number'],
-                       contentSerieName=item.contentSerieName,
-                       thumbnail=item.thumbnail,
-                       plot=item.plot,
-                       action='findvideos',
+            item.clone(episodes = [],
+                       contentEpisodeNumber=int(float(it['number'])),
+                       episodeExtra = '.' + it['number'].split('.')[-1] if '.' in it['number'] else '',
+                       action='play',
                        contentType='episode',
+                       forcethumb=True,
                        video_url=it['scws_id']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
@@ -217,29 +228,17 @@ def episodes(item):
     return itemlist
 
 
-def findvideos(item):
-    directLink = False
-    if item.video_url == None:
-        if item.extra == "tvshow":
-            epnum = item.episode
-            logger.info('it is a episode', epnum)
-            episode = None
-            for ep in item.episodes:
-                if ep["number"] == epnum:
-                    episode = ep
-                    break
-            if episode == None:
-                logger.warn('cannot found episode')
-            else:
-                item.url = episode["link"]
-                directLink = True
+def play(item):
+    from time import time
+    from base64 import b64encode
+    from hashlib import md5
 
-    if directLink:
-        logger.info('try direct link')
-        return support.server(item, itemlist=[item.clone(title=support.config.get_localized_string(30137), url=item.url, server='directo', action='play')])
-    else:
-        return support.server(item, itemlist=[item.clone(title="StreamingCommunityWS", url=str(item.video_url), manifest = 'hls', server='streamingcommunityws', action='play')])
+    # Calculate Token
+    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.video_url), headers=headers).json.get('client_ip')
+    expires = int(time() + 172800)
+    token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.video_url, token, expires)
 
-
+    return [item.clone(server='directo', url=url,  manifest='hls')]
 

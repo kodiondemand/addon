@@ -14,6 +14,7 @@ else:
     from concurrent_py2 import futures
 
 mode = config.get_setting('result_mode', 'news')
+cacheTime = 10
 
 def mainlist(item):
     logger.debug()
@@ -76,6 +77,7 @@ def news(item):
 
     else:
         itemlist = []
+        itlist = []
         results = cache(item.extra)
         if not results:
             progress = platformtools.dialog_progress(item.category, config.get_localized_string(60519))
@@ -83,17 +85,24 @@ def news(item):
 
             channelNames = [c[0] for c in channels]
             count = 0
-            progress.update(int(count / len(channels)), ', '.join(c for c in channelNames))
+            # progress.update(int(count / len(channels)), ', '.join(c for c in channelNames))
 
+            # logger.dbg()
             with futures.ThreadPoolExecutor() as executor:
-                itlist = [executor.submit(get_newest, channel, item.extra, channels) for channel in channels]
+                for channel in channels:
+                    if progress.iscanceled(): return
+                    itlist.append(executor.submit(get_newest, channel, item.extra, channels))
                 for res in futures.as_completed(itlist):
                     if res.result():
                         name = res.result()[0]
                         channelNames.remove(name)
-                        progress.update(int(count + 1 / len(channels)), ', '.join(c for c in channelNames))
+                        count += 1
+                        percent = int((float(count) / len(channels)) * 100)
+                        progress.update(percent, ', '.join(c for c in channelNames))
                         results.append(res.result())
+
             if progress:
+                # progress.update(100, '')
                 progress.close()
 
             cache(item.extra, results)
@@ -110,7 +119,7 @@ def news(item):
                 plot = ''
                 items = []
                 for it in res[2]:
-                    plot += '\n{}'.format(it.title)
+                    plot += '\n{}'.format(platformtools.setTitle(it))
                     items.append(it.tourl())
                 if items:
                     itemlist.append(Item(title='{} [{}]'.format(res[0], len(items)),
@@ -120,8 +129,8 @@ def news(item):
                                          thumbnail=channeltools.get_channel_parameters(res[1])["thumbnail"],
                                          items=items))
             itemlist.sort(key=lambda it: it.title)
-        elif mode in [0]:
 
+        elif mode in [0]:
             items = {}
             for res in results:
                 _name, _id, _list = res
@@ -129,9 +138,10 @@ def news(item):
                     if it.fulltitle not in items:
                         items[it.fulltitle] = []
 
+                    it.channelName = _name
                     items[it.fulltitle].append(it.tourl())
 
-            itemlist = [Item(title='{} [{}]'.format(k, len(items)), infoLabels=Item().fromurl(v[0]).infoLabels, channel='news', action='movies', items = v) for k, v in items.items()]
+            itemlist = [Item(title='{} [{}]'.format(v, len(v) if len(v) > 1 else Item().fromurl(v[0]).channelName), infoLabels=Item().fromurl(v[0]).infoLabels, channel='news', action='movies', items = v) for v in items.values()]
 
     if mode in [0, 2]:
         itemlist = support.pagination(itemlist, item, 'news')
@@ -167,27 +177,38 @@ def get_newest(channel, category, channels):
 
 
 def movies(item):
-    itemlist = [Item().fromurl(url=it) for it in item.items]
-    if mode == 1: tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    if item.itemlist:
+        itemlist = support.itemlistdb()
+    else:
+        itemlist = [Item().fromurl(url=it) for it in item.items]
+    if len(itemlist) == 1:
+        from platformcode.launcher import run
+        run(itemlist[0])
+    if mode == 0:
+        for it in itemlist:
+            it.title = '{} [{}]'.format(it.title, it.channelName)
+    itemlist = support.pagination(itemlist, item, 'movies')
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     return itemlist
 
 
 def cache(_type, results=None):
     from core import db
     from time import time
-    news = db['news']
     # logger.dbg()
+    news = dict(db['news'][_type])
+
 
     if results != None:
-        news[_type] = {}
-        news[_type]['time'] = time()
-        news[_type]['results'] = results
-        db['news'] = news
+        news = {}
+        news['time'] = time()
+        news['results'] = results
+        db['news'][_type] = news
 
-    elif news.get(_type, {}).get('time', 0) + 60 < time() :
+    elif news.get('time', 0) + 60 * cacheTime < time() :
         results = []
     else:
-        results = news.get(_type, {}).get('results', [])
+        results = news.get('results', [])
     db.close()
     return results
 

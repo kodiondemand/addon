@@ -5,7 +5,7 @@
 
 import json, requests, sys
 from core import support, channeltools
-from platformcode import logger
+from platformcode import config, logger
 if sys.version_info[0] >= 3:
     from concurrent import futures
 else:
@@ -17,12 +17,17 @@ def findhost(url):
 host = support.config.get_channel_url(findhost)
 session = requests.Session()
 headers = {}
+perpage = config.get_setting('pagination', 'streamingcommunity', default=1) * 10 + 10
 
 def getHeaders():
     global headers
+    global host
+    # support.dbg()
     if not headers:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
         response = session.get(host, headers=headers)
+        if response.status_code != 200 or response.url != host:
+            host = support.config.get_channel_url(findhost, forceFindhost=True)
         csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
                     'content-type': 'application/json;charset=UTF-8',
@@ -55,7 +60,7 @@ def genres(item):
     args = support.match(data, patronBlock=r'genre-options-json="([^\]]+)\]', patron=r'name"\s*:\s*"([^"]+)').matches
     for arg in args:
         itemlist.append(item.clone(title=support.typo(arg, 'bold'), args=arg, action='movies'))
-    support.thumb(itemlist, genre=True)
+    support.thumb(itemlist, mode=True)
     return itemlist
 
 
@@ -105,14 +110,12 @@ def movies(item):
     # getHeaders()
     logger.debug()
     itemlist = []
-    recordlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
 
     page = item.page if item.page else 0
-    offset = page * 60
-    if item.records:
-        records = item.records
-    elif type(item.args) == int:
+    offset = page * perpage
+
+    if type(item.args) == int:
         data = support.scrapertools.decodeHtmlentities(support.match(item).data)
         records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
     elif not item.search:
@@ -129,19 +132,26 @@ def movies(item):
     else:
         js = records
 
-    for i, it in enumerate(js):
-        if i < 20:
-            itemlist.append(makeItem(i, it, item))
-        else:
-            recordlist.append(it)
+    itemlist = makeItems(item, js)
 
-    itemlist.sort(key=lambda item: item.n)
-    if recordlist:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
-    elif len(itemlist) >= 20:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
+    if len(itemlist) == perpage:
+        support.nextPage(itemlist, item, 'movies', page=page + 1)
+
     return itemlist
+
+
+def makeItems(item, items):
+    itemlist = []
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(makeItem, n, it, item) for n, it in enumerate(items) if n < perpage]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+    itemlist.sort(key=lambda item: item.n)
+    return itemlist
+
 
 def makeItem(n, it, item):
     info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
@@ -196,34 +206,26 @@ def episodes(item):
 
 
 def findvideos(item):
-    video_urls = []
-    data = support.match(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
-    url = support.match(data, patron=r'video_url"\s*:\s*"([^"]+)"').match
-
-    def calculateToken():
-        from time import time
-        from base64 import b64encode as b64
-        import hashlib
-        o = 48
-        n = support.match(host + '/client-address').data
-        i = 'Yc8U6r8KjAKAepEA'
-        t = int(time() + (3600 * o))
-        l = '{}{} {}'.format(t, n, i)
-        md5 = hashlib.md5(l.encode())
-        s = '?token={}&expires={}'.format(b64(md5.digest()).decode().replace('=', '').replace('+', "-").replace('\\', "_"), t)
-        return s
-    token = calculateToken()
-
-
-    def videourls(res):
-        newurl = '{}/{}{}'.format(url, res, token)
-        if requests.head(newurl, headers=headers).status_code == 200:
-            video_urls.append({'type':'m3u8', 'res':res, 'url':newurl})
-
-    with futures.ThreadPoolExecutor() as executor:
-        for res in ['480p', '720p', '1080p']:
-            executor.submit(videourls, res) 
-
-    if not video_urls: video_urls = [{'type':'m3u8', 'url':url + token}]
-    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=video_urls, thumbnail=channeltools.get_channel_parameters(item.channel)["thumbnail"], forcethumb=True)]
+    channelParams = channeltools.get_channel_parameters(item.channel)
+    itemlist = [item.clone(title = channelParams['title'], server='directo',  thumbnail=channelParams["thumbnail"], forcethumb=True, action='play')]
     return support.server(item, itemlist=itemlist)
+
+def play(item):
+    from time import time
+    from base64 import b64encode
+    from hashlib import md5
+
+    data = support.httptools.downloadpage(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
+    scws_id = support.match(data, patron=r'scws_id"\s*:\s*(\d+)').match
+
+    if not scws_id:
+        return []
+
+    # Calculate Token
+    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/' + scws_id, headers=headers).json.get('client_ip')
+    expires = int(time() + 172800)
+    token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
+
+    return [item.clone(server='directo', url=url, manifest='hls')]

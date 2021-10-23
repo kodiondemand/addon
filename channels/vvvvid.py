@@ -3,8 +3,8 @@
 # Canale per vvvvid
 # ----------------------------------------------------------
 import requests, sys, inspect
-from core import support, tmdb
-from platformcode import autorenumber, logger, config
+from core import channeltools, support, tmdb
+from platformcode import autorenumber, logger, config, platformtools
 
 host = support.config.get_channel_url()
 
@@ -140,6 +140,10 @@ def movies(item):
 
 def episodes(item):
     itemlist = []
+    if config.get_setting("window_type") == 0:
+        item.window = True
+        item.folder = False
+
     if item.episodes:
         episodes = item.episodes
         show_id = item.show_id 
@@ -164,10 +168,11 @@ def episodes(item):
         if type(title) == tuple: title = title[0]
         itemlist.append(
             item.clone(title = title,
+                       contentType = 'episode',
                        contentEpisodeNumber = int(episode['number']),
-                    url=  main_host + show_id + '/season/' + str(season_id),
-                    action= 'findvideos',
-                    video_id= episode['video_id']))
+                       url=  main_host + show_id + '/season/' + str(season_id),
+                       action= 'findvideos',
+                       video_id= episode['video_id']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -209,8 +214,7 @@ def findvideos(item):
                     item.clone(action= 'play',
                                title=config.get_localized_string(30137),
                                url= item.url + '?' + key,
-                               server= 'directo')
-                )
+                               server= 'directo'))
 
     return support.server(item, itemlist=itemlist, Download=False)
 

@@ -336,8 +336,6 @@ def render_items(itemlist, parent_item):
     logger.debug('START render_items')
     thumb_type = config.get_setting('video_thumbnail_type')
     from platformcode import shortcuts
-    from core.support import typo
-    from core import servertools
     _handle = int(sys.argv[1])
     default_fanart = config.get_fanart()
     def_context_commands = shortcuts.context()
@@ -365,31 +363,7 @@ def render_items(itemlist, parent_item):
 
         icon_image = "DefaultFolder.png" if item.folder else "DefaultVideo.png"
 
-        title = item.title if item.title else item.contentTitle
-        episode = ''
-
-        if title[:1] not in ['[', '•']:
-            # if item.contentTitle: title = item.contentTitle
-            # elif item.contentSerieName: title = item.contentSerieName
-            if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
-                episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
-            elif type(item.contentEpisodeNumber) == int:
-                episode = '{:02d}'.format(item.contentEpisodeNumber)
-            if episode and item.episode2:
-                if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(int(e)) for e in item.episode2))
-                else: episode = '{} -> {:02d}'.format(episode, item.episode2[-1])
-            if episode: title = '{}. {}'.format(episode, title)
-            if item.title2: title = '{} - {}'.format(title, item.title2)
-
-            if config.get_setting('format_title') or item.server:
-                server = typo(item.serverName, '__ [] bold') if item.server else ''
-                quality = typo(item.quality, '_ [] color kod') if item.quality else ''
-                lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
-                extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
-                size = typo(item.size, '_ [] color kod') if item.size else ''
-                seed = typo('Seed: ' + item.seed, '_ [] color kod') if item.seed else ''
-
-                title = '{}{}{}{}{}{}{}'.format(server, title, quality, lang, extra, size, seed)
+        title = setTitle(item)
 
 
         listitem = xbmcgui.ListItem(title)
@@ -463,7 +437,7 @@ def render_items(itemlist, parent_item):
     xbmcplugin.setPluginCategory(handle=_handle, category=breadcrumb)
     set_view_mode(itemlist[0], parent_item)
 
-    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=False)
+    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=True)
 
 
     logger.debug('END render_items')
@@ -479,39 +453,79 @@ def render_items(itemlist, parent_item):
         pos = position  + (1 if xbmc.getInfoLabel('Container(10138).HasParent') else 0)
         ctrl.selectItem(pos)
 
+def setTitle(item):
+    from core.support import typo
+    title = item.title if item.title else item.contentTitle
+    episode = ''
+
+    if title[:1] not in ['[', '•']:
+        # if item.contentTitle: title = item.contentTitle
+        # elif item.contentSerieName: title = item.contentSerieName
+        if type(item.contentSeason) == int and type(item.contentEpisodeNumber) == int and not item.onlyep:
+            episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
+        elif type(item.contentEpisodeNumber) == int:
+            episode = '{:02d}'.format(item.contentEpisodeNumber)
+            if item.episodeExtra: episode += item.episodeExtra
+        if episode and item.episode2:
+            if len(item.episode2) < 4: episode = '{}-{}'.format(episode, '-'.join('{:02d}'.format(int(e)) for e in item.episode2))
+            else: episode = '{} -> {:02d}'.format(episode, item.episode2[-1])
+        if episode: title = '{}. {}'.format(episode, title)
+        if item.title2: title = '{} - {}'.format(title, item.title2)
+
+        if config.get_setting('format_title') or item.server:
+            server = typo(item.serverName, '__ [] bold') if item.server else ''
+            quality = typo(item.quality, '_ [] color kod') if item.quality else ''
+            lang = typo(item.contentLanguage, '_ [] color kod') if item.contentLanguage else ''
+            extra = typo(item.extraInfo, '_ [] color kod') if item.extraInfo else ''
+            size = typo(item.size, '_ [] color kod') if item.size else ''
+            seed = typo('Seed: ' + item.seed, '_ [] color kod') if item.seed else ''
+
+            title = '{}{}{}{}{}{}{}'.format(server, title, quality, lang, extra, size, seed)
+    return title
+
 
 def viewmodeMonitor():
     if get_window() == 'WINDOW_VIDEO_NAV':
         try:
             currentModeName = xbmc.getInfoLabel('Container.Viewmode')
-            win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
+            parent_info = xbmc.getInfoLabel('Container.FolderPath')
+            item_info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')
+            parent_item = Item().fromurl(parent_info)
+            win = xbmcgui.Window(10025)
             currentMode = int(win.getFocusId())
-            if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and currentMode < 1000 and currentMode >= 50:  # inside addon and in itemlist view
-                content, Type = getCurrentView()
+            if currentModeName and 'plugin.video.kod' in parent_info and 50 <= currentMode < 1000:  # inside addon and in itemlist view
+                content, Type = getCurrentView(Item().fromurl(item_info) if item_info else Item(), Item().fromurl(parent_info))
                 if content:
-                    defaultMode = int(config.get_setting('view_mode_{}'.format(content)).split(',')[-1])
+                    defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
                     if currentMode != defaultMode:
-                        logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                        config.set_setting('view_mode_{}'.format(content), currentModeName + ', ' + str(currentMode))
-                        dialog_notification(config.get_localized_string(70153),
-                                            config.get_localized_string(70187) % (content, currentModeName),
-                                            sound=False)
+                        config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                        # dialog_notification(config.get_localized_string(70153),
+                        #                                 config.get_localized_string(70187) % (content, currentModeName),
+                        #                                 sound=False)
         except:
             import traceback
             logger.error(traceback.print_exc())
 
 
 def getCurrentView(item=None, parent_item=None):
-    if not parent_item:
-        info = xbmc.getInfoLabel('Container.FolderPath')
-        if not info:
-            return None, None
-        parent_item = Item().fromurl(info)
+
     if not item:
-        info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
-        if not info:
-            return None, None
-        item = Item().fromurl(info) if info else Item()
+        item = Item()
+    if not parent_item:
+        logger.debug('ESCO')
+        return None, None
+    
+    # if not parent_item:
+    #     info = xbmc.getInfoLabel('Container.FolderPath')
+    #     if not info:
+    #         return None, None
+    #     parent_item = Item().fromurl(info)
+    # if not item:
+    #     info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
+    #     if not info:
+    #         item = Item()
+    #     else:
+    #         item = Item().fromurl(info) if info else Item()
     parent_actions = ['movies', 'news', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
 
     addons = 'addons' if config.get_setting('touch_view') else ''
@@ -532,20 +546,24 @@ def getCurrentView(item=None, parent_item=None):
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_tvshows']):
         return 'tvshow', 'tvshows'
 
-    elif parent_item.action in ['get_seasons'] or item.contentType == 'season':
+    elif parent_item.action in ['episode', 'get_episodes'] or item.contentType == 'episode':
+        return 'episode', 'tvshows'
+
+    elif parent_item.action in ['get_seasons']:
+        logger.debug('CONTENTTYPE:',item.contentType)
         return 'season', 'tvshows'
 
-    elif parent_item.action in ['episodes', 'get_episodes'] or item.contentType == 'episode':
-        return 'episode', 'episodes'
-
-    elif not parent_item.action or parent_item.action in ['getmainlist']:
+    elif parent_item.action in ['getmainlist', '', 'getchanneltypes']:
         return 'home', addons
 
     elif parent_item.action in ['filterchannels']:
         return 'channels', addons
 
-    else:
+    elif item.action:
         return 'menu', addons
+
+    else:
+        return None, None
 
 
 def set_view_mode(item, parent_item):
@@ -1082,6 +1100,8 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
             xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
             xlistitem.setMimeType('application/x-mpegURL')
+            xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
+            xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
 
         if force_direct: item.window = True
 
@@ -1850,6 +1870,7 @@ def serverwindow(item, itemlist):
             self.itemlist = itemlist
             self.item = item
             self.servers = []
+            items = []
             self.selection = -1
 
             for videoitem in self.itemlist:
@@ -1870,6 +1891,8 @@ def serverwindow(item, itemlist):
                     it.setProperties({'name': title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
                     it.setArt({'poster':self.item.contentThumbnail if self.item.contentThumbnail else self.item.thumbnail, 'thumb':videoitem.thumbnail,  'fanart':videoitem.fanart})
                     self.servers.append(it)
+                    items.append(videoitem)
+            self.itemlist = items
             self.doModal()
             return self.selection
 
