@@ -676,15 +676,15 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
     return inserted, overwritten, failed
 
 
-def add_to_videolibrary(item, channel):
-    itemlist = getattr(channel, item.from_action)(item)
-    if itemlist and itemlist[0].contentType == 'episode':
-        return add_tvshow(item, itemlist=itemlist)
-    elif itemlist and itemlist[0].server:
-        return add_movie(item)
-    else:
-        videolibrarydb.close()
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(70838) % item.contentTitle)
+# def add_to_videolibrary(item, channel):
+#     itemlist = getattr(channel, item.from_action)(item)
+#     if itemlist and itemlist[0].contentType == 'episode':
+#         return add_tvshow(item, itemlist=itemlist)
+#     elif itemlist and itemlist[0].server:
+#         return add_movie(item)
+#     else:
+#         videolibrarydb.close()
+#         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(70838) % item.contentTitle)
 
 
 def add_to_videolibrary(item, channel):
