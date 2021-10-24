@@ -88,7 +88,7 @@ def peliculas(item):
 
     if len(item.args) > 1 and item.args[0] == 'last':
         patronBlock = r'<div id="%s"[^>]+>(?P<block>.*?)<div class="vistaDettagliata"' % item.args[1]
-        patron = r'<li>\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="thumb">[^>]+>[^>]+>[^>]+>\s*[EePp]+\s*(?P<episode>\d+)[^>]+>\s<img src="(?P<thumb>[^"]+)"'
+        patron = r'<li>\s*<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="thumb">[^>]+>[^>]+>[^>]+>\s*[EePp]+\s*(?P<episode>\d+)[^>]+>\s+<img src="(?P<thumb>[^"]+)"'
     else:
         patron = r'<div class="showStreaming">\s*<b>(?P<title>[^<]+)[^>]+>[^>]+>\s*<span>Lingua:\s*(?:DUB|JAP)?\s*(?P<lang>(?:SUB )?ITA)[^>]+>[<>br\s]+a href="(?P<url>[^"]+)"[^>]+>.*?--image-url:url\(/*(?P<thumb>[^\)]+).*?Anno di inizio</b>:\s*(?P<year>[0-9]{4})'
         patronNext = '<li class="currentPage">[^>]+><li[^<]+<a href="([^"]+)">'
