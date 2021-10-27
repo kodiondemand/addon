@@ -18,26 +18,31 @@ host = config.get_channel_url()
 headers = [['Referer', host]]
 
 
-
-
 @support.menu
 def mainlist(item):
     tvshow = ['/serie']
     return locals()
 
+
 @support.scrape
 def peliculas(item):
+    # debug = True
     patronBlock = r'movies-list movies-list-full(?P<block>.*?)footer>'
-    patron = r'<div data-movie-id[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>[^>]+>[^>]+><img src="(?P<thumbnail>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+).*?jt-info[^>]+>[^:]+:\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d*)[^>]+>[^>]+>[^>]+>(?P<duration>\d*)'
+    if item.args == 'search':
+        patron = r'<div data-movie-id[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumbnail>[^"]+)[^>]+>[^>]+>[^>]+>(?P<title>[^<]+).*?jt-info[^>]+>[^:]+:\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d*)[^>]+>[^>]+>[^>]+>(?P<duration>\d*).*?"f-desc">\s*<p>(?P<plot>[^<]+)'
+    else:
+        patron = r'<div data-movie-id[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>[^>]+>[^>]+><img src="(?P<thumbnail>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+).*?jt-info[^>]+>[^:]+:\s*(?P<rating>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d*)[^>]+>[^>]+>[^>]+>(?P<duration>\d*)'
     patronNext = '<li class=.active.>.*?href=.(.*?).>'
     action = 'episodios'
     return locals()
+
 
 @support.scrape
 def episodios(item):
     patronBlock = r'<strong>Stagione (?P<season>[0-9]+)(?P<block>.*?)</div></div>'
     patron = r'<a href="(?P<url>[^"]+)">\s*Episodio\s*(?P<episode>[0-9]+)'
     return locals()
+
 
 def search(item, text):
     info(text)
@@ -52,6 +57,7 @@ def search(item, text):
             info("%s" % line)
 
     return []
+
 
 def findvideos(item):
     support.info('findvideos', item)

@@ -12,7 +12,7 @@ def test_video_exists(page_url):
 	logger.debug("(page_url='%s')" % page_url)
 	global data
 	data = httptools.downloadpage(page_url).data
-	if "as it expired or has been deleted" in data:
+	if "as it expired or has been deleted" in data or "Video is processing now" in data:
 		return False, config.get_localized_string(70449) % "UPstream"
 	return True, ""
 

@@ -146,9 +146,7 @@ def findvideos(item):
         matchData = item.data if item.data else item
         links = support.match(matchData, patron=r'(?:SRC|href)="([^"]+)"', patronBlock=r'<div class="col-md-10">(.+?)<div class="ads">').matches
     data = ''
-    from lib.unshortenit import unshorten_only
     for link in links:
         support.info('URL=',link)
-        url, c = unshorten_only(link.replace('#', 'speedvideo.net'))
-        data += url + '\n'
+        data += link + '\n'
     return support.server(item, data)
