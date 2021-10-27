@@ -209,10 +209,6 @@ def findvideos(item):
                 urls.remove(u)
                 itemlist.extend(support.server(item, itemlist=hdpass(Item(url=u))))
                 break
-            if 'protectlink.stream' in u:
-                import base64
-                urls.remove(u)
-                urls.append(base64.b64decode(u.split('?data=')[1]))
         else:
             itemlist.extend(support.server(item, urls))
         support.addQualityTag(item, itemlist, data, 'Keywords:\s*(?:<span>)?([^<]+)')

@@ -10,7 +10,7 @@ headers = [['Referer', host]]
 
 perpage_list = ['20','30','40','50','60','70','80','90','100']
 perpage = perpage_list[support.config.get_setting('perpage' , 'animealtadefinizione')]
-epPatron = r'<td>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"'
+epPatron = r'<td>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img[^>]+/Streaming'
 
 
 @support.menu
@@ -67,7 +67,7 @@ def peliculas(item):
         action='findvideos'
     elif item.args == 'last':
         item.contentType = 'episode'
-        action='findvideos'
+        action='episodios'
     else:
         item.contentType = 'tvshow'
         action='episodios'
@@ -85,6 +85,10 @@ def peliculas(item):
     typeContentDict = {'movie':['movie']}
     typeActionDict = {'findvideos':['movie']}
 
+    def itemHook(item):
+        item.url = support.re.sub('episodio-[0-9-]+', '', item.url)
+        return item
+
     def itemlistHook(itemlist):
         if item.search:
             itemlist = [ it for it in itemlist if ' Episodio ' not in it.title ]
@@ -98,6 +102,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     anime = True
+    # debug = True
     pagination = int(perpage)
     patron = epPatron
     return locals()
