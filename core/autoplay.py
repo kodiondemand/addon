@@ -103,7 +103,7 @@ def start(itemlist, item):
                         pass
                     # sleep(3)
                     try:
-                        if platformtools.is_playing():
+                        if platformtools.is_playing() or autoplay_elem.server == 'torrent':
                             PLAYED = True
                             break
                     except:

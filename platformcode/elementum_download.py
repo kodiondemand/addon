@@ -36,6 +36,9 @@ def download(item=None):
             support.info('URL:', url)
             if url:
                 dl = downloadtools.downloadfile(host + url, filename)
+                if dl == -3:
+                    filetools.remove(filename)
+                    dl = downloadtools.downloadfile(host + url, filename)
                 if dl == None:
                     extract()
                     xbmc.sleep(1000)
