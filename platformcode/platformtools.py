@@ -1463,8 +1463,11 @@ def play_torrent(item, xlistitem, mediaurl):
     torrent_options = torrent_client_installed(show_tuple=True)
     if len(torrent_options) == 0:
         from platformcode import elementum_download
-        elementum_download.download()
-        return play_torrent(item, xlistitem, mediaurl)
+        install = elementum_download.download()
+        if install:
+            return play_torrent(item, xlistitem, mediaurl)
+        else: 
+            selection = -1
     elif len(torrent_options) > 1:
         selection = dialog_select(config.get_localized_string(70193), [opcion[0] for opcion in torrent_options])
     else:
