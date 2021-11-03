@@ -363,12 +363,12 @@ def findvideos(item):
     else:
         content_title = item.contentTitle.strip().lower()
     if item.contentType == 'movie':
-        item.strm_path = filetools.join(videolibrarytools.MOVIES_PATH, item.strm_path)
-        path_dir = filetools.dirname(item.strm_path)
+        strm_path = filetools.join(videolibrarytools.MOVIES_PATH, item.strm_path)
+        path_dir = filetools.dirname(strm_path)
         item.nfo = filetools.join(path_dir, filetools.basename(path_dir) + ".nfo")
     else:
-        item.strm_path = filetools.join(videolibrarytools.TVSHOWS_PATH, item.strm_path)
-        path_dir = filetools.dirname(item.strm_path)
+        strm_path = filetools.join(videolibrarytools.TVSHOWS_PATH, item.strm_path)
+        path_dir = filetools.dirname(strm_path)
         item.nfo = filetools.join(path_dir, 'tvshow.nfo')
 
     for fd in filetools.listdir(path_dir):

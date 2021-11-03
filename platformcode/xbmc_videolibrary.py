@@ -100,10 +100,10 @@ def mark_auto_as_watched(item):
             xbmc.sleep(700)
             xbmc.executebuiltin('Action(ParentDir)')
             xbmc.sleep(500)
-
+        # from core.support import dbg;dbg()
         if next_episode and next_episode.next_ep and config.get_setting('next_ep') < 3:
-            from platformcode.launcher import play_from_library
-            play_from_library(next_episode)
+            from platformcode.launcher import run
+            run(next_episode)
 
         # db need to be closed when not used, it will cause freezes
         from core import db
@@ -377,7 +377,10 @@ def set_watched_on_kod(data):
 
                 path = filetools.join(path, filename)
                 head_nfo, item = videolibrarytools.read_nfo(path)
-                item.library_playcounts.update({title: playcount})
+                if item.library_playcounts:
+                    item.library_playcounts.update({title: playcount})
+                else:
+                    item.library_playcounts = {title: playcount}
                 filetools.write(path, head_nfo + item.tojson())
 
                 if item.infoLabels['mediatype'] == "tvshow":

@@ -1065,8 +1065,9 @@ def save_download_movie(item):
     if not platformtools.dialog_yesno(config.get_localized_string(30101), config.get_localized_string(70189)):
         platformtools.dialog_ok(config.get_localized_string(30101), item.contentTitle + '\n' + config.get_localized_string(30109))
     else:
+        # from core.support import dbg;dbg()
         play_item = select_server(item)
-        if play_item == 'Auto':
+        if type(play_item) == str and play_item == 'Auto':
             start_download(item)
         else:
             play_item = item.clone(**play_item.__dict__)
@@ -1110,7 +1111,7 @@ def save_download_tvshow(item):
         if len(episodes) == 1:
             play_item = select_server(episodes[0])
             if play_item:  # not pressed cancel
-                if play_item == 'Auto':
+                if type(play_item) == str and play_item == 'Auto':
                     start_download(episodes[0])
                 else:
                     play_item = episodes[0].clone(**play_item.__dict__)

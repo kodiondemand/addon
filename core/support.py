@@ -1276,10 +1276,10 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.server = videoitem.server.lower()
 
         if videoitem.video_urls or srv_param.get('active', False):
-            item.title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+            title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
 
             quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
-            videoitem.title = (item.title if item.channel not in ['url'] else '')\
+            videoitem.title = (title if item.channel not in ['url'] else '')\
                 + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
                 + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
                 + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\

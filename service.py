@@ -6,7 +6,6 @@ import sys
 import threading
 import traceback
 import xbmc
-from platformcode import config
 
 try:
     from urllib.parse import urlsplit
@@ -18,6 +17,7 @@ try:
     xbmc.translatePath = xbmcvfs.translatePath
 except:
     pass
+from platformcode import config
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 

@@ -396,9 +396,11 @@ def viewmodeMonitor():
             win = xbmcgui.Window(xbmcgui.getCurrentWindowId())
             currentMode = int(win.getFocusId())
             # logger.debug('CM', currentMode, 'CN',currentModeName, 'label',xbmc.getInfoLabel('Container.FolderPath'))
-            if currentModeName and 'plugin.video.kod' in xbmc.getInfoLabel('Container.FolderPath') and 50 <= currentMode < 1000:# and currentMode >= 50:  # inside addon and in itemlist view
-                content, Type = getCurrentView()
-                # logger.debug(content, Type)
+            # if not parent_info:
+
+            if currentModeName and 'plugin.video.kod' in parent_info and 50 <= currentMode < 1000:# and currentMode >= 50:  # inside addon and in itemlist view
+                # logger.debug('CAMBIO VISUALE')
+                content, Type = getCurrentView(Item().fromurl(item_info) if item_info else Item(), Item().fromurl(parent_info))
                 if content:
                     defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
                     if currentMode != defaultMode:
@@ -414,16 +416,20 @@ def viewmodeMonitor():
 
 def getCurrentView(item=None, parent_item=None):
     if not parent_item:
-        info = xbmc.getInfoLabel('Container.FolderPath')
-        if not info:
-            return None, None
-        parent_item = Item().fromurl(info)
-    if not item:
-        info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
-        if not info:
-            item = Item()
-        else:
-            item = Item().fromurl(info) if info else Item()
+        logger.debug('ESCO')
+        return None, None
+
+    # if not parent_item:
+    #     info = xbmc.getInfoLabel('Container.FolderPath')
+    #     if not info:
+    #         return None, None
+    #     parent_item = Item().fromurl(info)
+    # if not item:
+    #     info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
+    #     if not info:
+    #         item = Item()
+    #     else:
+    #         item = Item().fromurl(info) if info else Item()
     parent_actions = ['peliculas', 'novedades', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
 
     addons = 'addons' if config.get_setting('touch_view') else ''
@@ -984,7 +990,6 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         set_infolabels(xlistitem, item, True)
 
         # if it is a video in mpd format, the listitem is configured to play it ith the inpustreamaddon addon implemented in Kodi 17
-        # from core.support import dbg;dbg()
         if mpd or item.manifest =='mpd':
             if not install_inputstream():
                 return
@@ -1370,7 +1375,7 @@ def set_player(item, xlistitem, mediaurl, view, strm):
         logger.info("mediaurl=" + mediaurl)
 
         if player_mode in [0,1]:
-            prevent_busy(item)
+            prevent_busy()
             if player_mode in [1]:
                 item.played_time = resume_playback(get_played_time(item))
 
@@ -1461,7 +1466,6 @@ def play_torrent(item, xlistitem, mediaurl):
     from servers import torrent
 
     torrent_options = torrent_client_installed(show_tuple=True)
-    # from core.support import dbg;dbg()
     if len(torrent_options) == 0:
         from platformcode import elementum_download
         install = elementum_download.download()
@@ -1475,9 +1479,7 @@ def play_torrent(item, xlistitem, mediaurl):
         selection = 0
 
     if selection >= 0:
-        xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
-        xbmc.sleep(200)
-        xbmc.Player().stop()
+        prevent_busy()
 
         mediaurl = urllib.quote_plus(item.url)
         torr_client = torrent_options[selection][0]
@@ -1491,9 +1493,14 @@ def play_torrent(item, xlistitem, mediaurl):
         if torr_client in ['elementum'] and item.downloadFilename:
             torrent.elementum_download(item)
         else:
-            time.sleep(3)
-            # xbmc.Player().play(torrent_options[selection][1] % mediaurl)
-            xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
+            if item.fromLibrary and item.play_from == 'window':
+                xlistitem.setPath(torrent_options[selection][1] % mediaurl)
+                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
+                playlist.clear()
+                playlist.add(torrent_options[selection][1] % mediaurl, xlistitem)
+                xbmc_player.play(playlist, xlistitem)
+            else:
+                xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
 
             # torrent.mark_auto_as_watched(item)
 
@@ -1802,11 +1809,5 @@ def set_played_time(item):
         del db['viewed'][ID]
 
 
-
-def prevent_busy(item):
-    logger.debug()
-    if item.action == 'play_from_library' or (not item.autoplay and not item.window):
-        if item.globalsearch: xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
-        else: xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-        xbmc.sleep(200)
-        xbmc.Player().stop()
+def prevent_busy():
+    xbmc.executebuiltin('Dialog.Close(all,true)')

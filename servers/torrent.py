@@ -2,10 +2,11 @@
 
 import re, os, sys, time, requests, xbmc, xbmcaddon
 
-from core import filetools, jsontools
+from core import filetools, httptools, jsontools
 from core.support import info, match
 from platformcode import config, platformtools
 from lib.guessit import guessit
+from torrentool.api import Torrent
 
 if sys.version_info[0] >= 3:
     import urllib.parse as urllib
@@ -86,7 +87,8 @@ def elementum_download(item):
         else:
             TorrentName = match(item.url, patron=r'btih(?::|%3A)([^&%]+)', string=True).match
             post = 'uri=%s&file=null&all=1' % urllib.quote_plus(item.url)
-            match(elementum_host  + 'add', post=post, timeout=5, alfa_s=True, ignore_response_code=True)
+            res = httptools.downloadpage(elementum_host  + 'add', post=post, timeout=5, alfa_s=True, ignore_response_code=True)
+            # match(elementum_host  + 'add', post=post, timeout=5, alfa_s=True, ignore_response_code=True)
             while not filetools.isfile(filetools.join(elementum_setting.getSetting('torrents_path'), TorrentName + '.torrent')):
                 time.sleep(1)
 

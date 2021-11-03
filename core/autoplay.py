@@ -27,7 +27,7 @@ def start(itemlist, item):
     :return: try to auto-reproduce, in case of failure it returns the itemlist that it received in the beginning
     '''
 
-    if item.global_search or item.from_action:  # from_action means that's a special function calling this (ex: add to videolibrary)
+    if item.global_search or item.from_action or item.contentAction:  # from_action means that's a special function calling this (ex: add to videolibrary)
         return itemlist
     logger.debug()
 
@@ -37,6 +37,11 @@ def start(itemlist, item):
     base_item = item
 
     if not config.is_xbmc():
+        return itemlist
+
+    import xbmc
+    control_item = Item().fromurl(xbmc.getInfoLabel('Container.FolderPath'))
+    if control_item.action == item.action:
         return itemlist
 
     if config.get_setting('autoplay') or item.autoplay:
@@ -103,7 +108,7 @@ def start(itemlist, item):
                         pass
                     # sleep(3)
                     try:
-                        if platformtools.is_playing() or autoplay_elem.server == 'torrent':
+                        if platformtools.is_playing():
                             PLAYED = True
                             break
                     except:
@@ -119,7 +124,7 @@ def start(itemlist, item):
                             max_intents_servers[videoitem.server.lower()] = max_intents
 
                     # If there are no items in the list, it is reported
-                    if autoplay_elem == autoplay_list[-1]:
+                    if autoplay_elem == autoplay_list[-1] and autoplay_elem.server != 'torrent':
                         platformtools.dialog_notification('AutoPlay', config.get_localized_string(60072) % name)
 
         else:
