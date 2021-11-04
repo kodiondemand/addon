@@ -24,6 +24,8 @@ def getHeaders(forced=False):
         try:
             headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
             response = session.get(host, headers=headers)
+            if not response.url.startswith(host):
+                host = support.config.get_channel_url(findhost, forceFindhost=True)
             csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
             headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
                         'content-type': 'application/json;charset=UTF-8',
