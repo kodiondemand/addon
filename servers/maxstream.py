@@ -23,7 +23,7 @@ def test_video_exists(page_url):
         id = httptools.downloadpage(page_url, follow_redirects=False, cloudscraper=True).headers.get('location').split('/')[-1]
     else:
         id = page_url.split('/')[-1]
-    page_url = 'http://lozioangie.altervista.org/max_anticaptcha.php?id=' + id
+    page_url = requests.head('http://lozioangie.altervista.org/max_anticaptcha.php?id=' + id).headers.get('location')
     data = httptools.downloadpage(page_url, cloudscraper=True).data
 
     if scrapertools.find_single_match(data, '(?<!none);[^>]*>file was deleted'):
