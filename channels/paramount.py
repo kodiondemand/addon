@@ -107,6 +107,7 @@ def peliculas(item):
 
 def episodios(item):
     logger.debug()
+    reEp = r'"isEpisodes":[^,]+,"items":(.*?])'
     def load_more(url):
         second_url = host if url.startswith('/') else '' + url.replace('\u002F','/').replace('%5C','/')
         new_data = support.match(host + second_url).data
@@ -114,11 +115,10 @@ def episodios(item):
         return jsontools.load(match)
 
     itemlist = []
-    data = []
     page_data = support.match(item.url).data
     seasons = support.match(page_data, patron=r'href="([^"]+)"[^>]+>Stagione\s*\d+').matches
     more = support.match(page_data, patron=r'loadingTitle":[^,]+,"url":"([^"]+)"').match
-    data = jsontools.load(support.scrapertools.decodeHtmlentities(support.match(page_data, patron=r'"isEpisodes":[^,]+,"items":(.*?),"isKidsUI"').match))
+    data = jsontools.load(support.scrapertools.decodeHtmlentities(support.match(page_data, patron=reEp).match))
 
     if data:
         if more:
@@ -126,7 +126,7 @@ def episodios(item):
         if seasons:
             for url in seasons:
                 new_data = support.match(host + url).data
-                data += jsontools.load(support.scrapertools.decodeHtmlentities(support.match(new_data, patron=r'isEpisodes":[^,]+,"items":(.*?),"isKidsUI"').match.replace('\x01','l').replace('\x02','a')))
+                data += jsontools.load(support.scrapertools.decodeHtmlentities(support.match(new_data, patron=reEp).match.replace('\x01','l').replace('\x02','a')))
                 match = support.match(new_data, patron=r'loadingTitle":[^,]+,"url":"([^"]+)"').match
                 if match and match != load_more:
                     data += load_more(match)

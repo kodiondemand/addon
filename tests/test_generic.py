@@ -64,7 +64,7 @@ validUrlRegex = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-chBlackList = ['url', 'mediasetplay', 'metalvideo']
+chBlackList = ['url', 'mediasetplay', 'metalvideo', 'altadefinizionecommunity']
 srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {

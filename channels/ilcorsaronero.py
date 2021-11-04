@@ -53,6 +53,11 @@ def peliculas(item):
         patron = r'>(?P<quality>[^"<]+)'
     patron += '<TD[^>]+><A class="tab" HREF="(?P<url>[^"]+)"\s*>[^<]+<[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<size>[^<]+)<[^>]+>[^>]+>[^>]+><form action="[^"]+/\d+/(?P<title>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<seed>[^<]+)'
 
+    if not sceneTitle:
+        def itemHook(item):
+            item.title = item.title.replace('_', ' ')
+            return item
+
     if 'search' not in item.args:
         item.url += str(item.args[0])
         def itemlistHook(itemlist):
