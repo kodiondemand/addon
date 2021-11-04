@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(https?://maxstream.video/uprote/[a-zA-Z0-9]+)",
+        "pattern": "(https?://maxstream.video/uprot/[a-zA-Z0-9]+)",
         "url": "\\1"
       },
       {

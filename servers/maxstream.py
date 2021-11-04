@@ -19,7 +19,12 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
 
     global data
-    data = httptools.downloadpage(page_url).data
+    if 'uprot/' in page_url:
+        id = httptools.downloadpage(page_url, follow_redirects=False, cloudscraper=True).headers.get('location').split('/')[-1]
+    else:
+        id = page_url.split('/')[-1]
+    page_url = 'http://lozioangie.altervista.org/max_anticaptcha.php?id=' + id
+    data = httptools.downloadpage(page_url, cloudscraper=True).data
 
     if scrapertools.find_single_match(data, '(?<!none);[^>]*>file was deleted'):
         return False, config.get_localized_string(70449) % "MaxStream"
@@ -33,7 +38,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     global data
     if 'captcha' in data:
         httptools.set_cookies(requests.get('http://lozioangie.altervista.org/maxcookie.php').json())
-        data = httptools.downloadpage(page_url).data
+        data = httptools.downloadpage(page_url, cloudscraper=True).data
 
     # sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
     # if sitekey: sitekey = sitekey[-1]
