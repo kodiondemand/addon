@@ -179,7 +179,7 @@ class Main(xbmcgui.WindowXMLDialog):
 
 
     def submenu(self):
-        itmlist = []
+        itemlist = []
         channel_name = self.MENU.getSelectedItem().getProperty('channel')
         focus = int(self.MENU.getSelectedItem().getProperty('focus'))
         if channel_name == 'channelselector':
