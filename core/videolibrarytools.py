@@ -41,7 +41,7 @@ def read_nfo(path_nfo, item=None):
     @rtype: tuple (str, Item)
     """
     head_nfo = ""
-    it = None
+    it = Item()
 
     data = filetools.read(path_nfo)
 
@@ -277,7 +277,7 @@ def filter_list(episodelist, action=None, path=None):
     channel_prefs = {}
     lang_sel = quality_sel = show_title = channel =''
 
-    if action:
+    if action: 
         tvshow_path = filetools.join(path, "tvshow.nfo")
         head_nfo, tvshow_item = read_nfo(tvshow_path)
         channel = episodelist[0].channel
@@ -577,7 +577,8 @@ def save_episodes(path, episodelist, serie, silent=False, overwrite=True):
     @return: the number of failed episodes
     """
     logger.debug()
-    episodelist = filter_list(episodelist, serie.action, path)
+    if episodelist:
+        episodelist = filter_list(episodelist, serie.action, path)
     # No episode list, nothing to save
     if not len(episodelist):
         logger.debug("There is no episode list, we go out without creating strm")

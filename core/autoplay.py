@@ -40,9 +40,11 @@ def start(itemlist, item):
         return itemlist
 
     import xbmc
-    control_item = Item().fromurl(xbmc.getInfoLabel('Container.FolderPath'))
-    if control_item.action == item.action:
-        return itemlist
+    control_info = xbmc.getInfoLabel('Container.FolderPath')
+    if control_info:
+        control_item = Item().fromurl(control_info)
+        if control_item.action == item.action:
+            return itemlist
 
     if config.get_setting('autoplay') or item.autoplay:
         # Save the current value of "Action and Player Mode" in preferences

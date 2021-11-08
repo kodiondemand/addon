@@ -2,20 +2,22 @@
 # Use of this source code is governed by the 3-clause BSD license
 # that can be found in the LICENSE file.
 #
-import collections
-import functools
-from importlib import import_module
-
 # from pkg_resources import iter_entry_points, EntryPoint
 from ..exceptions import LanguageConvertError, LanguageReverseError
 
+try:
+    # Python 3.3+
+    from collections.abc import Mapping, MutableMapping
+except ImportError:
+    from collections import Mapping, MutableMapping
+from importlib import import_module
 
 # from https://github.com/kennethreitz/requests/blob/master/requests/structures.py
-class CaseInsensitiveDict(collections.MutableMapping):
+class CaseInsensitiveDict(MutableMapping):
     """A case-insensitive ``dict``-like object.
 
     Implements all methods and operations of
-    ``collections.MutableMapping`` as well as dict's ``copy``. Also
+    ``collections.abc.MutableMapping`` as well as dict's ``copy``. Also
     provides ``lower_items``.
 
     All keys are expected to be strings. The structure remembers the
@@ -66,7 +68,7 @@ class CaseInsensitiveDict(collections.MutableMapping):
         )
 
     def __eq__(self, other):
-        if isinstance(other, collections.Mapping):
+        if isinstance(other, Mapping):
             other = CaseInsensitiveDict(other)
         else:
             return NotImplemented
@@ -242,6 +244,7 @@ class ConverterManager(object):
         #     if ep.name == name:
         #         self.converters[ep.name] = ep.load()()
         #         return self.converters[ep.name]
+
         def parse(str):
             import re
             match = re.match('(?P<name>\w+) = (?P<module>[a-z0-9.]+):(?P<class>\w+)', str)

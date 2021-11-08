@@ -395,8 +395,10 @@ class SearchWindow(xbmcgui.WindowXML):
             if self.exit: return
             # some channels may use original title
             if self.item.mode != 'all' and not valid and self.item.infoLabels.get('originaltitle'):
-                logger.debug('retring with original title on channel ' + channel)
-                dummy, valid, dummy = search(self.item.infoLabels.get('originaltitle'))
+                original = scrapertools.title_unify(self.item.infoLabels.get('originaltitle'))
+                if self.item.text != original:
+                    logger.debug('retring with original title on channel ' + channel)
+                    dummy, valid, dummy = search(original)
         except:
             import traceback
             logger.error(traceback.format_exc())

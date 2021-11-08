@@ -52,7 +52,7 @@ directIP = {
 }
 
 # Maximum wait time for downloadpage, if nothing is specified
-HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = config.get_setting('httptools_timeout', default=15)
+HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = config.get_setting('httptools_timeout', default=5)
 if HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT == 0: HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = None
 
 # Random use of User-Agents, if nad is not specified

@@ -5,11 +5,10 @@
 # that can be found in the LICENSE file.
 #
 from __future__ import unicode_literals
-
-import os, io
 from collections import namedtuple
 # from pkg_resources import resource_stream  # @UnresolvedImport
 from . import basestr
+import os, io
 
 #: Script code to script name mapping
 SCRIPTS = {}

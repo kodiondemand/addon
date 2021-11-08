@@ -96,6 +96,7 @@ def get_results(nfo_path, root, Type, local=False):
 
     if filetools.exists(nfo_path):
         head_nfo, item = videolibrarytools.read_nfo(nfo_path)
+        item.contentType = Type
 
         # If you have not read the .nfo well, we will proceed to the next
         if not item:
@@ -246,7 +247,7 @@ def get_seasons(item):
         # We create one item for each season
         for season, title in list(dict_temp.items()):
             new_item = item.clone(action="get_episodes", title=title, contentSeason=season,
-                                  filtrar_season=True, channel='videolibrary')
+                                  filtrar_season=True, channel='videolibrary', contentType='season')
 
             #Contextual menu: Mark the season as viewed or not
             visto = item_nfo.library_playcounts.get("season %s" % season, 0)
@@ -313,6 +314,7 @@ def get_episodes(item):
 
                 epi.contentTitle = "%sx%s" % (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2))
                 epi.title = "%sx%s - %s" % (epi.contentSeason, str(epi.contentEpisodeNumber).zfill(2), title_episodie)
+                epi.contentType = 'episode'
 
                 if item_nfo.library_filter_show:
                     epi.library_filter_show = item_nfo.library_filter_show

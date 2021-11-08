@@ -52,6 +52,7 @@ def download(item=None):
                 ret = False
         else:
             ret = False
+    return ret
 
 
 def extract():

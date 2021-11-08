@@ -395,7 +395,6 @@ def viewmodeMonitor():
             currentModeName = xbmc.getInfoLabel('Container.Viewmode')
             parent_info = xbmc.getInfoLabel('Container.FolderPath')
             item_info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')
-            parent_item = Item().fromurl(parent_info)
             win = xbmcgui.Window(10025)
             currentMode = int(win.getFocusId())
             # logger.debug('CM', currentMode, 'CN',currentModeName, 'label',xbmc.getInfoLabel('Container.FolderPath'))
@@ -1386,7 +1385,7 @@ def set_player(item, xlistitem, mediaurl, view, strm):
         logger.info("mediaurl=" + mediaurl)
 
         if player_mode in [0,1]:
-            prevent_busy()
+            prevent_busy(item)
             if player_mode in [1]:
                 item.played_time = resume_playback(get_played_time(item))
 
@@ -1422,8 +1421,9 @@ def set_player(item, xlistitem, mediaurl, view, strm):
     # if it is a video library file send to mark as seen
     if strm or item.strm_path: item.options['strm'] = True
     # if player_mode == 1: item.options['continue'] = True
-    from platformcode import xbmc_videolibrary
-    xbmc_videolibrary.mark_auto_as_watched(item)
+    if not mediaurl.startswith('plugin'):
+        from platformcode import xbmc_videolibrary
+        xbmc_videolibrary.mark_auto_as_watched(item)
 
     # for cases where the audio playback window appears in place of the video one
     if item.focusOnVideoPlayer:
@@ -1473,7 +1473,6 @@ def torrent_client_installed(show_tuple=False):
 
 def play_torrent(item, xlistitem, mediaurl):
     logger.debug()
-    import time
     from servers import torrent
 
     torrent_options = torrent_client_installed(show_tuple=True)
@@ -1482,7 +1481,7 @@ def play_torrent(item, xlistitem, mediaurl):
         install = elementum_download.download()
         if install:
             return play_torrent(item, xlistitem, mediaurl)
-        else: 
+        else:
             selection = -1
     elif len(torrent_options) > 1:
         selection = dialog_select(config.get_localized_string(70193), [opcion[0] for opcion in torrent_options])
@@ -1503,14 +1502,18 @@ def play_torrent(item, xlistitem, mediaurl):
 
         if torr_client in ['elementum'] and item.downloadFilename:
             torrent.elementum_download(item)
+
         else:
-            if item.fromLibrary and item.play_from == 'window':
+            # xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
+            if (item.fromLibrary and item.play_from == 'window') or item.window:
                 xlistitem.setPath(torrent_options[selection][1] % mediaurl)
                 playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
                 playlist.clear()
                 playlist.add(torrent_options[selection][1] % mediaurl, xlistitem)
                 xbmc_player.play(playlist, xlistitem)
             else:
+                if not item.autoplay and item.channel != 'videolibrary': fakeVideo()
+                if xbmc.getCondVisibility("system.platform.android"): xbmc.sleep(3000)
                 xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
 
             # torrent.mark_auto_as_watched(item)
@@ -1820,5 +1823,15 @@ def set_played_time(item):
         del db['viewed'][ID]
 
 
-def prevent_busy():
-    xbmc.executebuiltin('Dialog.Close(all,true)')
+def prevent_busy(item=None):
+    if item and (not item.autoplay and item.channel != 'videolibrary' and not item.window):
+        fakeVideo()
+    else:
+        xbmc.executebuiltin('Dialog.Close(all,true)')
+
+
+def fakeVideo():
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    while not is_playing():
+        xbmc.sleep(10)
+    xbmc.Player().stop()

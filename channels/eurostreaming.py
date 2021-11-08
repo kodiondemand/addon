@@ -4,7 +4,7 @@
 # by Greko
 # ------------------------------------------------------------
 
-from core import httptools, support
+from core import support
 from core.item import Item
 
 # def findhost(url):
@@ -99,4 +99,10 @@ def newest(categoria):
 
 def findvideos(item):
     support.info()
-    return support.server(item, item.other)
+    itemlist = support.server(item, item.other)
+    # testo che tutti i link siano stati risolti
+    if support.logger.testMode:
+        if len(itemlist) < len(support.match(item.other, patron='<a href="([^"]+)').matches):
+            raise Exception('Manca qualche server')
+    return itemlist
+

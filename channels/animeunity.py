@@ -4,11 +4,8 @@
 # ------------------------------------------------------------
 
 import cloudscraper, json, copy, inspect
-from core import jsontools, support, httptools, filetools
+from core import support
 from platformcode import autorenumber, logger
-import re
-import xbmc
-
 
 session = cloudscraper.create_scraper()
 
@@ -132,7 +129,8 @@ def news(item):
                        fulltitle=it['anime']['title'],
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
-                       video_url=it['scws_id'],
+                       scws_id=it.get('scws_id', ''),
+                       video_url=it.get('link', ''),
                        plot=it['anime']['plot'],
                        action='findvideos')
         )
@@ -157,7 +155,6 @@ def peliculas(item):
     records = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
 
     for it in records:
-        # logger.debug(jsontools.dump(it))
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
 
@@ -176,15 +173,15 @@ def peliculas(item):
             itm.fulltitle = itm.show = itm.contentTitle = title
             itm.contentSerieName = ''
             itm.action = 'findvideos'
-            itm.video_url = it['episodes'][0]['scws_id']
+            itm.scws_id = it['episodes'][0].get('scws_id', '')
+            itm.video_url = it['episodes'][0].get('link', '')
 
         else:
             itm.contentType = 'tvshow'
             itm.contentTitle = ''
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodios'
-            itm.episodes = it['episodes'] if 'episodes' in it else it['scws_id']
-            itm.video_url = item.url
+            itm.episodes = it['episodes'] if 'episodes' in it else it.get('scws_id', '')
 
         itemlist.append(itm)
 
@@ -210,8 +207,8 @@ def episodios(item):
                        plot=item.plot,
                        action='findvideos',
                        contentType='episode',
-                       scws_id=it['scws_id'],
-                       video_url=it['link']))
+                       scws_id=it.get('scws_id', ''),
+                       video_url=it.get('link', '')))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -221,17 +218,17 @@ def episodios(item):
 
 
 def findvideos(item):
-    if item.scvs_id:
+    if item.scws_id:
         from time import time
         from base64 import b64encode
         from hashlib import md5
 
         # Calculate Token
-        client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.scvs_id), headers=headers).json.get('client_ip')
+        client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.scws_id), headers=headers).json.get('client_ip')
         expires = int(time() + 172800)
         token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-        url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.scvs_id, token, expires)
+        url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
         itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play', manifest='hls')]
     else:
         itemlist = [item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')]

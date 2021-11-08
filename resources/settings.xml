@@ -66,7 +66,7 @@
         <setting id="resolve_priority" type="select" label="70110" lvalues="70164|70165|70166" default="0"/>
         <setting id="resolve_stop" type="bool" label="70111" default="true"/>
         <setting id="hidepremium" type="bool" label="70112" default="false"/>
-        <setting id="httptools_timeout" type="slider" option="int" range="0,5,120" label="70580" default="15"/>
+        <setting id="httptools_timeout" type="slider" option="int" range="0,1,30" label="70580" default="5"/>
         <setting label="70145" type="lsep"/>
         <setting id="favorites_servers" type="bool" label="60551" default="false" visible="false"/>
         <setting id="quality_priority" type="bool" label="30069" default="false" visible="false"/>
@@ -151,7 +151,7 @@
         <setting label="30024" type="lsep"/>
         <setting id="quick_menu" type="bool" label="60360" default="true"/>
         <!-- <setting id="side_menu" type="bool" label="70737" default="false"/> -->
-        <!-- <setting id="kod_menu" type="bool" label="60026" default="true"/>-->
+<!--        <setting id="kod_menu" type="bool" label="60026" default="true"/>-->
         <setting id="infoplus" type="bool" label="70151" default="false"/>
         <!-- <setting id="infoplus_set" type="bool" label="70128" visible="eq(-1,true)" default="false" subsetting="true"/> -->
         <!-- <setting id="extended_info" type="bool" label="70152" default="false"/> -->

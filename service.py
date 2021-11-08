@@ -122,7 +122,7 @@ def check_for_update(overwrite=True):
     estado_verify_playcount_series = False
 
     try:
-        if config.get_setting("update", "videolibrary") != 0 or overwrite:
+        if overwrite or (config.get_setting("update", "videolibrary") != 0 and hoy.strftime('%Y-%m-%d') != config.get_setting('updatelibrary_last_check', 'videolibrary')):
             config.set_setting("updatelibrary_last_check", hoy.strftime('%Y-%m-%d'), "videolibrary")
 
             heading = config.get_localized_string(60601)

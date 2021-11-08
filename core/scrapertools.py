@@ -490,7 +490,7 @@ def title_unify(title):
         if cat != 'Mn':
             if cat == 'Pd':
                 c_new = '-'
-            elif cat in ['Ll', 'Lu'] or c == ':':
+            elif cat in ['Ll', 'Lu', 'Nd'] or c == ':':
                 c_new = c
             else:
                 c_new = ' '

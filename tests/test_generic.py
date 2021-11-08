@@ -74,10 +74,6 @@ chNumRis = {
         'Film': 16,
         'Serie TV': 16,
     },
-    'altadefinizionecommunity': {
-        'Film': 22,
-        'Serie TV': 22,
-    },
     'altadefinizioneclick': {
         'Film': 36,
         'Serie TV': 36,
@@ -163,6 +159,7 @@ for chItem in channel_list:
         error = None
         menuItemlist = {}
         serversFound = {}
+        firstContent = None  # to check search
         logMenu = {}
 
         try:
@@ -180,37 +177,48 @@ for chItem in channel_list:
                 if it.action == 'channel_config':
                     hasChannelConfig = True
                     continue
-                if it.action == 'search':  # channel-specific
-                    continue
-                menuItemlist[it.title] = []
 
-                itemlist = getattr(module, it.action)(it)
-                menuItemlist[it.title] = itemlist
+                if it.action == 'search':
+                    # no title to search
+                    if not firstContent:
+                        continue
+                    itemlist = module.search(it, firstContent)
+                else:
+                    itemlist = getattr(module, it.action)(it)
 
-                # some sites might have no link inside, but if all results are without servers, there's something wrong
-                for resIt in itemlist:
-                    if resIt.action == 'findvideos':
-                        if hasattr(module, resIt.action):
-                            serversFound[it.title] = getattr(module, resIt.action)(resIt)
-                        else:
-                            serversFound[it.title] = [resIt]
+                    if itemlist and itemlist[0].action in ('findvideos', 'episodios'):
+                        firstContent = re.match('[ \w]*', itemlist[0].fulltitle).group(0)
 
-                        if serversFound[it.title]:
-                            if hasattr(module, 'play'):
-                                tmp = []
+                    # some sites might have no link inside, but if all results are without servers, there's something wrong
+                    for resIt in itemlist:
+                        if resIt.action == 'findvideos' or resIt.action == 'episodios':
+                            if hasattr(module, resIt.action):
+                                serversFound[it.title] = getattr(module, resIt.action)(resIt)
+                                if serversFound[it.title] and resIt.action == 'episodios':
+                                    getattr(module, serversFound[it.title][0].action)(serversFound[it.title][0])
+                            else:
+                                serversFound[it.title] = [resIt]
+
+                            if serversFound[it.title]:
+                                if hasattr(module, 'play'):
+                                    tmp = []
+                                    for srv in serversFound[it.title]:
+                                        itPlay = getattr(module, 'play')(srv)
+                                        if itPlay:
+                                            tmp.append(itPlay[0])
+                                    serversFound[it.title] = tmp
                                 for srv in serversFound[it.title]:
-                                    itPlay = getattr(module, 'play')(srv)
-                                    if itPlay:
-                                        tmp.append(itPlay[0])
-                                serversFound[it.title] = tmp
-                            for srv in serversFound[it.title]:
-                                if srv.server:
-                                    srv.foundOn = ch + ' --> ' + it.title + ' --> ' + resIt.title
-                                    servers.append({'name': srv.server.lower(), 'server': srv})
-                            break
-            except:
+                                    if srv.server:
+                                        srv.foundOn = ch + ' --> ' + it.title + ' --> ' + resIt.title
+                                        servers.append({'name': srv.server.lower(), 'server': srv})
+                                break
+                menuItemlist[it.title] = itemlist
+            except Exception as ex:
                 import traceback
-                logger.error(traceback.format_exc())
+                menuItemlist[it.title] = {
+                    'traceback': traceback.format_exc(),
+                    'exception': ex
+                }
 
             logMenu[it.title] = logger.recordedLog
             logger.recordedLog = ''
@@ -220,9 +228,9 @@ for chItem in channel_list:
         #      'menuItemlist': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
         #      'serversFound': {k: [it.tojson() if type(it) == Item else it for it in menuItemlist[k]] for k in menuItemlist.keys()},
         #      'module': str(module), 'logMenu': logMenu, 'error': error})
-        channels.append(
-            {'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist, 'menuItemlist': menuItemlist,
-             'serversFound': serversFound, 'module': module, 'logMenu': logMenu, 'error': error})
+        channels.append({'ch': ch, 'hasChannelConfig': hasChannelConfig, 'mainlist': mainlist,
+                        'menuItemlist': menuItemlist, 'serversFound': serversFound, 'module': module,
+                         'logMenu': logMenu, 'error': error})
 
 logger.record = False
 
@@ -276,6 +284,10 @@ class GenericChannelMenuItemTest(unittest.TestCase):
         print('testing ' + self.ch + ' --> ' + self.title)
 
         logger.info(self.log)
+        # returned an error
+        if type(self.itemlist) == dict and self.itemlist['exception']:
+            logger.error(self.itemlist['traceback'])
+            raise self.itemlist['exception']
 
         self.assertTrue(self.module.host, 'channel ' + self.ch + ' has not a valid hostname')
         self.assertTrue(self.itemlist, 'channel ' + self.ch + ' -> ' + self.title + ' is empty')
@@ -286,10 +298,11 @@ class GenericChannelMenuItemTest(unittest.TestCase):
             for content in chNumRis[self.ch]:
                 if content in self.title:
                     risNum = len([i for i in self.itemlist if i.title != typo(config.get_localized_string(30992), 'color kod bold')])  # not count nextpage
-                    self.assertEqual(chNumRis[self.ch][content], risNum,
-                                     'channel ' + self.ch + ' -> ' + self.title + ' returned wrong number of results<br>'
-                                     + str(risNum) + ' but should be ' + str(chNumRis[self.ch][content]) + '<br>' +
-                                     '<br>'.join([html.escape(i.title) for i in self.itemlist if not i.nextPage]))
+                    if 'Search' not in self.title:
+                        self.assertEqual(chNumRis[self.ch][content], risNum,
+                                         'channel ' + self.ch + ' -> ' + self.title + ' returned wrong number of results<br>'
+                                         + str(risNum) + ' but should be ' + str(chNumRis[self.ch][content]) + '<br>' +
+                                         '<br>'.join([html.escape(i.title) for i in self.itemlist if not i.nextPage]))
                     break
 
         for resIt in self.itemlist:
@@ -319,7 +332,7 @@ class GenericServerTest(unittest.TestCase):
     def test_get_video_url(self):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
-        httptools.default_headers['Referer'] = self.server.referer
+        # httptools.default_headers['Referer'] = self.server.referer
         print('testing ' + page_url)
         print('Found on ' + self.server.foundOn)
         print()

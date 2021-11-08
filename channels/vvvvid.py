@@ -184,9 +184,16 @@ def findvideos(item):
         logger.info(episode)
         if episode['video_id'] == item.video_id:
             url = vvvvid_decoder.dec_ei(episode['embed_info'] or episode['embed_info_sd'])
-            if 'youtube' in url: item.url = url
+            # if 'youtube' in url: item.url = url
             item.url = url.replace('manifest.f4m','master.m3u8').replace('http://','https://').replace('/z/','/i/')
-            if 'https' not in item.url:
+            if 'youtube' in url:
+                itemlist.append(
+                    item.clone(action= 'play',
+                               title= 'YouTube',
+                               url= item.url,
+                               server= 'youtube')
+                )
+            elif 'https' not in item.url:
                 url = support.match('https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/playlist.m3u').data
                 url = url.split()[-1]
                 itemlist.append(

@@ -87,7 +87,7 @@ def peliculas(item):
     patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'
 
     if item.args == 'newest': item.action = 'findvideos'
-
+    
     patronNext = '<li class="page-item disabled">(?:[^>]+>){4}<a class="page-link" href="([^"]+)'
 
     def itemHook(item):

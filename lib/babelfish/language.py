@@ -7,13 +7,13 @@
 from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
-import os, io
 # from pkg_resources import resource_stream  # @UnresolvedImport
 from .converters import ConverterManager
 from .country import Country
 from .exceptions import LanguageConvertError
 from .script import Script
 from . import basestr
+import os, io
 
 
 LANGUAGES = set()

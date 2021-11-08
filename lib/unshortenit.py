@@ -60,6 +60,7 @@ class UnshortenIt(object):
 
     def unshorten(self, uri, type=None):
         code = 0
+        originalUri = uri
         while True:
             uri = uri.strip()
             oldUri = uri
@@ -114,6 +115,8 @@ class UnshortenIt(object):
 
             logger.info(uri)
 
+        if originalUri == uri and logger.testMode:
+            raise Exception('Not un-shortened link: ' + uri)
         return uri, code
 
     def unwrap_30x(self, uri, timeout=10):

@@ -38,7 +38,7 @@ def query(name, type='A', server=DOH_SERVER, path="/dns-query", fallback=True):
 
     try:
         req = _Request("https://%s%s?name=%s&type=%s" % (server, path, name, type), headers={"Accept": "application/dns-json"})
-        content = _urlopen(req).read().decode()
+        content = _urlopen(req, timeout=2).read().decode()
         reply = json.loads(content)
 
         if "Answer" in reply:

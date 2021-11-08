@@ -8,9 +8,9 @@ from __future__ import unicode_literals
 from collections import namedtuple
 from functools import partial
 # from pkg_resources import resource_stream  # @UnresolvedImport
-import os, io
 from .converters import ConverterManager
 from . import basestr
+import os, io
 
 
 COUNTRIES = {}

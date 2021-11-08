@@ -93,15 +93,16 @@ def buscartrailer(item, trailers=[]):
         if item.infoLabels['trailer'] and not trailers:
             url = item.infoLabels['trailer']
             if "youtube" in url:
-                url = url.replace("embed/", "watch?v=")
-            title, url, server = servertools.findvideos(url)[0]
+                url = url.replace("embed/", "watch?v=").replace('plugin://plugin.video.youtube/play/?video_id=', 'https://www.youtube.com/watch?v=')
+            finded = servertools.findvideos(url)[0]
+            title = finded[0]
+            url = finded[1]
+            server = finded[2]
             title = "Trailer  [" + server + "]"
             itemlist.append(item.clone(title=title, url=url, server=server, action="play"))
         try:
             for trailer in trailers:
-                title = trailer['name'] + " [" + trailer['size'] + "p] (" + trailer['language'].replace("en",
-                                                                                                        "ING").replace(
-                    "it", "ITA") + ")  [tmdb/youtube]"
+                title = trailer['name'] + " [" + trailer['size'] + "p] (" + trailer['language'].replace("en", "ING").replace( "it", "ITA") + ")  [tmdb/youtube]"
                 itemlist.append(item.clone(action="play", title=title, url=trailer['url'], server="youtube"))
         except:
             import traceback
@@ -175,10 +176,11 @@ def tmdb_trailers(item, dialog, tipo="movie"):
         for vid in tmdb_search.get_videos():
             if vid['type'].lower() == 'trailer':
                 title = vid['name']
-                it = del_id(item.clone(action="play", title=title, title2="TMDB(youtube) - " + vid['language'].replace("en", "ING").replace("it", "ITA") + " [" + vid['size'] + "p]", url=vid['url'], server="youtube"))
+                it = del_id(item.clone(action="play", title=title, title2="TMDB(youtube) - " + vid['language'].replace("en", "ING").replace("it", "ITA") + " [" + vid['size'] + "p]", url=vid['url'], server="youtube", window=True))
                 itemlist.append(it)
 
                 if vid['language'] == def_lang and not found:  # play now because lang is correct and TMDB is trusted
+                    logger.debug('TMDB PLAY ITEM', it)
                     found = True
                     launcher.run(it)
                     dialog.close()
@@ -214,7 +216,7 @@ def youtube_search(item):
             scrapedtitle = "%s" % scrapedtitle
         url = urlparse.urljoin('https://www.youtube.com/', scrapedurl)
         itemlist.append(del_id(item.clone(title=scrapedtitle, title2='Youtube - ' + scrapedduration, action="play", server="youtube",
-                                   url=url, thumbnail=scrapedthumbnail)))
+                                   url=url, thumbnail=scrapedthumbnail, window=True)))
     # next_page = scrapertools.find_single_match(data, '<a href="([^"]+)"[^>]+><span class="yt-uix-button-content">')
     # if next_page != "":
     #     next_page = urlparse.urljoin("https://www.youtube.com", next_page)
@@ -250,7 +252,7 @@ def search_links_mymovies(item):
     logger.debug()
     trailer_url = match(item, patron=r'<source src="([^"]+)').match
     if trailer_url:
-        it = del_id(item.clone(url=trailer_url, server='directo', action="play"))
+        it = del_id(item.clone(url=trailer_url, server='directo', action="play", window=True))
         return it
 
 
@@ -274,10 +276,10 @@ try:
         def onInit(self):
             try:
                 self.control_list = self.getControl(6)
-                self.getControl(5).setNavigation(self.control_list, self.control_list, self.control_list,
-                                                 self.control_list)
-                self.getControl(3).setEnabled(0)
-                self.getControl(3).setVisible(0)
+                self.getControl(5).setNavigation(self.getControl(7), self.getControl(7), self.control_list, self.control_list)
+                self.getControl(7).setNavigation(self.getControl(5), self.getControl(5), self.control_list, self.control_list)
+                self.getControl(8).setEnabled(0)
+                self.getControl(8).setVisible(0)
             except:
                 pass
 
@@ -309,7 +311,7 @@ try:
 
         def onAction(self, action):
             global window_select, result
-            if action == 92 or action == 110:
+            if action in [92, 110, 10]:
                 result = "no_video"
                 self.close()
                 window_select.pop()
@@ -318,8 +320,9 @@ try:
                         del window_select
                 else:
                     window_select[-1].doModal()
+
             try:
-                if (action == 7 or action == 100) and self.getFocusId() == 6:
+                if action in [7, 100] and self.getFocusId() == 6:
                     selectitem = self.control_list.getSelectedItem()
                     item = Item().fromurl(selectitem.getProperty("item_copy"))
                     if item.action == "play" and self.item.windowed:
@@ -335,10 +338,12 @@ try:
                             window.close()
                         retorna = platformtools.play_video(item, force_direct=True)
                         if not retorna:
-                            while True:
-                                xbmc.sleep(1000)
-                                if not xbmc.Player().isPlaying():
-                                    break
+                            while not xbmc.Player().isPlaying():
+                                xbmc.sleep(10)
+                            while xbmc.Player().isPlaying():
+                                xbmc.sleep(100)
+                                # if not xbmc.Player().isPlaying():
+                                #     break
                         window_select[-1].doModal()
                     else:
                         self.close()

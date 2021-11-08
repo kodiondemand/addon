@@ -1,4 +1,4 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.7.1" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.7.2" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
@@ -27,9 +27,9 @@
       <screenshot>resources/media/screenshot-2.png</screenshot>
       <screenshot>resources/media/screenshot-3.png</screenshot>
     </assets>
-      <news>- aggiunta opzione &quot;vai a pagina&quot; nel menu contestuale dell'item &quot;successivo&gt;&quot;
-- riscritti canali mediaset e raiplay
-- migliorie varie, in particolare nell'ordinamento dei server
+      <news>- corretto il playback in tutti i casi (torrent, autoplay, videoteca, libreria ecc..)
+            - piccole migliorie prestazionali nella ricerca globale
+            - fix trailer
 </news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]

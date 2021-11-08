@@ -597,6 +597,7 @@ def scrape(func):
                 nextArgs['item'] = item
                 itemlist = newFunc()
             itemlist = [i for i in itemlist if i.action not in ['add_pelicula_to_library', 'add_serie_to_library']]
+        logger.debug(item.channel + ' scraping time ' + ':', time()-scrapingTime)
 
         if anime and inspect.stack()[1][3] not in ['find_episodes']:
             from platformcode import autorenumber
@@ -655,7 +656,6 @@ def scrape(func):
         if config.get_setting('trakt_sync'):
             from core import trakt_tools
             trakt_tools.trakt_check(itemlist)
-        logger.debug('scraping time: ', time()-scrapingTime)
         return itemlist
 
     return wrapper
@@ -1267,6 +1267,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                         findS = servertools.get_server_from_url(videoitem.url)
                         if not findS:
                             info(videoitem, 'Non supportato')
+                            if logger.testMode:
+                                raise Exception('Server missing: ' + videoitem.url)
                             return
                 videoitem.server = findS[2]
                 videoitem.title = findS[0]
