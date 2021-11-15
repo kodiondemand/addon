@@ -2,12 +2,14 @@
 # ------------------------------------------------------------
 # Canale per Mediaset Play
 # ------------------------------------------------------------
+import functools
 
 from platformcode import logger, config
 import uuid, datetime, xbmc
 
 import requests, sys
-from core import jsontools, support
+from core import jsontools, support, httptools
+
 if sys.version_info[0] >= 3:
     from urllib.parse import urlencode, quote
 else:
@@ -23,6 +25,7 @@ loginData = {"client_id": clientid, "platform": "pc", "appName": "web//mediasetp
 sessionUrl = "https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid={uuid}&gid=default"
 
 session = requests.Session()
+session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(), 'Referer': host})
 
 entry = 'https://api.one.accedo.tv/content/entry/{id}?locale=it'

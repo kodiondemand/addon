@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import functools
 import re
 
 import requests
@@ -10,6 +10,7 @@ from platformcode import logger, config
 
 # Creating persistent session
 current_session = requests.Session()
+current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36'}
 
 # Getting conn_id token from vvvvid and creating payload

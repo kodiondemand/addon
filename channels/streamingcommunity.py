@@ -2,10 +2,10 @@
 # ------------------------------------------------------------
 # Canale per StreamingCommunity
 # ------------------------------------------------------------
-
+import functools
 import json, requests, sys
 from channels.mediasetplay import Token
-from core import support, channeltools
+from core import support, channeltools, httptools
 from platformcode import logger
 
 
@@ -15,6 +15,7 @@ def findhost(url):
 
 host = support.config.get_channel_url(findhost)
 session = requests.Session()
+session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 headers = {}
 
 def getHeaders(forced=False):

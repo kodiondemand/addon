@@ -53,7 +53,7 @@ def process_request_proxy(url):
         else:
             print(target_url)
 
-        result = session.get(target_url, timeout=20)
+        result = session.get(target_url, timeout=5)
         if not result:
             return
         data = result.text
@@ -71,7 +71,7 @@ def process_request_proxy(url):
 
             request_final = session.get(
                 url_request,
-                timeout=20
+                timeout=5
             )
 
             url_request_proxy = checker_url(
@@ -88,7 +88,7 @@ def process_request_proxy(url):
                 time.sleep(0.5)
                 result = session.get(
                     url_request_proxy,
-                    timeout=20
+                    timeout=5
                 )
                 data = result.text
                 if logger:

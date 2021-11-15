@@ -2,12 +2,14 @@
 # ------------------------------------------------------------
 # Canale per Rai Play
 # ------------------------------------------------------------
+import functools
 
 import requests
-from core import support, jsontools
+from core import support, httptools
 from platformcode import logger, config
 typo = support.typo
 session = requests.Session()
+session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 host = support.config.get_channel_url()
 
 token = session.get('https://disco-api.discoveryplus.it/token?realm=dplayit').json()['data']['attributes']['token']
