@@ -1,0 +1,29 @@
+{
+  "active": true,
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "(?:streamsb|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb).\\w{2,4}/(?:embed-|d/|e/)?([A-z0-9]+)",
+        "url": "https://streamsb.net/\\1"
+      },
+      {
+        "pattern": "(?:cloudemb.com)/([A-z0-9]+)",
+        "url": "https://streamsb.net/\\1"
+      }
+    ]
+  },
+  "free": true,
+  "id": "streamsb",
+  "name": "streamsb",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@70708",
+      "type": "bool",
+      "visible": true
+    }
+  ]
+}
