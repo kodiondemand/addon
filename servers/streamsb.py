@@ -12,7 +12,7 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url).data
 
     if 'File Not Found' in data:
-        return False, config.get_localized_string(70449) % "MixDrop"
+        return False, config.get_localized_string(70449) % "StreamSB"
     else:
         return True, ""
 
