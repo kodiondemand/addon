@@ -39,6 +39,8 @@
         "serietvsubita": "http://serietvsubita.xyz",
         "serietvu": "https://www.serietvu.live",
         "streamtime": "https://t.me/s/StreamTime",
+        "streamingita": "https://www.streamingita.pro",
+        "streamingcommunity": "https://streamingcommunity.space",
         "tantifilm": "https://www.tantifilm.cfd",
         "tapmovie": "https://it.tapmovie.net",
         "toonitalia": "https://toonitalia.co",
@@ -47,7 +49,6 @@
     "findhost": {
         "altadefinizionecommunity": "https://altaregistrazione.net",
         "animealtadefinizione": "https://www.animealtadefinizione.it",
-        "filmpertutti": "https://filmpertuttiii.nuovo.live",
-        "streamingcommunity": "https://streamingcommunity-nuovo.link"
+        "filmpertutti": "https://filmpertuttiii.nuovo.live"
     }
 }

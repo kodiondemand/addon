@@ -729,7 +729,7 @@ def dooplay_search(item, blacklist=""):
 
 
 def dooplay_search_vars(item, blacklist):
-    if item.contentType == 'list':  # ricerca globale
+    if item.contentType == 'undefined':  # ricerca globale
         type = '(?P<type>movies|tvshows)'
         typeActionDict = {'findvideos': ['movies'], 'episodios': ['tvshows']}
         typeContentDict = {'movie': ['movies'], 'tvshow': ['tvshows']}

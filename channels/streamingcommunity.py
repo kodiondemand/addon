@@ -9,33 +9,34 @@ from core import support, channeltools, httptools
 from platformcode import logger
 
 
-def findhost(url):
-    return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
+# def findhost(url):
+#     return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
 
 
-host = support.config.get_channel_url(findhost)
+host = support.config.get_channel_url()
 session = requests.Session()
 session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 headers = {}
+
 
 def getHeaders(forced=False):
     global headers
     global host
     if not headers:
-        try:
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
-            response = session.get(host, headers=headers)
-            if not response.url.startswith(host):
-                host = support.config.get_channel_url(findhost, forceFindhost=True)
-            csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
-                        'content-type': 'application/json;charset=UTF-8',
-                        'Referer': host,
-                        'x-csrf-token': csrf_token,
-                        'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
-        except:
-            host = support.config.get_channel_url(findhost, forceFindhost=True)
-            if not forced: getHeaders(True)
+        # try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
+        response = session.get(host, headers=headers)
+        # if not response.url.startswith(host):
+        #     host = support.config.get_channel_url(findhost, forceFindhost=True)
+        csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
+                    'content-type': 'application/json;charset=UTF-8',
+                    'Referer': host,
+                    'x-csrf-token': csrf_token,
+                    'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+        # except:
+        #     host = support.config.get_channel_url(findhost, forceFindhost=True)
+        #     if not forced: getHeaders(True)
 
 getHeaders()
 
