@@ -38,7 +38,7 @@ import time
 BASE_URL = "https://www.google.com/recaptcha/api2/"
 API_JS_URL = "https://www.google.com/recaptcha/api.js"
 JS_URL_TEMPLATE = """\
-https://www.gstatic.com/recaptcha/releases/{}/recaptcha__en.js
+https://www.gstatic.com/recaptcha/releases/{}/recaptcha__it.js
 """[:-1]
 
 STRINGS_VERSION = "0.1.0"
@@ -451,7 +451,7 @@ class ReCaptcha:
             index = self.js_strings.index(id, start)
             for i in range(FIND_GOAL_SEARCH_DISTANCE):
                 next_str = self.js_strings[index + i + 1]
-                if re.search(r"\bselect all\b", next_str, re.I):
+                if re.search(r"\bseleziona tutti\b", next_str, re.I):
                     matching_strings.append((i, index, next_str))
             start = index + FIND_GOAL_SEARCH_DISTANCE + 1
 
