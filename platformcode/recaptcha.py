@@ -5,7 +5,7 @@ from threading import Thread
 
 import channelselector
 import xbmcgui
-from core import httptools
+from core import httptools, support
 from core import filetools
 from platformcode import config, platformtools
 from platformcode import logger
@@ -43,6 +43,7 @@ class Kodi:
             api_key=key,
             site_url=referer,
             user_agent=httptools.get_user_agent(),
+            lang = 'en'
         )
 
     def run(self):

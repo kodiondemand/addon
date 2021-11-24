@@ -38,13 +38,17 @@ import time
 BASE_URL = "https://www.google.com/recaptcha/api2/"
 API_JS_URL = "https://www.google.com/recaptcha/api.js"
 JS_URL_TEMPLATE = """\
-https://www.gstatic.com/recaptcha/releases/{}/recaptcha__it.js
+https://www.gstatic.com/recaptcha/releases/{}/recaptcha__{}.js
 """[:-1]
 
 STRINGS_VERSION = "0.1.0"
 STRINGS_PATH = os.path.join(
     os.path.expanduser("~"), ".cache", "librecaptcha", "cached-strings",
 )
+CHALLENGE_GOAL_TEXT = {
+    'en': 'select all',
+    'it': 'seleziona tutti'
+}
 
 DYNAMIC_SELECT_DELAY = 4.5  # seconds
 FIND_GOAL_SEARCH_DISTANCE = 10
@@ -122,7 +126,7 @@ def get_rresp(uvresp):
     return None
 
 
-def get_js_strings(user_agent: str, rc_version: str) -> List[str]:
+def get_js_strings(user_agent: str, rc_version: str, lang : str = 'en') -> List[str]:
     def get_json():
         with open(STRINGS_PATH) as f:
             version, text = f.read().split("\n", 1)
@@ -136,7 +140,7 @@ def get_js_strings(user_agent: str, rc_version: str) -> List[str]:
         pass
 
     result = extract_and_save(
-        url=JS_URL_TEMPLATE.format(rc_version),
+        url=JS_URL_TEMPLATE.format(rc_version, lang),
         path=STRINGS_PATH,
         version=STRINGS_VERSION,
         rc_version=rc_version,
@@ -396,7 +400,7 @@ class ChallengeGoal(namedtuple("ChallengeGoal", [
 
 class ReCaptcha:
     def __init__(self, api_key, site_url, user_agent, debug=False,
-                 make_requests=True):
+                 make_requests=True, lang = 'en'):
         self.api_key = api_key
         self.site_url = get_rc_site_url(site_url)
         self.debug = debug
@@ -409,10 +413,14 @@ class ReCaptcha:
 
         self.js_strings = None
         self.rc_version = None
+
+        self.language = lang
+
         if make_requests:
             self.rc_version = get_rc_version(self.user_agent)
-            self.js_strings = get_js_strings(self.user_agent, self.rc_version)
+            self.js_strings = get_js_strings(self.user_agent, self.rc_version, self.language)
         self.solver_index = -1
+
 
     def first_solver(self) -> Solver:
         if self.solver_index >= 0:
@@ -451,7 +459,7 @@ class ReCaptcha:
             index = self.js_strings.index(id, start)
             for i in range(FIND_GOAL_SEARCH_DISTANCE):
                 next_str = self.js_strings[index + i + 1]
-                if re.search(r"\bseleziona tutti\b", next_str, re.I):
+                if re.search(r"\b{}\b".format( CHALLENGE_GOAL_TEXT[ self.language] ) , next_str, re.I):
                     matching_strings.append((i, index, next_str))
             start = index + FIND_GOAL_SEARCH_DISTANCE + 1
 
