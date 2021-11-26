@@ -15,16 +15,16 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url)
 
     if not data.success or "Not Found" in data.data or "File was deleted" in data.data or "is no longer available" in data.data:
-        return False,  config.get_localized_string(70449) % "Idtbox"
+        return False,  config.getLocalizedString(70449) % "Idtbox"
     
     data = data.data
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     logger.error(data)
-    video_urls = []
+    videoUrls = []
     patron = 'source src="([^"]+)" type="([^"]+)" res=(\d+)'
     matches = re.compile(patron, re.DOTALL).findall(data)
 
@@ -34,6 +34,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ext = ext.split("/")[1]
         except:
             ext = ".mp4"
-        video_urls.append({'type':ext, 'res':res, 'url':url})
+        videoUrls.append({'type':ext, 'res':res, 'url':url})
 
-    return video_urls
+    return videoUrls

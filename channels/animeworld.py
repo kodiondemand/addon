@@ -9,14 +9,14 @@ from platformcode import logger
 
 host = support.config.get_channel_url()
 __channel__ = 'animeworld'
-cookie = support.config.get_setting('cookie', __channel__)
+cookie = support.config.getSetting('cookie', __channel__)
 headers = [['Cookie', cookie]]
 
 
 def get_cookie(data):
     global cookie, headers
     cookie = support.match(data, patron=r'document.cookie="([^\s]+)').match
-    support.config.set_setting('cookie', cookie, __channel__)
+    support.config.setSetting('cookie', cookie, __channel__)
     headers = [['Cookie', cookie]]
 
 
@@ -33,7 +33,7 @@ def get_data(item):
 
 def order():
     # Seleziona l'ordinamento dei risultati
-    return str(support.config.get_setting("order", __channel__))
+    return str(support.config.getSetting("order", __channel__))
 
 
 @support.menu
@@ -130,7 +130,7 @@ def movies(item):
 
     if item.args == 'updated':
         item.contentType='episode'
-        patron=r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<lang>[^\)]+)\))?"[^>]+>[^>]+>\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?[^>]+>[^>]+>\s*<div class="ep">[^\d]+(?P<episode>\d+)[^<]*</div>'
+        patron=r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<lang>[^\)]+)\))?"[^>]+>[^>]+>\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?(?:[^>]+>){2,4}\s*<div class="ep">[^\d]+(?P<episode>\d+)[^<]*</div>'
         action='findvideos'
     else:
         patron= r'<div class="inner">\s*<a href="(?P<url>[^"]+)" class[^>]+>\s*<img.*?src="(?P<thumb>[^"]+)" alt?="(?P<title>[^\("]+)(?:\((?P<year>\d+)\) )?(?:\((?P<lang>[^\)]+)\))?(?P<title2>[^"]+)?[^>]+>[^>]+>(?:\s*<div class="(?P<l>[^"]+)">[^>]+>)?\s*(?:<div class="[^"]+">(?P<type>[^<]+)</div>)?'
@@ -138,6 +138,7 @@ def movies(item):
 
     # Controlla la lingua se assente
     patronNext=r'<a href="([^"]+)" class="[^"]+" id="go-next'
+    patronTotalPages=r'<span class="total">(\d+)</span>'
     typeContentDict={'movie':['movie', 'special']}
     typeActionDict={'findvideos':['movie', 'special']}
     def itemHook(item):

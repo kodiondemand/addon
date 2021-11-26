@@ -24,7 +24,7 @@
         <setting id="servers_favorites" visible="true" type="action" label="60551" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19mYXZvcml0ZXMiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
         <setting id="servers_blacklist" visible="true" type="action" label="60550" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAic2VydmVyc19ibGFja2xpc3QiLA0KICAgICJjaGFubmVsIjogInNldHRpbmciDQp9==)"/>
 
-        <setting id="window_type" type="select" label="60621"  lvalues="60623|60622" default="0"/>
+        <!-- <setting id="window_type" type="select" label="60621"  lvalues="60623|60622" default="0"/> -->
         <!-- <setting id="hide_servers" type="bool" label="70747" default="false" visible="eq(-1,true)" subsetting="true"/> -->
         <setting id="checklinks" type="bool" label="30020" default="false"/>
         <setting id="checklinks_number" type="slider" option="int" range="5,5,20" label="30021" default="5" visible="eq(-1,true)" subsetting="true"/>
@@ -163,8 +163,8 @@
         <!-- <setting id="extended_info" type="bool" label="70152" default="false"/> -->
         <!-- Shortcut -->
 		<setting label="30998" type="lsep"/>
-		<setting id="shortcut_key" type="action" label="30999" action="RunPlugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAia2V5bWFwIg0KfQ==)"/>
-        <setting id="delete_key" type="action" label="31000" action="RunPlugin(plugin://plugin.video.kod/?ewogICAgImFjdGlvbiI6ICJkZWxldGVfa2V5Igp9==)"/>
+		<setting id="shortcut_key" type="action" label="30999" action="RunPlugin(plugin://plugin.video.kod/?channel=shortcuts&action=shortcut_menu&add=true)"/>
+        <setting id="delete_key" type="action" label="31000" action="RunPlugin(plugin://plugin.video.kod/?channel=shortcuts&action=shortcut_menu&delete=true)"/>
 		<!-- Others -->
         <setting label="70149" type="lsep"/>
         <setting id="icon_set" type="select" label="70108" values="default|light|dark|mike" default="default"/>

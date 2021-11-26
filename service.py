@@ -16,7 +16,7 @@ try:
     xbmc.translatePath = xbmcvfs.translatePath
 except:
     pass
-librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
+librerias = xbmc.translatePath(os.path.join(config.getRuntimePath(), 'lib'))
 sys.path.insert(0, librerias)
 
 from core import filetools, httptools, jsontools, scrapertools, db, support
@@ -32,7 +32,7 @@ threads = []
 
 
 def check_for_update():
-    if config.get_setting("update", "videolibrary"):
+    if config.getSetting("update", "videolibrary"):
         videolibrary.update_videolibrary()
 
 
@@ -48,16 +48,16 @@ def get_ua_list():
     url = "http://omahaproxy.appspot.com/all?csv=1"
 
     try:
-        current_ver = config.get_setting("chrome_ua_version", default="").split(".")
+        current_ver = config.getSetting("chrome_ua_version", default="").split(".")
         data = httptools.downloadpage(url, alfa_s=True).data
         new_ua_ver = scrapertools.find_single_match(data, "win64,stable,([^,]+),")
 
         if not current_ver:
-            config.set_setting("chrome_ua_version", new_ua_ver)
+            config.setSetting("chrome_ua_version", new_ua_ver)
         else:
             for pos, val in enumerate(new_ua_ver.split('.')):
                 if int(val) > int(current_ver[pos]):
-                    config.set_setting("chrome_ua_version", new_ua_ver)
+                    config.setSetting("chrome_ua_version", new_ua_ver)
                     break
     except:
         logger.error(traceback.format_exc())
@@ -80,7 +80,7 @@ def join_threads():
 
 class AddonMonitor(xbmc.Monitor):
     def __init__(self):
-        self.settings_pre = config.get_all_settings_addon()
+        self.settings_pre = config.getAllSettingsAddon()
 
         self.updaterPeriod = None
         self.update_setting = None
@@ -92,17 +92,17 @@ class AddonMonitor(xbmc.Monitor):
         if not needsReload:  # do not run videolibrary update if service needs to be reloaded
             # videolibrary wait
             update_wait = [0, 10000, 20000, 30000, 60000]
-            wait = update_wait[int(config.get_setting("update_wait", "videolibrary"))]
+            wait = update_wait[int(config.getSetting("update_wait", "videolibrary"))]
             if wait > 0:
                 xbmc.sleep(wait)
-            if not config.get_setting("update", "videolibrary") == 2:
+            if not config.getSetting("update", "videolibrary") == 2:
                 run_threaded(check_for_update, [])
             self.scheduleVideolibrary()
         super(AddonMonitor, self).__init__()
 
     def onSettingsChanged(self):
         logger.debug('settings changed')
-        settings_post = config.get_all_settings_addon()
+        settings_post = config.getAllSettingsAddon()
         # sometimes kodi randomly return default settings (rare but happens), this if try to workaround this
         if settings_post and settings_post.get('show_once', True):
 
@@ -133,29 +133,32 @@ class AddonMonitor(xbmc.Monitor):
                 schedule.clear('updater')
                 self.scheduleUpdater()
 
-            if self.update_setting != config.get_setting("update", "videolibrary") or self.update_hour != config.get_setting("everyday_delay", "videolibrary") * 4:
+            if self.update_setting != config.getSetting("update", "videolibrary") or self.update_hour != config.getSetting("everyday_delay", "videolibrary") * 4:
                 schedule.clear('videolibrary')
                 self.scheduleVideolibrary()
 
             if self.settings_pre.get('elementum_on_seed') != settings_post.get('elementum_on_seed') and settings_post.get('elementum_on_seed'):
-                if not platformtools.dialog_yesno(config.get_localized_string(70805), config.get_localized_string(70806)):
-                    config.set_setting('elementum_on_seed', False)
+                if not platformtools.dialogYesNo(config.getLocalizedString(70805), config.getLocalizedString(70806)):
+                    config.setSetting('elementum_on_seed', False)
             if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
                 xbmc.executebuiltin('Action(reloadkeymaps)')
 
             # backup settings
-            filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
-                           os.path.join(config.get_data_path(), "settings.bak"), True)
+            filetools.copy(os.path.join(config.getDataPath(), "settings.xml"),
+                           os.path.join(config.getDataPath(), "settings.bak"), True)
             logger.debug({k: self.settings_pre[k] for k in self.settings_pre
                           if k in settings_post and self.settings_pre[k] != settings_post[k]})
 
-            self.settings_pre = config.get_all_settings_addon()
+            self.settings_pre = config.getAllSettingsAddon()
 
     def onNotification(self, sender, method, data):
         logger.debug('METODO', method)
         if method == 'VideoLibrary.OnUpdate':
             xbmc_videolibrary.set_watched_on_kod(data)
             logger.debug('AGGIORNO')
+        if method == 'Player.OnAVStart':
+            logger.debug('CONTROLLO VIDEO IN PLAY')
+            xbmc_videolibrary.mark_auto_as_watched()
 
     def onScreensaverActivated(self):
         logger.debug('screensaver activated, un-scheduling screen-on jobs')
@@ -166,9 +169,9 @@ class AddonMonitor(xbmc.Monitor):
         self.scheduleScreenOnJobs()
 
     def scheduleUpdater(self):
-        if not config.dev_mode():
+        if not config.devMode():
             updaterCheck()
-            self.updaterPeriod = config.get_setting('addon_update_timer')
+            self.updaterPeriod = config.getSetting('addon_update_timer')
             schedule.every(self.updaterPeriod).hours.do(updaterCheck).tag('updater')
             logger.debug('scheduled updater every ' + str(self.updaterPeriod) + ' hours')
 
@@ -177,16 +180,16 @@ class AddonMonitor(xbmc.Monitor):
         schedule.every(1).day.do(get_ua_list)
 
     def scheduleVideolibrary(self):
-        self.update_setting = config.get_setting("update", "videolibrary")
+        self.update_setting = config.getSetting("update", "videolibrary")
         # 2= daily 3=daily and when kodi starts
         if self.update_setting == 2 or self.update_setting == 3:
-            self.update_hour = config.get_setting("everyday_delay", "videolibrary") * 4
+            self.update_hour = config.getSetting("everyday_delay", "videolibrary") * 4
             schedule.every().day.at(str(self.update_hour).zfill(2) + ':00').do(check_for_update).tag('videolibrary')
             logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
 
     def scheduleScreenOnJobs(self):
         # pass
-        schedule.every().second.do(platformtools.viewmodeMonitor).tag('screenOn')
+        schedule.every().second.do(platformtools.viewModeMonitor).tag('screenOn')
         # schedule.every().second.do(torrent.elementum_monitor).tag('screenOn')
 
     def onDPMSActivated(self):
@@ -202,27 +205,27 @@ if __name__ == "__main__":
     logger.info('Starting KoD service')
 
     # Test if all the required directories are created
-    config.verify_directories_created()
+    config.verifyDirectoriesCreated()
 
     import glob, xbmc
     from core import videolibrarytools, tmdb
     from core.item import Item
 
-    if config.get_setting('videolibrary_kodi') and config.get_setting('show_once'):
+    if config.getSetting('videolibrary_kodi') and config.getSetting('show_once'):
         nun_records, records = xbmc_videolibrary.execute_sql_kodi('select * from path where strPath = "' +
-                                                                  filetools.join(config.get_setting('videolibrarypath'),
-                                                                                 config.get_setting('folder_tvshows')) +
+                                                                  filetools.join(config.getSetting('videolibrarypath'),
+                                                                                 config.getSetting('folder_tvshows')) +
                                                                   '/" and strScraper<>"metadata.local"')
         if nun_records:
             videolibrarytools.convert_videolibrary()
 
 
-    if config.get_setting('autostart'):
+    if config.getSetting('autostart'):
         xbmc.executebuiltin('RunAddon(plugin.video.' + config.PLUGIN_NAME + ')')
 
     # check if the user has any connection problems
     from platformcode.checkhost import test_conn
-    run_threaded(test_conn, (True, not config.get_setting('resolver_dns'), True, [], [], True))
+    run_threaded(test_conn, (True, not config.getSetting('resolver_dns'), True, [], [], True))
 
     monitor = AddonMonitor()
 

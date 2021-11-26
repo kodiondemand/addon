@@ -1,14 +1,14 @@
 from platformcode import config, logger
 import xbmc, sys, xbmcgui, os
 
-librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
+librerias = xbmc.translatePath(os.path.join(config.getRuntimePath(), 'lib'))
 sys.path.insert(0, librerias)
 
 from core import jsontools, support
 
-addon_id = config.get_addon_core().getAddonInfo('id')
+addon_id = config.getAddonCore().getAddonInfo('id')
 
-LOCAL_FILE = os.path.join(config.get_runtime_path(), "platformcode/contextmenu/contextmenu.json")
+LOCAL_FILE = os.path.join(config.getRuntimePath(), "platformcode/contextmenu/contextmenu.json")
 f = open(LOCAL_FILE)
 contextmenu_settings = jsontools.load(open(LOCAL_FILE).read())
 f.close()
@@ -53,7 +53,7 @@ def build_menu():
 
 
 def empty_item():
-    return config.get_localized_string(90004)
+    return config.getLocalizedString(90004)
 
 
 if __name__ == '__main__':

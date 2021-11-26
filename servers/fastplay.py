@@ -11,33 +11,33 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url)
 
     if "Object not found" in data.data or "longer exists on our servers" in data.data:
-        return False,  config.get_localized_string(70449) % "Fastplay"
+        return False,  config.getLocalizedString(70449) % "Fastplay"
     if data.code == 500:
         return False, "[Fastplay] Error interno del servidor"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
 
     data = httptools.downloadpage(page_url).data
     if "p,a,c,k,e,d" in data:
         data = jsunpack.unpack(data).replace("\\", "")
-    video_urls = []
-    videos = scrapertools.find_multiple_matches(data, 'file\s*:\s*"([^"]+)",label:"(.*?)"')
+    videoUrls = []
+    videos = scrapertools.findMultipleMatches(data, 'file\s*:\s*"([^"]+)",label:"(.*?)"')
     # Detección de subtítulos
     subtitulo = scrapertools.find_single_match(data, 'tracks:\s*\[{file:"(.*?)"')
     if "http" not in subtitulo:
         subtitulo = "http://fastplay.cc" + subtitulo
-    for video_url, video_calidad in videos:
-        extension = scrapertools.get_filename_from_url(video_url)[-4:]
+    for videoUrl, video_calidad in videos:
+        extension = scrapertools.get_filename_from_url(videoUrl)[-4:]
         if extension not in [".vtt", ".srt"]:
-            video_urls.append({'type':extension, 'res':video_calidad, 'url':video_url, 'sub':subtitulo})
+            videoUrls.append({'type':extension, 'res':video_calidad, 'url':videoUrl, 'sub':subtitulo})
     try:
-        video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0].rsplit(" ")[1]))
+        videoUrls.sort(key=lambda it: int(it[0].split("p ", 1)[0].rsplit(" ")[1]))
     except:
         pass
-    for video_url in video_urls:
-        logger.debug(" %s - %s" % (video_url[0], video_url[1]))
+    for videoUrl in videoUrls:
+        logger.debug(" %s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

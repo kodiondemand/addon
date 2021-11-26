@@ -37,14 +37,14 @@ def download_and_play(url, file_name, download_path):
     while True:
         cancelled = False
         dialog = xbmcgui.DialogProgress()
-        dialog.create(config.get_localized_string(60200), config.get_localized_string(60312))
+        dialog.create(config.getLocalizedString(60200), config.getLocalizedString(60312))
         dialog.update(0)
 
         while not cancelled and download_thread.is_alive():
-            dialog.update(download_thread.get_progress(), config.get_localized_string(60313) + '\n' +
-                          config.get_localized_string(60314) + str(int(old_div(download_thread.get_speed(), 1024))) + " KB/s " + str(
-                              download_thread.get_actual_size()) + config.get_localized_string(60316) + str( download_thread.get_total_size()) + "MB",
-                          config.get_localized_string(60202) % (str(downloadtools.sec_to_hms(download_thread.get_remaining_time()))))
+            dialog.update(download_thread.get_progress(), config.getLocalizedString(60313) + '\n' +
+                          config.getLocalizedString(60314) + str(int(old_div(download_thread.get_speed(), 1024))) + " KB/s " + str(
+                              download_thread.get_actual_size()) + config.getLocalizedString(60316) + str( download_thread.get_total_size()) + "MB",
+                          config.getLocalizedString(60202) % (str(downloadtools.sec_to_hms(download_thread.get_remaining_time()))))
             xbmc.sleep(1000)
 
             if dialog.iscanceled():
@@ -189,7 +189,7 @@ class DownloadThread(threading.Thread):
         oldcwd = os.getcwd()
         logger.info("oldcwd= " + oldcwd)
 
-        cwd = os.path.join(config.get_runtime_path(), "tools")
+        cwd = os.path.join(config.getRuntimePath(), "tools")
         logger.info("cwd= " + cwd)
         os.chdir(cwd)
         logger.info("directory changed to= " + os.getcwd())
@@ -286,7 +286,7 @@ class DownloadThread(threading.Thread):
                     logger.info("Force_stop file detected, download is interrupted")
                     f.close()
 
-                    xbmc.executebuiltin("Notification(%s,%s,300)" % (config.get_localized_string(60319),config.get_localized_string(60320)))
+                    xbmc.executebuiltin("Notification(%s,%s,300)" % (config.getLocalizedString(60319),config.getLocalizedString(60320)))
 
                     return
 

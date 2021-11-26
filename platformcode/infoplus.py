@@ -39,7 +39,7 @@ BACKSPACE = 92
 
 def start(item):
     xbmc.executebuiltin('Dialog.Close(all)')
-    InfoPlus('InfoPlus.xml', config.get_runtime_path(), item=item)
+    InfoPlus('InfoPlus.xml', config.getRuntimePath(), item=item)
 
 class InfoPlus(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
@@ -57,7 +57,7 @@ class InfoPlus(xbmcgui.WindowXML):
         self.fanarts = []
         self.collection = []
         if not self.item.focus: self.item.focus = {}
-        platformtools.dialog_busy(True)
+        platformtools.dialogBusy(True)
         if self.item:
             # Find Video Info
 
@@ -88,7 +88,7 @@ class InfoPlus(xbmcgui.WindowXML):
             self.listitem.setProperty('info',info)
 
             # Set infoLabels
-            platformtools.set_infolabels(self.listitem, self.item)
+            platformtools.setInfolabels(self.listitem, self.item)
 
             # Add Cast Info
             for cast in self.info.get('castandrole',[]):
@@ -128,9 +128,9 @@ class InfoPlus(xbmcgui.WindowXML):
             self.get_trailers()
 
             # Add Fanart
-            self.get_fanarts()
+            self.getFanarts()
 
-            platformtools.dialog_busy(False)
+            platformtools.dialogBusy(False)
 
             self.doModal()
 
@@ -199,10 +199,10 @@ class InfoPlus(xbmcgui.WindowXML):
                 self.item.text = self.item.contentTitle
             titles = [self.item.text] + [original] if original else []
             if original and original != self.item.text:
-                selection = platformtools.dialog_select(config.get_localized_string(90010), titles)
+                selection = platformtools.dialogSelect(config.getLocalizedString(90010), titles)
             if selection > -1:
                 self.item.text = titles[selection]
-                self.item.mode = 'search_' + self.item.contentType
+                self.item.mode = 'search/' + self.item.contentType
                 item = self.item.clone(channel='globalsearch', action='new_search')
                 xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
                 # new_search(self.item.clone())
@@ -263,7 +263,7 @@ class InfoPlus(xbmcgui.WindowXML):
                 traileitem.setArt({'thumb':'http://img.youtube.com/vi/' + trailer['url'].split('=')[-1] + '/0.jpg'})
                 self.trailers.append(traileitem)
 
-    def get_fanarts(self):
+    def getFanarts(self):
         _id = self.info.get('tmdb_id')
         res = {}
         fanarts = self.info.get('fanarts',[])
@@ -284,7 +284,7 @@ class InfoPlus(xbmcgui.WindowXML):
 
 def showCast(item):
     xbmc.executebuiltin('Dialog.Close(all)')
-    CastWindow('CastWindow.xml', config.get_runtime_path(), item=item)
+    CastWindow('CastWindow.xml', config.getRuntimePath(), item=item)
 class CastWindow(xbmcgui.WindowXML):
     def __init__(self, *args, **kwargs):
         self.item = kwargs.get('item')
@@ -296,10 +296,10 @@ class CastWindow(xbmcgui.WindowXML):
         self.tvshowItems = []
         if not self.item.focus: self.item.focus = {}
         if self.item:
-            platformtools.dialog_busy(True)
+            platformtools.dialogBusy(True)
             self.get_person_info()
             self.get_credits()
-            platformtools.dialog_busy(False)
+            platformtools.dialogBusy(False)
             self.doModal()
 
     def get_person_info(self):
@@ -413,7 +413,7 @@ class CastWindow(xbmcgui.WindowXML):
             rating = video.get('vote_average', 'N/A')
             color = 'FFFFFFFF' if rating == 'N/A' else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
             videoitem.setProperties({'rating':str(int(video.get('vote_average',10) * 10)), 'color':color})
-            platformtools.set_infolabels(videoitem, item)
+            platformtools.setInfolabels(videoitem, item)
             if video.get('media_type') == 'movie':
                 self.movies.append(videoitem)
                 self.movieItems.append(item)
@@ -424,7 +424,7 @@ class CastWindow(xbmcgui.WindowXML):
 
 def showImages(images, position):
     xbmc.executebuiltin('Dialog.Close(all)')
-    return ImagesWindow('imageWindow.xml', config.get_runtime_path()).start(images=images, position=position)
+    return ImagesWindow('imageWindow.xml', config.getRuntimePath()).start(images=images, position=position)
 class ImagesWindow(xbmcgui.WindowXMLDialog):
     def start(self, *args, **kwargs):
         self.images = []

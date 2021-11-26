@@ -10,16 +10,16 @@ def test_video_exists(page_url):
     resp = httptools.downloadpage(page_url)
     data = resp.data
     if resp.code == 404 or 'Video is processing now' in data:
-        return False, config.get_localized_string(70449) % "Vidmoly"
+        return False, config.getLocalizedString(70449) % "Vidmoly"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     global data
-    video_urls = support.get_jwplayer_mediaurl(data, 'Vidmoly')
-    for url in video_urls.items:
+    videoUrls = support.get_jwplayer_mediaUrl(data, 'Vidmoly')
+    for url in videoUrls.items:
         logger.debug(url)
         url[url] = url['url'].replace(',','').replace('.urlset','').replace('/hls','') + '|Referer=' + page_url
 
-    return video_urls
+    return videoUrls

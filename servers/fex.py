@@ -13,15 +13,15 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url, follow_redirects=False)
 
     if data.code == 404:
-        return False,  config.get_localized_string(70449) % "Fex"
+        return False,  config.getLocalizedString(70449) % "Fex"
 
     return True, ""
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url, follow_redirects=False, only_headers=True)
     logger.debug(data.headers)
     url = data.headers['location']
-    video_urls.append({'url':url})
-    return video_urls
+    videoUrls.append({'url':url})
+    return videoUrls

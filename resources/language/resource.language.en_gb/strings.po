@@ -973,7 +973,7 @@ msgid "AutoPlay Language (Optional)"
 msgstr ""
 
 msgctxt "#60081"
-msgid "      Favorite servers"
+msgid "Favorite servers"
 msgstr ""
 
 msgctxt "#60082"
@@ -981,7 +981,7 @@ msgid "Favorite server %s"
 msgstr ""
 
 msgctxt "#60083"
-msgid "      Preferred Qualities"
+msgid "Preferred Qualities"
 msgstr ""
 
 msgctxt "#60084"
@@ -989,7 +989,7 @@ msgid "Preferred Quality %s"
 msgstr ""
 
 msgctxt "#60085"
-msgid "   Priority (Indicates the order for AutoPlay)"
+msgid "Priority (Indicates the order for AutoPlay)"
 msgstr ""
 
 msgctxt "#60086"
@@ -1161,27 +1161,27 @@ msgid "Identifiers:"
 msgstr ""
 
 msgctxt "#60234"
-msgid "    The Movie Database ID"
+msgid "The Movie Database ID"
 msgstr ""
 
 msgctxt "#60235"
-msgid "        URL Tmdb"
+msgid "URL Tmdb"
 msgstr ""
 
 msgctxt "#60236"
-msgid "    The TVDB ID"
+msgid "The TVDB ID"
 msgstr ""
 
 msgctxt "#60237"
-msgid "        URL TVDB"
+msgid "URL TVDB"
 msgstr ""
 
 msgctxt "#60238"
-msgid "    IMDb ID"
+msgid "IMDb ID"
 msgstr ""
 
 msgctxt "#60239"
-msgid "    Other ID"
+msgid "Other ID"
 msgstr ""
 
 msgctxt "#60240"
@@ -1189,11 +1189,11 @@ msgid "Images"
 msgstr ""
 
 msgctxt "#60241"
-msgid "    Background"
+msgid "Background"
 msgstr ""
 
 msgctxt "#60242"
-msgid "    Thumbnail"
+msgid "Thumbnail"
 msgstr ""
 
 msgctxt "#60243"
@@ -1953,39 +1953,39 @@ msgid "Guide (opens the browser)"
 msgstr ""
 
 msgctxt "#60448"
-msgid "    - How do I report an error?"
+msgid " - How do I report an error?"
 msgstr ""
 
 msgctxt "#60449"
-msgid "    - Is it possible to enable/disable channels?"
+msgid " - Is it possible to enable/disable channels?"
 msgstr ""
 
 msgctxt "#60450"
-msgid "    - Is automatic synchronization with Trakt possible?"
+msgid " - Is automatic synchronization with Trakt possible?"
 msgstr ""
 
 msgctxt "#60451"
-msgid "    - Is it possible to show all the results together in the global search?"
+msgid " - Is it possible to show all the results together in the global search?"
 msgstr ""
 
 msgctxt "#60452"
-msgid "    - Links take too long to appear."
+msgid " - Links take too long to appear."
 msgstr ""
 
 msgctxt "#60453"
-msgid "    - The content search is not performed correctly."
+msgid " - The content search is not performed correctly."
 msgstr ""
 
 msgctxt "#60454"
-msgid "    - Some channels do not function properly."
+msgid " - Some channels do not function properly."
 msgstr ""
 
 msgctxt "#60455"
-msgid "    - The library does not update correctly."
+msgid " - The library does not update correctly."
 msgstr ""
 
 msgctxt "#60456"
-msgid "    - Links of interest"
+msgid " - Links of interest"
 msgstr ""
 
 msgctxt "#60457"
@@ -2265,23 +2265,23 @@ msgid "Included channels by category"
 msgstr ""
 
 msgctxt "#60526"
-msgid "    - Movies "
+msgid " - Movies "
 msgstr ""
 
 msgctxt "#60527"
-msgid "    - Kids"
+msgid " - Kids"
 msgstr ""
 
 msgctxt "#60528"
-msgid "    - TV show episodes"
+msgid " - TV show episodes"
 msgstr ""
 
 msgctxt "#60529"
-msgid "    - Anime episodes"
+msgid " - Anime episodes"
 msgstr ""
 
 msgctxt "#60530"
-msgid "    - Documentaries"
+msgid " - Documentaries"
 msgstr ""
 
 msgctxt "#60531"
@@ -2369,7 +2369,7 @@ msgid "Debriders settings"
 msgstr ""
 
 msgctxt "#60553"
-msgid "   Server configuration '%s'"
+msgid "Server configuration '%s'"
 msgstr ""
 
 msgctxt "#60554"
@@ -2409,7 +2409,7 @@ msgid "Channel Options"
 msgstr ""
 
 msgctxt "#60565"
-msgid "   Check the files * _data.json"
+msgid "Check the files * _data.json"
 msgstr ""
 
 msgctxt "#60566"
@@ -2445,7 +2445,7 @@ msgid "Order Servers"
 msgstr ""
 
 msgctxt "#60578"
-msgid "    Server #%s"
+msgid "Server #%s"
 msgstr ""
 
 msgctxt "#60579"
@@ -2521,7 +2521,7 @@ msgid "Channels"
 msgstr ""
 
 msgctxt "#60597"
-msgid "    Server #%s"
+msgid "Server #%s"
 msgstr ""
 
 msgctxt "#60598"
@@ -2557,7 +2557,7 @@ msgid "When Kodi starts and daily"
 msgstr ""
 
 msgctxt "#60606"
-msgid "      Update waiting time"
+msgid "Update waiting time"
 msgstr ""
 
 msgctxt "#60607"
@@ -2581,11 +2581,11 @@ msgid "60 sec"
 msgstr ""
 
 msgctxt "#60613"
-msgid "      Update time"
+msgid "Update time"
 msgstr ""
 
 msgctxt "#60614"
-msgid "      Search for new episodes"
+msgid "Search for new episodes"
 msgstr ""
 
 msgctxt "#60615"
@@ -2601,7 +2601,7 @@ msgid "Based on airing"
 msgstr ""
 
 msgctxt "#60618"
-msgid "      Kodi video library update"
+msgid "Kodi video library update"
 msgstr ""
 
 msgctxt "#60619"
@@ -2625,7 +2625,7 @@ msgid "Pop-up window"
 msgstr ""
 
 msgctxt "#60624"
-msgid "      Maximum number of links to display"
+msgid "Maximum number of links to display"
 msgstr ""
 
 msgctxt "#60625"
@@ -2633,15 +2633,15 @@ msgid "All"
 msgstr ""
 
 msgctxt "#60626"
-msgid "      Sort by whitelist"
+msgid "Sort by whitelist"
 msgstr ""
 
 msgctxt "#60627"
-msgid "      Remove the channel name at the beginning"
+msgid "Remove the channel name at the beginning"
 msgstr ""
 
 msgctxt "#60628"
-msgid "      Replace \'View in\' with \'[V]\' and \'Download in\' with \'[D]\'"
+msgid "Replace \'View in\' with \'[V]\' and \'Download in\' with \'[D]\'"
 msgstr ""
 
 msgctxt "#60629"
@@ -2649,11 +2649,11 @@ msgid "Remote database"
 msgstr "Database remoto"
 
 msgctxt "#60632"
-msgid "        Server name"
+msgid "Server name"
 msgstr ""
 
 msgctxt "#60633"
-msgid "        Server port"
+msgid "Server port"
 msgstr ""
 
 msgctxt "#60634"
@@ -2661,7 +2661,7 @@ msgid "Automatically mark as watched"
 msgstr ""
 
 msgctxt "#60635"
-msgid "      Video viewing time"
+msgid "Video viewing time"
 msgstr ""
 
 msgctxt "#60636"
@@ -2669,23 +2669,23 @@ msgid "0 seg"
 msgstr ""
 
 msgctxt "#60637"
-msgid "  Synchronizing with Trakt"
+msgid "Synchronizing with Trakt"
 msgstr ""
 
 msgctxt "#60638"
-msgid "      After mark as watched the episode"
+msgid "After mark as watched the episode"
 msgstr ""
 
 msgctxt "#60639"
-msgid "      Show notification"
+msgid "Show notification"
 msgstr ""
 
 msgctxt "#60640"
-msgid "      On adding a TV show to the video library"
+msgid "On adding a TV show to the video library"
 msgstr ""
 
 msgctxt "#60641"
-msgid "      Wait until the TV show is added"
+msgid "Wait until the TV show is added"
 msgstr ""
 
 msgctxt "#60642"
@@ -2713,19 +2713,19 @@ msgid "Never"
 msgstr ""
 
 msgctxt "#60650"
-msgid "  Video library information providers"
+msgid "Video library information providers"
 msgstr ""
 
 msgctxt "#60651"
-msgid "      Movies"
+msgid "Movies"
 msgstr ""
 
 msgctxt "#60652"
-msgid "      TV show"
+msgid "TV show"
 msgstr ""
 
 msgctxt "#60653"
-msgid "      If there are no results search in English"
+msgid "If there are no results search in English"
 msgstr ""
 
 msgctxt "#60654"
@@ -2761,7 +2761,7 @@ msgid "News"
 msgstr ""
 
 msgctxt "#60662"
-msgid "      Language"
+msgid "Language"
 msgstr ""
 
 msgctxt "#60663"
@@ -3109,7 +3109,7 @@ msgid ">> Next Page"
 msgstr ""
 
 msgctxt "#70066"
-msgid "    Search title in spanish: %s"
+msgid "Search title in spanish: %s"
 msgstr ""
 
 msgctxt "#70067"
@@ -3201,11 +3201,11 @@ msgid "Show only links of %s"
 msgstr ""
 
 msgctxt "#70090"
-msgid "    Exclude all streams with specific words"
+msgid "Exclude all streams with specific words"
 msgstr ""
 
 msgctxt "#70091"
-msgid "    Words"
+msgid "Words"
 msgstr ""
 
 msgctxt "#70092"
@@ -3521,7 +3521,7 @@ msgid "Torrent"
 msgstr ""
 
 msgctxt "#70172"
-msgid "      Plan B (If favourites fail try other links)"
+msgid "Plan B (If favourites fail try other links)"
 msgstr ""
 
 msgctxt "#70173"
@@ -3661,7 +3661,7 @@ msgid "Link found in %s"
 msgstr ""
 
 msgctxt "#70207"
-msgid "    - Movies 4K "
+msgid " - Movies 4K "
 msgstr ""
 
 msgctxt "#70208"
@@ -3681,15 +3681,15 @@ msgid " (In %s)"
 msgstr ""
 
 msgctxt "#70212"
-msgid "    - Castellan"
+msgid " - Castellan"
 msgstr ""
 
 msgctxt "#70213"
-msgid "    - Latin"
+msgid " - Latin"
 msgstr ""
 
 msgctxt "#70214"
-msgid "    - Torrent"
+msgid " - Torrent"
 msgstr ""
 
 msgctxt "#70215"
@@ -3765,19 +3765,19 @@ msgid "View downloaded files"
 msgstr ""
 
 msgctxt "#70233"
-msgid "  - Size per block"
+msgid " - Size per block"
 msgstr ""
 
 msgctxt "#70234"
-msgid "  - Size by part"
+msgid " - Size by part"
 msgstr ""
 
 msgctxt "#70235"
-msgid "  - Maximum number of simultaneous connections"
+msgid " - Maximum number of simultaneous connections"
 msgstr ""
 
 msgctxt "#70236"
-msgid "  - Maximum number of parts in memory"
+msgid " - Maximum number of parts in memory"
 msgstr ""
 
 msgctxt "#70237"
@@ -3945,7 +3945,7 @@ msgid "You can try downloading the 'libtorrent' module from Kodi or installing s
 msgstr ""
 
 msgctxt "#70280"
-msgid "    -  Torrent Links don't work."
+msgid " -  Torrent Links don't work."
 msgstr ""
 
 msgctxt "#70281"
@@ -4257,7 +4257,7 @@ msgid "Recommendations MyAnimeList"
 msgstr ""
 
 msgctxt "#70360"
-msgid "  [Without subs in castellan]"
+msgid " [Without subs in castellan]"
 msgstr ""
 
 msgctxt "#70361"
@@ -4325,7 +4325,7 @@ msgid "Info in AniDB %s"
 msgstr ""
 
 msgctxt "#70377"
-msgid "  - Fansubs in spanish:"
+msgid " - Fansubs in spanish:"
 msgstr ""
 
 msgctxt "#70378"

@@ -10,14 +10,14 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if 'File was deleted' in data:
-        return False, config.get_localized_string(70449) % 'YouDbox'
+        return False, config.getLocalizedString(70449) % 'YouDbox'
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.info("(page_url='%s')" % page_url)
     global data
-    video_urls = []
+    videoUrls = []
     list = scrapertools.find_single_match(data, 'var [a-zA-Z0-9]+ = ([^\]]+)').replace('[', '').replace('"', '').replace('\\x', '').replace(',', ' ')
     list = list.split()[::-1]
     url =""
@@ -25,5 +25,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         decoded = codecs.decode(elem, "hex")
         url += decoded.decode("utf8")
     url = scrapertools.find_single_match(url, '<source src="([^"]+)"')
-    video_urls.append({'url':url})
-    return video_urls
+    videoUrls.append({'url':url})
+    return videoUrls

@@ -12,33 +12,35 @@ PLUGIN_NAME = "kod"
 __settings__ = xbmcaddon.Addon(id="plugin.video." + PLUGIN_NAME)
 __language__ = __settings__.getLocalizedString
 __version_fix = None
-__dev_mode = None
+__devMode = None
 
-channels_data = dict()
+channelsData = dict()
 changelogFile = xbmc.translatePath("special://profile/addon_data/plugin.video.kod/changelog.txt")
+addonIcon = os.path.join(__settings__.getAddonInfo( "path" ),'resources', 'media', "logo.png" )
 
 
-def get_addon_core():
+
+def getAddonCore():
     return __settings__
 
 
-def get_addon_version(with_fix=True):
+def getAddonVersion(with_fix=True):
     '''
     Returns the version number of the addon, and optionally fix number if there is one
     '''
     if with_fix:
-        return __settings__.getAddonInfo('version') + " " + get_addon_version_fix()
+        return __settings__.getAddonInfo('version') + " " + getAddonVersionFix()
     else:
         return __settings__.getAddonInfo('version')
 
 
-def get_addon_version_fix():
+def getAddonVersionFix():
     global __version_fix
     ret = __version_fix
     if not ret:
-        if not dev_mode():
+        if not devMode():
             try:
-                sha = open(os.path.join(get_runtime_path(), 'last_commit.txt')).readline()
+                sha = open(os.path.join(getRuntimePath(), 'last_commit.txt')).readline()
                 ret = sha[:7]
             except:
                 ret = '??'
@@ -47,14 +49,14 @@ def get_addon_version_fix():
     return ret
 
 
-def dev_mode():
-    global __dev_mode
-    if not __dev_mode:
-        __dev_mode = os.path.isdir(get_runtime_path() + '/.git')
-    return __dev_mode
+def devMode():
+    global __devMode
+    if not __devMode:
+        __devMode = os.path.isdir(getRuntimePath() + '/.git')
+    return __devMode
 
 
-def get_platform(full_version=False):
+def getXBMCPlatform(full_version=False):
     """
         Returns the information the version of xbmc or kodi on which the plugin is run
 
@@ -95,6 +97,57 @@ def get_platform(full_version=False):
     else:
         return ret['platform']
 
+def getPlatform():
+    import platform
+    build = xbmc.getInfoLabel("System.BuildVersion")
+    kodi_version = int(build.split()[0][:2])
+    ret = {
+        "auto_arch": sys.maxsize > 2 ** 32 and "64-bit" or "32-bit",
+        "arch": sys.maxsize > 2 ** 32 and "x64" or "ia32",
+        "os": "",
+        "version": platform.release(),
+        "kodi": kodi_version,
+        "build": build
+    }
+    if xbmc.getCondVisibility("system.platform.android"):
+        ret["os"] = "android"
+        if "arm" in platform.machine() or "aarch" in platform.machine():
+            ret["arch"] = "arm"
+            if "64" in platform.machine() and ret["auto_arch"] == "64-bit":
+                ret["arch"] = "arm64"
+    elif xbmc.getCondVisibility("system.platform.linux"):
+        ret["os"] = "linux"
+        if "aarch" in platform.machine() or "arm64" in platform.machine():
+            if xbmc.getCondVisibility("system.platform.linux.raspberrypi"):
+                ret["arch"] = "armv7"
+            elif ret["auto_arch"] == "32-bit":
+                ret["arch"] = "armv7"
+            elif ret["auto_arch"] == "64-bit":
+                ret["arch"] = "arm64"
+            elif platform.architecture()[0].startswith("32"):
+                ret["arch"] = "arm"
+            else:
+                ret["arch"] = "arm64"
+        elif "armv7" in platform.machine():
+            ret["arch"] = "armv7"
+        elif "arm" in platform.machine():
+            ret["arch"] = "arm"
+    elif xbmc.getCondVisibility("system.platform.xbox"):
+        ret["os"] = "win"
+        ret["arch"] = "x64"
+    elif xbmc.getCondVisibility("system.platform.windows"):
+        ret["os"] = "win"
+        if platform.machine().endswith('64'):
+            ret["arch"] = "x64"
+    elif xbmc.getCondVisibility("system.platform.osx"):
+        ret["os"] = "mac"
+        ret["arch"] = "x64"
+    elif xbmc.getCondVisibility("system.platform.ios"):
+        ret["os"] = "ios"
+        ret["arch"] = "arm"
+
+    return ret
+
 
 def is_xbmc():
     return True
@@ -108,26 +161,26 @@ def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
     from core import jsontools
     import inspect
 
-    LOCAL_FILE = os.path.join(get_runtime_path(), "channels.json")
-    global channels_data
-    if not channels_data:
+    LOCAL_FILE = os.path.join(getRuntimePath(), "channels.json")
+    global channelsData
+    if not channelsData:
         with open(LOCAL_FILE) as f:
-            channels_data = jsontools.load(f.read())
+            channelsData = jsontools.load(f.read())
 
     frame = inspect.stack()[1]
     if not name:
         name = os.path.basename(frame[0].f_code.co_filename).replace('.py', '')
     if findhostMethod:
-        url = jsontools.get_node_from_file(name, 'url')
+        url = jsontools.getNodeFromFile(name, 'url')
         if not url or forceFindhost:
-            url = findhostMethod(channels_data['findhost'][name])
-            jsontools.update_node(url, name, 'url')
+            url = findhostMethod(channelsData['findhost'][name])
+            jsontools.updateNode(url, name, 'url')
         return url
     else:
-        return channels_data['direct'][name]
+        return channelsData['direct'][name]
 
 
-def get_system_platform():
+def getSystemPlatform():
     """ function: to recover the platform that xbmc is running """
     platform = "unknown"
     if xbmc.getCondVisibility("system.platform.linux"):
@@ -139,35 +192,35 @@ def get_system_platform():
     return platform
 
 
-def get_all_settings_addon():
+def getAllSettingsAddon():
     # Read the settings.xml file and return a dictionary with {id: value}
     from core import scrapertools
 
-    with open(os.path.join(get_data_path(), "settings.xml"), "rb") as infile:
+    with open(os.path.join(getDataPath(), "settings.xml"), "rb") as infile:
         data = infile.read().decode('utf-8')
 
     ret = {}
-    matches = scrapertools.find_multiple_matches(data, '<setting id=\"([^\"]+)\"[^>]*>')
+    matches = scrapertools.findMultipleMatches(data, '<setting id=\"([^\"]+)\"[^>]*>')
 
     for _id in matches:
-        ret[_id] = get_setting(_id)
+        ret[_id] = getSetting(_id)
 
     return ret
 
 
-def open_settings():
+def openSettings():
     xbmc.executebuiltin('Addon.OpenSettings(plugin.video.%s)' % PLUGIN_NAME)
 
 
-def get_setting(name, channel="", server="", default=None):
+def getSetting(name, channel="", server="", default=None):
     """
     Returns the configuration value of the requested parameter.
 
     Returns the value of the parameter 'name' in the global configuration, in the own configuration of the channel 'channel' or in that of the server 'server'.
 
     The channel and server parameters should not be used simultaneously. If the channel name is specified it will be returned
-    the result of calling channeltools.get_channel_setting (name, channel, default). If the name of the
-    server will return the result of calling servertools.get_channel_setting (name, server, default). If I dont know
+    the result of calling channeltools.getChannelSetting (name, channel, default). If the name of the
+    server will return the result of calling servertools.getChannelSetting (name, server, default). If I dont know
     Specify none of the above will return the value of the parameter in the global configuration if it exists or
     the default value otherwise.
 
@@ -187,23 +240,23 @@ def get_setting(name, channel="", server="", default=None):
 
     # Specific channel setting
     if channel:
-        # logger.info("get_setting reading channel setting '"+name+"' from channel json")
+        # logger.info("getSetting reading channel setting '"+name+"' from channel json")
         from core import channeltools
-        value = channeltools.get_channel_setting(name, channel, default)
-        # logger.info("get_setting -> '"+repr(value)+"'")
+        value = channeltools.getChannelSetting(name, channel, default)
+        # logger.info("getSetting -> '"+repr(value)+"'")
         return value
 
     # Specific server setting
     elif server:
-        # logger.info("get_setting reading server setting '"+name+"' from server json")
+        # logger.info("getSetting reading server setting '"+name+"' from server json")
         from core import servertools
-        value = servertools.get_server_setting(name, server, default)
-        # logger.info("get_setting -> '"+repr(value)+"'")
+        value = servertools.getServerSetting(name, server, default)
+        # logger.info("getSetting -> '"+repr(value)+"'")
         return value
 
     # Global setting
     else:
-        # logger.info("get_setting reading main setting '"+name+"'")
+        # logger.info("getSetting reading main setting '"+name+"'")
         value = __settings__.getSetting(name)
         if not value:
             return default
@@ -225,7 +278,7 @@ def get_setting(name, channel="", server="", default=None):
             return value
 
 
-def set_setting(name, value, channel="", server=""):
+def setSetting(name, value, channel="", server=""):
     """
     Sets the configuration value of the indicated parameter.
 
@@ -249,10 +302,10 @@ def set_setting(name, value, channel="", server=""):
     """
     if channel:
         from core import channeltools
-        return channeltools.set_channel_setting(name, value, channel)
+        return channeltools.setChannelSetting(name, value, channel)
     elif server:
         from core import servertools
-        return servertools.set_server_setting(name, value, server)
+        return servertools.setServerSetting(name, value, server)
     else:
         try:
             if isinstance(value, bool):
@@ -274,7 +327,7 @@ def set_setting(name, value, channel="", server=""):
         return value
 
 
-def get_localized_string(code):
+def getLocalizedString(code):
     dev = __language__(code)
 
     try:
@@ -295,43 +348,43 @@ def get_localized_string(code):
 
     return dev
 
-def get_localized_category(categ):
-    categories = {'movie': get_localized_string(30122), 'tvshow': get_localized_string(30123),
-                  'anime': get_localized_string(30124), 'documentary': get_localized_string(30125),
-                  'vos': get_localized_string(30136), 'sub': get_localized_string(30136),
-                  'direct': get_localized_string(30137), 'torrent': get_localized_string(70015),
-                  'live': get_localized_string(30138), 'music': get_localized_string(30139)
+def getLocalizedCategory(categ):
+    categories = {'movie': getLocalizedString(30122), 'tvshow': getLocalizedString(30123),
+                  'anime': getLocalizedString(30124), 'documentary': getLocalizedString(30125),
+                  'vos': getLocalizedString(30136), 'sub': getLocalizedString(30136),
+                  'direct': getLocalizedString(30137), 'torrent': getLocalizedString(70015),
+                  'live': getLocalizedString(30138), 'music': getLocalizedString(30139)
     }
     return categories[categ] if categ in categories else categ
 
 
-def get_localized_language(lang):
+def getLocalizedLanguage(lang):
     languages = {'ita': 'ITA', 'sub-ita': 'Sub-ITA'}
     return languages[lang] if lang in languages else lang
 
 
 
-def get_videolibrary_config_path():
-    value = get_setting("videolibrarypath")
+def getVideolibraryConfigPath():
+    value = getSetting("videolibrarypath")
     if value == "":
-        verify_directories_created()
-        value = get_setting("videolibrarypath")
+        verifyDirectoriesCreated()
+        value = getSetting("videolibrarypath")
     return value
 
 
-def get_videolibrary_path():
-    return xbmc.translatePath(get_videolibrary_config_path())
+def getVideolibraryPath():
+    return xbmc.translatePath(getVideolibraryConfigPath())
 
 
-def get_temp_file(filename):
+def getTempFile(filename):
     return xbmc.translatePath(os.path.join("special://temp/", filename))
 
 
-def get_runtime_path():
+def getRuntimePath():
     return xbmc.translatePath(__settings__.getAddonInfo('Path'))
 
 
-def get_data_path():
+def getDataPath():
     dev = xbmc.translatePath(__settings__.getAddonInfo('Profile'))
 
     # Create the directory if it doesn't exist
@@ -341,17 +394,17 @@ def get_data_path():
     return dev
 
 
-def get_icon():
+def getIcon():
     return xbmc.translatePath(__settings__.getAddonInfo('icon'))
 
 
-def get_fanart():
+def getFanart():
     return xbmc.translatePath(__settings__.getAddonInfo('fanart'))
 
 
-def get_cookie_data():
+def getCookieData():
     import os
-    ficherocookies = os.path.join(get_data_path(), 'cookies.dat')
+    ficherocookies = os.path.join(getDataPath(), 'cookies.dat')
 
     cookiedatafile = open(ficherocookies, 'r')
     cookiedata = cookiedatafile.read()
@@ -361,7 +414,7 @@ def get_cookie_data():
 
 
 # Test if all the required directories are created
-def verify_directories_created():
+def verifyDirectoriesCreated():
     from platformcode import logger
     from core import filetools
     from platformcode import xbmc_videolibrary
@@ -372,18 +425,18 @@ def verify_directories_created():
                     ["settings_path", "settings_channels"]]
 
     for path, default in config_paths:
-        saved_path = get_setting(path)
+        saved_path = getSetting(path)
 
         # video store
         if path == "videolibrarypath":
             if not saved_path:
                 saved_path = xbmc_videolibrary.search_library_path()
                 if saved_path:
-                    set_setting(path, saved_path)
+                    setSetting(path, saved_path)
 
         if not saved_path:
             saved_path = "special://profile/addon_data/plugin.video." + PLUGIN_NAME + "/" + default
-            set_setting(path, saved_path)
+            setSetting(path, saved_path)
 
         saved_path = xbmc.translatePath(saved_path)
         if not filetools.exists(saved_path):
@@ -394,13 +447,13 @@ def verify_directories_created():
                     ["folder_tvshows", "Serie TV"]]
 
     for path, default in config_paths:
-        saved_path = get_setting(path)
+        saved_path = getSetting(path)
 
         if not saved_path:
             saved_path = default
-            set_setting(path, saved_path)
+            setSetting(path, saved_path)
 
-        content_path = filetools.join(get_videolibrary_path(), saved_path)
+        content_path = filetools.join(getVideolibraryPath(), saved_path)
         if not filetools.exists(content_path):
             logger.debug("Creating %s: %s" % (path, content_path))
 
@@ -408,8 +461,8 @@ def verify_directories_created():
             filetools.mkdir(content_path)
 
     from platformcode import xbmc_videolibrary
-    xbmc_videolibrary.update_sources(get_setting("videolibrarypath"))
-    xbmc_videolibrary.update_sources(get_setting("downloadpath"))
+    xbmc_videolibrary.update_sources(getSetting("videolibrarypath"))
+    xbmc_videolibrary.update_sources(getSetting("downloadpath"))
 
     try:
         from core import scrapertools
@@ -419,14 +472,14 @@ def verify_directories_created():
         # We extract the name of the default resolution folder
         folder = ""
         data = filetools.read(skindir)
-        res = scrapertools.find_multiple_matches(data, '(<res .*?>)')
+        res = scrapertools.findMultipleMatches(data, '(<res .*?>)')
         for r in res:
             if 'default="true"' in r:
                 folder = scrapertools.find_single_match(r, 'folder="([^"]+)"')
                 break
 
         # We check if it exists in the addon and if not, we create it
-        default = filetools.join(get_runtime_path(), 'resources', 'skins', 'Default')
+        default = filetools.join(getRuntimePath(), 'resources', 'skins', 'Default')
         if folder and not filetools.exists(filetools.join(default, folder)):
             filetools.mkdir(filetools.join(default, folder))
 
@@ -442,5 +495,5 @@ def verify_directories_created():
         logger.error(traceback.format_exc())
 
 
-def get_online_server_thumb(server):
+def getOnlineServerThumb(server):
     return "https://raw.github.com/kodiondemand/media/master/resources/servers/" + server.lower().replace('_server','') + '.png'

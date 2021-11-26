@@ -47,10 +47,10 @@ class Filter(object):
 
     def __get_data(self, item, global_filter_lang_id):
 
-        dict_filtered_shows = jsontools.get_node_from_file(item.channel, TAG_TVSHOW_FILTER)
+        dict_filtered_shows = jsontools.getNodeFromFile(item.channel, TAG_TVSHOW_FILTER)
         tvshow = item.show.lower().strip()
 
-        global_filter_language = config.get_setting(global_filter_lang_id, item.channel)
+        global_filter_language = config.getSetting(global_filter_lang_id, item.channel)
 
         if tvshow in list(dict_filtered_shows.keys()):
 
@@ -86,7 +86,7 @@ def access():
     """
     allow = False
 
-    if config.is_xbmc() or config.get_platform() == "mediaserver":
+    if config.is_xbmc() or config.getXBMCPlatform() == "mediaserver":
         allow = True
 
     return allow
@@ -119,7 +119,7 @@ def context(item, list_language=None, list_quality=None, exist=False):
         _context = []
 
     if access():
-        dict_data = {"title": config.get_localized_string(60426), "action": "config_item", "channel": "filtertools"}
+        dict_data = {"title": config.getLocalizedString(60426), "action": "config_item", "channel": "filtertools"}
         if list_language:
             dict_data["list_language"] = list_language
         if list_quality:
@@ -138,10 +138,10 @@ def context(item, list_language=None, list_quality=None, exist=False):
 
         if item.action == "play":
             if not exist:
-                _context.append({"title": config.get_localized_string(60427) % item.language, "action": "save_from_context",
+                _context.append({"title": config.getLocalizedString(60427) % item.language, "action": "save_from_context",
                                  "channel": "filtertools", "from_channel": item.channel})
             else:
-                _context.append({"title": config.get_localized_string(60428) % item.language, "action": "delete_from_context",
+                _context.append({"title": config.getLocalizedString(60428) % item.language, "action": "delete_from_context",
                                  "channel": "filtertools", "from_channel": item.channel})
 
     return _context
@@ -149,7 +149,7 @@ def context(item, list_language=None, list_quality=None, exist=False):
 
 def show_option(itemlist, channel, list_language, list_quality):
     if access():
-        itemlist.append(Item(channel=__channel__, title=config.get_localized_string(60429) % COLOR.get("parent_item", "auto"), action="load",
+        itemlist.append(Item(channel=__channel__, title=config.getLocalizedString(60429) % COLOR.get("parent_item", "auto"), action="load",
                              list_language=list_language, list_quality=list_quality, from_channel=channel))
 
     return itemlist
@@ -286,7 +286,7 @@ def get_links(list_item, item, list_language, list_quality=None, global_filter_l
         return list_item
 
 
-    second_lang = config.get_setting('second_language')
+    second_lang = config.getSetting('second_language')
 
     logger.debug("total de items : %s" % len(list_item))
 
@@ -326,7 +326,7 @@ def get_links(list_item, item, list_language, list_quality=None, global_filter_l
             for i in list_item:
                 list_item_all.append(i.tourl())
 
-            _context = [{"title": config.get_localized_string(60430) % _filter.language, "action": "delete_from_context", "channel": "filtertools", "to_channel": item.channel}]
+            _context = [{"title": config.getLocalizedString(60430) % _filter.language, "action": "delete_from_context", "channel": "filtertools", "to_channel": item.channel}]
 
             if _filter.quality_allowed:
                 msg_quality_allowed = " y calidad %s" % _filter.quality_allowed
@@ -339,7 +339,7 @@ def get_links(list_item, item, list_language, list_quality=None, global_filter_l
 
             new_itemlist.append(Item(channel=__channel__, action="no_filter", list_item_all=list_item_all,
                                      show=item.show,
-                                     title=config.get_localized_string(60432) % (_filter.language, msg_quality_allowed),
+                                     title=config.getLocalizedString(60432) % (_filter.language, msg_quality_allowed),
                                      context=_context))
 
     else:
@@ -386,7 +386,7 @@ def mainlist(channel, list_language, list_quality):
     """
     logger.debug()
     itemlist = []
-    dict_series = jsontools.get_node_from_file(channel, TAG_TVSHOW_FILTER)
+    dict_series = jsontools.getNodeFromFile(channel, TAG_TVSHOW_FILTER)
 
     idx = 0
     for tvshow in sorted(dict_series):
@@ -404,16 +404,16 @@ def mainlist(channel, list_language, list_quality):
 
         idx += 1
         name = dict_series.get(tvshow, {}).get(TAG_NAME, tvshow)
-        activo = config.get_localized_string(60433)
+        activo = config.getLocalizedString(60433)
         if dict_series[tvshow][TAG_ACTIVE]:
             activo = ""
-        title = config.get_localized_string(60434) % (tag_color, name, activo)
+        title = config.getLocalizedString(60434) % (tag_color, name, activo)
 
         itemlist.append(Item(channel=__channel__, action="config_item", title=title, show=name,
                              list_language=list_language, list_quality=list_quality, from_channel=channel))
 
     if len(itemlist) == 0:
-        itemlist.append(Item(channel=channel, action="mainlist", title=config.get_localized_string(60435)))
+        itemlist.append(Item(channel=channel, action="mainlist", title=config.getLocalizedString(60435)))
 
     return itemlist
 
@@ -429,7 +429,7 @@ def config_item(item):
     logger.debug("item %s" % item.tostring())
 
     # WE GET THE JSON DATA
-    dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
+    dict_series = jsontools.getNodeFromFile(item.from_channel, TAG_TVSHOW_FILTER)
 
     tvshow = item.show.lower().strip()
     default_lang = ''
@@ -443,7 +443,7 @@ def config_item(item):
         pass
 
     if default_lang == '':
-        platformtools.dialog_notification("FilterTools", "There are no defined languages")
+        platformtools.dialogNotification("FilterTools", "There are no defined languages")
         return
     else:
         lang_selected = dict_series.get(tvshow, {}).get(TAG_LANGUAGE, default_lang)
@@ -457,7 +457,7 @@ def config_item(item):
         if item.show.lower().strip() in dict_series:
             allow_option = True
             active = dict_series.get(item.show.lower().strip(), {}).get(TAG_ACTIVE, False)
-            custom_button = {'label': config.get_localized_string(60437), 'function': 'delete', 'visible': True, 'close': True}
+            custom_button = {'label': config.getLocalizedString(60437), 'function': 'delete', 'visible': True, 'close': True}
 
         list_controls = []
 
@@ -465,7 +465,7 @@ def config_item(item):
             active_control = {
                 "id": "active",
                 "type": "bool",
-                "label": config.get_localized_string(60438),
+                "label": config.getLocalizedString(60438),
                 "color": "",
                 "default": active,
                 "enabled": allow_option,
@@ -476,7 +476,7 @@ def config_item(item):
         language_option = {
             "id": "language",
             "type": "list",
-            "label": config.get_localized_string(60439),
+            "label": config.getLocalizedString(60439),
             # "color": "0xFFee66CC",
             "default": item.list_language.index(lang_selected),
             "enabled": True,
@@ -509,9 +509,9 @@ def config_item(item):
             # we concatenate list_controls with list_controls_quality
             list_controls.extend(list_controls_calidad)
 
-        title = config.get_localized_string(60441) % (COLOR.get("selected", "auto"), item.show)
+        title = config.getLocalizedString(60441) % (COLOR.get("selected", "auto"), item.show)
 
-        platformtools.show_channel_settings(list_controls=list_controls, callback='save', item=item,
+        platformtools.showChannelSettings(list_controls=list_controls, callback='save', item=item,
                                             caption=title, custom_button=custom_button)
 
 
@@ -519,30 +519,30 @@ def delete(item, dict_values):
     logger.debug()
 
     if item:
-        dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
+        dict_series = jsontools.getNodeFromFile(item.from_channel, TAG_TVSHOW_FILTER)
         tvshow = item.show.strip().lower()
 
-        heading = config.get_localized_string(60442)
-        line1 = config.get_localized_string(60443) % (COLOR.get("selected", "auto"), item.show.strip())
+        heading = config.getLocalizedString(60442)
+        line1 = config.getLocalizedString(60443) % (COLOR.get("selected", "auto"), item.show.strip())
 
-        if platformtools.dialog_yesno(heading, line1) == 1:
+        if platformtools.dialogYesNo(heading, line1) == 1:
             lang_selected = dict_series.get(tvshow, {}).get(TAG_LANGUAGE, "")
             dict_series.pop(tvshow, None)
 
-            result, json_data = jsontools.update_node(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
+            result, json_data = jsontools.updateNode(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
 
             sound = False
             if result:
-                message = config.get_localized_string(60444)
+                message = config.getLocalizedString(60444)
             else:
-                message = config.get_localized_string(60445)
+                message = config.getLocalizedString(60445)
                 sound = True
 
             heading = "%s [%s]" % (item.show.strip(), lang_selected)
-            platformtools.dialog_notification(heading, message, sound=sound)
+            platformtools.dialogNotification(heading, message, sound=sound)
 
             if item.action in ["findvideos", "play"]:
-                platformtools.itemlist_refresh()
+                platformtools.itemlistRefresh()
 
 
 def save(item, dict_data_saved):
@@ -561,7 +561,7 @@ def save(item, dict_data_saved):
 
         if item.from_channel == "videolibrary":
             item.from_channel = item.contentChannel
-        dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
+        dict_series = jsontools.getNodeFromFile(item.from_channel, TAG_TVSHOW_FILTER)
         tvshow = item.show.strip().lower()
 
         logger.debug("Data is updated")
@@ -576,20 +576,20 @@ def save(item, dict_data_saved):
                        TAG_LANGUAGE: lang_selected, TAG_QUALITY_ALLOWED: list_quality}
         dict_series[tvshow] = dict_filter
 
-        result, json_data = jsontools.update_node(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
+        result, json_data = jsontools.updateNode(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
 
         sound = False
         if result:
-            message = config.get_localized_string(60446)
+            message = config.getLocalizedString(60446)
         else:
-            message = config.get_localized_string(70593)
+            message = config.getLocalizedString(70593)
             sound = True
 
         heading = "%s [%s]" % (item.show.strip(), lang_selected)
-        platformtools.dialog_notification(heading, message, sound=sound)
+        platformtools.dialogNotification(heading, message, sound=sound)
 
         if item.from_action in ["findvideos", "play"]:
-            platformtools.itemlist_refresh()
+            platformtools.itemlistRefresh()
 
 
 def save_from_context(item):
@@ -601,13 +601,13 @@ def save_from_context(item):
     """
     logger.debug()
 
-    dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
+    dict_series = jsontools.getNodeFromFile(item.from_channel, TAG_TVSHOW_FILTER)
     tvshow = item.show.strip().lower()
 
     dict_filter = {TAG_NAME: item.show, TAG_ACTIVE: True, TAG_LANGUAGE: item.language, TAG_QUALITY_ALLOWED: []}
     dict_series[tvshow] = dict_filter
 
-    result, json_data = jsontools.update_node(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
+    result, json_data = jsontools.updateNode(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
 
     sound = False
     if result:
@@ -617,10 +617,10 @@ def save_from_context(item):
         sound = True
 
     heading = "%s [%s]" % (item.show.strip(), item.language)
-    platformtools.dialog_notification(heading, message, sound=sound)
+    platformtools.dialogNotification(heading, message, sound=sound)
 
     if item.from_action in ["findvideos", "play"]:
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()
 
 
 def delete_from_context(item):
@@ -636,13 +636,13 @@ def delete_from_context(item):
     if item.to_channel != "":
         item.from_channel = item.to_channel
 
-    dict_series = jsontools.get_node_from_file(item.from_channel, TAG_TVSHOW_FILTER)
+    dict_series = jsontools.getNodeFromFile(item.from_channel, TAG_TVSHOW_FILTER)
     tvshow = item.show.strip().lower()
 
     lang_selected = dict_series.get(tvshow, {}).get(TAG_LANGUAGE, "")
     dict_series.pop(tvshow, None)
 
-    result, json_data = jsontools.update_node(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
+    result, json_data = jsontools.updateNode(dict_series, item.from_channel, TAG_TVSHOW_FILTER)
 
     sound = False
     if result:
@@ -652,7 +652,7 @@ def delete_from_context(item):
         sound = True
 
     heading = "%s [%s]" % (item.show.strip(), lang_selected)
-    platformtools.dialog_notification(heading, message, sound=sound)
+    platformtools.dialogNotification(heading, message, sound=sound)
 
     if item.from_action in ["findvideos", "play", "no_filter"]:  # 'no_filter' es el mismo caso que L#601
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()

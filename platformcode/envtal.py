@@ -32,7 +32,7 @@ def get_environment():
         import base64
         import ast
 
-        environment = config.get_platform(full_version=True)
+        environment = config.getXBMCPlatform(full_version=True)
         environment['num_version'] = str(environment['num_version'])
         environment['python_version'] = str(platform.python_version())
 
@@ -128,7 +128,7 @@ def get_environment():
         except:
             pass
 
-        environment['userdata_path'] = str(xbmc.translatePath(config.get_data_path()))
+        environment['userdata_path'] = str(xbmc.translatePath(config.getDataPath()))
         try:
             if environment['os_name'].lower() == 'windows':
                 free_bytes = ctypes.c_ulonglong(0)
@@ -145,21 +145,21 @@ def get_environment():
             environment['videolab_series'] = '?'
             environment['videolab_episodes'] = '?'
             environment['videolab_pelis'] = '?'
-            environment['videolab_path'] = str(xbmc.translatePath(config.get_videolibrary_path()))
-            if filetools.exists(filetools.join(environment['videolab_path'],  config.get_setting("folder_tvshows"))):
-                environment['videolab_series'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.get_setting("folder_tvshows")))))
+            environment['videolab_path'] = str(xbmc.translatePath(config.getVideolibraryPath()))
+            if filetools.exists(filetools.join(environment['videolab_path'],  config.getSetting("folder_tvshows"))):
+                environment['videolab_series'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.getSetting("folder_tvshows")))))
                 counter = 0
-                for root, folders, files in filetools.walk(filetools.join(environment['videolab_path'], config.get_setting("folder_tvshows"))):
+                for root, folders, files in filetools.walk(filetools.join(environment['videolab_path'], config.getSetting("folder_tvshows"))):
                     for file in files:
                         if file.endswith('.strm'): counter += 1
                 environment['videolab_episodes'] = str(counter)
-            if filetools.exists(filetools.join(environment['videolab_path'], config.get_setting("folder_movies"))):
-                environment['videolab_pelis'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.get_setting("folder_movies")))))
+            if filetools.exists(filetools.join(environment['videolab_path'], config.getSetting("folder_movies"))):
+                environment['videolab_pelis'] = str(len(filetools.listdir(filetools.join(environment['videolab_path'], config.getSetting("folder_movies")))))
         except:
             pass
         try:
             video_updates = ['No', 'Inicio', 'Una vez', 'Inicio+Una vez']
-            environment['videolab_update'] = str(video_updates[config.get_setting("update", "videolibrary")])
+            environment['videolab_update'] = str(video_updates[config.getSetting("update", "videolibrary")])
         except:
             environment['videolab_update'] = '?'
         try:
@@ -177,14 +177,14 @@ def get_environment():
         # environment['torrent_list'] = []
         # environment['torrentcli_option'] = ''
         # environment['torrent_error'] = ''
-        # environment['torrentcli_rar'] = config.get_setting("mct_rar_unpack", server="torrent", default=True)
-        # environment['torrentcli_backgr'] = config.get_setting("mct_background_download", server="torrent", default=True)
-        # environment['torrentcli_lib_path'] = config.get_setting("libtorrent_path", server="torrent", default="")
+        # environment['torrentcli_rar'] = config.getSetting("mct_rar_unpack", server="torrent", default=True)
+        # environment['torrentcli_backgr'] = config.getSetting("mct_background_download", server="torrent", default=True)
+        # environment['torrentcli_lib_path'] = config.getSetting("libtorrent_path", server="torrent", default="")
         # if environment['torrentcli_lib_path']:
         #     lib_path = 'Activo'
         # else:
         #     lib_path = 'Inactivo'
-        # environment['torrentcli_unrar'] = config.get_setting("unrar_path", server="torrent", default="")
+        # environment['torrentcli_unrar'] = config.getSetting("unrar_path", server="torrent", default="")
         # if environment['torrentcli_unrar']:
         #     if xbmc.getCondVisibility("system.platform.Android"):
         #         unrar = 'Android'
@@ -196,33 +196,33 @@ def get_environment():
         #         unrar = scrapertools.find_single_match(unrar, '\/([^\/]+)\/$').capitalize()
         # else:
         #     unrar = 'Inactivo'
-        # torrent_id = config.get_setting("torrent_client", server="torrent", default=0)
+        # torrent_id = config.getSetting("torrent_client", server="torrent", default=0)
         # environment['torrentcli_option'] = str(torrent_id)
-        # torrent_options = platformtools.torrent_client_installed()
+        # torrentOptions = platformtools.torrentClientInstalled()
         # if lib_path == 'Activo':
-        #     torrent_options = ['MCT'] + torrent_options
-        #     torrent_options = ['BT'] + torrent_options
+        #     torrentOptions = ['MCT'] + torrentOptions
+        #     torrentOptions = ['BT'] + torrentOptions
         # environment['torrent_list'].append({'Torrent_opt': str(torrent_id), 'Libtorrent': lib_path, \
         #                                     'RAR_Auto': str(environment['torrentcli_rar']), \
         #                                     'RAR_backgr': str(environment['torrentcli_backgr']), \
         #                                     'UnRAR': unrar})
-        # environment['torrent_error'] = config.get_setting("libtorrent_error", server="torrent", default="")
+        # environment['torrent_error'] = config.getSetting("libtorrent_error", server="torrent", default="")
         # if environment['torrent_error']:
         #     environment['torrent_list'].append({'Libtorrent_error': environment['torrent_error']})
 
-        # for torrent_option in torrent_options:
+        # for torrent_option in torrentOptions:
         #     cliente = dict()
         #     cliente['D_load_Path'] = ''
         #     cliente['Libre'] = '?'
         #     cliente['Plug_in'] = torrent_option.replace('Plugin externo: ', '')
         #     if cliente['Plug_in'] == 'BT':
-        #         cliente['D_load_Path'] = str(config.get_setting("bt_download_path", server="torrent", default=''))
+        #         cliente['D_load_Path'] = str(config.getSetting("bt_download_path", server="torrent", default=''))
         #         if not cliente['D_load_Path']: continue
-        #         cliente['Buffer'] = str(config.get_setting("bt_buffer", server="torrent", default=50))
+        #         cliente['Buffer'] = str(config.getSetting("bt_buffer", server="torrent", default=50))
         #     elif cliente['Plug_in'] == 'MCT':
-        #         cliente['D_load_Path'] = str(config.get_setting("mct_download_path", server="torrent", default=''))
+        #         cliente['D_load_Path'] = str(config.getSetting("mct_download_path", server="torrent", default=''))
         #         if not cliente['D_load_Path']: continue
-        #         cliente['Buffer'] = str(config.get_setting("mct_buffer", server="torrent", default=50))
+        #         cliente['Buffer'] = str(config.getSetting("mct_buffer", server="torrent", default=50))
         #     elif xbmc.getCondVisibility('System.HasAddon("plugin.video.%s")' % cliente['Plug_in']):
         #         __settings__ = xbmcaddon.Addon(id="plugin.video.%s" % cliente['Plug_in'])
         #         cliente['Plug_in'] = cliente['Plug_in'].capitalize()
@@ -258,7 +258,7 @@ def get_environment():
 
         environment['proxy_active'] = ''
         try:
-            proxy_channel_bloqued_str = base64.b64decode(config.get_setting('proxy_channel_bloqued')).decode('utf-8')
+            proxy_channel_bloqued_str = base64.b64decode(config.getSetting('proxy_channel_bloqued')).decode('utf-8')
             proxy_channel_bloqued = dict()
             proxy_channel_bloqued = ast.literal_eval(proxy_channel_bloqued_str)
             for channel_bloqued, proxy_active in list(proxy_channel_bloqued.items()):
@@ -289,8 +289,8 @@ def get_environment():
             environment['log_size_bytes'] = ''
             environment['log_size'] = ''
 
-        environment['debug'] = str(config.get_setting('debug'))
-        environment['addon_version'] = str(config.get_addon_version())
+        environment['debug'] = str(config.getSetting('debug'))
+        environment['addon_version'] = str(config.getAddonVersion())
 
     except:
         logger.error(traceback.format_exc())

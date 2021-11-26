@@ -46,10 +46,10 @@ def toStringCases(txt_result):
         if "+(" in txt_result:
             m3 = True
             sum_base = "+" + find_single_match(txt_result, ".toString...(\d+).")
-            txt_pre_temp = find_multiple_matches(txt_result, "..(\d),(\d+).")
+            txt_pre_temp = findMultipleMatches(txt_result, "..(\d),(\d+).")
             txt_temp = [(n, b) for b, n in txt_pre_temp]
         else:
-            txt_temp = find_multiple_matches(txt_result, '(\d+)\.0.\w+.([^\)]+).')
+            txt_temp = findMultipleMatches(txt_result, '(\d+)\.0.\w+.([^\)]+).')
         for numero, base in txt_temp:
             code = toString(int(numero), eval(base + sum_base))
             if m3:

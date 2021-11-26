@@ -10,14 +10,14 @@ def mainlist(item):
     itemlist = []
 
     if config.is_xbmc():
-        itemlist.append(Item(title=config.get_localized_string(707429), channel="setting", action="report_menu",
+        itemlist.append(Item(title=config.getLocalizedString(707429), channel="setting", action="report_menu",
                              thumbnail=thumb("error"), viewmode="list",folder=True))
 
-    itemlist.append(Item(action="open_browser", title=config.get_localized_string(60447),
+    itemlist.append(Item(action="open_browser", title=config.getLocalizedString(60447),
                          thumbnail=thumb("help"), url=guideUrl, plot=guideUrl,
                          folder=False))
     itemlist.append(Item(channel="setting", action="check_quickfixes", folder=False, thumbnail=thumb("update"),
-                         title=config.get_localized_string(30001), plot=config.get_addon_version(with_fix=True)))
+                         title=config.getLocalizedString(30001), plot=config.getAddonVersion(with_fix=True)))
 
     return itemlist
 

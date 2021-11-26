@@ -41,9 +41,9 @@ import parameterized
 
 from platformcode import config, logger
 
-config.set_setting('tmdb_active', False)
+config.setSetting('tmdb_active', False)
 
-librerias = os.path.join(config.get_runtime_path(), 'lib')
+librerias = os.path.join(config.getRuntimePath(), 'lib')
 sys.path.insert(0, librerias)
 from core.support import typo
 from core.item import Item
@@ -281,7 +281,7 @@ class GenericChannelMenuItemTest(unittest.TestCase):
         if self.ch in chNumRis:  # i know how much results should be
             for content in chNumRis[self.ch]:
                 if content in self.title:
-                    risNum = len([i for i in self.itemlist if i.title != typo(config.get_localized_string(30992), 'color kod bold')])  # not count nextpage
+                    risNum = len([i for i in self.itemlist if i.title != typo(config.getLocalizedString(30992), 'color kod bold')])  # not count nextpage
                     self.assertEqual(chNumRis[self.ch][content], risNum,
                                      'channel ' + self.ch + ' -> ' + self.title + ' returned wrong number of results<br>'
                                      + str(risNum) + ' but should be ' + str(chNumRis[self.ch][content]) + '<br>' +
@@ -302,7 +302,7 @@ class GenericChannelMenuItemTest(unittest.TestCase):
                 self.assert_(type(resIt.infoLabels['year']) is int or resIt.infoLabels['year'].isdigit(), msgYear)
                 self.assert_(1900 < int(resIt.infoLabels['year']) < 2100, msgYear)
 
-            if resIt.title == typo(config.get_localized_string(30992), 'color kod bold'):  # next page
+            if resIt.title == typo(config.getLocalizedString(30992), 'color kod bold'):  # next page
                 nextPageItemlist = getattr(self.module, resIt.action)(resIt)
                 self.assertTrue(nextPageItemlist,
                                 'channel ' + self.ch + ' -> ' + self.title + ' has nextpage not working')
@@ -312,7 +312,7 @@ class GenericChannelMenuItemTest(unittest.TestCase):
 
 @parameterized.parameterized_class(serversFinal, class_name_func=testnameSrv)
 class GenericServerTest(unittest.TestCase):
-    def test_get_video_url(self):
+    def test_get_videoUrl(self):
         module = __import__('servers.%s' % self.name, fromlist=["servers.%s" % self.name])
         page_url = self.server.url
         # httptools.default_headers['Referer'] = self.server.referer
@@ -323,7 +323,7 @@ class GenericServerTest(unittest.TestCase):
         self.assert_(hasattr(module, 'test_video_exists'), self.name + ' has no test_video_exists')
 
         if module.test_video_exists(page_url)[0]:
-            urls = module.get_video_url(page_url)
+            urls = module.get_videoUrl(page_url)
             server_parameters = servertools.get_server_parameters(self.name)
             self.assertTrue(urls or server_parameters.get("premium"),
                             self.name + ' scraper did not return direct urls for ' + page_url)
@@ -358,6 +358,6 @@ class GenericServerTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(report_name='report', add_timestamp=False, combine_reports=True,
-                 report_title='KoD Test Suite', template=os.path.join(config.get_runtime_path(), 'tests', 'template.html')), exit=False)
+                 report_title='KoD Test Suite', template=os.path.join(config.getRuntimePath(), 'tests', 'template.html')), exit=False)
     import webbrowser
     webbrowser.open(os.path.join(outDir, 'report.html'))

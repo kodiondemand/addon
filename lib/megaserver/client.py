@@ -21,14 +21,14 @@ class Client(object):
                   '.m4v': 'video/mp4', '.mov': 'video/quicktime', '.mpg': 'video/mpeg','.ogv': 'video/ogg',
                   '.ogg': 'video/ogg', '.webm': 'video/webm', '.ts': 'video/mp2t', '.3gp': 'video/3gpp'}
 
-    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, is_playing_fnc=None):
+    def __init__(self, url, port=None, ip=None, auto_shutdown=True, wait_time=20, timeout=5, isPlaying_fnc=None):
 
         self.port = port if port else random.randint(8000,8099)
         self.ip = ip if ip else "127.0.0.1"
         self.connected = False
         self.start_time = None
         self.last_connect = None
-        self.is_playing_fnc = is_playing_fnc
+        self.isPlaying_fnc = isPlaying_fnc
         self.auto_shutdown =  auto_shutdown
         self.wait_time =  wait_time
         self.timeout =  timeout
@@ -55,12 +55,12 @@ class Client(object):
             if self.file and self.file.cursor:
                 self.last_connect = time.time()
 
-            if self.is_playing_fnc and  self.is_playing_fnc():
+            if self.isPlaying_fnc and  self.isPlaying_fnc():
                 self.last_connect = time.time()
 
             if self.auto_shutdown:
                 #shudown por haber cerrado el reproductor
-                if self.connected and self.last_connect and self.is_playing_fnc and not self.is_playing_fnc():
+                if self.connected and self.last_connect and self.isPlaying_fnc and not self.isPlaying_fnc():
                     if time.time() - self.last_connect - 1 > self.timeout:
                         self.stop()
 
@@ -70,7 +70,7 @@ class Client(object):
                         self.stop()
 
                 #shutdown tras la ultima conexion
-                if (not self.file or not self.file.cursor) and self.timeout and self.connected and self.last_connect and not self.is_playing_fnc:
+                if (not self.file or not self.file.cursor) and self.timeout and self.connected and self.last_connect and not self.isPlaying_fnc:
                     if time.time() - self.last_connect - 1 > self.timeout:
                         self.stop()
 

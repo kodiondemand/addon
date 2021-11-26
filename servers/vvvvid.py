@@ -28,17 +28,17 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File was deleted" in data:
-        return False, config.get_localized_string(70449) % "VVVVID"
+        return False, config.getLocalizedString(70449) % "VVVVID"
     else:
         page_url = page_url.replace("/show/","/#!show/")
         show_id = re.findall("#!show/([0-9]+)/", page_url)[0]
         name = re.findall(show_id + "/(.+?)/", page_url)
-        if not name: return False, config.get_localized_string(70449) % "VVVVID"
+        if not name: return False, config.getLocalizedString(70449) % "VVVVID"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    video_urls = []
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
+    videoUrls = []
 
     page_url = page_url.replace("/show/","/#!show/")
 
@@ -62,6 +62,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             key_url = 'https://www.vvvvid.it/kenc?action=kt&conn_id=' + conn_id + '&url=' + embed_info.replace(':','%3A').replace('/','%2F')
             key = vvvvid_decoder.dec_ei(current_session.get(key_url, headers=headers, params=payload).json()['message'])
 
-    video_urls.append({'type':'m3u8', 'url':str(embed_info) + '?' + key})
+    videoUrls.append({'type':'m3u8', 'url':str(embed_info) + '?' + key})
 
-    return video_urls
+    return videoUrls

@@ -28,7 +28,7 @@ class Mailbox:
     def waitForMail(self, timeout=50):
         info = 'verifica tramite mail richiesta dal sito, sono in attesa di nuove mail sulla casella ' + self.address
         # info += '\nTimeout tra ' + str(timeout) + ' secondi'
-        dialog = platformtools.dialog_progress(config.get_localized_string(20000), info)
+        dialog = platformtools.dialogProgress(config.getLocalizedString(20000), info)
         secs = 0
         while secs < timeout:
             msg = self.readLast()
@@ -113,7 +113,7 @@ class Gmailnator(Mailbox):
         if e.success and e.data:
             return e.data
         else:
-            platformtools.dialog_ok(config.get_localized_string(20000), 'Impossibile ottenere una mail temporanea')
+            platformtools.dialogOk(config.getLocalizedString(20000), 'Impossibile ottenere una mail temporanea')
 
     def inbox(self):
         #[{"content":"\n\t\t\t\t<a href=\"https:\/\/gmailnator.com\/jonathanmichaeltmp\/messageid\/#174f933a17b5f625\">\n\t\t\t\t\t<table class=\"message_container\">\n\t\t\t\t\t\t<tbody>\n\t\t\t\t\t\t\t<tr>\n\t\t\t\t\t\t\t\t<td>dsds<\/td>\n\t\t\t\t\t\t\t\t<td>body<\/td>\n\t\t\t\t\t\t\t\t<td class=\"text-right\">one minute ago<\/td>\n\t\t\t\t\t\t\t<\/tr>\n\t\t\t\t\t\t<\/tbody>\n\t\t\t\t\t<\/table>\n\t\t\t\t<\/a>"}]

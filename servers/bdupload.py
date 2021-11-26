@@ -13,17 +13,17 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Archive no Encontrado" in data:
-        return False,  config.get_localized_string(70449) % "bdupload"
+        return False,  config.getLocalizedString(70449) % "bdupload"
 
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     post = ""
     patron = '(?s)type="hidden" name="([^"]+)".*?value="([^"]*)"'
-    match = scrapertools.find_multiple_matches(data, patron)
+    match = scrapertools.findMultipleMatches(data, patron)
     for nombre, valor in match:
         post += nombre + "=" + valor + "&"
     time.sleep(1)
@@ -32,7 +32,7 @@ def get_video_url(page_url, user="", password="", video_password=""):
     file = scrapertools.find_single_match(data1, patron).replace(" ","%20")
     file += "|User-Agent=" + httptools.get_user_agent()
     file += "&Host=fs30.indifiles.com:182"
-    video_urls = []
+    videoUrls = []
     videourl = file
-    video_urls.append({'type':'mp4', 'url':videourl})
-    return video_urls
+    videoUrls.append({'type':'mp4', 'url':videourl})
+    return videoUrls

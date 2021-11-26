@@ -12,15 +12,15 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "no longer exists" in data or "to copyright issues" in data:
-        return False,  config.get_localized_string(70449) % "tusfiles"
+        return False,  config.getLocalizedString(70449) % "tusfiles"
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
-    video_urls = []
+    videoUrls = []
     videourl = scrapertools.find_single_match(data, 'source src="([^"]+)')
-    video_urls.append({'type':'mp4', 'url':videourl})
+    videoUrls.append({'type':'mp4', 'url':videourl})
 
-    return video_urls
+    return videoUrls

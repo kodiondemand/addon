@@ -9,9 +9,9 @@ else:
     from concurrent_py2 import futures
 
 host = config.get_channel_url()
-sort = ['views', 'title', 'episodeNumber', 'startDate', 'endDate', 'createdDate'][config.get_setting('sort', 'aniplay')]
-order = 'asc' if config.get_setting('order', 'aniplay') else 'desc'
-perpage = [10, 20, 30 ,40, 50, 60, 70, 80, 90][config.get_setting('perpage', 'aniplay')]
+sort = ['views', 'title', 'episodeNumber', 'startDate', 'endDate', 'createdDate'][config.getSetting('sort', 'aniplay')]
+order = 'asc' if config.getSetting('order', 'aniplay') else 'desc'
+perpage = [10, 20, 30 ,40, 50, 60, 70, 80, 90][config.getSetting('perpage', 'aniplay')]
 
 
 @support.menu
@@ -123,9 +123,7 @@ def newest(category):
 
 def latest_added(item):
     itemlist = []
-    if config.get_setting("window_type") == 0:
-        item.window = True
-        item.folder = False
+
     page = item.page if item.page else 0
     url= '{}/api/home/latest-episodes?page={}'.format(host, page)
     js = httptools.downloadpage(url).json
@@ -193,10 +191,6 @@ def movies(item):
 def episodes(item):
     logger.debug()
     itemlist = []
-
-    if config.get_setting("window_type") == 0:
-        item.window = True
-        item.folder = False
 
     # url = '{}/api/anime/{}'.format(host, item.id)
     json = httptools.downloadpage(item.url, CF=False ).json
@@ -299,7 +293,7 @@ def findvideos(item):
 
     videourl = json['episodeVideo']
 
-    itemlist = [item.clone(title=config.get_localized_string(30137),
+    itemlist = [item.clone(title=config.getLocalizedString(30137),
                            url=videourl,
                            server='directo')]
 

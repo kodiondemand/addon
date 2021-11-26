@@ -15,18 +15,18 @@ def test_video_exists(page_url):
     global page_data
     page_data = data.data
     if data.code == 404:
-        return False, config.get_localized_string(70449) % "mystream"
+        return False, config.getLocalizedString(70449) % "mystream"
     if "<title>video is no longer available" in data.data or "<title>Video not found" in data.data or "We are unable to find the video" in data.data:
-        return False, config.get_localized_string(70449) % "mystream"
+        return False, config.getLocalizedString(70449) % "mystream"
     return True, ""
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     global page_data
-    video_url = scrapertools.find_single_match(decode(page_data), r"'src',\s*'([^']+)")
-    video_urls.append({'type':video_url.split('.')[-1], 'url':video_url})
-    return video_urls
+    videoUrl = scrapertools.find_single_match(decode(page_data), r"'src',\s*'([^']+)")
+    videoUrls.append({'type':videoUrl.split('.')[-1], 'url':videoUrl})
+    return videoUrls
 
 def decode(data):
     # adapted from ResolveURL code - https://github.com/jsergio123/script.module.resolveurl

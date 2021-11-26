@@ -15,17 +15,17 @@ def test_video_exists(page_url):
     real_url = page.url
 
     if "Not Found" in data or "File Does not Exist" in data:
-        return False, config.get_localized_string(70449) % "DeltaBit"
+        return False, config.getLocalizedString(70449) % "DeltaBit"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(deltabit page_url='%s')" % page_url)
     global data, real_url
-    post = {k: v for k, v in scrapertools.find_multiple_matches(data, "name='([^']+)' value='([^']*)'")}
+    post = {k: v for k, v in scrapertools.findMultipleMatches(data, "name='([^']+)' value='([^']*)'")}
     time.sleep(2.5)
     data = httptools.downloadpage(real_url, post=post).data
 
     # videos_packed = scrapertools.find_single_match(data, r"<script type='text/javascript'>(eval.function.p,a,c,k,e,.*?)\s*</script>")
     # video_unpacked = jsunpack.unpack(videos_packed)
-    return support.get_jwplayer_mediaurl(data, 'DeltaBit', True)
+    return support.get_jwplayer_mediaUrl(data, 'DeltaBit', True)

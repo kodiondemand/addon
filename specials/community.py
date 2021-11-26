@@ -13,14 +13,14 @@ from core import servertools
 
 info_language = ["de", "en", "es", "fr", "it", "pt"]  # from videolibrary.json
 try:
-    lang = info_language[config.get_setting("info_language", "videolibrary")]
+    lang = info_language[config.getSetting("info_language", "videolibrary")]
 except:
     lang = 'it'
 
 defpage = ["", "20", "40", "60", "80", "100"]
-defp = defpage[config.get_setting('pagination', 'community')]
+defp = defpage[config.getSetting('pagination', 'community')]
 disable_pagination = False
-show_seasons = config.get_setting('show_seasons', 'community')
+show_seasons = config.getSetting('show_seasons', 'community')
 
 tmdb_api = 'a1ab8b8669da03637a4b98fa39c39228'
 
@@ -28,7 +28,7 @@ tmdb_api = 'a1ab8b8669da03637a4b98fa39c39228'
 def mainlist(item):
     logger.debug()
 
-    path = filetools.join(config.get_data_path(), 'community_channels.json')
+    path = filetools.join(config.getDataPath(), 'community_channels.json')
     if not filetools.exists(path):
         with open(path, "w") as file:
             file.write('{"channels":{}}')
@@ -42,13 +42,13 @@ def show_channels(item):
     itemlist = []
 
     # add context menu
-    context = [{"title": config.get_localized_string(50005), "action": "remove_channel", "channel": "community"}]
+    context = [{"title": config.getLocalizedString(50005), "action": "remove_channel", "channel": "community"}]
 
     # read json
     json = load_and_check(item)
 
     itemlist.append(Item(channel=item.channel,
-                         title=support.typo(config.get_localized_string(70676), 'bold color kod'),
+                         title=support.typo(config.getLocalizedString(70676), 'bold color kod'),
                          action='add_channel',
                          thumbnail=support.thumb('add')))
 
@@ -240,7 +240,7 @@ def movies(item, json='', key='', itemlist=[]):
         itemlist.sort(key=lambda x: x.title, reverse=False)
     if Pagination and len(itemlist) >= Pagination:
         if inspect.stack()[1][3] != 'get_newest':
-            item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
+            item.title = support.typo(config.getLocalizedString(30992), 'color kod bold')
             item.page = pag + 1
             item.thumbnail = support.thumb()
             itemlist.append(item)
@@ -258,7 +258,7 @@ def get_seasons(item):
         return show_menu(item)
     for option in json:
         infoLabels['season'] = option['season']
-        title = config.get_localized_string(60027) % option['season']
+        title = config.getLocalizedString(60027) % option['season']
         extra = set_extra_values(item, option, item.path)
         # url = relative('link', option, item.path)
 
@@ -380,7 +380,7 @@ def episodes(item, json='', key='', itemlist=[]):
             itemlist = []
             for season in season_list:
                 itemlist.append(Item(channel=item.channel,
-                                     title=set_title(config.get_localized_string(60027) % season),
+                                     title=set_title(config.getLocalizedString(60027) % season),
                                      fulltitle=itm.fulltitle,
                                      show=itm.show,
                                      thumbnails=itm.thumbnails,
@@ -395,7 +395,7 @@ def episodes(item, json='', key='', itemlist=[]):
         elif defp and inspect.stack()[1][3] not in ['get_seasons'] and not item.disable_pagination:
             if Pagination and len(itemlist) >= Pagination:
                 if inspect.stack()[1][3] != 'get_newest':
-                    item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
+                    item.title = support.typo(config.getLocalizedString(30992), 'color kod bold')
                     item.page = pag + 1
                     item.thumbnail = support.thumb()
                     itemlist.append(item)
@@ -611,7 +611,7 @@ def submenu(item, json, key, itemlist=[], filter_list=[]):
                 itemlist.append(res.result())
 
     if Pagination and len(itemlist) >= Pagination:
-        item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
+        item.title = support.typo(config.getLocalizedString(30992), 'color kod bold')
         item.page = pag + 1
         item.thumb = item.thumbnail
         item.thumbnail = support.thumb()
@@ -698,7 +698,7 @@ def load_json(item, no_order=False):
 # Load Channels json and check that the paths and channel titles are correct
 def load_and_check(item):
     logger.debug()
-    path = filetools.join(config.get_data_path(), 'community_channels.json')
+    path = filetools.join(config.getDataPath(), 'community_channels.json')
     file = open(path, "r")
     json = jsontools.load(file.read())
 
@@ -834,7 +834,7 @@ def pagination(item, itemlist=[]):
                 Item(channel=item.channel,
                      action='pagination',
                      contentType=item.contentType,
-                     title=support.typo(config.get_localized_string(30992), 'color kod bold'),
+                     title=support.typo(config.getLocalizedString(30992), 'color kod bold'),
                      fulltitle=item.fulltitle,
                      show=item.show,
                      url=item.url,
@@ -851,12 +851,12 @@ def add_channel(item):
     logger.debug()
     channel_to_add = {}
     json_file = ''
-    result = platformtools.dialog_select(config.get_localized_string(70676),
-                                         [config.get_localized_string(70678), config.get_localized_string(70679)])
+    result = platformtools.dialogSelect(config.getLocalizedString(70676),
+                                         [config.getLocalizedString(70678), config.getLocalizedString(70679)])
     if result == -1:
         return
     if result == 0:
-        file_path = xbmcgui.Dialog().browseSingle(1, config.get_localized_string(70680), 'files')
+        file_path = xbmcgui.Dialog().browseSingle(1, config.getLocalizedString(70680), 'files')
         try:
             channel_to_add['path'] = file_path
             channel_to_add['url'] = file_path
@@ -866,7 +866,7 @@ def add_channel(item):
             pass
 
     elif result == 1:
-        url = platformtools.dialog_input("", config.get_localized_string(70681), False)
+        url = platformtools.dialogInput("", config.getLocalizedString(70681), False)
         try:
             if url[:4] != 'http':
                 url = 'http://' + url
@@ -878,12 +878,12 @@ def add_channel(item):
     if len(json_file) == 0:
         return
     if "episodes_list" in json_file:
-        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(70682))
+        platformtools.dialogOk(config.getLocalizedString(20000), config.getLocalizedString(70682))
         return
     channel_to_add['channel_name'] = json_file['channel_name']
     if 'thumbnail' in json_file: channel_to_add['thumbnail'] = json_file['thumbnail']
     if 'fanart' in json_file: channel_to_add['fanart'] = json_file['fanart']
-    path = filetools.join(config.get_data_path(), 'community_channels.json')
+    path = filetools.join(config.getDataPath(), 'community_channels.json')
 
     community_json = open(path, "r")
     community_json = jsontools.load(community_json.read())
@@ -896,18 +896,18 @@ def add_channel(item):
         file.write(jsontools.dump(community_json))
     file.close()
 
-    platformtools.dialog_notification(config.get_localized_string(20000),
-                                      config.get_localized_string(70683) % json_file['channel_name'])
+    platformtools.dialogNotification(config.getLocalizedString(20000),
+                                      config.getLocalizedString(70683) % json_file['channel_name'])
     import xbmc
     xbmc.sleep(1000)
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return
 
 
 def remove_channel(item):
     logger.debug()
 
-    path = filetools.join(config.get_data_path(), 'community_channels.json')
+    path = filetools.join(config.getDataPath(), 'community_channels.json')
 
     community_json = open(path, "r")
     community_json = jsontools.load(community_json.read())
@@ -919,7 +919,7 @@ def remove_channel(item):
         file.write(jsontools.dump(community_json))
     file.close()
 
-    platformtools.dialog_notification(config.get_localized_string(20000),
-                                      config.get_localized_string(70684) % to_delete)
-    platformtools.itemlist_refresh()
+    platformtools.dialogNotification(config.getLocalizedString(20000),
+                                      config.getLocalizedString(70684) % to_delete)
+    platformtools.itemlistRefresh()
     return

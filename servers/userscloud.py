@@ -12,14 +12,14 @@ def test_video_exists(page_url):
     response = httptools.downloadpage(page_url)
 
     if not response.success or "Not Found" in response.data or "File was deleted" in response.data or "is no longer available" in response.data:
-        return False, config.get_localized_string(70449) % "Userscloud"
+        return False, config.getLocalizedString(70449) % "Userscloud"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     unpacked = ""
     data = httptools.downloadpage(page_url).data
     packed = scrapertools.find_single_match(data, "function\(p,a,c,k.*?</script>")
@@ -34,9 +34,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         media_url = scrapertools.find_single_match(data, 'name="down_script".*?<a href="([^"]+)"')
 
     ext = scrapertools.get_filename_from_url(media_url).split('.')[-1]
-    video_urls.append({'type':ext, 'url':media_url})
+    videoUrls.append({'type':ext, 'url':media_url})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

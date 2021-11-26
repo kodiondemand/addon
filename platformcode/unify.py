@@ -224,8 +224,8 @@ def set_color(title, category):
     # logger.info()
     from core import jsontools
 
-    styles_path = os.path.join(config.get_runtime_path(), 'resources', 'color_styles.json')
-    preset = config.get_setting("preset_style", default="Estilo 1")
+    styles_path = os.path.join(config.getRuntimePath(), 'resources', 'color_styles.json')
+    preset = config.getSetting("preset_style", default="Estilo 1")
     color_setting = jsontools.load((open(styles_path, "r").read()))[preset]
 
     color_scheme = {'otro': 'white', 'dual': 'white'}
@@ -238,14 +238,14 @@ def set_color(title, category):
                   'vos', 'vo', 'server', 'library', 'update', 'no_update']
 
     # Check the status of the custom colors options
-    custom_colors = config.get_setting('title_color')
+    custom_colors = config.getSetting('title_color')
 
     # The color dictionary is formed for each element, the option is active uses the user's configuration, if it does not leave the title blank.
     if title not in ['', ' ']:
 
         for element in color_list:
             if custom_colors:
-                color_scheme[element] = remove_format(config.get_setting('%s_color' % element))
+                color_scheme[element] = remove_format(config.getSetting('%s_color' % element))
             else:
                 color_scheme[element] = remove_format(color_setting.get(element, 'white'))
                 # color_scheme[element] = 'white'
@@ -570,7 +570,7 @@ def thumbnail_type(item):
     # logger.info()
     # Check what type of thumbnail will be used in findvideos, Poster or Logo of the server
 
-    thumb_type = config.get_setting('video_thumbnail_type')
+    thumb_type = config.getSetting('video_thumbnail_type')
     info = item.infoLabels
     if not item.contentThumbnail:
         item.contentThumbnail = item.thumbnail

@@ -127,7 +127,7 @@ def getfilefromtitle(url, title):
     # Print in the log what you will discard
     logger.info("title=" + title)
     logger.info("url=" + url)
-    plataforma = config.get_system_platform()
+    plataforma = config.getSystemPlatform()
     logger.info("platform=" + plataforma)
 
     # filename = xbmc.makeLegalFilename(title + url[-4:])
@@ -146,7 +146,7 @@ def getfilefromtitle(url, title):
 
     logger.info("filename= %s" % nombrefichero)
 
-    fullpath = filetools.join(config.get_setting("downloadpath"), nombrefichero)
+    fullpath = filetools.join(config.getSetting("downloadpath"), nombrefichero)
     logger.info("fullpath= %s" % fullpath)
 
     if config.is_xbmc() and fullpath.startswith("special://"):
@@ -161,11 +161,11 @@ def downloadtitle(url, title):
     return downloadfile(url, fullpath)
 
 
-def downloadbest(video_urls, title, continuar=False):
+def downloadbest(videoUrls, title, continuar=False):
     logger.info()
 
     # Flip it over, to put the highest quality one first (list () is for you to make a copy of)
-    invertida = list(video_urls)
+    invertida = list(videoUrls)
     invertida.reverse()
 
     for elemento in invertida:
@@ -271,7 +271,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
 
         # Create the progress dialog
         if not silent:
-            progreso = platformtools.dialog_progress(header, "Downloading..." + '\n' + url + '\n' + nombrefichero)
+            progreso = platformtools.dialogProgress(header, "Downloading..." + '\n' + url + '\n' + nombrefichero)
 
         # If the platform does not return a valid dialog box, it assumes silent mode
         if progreso is None:
@@ -399,7 +399,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
                 if not silent:
                     progreso.close()
 
-                # platformtools.dialog_ok('Error al descargar' , 'Se ha producido un error' , 'al descargar el archivo')
+                # platformtools.dialogOk('Error al descargar' , 'Se ha producido un error' , 'al descargar el archivo')
 
                 return -2
 
@@ -408,7 +408,7 @@ def downloadfile(url, nombrefichero, headers=None, silent=False, continuar=False
             error = downloadfileRTMP(url, nombrefichero, silent)
             if error and not silent:
                 from platformcode import platformtools
-            platformtools.dialog_ok("You cannot download that video "," RTMP downloads not yet supported")
+            platformtools.dialogOk("You cannot download that video "," RTMP downloads not yet supported")
         else:
             import traceback
             from pprint import pprint
@@ -448,7 +448,7 @@ def downloadfileRTMP(url, nombrefichero, silent):
 
     if not filetools.isfile(rtmpdump_cmd) and not silent:
         from platformcode import platformtools
-        advertencia = platformtools.dialog_ok("Lack " + rtmpdump_cmd, "Check that rtmpdump is installed")
+        advertencia = platformtools.dialogOk("Lack " + rtmpdump_cmd, "Check that rtmpdump is installed")
         return True
 
     valid_rtmpdump_options = ["help", "url", "rtmp", "host", "port", "socks", "protocol", "playpath", "playlist",
@@ -480,7 +480,7 @@ def downloadfileRTMP(url, nombrefichero, silent):
         rtmpdump_exit = spawnv(P_NOWAIT, rtmpdump_cmd, rtmpdump_args)
         if not silent:
             from platformcode import platformtools
-            advertencia = platformtools.dialog_ok("RTMP download option is experimental", "and the video will download in the background. \n No progress bar will be displayed.")
+            advertencia = platformtools.dialogOk("RTMP download option is experimental", "and the video will download in the background. \n No progress bar will be displayed.")
     except:
         return True
 
@@ -520,7 +520,7 @@ def downloadfileGzipped(url, pathfichero):
 
     # Create the progress dialog
     from platformcode import platformtools
-    progreso = platformtools.dialog_progress("addon", config.get_localized_string(60200) + '\n' + url.split("|")[0] + '\n' + nombrefichero)
+    progreso = platformtools.dialogProgress("addon", config.getLocalizedString(60200) + '\n' + url.split("|")[0] + '\n' + nombrefichero)
 
     # Socket timeout at 60 seconds
     socket.setdefaulttimeout(10)
@@ -662,7 +662,7 @@ def downloadfileGzipped(url, pathfichero):
 def GetTitleFromFile(title):
     # Print in the log what you will discard
     logger.info("title= " + title)
-    plataforma = config.get_system_platform()
+    plataforma = config.getSystemPlatform()
     logger.info("plataform= " + plataforma)
 
     # nombrefichero = xbmc.makeLegalFilename(title + url[-4:])
@@ -852,14 +852,14 @@ def download_all_episodes(item, channel, first_episode="", preferred_server="vid
                 video_item = video_items[0]
 
                 # Check that it is available
-                video_urls, puedes, motivo = servertools.resolve_video_urls_for_playing(video_item.server, video_item.url, video_password="", muestra_dialogo=False)
+                videoUrls, puedes, motivo = servertools.resolve_videoUrls_for_playing(video_item.server, video_item.url, video_password="", muestra_dialogo=False)
 
                 # Adds it to the download list
                 if puedes:
                     logger.info("downloading mirror started...")
                     # The highest quality video is the latest
-                    # mediaurl = video_urls[len(video_urls) - 1][1]
-                    devuelve = downloadbest(video_urls, show_title + " " + episode_title + " " + idioma +
+                    # mediaUrl = videoUrls[len(videoUrls) - 1][1]
+                    devuelve = downloadbest(videoUrls, show_title + " " + episode_title + " " + idioma +
                                             " [" + video_item.server + "]", continuar=False)
 
                     if devuelve == 0:
@@ -869,7 +869,7 @@ def download_all_episodes(item, channel, first_episode="", preferred_server="vid
                     elif devuelve == -1:
                         try:
                             from platformcode import platformtools
-                            platformtools.dialog_ok("plugin", "Descarga abortada")
+                            platformtools.dialogOk("plugin", "Descarga abortada")
                         except:
                             pass
                         return

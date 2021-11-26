@@ -11,15 +11,15 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if 'File you are looking for is not found.' in data:
-        return False, config.get_localized_string(70449) % "Onlystream"
+        return False, config.getLocalizedString(70449) % "Onlystream"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     global data
     # logger.debug(data)
     block = scrapertools.find_single_match(data, 'player.updateSrc\(([^\)]+)')
-    video_urls = support.get_jwplayer_mediaurl(block, 'Onlystream', dataIsBlock=True)
-    return video_urls
+    videoUrls = support.get_jwplayer_mediaUrl(block, 'Onlystream', dataIsBlock=True)
+    return videoUrls

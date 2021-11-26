@@ -10,7 +10,7 @@ host = support.config.get_channel_url()
 headers = {}
 
 perpage_list = ['20','30','40','50','60','70','80','90','100']
-perpage = perpage_list[support.config.get_setting('perpage' , 'animeuniverse')]
+perpage = perpage_list[support.config.getSetting('perpage' , 'animeuniverse')]
 epPatron = r'<td>\s*(?P<title>[^ <]+)\s*(?P<episode>\d+)?[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"'
 
 
@@ -94,7 +94,7 @@ def movies(item):
     def itemlistHook(itemlist):
         if len(itemlist) == int(perpage):
             item.pag += 1
-            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), action='movies'))
+            itemlist.append(item.clone(title=support.typo(support.config.getLocalizedString(30992), 'color kod bold'), action='movies'))
         return itemlist
     return locals()
 
@@ -116,7 +116,7 @@ def findvideos(item):
         for title, url in matches:
             get_video_list(url, title, itemlist)
     else:
-        get_video_list(item.url, support.config.get_localized_string(30137), itemlist)
+        get_video_list(item.url, support.config.getLocalizedString(30137), itemlist)
     return support.server(item, itemlist=itemlist)
 
 

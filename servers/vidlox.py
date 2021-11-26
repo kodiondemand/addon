@@ -15,21 +15,21 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if "borrado" in data or "Deleted" in data:
-        return False,  config.get_localized_string(70449) % "vidlox"
+        return False,  config.getLocalizedString(70449) % "vidlox"
 
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
 
     bloque = scrapertools.find_single_match(data, 'sources:.\[.*?]')
-    matches = scrapertools.find_multiple_matches(bloque, '(http.*?)"')
+    matches = scrapertools.findMultipleMatches(bloque, '(http.*?)"')
     for videourl in matches:
         extension = videourl.split('.')[-1]
         if extension == 'm3u8':
             continue
-        video_urls.append({'type':extension, 'url':videourl})
-    # video_urls.reverse()
-    return video_urls
+        videoUrls.append({'type':extension, 'url':videourl})
+    # videoUrls.reverse()
+    return videoUrls

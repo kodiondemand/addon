@@ -16,15 +16,15 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url)
     if data.code == 404:
-        return False, config.get_localized_string(70449) % "upvid"
+        return False, config.getLocalizedString(70449) % "upvid"
     if "<title>video is no longer available" in data.data:
-        return False,  config.get_localized_string(70449) % "upvid"
+        return False,  config.getLocalizedString(70449) % "upvid"
     return True, ""
 
 
-def get_video_url(page_url, premium = False, user = "", password = "", video_password = ""):
+def get_videoUrl(page_url, premium = False, user = "", password = "", video_password = ""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     headers = {'referer': page_url}
     for i in range(0, 3):
         data = httptools.downloadpage(page_url, headers=headers).data
@@ -43,8 +43,8 @@ def get_video_url(page_url, premium = False, user = "", password = "", video_pas
     oculto = re.findall('<input type=hidden value=([^ ]+) id=func', data, flags=re.DOTALL)[0]
     funciones = resuelve(clave, base64.b64decode(oculto))
     url, type = scrapertools.find_single_match(funciones, "setAttribute\('src', '(.*?)'\);\s.*?type', 'video/(.*?)'")
-    video_urls.append({'type':type ,'url':url})
-    return video_urls
+    videoUrls.append({'type':type ,'url':url})
+    return videoUrls
 
 
 def resuelve(r, o):

@@ -184,13 +184,13 @@ class Kdicc():
             txt += '\nIP: %s' % self.ip_addr
 
         dialog = xbmcgui.Dialog()
-        if config.get_setting('checkdns'):
-            risposta= dialog.yesno(addonname, txt, nolabel=config.get_localized_string(707403), yeslabel=config.get_localized_string(707404))
+        if config.getSetting('checkdns'):
+            risposta= dialog.yesno(addonname, txt, nolabel=config.getLocalizedString(707403), yeslabel=config.getLocalizedString(707404))
             if risposta == False:
-                config.set_setting('checkdns', False)
-                dialog.textviewer(addonname+' '+config.get_localized_string(707405), config.get_localized_string(707406))
+                config.setSetting('checkdns', False)
+                dialog.textviewer(addonname+' '+config.getLocalizedString(707405), config.getLocalizedString(707406))
         else:
-            txt = config.get_localized_string(707402)
+            txt = config.getLocalizedString(707402)
             dialog.notification(addonname, txt, xbmcgui.NOTIFICATION_INFO, 10000)
 """
     def called in launcher.py
@@ -204,20 +204,20 @@ def test_conn(is_exit, check_dns, view_msg,
         # I don't let you get into the addon
         # enter language code
         if view_msg == True:
-            ktest.view_Advise(config.get_localized_string(70720))
+            ktest.view_Advise(config.getLocalizedString(70720))
         if ktest.is_exit == True:
             exit()
     # if it has no ADSL connection, I will communicate it to the user
     if not ktest.check_Adsl():
         if view_msg == True:
-            ktest.view_Advise(config.get_localized_string(70721))
+            ktest.view_Advise(config.getLocalizedString(70721))
         if ktest.is_exit == True:
             exit()
     # if it has DNS filtered, I will communicate it to the user
     if check_dns == True:
         if not ktest.check_Dns():
             if view_msg == True:
-                ktest.view_Advise(config.get_localized_string(70722))
+                ktest.view_Advise(config.getLocalizedString(70722))
 
     logger.info("############ Start Check DNS ############")
     logger.info("## IP: %s" %  (ktest.ip_addr))

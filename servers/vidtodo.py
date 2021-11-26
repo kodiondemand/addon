@@ -18,18 +18,18 @@ def test_video_exists(page_url):
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     data = response.data
     packed_data = scrapertools.find_single_match(data, "javascript'>(eval.*?)</script>")
     unpacked = jsunpack.unpack(packed_data)
-    matches = scrapertools.find_multiple_matches(unpacked, 'src:"([^"]+)",type:"video/(.*?)",res:(.*?),')
+    matches = scrapertools.findMultipleMatches(unpacked, 'src:"([^"]+)",type:"video/(.*?)",res:(.*?),')
     for media_url, type, res in matches:
         if media_url.endswith(".mp4"):
-            video_urls.append(["[%s][%s]" % (type, res), media_url])
+            videoUrls.append(["[%s][%s]" % (type, res), media_url])
         if media_url.endswith(".m3u8"):
-            video_urls.append(["M3U8 [%s][%s]" % (type, res), media_url])
+            videoUrls.append(["M3U8 [%s][%s]" % (type, res), media_url])
         if media_url.endswith(".smil"):
             smil_data = httptools.downloadpage(media_url).data
             rtmp = scrapertools.find_single_match(smil_data, 'base="([^"]+)"')
@@ -38,8 +38,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                   scrapertools.find_single_match(data, '"Watch video ([^"]+")').replace(' ', '.') + ".mp4"
             for playpath, inf in playpaths:
                 h = scrapertools.find_single_match(playpath, 'h=([a-z0-9]+)')
-                video_urls.append({'type':'mp4', 'res':inf, 'url':mp4 % h})
-                video_urls.append({'type':'rtmp', 'res':inf, 'url':"%s playpath=%s" % (rtmp, playpath)})
-    # for video_url in video_urls:
-    #     logger.debug("video_url: %s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+                videoUrls.append({'type':'mp4', 'res':inf, 'url':mp4 % h})
+                videoUrls.append({'type':'rtmp', 'res':inf, 'url':"%s playpath=%s" % (rtmp, playpath)})
+    # for videoUrl in videoUrls:
+    #     logger.debug("videoUrl: %s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls

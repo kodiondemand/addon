@@ -100,8 +100,8 @@ def episodes(item):
         items = item.data
     elif item.season_url:
         items = requests.get(item.season_url).json()['items']
-    elif item.video_url:
-        items = requests.get(item.video_url).json()['blocks']
+    elif item.videoUrl:
+        items = requests.get(item.videoUrl).json()['blocks']
 
     if 'sets' in items[0]:
         if len(items) > 1:
@@ -119,7 +119,7 @@ def episodes(item):
 
 
 def epMenu(item):
-    video_url = ''
+    videoUrl = ''
     itemlist = []
     for it in item.data:
         if 'sets' in it:
@@ -141,7 +141,7 @@ def live(item):
         current = it['currentItem']
         next = it['nextItem']
         plot = '[B]{}[/B]\n{}\n\nA Seguire: [B]{}[/B]\n{}'.format(current['name'], current['description'], next['name'], next['description'])
-        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, video_url=url + '.json', action='play'))
+        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, videoUrl=url + '.json', action='play'))
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
     support.thumb(itemlist, mode='live')
     return itemlist
@@ -206,7 +206,7 @@ def replay(item):
                          fanart = image,
                          plot = info['description'],
                          url = getUrl(it['weblink']),
-                         video_url = getUrl(it['path_id']),
+                         videoUrl = getUrl(it['path_id']),
                          action = 'play',
                          forcethumb = True)
 
@@ -228,7 +228,7 @@ def replay(item):
 def play(item):
     logger.debug()
 
-    res = requests.get(item.video_url).json()
+    res = requests.get(item.videoUrl).json()
 
     if 'first_item_path' in res:
         res = requests.get(getUrl(res['first_item_path'])).json()
@@ -279,7 +279,7 @@ def addinfo(items, item):
                         thumbnail= getUrl(thumb),
                         fanart=getUrl(fanart),
                         url=getUrl(key.get('weblink', '')),
-                        video_url=getUrl(key['path_id']),
+                        videoUrl=getUrl(key['path_id']),
                         plot=info.get('description', ''))
 
         if 'Genere' not in key.get('sub_type', '') and ('layout' not in key or key['layout'] == 'single'):

@@ -25,7 +25,7 @@ def mainlist(item):
                        thumbnail = support.thumb('music')
             ))
 
-    itemlist.append(item.clone(title=support.typo(config.get_localized_string(70741) % 'Musica… ', 'bold'), action='search', thumbnail=support.thumb('music_search')))
+    itemlist.append(item.clone(title=support.typo(config.getLocalizedString(70741) % 'Musica… ', 'bold'), action='search', thumbnail=support.thumb('music_search')))
     support.channel_config(item, itemlist)
     return itemlist
 

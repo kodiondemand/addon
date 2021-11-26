@@ -11,13 +11,13 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if "File Not Found" in data or "File was deleted" in data:
-        return False, config.get_localized_string(70292) % "ClipWatching"
+        return False, config.getLocalizedString(70292) % "ClipWatching"
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.info("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     multires = False
 
     try:
@@ -26,7 +26,7 @@ def get_video_url(page_url, user="", password="", video_password=""):
     except:
         unpacked = scrapertools.find_single_match(data,"window.hola_player.*")
 
-    videos = scrapertools.find_multiple_matches(unpacked if unpacked else data, r'(?:file|src|sources):\s*(?:\[)?"([^"]+).*?(?:label:\s*"([^"]+))?')
+    videos = scrapertools.findMultipleMatches(unpacked if unpacked else data, r'(?:file|src|sources):\s*(?:\[)?"([^"]+).*?(?:label:\s*"([^"]+))?')
     for video, label in videos:
         if ".jpg" not in video:
             if label and not label.endswith('p'):
@@ -35,7 +35,7 @@ def get_video_url(page_url, user="", password="", video_password=""):
             else:
                 label = video.split('.')[-1]
                 multires = False
-            video_urls.append({'type':label, 'url':video})
+            videoUrls.append({'type':label, 'url':video})
     # if multires:
-    #     video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
-    return video_urls
+    #     videoUrls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
+    return videoUrls

@@ -218,22 +218,22 @@ class MultipartEncoder(object):
             _fields = list(self.fields.items())
         for k, v in _fields:
             file_name = None
-            file_type = None
+            fileType = None
             file_headers = None
             if isinstance(v, (list, tuple)):
                 if len(v) == 2:
                     file_name, file_pointer = v
                 elif len(v) == 3:
-                    file_name, file_pointer, file_type = v
+                    file_name, file_pointer, fileType = v
                 else:
-                    file_name, file_pointer, file_type, file_headers = v
+                    file_name, file_pointer, fileType, file_headers = v
             else:
                 file_pointer = v
 
             field = fields.RequestField(name=k, data=file_pointer,
                                         filename=file_name,
                                         headers=file_headers)
-            field.make_multipart(content_type=file_type)
+            field.make_multipart(content_type=fileType)
             yield field
 
     def _prepare_parts(self):

@@ -18,12 +18,12 @@ from core import scrapertools
 from platformcode import logger
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
     page_url = page_url.replace("amp;", "")
     data = httptools.downloadpage(page_url).data
     logger.debug("data=" + data)
-    video_urls = []
+    videoUrls = []
     patron = "video_src.*?(http.*?)%22%2C%22video_timestamp"
     matches = re.compile(patron, re.DOTALL).findall(data)
     scrapertools.printMatches(matches)
@@ -31,7 +31,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         videourl = match
         videourl = videourl.replace('%5C', '')
         videourl = urllib.unquote(videourl)
-        video_urls.append({'url':videourl})
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+        videoUrls.append({'url':videourl})
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls

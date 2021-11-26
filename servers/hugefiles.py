@@ -19,7 +19,7 @@ from lib import jsunpack
 from platformcode import logger
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     post = {}
@@ -31,7 +31,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # Get link
     sPattern = '''<div id="player_code">.*?<script type='text/javascript'>(eval.+?)</script>'''
     r = re.findall(sPattern, data, re.DOTALL | re.I)
-    mediaurl = ""
+    mediaUrl = ""
     if r:
         sUnpacked = jsunpack.unpack(r[0])
         sUnpacked = sUnpacked.replace("\\'", "")
@@ -39,12 +39,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         if not r:
             r = re.findall('"src"value="(.+?)"/><embed', sUnpacked)
 
-        mediaurl = r[0]
+        mediaUrl = r[0]
 
-    video_urls = []
-    video_urls.append({'type':scrapertools.get_filename_from_url(mediaurl).split('.')[-1], 'url':mediaurl})
+    videoUrls = []
+    videoUrls.append({'type':scrapertools.get_filename_from_url(mediaUrl).split('.')[-1], 'url':mediaUrl})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

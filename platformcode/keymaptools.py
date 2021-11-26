@@ -7,13 +7,12 @@ from platformcode import config, logger, platformtools, launcher
 from core import filetools
 from core.item import Item
 import channelselector
-addon_icon = filetools.join( config.__settings__.getAddonInfo( "path" ),'resources', 'media', 'logo.png' )
 
 background = 'FF232323'
 overlay = '77232323'
 text = 'FFFFFFFF'
 select = 'FF0082C2'
-if config.get_setting('icon_set') == 'dark':
+if config.getSetting('icon_set') == 'dark':
     background = 'FFDCDCDC'
     overlay = '77DCDCDC'
     text = 'FF232323'
@@ -37,13 +36,13 @@ class KeyListener(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         try:
-            self.getControl(400).setImage(addon_icon)
-            self.getControl(401).addLabel(config.get_localized_string(70698))
-            self.getControl(402).addLabel(config.get_localized_string(70699) % self.TIMEOUT)
+            self.getControl(400).setImage(config.addonIcon)
+            self.getControl(401).addLabel(config.getLocalizedString(70698))
+            self.getControl(402).addLabel(config.getLocalizedString(70699) % self.TIMEOUT)
         except AttributeError:
-            self.getControl(400).setImage(addon_icon)
-            self.getControl(401).setLabel(config.get_localized_string(70698))
-            self.getControl(402).setLabel(config.get_localized_string(70699) % self.TIMEOUT)
+            self.getControl(400).setImage(config.addonIcon)
+            self.getControl(401).setLabel(config.getLocalizedString(70698))
+            self.getControl(402).setLabel(config.getLocalizedString(70699) % self.TIMEOUT)
 
 
     def onAction(self, action):
@@ -68,7 +67,7 @@ class KeyListener(xbmcgui.WindowXMLDialog):
 
 
 def set_key():
-    saved_key = config.get_setting("shortcut_key")
+    saved_key = config.getSetting("shortcut_key")
     new_key = KeyListener().record_key()
 
     if new_key and saved_key != new_key:
@@ -76,13 +75,14 @@ def set_key():
         from platformcode import platformtools
         import xbmc
         file_xml = "special://profile/keymaps/kod.xml"
-        data = '<keymap><global><keyboard><key id="%s">' % new_key + 'runplugin(plugin://plugin.video.kod/?ew0KICAgICJhY3Rpb24iOiAia2V5bWFwIiwNCiAgICAib3BlbiI6IHRydWUNCn0=)</key></keyboard></global></keymap>'
+        data = '<keymap><global><keyboard><key id="%s">' % new_key + 'runplugin(plugin://plugin.video.kod/?channel=shortcuts&action=shortcut_menu)</key></keyboard></global></keymap>'
         filetools.write(xbmc.translatePath(file_xml), data)
-        # platformtools.dialog_notification(config.get_localized_string(70700),config.get_localized_string(70702),4)
+        # platformtools.dialogNotification(config.getLocalizedString(70700),config.getLocalizedString(70702),4)
 
-        config.set_setting("shortcut_key", new_key)
+        config.setSetting("shortcut_key", new_key)
+        xbmc.executebuiltin('Action(reloadkeymaps)')
 
-    return
+    # return
 
 
 def delete_key():
@@ -91,9 +91,9 @@ def delete_key():
     import xbmc
 
     filetools.remove(xbmc.translatePath( "special://profile/keymaps/kod.xml"))
-    # platformtools.dialog_notification(config.get_localized_string(70701),config.get_localized_string(70702),4)
+    # platformtools.dialogNotification(config.getLocalizedString(70701),config.getLocalizedString(70702),4)
 
-    config.set_setting("shortcut_key", '')
+    config.setSetting("shortcut_key", '')
     xbmc.executebuiltin('Action(reloadkeymaps)')
 
 LEFT = 1
@@ -113,7 +113,7 @@ class Main(xbmcgui.WindowXMLDialog):
         self.MENU = self.getControl(1)
         self.SUBMENU = self.getControl(2)
         #### Compatibility with Kodi 18 ####
-        if config.get_platform(True)['num_version'] < 18:
+        if config.getXBMCPlatform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
 
         itemlist = self.menulist(channelselector.getmainlist())
@@ -160,7 +160,7 @@ class Main(xbmcgui.WindowXMLDialog):
 
 
     def onAction(self, action):
-        if action.getButtonCode() == config.get_setting('shortcut_key'):
+        if action.getButtonCode() == config.getSetting('shortcut_key'):
             self.close()
 
         action = action.getId()
@@ -186,7 +186,7 @@ class Main(xbmcgui.WindowXMLDialog):
             import channelselector
             itemlist = self.menulist(channelselector.getchanneltypes())
         elif channel_name not in ['downloads', 'setting', 'help']:
-            channel = platformtools.channel_import(channel_name)
+            channel = platformtools.channelImport(channel_name)
             itemlist = self.menulist(channel.mainlist(Item().fromurl(self.MENU.getSelectedItem().getProperty('run'))))
         self.SUBMENU.reset()
         self.SUBMENU.addItems(itemlist)
@@ -196,7 +196,7 @@ class Main(xbmcgui.WindowXMLDialog):
         focus = self.getFocusId()
         item_url = self.MENU.getSelectedItem().getProperty('run')
         item = Item().fromurl(item_url)
-        commands = platformtools.set_context_commands(item, item_url, Item())
+        commands = platformtools.setContextCommands(item, item_url, Item())
         context = [c[0] for c in commands]
         context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
         index = xbmcgui.Dialog().contextmenu(context)
@@ -205,5 +205,5 @@ class Main(xbmcgui.WindowXMLDialog):
 
 def open_shortcut_menu():
     if xbmcgui.getCurrentWindowDialogId() == 9999:
-        main = Main('ShortCutMenu.xml', config.get_runtime_path())
+        main = Main('ShortCutMenu.xml', config.getRuntimePath())
         main.doModal()

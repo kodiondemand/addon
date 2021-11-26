@@ -19,7 +19,7 @@ BACKSPACE = 92
 
 def imagepath(image):
     if len(image.split('.')) == 1: image += '.png'
-    path = filetools.join(config.get_runtime_path(), 'resources', 'skins' , 'Default', 'media', 'Infoplus', image)
+    path = filetools.join(config.getRuntimePath(), 'resources', 'skins' , 'Default', 'media', 'Infoplus', image)
     return path
 
 class InfoWindow(xbmcgui.WindowXMLDialog):
@@ -48,7 +48,7 @@ class InfoWindow(xbmcgui.WindowXMLDialog):
         return it
 
     def onInit(self):
-        if config.get_platform(True)['num_version'] < 18:
+        if config.getXBMCPlatform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
         results = []
         with futures.ThreadPoolExecutor() as executor:

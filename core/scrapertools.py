@@ -59,11 +59,11 @@ def find_single_match(data, patron, index=0):
 
 
 # Parse string and extracts multiple matches using regular expressions
-def find_multiple_matches(text, pattern):
+def findMultipleMatches(text, pattern):
     return re.findall(pattern, text, re.DOTALL)
 
 
-def find_multiple_matches_groups(text, pattern):
+def findMultipleMatches_groups(text, pattern):
     r = re.compile(pattern)
     return [m.groupdict() for m in r.finditer(text)]
 

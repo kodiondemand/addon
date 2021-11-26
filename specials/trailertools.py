@@ -36,12 +36,12 @@ from platformcode import config, logger, launcher
 from platformcode import platformtools
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
-def_lang = info_language[config.get_setting("info_language", "videolibrary")]
+def_lang = info_language[config.getSetting("info_language", "videolibrary")]
 
 result = None
 window_select = []
 # To enable or disable the manual search option
-if config.get_platform() != "plex":
+if config.getXBMCPlatform() != "plex":
     keyboard = True
 else:
     keyboard = False
@@ -76,8 +76,8 @@ def buscartrailer(item, trailers=[]):
             item.contentTitle = item.contentTitle.strip()
         elif keyboard:
             contentTitle = re.sub(r'\[\/*(B|I|COLOR)\s*[^\]]*\]', '', item.contentTitle.strip())
-            item.contentTitle = platformtools.dialog_input(default=contentTitle,
-                                                           heading=config.get_localized_string(70505))
+            item.contentTitle = platformtools.dialogInput(default=contentTitle,
+                                                           heading=config.getLocalizedString(70505))
             if item.contentTitle is None:
                 item.contentTitle = contentTitle
             else:
@@ -110,7 +110,7 @@ def buscartrailer(item, trailers=[]):
         if multi_search(item, itemlist, tipo):
             return
     if not itemlist:
-        itemlist.append(item.clone(title=config.get_localized_string(70501), title2=item.contentTitle,
+        itemlist.append(item.clone(title=config.getLocalizedString(70501), title2=item.contentTitle,
                                    action="", thumbnail=thumb('nofolder'), text_color=""))
 
     from lib.fuzzy_match import algorithims
@@ -118,8 +118,8 @@ def buscartrailer(item, trailers=[]):
 
     if item.contextual:
         global window_select, result
-        select = Select("DialogSelect.xml", config.get_runtime_path(), item=item, itemlist=itemlist,
-                        caption=config.get_localized_string(70506) + item.contentTitle)
+        select = Select("DialogSelect.xml", config.getRuntimePath(), item=item, itemlist=itemlist,
+                        caption=config.getLocalizedString(70506) + item.contentTitle)
         window_select.append(select)
         select.doModal()
 
@@ -130,7 +130,7 @@ def buscartrailer(item, trailers=[]):
 
 def multi_search(item, itemlist, tipo):
     ris = []
-    dialog = platformtools.dialog_progress('Trailer', config.get_localized_string(70115))
+    dialog = platformtools.dialogProgress('Trailer', config.getLocalizedString(70115))
     perc = 0
     canceled = False
     with futures.ThreadPoolExecutor() as executor:
@@ -152,7 +152,7 @@ def multi_search(item, itemlist, tipo):
 def manual_search(item, tipo):
     logger.debug()
     itemlist = []
-    texto = platformtools.dialog_input(default=item.contentTitle, heading=config.get_localized_string(30112))
+    texto = platformtools.dialogInput(default=item.contentTitle, heading=config.getLocalizedString(30112))
     if texto is not None:
         if multi_search(item.clone(contentTitle=texto), itemlist, tipo):
             return
@@ -182,7 +182,7 @@ def tmdb_trailers(item, dialog, tipo="movie"):
                     found = True
                     launcher.run(it)
                     dialog.close()
-                    while platformtools.is_playing():
+                    while platformtools.isPlaying():
                         xbmc.sleep(100)
 
     return itemlist
@@ -207,7 +207,7 @@ def youtube_search(item):
     patron += r'text":"([^"]+).*?'
     patron += r'simpleText":"[^"]+.*?simpleText":"([^"]+).*?'
     patron += r'url":"([^"]+)'
-    matches = scrapertools.find_multiple_matches(data, patron)
+    matches = scrapertools.findMultipleMatches(data, patron)
     for scrapedthumbnail, scrapedtitle, scrapedduration, scrapedurl in matches:
         scrapedtitle = scrapedtitle if PY3 else scrapedtitle.decode('utf8').encode('utf8')
         if item.contextual:
@@ -218,7 +218,7 @@ def youtube_search(item):
     # next_page = scrapertools.find_single_match(data, '<a href="([^"]+)"[^>]+><span class="yt-uix-button-content">')
     # if next_page != "":
     #     next_page = urlparse.urljoin("https://www.youtube.com", next_page)
-    #     itemlist.append(item.clone(title=config.get_localized_string(30992), action="youtube_search", extra="youtube",
+    #     itemlist.append(item.clone(title=config.getLocalizedString(30992), action="youtube_search", extra="youtube",
     #                                page=next_page, thumbnail=thumb('search'), text_color=""))
 
     return itemlist
@@ -287,7 +287,7 @@ try:
                 pass
             self.getControl(1).setLabel("" + self.caption + "")
             if keyboard:
-                self.getControl(5).setLabel(config.get_localized_string(70510))
+                self.getControl(5).setLabel(config.getLocalizedString(70510))
             self.items = []
             for item in self.itemlist:
                 item_l = xbmcgui.ListItem(item.title, item.title2)
@@ -323,17 +323,17 @@ try:
                     selectitem = self.control_list.getSelectedItem()
                     item = Item().fromurl(selectitem.getProperty("item_copy"))
                     if item.action == "play" and self.item.windowed:
-                        video_urls, puede, motivo = servertools.resolve_video_urls_for_playing(item.server, item.url)
+                        videoUrls, puede, motivo = servertools.resolve_videoUrls_for_playing(item.server, item.url)
                         self.close()
                         xbmc.sleep(200)
                         if puede:
-                            result = video_urls[-1][1]
+                            result = videoUrls[-1][1]
                         else:
                             result = None
                     elif item.action == "play" and not self.item.windowed:
                         for window in window_select:
                             window.close()
-                        retorna = platformtools.play_video(item, force_direct=True)
+                        retorna = platformtools.playVideo(item, force_direct=True)
                         if not retorna:
                             while True:
                                 xbmc.sleep(1000)

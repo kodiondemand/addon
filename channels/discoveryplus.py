@@ -23,27 +23,13 @@ def Dict(item):
 
 @support.menu
 def mainlist(item):
-    top =  [('Dirette {bold}', ['', 'live']),
+    top =  [('Dirette {bullet bold}', ['', 'live']),
             ('Programmi {bullet bold tv}', ['', 'movies', 'programmi']),
             ('Generi {bullet bold tv}', ['', 'genres'])]
 
     search = ''
 
     return locals()
-
-
-def liveDict():
-    livedict = {}
-
-    for key in session.get(api + '/cms/routes/canali?decorators=viewingHistory&include=default', headers=headers).json()['included']:
-
-        if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
-            title = key['attributes']['name']
-            livedict[title] = {}
-            livedict[title]['plot'] = key['attributes']['description']
-            livedict[title]['url'] = '{}/canali/{}'.format(host, key['attributes']['alternateId'])
-            livedict[title]['id'] = key['id']
-    return livedict
 
 
 def search(item, text):
@@ -63,8 +49,14 @@ def search(item, text):
 def live(item):
     logger.debug()
     itemlist =[]
-    for name, values in liveDict().items():
-        itemlist.append(item.clone(title=name, fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
+    for key in session.get(api + '/cms/routes/canali?decorators=viewingHistory&include=default', headers=headers).json()['included']:
+        if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
+            title = key['attributes']['name']
+            plot = key['attributes']['description']
+            url = '{}/canali/{}'.format(host, key['attributes']['alternateId'])
+            _id = key['id']
+
+            itemlist.append(item.clone(title=title, fulltitle=title, plot=plot, url=url, id=_id, action='findvideos', forcethumb=True))
     return support.thumb(itemlist, mode='live')
 
 
@@ -166,7 +158,7 @@ def episodes(item):
                                            fulltitle=title,
                                            plot=plot,
                                            id=episode['id'],
-                                           action='play',
+                                           action='findvideos',
                                            contentType='episode',
                                            season=option['id'],
                                            episode=episode['attributes']['episodeNumber'],
@@ -176,6 +168,9 @@ def episodes(item):
     if itemlist: itemlist.sort(key=lambda it: (int(it.season), int(it.episode)))
     return itemlist
 
+def findvideos(item):
+    logger.debug()
+    return support.server(item, itemlist=[item.clone(server='directo', action='play')])
 
 def play(item):
     if item.livefilter:

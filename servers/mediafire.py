@@ -9,23 +9,23 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Invalid or Deleted File" in data or "Well, looks like we" in data:
-        return False,  config.get_localized_string(70449) % "Mediafire"
+        return False,  config.getLocalizedString(70449) % "Mediafire"
     if "File Removed for Violation" in data:
         return False, "[Mediafire] Archivo eliminado por infracción"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
     patron = "DownloadButtonAd-startDownload gbtnSecondary.*?href='([^']+)'"
-    matches = scrapertools.find_multiple_matches(data, patron)
+    matches = scrapertools.findMultipleMatches(data, patron)
     if len(matches) == 0:
         patron = 'Download file.*?href="([^"]+)"'
-        matches = scrapertools.find_multiple_matches(data, patron)
+        matches = scrapertools.findMultipleMatches(data, patron)
     if len(matches) > 0:
-        video_urls.append({'type':matches[0].split('.')[-1], 'url':matches[0]})
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+        videoUrls.append({'type':matches[0].split('.')[-1], 'url':matches[0]})
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls

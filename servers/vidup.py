@@ -24,13 +24,13 @@ def test_video_exists(page_url):
     page = httptools.downloadpage(page_url)
     url = page.url
     if "Not Found" in page.data or "/404" in url:
-        return False,  config.get_localized_string(70449) % "Vidup"
+        return False,  config.getLocalizedString(70449) % "Vidup"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     post= {}
     post = urllib.urlencode(post)
     headers = {"Referer":page_url}
@@ -38,8 +38,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.error(url)
     data = httptools.downloadpage("https://vidup.io/api/serve/video/" + scrapertools.find_single_match(url, "embed.([A-z0-9]+)"), post=post).data
     bloque = scrapertools.find_single_match(data, 'qualities":\{(.*?)\}')
-    matches = scrapertools.find_multiple_matches(bloque, '"([^"]+)":"([^"]+)')
+    matches = scrapertools.findMultipleMatches(bloque, '"([^"]+)":"([^"]+)')
     for res, media_url in matches:
-        video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'res':res, 'url':media_url})
-    # video_urls.reverse()
-    return video_urls
+        videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'res':res, 'url':media_url})
+    # videoUrls.reverse()
+    return videoUrls

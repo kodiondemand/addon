@@ -27,9 +27,9 @@ from platformcode import platformtools
 HOST = "https://api.thetvdb.com"
 HOST_IMAGE = "http://thetvdb.com/banners/"
 
-TOKEN = config.get_setting("tvdb_token", default="")
+TOKEN = config.getSetting("tvdb_token", default="")
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
-DEFAULT_LANG = info_language[config.get_setting("info_language", "videolibrary")]
+DEFAULT_LANG = info_language[config.getSetting("info_language", "videolibrary")]
 DEFAULT_HEADERS = {
     'Content-Type': 'application/json',
     'Accept': 'application/json, application/vnd.thetvdb.v2.1.1',
@@ -82,7 +82,7 @@ def find_and_set_infoLabels(item):
 
     p_dialog = None
     if not item.contentSeason:
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(60296), config.get_localized_string(60293))
+        p_dialog = platformtools.dialogProgressBg(config.getLocalizedString(60296), config.getLocalizedString(60293))
 
     global otvdb_global
     tvdb_result = None
@@ -106,24 +106,24 @@ def find_and_set_infoLabels(item):
         otvdb_global = Tvdb(tvdb_id=item.infoLabels['tvdb_id'])
 
     if not item.contentSeason:
-        p_dialog.update(50, config.get_localized_string(60296) + '\n' + config.get_localized_string(60295))
+        p_dialog.update(50, config.getLocalizedString(60296) + '\n' + config.getLocalizedString(60295))
     results, info_load = otvdb_global.get_list_results()
     logger.debug("results: %s" % results)
 
     if not item.contentSeason:
-        p_dialog.update(100, config.get_localized_string(60296) + '\n' + config.get_localized_string(60297) % len(results))
+        p_dialog.update(100, config.getLocalizedString(60296) + '\n' + config.getLocalizedString(60297) % len(results))
         p_dialog.close()
 
     if len(results) > 1:
-        tvdb_result = platformtools.show_video_info(results, item=item, scraper=Tvdb, caption=config.get_localized_string(60298) % title)
+        tvdb_result = platformtools.showVideoInfo(results, item=item, scraper=Tvdb, caption=config.getLocalizedString(60298) % title)
         # if not tvdb_result:
-        #     res =  platformtools.dialog_info(item, 'tvdb')
+        #     res =  platformtools.dialogInfo(item, 'tvdb')
         #     if not res.exit: return find_and_set_infoLabels(res)
     elif len(results) > 0:
         tvdb_result = results[0]
 
     # else:
-    #     res =  platformtools.dialog_info(item, 'tvdb')
+    #     res =  platformtools.dialogInfo(item, 'tvdb')
     #     if not res.exit: return find_and_set_infoLabels(res)
 
     # todo revisar
@@ -355,18 +355,18 @@ class Tvdb(object):
         if kwargs.get('tvdb_id', ''):
             # Search by tvdb identifier
             self.__get_by_id(kwargs.get('tvdb_id', ''))
-            if not self.list_results and config.get_setting("tvdb_retry_eng", "videolibrary"):
+            if not self.list_results and config.getSetting("tvdb_retry_eng", "videolibrary"):
                 from platformcode import platformtools
-                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG, config.get_localized_string(60302), sound=False)
+                platformtools.dialogNotification(config.getLocalizedString(60299) % DEFAULT_LANG, config.getLocalizedString(60302), sound=False)
                 self.__get_by_id(kwargs.get('tvdb_id', ''), "en")
                 self.lang = "en"
 
         elif self.search_name:
             # BUsqueda by text
             self.__search(kwargs.get('search', ''), kwargs.get('imdb_id', ''), kwargs.get('zap2it_id', ''))
-            if not self.list_results and config.get_setting("tvdb_retry_eng", "videolibrary"):
+            if not self.list_results and config.getSetting("tvdb_retry_eng", "videolibrary"):
                 from platformcode import platformtools
-                platformtools.dialog_notification(config.get_localized_string(60299) % DEFAULT_LANG, config.get_localized_string(60302))
+                platformtools.dialogNotification(config.getLocalizedString(60299) % DEFAULT_LANG, config.getLocalizedString(60302))
                 self.__search(kwargs.get('search', ''), kwargs.get('imdb_id', ''), kwargs.get('zap2it_id', ''), "en")
                 self.lang = "en"
 
@@ -376,7 +376,7 @@ class Tvdb(object):
                 buscando = kwargs.get('tvdb_id', '')
             else:
                 buscando = kwargs.get('search', '')
-            msg = config.get_localized_string(70266) % buscando
+            msg = config.getLocalizedString(70266) % buscando
             logger.debug(msg)
 
     @classmethod
@@ -389,10 +389,10 @@ class Tvdb(object):
             from time import gmtime, strftime
             current_date = strftime("%Y-%m-%d", gmtime())
 
-            if config.get_setting("tvdb_token_date", "") != current_date:
+            if config.getSetting("tvdb_token_date", "") != current_date:
                 # if the token has been renewed we save the new date
                 if cls.__refresh_token():
-                    config.set_setting("tvdb_token_date", current_date)
+                    config.setSetting("tvdb_token_date", current_date)
 
     @staticmethod
     def __login():
@@ -418,7 +418,7 @@ class Tvdb(object):
                 token = dict_html["token"]
                 DEFAULT_HEADERS["Authorization"] = "Bearer " + token
 
-                TOKEN = config.set_setting("tvdb_token", token)
+                TOKEN = config.setSetting("tvdb_token", token)
 
     @classmethod
     def __refresh_token(cls):
@@ -449,7 +449,7 @@ class Tvdb(object):
             if "token" in dict_html:
                 token = dict_html["token"]
                 DEFAULT_HEADERS["Authorization"] = "Bearer " + token
-                TOKEN = config.set_setting("tvdb_token", token)
+                TOKEN = config.setSetting("tvdb_token", token)
                 is_success = True
             else:
                 cls.__login()

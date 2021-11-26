@@ -39,7 +39,7 @@ def check(item, itemlist=None):
 def filename(item):
     logger.debug()
     name_file = item.channel + "_data.json"
-    path = filetools.join(config.get_data_path(), "settings_channels")
+    path = filetools.join(config.getDataPath(), "settings_channels")
     fname = filetools.join(path, name_file)
     return fname
 
@@ -70,7 +70,7 @@ def b64(json, mode = 'encode'):
 
 def find_episodes(item):
     logger.debug()
-    ch = platformtools.channel_import(item.channel)
+    ch = platformtools.channelImport(item.channel)
     itemlist = getattr(ch, item.action)(item)
     return itemlist
 
@@ -113,7 +113,7 @@ class autorenumber():
             from core.videolibrarytools import check_renumber_options
             check_renumber_options(self.item)
             self.renumberdict = load(item)
-            self.auto = config.get_setting('autorenumber', item.channel)
+            self.auto = config.getSetting('autorenumber', item.channel)
             self.title = self.item.fulltitle.strip()
             if item.contentSeason:
                 item.exit = True
@@ -137,7 +137,7 @@ class autorenumber():
             self.renumberdict = {}
             for item in self.itemlist:
                 if item.contentType != 'movie':
-                    item.context = [{"title": typo(config.get_localized_string(70585), 'bold'),
+                    item.context = [{"title": typo(config.getLocalizedString(70585), 'bold'),
                                      "action": "start",
                                      "channel": "autorenumber",
                                      "from_channel": item.channel,
@@ -161,7 +161,7 @@ class autorenumber():
             while not self.item.exit:
                 tmdb.find_and_set_infoLabels(self.item)
                 if self.item.infoLabels['tmdb_id']: self.item.exit = True
-                else:self.item = platformtools.dialog_info(self.item, 'tmdb')
+                else:self.item = platformtools.dialogInfo(self.item, 'tmdb')
 
         # Rinumerazione Automatica
         if (not self.id and self.auto) or self.item.setrenumber:
@@ -313,7 +313,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
 
         def onInit(self):
             # Compatibility with Kodi 18
-            if config.get_platform(True)['num_version'] < 18: self.setCoordinateResolution(2)
+            if config.getXBMCPlatform(True)['num_version'] < 18: self.setCoordinateResolution(2)
             fanart = self.item.fanart
             thumb = self.item.thumbnail
             self.getControl(SELECT).setVisible(False)
@@ -324,7 +324,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 self.getControl(MANUAL).setVisible(True)
                 self.getControl(MPOSTER).setImage(thumb)
                 if fanart: self.getControl(MBACKGROUND).setImage(fanart)
-                self.getControl(INFO).setLabel(typo(config.get_localized_string(70822) + self.title, 'bold'))
+                self.getControl(INFO).setLabel(typo(config.getLocalizedString(70822) + self.title, 'bold'))
 
                 self.manual = True
 
@@ -366,7 +366,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 if fanart:
                     self.getControl(BACKGROUND).setImage(fanart)
                     self.getControl(MBACKGROUND).setImage(fanart)
-                self.getControl(INFO).setLabel(typo(config.get_localized_string(70824) + self.title, 'bold'))
+                self.getControl(INFO).setLabel(typo(config.getLocalizedString(70824) + self.title, 'bold'))
                 self.getControl(LIST).addItems(self.items)
                 self.getControl(SELECTED).addItems(self.selected)
 
@@ -383,19 +383,19 @@ def SelectreNumeration(opt, itemlist, manual=False):
 
         def onFocus(self, focus):
             if focus in [S]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70825), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70825), 'bold'))
             elif focus in [E]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70826), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70826), 'bold'))
             elif focus in [O]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70001), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70001), 'bold'))
             elif focus in [SS]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70827), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70827), 'bold'))
             elif focus in [M]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70828), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70828), 'bold'))
             elif focus in [D]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70829) + self.title, 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70829) + self.title, 'bold'))
             elif focus in [C]:
-                self.getControl(108).setLabel(typo(config.get_localized_string(70002), 'bold'))
+                self.getControl(108).setLabel(typo(config.getLocalizedString(70002), 'bold'))
 
         def onAction(self, action):
             action = action.getId()
@@ -470,11 +470,11 @@ def SelectreNumeration(opt, itemlist, manual=False):
         def onClick(self, control_id):
             ## FIRST SECTION
             if control_id in [S]:
-                selected = platformtools.dialog_numeric(0, config.get_localized_string(70825),
+                selected = platformtools.dialogNumeric(0, config.getLocalizedString(70825),
                                                         self.getControl(S).getLabel())
                 if selected: s = self.getControl(S).setLabel(selected)
             elif control_id in [E]:
-                selected = platformtools.dialog_numeric(0, config.get_localized_string(70826),
+                selected = platformtools.dialogNumeric(0, config.getLocalizedString(70826),
                                                         self.getControl(E).getLabel())
                 if selected: e = self.getControl(E).setLabel(selected)
             # OPEN SPECIALS OR OK
@@ -491,7 +491,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                     self.setFocusId(OK)
             # OPEN MANUAL
             elif control_id in [M]:
-                self.getControl(INFO).setLabel(typo(config.get_localized_string(70823) + self.title, 'bold'))
+                self.getControl(INFO).setLabel(typo(config.getLocalizedString(70823) + self.title, 'bold'))
                 self.manual = True
                 if self.episodes:
                     items = []
@@ -588,7 +588,7 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 self.getControl(SELECTED).selectItem(index)
             # RELOAD SPECIALS
             if control_id in [SELECTED]:
-                epnumber = platformtools.dialog_numeric(0, config.get_localized_string(60386))
+                epnumber = platformtools.dialogNumeric(0, config.getLocalizedString(60386))
                 if epnumber:
                     it = self.getControl(SELECTED).getSelectedItem()
                     it.setLabel(str(epnumber))
@@ -613,10 +613,10 @@ def SelectreNumeration(opt, itemlist, manual=False):
                 e = int(self.getControl(MLIST).getSelectedItem().getProperty('episode'))
                 pos = self.getControl(MLIST).getSelectedPosition()
                 if control_id in [MS]:
-                    selected = platformtools.dialog_numeric(0, config.get_localized_string(70825), str(s))
+                    selected = platformtools.dialogNumeric(0, config.getLocalizedString(70825), str(s))
                     if selected: s = int(selected)
                 elif control_id in [ME]:
-                    selected = platformtools.dialog_numeric(0, config.get_localized_string(70826), str(e))
+                    selected = platformtools.dialogNumeric(0, config.getLocalizedString(70826), str(e))
                     if selected: e = int(selected)
                 if s != self.season or e != self.episode:
                     self.season = s
@@ -740,4 +740,4 @@ DOWN = 4
 EXIT = 10
 BACKSPACE = 92
 
-path = config.get_runtime_path()
+path = config.getRuntimePath()

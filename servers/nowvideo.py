@@ -15,21 +15,21 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File was deleted" in data or "The file is being converted" in data or "Please try again later" in data:
-        return False, config.get_localized_string(70293) % "NowVideo"
+        return False, config.getLocalizedString(70293) % "NowVideo"
     elif "no longer exists" in data:
-        return False, config.get_localized_string(70292) % "NowVideo"
+        return False, config.getLocalizedString(70292) % "NowVideo"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     host = 'http://nowvideo.club'
     logger.debug("(nowvideo page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
     page_url_post = scrapertools.find_single_match(data, '<Form id="[^"]+" method="POST" action="([^"]+)">')
     page_url_post = page_url_post.replace('..', '')
     imhuman = '&imhuman=' + scrapertools.find_single_match(data, 'name="imhuman" value="([^"]+)"').replace(" ", "+")
-    post = urllib.urlencode({k: v for k, v in scrapertools.find_multiple_matches(data, 'name="([^"]+)" value="([^"]*)"')}) + imhuman
+    post = urllib.urlencode({k: v for k, v in scrapertools.findMultipleMatches(data, 'name="([^"]+)" value="([^"]*)"')}) + imhuman
     data = httptools.downloadpage(host + page_url_post, post=post).data
     logger.debug("nowvideo data page_url2 ='%s'" % data)
 
@@ -42,17 +42,17 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     block = scrapertools.find_single_match(data, 'sources:\s*\[[^\]]+\]')
     if block: data = block
 
-    media_urls = scrapertools.find_multiple_matches(data, '(http.*?\.mp4)')
+    media_urls = scrapertools.findMultipleMatches(data, '(http.*?\.mp4)')
     _headers = urllib.urlencode(dict(headers))
 
     for media_url in media_urls:
         #logger.debug("nowvideo data page_url2 ='%s'" % media_url)
-        video_urls.append([" mp4 [nowvideo] ", media_url + '|' + _headers])
+        videoUrls.append([" mp4 [nowvideo] ", media_url + '|' + _headers])
 
-    for video_url in media_urls:
-        logger.debug("[nowvideo.py] %s - %s" % (video_url[0], video_url[1]))
+    for videoUrl in media_urls:
+        logger.debug("[nowvideo.py] %s - %s" % (videoUrl[0], videoUrl[1]))
     
-    return video_urls
+    return videoUrls
 
 
 def find_videos(data):

@@ -25,35 +25,35 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
 
     data = get_data(page_url.replace(".org", ".me"))
-    if "File Not Found" in data: return False,  config.get_localized_string(70449) % "Clicknupload"
+    if "File Not Found" in data: return False,  config.getLocalizedString(70449) % "Clicknupload"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
 
     data = get_data(page_url.replace(".org", ".me"))
 
     post = ""
     block = scrapertools.find_single_match(data, '(?i)<Form method="POST"(.*?)</Form>')
-    matches = scrapertools.find_multiple_matches(block, 'input.*?name="([^"]+)".*?value="([^"]*)"')
+    matches = scrapertools.findMultipleMatches(block, 'input.*?name="([^"]+)".*?value="([^"]*)"')
     for inputname, inputvalue in matches:
         post += inputname + "=" + inputvalue + "&"
     post = post.replace("download1", "download2")
 
     data = get_data(page_url, post)
 
-    video_urls = []
+    videoUrls = []
     media = scrapertools.find_single_match(data, "onClick=\"window.open\('([^']+)'")
     # Solo es necesario codificar la ultima parte de la url
     url_strip = urllib.quote(media.rsplit('/', 1)[1])
     media_url = media.rsplit('/', 1)[0] + "/" + url_strip
-    video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls
 
 
 def get_data(url_orig, req_post=""):

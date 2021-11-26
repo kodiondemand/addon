@@ -21,11 +21,11 @@ headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:65.0) Gecko/20
 
 
 # Returns an array of possible video url's from the page_url
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s' , video_password=%s)" % (page_url, video_password))
     page_url = page_url.replace(".nz/embed", ".nz/")
     # Se comprueba si existe un token guardado y sino se ejecuta el proceso de autentificación
-    token_auth = config.get_setting("token", server="realdebrid")
+    token_auth = config.getSetting("token", server="realdebrid")
     if token_auth is None or token_auth == "":
         if config.is_xbmc():
             token_auth = authentication()
@@ -40,7 +40,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(url, post=post_link, headers=list(headers.items())).json
     logger.error(data)
 
-    check = config.get_setting("secret", server="realdebrid")
+    check = config.getSetting("secret", server="realdebrid")
     #Se ha usado la autentificación por urlresolver (Bad Idea)
     if "error" in data and data["error"] == "bad_token" and not check:
         token_auth = authentication()
@@ -50,9 +50,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # Si el token es erróneo o ha caducado, se solicita uno nuevo
     elif "error" in data and data["error"] == "bad_token":
         
-        debrid_id = config.get_setting("id", server="realdebrid")
-        secret = config.get_setting("secret", server="realdebrid")
-        refresh = config.get_setting("refresh", server="realdebrid")
+        debrid_id = config.getSetting("id", server="realdebrid")
+        secret = config.getSetting("secret", server="realdebrid")
+        refresh = config.getSetting("refresh", server="realdebrid")
 
         post_token = urllib.urlencode({"client_id": debrid_id, "client_secret": secret, "code": refresh,
                                        "grant_type": "http://oauth.net/grant_type/device/1.0"})
@@ -60,7 +60,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                                                 headers=list(headers.items())).json
         if not "error" in renew_token:
             token_auth = renew_token["access_token"]
-            config.set_setting("token", token_auth, server="realdebrid")
+            config.setSetting("token", token_auth, server="realdebrid")
             headers["Authorization"] = "Bearer %s" % token_auth
             data = httptools.downloadpage(url, post=post_link, headers=list(headers.items())).json
         else:
@@ -85,15 +85,15 @@ def get_enlaces(data):
     itemlist = []
     if "alternative" in data:
         for link in data["alternative"]:
-            video_url = link["download"].encode("utf-8")
-            title = video_url.rsplit(".", 1)[1]
+            videoUrl = link["download"].encode("utf-8")
+            title = videoUrl.rsplit(".", 1)[1]
             if "quality" in link:
                 title += " (" + link["quality"] + ") [realdebrid]"
-            itemlist.append([title, video_url])
+            itemlist.append([title, videoUrl])
     else:
-        video_url = data["download"].encode("utf-8")
-        title = video_url.rsplit(".", 1)[1] + " [realdebrid]"
-        itemlist.append([title, video_url])
+        videoUrl = data["download"].encode("utf-8")
+        title = videoUrl.rsplit(".", 1)[1] + " [realdebrid]"
+        itemlist.append([title, videoUrl])
 
     return itemlist
 
@@ -111,10 +111,10 @@ def authentication():
         device_code = data["device_code"]
         intervalo = data["interval"]
 
-        dialog_auth = platformtools.dialog_progress(config.get_localized_string(70414),
-                                                    config.get_localized_string(60252) % verify_url + '\n' +
-                                                    config.get_localized_string(70413) % user_code + '\n' +
-                                                    config.get_localized_string(60254))
+        dialog_auth = platformtools.dialogProgress(config.getLocalizedString(70414),
+                                                    config.getLocalizedString(60252) % verify_url + '\n' +
+                                                    config.getLocalizedString(70413) % user_code + '\n' +
+                                                    config.getLocalizedString(60254))
 
         # Generalmente cada 5 segundos se intenta comprobar si el usuario ha introducido el código
         while True:
@@ -149,10 +149,10 @@ def authentication():
         token = data["access_token"]
         refresh = data["refresh_token"]
 
-        config.set_setting("id", debrid_id, server="realdebrid")
-        config.set_setting("secret", secret, server="realdebrid")
-        config.set_setting("token", token, server="realdebrid")
-        config.set_setting("refresh", refresh, server="realdebrid")
+        config.setSetting("id", debrid_id, server="realdebrid")
+        config.setSetting("secret", secret, server="realdebrid")
+        config.setSetting("token", token, server="realdebrid")
+        config.setSetting("refresh", refresh, server="realdebrid")
 
         return token
     except:

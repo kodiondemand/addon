@@ -34,15 +34,15 @@ def test_video_exists(page_url):
     data = get_source(page_url)
 
     if "File was deleted" in data or "File Not Found" in data:
-        return False,  config.get_localized_string(70449) % "Rutube"
+        return False,  config.getLocalizedString(70449) % "Rutube"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
 
-    video_urls = []
+    videoUrls = []
     referer = ''
     id = ''
     if "|" in page_url:
@@ -55,5 +55,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     new_link = base_link + '/?format=json&sqr4374_compat=1&no_404=true&%s&%s' % (referer, id)
     data = httptools.downloadpage(new_link).data
     json_data = jsontools.load(data)
-    video_urls.append({'type':'m3u8', 'url':json_data['video_balancer']['m3u8']})
-    return video_urls
+    videoUrls.append({'type':'m3u8', 'url':json_data['video_balancer']['m3u8']})
+    return videoUrls

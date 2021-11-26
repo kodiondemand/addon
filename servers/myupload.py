@@ -18,16 +18,16 @@ def test_video_exists(page_url):
        "Not Found" in response.data \
        or "File was deleted" in response.data \
        or "is no longer available" in response.data:
-        return False,  config.get_localized_string(70449) % "myupload"
+        return False,  config.getLocalizedString(70449) % "myupload"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug()
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
-    matches = scrapertools.find_multiple_matches(data, 'tracker: "([^"]+)"')
+    matches = scrapertools.findMultipleMatches(data, 'tracker: "([^"]+)"')
     for scrapedurl in matches:
         url = base64.b64decode(scrapedurl)
-    video_urls.append({'url':url})
-    return video_urls
+    videoUrls.append({'url':url})
+    return videoUrls

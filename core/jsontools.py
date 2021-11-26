@@ -58,7 +58,7 @@ def to_utf8(dct):
         return dct
 
 
-def get_node_from_file(name_file, node, path=None):
+def getNodeFromFile(name_file, node, path=None):
     """
     Gets the node of a JSON file
 
@@ -80,7 +80,7 @@ def get_node_from_file(name_file, node, path=None):
         name_file += "_data.json"
 
     if not path:
-        path = filetools.join(config.get_data_path(), "settings_channels")
+        path = filetools.join(config.getDataPath(), "settings_channels")
 
     fname = filetools.join(path, name_file)
 
@@ -126,7 +126,7 @@ def check_to_backup(data, fname, dict_data):
             logger.debug("The file is empty: %s" % fname)
 
 
-def update_node(dict_node, name_file, node, path=None, silent=False):
+def updateNode(dict_node, name_file, node, path=None, silent=False):
     """
     update the json_data of a file with the last dictionary
 
@@ -152,7 +152,7 @@ def update_node(dict_node, name_file, node, path=None, silent=False):
         name_file += "_data.json"
 
     if not path:
-        path = filetools.join(config.get_data_path(), "settings_channels")
+        path = filetools.join(config.getDataPath(), "settings_channels")
 
     fname = filetools.join(path, name_file)
 

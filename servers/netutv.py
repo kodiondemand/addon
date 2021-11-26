@@ -32,13 +32,13 @@ def test_video_exists(page_url):
     page_url = page_url.replace("/watch_video.php?v=", "/player/embed_player.php?vid=")
     data = httptools.downloadpage(page_url).data
     if "var userid = '';" in data.lower():
-        return False,  config.get_localized_string(70449) % "netutv"
+        return False,  config.getLocalizedString(70449) % "netutv"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
 
     if "hash=" in page_url:
         data = urllib.unquote(httptools.downloadpage(page_url).data)
@@ -73,7 +73,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage('http://hqq.watch'+url, headers=headers).data
     # ~ logger.debug(data)
     
-    codigo_js = scrapertools.find_multiple_matches(data, '<script>document.write\(unescape\("([^"]+)')
+    codigo_js = scrapertools.findMultipleMatches(data, '<script>document.write\(unescape\("([^"]+)')
     # ~ logger.debug(codigo_js)
     
     js_aux = urllib.unquote(codigo_js[0])
@@ -90,7 +90,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = jswise(js_wise).replace("\\", "")
     # ~ logger.debug(data)
 
-    variables = scrapertools.find_multiple_matches(data, 'var ([a-zA-Z0-9]+) = "([^"]+)";')
+    variables = scrapertools.findMultipleMatches(data, 'var ([a-zA-Z0-9]+) = "([^"]+)";')
     # ~ logger.debug(variables)
     
     for nombre, valor in variables:
@@ -101,9 +101,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     link_m3u8 = 'http://hqq.watch/player/get_md5.php?ver=2&at=%s&adb=0&b=1&link_1=%s&server_2=%s&vid=%s&ext=%s' % (at, link_1, server_2, vid, ext)
     # ~ logger.debug(link_m3u8)
     
-    video_urls.append({'type':'m3u8', 'url':link_m3u8})
+    videoUrls.append({'type':'m3u8', 'url':link_m3u8})
 
-    return video_urls
+    return videoUrls
 
 
 ## --------------------------------------------------------------------------------

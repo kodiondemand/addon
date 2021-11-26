@@ -13,7 +13,7 @@ if sys.version_info[0] >= 3:
 else:
     from concurrent_py2 import futures
 
-mode = config.get_setting('result_mode', 'news')
+mode = config.getSetting('result_mode', 'news')
 cacheTime = 10
 
 def mainlist(item):
@@ -21,18 +21,18 @@ def mainlist(item):
 
     itemlist = []
     # list_canales, any_active = get_channels_list()
-    channel_language = config.get_setting("channel_language", default="auto")
+    channel_language = config.getSetting("channel_language", default="auto")
     if channel_language == 'auto':
         channel_language = auto_filter()
 
-    itemlist = [item.clone(action="news", extra="movie", title=config.get_localized_string(30122) + ' {news}'),
-                item.clone(action="news", extra="tvshow", title=config.get_localized_string(60511) + ' {news}'),
-                item.clone(action="news", extra="anime", title=config.get_localized_string(60512) + ' {news}')]
+    itemlist = [item.clone(action="news", extra="movie", title=config.getLocalizedString(30122) + ' {news}'),
+                item.clone(action="news", extra="tvshow", title=config.getLocalizedString(60511) + ' {news}'),
+                item.clone(action="news", extra="anime", title=config.getLocalizedString(60512) + ' {news}')]
 
     set_category_context(itemlist)
 
     itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=7, setting=1,
-                         title=support.typo(config.get_localized_string(70285), 'bold color kod')))
+                         title=support.typo(config.getLocalizedString(70285), 'bold color kod')))
 
     support.thumb(itemlist)
     set_category_context(itemlist)
@@ -43,11 +43,11 @@ def mainlist(item):
 def set_category_context(itemlist):
     for item in itemlist:
         if item.extra:
-            item.context = [{"title": config.get_localized_string(60514) % item.title,
+            item.context = [{"title": config.getLocalizedString(60514) % item.title,
                             "extra": item.extra,
                             "action": "setting_channel",
                             "channel": item.channel}]
-            item.category = config.get_localized_string(60679) % item.title
+            item.category = config.getLocalizedString(60679) % item.title
 
 
 def get_channels(category='all'):
@@ -63,7 +63,7 @@ def get_channels(category='all'):
         if not ch_param.get("active", False):
             continue
 
-        if not config.get_setting("include_in_newest_" + category, channel):
+        if not config.getSetting("include_in_newest_" + category, channel):
             continue
 
         channels.append([ch_param.get('title'), channel])
@@ -80,7 +80,7 @@ def news(item):
         itlist = []
         results = cache(item.extra)
         if not results:
-            progress = platformtools.dialog_progress(item.category, config.get_localized_string(60519))
+            progress = platformtools.dialogProgress(item.category, config.getLocalizedString(60519))
             channels = get_channels(item.extra)
 
             channelNames = [c[0] for c in channels]
@@ -156,7 +156,7 @@ def get_newest(channel, category, channels):
     _id = channel[1]
     list_newest = []
     try:
-        module = platformtools.channel_import(_id)
+        module = platformtools.channelImport(_id)
         logger.debug('channel_id=', _id, 'category=', category)
 
         if not module:
@@ -213,13 +213,13 @@ def cache(_type, results=None):
     return results
 
 def settings(item):
-    return platformtools.show_channel_settings(caption=config.get_localized_string(60532))
+    return platformtools.showChannelSettings(caption=config.getLocalizedString(60532))
 
 
 def setting_channel(item):
     import os, glob
-    channels_path = os.path.join(config.get_runtime_path(), "channels", '*.json')
-    channel_language = config.get_setting("channel_language", default="auto")
+    channels_path = os.path.join(config.getRuntimePath(), "channels", '*.json')
+    channel_language = config.getSetting("channel_language", default="auto")
     if channel_language == 'auto':
         channel_language = auto_filter()
 
@@ -238,7 +238,7 @@ def setting_channel(item):
             continue
 
         # Do not include if the channel does not exist 'include_in_newest' in your configuration
-        include_in_newest = config.get_setting("include_in_newest_" + item.extra, channel_id)
+        include_in_newest = config.getSetting("include_in_newest_" + item.extra, channel_id)
         if include_in_newest is None or item.extra not in channel_parameters['categories']:
             continue
 
@@ -251,37 +251,28 @@ def setting_channel(item):
 
         list_controls.append(control)
 
-    caption = config.get_localized_string(60533) + item.title.replace(config.get_localized_string(60525), "- ").strip()
-    if config.get_setting("custom_button_value_news", item.channel):
-        custom_button_label = config.get_localized_string(59992)
+    caption = config.getLocalizedString(60533) + item.title.replace(config.getLocalizedString(60525), "- ").strip()
+    if config.getSetting("custom_button_value_news", item.channel):
+        custom_button_icon = 'subtract'
     else:
-        custom_button_label = config.get_localized_string(59991)
+        custom_button_icon = 'add'
 
-    return platformtools.show_channel_settings(list_controls=list_controls,
+    return platformtools.showChannelSettings(list_controls=list_controls,
                                                caption=caption,
                                                callback="save_settings", item=item,
-                                               custom_button={'visible': True,
-                                                              'function': "cb_custom_button",
-                                                              'close': False,
-                                                              'label': custom_button_label})
+                                               custom_buttons=[{'visible': True, 'function': "cb_custom_button", 'all':True, 'close': False, 'icon': 'add'},
+                                                               {'visible': True, 'function': "cb_custom_button", 'all':False, 'close': False, 'icon': 'subtract'}])
 
 
 def save_settings(item, dict_values):
-    cache({})
+    cache(item.extra, [])
     for v in dict_values:
-        config.set_setting("include_in_newest_" + item.extra, dict_values[v], v)
+        config.setSetting("include_in_newest_" + item.extra, dict_values[v], v)
 
 
-def cb_custom_button(item, dict_values):
-    value = config.get_setting("custom_button_value_news", item.channel)
-    if value == "":
-        value = False
-
+def cb_custom_button(item, dict_values, button):
     for v in list(dict_values.keys()):
-        dict_values[v] = not value
+        dict_values[v] = button['all']
 
-    if config.set_setting("custom_button_value_news", not value, item.channel) == True:
-        return {"label": config.get_localized_string(59992)}
-    else:
-        return {"label": config.get_localized_string(59991)}
+    return {'result':dict_values}
 

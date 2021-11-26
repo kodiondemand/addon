@@ -36,9 +36,13 @@ def encode(obj):
 def decode(obj):
     return pickle.loads(zlib.decompress(bytes(obj)))
 
-db_name = filetools.join(config.get_data_path(), "db.sqlite")
-db = nested_dict_sqlite(lambda table: SqliteDict(db_name, table, 'c', True))
+db_name = filetools.join(config.getDataPath(), "db.sqlite")
+vdb_name = filetools.join(config.getVideolibraryPath(), "videolibrary.sqlite")
 
-vdb_name = filetools.join(config.get_videolibrary_path(), "videolibrary.sqlite")
-# videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True))
+db = nested_dict_sqlite(lambda table: SqliteDict(db_name, table, 'c', True))
 videolibrarydb = nested_dict_sqlite(lambda table: SqliteDict(vdb_name, table, 'c', True, encode=encode, decode=decode))
+
+
+if 'played_time' not in SqliteDict.get_tablenames(vdb_name):
+    for k, v in dict(db['viewed']).items():
+        videolibrarydb['played_time'][k] = v

@@ -25,14 +25,14 @@ def find_and_set_infoLabels(item):
     scraper = None
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    list_opciones_cuadro = [config.get_localized_string(60223), config.get_localized_string(60224)]
+    list_opciones_cuadro = [config.getLocalizedString(60223), config.getLocalizedString(60224)]
     # If more scrapers are added, they must be declared here-> "modulo_scraper": "Text_in_box"
-    scrapers_disponibles = {'tmdb': config.get_localized_string(60225), 'tvdb': config.get_localized_string(60226)}
+    scrapers_disponibles = {'tmdb': config.getLocalizedString(60225), 'tvdb': config.getLocalizedString(60226)}
 
     # Get the default Scraper of the configuration according to the content type
     if item.contentType == "movie":
         scraper_actual = 'tmdb'
-        # scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
+        # scraper_actual = ['tmdb'][config.getSetting("scraper_movies", "videolibrary")]
         tipo_contenido = "movie"
         title = item.contentTitle
         # Complete list of options for this type of content
@@ -40,7 +40,7 @@ def find_and_set_infoLabels(item):
 
     else:
         scraper_actual = 'tmdb'
-        # scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
+        # scraper_actual = ['tmdb', 'tvdb'][config.getSetting("scraper_tvshows", "videolibrary")]
         tipo_contenido = "serie"
         title = item.contentSerieName
         # Complete list of options for this type of content
@@ -68,14 +68,14 @@ def find_and_set_infoLabels(item):
             return True
         elif scraper_result:
             # Content found but no 'code'
-            msg = config.get_localized_string(60227) % title
+            msg = config.getLocalizedString(60227) % title
         else:
             # Content not found
-            msg = config.get_localized_string(60228) % title
+            msg = config.getLocalizedString(60228) % title
 
         logger.debug(msg)
         # Show box with other options:
-        item = platformtools.dialog_info(item, scraper_actual)
+        item = platformtools.dialogInfo(item, scraper_actual)
         if item.exit:
             logger.debug("You have clicked 'cancel' in the window '%s'" % msg)
             return False
@@ -91,19 +91,19 @@ def find_and_set_infoLabels(item):
 
 #     COLOR = ["0xFF65B3DA", "0xFFFFFFFF"]
 #     # We create the list of infoLabel fields
-#     controls = [("title", "text", config.get_localized_string(60230)),
-#                 ("originaltitle", "text", config.get_localized_string(60231)),
-#                 ("year", "text", config.get_localized_string(60232)),
-#                 ("identificadores", "label", config.get_localized_string(60233)),
-#                 ("tmdb_id", "text", config.get_localized_string(60234)),
-#                 ("url_tmdb", "text", config.get_localized_string(60235), "+!eq(-1,'')"),
-#                 ("tvdb_id", "text", config.get_localized_string(60236), "+eq(-7,'Serie')"),
-#                 ("url_tvdb", "text", config.get_localized_string(60237), "+!eq(-1,'')+eq(-8,'Serie')"),
-#                 ("imdb_id", "text", config.get_localized_string(60238)),
-#                 ("otro_id", "text", config.get_localized_string(60239), "+eq(-1,'')"),
-#                 ("urls", "label", config.get_localized_string(60240)),
-#                 ("fanart", "text", config.get_localized_string(60241)),
-#                 ("thumbnail", "text", config.get_localized_string(60242))]
+#     controls = [("title", "text", config.getLocalizedString(60230)),
+#                 ("originaltitle", "text", config.getLocalizedString(60231)),
+#                 ("year", "text", config.getLocalizedString(60232)),
+#                 ("identificadores", "label", config.getLocalizedString(60233)),
+#                 ("tmdb_id", "text", config.getLocalizedString(60234)),
+#                 ("url_tmdb", "text", config.getLocalizedString(60235), "+!eq(-1,'')"),
+#                 ("tvdb_id", "text", config.getLocalizedString(60236), "+eq(-7,'Serie')"),
+#                 ("url_tvdb", "text", config.getLocalizedString(60237), "+!eq(-1,'')+eq(-8,'Serie')"),
+#                 ("imdb_id", "text", config.getLocalizedString(60238)),
+#                 ("otro_id", "text", config.getLocalizedString(60239), "+eq(-1,'')"),
+#                 ("urls", "label", config.getLocalizedString(60240)),
+#                 ("fanart", "text", config.getLocalizedString(60241)),
+#                 ("thumbnail", "text", config.getLocalizedString(60242))]
 
 #     if item.infoLabels["mediatype"] == "movie":
 #         mediatype_default = 0
@@ -112,12 +112,12 @@ def find_and_set_infoLabels(item):
 
 #     listado_controles = [{'id': "mediatype",
 #                           'type': "list",
-#                           'label': config.get_localized_string(60243),
+#                           'label': config.getLocalizedString(60243),
 #                           'color': COLOR[1],
 #                           'default': mediatype_default,
 #                           'enabled': True,
 #                           'visible': True,
-#                           'lvalues': [config.get_localized_string(60244), config.get_localized_string(70136)]
+#                           'lvalues': [config.getLocalizedString(60244), config.getLocalizedString(70136)]
 #                           }]
 
 #     for i, c in enumerate(controls):
@@ -154,7 +154,7 @@ def find_and_set_infoLabels(item):
 #                                   'visible': True})
 
 #     # logger.debug(dict_default)
-#     if platformtools.show_channel_settings(list_controls=listado_controles, caption=config.get_localized_string(60246), item=item,
+#     if platformtools.showChannelSettings(list_controls=listado_controles, caption=config.getLocalizedString(60246), item=item,
 #                                            callback="core.scraper.callback_cuadro_completar",
 #                                            custom_button={"visible": False}):
 #         return True
@@ -225,16 +225,16 @@ def get_nfo(item, search_groups=False):
 
         return info_nfo
     else:
-        try: return scraper.get_nfo(item)
-        except:
-            if item.contentType == "movie": scraper_actual = ['tmdb'][config.get_setting("scraper_movies", "videolibrary")]
-            else: scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
-            scraper = __import__('core.%s' % scraper_actual, fromlist=["core.%s" % scraper_actual])
-            return scraper.get_nfo(item, search_groups)
+        # try: return scraper.get_nfo(item)
+        # except:
+        #     if item.contentType == "movie": scraper_actual = ['tmdb'][config.getSetting("scraper_movies", "videolibrary")]
+        #     else: scraper_actual = ['tmdb', 'tvdb'][config.getSetting("scraper_tvshows", "videolibrary")]
+        scraper = __import__('core.tmdb', fromlist=["core.tmdb" ])
+        return scraper.get_nfo(item, search_groups)
 
 
 def sort_episode_list(episodelist):
-    scraper_actual = ['tmdb', 'tvdb'][config.get_setting("scraper_tvshows", "videolibrary")]
+    scraper_actual = ['tmdb', 'tvdb'][config.getSetting("scraper_tvshows", "videolibrary")]
 
     if scraper_actual == "tmdb":
         episodelist.sort(key=lambda e: (int(e.contentSeason), int(e.contentEpisodeNumber)))

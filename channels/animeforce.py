@@ -168,6 +168,6 @@ def findvideos(item):
         if url.startswith('//'): url = 'https:' + url
         elif url.startswith('/'): url = 'https:/' + url
         if 'vvvvid' in url: itemlist.append(item.clone(action="play", title='VVVVID', url=url, server='vvvvid'))
-        else: itemlist.append(item.clone(action="play", title=support.config.get_localized_string(30137), url=url, server='directo'))
+        else: itemlist.append(item.clone(action="play", title=support.config.getLocalizedString(30137), url=url, server='directo'))
 
     return support.server(item, itemlist=itemlist)

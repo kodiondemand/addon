@@ -22,7 +22,8 @@
       "type": "list",
       "label": "@60606",
       "default": 0,
-      "enabled": "eq(-1,@60603)|eq(-1,@60605)",
+      "submenu": true,
+      "visible": "eq(-1,@60603)|eq(-1,@60605)",
       "lvalues": [
         "No",
         "@60609",
@@ -36,7 +37,8 @@
       "type": "list",
       "label": "@60613",
       "default": 1,
-      "enabled": "eq(-2,@60604)|eq(-2,@60605)",
+      "submenu": true,
+      "visible": "eq(-2,@60604)|eq(-2,@60605)",
       "lvalues": [
         "00:00",
         "04:00",
@@ -47,28 +49,6 @@
       ]
     },
     {
-      "id": "updatetvshows_interval",
-      "type": "list",
-      "label": "@60614",
-      "default": 0,
-      "enabled": "!eq(-3,@60615)",
-      "lvalues": [
-        "@60616",
-        "@60617"
-      ]
-    },
-    {
-      "id": "search_new_content",
-      "type": "list",
-      "label": "@60618",
-      "default": 0,
-      "enabled": "!eq(-4,@60615)",
-      "lvalues": [
-        "@60619",
-        "@60620"
-      ]
-    },
-    {
       "id": "lab_1",
       "type": "label",
       "label": "@60650",
@@ -76,41 +56,19 @@
       "visible": true
     },
     {
-      "id": "scraper_movies",
-      "type": "list",
-      "label": "@60651",
-      "enabled": false,
-      "default": 0,
-      "visible": false,
-      "lvalues": [
-        "TMDB",
-        "None"
-      ]
-    },
-    {
-      "id": "scraper_tvshows",
-      "type": "list",
-      "label": "@60652",
-      "default": 0,
-      "visible": false,
-      "lvalues": [
-        "TMDB",
-        "TVDB"
-      ]
-    },
-    {
       "id": "tvdb_retry_eng",
       "type": "bool",
       "label": "@60653",
       "default": true,
-      "enabled": "eq(-1,TVDB)",
-      "visible": true
+      "submenu": true,
+      "visible": false
     },
     {
       "id": "info_language",
       "type": "list",
       "label": "@60662",
       "enabled": true,
+      "submenu": true,
       "default": 4,
       "lvalues": [
         "de",
@@ -123,50 +81,15 @@
     },
     {
       "id": "max_links",
-      "type": "list",
+      "type": "text",
+      "mode": "number",
       "label": "@60624",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "@60625",
-        "30",
-        "60",
-        "90",
-        "120",
-        "150",
-        "180",
-        "210"
-      ]
-    },
-    {
-      "id": "white_list_order",
-      "type": "bool",
-      "label": "@60626",
-      "enabled": true,
-      "visible": true,
-      "default": false
-    },
-    {
-      "id": "quit_channel_name",
-      "type": "bool",
-      "label": "@60627",
-      "enabled": true,
-      "visible": true,
-      "default": false
-    },
-    {
-      "id": "replace_VD",
-      "type": "bool",
-      "label": "@60628",
-      "enabled": "eq(-4,@60623)",
-      "visible": true,
-      "default": false
+      "default": 0
     },
     {
       "id": "db_mode",
       "type": "bool",
-      "label": "@60629",
+      "label": "@60629","submenu": true,
       "default": false,
       "enabled": true,
       "visible": true
@@ -175,20 +98,21 @@
       "id": "xbmc_host",
       "type": "text",
       "label": "@60632",
-      "visible": true,
-      "enabled": "eq(-1,true)"
+      "submenu": true,
+      "visible":  "eq(-1,true)"
     },
     {
       "id": "xbmc_puerto",
       "type": "text",
       "label": "@60633",
-      "enabled": "eq(-2,true)",
-      "visible": true
+      "submenu": true,
+      "visible": "eq(-2,true)"
     },
     {
       "id": "mark_as_watched",
       "type": "bool",
       "label": "@60634",
+      "submenu": true,
       "default": true,
       "enabled": true,
       "visible": true
@@ -201,25 +125,10 @@
       "visible": true
     },
     {
-      "id": "sync_trakt_watched",
-      "type": "bool",
-      "label": "@60638",
-      "default": false,
-      "visible": true,
-      "enabled": "eq(-3,true)"
-    },
-    {
-      "id": "sync_trakt_notification",
-      "type": "bool",
-      "label": "@60639",
-      "default": true,
-      "visible": true,
-      "enabled": "eq(-1,true)"
-    },
-    {
       "id": "sync_trakt_new_tvshow",
       "type": "bool",
       "label": "@60640",
+      "submenu": true,
       "default": false,
       "enabled": true,
       "visible": true
@@ -229,8 +138,8 @@
       "type": "bool",
       "label": "@60641",
       "default": true,
-      "visible": true,
-      "enabled": "eq(-1,true)"
+      "submenu": true,
+      "visible": "eq(-1,true)"
     },
     {
       "id": "show_all_seasons",
@@ -250,12 +159,6 @@
       ]
     },
     {
-      "id": "ask_channel",
-      "type": "bool",
-      "label": "@60645",
-      "default": false
-    },
-    {
       "id": "original_title_folder",
       "type": "bool",
       "label": "@60646",
@@ -265,12 +168,6 @@
       "id": "lowerize_title",
       "type": "bool",
       "label": "@70703",
-      "default": false
-    },
-    {
-      "id": "verify_playcount",
-      "type": "bool",
-      "label": "@70526",
       "default": false
     }
   ]

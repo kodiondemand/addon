@@ -255,7 +255,7 @@ def file_open(path, mode="r", silent=False, vfs=True):
         logger.error("ERROR when opening file: %s, %s" % (path, mode))
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("Error Opening", path)
+            platformtools.dialogNotification("Error Opening", path)
         return False
 
 
@@ -301,7 +301,7 @@ def rename(path, new_name, silent=False, strict=False, vfs=True):
             if not result and not strict:
                 logger.error("ERROR RENAME file: %s. Copying and deleting" % path)
                 if not silent:
-                    dialogo = platformtools.dialog_progress("Copying file", "")
+                    dialogo = platformtools.dialogProgress("Copying file", "")
                 result = xbmcvfs.copy(path, dest)
                 if not result:
                     return False
@@ -317,7 +317,7 @@ def rename(path, new_name, silent=False, strict=False, vfs=True):
         logger.error("ERROR when renaming the file: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("Error renaming", path)
+            platformtools.dialogNotification("Error renaming", path)
         return False
     else:
         return True
@@ -342,7 +342,7 @@ def move(path, dest, silent=False, strict=False, vfs=True):
             if not result and not strict:
                 logger.error("ERROR when MOVING the file: %s. Copying and deleting" % path)
                 if not silent:
-                    dialogo = platformtools.dialog_progress("Copying file", "")
+                    dialogo = platformtools.dialogProgress("Copying file", "")
                 result = xbmcvfs.copy(path, dest)
                 if not result:
                     return False
@@ -362,7 +362,7 @@ def move(path, dest, silent=False, strict=False, vfs=True):
         # mixed In this case the file is copied and then the source file is deleted
         else:
             if not silent:
-                dialogo = platformtools.dialog_progress("Copying file", "")
+                dialogo = platformtools.dialogProgress("Copying file", "")
             return copy(path, dest) == True and remove(path) == True
     except:
         logger.error("ERROR when moving file: %s to %s" % (path, dest))
@@ -390,14 +390,14 @@ def copy(path, dest, silent=False, vfs=True):
             path = encode(path)
             dest = encode(dest)
             if not silent:
-                dialogo = platformtools.dialog_progress("Copying file", "")
+                dialogo = platformtools.dialogProgress("Copying file", "")
             return bool(xbmcvfs.copy(path, dest))
 
         fo = file_open(path, "rb")
         fd = file_open(dest, "wb")
         if fo and fd:
             if not silent:
-                dialogo = platformtools.dialog_progress("Copying file", "")
+                dialogo = platformtools.dialogProgress("Copying file", "")
             size = getsize(path)
             copiado = 0
             while True:
@@ -559,7 +559,7 @@ def remove(path, silent=False, vfs=True):
         logger.error("ERROR deleting file: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("ERROR deleting file", path)
+            platformtools.dialogNotification("ERROR deleting file", path)
         return False
     else:
         return True
@@ -599,7 +599,7 @@ def rmdirtree(path, silent=False, vfs=True):
         logger.error("ERROR deleting directory: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("ERROR deleting directory", path)
+            platformtools.dialogNotification("ERROR deleting directory", path)
         return False
     else:
         return not exists(path)
@@ -627,7 +627,7 @@ def rmdir(path, silent=False, vfs=True):
         logger.error("ERROR deleting directory: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("ERROR deleting directory", path)
+            platformtools.dialogNotification("ERROR deleting directory", path)
         return False
     else:
         return True
@@ -660,7 +660,7 @@ def mkdir(path, silent=False, vfs=True):
         logger.error("ERROR when creating directory: %s" % path)
         if not silent:
             logger.error(traceback.format_exc())
-            platformtools.dialog_notification("ERROR when creating directory", path)
+            platformtools.dialogNotification("ERROR when creating directory", path)
         return False
     else:
         return True

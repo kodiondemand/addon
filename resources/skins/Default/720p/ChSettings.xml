@@ -1,0 +1,380 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes'?>
+<window>
+    <zorder>0.52</zorder>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
+
+    <controls>
+        <control type='group'>
+            <top>0</top>
+            <left>0</left>
+            <width>100%</width>
+            <height>100%</height>
+            <control type='image'>
+                <description>Window Background</description>
+                <width>100%</width>
+                <height>100%</height>
+                <texture colordiffuse='FF232323'>white.png</texture>
+            </control>
+            <control type='group'>
+                <top>40</top>
+                <left>40</left>
+                <control type='image'>
+                    <description>Divider</description>
+                    <top>10</top>
+                    <left>0</left>
+                    <height>40</height>
+                    <width>40</width>
+                    <texture colordiffuse='FFFFFFFF'>gear.png</texture>
+                </control>
+                <control type='label' id='1'>
+                    <description>Title</description>
+                    <top>0</top>
+                    <left>50</left>
+                    <height>60</height>
+                    <width>1070</width>
+                    <font>font13</font>
+                    <textcolor>FFFFFFFF</textcolor>
+                    <label>[B]$ADDON[plugin.video.kod 70320][/B]</label>
+                    <aligny>center</aligny>
+                    <align>left</align>
+                    <label/>
+                </control>
+                
+            </control>
+            <control type='list' id='100'>
+                <left>40</left>
+                <top>140</top>
+                <height>540</height>
+                <width>1100</width>
+                <pagecontrol>101</pagecontrol>
+                <itemlayout height='60' width='1100'>
+                    <control type='group'>
+                        <description>Enabled</description>
+                        <visible>String.IsEqual(ListItem.Property(enabled), True)</visible>
+                        <left>20</left>
+                        <height>100%</height>
+                        <width>1060</width>
+                        <control type='Label'>
+                            <description>Label</description>
+                            <width min='30' max='500'>auto</width>
+                            <height>100%</height>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>$INFO[ListItem.Label]</label>
+                        </control>
+                        <control type='image'>
+                            <description>Bool Selector</description>
+                            <visible>String.IsEqual(ListItem.Property(type), label)</visible>
+                            <top>30</top>
+                            <right>0</right>
+                            <width>540</width>
+                            <height>2</height>
+                            <texture colordiffuse='FFFFFFFF'>white.png</texture>
+                        </control>
+                        <control type='Label'>
+                            <description>Selection</description>
+                            <visible>!ListItem.Property(insert) + !ListItem.Property(bool) + !String.IsEqual(ListItem.Label2, None)</visible>
+                            <width min='30' max='500'>auto</width>
+                            <right>0</right>
+                            <height>100%</height>
+                            <align>right</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>FFFFFFFF</textcolor>
+                            <label>$INFO[ListItem.Label2]</label>
+                        </control>
+                        <control type='image'>
+                            <description>Bool Selector</description>
+                            <visible>ListItem.Property(bool)</visible>
+                            <top>15</top>
+                            <right>0</right>
+                            <width>30</width>
+                            <height>30</height>
+                            <texture colordiffuse='FFFFFFFF'>$INFO[ListItem.Property(bool)]</texture>
+                        </control>
+                        <control type='image'>
+                            <description>Add Button</description>
+                            <visible>ListItem.Property(insert) + String.IsEmpty(ListItem.Label)</visible>
+                            <top>5</top>
+                            <right>0</right>
+                            <width>100%</width>
+                            <height>50</height>
+                            <texture colordiffuse='FFFFFFFF'>add.png</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                    </control>
+                    <control type='group'>
+                        <description>Disabled</description>
+                        <visible>String.IsEqual(ListItem.Property(enabled), False)</visible>
+                        <left>20</left>
+                        <height>100%</height>
+                        <width>1060</width>
+                        <control type='Label'>
+                            <description>Label</description>
+                            <width min='30' max='500'>auto</width>
+                            <height>100%</height>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>55FFFFFF</textcolor>
+                            <label>$INFO[ListItem.Label]</label>
+                        </control>
+                        <control type='Label'>
+                            <description>Selection</description>
+                            <visible>!ListItem.Property(insert) + !ListItem.Property(bool) + !String.IsEqual(ListItem.Label2, None)</visible>
+                            <width min='30' max='500'>auto</width>
+                            <right>0</right>
+                            <height>100%</height>
+                            <align>right</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>55FFFFFF</textcolor>
+                            <label>$INFO[ListItem.Label2]</label>
+                        </control>
+                        <control type='image'>
+                            <description>Bool Selector</description>
+                            <visible>!String.IsEmpty(ListItem.Property(bool))</visible>
+                            <top>15</top>
+                            <right>0</right>
+                            <width>30</width>
+                            <height>30</height>
+                            <texture colordiffuse='55FFFFFF'>$INFO[ListItem.Property(bool)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type='image'>
+                            <description>Add Button</description>
+                            <visible>!String.IsEmpty(ListItem.Property(insert)) + String.IsEmpty(ListItem.Label)</visible>
+                            <top>5</top>
+                            <right>0</right>
+                            <width>100%</width>
+                            <height>50</height>
+                            <texture colordiffuse='55FFFFFF'>add.png</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                    </control>
+                </itemlayout>
+                <focusedlayout height='60' width='1100'>
+                    <control type='image'>
+                        <description>Bool Selector</description>
+                        <width>100%</width>
+                        <height>100%</height>
+                        <texture colordiffuse='AAFFFFFF'>white.png</texture>
+                    </control>
+                    <control type='group'>
+                        <visible>String.IsEqual(ListItem.Property(enabled), True)</visible>
+                        <left>20</left>
+                        <height>100%</height>
+                        <width>1060</width>
+                        <control type='Label'>
+                            <description>Label</description>
+                            <width min='30' max='500'>auto</width>
+                            <height>100%</height>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>FF232323</textcolor>
+                            <label>$INFO[ListItem.Label]</label>
+                        </control>
+                        <control type='Label'>
+                            <description>Selection</description>
+                            <visible>!ListItem.Property(insert) + !ListItem.Property(bool) + !String.IsEqual(ListItem.Label2, None)</visible>
+                            <width min='30' max='500'>auto</width>
+                            <right>0</right>
+                            <height>100%</height>
+                            <align>right</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>FF232323</textcolor>
+                            <label>$INFO[ListItem.Label2]</label>
+                        </control>
+                        <control type='image'>
+                            <description>Bool Selector</description>
+                            <visible>!String.IsEmpty(ListItem.Property(bool))</visible>
+                            <top>15</top>
+                            <right>0</right>
+                            <width>30</width>
+                            <height>30</height>
+                            <texture colordiffuse='FF232323'>$INFO[ListItem.Property(bool)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type='image'>
+                            <description>Add Button</description>
+                            <visible>!String.IsEmpty(ListItem.Property(insert)) + String.IsEmpty(ListItem.Label)</visible>
+                            <top>5</top>
+                            <right>0</right>
+                            <width>100%</width>
+                            <height>50</height>
+                            <texture colordiffuse='FF232323'>add.png</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                    </control>
+                    <control type='group'>
+                        <visible>String.IsEqual(ListItem.Property(enabled), False)</visible>
+                        <left>20</left>
+                        <height>100%</height>
+                        <width>1060</width>
+                        <control type='Label'>
+                            <description>Label</description>
+                            <width min='30' max='500'>auto</width>
+                            <height>100%</height>
+                            <align>left</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>55232323</textcolor>
+                            <label>$INFO[ListItem.Label]</label>
+                        </control>
+                        <control type='Label'>
+                            <description>Selection</description>
+                            <visible>!ListItem.Property(insert) + !ListItem.Property(bool) + !String.IsEqual(ListItem.Label2, None)</visible>
+                            <width min='30' max='500'>auto</width>
+                            <right>0</right>
+                            <height>100%</height>
+                            <align>right</align>
+                            <aligny>center</aligny>
+                            <font>font13</font>
+                            <textcolor>55232323</textcolor>
+                            <label>$INFO[ListItem.Label2]</label>
+                        </control>
+                        <control type='image'>
+                            <description>Bool Selector</description>
+                            <visible>!String.IsEmpty(ListItem.Property(bool))</visible>
+                            <top>15</top>
+                            <right>0</right>
+                            <width>30</width>
+                            <height>30</height>
+                            <texture colordiffuse='55232323'>$INFO[ListItem.Property(bool)]</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                        <control type='image'>
+                            <description>Add Button</description>
+                            <visible>!String.IsEmpty(ListItem.Property(insert)) + String.IsEmpty(ListItem.Label)</visible>
+                            <top>5</top>
+                            <right>0</right>
+                            <width>100%</width>
+                            <height>50</height>
+                            <texture colordiffuse='55232323'>add.png</texture>
+                            <aspectratio>keep</aspectratio>
+                        </control>
+                    </control>
+                </focusedlayout>
+            </control>
+            <control type='scrollbar' id='101'>
+                <animation effect='zoom' center='1161,0' end='800,100' time='50' condition='Control.HasFocus(101)'>Conditional</animation>
+                <description>Scrollbar</description>
+                <left>1160</left>
+                <top>140</top>
+                <width>1</width>
+                <height>540</height>
+                <visible>true</visible>
+                <texturesliderbackground colordiffuse='22FFFFFF'>white.png</texturesliderbackground>
+                <texturesliderbar colordiffuse='55FFFFFF'>white.png</texturesliderbar>
+                <texturesliderbarfocus colordiffuse='FFFFFFFF'>white.png</texturesliderbarfocus>
+                <textureslidernib />
+                <textureslidernibfocus/>
+                <pulseonselect></pulseonselect>
+                <orientation>vertical</orientation>
+                <onleft>100</onleft>
+                <onright>200</onright>
+          </control>
+        </control>
+
+        <control type='list' id='200'>
+            <description>Buttons</description>
+            <top>140</top>
+            <right>40</right>
+            <width>40</width>
+            <height>540</height>
+            <itemlayout height='50' width='40'>
+                <control type='image'>
+                    <height>40</height>
+                    <width>40</width>
+                    <aspectratio>scale</aspectratio>
+                    <texture colordiffuse='FF555555'>$INFO[ListItem.Art(button)]</texture>
+                </control>
+            </itemlayout>
+            <focusedlayout height='50' width='40'>
+                <control type='image'>
+                    <visible>!Control.HasFocus(200)</visible>
+                    <height>40</height>
+                    <width>40</width>
+                    <aspectratio>scale</aspectratio>
+                    <texture colordiffuse='FF555555'>$INFO[ListItem.Art(button)]</texture>
+                </control>
+                <control type='image'>
+                    <visible>Control.HasFocus(200)</visible>
+                    <height>40</height>
+                    <width>40</width>
+                    <aspectratio>scale</aspectratio>
+                    <texture colordiffuse='FFFFFFFF'>$INFO[ListItem.Art(button)]</texture>
+                </control>
+            </focusedlayout>
+        </control>
+
+        <control type='group'>
+            <description>Insert Controls</description>
+            <orientation>horizontal</orientation>
+            <top>90</top>
+            <right>480</right>
+            <height>40</height>
+            <width>120</width>
+
+            <visible>!String.IsEmpty(Container(100).ListItem.Property(insert)) + !String.IsEmpty(Container(100).ListItem.Label)</visible>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,0)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,1)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,2)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,3)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,4)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,5)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,6)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,7)'>Conditional</animation>
+            <animation effect='slide' end='0,60' condition='Integer.IsGreater(Container(100).Position,8)'>Conditional</animation>
+
+            <control type='button' id='300'>
+                <description>Move Up</description>
+                <top>0</top>
+                <left>0</left>
+                <height>40</height>
+                <width>40</width>
+                <onleft>100</onleft>
+                <onright>301</onright>
+                <onup>Control.Move(100,-1)</onup>
+                <ondown>Control.Move(100,1)</ondown>
+                <texturefocus colordiffuse='FF232323'>up.png</texturefocus>
+                <texturenofocus colordiffuse='80232323'>up.png</texturenofocus>
+            </control>
+
+            <control type='button' id='301'>
+                <description>Move Down</description>
+                <top>0</top>
+                <left>40</left>
+                <height>40</height>
+                <width>40</width>
+                <onleft>300</onleft>
+                <onright>302</onright>
+                <onup>Control.Move(100,-1)</onup>
+                <ondown>Control.Move(100,1)</ondown>
+                <texturefocus colordiffuse='FF232323'>down.png</texturefocus>
+                <texturenofocus colordiffuse='80232323'>down.png</texturenofocus>
+            </control>
+
+            <control type='button' id='302'>
+                <description>Remove</description>
+                <top>0</top>
+                <left>80</left>
+                <height>40</height>
+                <width>40</width>
+                <onleft>301</onleft>
+                <onright>200</onright>
+                <onup>Control.Move(100,-1)</onup>
+                <ondown>Control.Move(100,1)</ondown>
+                <texturefocus colordiffuse='FF232323'>delete.png</texturefocus>
+                <texturenofocus colordiffuse='80232323'>delete.png</texturenofocus>
+            </control>
+        </control>
+    </controls>
+</window>

@@ -16,14 +16,14 @@ def test_video_exists(page_url):
         headers = {'Referer': ''}
         data = httptools.downloadpage(page_url, headers=headers, cookies=False).data
     if 'File is no longer available as it expired or has been deleted' in data or 'fake-' in data:
-        return False, config.get_localized_string(70449) % "SuperVideo"
+        return False, config.getLocalizedString(70449) % "SuperVideo"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     # data = httptools.downloadpage(page_url).data
     global data
 
@@ -43,15 +43,15 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
         for source in lSrc:
             quality = source['label'] if 'label' in source else 'auto'
-            video_urls.append({'type':source['file'].split('.')[-1], 'res':quality, 'url':source['file']})
+            videoUrls.append({'type':source['file'].split('.')[-1], 'res':quality, 'url':source['file']})
 
     else:
-        matches = scrapertools.find_multiple_matches(data, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:\s*, res:\s(\d+))?')
+        matches = scrapertools.findMultipleMatches(data, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:\s*, res:\s(\d+))?')
         for url, quality in matches:
             if url.split('.')[-1] != 'm3u8':
-                video_urls.append({'type':url.split('.')[-1], 'res':quality, 'url':url})
+                videoUrls.append({'type':url.split('.')[-1], 'res':quality, 'url':url})
             else:
-                video_urls.append({'type':url.split('.')[-1], 'url':url})
+                videoUrls.append({'type':url.split('.')[-1], 'url':url})
 
-    # video_urls.sort(key=lambda x: x[0].split()[-2])
-    return video_urls
+    # videoUrls.sort(key=lambda x: x[0].split()[-2])
+    return videoUrls

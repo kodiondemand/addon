@@ -15,46 +15,46 @@ def getmainlist(view="thumb_"):
 
     # Main Menu Channels
     if addon.getSetting('enable_news_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(30130), channel="news", action="mainlist",
-                             thumbnail=thumb("news"), category=config.get_localized_string(30119), viewmode="thumbnails",
-                             context=[{"title": config.get_localized_string(70285), "channel": "shortcuts", "action": "SettingOnPosition", "category":7, "setting":1}]))
+        itemlist.append(Item(title=config.getLocalizedString(30130), channel="news", action="mainlist",
+                             thumbnail=thumb("news"), category=config.getLocalizedString(30119), viewmode="thumbnails",
+                             context=[{"title": config.getLocalizedString(70285), "channel": "shortcuts", "action": "SettingOnPosition", "category":7, "setting":1}]))
 
     if addon.getSetting('enable_channels_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(30118), channel="channelselector", action="getchanneltypes",
-                             thumbnail=thumb("channels"), view=view, category=config.get_localized_string(30119), viewmode="thumbnails"))
+        itemlist.append(Item(title=config.getLocalizedString(30118), channel="channelselector", action="getchanneltypes",
+                             thumbnail=thumb("channels"), view=view, category=config.getLocalizedString(30119), viewmode="thumbnails"))
 
     if addon.getSetting('enable_search_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(30103), channel="search", path='special', action="mainlist",
-                             thumbnail=thumb("search"), category=config.get_localized_string(30119), viewmode="list",
-                             context = [{"title": config.get_localized_string(60412), "action": "channels_selections", "channel": "search"},
-                                       {"title": config.get_localized_string(70286), "channel": "shortcuts", "action": "SettingOnPosition", "category":5 , "setting":1}]))
+        itemlist.append(Item(title=config.getLocalizedString(30103), channel="search", path='special', action="mainlist",
+                             thumbnail=thumb("search"), category=config.getLocalizedString(30119), viewmode="list",
+                             context = [{"title": config.getLocalizedString(60412), "action": "channels_selections", "channel": "search"},
+                                       {"title": config.getLocalizedString(70286), "channel": "shortcuts", "action": "SettingOnPosition", "category":5 , "setting":1}]))
 
     if addon.getSetting('enable_onair_menu') == "true":
-        itemlist.append(Item(channel="filmontv", action="mainlist", title=config.get_localized_string(50001),
+        itemlist.append(Item(channel="filmontv", action="mainlist", title=config.getLocalizedString(50001),
                              thumbnail=thumb("live"), viewmode="thumbnails"))
 
     if addon.getSetting('enable_link_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist", thumbnail=thumb("mylink"),
-                             view=view, category=config.get_localized_string(70527), viewmode="thumbnails"))
+        itemlist.append(Item(title=config.getLocalizedString(70527), channel="kodfavorites", action="mainlist", thumbnail=thumb("mylink"),
+                             view=view, category=config.getLocalizedString(70527), viewmode="thumbnails"))
 
     if addon.getSetting('enable_fav_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(30102), channel="favorites", action="mainlist",
-                            thumbnail=thumb("favorites"), category=config.get_localized_string(30102), viewmode="thumbnails"))
+        itemlist.append(Item(title=config.getLocalizedString(30102), channel="favorites", action="mainlist",
+                            thumbnail=thumb("favorites"), category=config.getLocalizedString(30102), viewmode="thumbnails"))
 
     if config.get_videolibrary_support() and addon.getSetting('enable_library_menu') == "true":
-        itemlist.append(Item(title=config.get_localized_string(30131), channel="videolibrary", action="mainlist",
-                             thumbnail=thumb("videolibrary"), category=config.get_localized_string(30119), viewmode="thumbnails",
-                             context=[{"title": config.get_localized_string(70287), "channel": "shortcuts", "action": "SettingOnPosition", "category":2, "setting":1},
-                                      {"title": config.get_localized_string(60568), "channel": "videolibrary", "action": "update_videolibrary"}]))
+        itemlist.append(Item(title=config.getLocalizedString(30131), channel="videolibrary", action="mainlist",
+                             thumbnail=thumb("videolibrary"), category=config.getLocalizedString(30119), viewmode="thumbnails",
+                             context=[{"title": config.getLocalizedString(70287), "channel": "shortcuts", "action": "SettingOnPosition", "category":2, "setting":1},
+                                      {"title": config.getLocalizedString(60568), "channel": "videolibrary", "action": "update_videolibrary"}]))
     if downloadenabled != "false":
-        itemlist.append(Item(title=config.get_localized_string(30101), channel="downloads", action="mainlist", thumbnail=thumb("download"), viewmode="list",
-                             context=[{"title": config.get_localized_string(70288), "channel": "shortcuts", "action": "SettingOnPosition", "category":6}]))
+        itemlist.append(Item(title=config.getLocalizedString(30101), channel="downloads", action="mainlist", thumbnail=thumb("download"), viewmode="list",
+                             context=[{"title": config.getLocalizedString(70288), "channel": "shortcuts", "action": "SettingOnPosition", "category":6}]))
 
 
-    itemlist.append(Item(title=config.get_localized_string(30100), channel="setting", action="settings",
-                         thumbnail=thumb('setting'), category=config.get_localized_string(30100), viewmode="list", folder=False))
-    itemlist.append(Item(title=config.get_localized_string(30104) + " (v" + config.get_addon_version(with_fix=True) + ")", channel="help", action="mainlist",
-                         thumbnail=thumb("help"), category=config.get_localized_string(30104), viewmode="list"))
+    itemlist.append(Item(title=config.getLocalizedString(30100), channel="setting", action="settings",
+                         thumbnail=thumb('setting'), category=config.getLocalizedString(30100), viewmode="list", folder=False))
+    itemlist.append(Item(title=config.getLocalizedString(30104) + " (v" + config.getAddonVersion(with_fix=True) + ")", channel="help", action="mainlist",
+                         thumbnail=thumb("help"), category=config.getLocalizedString(30104), viewmode="list"))
     return itemlist
 
 
@@ -70,19 +70,19 @@ def getchanneltypes(view="thumb_"):
 
     # Build Itemlist
     itemlist = list()
-    title = config.get_localized_string(30121)
+    title = config.getLocalizedString(30121)
     itemlist.append(Item(title=title, channel="channelselector", action="filterchannels", view=view,
                          category=title, channel_type="all", thumbnail=thumb("all"),
                          viewmode="thumbnails"))
 
     for channel_type in channel_types:
-        title = config.get_localized_category(channel_type)
+        title = config.getLocalizedCategory(channel_type)
         itemlist.append(Item(title=title, channel="channelselector", action="filterchannels", category=title,
                              channel_type=channel_type, viewmode="thumbnails",
                              thumbnail=thumb(channel_type)))
 
-    itemlist.append(Item(title=config.get_localized_string(70685), channel="community", action="mainlist", view=view,
-                         category=config.get_localized_string(70685), channel_type="all", thumbnail=thumb("community"),
+    itemlist.append(Item(title=config.getLocalizedString(70685), channel="community", action="mainlist", view=view,
+                         category=config.getLocalizedString(70685), channel_type="all", thumbnail=thumb("community"),
                          viewmode="thumbnails"))
     return itemlist
 
@@ -99,7 +99,7 @@ def filterchannels(category, view="thumb_"):
         category = "all"
         appenddisabledchannels = True
 
-    channel_path = os.path.join(config.get_runtime_path(), 'channels', '*.json')
+    channel_path = os.path.join(config.getRuntimePath(), 'channels', '*.json')
     logger.debug("channel_path = %s" % channel_path)
 
     channel_files = glob.glob(channel_path)
@@ -134,7 +134,7 @@ def filterchannels(category, view="thumb_"):
                 continue
 
             # The channel is skipped if it is not active and we are not activating / deactivating the channels
-            channel_status = config.get_setting("enabled", channel_parameters["channel"])
+            channel_status = config.getSetting("enabled", channel_parameters["channel"])
 
             if channel_status is None:
                 # if channel_status does not exist, there is NO value in _data.json.
@@ -158,7 +158,7 @@ def filterchannels(category, view="thumb_"):
             # If you have configuration we add an item in the context
             context = []
             if channel_parameters["has_settings"]:
-                context.append({"title": config.get_localized_string(70525), "channel": "setting", "action": "channel_config",
+                context.append({"title": config.getLocalizedString(70525), "channel": "setting", "action": "channel_config",
                                 "config": channel_parameters["channel"]})
 
             channel_info = set_channel_info(channel_parameters)
@@ -175,7 +175,7 @@ def filterchannels(category, view="thumb_"):
 
     channelslist.sort(key=lambda item: item.title.lower().strip())
 
-    if not config.get_setting("only_channel_icons"):
+    if not config.getSetting("only_channel_icons"):
         from core.support import thumb
 
         if category == "all":
@@ -184,12 +184,12 @@ def filterchannels(category, view="thumb_"):
             # if view == "banner_" and "banner" in channel_parameters:
             #     channel_parameters["thumbnail"] = channel_parameters["banner"]
 
-            channelslist.insert(0, Item(title=config.get_localized_string(60088), action="mainlist", channel="url",
+            channelslist.insert(0, Item(title=config.getLocalizedString(60088), action="mainlist", channel="url",
                                         thumbnail=channel_parameters["thumbnail"], type="generic", viewmode="list"))
         # Special Category
         if category in ['movie', 'tvshow']:
             ch_list = []
-            titles = [config.get_localized_string(70028), config.get_localized_string(30985), config.get_localized_string(70559), config.get_localized_string(60264), config.get_localized_string(70560)]
+            titles = [config.getLocalizedString(70028), config.getLocalizedString(30985), config.getLocalizedString(70559), config.getLocalizedString(60264), config.getLocalizedString(70560)]
             ids = ['popular', 'top_rated', 'now_playing', 'on_the_air']
             for x in range(0,3):
                 if x == 2 and category != 'movie':
@@ -203,7 +203,7 @@ def filterchannels(category, view="thumb_"):
                          list_type='%s/%s' % (category.replace('show',''), id), mode=category))
 
 
-            ch_list.insert(3, Item(channel='classicsearch', action='genres_menu', title=config.get_localized_string(30987) + '{' + category.replace('show','') + '}',
+            ch_list.insert(3, Item(channel='classicsearch', action='genres_menu', title=config.getLocalizedString(30987) + '{' + category.replace('show','') + '}',
                                         type=category.replace('show',''), mode=category))
             channelslist = thumb(ch_list) + channelslist
 
@@ -214,10 +214,10 @@ def filterchannels(category, view="thumb_"):
 #     from core import filetools
 #     if thumb_name.startswith('http'):
 #         return thumb_name
-#     elif config.get_setting('enable_custom_theme') and config.get_setting('custom_theme') and filetools.isfile(config.get_setting('custom_theme') + view + thumb_name):
-#         media_path = config.get_setting('custom_theme')
+#     elif config.getSetting('enable_custom_theme') and config.getSetting('custom_theme') and filetools.isfile(config.getSetting('custom_theme') + view + thumb_name):
+#         media_path = config.getSetting('custom_theme')
 #     else:
-#         icon_pack_name = config.get_setting('icon_set', default="default")
+#         icon_pack_name = config.getSetting('icon_set', default="default")
 #         media_path = filetools.join("https://raw.githubusercontent.com/kodiondemand/media/master/themes/new", icon_pack_name)
 #     return filetools.join(media_path, thumb_name)
 
@@ -246,22 +246,22 @@ def set_channel_info(parameters):
     categories = parameters['categories']
     for cat in categories:
         if content != '':
-            content = '%s, %s' % (content, config.get_localized_category(cat))
+            content = '%s, %s' % (content, config.getLocalizedCategory(cat))
         else:
-            content = config.get_localized_category(cat)
+            content = config.getLocalizedCategory(cat)
 
-    info = '[B]' + config.get_localized_string(70567) + ' [/B]' + content + '\n\n'
-    info += '[B]' + config.get_localized_string(70568) + ' [/B] ' + language
+    info = '[B]' + config.getLocalizedString(70567) + ' [/B]' + content + '\n\n'
+    info += '[B]' + config.getLocalizedString(70568) + ' [/B] ' + language
     return info
 
 
 def auto_filter(auto_lang=False):
     list_lang = ['ita', 'vos', 'sub-ita']
-    if config.get_setting("channel_language") == 'auto' or auto_lang == True:
-        lang = config.get_localized_string(20001)
+    if config.getSetting("channel_language") == 'auto' or auto_lang == True:
+        lang = config.getLocalizedString(20001)
 
     else:
-        lang = config.get_setting("channel_language", default="all")
+        lang = config.getSetting("channel_language", default="all")
 
     if lang not in list_lang:
         lang = 'all'

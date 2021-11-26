@@ -21,7 +21,7 @@ class Recaptcha(xbmcgui.WindowXMLDialog):
         self.doModal()
         # Reload
         if self.result == {}:
-            self.result = Recaptcha("Recaptcha.xml", config.get_runtime_path()).Start(self.key, self.referer)
+            self.result = Recaptcha("Recaptcha.xml", config.getRuntimePath()).Start(self.key, self.referer)
 
         return self.result
 
@@ -43,7 +43,7 @@ class Recaptcha(xbmcgui.WindowXMLDialog):
 
     def onInit(self):
         #### Kodi 18 compatibility ####
-        if config.get_platform(True)['num_version'] < 18:
+        if config.getXBMCPlatform(True)['num_version'] < 18:
             self.setCoordinateResolution(2)
         self.update_window()
 
@@ -68,7 +68,7 @@ class Recaptcha(xbmcgui.WindowXMLDialog):
             logger.debug(data)
             self.result = scrapertools.find_single_match(data, '<div class="fbc-verification-token">.*?>([^<]+)<')
             if self.result:
-                platformtools.dialog_notification("Captcha corretto", "Verifica conclusa")
+                platformtools.dialogNotification("Captcha corretto", "Verifica conclusa")
                 self.close()
             else:
                 self.result = {}

@@ -4,7 +4,7 @@
 # ------------------------------------------------------------
 
 import json, requests, sys
-from core import support, channeltools
+from core import support, channeltools, jsontools
 from platformcode import config, logger
 if sys.version_info[0] >= 3:
     from concurrent import futures
@@ -12,28 +12,34 @@ else:
     from concurrent_py2 import futures
 
 def findhost(url):
-    return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
+    matches = support.match(url, patron='<a href="([^"]+)" target="_blank"').matches
+    if matches:
+        return matches[-1]
 
 host = support.config.get_channel_url(findhost)
 session = requests.Session()
 headers = {}
-perpage = config.get_setting('pagination', 'streamingcommunity', default=1) * 10 + 10
+perpage = config.getSetting('pagination', 'streamingcommunity', default=1) * 10 + 10
 
-def getHeaders():
+def getHeaders(forced=False):
     global headers
     global host
-    # support.dbg()
     if not headers:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
-        response = session.get(host, headers=headers)
-        if response.status_code != 200 or response.url != host:
+        try:
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
+            response = session.get(host, headers=headers)
+            if not response.url.startswith(host):
+                host = support.config.get_channel_url(findhost, forceFindhost=True)
+            csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
+                        'content-type': 'application/json;charset=UTF-8',
+                        'Referer': host,
+                        'x-csrf-token': csrf_token,
+                        'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+        except:
             host = support.config.get_channel_url(findhost, forceFindhost=True)
-        csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
-                    'content-type': 'application/json;charset=UTF-8',
-                    'Referer': host,
-                    'x-csrf-token': csrf_token,
-                    'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+            if not forced: getHeaders(True)
+
 getHeaders()
 
 @support.menu
@@ -118,6 +124,7 @@ def movies(item):
     if type(item.args) == int:
         data = support.scrapertools.decodeHtmlentities(support.match(item).data)
         records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
+        
     elif not item.search:
         payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
         records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
@@ -131,6 +138,8 @@ def movies(item):
             js += record
     else:
         js = records
+        
+    logger.debug(jsontools.dump(js))
 
     itemlist = makeItems(item, js)
 

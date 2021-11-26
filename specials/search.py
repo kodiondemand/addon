@@ -3,7 +3,7 @@
 # Search Entry Point
 # ------------------------------------------------------------
 
-import xbmc
+import xbmc, json
 from core.item import Item
 from core.support import typo, thumb
 from platformcode import logger, config, platformtools
@@ -13,21 +13,21 @@ def mainlist(item):
     action = 'new_search'
     channel = 'classicsearch'
     folder = True
-    if platformtools.get_window() not in ('WINDOW_SETTINGS_MENU', 'WINDOW_SETTINGS_INTERFACE', 'WINDOW_SKIN_SETTINGS')\
-            and xbmc.getInfoLabel('System.CurrentWindow') in ('Home', '') and config.get_setting('new_search'):
+    if platformtools.getWindow() not in ('WINDOW_SETTINGS_MENU', 'WINDOW_SETTINGS_INTERFACE', 'WINDOW_SKIN_SETTINGS')\
+            and xbmc.getInfoLabel('System.CurrentWindow') in ('Home', '') and config.getSetting('new_search'):
                 channel = 'globalsearch'
                 folder = False
 
-    itemlist = [Item(channel=channel, title=config.get_localized_string(70276), action=action, mode='all', folder=folder),
-                Item(channel=channel, title=config.get_localized_string(70741) % config.get_localized_string(30122), action=action, mode='movie', folder=folder),
-                Item(channel=channel, title=config.get_localized_string(70741) % config.get_localized_string(30123), action=action, mode='tvshow', folder=folder),
-                Item(channel=channel, title=config.get_localized_string(70741) % config.get_localized_string(70314), action=action, page=1, mode='person', folder=folder),
+    itemlist = [Item(channel=channel, title=config.getLocalizedString(70276), action=action, mode='all', folder=folder),
+                Item(channel=channel, title=config.getLocalizedString(70741) % config.getLocalizedString(30122), action=action, mode='movie', folder=folder),
+                Item(channel=channel, title=config.getLocalizedString(70741) % config.getLocalizedString(30123), action=action, mode='tvshow', folder=folder),
+                Item(channel=channel, title=config.getLocalizedString(70741) % config.getLocalizedString(70314), action=action, page=1, mode='person', folder=folder),
 
-                Item(channel=item.channel, title=config.get_localized_string(59995), action='saved_search', thumbnail=thumb('search')),
-                Item(channel=item.channel, title=config.get_localized_string(60420), action='sub_menu', thumbnail=thumb('search')),
-                Item(channel="tvmoviedb", title=config.get_localized_string(70274), action="mainlist", thumbnail=thumb('search')),
-                Item(channel=item.channel, title=typo(config.get_localized_string(59994), 'bold'), action='channel_selections', folder=False),
-                Item(channel='shortcuts', title=typo(config.get_localized_string(70286), 'bold'), action='SettingOnPosition', category=5, setting=1, folder=False)]
+                Item(channel=item.channel, title=config.getLocalizedString(59995), action='saved_search', thumbnail=thumb('search')),
+                Item(channel=item.channel, title=config.getLocalizedString(60420), action='sub_menu', thumbnail=thumb('search')),
+                Item(channel="tvmoviedb", title=config.getLocalizedString(70274), action="mainlist", thumbnail=thumb('search')),
+                Item(channel=item.channel, title=typo(config.getLocalizedString(59994), 'bold'), action='channel_selections', folder=False),
+                Item(channel='shortcuts', title=typo(config.getLocalizedString(70286), 'bold'), action='SettingOnPosition', category=5, setting=1, folder=False)]
 
     thumb(itemlist)
     return itemlist
@@ -36,16 +36,16 @@ def mainlist(item):
 def sub_menu(item):
     logger.debug()
     channel = 'classicsearch'
-    itemlist = [Item(channel=channel, action='genres_menu', title=config.get_localized_string(70306), mode='movie'),
-                Item(channel=channel, action='years_menu', title=config.get_localized_string(70742), mode='movie'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70307), search_type='list', list_type='movie/popular', mode='movie'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70308), search_type='list', list_type='movie/top_rated', mode='movie'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70309), search_type='list', list_type='movie/now_playing', mode='movie'),
-                Item(channel=channel, action='genres_menu', title=config.get_localized_string(70310), mode='tvshow'),
-                Item(channel=channel, action='years_menu', title=config.get_localized_string(70743), mode='tvshow'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70311), search_type='list', list_type='tv/popular', mode='tvshow'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70312), search_type='list', list_type='tv/on_the_air', mode='tvshow'),
-                Item(channel=channel, action='discover_list', title=config.get_localized_string(70313), search_type='list', list_type='tv/top_rated', mode='tvshow')]
+    itemlist = [Item(channel=channel, action='genres_menu', title=config.getLocalizedString(70306), mode='movie'),
+                Item(channel=channel, action='years_menu', title=config.getLocalizedString(70742), mode='movie'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70307), search_type='list', list_type='movie/popular', mode='movie'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70308), search_type='list', list_type='movie/top_rated', mode='movie'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70309), search_type='list', list_type='movie/now_playing', mode='movie'),
+                Item(channel=channel, action='genres_menu', title=config.getLocalizedString(70310), mode='tvshow'),
+                Item(channel=channel, action='years_menu', title=config.getLocalizedString(70743), mode='tvshow'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70311), search_type='list', list_type='tv/popular', mode='tvshow'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70312), search_type='list', list_type='tv/on_the_air', mode='tvshow'),
+                Item(channel=channel, action='discover_list', title=config.getLocalizedString(70313), search_type='list', list_type='tv/top_rated', mode='tvshow')]
 
     itemlist = set_context(itemlist)
     thumb(itemlist)
@@ -56,13 +56,13 @@ def set_context(itemlist):
     logger.debug()
     channel = 'classicsearch'
     for elem in itemlist:
-        elem.context = [{"title": config.get_localized_string(60412),
+        elem.context = [{"title": config.getLocalizedString(60412),
                          "action": "channel_selections",
                          "channel": channel},
-                        {"title": config.get_localized_string(60415),
+                        {"title": config.getLocalizedString(60415),
                          "action": "settings",
                          "channel": channel},
-                        {"title": config.get_localized_string(60416),
+                        {"title": config.getLocalizedString(60416),
                          "action": "clear_saved_searches",
                          "channel": channel}]
     return itemlist
@@ -87,8 +87,8 @@ def channel_selections(item):
         # Do not include if "include_in_global_search" does not exist in the channel configuration
         if not channel_parameters['include_in_global_search']:
             continue
-        label_cat = ', '.join(config.get_localized_category(c) for c in channel_parameters['categories'])
-        label_lang = ', '.join(config.get_localized_language(l) for l in channel_parameters['language'])
+        label_cat = ', '.join(config.getLocalizedCategory(c) for c in channel_parameters['categories'])
+        label_lang = ', '.join(config.getLocalizedLanguage(l) for l in channel_parameters['language'])
         label = '{} [{}]'.format(label_cat, label_lang)
 
         it = xbmcgui.ListItem(channel.title, label)
@@ -100,23 +100,23 @@ def channel_selections(item):
 
     # Pre-select dialog
     preselections = [
-        config.get_localized_string(70570),
-        config.get_localized_string(70571),
-        config.get_localized_string(70572),
-        config.get_localized_string(70573),
+        config.getLocalizedString(70570),
+        config.getLocalizedString(70571),
+        config.getLocalizedString(70572),
+        config.getLocalizedString(70573),
     ]
     preselections_values = ['skip', 'actual', 'all', 'none']
 
     categories = ['movie', 'tvshow', 'documentary', 'anime', 'sub', 'live', 'torrent']
     for c in categories:
-        preselections.append(config.get_localized_string(70577) + config.get_localized_category(c))
+        preselections.append(config.getLocalizedString(70577) + config.getLocalizedCategory(c))
         preselections_values.append(c)
 
     if item.action == 'setting_channel':  # Configure channels included in search
         del preselections[0]
         del preselections_values[0]
 
-    ret = platformtools.dialog_select(config.get_localized_string(59994), preselections)
+    ret = platformtools.dialogSelect(config.getLocalizedString(59994), preselections)
     if ret == -1:
         return False  # order cancel
     if preselections_values[ret] == 'skip':
@@ -128,7 +128,7 @@ def channel_selections(item):
     elif preselections_values[ret] == 'actual':
         preselect = []
         for i, channel in enumerate(ids):
-            channel_status = config.get_setting('include_in_global_search', channel)
+            channel_status = config.getSetting('include_in_global_search', channel)
             if channel_status:
                 preselect.append(i)
     else:
@@ -138,27 +138,27 @@ def channel_selections(item):
                 preselect.append(i)
 
     # Selection Dialog
-    ret = platformtools.dialog_multiselect(config.get_localized_string(59994), channel_list, preselect=preselect, useDetails=True)
+    ret = platformtools.dialogMultiselect(config.getLocalizedString(59994), channel_list, preselect=preselect, useDetails=True)
 
     if ret == None: return False  # order cancel
     selected = [ids[i] for i in ret]
 
     # Save changes to search channels
     for channel in ids:
-        channel_status = config.get_setting('include_in_global_search', channel)
+        channel_status = config.getSetting('include_in_global_search', channel)
 
         if channel_status and channel not in selected:
-            config.set_setting('include_in_global_search', False, channel)
+            config.setSetting('include_in_global_search', False, channel)
         elif not channel_status and channel in selected:
-            config.set_setting('include_in_global_search', True, channel)
+            config.setSetting('include_in_global_search', True, channel)
 
     return True
 
 def save_search(text):
     if text:
-        saved_searches_limit = config.get_setting("saved_searches_limit")
+        saved_searches_limit = config.getSetting("saved_searches_limit")
 
-        current_saved_searches_list = config.get_setting("saved_searches_list", "search")
+        current_saved_searches_list = config.getSetting("saved_searches_list", "search")
         if current_saved_searches_list is None:
             saved_searches_list = []
         else:
@@ -169,44 +169,75 @@ def save_search(text):
 
         saved_searches_list.insert(0, text)
 
-        config.set_setting("saved_searches_list", saved_searches_list[:saved_searches_limit], "search")
+        config.setSetting("saved_searches_list", saved_searches_list[:saved_searches_limit], "search")
 
 def clear_saved_searches(item):
-    config.set_setting("saved_searches_list", list(), "search")
-    platformtools.dialog_ok(config.get_localized_string(60423), config.get_localized_string(60424))
+    config.setSetting("saved_searches_list", list(), "search")
+    platformtools.dialogOk(config.getLocalizedString(60423), config.getLocalizedString(60424))
 
 def saved_search(item):
     logger.debug()
 
-    itemlist = list()
-    saved_searches_list = get_saved_searches()
+    itemlist = get_saved_searches()
 
-
-    for saved_search_text in saved_searches_list:
-        itemlist.append(
-            Item(channel=item.channel if not config.get_setting('new_search') else 'globalsearch',
-                 action="new_search" if not config.get_setting('new_search') else 'Search',
-                 title=typo(saved_search_text.split('{}')[0], 'bold'),
-                 search_text=saved_search_text.split('{}')[0],
-                 text=saved_search_text.split('{}')[0],
-                 mode='all',
-                 thumbnail=thumb('search')))
-
-    if len(saved_searches_list) > 0:
+    if len(itemlist) > 0:
         itemlist.append(
             Item(channel=item.channel,
                  action="clear_saved_searches",
-                 title=typo(config.get_localized_string(60417), 'color kod bold'),
+                 title=typo(config.getLocalizedString(60417), 'color kod bold'),
                  thumbnail=thumb('search')))
 
     itemlist = set_context(itemlist)
     return itemlist
 
 def get_saved_searches():
-    current_saved_searches_list = config.get_setting("saved_searches_list", "search")
-    if current_saved_searches_list is None:
-        saved_searches_list = []
-    else:
-        saved_searches_list = list(current_saved_searches_list)
+    current_saved_searches_list = config.getSetting("saved_searches_list", "search")
+    if not current_saved_searches_list:
+        current_saved_searches_list = []
+    saved_searches_list = []
+    for saved_search_item in current_saved_searches_list:
+        if type(saved_search_item) == str:
+            text = saved_search_item.split('{}')[0]
+            saved_searches_list.append(
+                Item(channel='globalsearch' if config.getSetting('new_search') else 'classicsearch',
+                     folder=False if config.getSetting('new_search') else True,
+                     action="new_search",
+                     title=text,
+                     search_text=text,
+                     text=text,
+                     mode= 'all',
+                     thumbnail=thumb('search')))
+        else:
+            item = Item().fromjson(json.dumps(saved_search_item))
+            if item.action == 'Search':
+                item.action = 'new_search'
+                if item.type: item.mode = 'search/'+item.type
+            saved_searches_list.append(item)
 
     return saved_searches_list
+
+def from_context(item):
+    logger.debug()
+    from specials import globalsearch, classicsearch
+
+    select = channel_selections(item)
+
+    if not select:
+        return
+
+    if 'infoLabels' in item and 'mediatype' in item.infoLabels:
+        item.mode = item.infoLabels['mediatype']
+    else:
+        return
+
+    if config.getSetting('new_search') and not item.page:
+        if item.infoLabels['tmdb_id']:
+            item.mode = 'search/' + item.mode
+        return globalsearch.new_search(item)
+
+    if 'list_type' not in item:
+        if 'wanted' in item:
+            item.title = item.wanted
+        return classicsearch.channel_search(item)
+
+    return classicsearch.discover_list(item)

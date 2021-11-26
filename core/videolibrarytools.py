@@ -19,14 +19,14 @@ from platformcode import config, dbconverter, logger, platformtools
 from platformcode.autorenumber import RENUMBER
 from core import videolibrarydb
 
-FOLDER_MOVIES = config.get_setting("folder_movies")
-FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
-VIDEOLIBRARY_PATH = config.get_videolibrary_path()
+FOLDER_MOVIES = config.getSetting("folder_movies")
+FOLDER_TVSHOWS = config.getSetting("folder_tvshows")
+VIDEOLIBRARY_PATH = config.getVideolibraryPath()
 MOVIES_PATH = filetools.join(VIDEOLIBRARY_PATH, FOLDER_MOVIES)
 TVSHOWS_PATH = filetools.join(VIDEOLIBRARY_PATH, FOLDER_TVSHOWS)
 
 if not FOLDER_MOVIES or not FOLDER_TVSHOWS or not VIDEOLIBRARY_PATH or not filetools.exists(MOVIES_PATH) or not filetools.exists(TVSHOWS_PATH):
-    config.verify_directories_created()
+    config.verifyDirectoriesCreated()
 
 addon_name = "plugin://plugin.video.%s/" % config.PLUGIN_NAME
 
@@ -92,7 +92,7 @@ def save_movie(item, silent=False):
         return 0, 0, -1, path
 
     # progress dialog
-    if not silent: p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(60062))
+    if not silent: p_dialog = platformtools.dialogProgressBg(config.getLocalizedString(20000), config.getLocalizedString(60062))
 
     base_name = set_base_name(item, _id)
     path = filetools.join(MOVIES_PATH, base_name)
@@ -121,7 +121,7 @@ def save_movie(item, silent=False):
 
         # get extra info from fanart tv
         # logger.dbg()
-        extra_info = get_fanart_tv(item)
+        extra_info = getFanart_tv(item)
         if not item.infoLabels.get('posters', []): item.infoLabels['posters'] = []
         item.infoLabels['posters'] += extra_info['poster']
         if not item.infoLabels.get('fanarts', []): item.infoLabels['fanarts'] = []
@@ -204,7 +204,7 @@ def save_movie(item, silent=False):
         if not item.contentLanguage in movie_item.lang_list: movie_item.lang_list.append(item.contentLanguage)
 
         if len(movie_item.lang_list) > 1:
-            movie_item.prefered_lang = movie_item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), movie_item.lang_list)]
+            movie_item.prefered_lang = movie_item.lang_list[platformtools.dialogSelect(config.getLocalizedString(70246), movie_item.lang_list)]
         else:
             movie_item.prefered_lang = movie_item.lang_list[0]
 
@@ -216,7 +216,7 @@ def save_movie(item, silent=False):
         # create strm file if it does not exist
         if not strm_exists and not local_files:
             logger.debug("Creating .strm: " + strm_path)
-            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=movie_item.videolibrary_id)
+            item_strm = Item(channel='videolibrary', action='playFromLibrary', strm_path=movie_item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=movie_item.videolibrary_id)
             strm_exists = filetools.write(filetools.join(MOVIES_PATH, movie_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
         # checks if the content already exists
@@ -260,11 +260,11 @@ def save_movie(item, silent=False):
         if not silent:
             p_dialog.update(100, item.contentTitle)
             p_dialog.close()
-        if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not item.not_add:
+        if config.is_xbmc() and config.getSetting("videolibrary_kodi") and not item.not_add:
             # Update Kodi Library
             from platformcode.dbconverter import add_video
             add_video(movie_item)
-        # if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not silent and inserted:
+        # if config.is_xbmc() and config.getSetting("videolibrary_kodi") and not silent and inserted:
             # from platformcode.xbmc_videolibrary import update
             # update(MOVIES_PATH)
         return inserted, overwritten, failed, path
@@ -357,7 +357,7 @@ def save_tvshow(item, episodelist, silent=False):
         head_nfo = scraper.get_nfo(item)
     if not head_nfo: return 0, 0, -1, ''
 
-    extra_info = get_fanart_tv(item)
+    extra_info = getFanart_tv(item)
     if not item.infoLabels.get('posters'):item.infoLabels['posters'] = []
     item.infoLabels['posters'] += extra_info['poster'].get('all',[])
     if not item.infoLabels.get('fanarts'): item.infoLabels['fanarts'] = []
@@ -425,7 +425,7 @@ def save_tvshow(item, episodelist, silent=False):
     logger.debug()
     inserted, overwritten, failed = save_episodes(tvshow_item, episodelist, extra_info, item.host, local_files, silent=silent)
     videolibrarydb.close()
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi") and not item.not_add:
+    if config.is_xbmc() and config.getSetting("videolibrary_kodi") and not item.not_add:
         from platformcode.dbconverter import add_video
         add_video(tvshow_item)
 
@@ -528,11 +528,11 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
             # if not filetools.exists(filetools.join(TVSHOWS_PATH, strm_path)):
             if season_episode not in local_files.get('db',{}).keys():
                 logger.debug("Creating .strm: " + episode_item.strm_path)
-                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=episode_item.strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
+                item_strm = Item(channel='videolibrary', action='playFromLibrary', strm_path=episode_item.strm_path, contentType='episode', videolibrary_id=episode_item.videolibrary_id, contentSeason = episode_item.contentSeason, contentEpisodeNumber = episode_item.contentEpisodeNumber,)
                 filetools.write(filetools.join(TVSHOWS_PATH, episode_item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
             # update db if episode added
-            # if failed == 0 and config.get_setting('kod_scraper'):
+            # if failed == 0 and config.getSetting('kod_scraper'):
             #     add_video(episode_item)
 
         return item, episode, season_episode, e.contentLanguage, inserted, overwritten, failed
@@ -585,7 +585,7 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
     # Silent is to show no progress (for service)
     if not silent:
         # progress dialog
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(60064) ,'')
+        p_dialog = platformtools.dialogProgressBg(config.getLocalizedString(60064) ,'')
 
     inserted = 0
     overwritten = 0
@@ -650,14 +650,14 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
                 seasons[s] = season_item
 
                 # Add to Kodi DB if Kod is set to add information
-                # if config.get_setting('kod_scraper'):
+                # if config.getSetting('kod_scraper'):
                 #     add_video(season_item)
 
 
     if not silent:
         # update tvshow info if forced
         if len(item.lang_list) > 1:
-            item.prefered_lang = item.lang_list[platformtools.dialog_select(config.get_localized_string(70246), item.lang_list)]
+            item.prefered_lang = item.lang_list[platformtools.dialogSelect(config.getLocalizedString(70246), item.lang_list)]
         else:
             item.prefered_lang = item.lang_list[0]
 
@@ -684,7 +684,7 @@ def save_episodes(item, episodelist, extra_info, host, local_files, silent=False
 #         return add_movie(item)
 #     else:
 #         videolibrarydb.close()
-#         platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(70838) % item.contentTitle)
+#         platformtools.dialogOk(config.getLocalizedString(30131), config.getLocalizedString(70838) % item.contentTitle)
 
 
 def add_to_videolibrary(item, channel):
@@ -733,10 +733,10 @@ def add_movie(item):
         inserted, overwritten, failed, path = save_movie(new_item)
 
         if failed == 0:
-            platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(30135) % new_item.contentTitle)  # 'has been added to the video library'
+            platformtools.dialogNotification(config.getLocalizedString(30131), config.getLocalizedString(30135) % new_item.contentTitle)  # 'has been added to the video library'
         else:
             filetools.rmdirtree(path)
-            platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
+            platformtools.dialogOk(config.getLocalizedString(30131), config.getLocalizedString(60066) % new_item.contentTitle)  # "ERROR, the movie has NOT been added to the video library")
             movies = videolibrarydb['movie']
             _id = get_id(item)
             if _id in list(movies.keys()):
@@ -782,7 +782,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
             item.__dict__["channel"] = item.__dict__.pop("from_channel")
 
         if not channel:
-            channel = platformtools.channel_import(item.channel)
+            channel = platformtools.channelImport(item.channel)
 
         # To disambiguate titles, TMDB is caused to ask for the really desired title
         # The user can select the title among those offered on the first screen
@@ -825,29 +825,29 @@ def add_tvshow(item, channel=None, itemlist=[]):
 
     elif not inserted and not overwritten and not failed:
         filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60067) % item.contentTitle)
+        platformtools.dialogOk(config.getLocalizedString(30131), config.getLocalizedString(60067) % item.contentTitle)
         logger.error("The string %s could not be added to the video library. Could not get any episode" % item.contentTitle)
 
     elif failed == -1:
         filetools.rmdirtree(path)
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60068) % item.contentTitle)
+        platformtools.dialogOk(config.getLocalizedString(30131), config.getLocalizedString(60068) % item.contentTitle)
         logger.error("The string %s could not be added to the video library" % item.contentTitle)
 
     elif failed == -2:
         filetools.rmdirtree(path)
 
     elif failed > 0:
-        platformtools.dialog_ok(config.get_localized_string(30131), config.get_localized_string(60069) % item.contentTitle)
+        platformtools.dialogOk(config.getLocalizedString(30131), config.getLocalizedString(60069) % item.contentTitle)
         logger.error("Could not add %s episodes of series %s to the video library" % (failed, item.contentTitle))
 
     else:
-        platformtools.dialog_notification(config.get_localized_string(30131), config.get_localized_string(60070) % item.contentTitle)
+        platformtools.dialogNotification(config.getLocalizedString(30131), config.getLocalizedString(60070) % item.contentTitle)
         logger.debug("%s episodes of series %s have been added to the video library" % (inserted, item.contentTitle))
         if config.is_xbmc():
-            if config.get_setting("sync_trakt_new_tvshow", "videolibrary"):
+            if config.getSetting("sync_trakt_new_tvshow", "videolibrary"):
                 import xbmc
                 from platformcode import xbmc_videolibrary
-                if config.get_setting("sync_trakt_new_tvshow_wait", "videolibrary"):
+                if config.getSetting("sync_trakt_new_tvshow_wait", "videolibrary"):
                     # Check that you are not looking for content in the Kodi video library
                     while xbmc.getCondVisibility('Library.IsScanningVideo()'):
                         xbmc.sleep(1000)
@@ -868,7 +868,7 @@ def get_id(item):
     return item.infoLabels.get('tmdb_id')
 
 
-def get_fanart_tv(item, set='', ret={}):
+def getFanart_tv(item, set='', ret={}):
     def set_dict(l):
         d = {}
         for k in l:
@@ -906,7 +906,7 @@ def get_fanart_tv(item, set='', ret={}):
             ret[set + 'disc'] = [k.get('url') for k in res.get('moviedisc', [])]
             if item.infoLabels.get('setid'):
                 it = item.clone(infoLabels = {'tmdb_id':item.infoLabels['setid']})
-                get_fanart_tv(it, 'set', ret)
+                getFanart_tv(it, 'set', ret)
 
     return ret
 
@@ -958,9 +958,9 @@ def get_local_files(path, item):
 
 
 def select_local_path(item):
-    if not item.local_episodes_path and config.get_setting('local_episodes'):
-        if platformtools.dialog_yesno(config.get_localized_string(30131), config.get_localized_string(80044) % item.title):
-            local_episodes_path = platformtools.dialog_browse(0, config.get_localized_string(80046))
+    if not item.local_episodes_path and config.getSetting('local_episodes'):
+        if platformtools.dialogYesNo(config.getLocalizedString(30131), config.getLocalizedString(80044) % item.title):
+            local_episodes_path = platformtools.dialogBrowse(0, config.getLocalizedString(80046))
             if local_episodes_path:
                 item.local_episodes_path = local_episodes_path
     return item
@@ -969,7 +969,7 @@ def select_local_path(item):
 def update_renumber_options(item):
     from core import jsontools
 
-    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
+    filename = filetools.join(config.getDataPath(), "settings_channels", item.channel + '_data.json')
     if filetools.isfile(filename):
         json_file = jsontools.load(filetools.read(filename))
         json = json_file.get(RENUMBER,{}).get(item.fulltitle,{})
@@ -982,7 +982,7 @@ def update_renumber_options(item):
 def add_renumber_options(item):
     from core import jsontools
     ret = None
-    filename = filetools.join(config.get_data_path(), "settings_channels", item.channel + '_data.json')
+    filename = filetools.join(config.getDataPath(), "settings_channels", item.channel + '_data.json')
     json_file = jsontools.load(filetools.read(filename))
     if item.renumber and not json_file.get(RENUMBER,{}).get(item.fulltitle):
         check_renumber_options(item)
@@ -1046,12 +1046,12 @@ def set_base_name(item, _id):
     # set base_name for videolibrary
     logger.debug()
     if item.contentType == 'movie':
-        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+        if config.getSetting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
             base_name = item.infoLabels['originaltitle']
         else:
             base_name = item.contentTitle
     else:
-        if config.get_setting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
+        if config.getSetting("original_title_folder", "videolibrary") and item.infoLabels['originaltitle']:
             base_name = item.infoLabels['originaltitle']
         elif item.infoLabels['tvshowtitle']:
             base_name = item.infoLabels['tvshowtitle']
@@ -1065,7 +1065,7 @@ def set_base_name(item, _id):
     else:
         base_name = filetools.validate_path(base_name.replace('/', '-'))
 
-    if config.get_setting("lowerize_title", "videolibrary"):
+    if config.getSetting("lowerize_title", "videolibrary"):
         base_name = base_name.lower()
 
     return '{} [{}]'.format(base_name, _id)
@@ -1076,7 +1076,7 @@ def restore_videolibrary():
     tvshows = [x['item'] for x in dict(videolibrarydb['tvshow']).values()]
     total = len(movies) + len(tvshows)
     progress = 0
-    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Ripristino videoteca in corso')
+    dialog = platformtools.dialogProgress(config.getLocalizedString(20000), 'Ripristino videoteca in corso')
     try: os.mkdir(MOVIES_PATH)
     except: pass
     try: os.mkdir(TVSHOWS_PATH)
@@ -1100,7 +1100,7 @@ def restore_videolibrary():
             filetools.write(filetools.join(MOVIES_PATH, item.nfo_path), item.head_nfo)
 
         if not "{}.strm".format(base_name) in movie_files and not local:
-            item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=item.videolibrary_id)
+            item_strm = Item(channel='videolibrary', action='playFromLibrary', strm_path=item.strm_path, contentType='movie', contentTitle=item.contentTitle, videolibrary_id=item.videolibrary_id)
             filetools.write(filetools.join(MOVIES_PATH, item.strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
 
         progress += 1
@@ -1131,7 +1131,7 @@ def restore_videolibrary():
             local = True if 'local' in videolibrarydb['episode'][item.videolibrary_id][season_episode]['channels'] else False
             if not '{}.strm'.format(season_episode) in episode_files and not local:
                 logger.debug("Creating .strm: " + strm_path)
-                item_strm = Item(channel='videolibrary', action='play_from_library', strm_path=strm_path, contentType='episode', videolibrary_id=e.videolibrary_id, contentSeason = e.contentSeason, contentEpisodeNumber = e.contentEpisodeNumber,)
+                item_strm = Item(channel='videolibrary', action='playFromLibrary', strm_path=strm_path, contentType='episode', videolibrary_id=e.videolibrary_id, contentSeason = e.contentSeason, contentEpisodeNumber = e.contentEpisodeNumber,)
                 filetools.write(filetools.join(TVSHOWS_PATH, strm_path), '{}?{}'.format(addon_name, item_strm.tourl()))
         progress += 1
         dialog.update(int(progress / total * 100), item.title)
@@ -1144,15 +1144,15 @@ def convert_videolibrary():
     from platformcode import xbmc_videolibrary
     from core import jsontools
 
-    dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+    dialog = platformtools.dialogProgress(config.getLocalizedString(20000), 'Conversione videoteca in corso')
     path_to_delete = []
     film_lst = glob.glob(filetools.join(MOVIES_PATH, '*/*.json'))
     tvshow_lst = glob.glob((filetools.join(TVSHOWS_PATH, '*/tvshow.nfo')))
     total = len(film_lst) + len(tvshow_lst)
     progress = 0
 
-    tvPath = filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'))
-    moviePath = filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_movies'))
+    tvPath = filetools.join(config.getSetting('videolibrarypath'), config.getSetting('folder_tvshows'))
+    moviePath = filetools.join(config.getSetting('videolibrarypath'), config.getSetting('folder_movies'))
 
     # set local info only
     xbmc_videolibrary.execute_sql_kodi('update path set strScraper="metadata.local", strSettings="" where strPath = "{}{}"'.format(tvPath, '/' if '/' in tvPath else '\\'))
@@ -1170,12 +1170,12 @@ def convert_videolibrary():
 
     for tvshow in tvshow_lst:
         if not dialog:
-            dialog = platformtools.dialog_progress(config.get_localized_string(20000), 'Conversione videoteca in corso')
+            dialog = platformtools.dialogProgress(config.getLocalizedString(20000), 'Conversione videoteca in corso')
         js = jsontools.load('\n'.join(filetools.read(tvshow).splitlines()[1:]))
         channels_dict = js.get('library_urls')
         if channels_dict:
             for ch, url in channels_dict.items():
-                dir = filetools.listdir(xbmc.translatePath(filetools.join(config.get_setting('videolibrarypath'), config.get_setting('folder_tvshows'), js['path'])))
+                dir = filetools.listdir(xbmc.translatePath(filetools.join(config.getSetting('videolibrarypath'), config.getSetting('folder_tvshows'), js['path'])))
                 json_files = [f for f in dir if f.endswith('.json')]
                 if json_files:
                     path_to_delete.append(filetools.dirname(tvshow))
@@ -1186,7 +1186,7 @@ def convert_videolibrary():
                     it.url = channels_dict[ch]
                     remove_host(it)
                     tmdb.find_and_set_infoLabels(it)
-                    channel = platformtools.channel_import(ch)
+                    channel = platformtools.channelImport(ch)
                     it.host = channel.host
                     it.url = channel.host + it.url
                     episodes = getattr(channel, 'episodes')(it)

@@ -127,7 +127,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
                 logger.info(e)
                 # if 'SSLError' in str(e):
                 #     # disabilito
-                #     config.set_setting("resolver_dns", False)
+                #     config.setSetting("resolver_dns", False)
                 #     request.url = realUrl
                 #     ret = super(CipherSuiteAdapter, self).send(request, **kwargs)
                 # else:

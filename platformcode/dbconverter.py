@@ -52,7 +52,7 @@ def reload():
 def add_video(item):
     global conn
     conn = sqlite3.connect(get_file_db())
-    progress = platformtools.dialog_progress_bg('Sincronizzazione Libreria', item.title)
+    progress = platformtools.dialogProgressBg('Sincronizzazione Libreria', item.title)
     progress.update(0)
     if item.contentType == 'movie':
         start = time()
@@ -70,10 +70,10 @@ def add_video(item):
 def get_path(item):
     logger.debug()
     p = item.strm_path if item.strm_path else item.nfo_path
-    path = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)), p.split('\\')[0].split('/')[0])
-    parent = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)))
+    path = filetools.join(config.getVideolibraryConfigPath(), config.getSetting("folder_{}s".format(item.contentType)), p.split('\\')[0].split('/')[0])
+    parent = filetools.join(config.getVideolibraryConfigPath(), config.getSetting("folder_{}s".format(item.contentType)))
     if item.contentType == 'movie':
-        filepath = filetools.join(config.get_videolibrary_config_path(), config.get_setting("folder_{}s".format(item.contentType)), p)
+        filepath = filetools.join(config.getVideolibraryConfigPath(), config.getSetting("folder_{}s".format(item.contentType)), p)
         file = item.strm_path.split('\\')[-1].split('/')[-1]
         return process_path(path), process_path(parent), file, filepath
     else:

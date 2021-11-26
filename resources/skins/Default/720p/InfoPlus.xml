@@ -698,7 +698,7 @@
             <top>30</top>
             <right>30</right>
             <height>40</height>
-            <width>120</width>
+            <width>130</width>
             <orientation>horizontal</orientation>
             <control type="button" id="200">
                 <description>search</description>

@@ -16,20 +16,20 @@ CHANNELNAME = "setting"
 
 
 def channel_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "channels", item.config))
+    return platformtools.showChannelSettings(channelpath=filetools.join(config.getRuntimePath(), "channels", item.config))
 
 
 def server_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", item.config))
+    return platformtools.showChannelSettings(channelpath=filetools.join(config.getRuntimePath(), "servers", item.config))
 
 
 def server_debrid_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "servers", "debriders", item.config))
+    return platformtools.showChannelSettings(channelpath=filetools.join(config.getRuntimePath(), "servers", "debriders", item.config))
 
 
 def servers_blacklist(item):
     server_list = servertools.get_servers_list()
-    black_list = config.get_setting("black_list", server='servers', default=[])
+    black_list = config.getSetting("black_list", server='servers', default=[])
     blacklisted = []
 
     list_controls = []
@@ -40,12 +40,12 @@ def servers_blacklist(item):
         defaults = servertools.get_server_parameters(server)
 
         control = server_parameters["name"]
-        if not config.get_setting("black_list", server=server):
+        if not config.getSetting("black_list", server=server):
             list_controls.append(control)
             if defaults.get("black_list", False) or server in black_list:
                 blacklisted.append(i)
         list_servers.append(server)
-    ris = platformtools.dialog_multiselect(config.get_localized_string(60550), list_controls, preselect=blacklisted)
+    ris = platformtools.dialogMultiselect(config.getLocalizedString(60550), list_controls, preselect=blacklisted)
     if ris is not None:
         cb_servers_blacklist({list_servers[n]: True if n in ris else False for n, it in enumerate(list_controls)})
 
@@ -60,27 +60,27 @@ def servers_favorites(item):
 
     list_controls = [{'id': 'favorites_servers',
                       'type': 'bool',
-                      'label': config.get_localized_string(60577),
+                      'label': config.getLocalizedString(60577),
                       'default': False,
                       'enabled': True,
                       'visible': True},
                      {'id': 'quality_priority',
                       'type': 'bool',
-                      'label': config.get_localized_string(30069),
+                      'label': config.getLocalizedString(30069),
                       'default': False,
                       'enabled': 'eq(-1,True)',
                       'visible': True}]
-    dict_values['favorites_servers'] = config.get_setting('favorites_servers')
-    dict_values['quality_priority'] = config.get_setting('quality_priority')
+    dict_values['favorites_servers'] = config.getSetting('favorites_servers')
+    dict_values['quality_priority'] = config.getSetting('quality_priority')
     if dict_values['favorites_servers'] == None:
         dict_values['favorites_servers'] = False
 
-    server_names = [config.get_localized_string(59992)]
-    favorites = config.get_setting("favorites_servers_list", server='servers', default=[])
-    blacklisted = config.get_setting("black_list", server='servers', default=[])
+    server_names = [config.getLocalizedString(59992)]
+    favorites = config.getSetting("favorites_servers_list", server='servers', default=[])
+    blacklisted = config.getSetting("black_list", server='servers', default=[])
 
     for server in sorted(server_list.keys()):
-        if server in blacklisted or config.get_setting("black_list", server=server):
+        if server in blacklisted or config.getSetting("black_list", server=server):
             continue
 
         server_names.append(server_list[server]['name'])
@@ -91,53 +91,28 @@ def servers_favorites(item):
     for x in range(1, 21):
         control = {'id': x,
                    'type': 'list',
-                   'label': config.get_localized_string(60597) % x,
+                   'label': config.getLocalizedString(60597) % x,
                    'lvalues': server_names,
                    'default': 0,
                    'enabled': 'eq(-%s,True)' % str(x + 1),
                    'visible': True}
         list_controls.append(control)
 
-    return platformtools.show_channel_settings(list_controls=list_controls, dict_values=dict_values, item=server_names,
-                                               caption=config.get_localized_string(60551), callback="cb_servers_favorites")
-
-
-def cb_servers_favorites(server_names, dict_values):
-    dict_name = {}
-    dict_favorites = {}
-
-    for i, v in list(dict_values.items()):
-        if i == "favorites_servers":
-            config.set_setting("favorites_servers", v)
-        elif i == "quality_priority":
-            config.set_setting("quality_priority", v)
-        elif int(v) > 0:
-            dict_name[server_names[v]] = int(i)
-
-    servers_list = list(servertools.get_servers_list().items())
-    for server, server_parameters in servers_list:
-        if server_parameters['name'] in list(dict_name.keys()):
-            dict_favorites[dict_name[server_parameters['name']]] = server
-
-    favorites_servers_list = [dict_favorites[k] for k in sorted(dict_favorites.keys())]
-
-    config.set_setting("favorites_servers_list", favorites_servers_list, server='servers')
-
-    if not favorites_servers_list:  # If there is no server in the list, deactivate it
-        config.set_setting("favorites_servers", False)
+    return platformtools.showChannelSettings(list_controls=list_controls, dict_values=dict_values, item=server_names,
+                                               caption=config.getLocalizedString(60551))
 
 
 def settings(item):
-    config.open_settings()
+    config.openSettings()
 
 
 def check_quickfixes(item):
     logger.debug()
 
-    if not config.dev_mode():
+    if not config.devMode():
         from platformcode import updater
         if not updater.check()[0]:
-            platformtools.dialog_ok('Kodi on Demand', config.get_localized_string(70667))
+            platformtools.dialogOk('Kodi on Demand', config.getLocalizedString(70667))
     else:
         return False
 
@@ -147,7 +122,7 @@ def conf_tools(item):
 
     # Enable or disable channels
     if item.extra == "channels_onoff":
-        if config.get_platform(True)['num_version'] >= 17.0: # From Kodi 16 you can use multiselect, and from 17 with preselect
+        if config.getXBMCPlatform(True)['num_version'] >= 17.0: # From Kodi 16 you can use multiselect, and from 17 with preselect
             return channels_onoff(item)
 
         import channelselector
@@ -167,14 +142,14 @@ def conf_tools(item):
         try:
             list_controls.append({'id': "all_channels",
                                   'type': "list",
-                                  'label': config.get_localized_string(60594),
+                                  'label': config.getLocalizedString(60594),
                                   'default': 0,
                                   'enabled': True,
                                   'visible': True,
                                   'lvalues': ['',
-                                              config.get_localized_string(60591),
-                                              config.get_localized_string(60592),
-                                              config.get_localized_string(60593)]})
+                                              config.getLocalizedString(60591),
+                                              config.getLocalizedString(60592),
+                                              config.getLocalizedString(60593)]})
 
             for channel in channel_list:
                 # If the channel is on the exclusion list, we skip it
@@ -183,13 +158,13 @@ def conf_tools(item):
                     channel_parameters = channeltools.get_channel_parameters(channel.channel)
 
                     status_control = ""
-                    status = config.get_setting("enabled", channel.channel)
+                    status = config.getSetting("enabled", channel.channel)
                     # if status does not exist, there is NO value in _data.json
                     if status is None:
                         status = channel_parameters["active"]
                         logger.debug("%s | Status (XML): %s" % (channel.channel, status))
                         if not status:
-                            status_control = config.get_localized_string(60595)
+                            status_control = config.getLocalizedString(60595)
                     else:
                         logger.debug("%s  | Status: %s" % (channel.channel, status))
 
@@ -208,11 +183,10 @@ def conf_tools(item):
             import traceback
             logger.error("Error: %s" % traceback.format_exc())
         else:
-            return platformtools.show_channel_settings(list_controls=list_controls,
+            return platformtools.showChannelSettings(list_controls=list_controls,
                                                        item=item.clone(channel_list=channel_list),
-                                                       caption=config.get_localized_string(60596),
-                                                       callback="channel_status",
-                                                       custom_button={"visible": False})
+                                                       caption=config.getLocalizedString(60596),
+                                                       callback="channel_status")
 
     # Checking channel_data.json files
     elif item.extra == "lib_check_datajson":
@@ -241,14 +215,14 @@ def conf_tools(item):
 
                     if not list_controls:
                         itemlist.append(Item(channel=CHANNELNAME,
-                                             title=channel.title + config.get_localized_string(60569),
+                                             title=channel.title + config.getLocalizedString(60569),
                                              action="", folder=False,
                                              thumbnail=channel.thumbnail))
                         continue
                         # logger.debug(channel.channel + " SALTADO!")
 
                     # The json file settings of the channel are loaded
-                    file_settings = os.path.join(config.get_data_path(), "settings_channels", channel.channel + "_data.json")
+                    file_settings = os.path.join(config.getDataPath(), "settings_channels", channel.channel + "_data.json")
                     dict_settings = {}
                     dict_file = {}
                     if filetools.exists(file_settings):
@@ -270,7 +244,7 @@ def conf_tools(item):
                             datajson_size = filetools.getsize(file_settings)
                         except:
                             import traceback
-                            logger.error(channel.title + config.get_localized_string(60570) % traceback.format_exc())
+                            logger.error(channel.title + config.getLocalizedString(60570) % traceback.format_exc())
                     else:
                         datajson_size = None
 
@@ -285,7 +259,7 @@ def conf_tools(item):
                             # logger.debug(channel.title + " | Default: %s" % default_settings)
                         except:
                             import traceback
-                            logger.error(channel.title + config.get_localized_string(60570) % traceback.format_exc())
+                            logger.error(channel.title + config.getLocalizedString(60570) % traceback.format_exc())
                             # default_settings = {}
 
                         # If _data.json needs to be repaired or doesn't exist ...
@@ -298,10 +272,10 @@ def conf_tools(item):
                                 # We create the file ../settings/channel_data.json
                                 if not filetools.write(file_settings, jsontools.dump(dict_file), silent=True):
                                     logger.error("ERROR saving file: %s" % file_settings)
-                                list_status = config.get_localized_string(60560)
+                                list_status = config.getLocalizedString(60560)
                             else:
                                 if default_settings is None:
-                                    list_status = config.get_localized_string(60571)
+                                    list_status = config.getLocalizedString(60571)
 
                     else:
                         # logger.debug(channel.channel + " - NO correction needed!")
@@ -311,18 +285,18 @@ def conf_tools(item):
                     if needsfix is not None:
                         if needsfix:
                             if not channeljson_exists:
-                                list_status = config.get_localized_string(60588)
+                                list_status = config.getLocalizedString(60588)
                                 list_colour = "red"
                             else:
-                                list_status = config.get_localized_string(60589)
+                                list_status = config.getLocalizedString(60589)
                                 list_colour = "green"
                         else:
                             # If "needsfix" is "false" and "datjson_size" is None, an error will have occurred
                             if datajson_size is None:
-                                list_status = config.get_localized_string(60590)
+                                list_status = config.getLocalizedString(60590)
                                 list_colour = "red"
                             else:
-                                list_status = config.get_localized_string(60589)
+                                list_status = config.getLocalizedString(60589)
                                 list_colour = "green"
 
                     if list_status is not None:
@@ -355,8 +329,8 @@ def channels_onoff(item):
     for channel in channels_list:
         channel_parameters = channeltools.get_channel_parameters(channel.channel)
         lbl = '%s' % channel_parameters['language']
-        # ~ lbl += ' %s' % [config.get_localized_category(categ) for categ in channel_parameters['categories']]
-        lbl += ' %s' % ', '.join(config.get_localized_category(categ) for categ in channel_parameters['categories'])
+        # ~ lbl += ' %s' % [config.getLocalizedCategory(categ) for categ in channel_parameters['categories']]
+        lbl += ' %s' % ', '.join(config.getLocalizedCategory(categ) for categ in channel_parameters['categories'])
 
         it = xbmcgui.ListItem(channel.title, lbl)
         it.setArt({ 'thumb': channel.thumbnail, 'fanart': channel.fanart })
@@ -365,35 +339,35 @@ def channels_onoff(item):
 
     # Dialog to pre-select
     # ----------------------------
-    preselecciones = [config.get_localized_string(70517), config.get_localized_string(70518), config.get_localized_string(70519)]
-    ret = platformtools.dialog_select(config.get_localized_string(60545), preselecciones)
+    preselecciones = [config.getLocalizedString(70517), config.getLocalizedString(70518), config.getLocalizedString(70519)]
+    ret = platformtools.dialogSelect(config.getLocalizedString(60545), preselecciones)
     if ret == -1: return False # order cancel
     if ret == 2: preselect = []
     elif ret == 1: preselect = list(range(len(ids)))
     else:
         preselect = []
         for i, canal in enumerate(ids):
-            channel_status = config.get_setting('enabled', canal)
+            channel_status = config.getSetting('enabled', canal)
             if channel_status is None: channel_status = True
             if channel_status:
                 preselect.append(i)
 
     # Dialog to select
     # ------------------------
-    ret = platformtools.dialog_multiselect(config.get_localized_string(60545), lista, preselect=preselect, useDetails=True)
+    ret = platformtools.dialogMultiselect(config.getLocalizedString(60545), lista, preselect=preselect, useDetails=True)
     if ret == None: return False # order cancel
     seleccionados = [ids[i] for i in ret]
 
     # Save changes to activated channels
     # ------------------------------------
     for canal in ids:
-        channel_status = config.get_setting('enabled', canal)
+        channel_status = config.getSetting('enabled', canal)
         if channel_status is None: channel_status = True
 
         if channel_status and canal not in seleccionados:
-            config.set_setting('enabled', False, canal)
+            config.setSetting('enabled', False, canal)
         elif not channel_status and canal in seleccionados:
-            config.set_setting('enabled', True, canal)
+            config.setSetting('enabled', True, canal)
 
     return False
 
@@ -429,7 +403,7 @@ def channel_status(item, dict_values):
                             # Retrieve default status option
                             if dict_values[k] == 3:
                                 # If you have "enabled" in the _data.json, it is because the state is not that of the channel.json
-                                if config.get_setting("enabled", channel.channel):
+                                if config.getSetting("enabled", channel.channel):
                                     new_status_all = new_status_all_default
 
                                 # If the channel does not have "enabled" in the _data.json it is not saved, it goes to the next
@@ -438,22 +412,22 @@ def channel_status(item, dict_values):
 
                             # Channel status is saved
                             if new_status_all is not None:
-                                config.set_setting("enabled", new_status_all, channel.channel)
+                                config.setSetting("enabled", new_status_all, channel.channel)
                     break
                 else:
                     continue
 
             else:
                 logger.info("Channel: %s | State: %s" % (k, dict_values[k]))
-                config.set_setting("enabled", dict_values[k], k)
-                logger.info("the value is like %s " % config.get_setting("enabled", k))
+                config.setSetting("enabled", dict_values[k], k)
+                logger.info("the value is like %s " % config.getSetting("enabled", k))
 
-        platformtools.itemlist_update(Item(channel=CHANNELNAME, action="mainlist"))
+        platformtools.itemlistUpdate(Item(channel=CHANNELNAME, action="mainlist"))
 
     except:
         import traceback
         logger.error("Error detail: %s" % traceback.format_exc())
-        platformtools.dialog_notification(config.get_localized_string(60579), config.get_localized_string(60580))
+        platformtools.dialogNotification(config.getLocalizedString(60579), config.getLocalizedString(60580))
 
 
 def restore_tools(item):
@@ -461,13 +435,13 @@ def restore_tools(item):
     from core import videolibrarytools
     import os
 
-    seleccion = platformtools.dialog_yesno(config.get_localized_string(60581),
-                                           config.get_localized_string(60582) + '\n' +
-                                           config.get_localized_string(60583))
+    seleccion = platformtools.dialogYesNo(config.getLocalizedString(60581),
+                                           config.getLocalizedString(60582) + '\n' +
+                                           config.getLocalizedString(60583))
     if seleccion == 1:
         # tvshows
-        heading = config.get_localized_string(60584)
-        p_dialog = platformtools.dialog_progress_bg(config.get_localized_string(60585), heading)
+        heading = config.getLocalizedString(60584)
+        p_dialog = platformtools.dialogProgressBg(config.getLocalizedString(60585), heading)
         p_dialog.update(0, '')
 
         show_list = []
@@ -495,8 +469,8 @@ def restore_tools(item):
         p_dialog.close()
 
         # movies
-        heading = config.get_localized_string(60586)
-        p_dialog2 = platformtools.dialog_progress_bg(config.get_localized_string(60585), heading)
+        heading = config.getLocalizedString(60586)
+        p_dialog2 = platformtools.dialogProgressBg(config.getLocalizedString(60585), heading)
         p_dialog2.update(0, '')
 
         movies_list = []
@@ -518,9 +492,9 @@ def restore_tools(item):
                 filetools.rmdirtree(path)
 
                 import math
-                heading = config.get_localized_string(20000)
+                heading = config.getLocalizedString(20000)
 
-                p_dialog2.update(int(math.ceil((i + 1) * t)), heading, config.get_localized_string(60389) % (movie.contentTitle,
+                p_dialog2.update(int(math.ceil((i + 1) * t)), heading, config.getLocalizedString(60389) % (movie.contentTitle,
                                                                                    movie.channel.capitalize()))
                 # ... and we add it again
                 videolibrarytools.save_movie(movie)
@@ -549,24 +523,24 @@ def report_menu(item):
     # Free pastbin servers have capacity limitations, so the size of the log is important
     # At the end of the upload operation, the user is passed the log address on the server to report them
 
-    itemlist.append(Item(channel=item.channel, action="", title=config.get_localized_string(707418),
+    itemlist.append(Item(channel=item.channel, action="", title=config.getLocalizedString(707418),
                 thumbnail=thumb_next, folder=False))
-    # if not config.get_setting('debug'):
+    # if not config.getSetting('debug'):
     itemlist.append(Item(channel=item.channel, action="activate_debug", extra=True,
-                    title=config.get_localized_string(707419) %
+                    title=config.getLocalizedString(707419) %
                     str(paso), thumbnail=thumb_debug, folder=False))
     paso += 1
     itemlist.append(Item(channel="channelselector", action="getmainlist",
-                    title=config.get_localized_string(707420) %
+                    title=config.getLocalizedString(707420) %
                     str(paso), thumbnail=thumb_debug))
     paso += 1
     itemlist.append(Item(channel=item.channel, action="report_send",
-                    title=config.get_localized_string(707421) %
+                    title=config.getLocalizedString(707421) %
                     str(paso), thumbnail=thumb_error, folder=False))
     paso += 1
-    # if config.get_setting('debug'):
+    # if config.getSetting('debug'):
     itemlist.append(Item(channel=item.channel, action="activate_debug", extra=False,
-                    title=config.get_localized_string(707422) % str(paso),
+                    title=config.getLocalizedString(707422) % str(paso),
                     thumbnail=thumb_debug, folder=False))
     paso += 1
 
@@ -574,7 +548,7 @@ def report_menu(item):
         itemlist.append(Item(channel=item.channel, action="", title="", folder=False))
 
         itemlist.append(Item(channel=item.channel, action="",
-                    title=config.get_localized_string(707423),
+                    title=config.getLocalizedString(707423),
                     thumbnail=thumb_next, folder=False))
 
         if item.one_use:
@@ -588,10 +562,10 @@ def report_menu(item):
                     thumbnail=thumb_next, unify=False, folder=False))
         if item.one_use:
             itemlist.append(Item(channel=item.channel, action="",
-                    title=config.get_localized_string(60305),
+                    title=config.getLocalizedString(60305),
                     thumbnail=thumb_next, folder=False))
             itemlist.append(Item(channel=item.channel, action="",
-                    title=config.get_localized_string(60308),
+                    title=config.getLocalizedString(60308),
                     thumbnail=thumb_next, folder=False))
         itemlist.append(Item(channel=item.channel, action="call_browser",
                              title="su Github (raccomandato)", url='https://github.com/kodiondemand/addon/issues',
@@ -613,11 +587,11 @@ def activate_debug(item):
     if isinstance(item.extra, str):
         return report_menu(item)
     if item.extra:
-        config.set_setting('debug', True)
-        platformtools.dialog_notification(config.get_localized_string(707430), config.get_localized_string(707431))
+        config.setSetting('debug', True)
+        platformtools.dialogNotification(config.getLocalizedString(707430), config.getLocalizedString(707431))
     else:
-        config.set_setting('debug', False)
-        platformtools.dialog_notification(config.get_localized_string(707430), config.get_localized_string(707432))
+        config.setSetting('debug', False)
+        platformtools.dialogNotification(config.getLocalizedString(707430), config.getLocalizedString(707432))
 
 
 def report_send(item, description='', fatal=False):
@@ -698,16 +672,16 @@ def report_send(item, description='', fatal=False):
     paste_params = ()
     paste_post = ''
     status = False
-    msg = config.get_localized_string(707424)
+    msg = config.getLocalizedString(707424)
 
     # DEBUG = ON is verified, if it is not it is rejected and the user is asked to activate it and reproduce the fault
-    if not config.get_setting('debug'):
-        platformtools.dialog_notification(config.get_localized_string(707425), config.get_localized_string(707426))
+    if not config.getSetting('debug'):
+        platformtools.dialogNotification(config.getLocalizedString(707425), config.getLocalizedString(707426))
         return report_menu(item)
 
     # From each to the future the user will be allowed to enter a brief description of the fault that will be added to the LOG
     if description == 'OK':
-        description = platformtools.dialog_input('', 'Introduzca una breve descripción del fallo')
+        description = platformtools.dialogInput('', 'Introduzca una breve descripción del fallo')
 
     # We write in the log some Kodi and Alpha variables that will help us diagnose the failure
     environment = envtal.list_env()
@@ -723,10 +697,10 @@ def report_send(item, description='', fatal=False):
         log_size = float(environment['log_size'])                       # File size in MB
         log_data = filetools.read(log_path)                             # File data
         if not log_data:                                                # Some mistake?
-            platformtools.dialog_notification(config.get_localized_string(707427), '', 2)
+            platformtools.dialogNotification(config.getLocalizedString(707427), '', 2)
             return report_menu(item)
     else:                                                               # Log no existe or erroneous path?
-        platformtools.dialog_notification(config.get_localized_string(707427), '', 2)
+        platformtools.dialogNotification(config.getLocalizedString(707427), '', 2)
         return report_menu(item)
 
     # If the fault description has been entered, the beginning of the LOG data is inserted
@@ -765,7 +739,7 @@ def report_send(item, description='', fatal=False):
         paste_file_size = float(pastebin_list[paste_name][10])          # Server capacity in MB
         if paste_file_size > 0:                                         # If it is 0, the capacity is unlimited
             if log_size > paste_file_size:                              # Capacity and size verification
-                msg = config.get_localized_string(60334)
+                msg = config.getLocalizedString(60334)
                 continue
         paste_timeout = int(pastebin_list[paste_name][11])              # Timeout for the server
         paste_random_headers = pastebin_list[paste_name][12]            # Do you use RAMDOM headers to mislead the serv?
@@ -855,7 +829,7 @@ def report_send(item, description='', fatal=False):
 
                 data = {}
                 paste_sufix = '/finalise'
-                data_post = {'fuid': fuid, 'total_chunks': i, 'file_name': paste_title+'.log', 'file_type': 'doc'}
+                data_post = {'fuid': fuid, 'total_chunks': i, 'file_name': paste_title+'.log', 'fileType': 'doc'}
                 resp = httptools.downloadpage(paste_host+paste_sufix, params=paste_params,
                             ignore_response_code=True, post=data_post, timeout=paste_timeout,
                             random_headers=paste_random_headers, headers=paste_headers)
@@ -931,19 +905,19 @@ def report_send(item, description='', fatal=False):
             status = True                                               # Upload operation completed successfully
             logger.info('Report created: ' + str(item.url))    # The URL of the user report is saved
             # if fatal:                                                   # For future use, for logger.crash
-            #     platformtools.dialog_ok('KoD CREATED ERROR report', 'Report it in the forum by adding FATAL ERROR and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
+            #     platformtools.dialogOk('KoD CREATED ERROR report', 'Report it in the forum by adding FATAL ERROR and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
             # else:                                                       # Report URL passed to user
-            #     platformtools.dialog_ok('KoD Crash Report CREATED', 'Report it on the forum by adding a bug description and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
+            #     platformtools.dialogOk('KoD Crash Report CREATED', 'Report it on the forum by adding a bug description and this URL: ', '[COLOR gold]%s[/COLOR]' % item.url, pastebin_one_use_msg)
 
             break                                                       # Operation finished, we don't keep looking
 
     if not status and not fatal:                                        # Operation failed ...
-        platformtools.dialog_notification(config.get_localized_string(707428), msg)   #... cause is reported
-        logger.error(config.get_localized_string(707428) + msg)
+        platformtools.dialogNotification(config.getLocalizedString(707428), msg)   #... cause is reported
+        logger.error(config.getLocalizedString(707428) + msg)
 
     # Control is returned with updated item.url, so the report URL will appear in the menu
     item.action = 'report_menu'
-    platformtools.itemlist_update(item, True)
+    platformtools.itemlistUpdate(item, True)
     # return report_menu(item)
 
 
@@ -961,5 +935,5 @@ def call_browser(item):
                 import urllib
             short = urllib.urlopen(
                 'https://u.nu/api.php?action=shorturl&format=simple&url=' + item.url).read()
-            platformtools.dialog_ok(config.get_localized_string(20000),
-                                    config.get_localized_string(70740) % short)
+            platformtools.dialogOk(config.getLocalizedString(20000),
+                                    config.getLocalizedString(70740) % short)

@@ -15,13 +15,13 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url, use_requests=True, verify=False).data
     if data == "File was deleted":
-        return False, config.get_localized_string(70449) % "Go Unlimited"
+        return False, config.getLocalizedString(70449) % "Go Unlimited"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     global data
     data = re.sub(r'"|\n|\r|\t|&nbsp;|<br>|\s{2,}', "", data)
     # logger.debug('GOUN DATA= '+data)
@@ -36,5 +36,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     for url in matches:
             if url.startswith('//'): url= 'http:' + url
             url += "|Referer=%s" %page_url
-            video_urls.append({'type':'mp4', 'url':url})
-    return video_urls
+            videoUrls.append({'type':'mp4', 'url':url})
+    return videoUrls

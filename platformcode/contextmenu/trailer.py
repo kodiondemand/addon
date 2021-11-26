@@ -5,7 +5,7 @@ from platformcode import config
 
 
 def get_menu_items():
-    return [(config.get_localized_string(60359), execute)]
+    return [(config.getLocalizedString(60359), execute)]
 
 
 def execute():

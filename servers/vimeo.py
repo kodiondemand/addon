@@ -17,27 +17,27 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url, headers=headers).data
 
     if "Private Video on Vimeo" in data or "Sorry" in data:
-        return False, config.get_localized_string(70449) % 'Vimeo'
+        return False, config.getLocalizedString(70449) % 'Vimeo'
     else:
         return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
 
     global data
     patron = 'mime":"([^"]+)"'
     patron += '.*?url":"([^"]+)"'
     patron += '.*?quality":"([^"]+)"'
-    match = scrapertools.find_multiple_matches(data, patron)
+    match = scrapertools.findMultipleMatches(data, patron)
     for mime, media_url, calidad in match:
         # title = "%s (%s) [Vimeo]" % (mime.replace("video/", "."), calidad)
-        video_urls.append({'type':mime.replace("video/", ""), 'url':media_url, 'res':calidad})
+        videoUrls.append({'type':mime.replace("video/", ""), 'url':media_url, 'res':calidad})
 
-    # video_urls.sort(key=lambda x: x[2])
-    # for video_url in video_urls:
-    #     video_url[2] = 0
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # videoUrls.sort(key=lambda x: x[2])
+    # for videoUrl in videoUrls:
+    #     videoUrl[2] = 0
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

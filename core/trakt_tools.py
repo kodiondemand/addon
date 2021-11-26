@@ -15,12 +15,12 @@ else: from concurrent_py2 import futures
 host = 'https://api.trakt.tv'
 client_id = '502bd1660b833c1ae69828163c0848e84e9850061e5529f30930e7356cae73b1'
 client_secret = '1d30d5b24acf223a5e1ab6c61d08b69992d98ed5b0c7e26b052b5e6a592035a4'
-token_auth = config.get_setting("token_trakt", "trakt")
+token_auth = config.getSetting("token_trakt", "trakt")
 
 
 def auth_trakt():
     item = Item()
-    folder = (config.get_platform() == 'plex')
+    folder = (config.getXBMCPlatform() == 'plex')
     item.folder = folder
     # Autentificación de cuenta Trakt
     headers = {'Content-Type': 'application/json', 'trakt-api-key': client_id, 'trakt-api-version': '2'}
@@ -39,11 +39,11 @@ def auth_trakt():
 
         else:
             itemlist = []
-            title = config.get_localized_string(60248) % item.verify_url
+            title = config.getLocalizedString(60248) % item.verify_url
             itemlist.append(item.clone(title=title, action=''))
-            title = config.get_localized_string(60249) % item.user_code
+            title = config.getLocalizedString(60249) % item.user_code
             itemlist.append(item.clone(title=title, action=''))
-            title = config.get_localized_string(60250)
+            title = config.getLocalizedString(60250)
             itemlist.append(item.clone(title=title, action='token_trakt'))
             return itemlist
     except:
@@ -57,7 +57,7 @@ def token_trakt(item):
     headers = {'Content-Type': 'application/json', 'trakt-api-key': client_id, 'trakt-api-version': '2'}
     try:
         if item.extra == 'renew':
-            refresh = config.get_setting('refresh_token_trakt', 'trakt')
+            refresh = config.getSetting('refresh_token_trakt', 'trakt')
             url = host + '/oauth/device/token'
             post = {'refresh_token': refresh, 'client_id': client_id, 'client_secret': client_secret,
                     'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob', 'grant_type': 'refresh_token'}
@@ -71,17 +71,17 @@ def token_trakt(item):
             data = jsontools.load(data)
         else:
             import time
-            dialog_auth = platformtools.dialog_progress(config.get_localized_string(60251),
-                                                        config.get_localized_string(60252) % item.verify_url + '\n' +
-                                                        config.get_localized_string(60253) % item.user_code + '\n' +
-                                                        config.get_localized_string(60254))
+            dialog_auth = platformtools.dialogProgress(config.getLocalizedString(60251),
+                                                        config.getLocalizedString(60252) % item.verify_url + '\n' +
+                                                        config.getLocalizedString(60253) % item.user_code + '\n' +
+                                                        config.getLocalizedString(60254))
 
             # Generalmente cada 5 segundos se intenta comprobar si el usuario ha introducido el código
             while True:
                 time.sleep(item.intervalo)
                 try:
                     if dialog_auth.iscanceled():
-                        config.set_setting('trakt_sync', False)
+                        config.setSetting('trakt_sync', False)
                         return
 
                     url = host + '/oauth/device/token'
@@ -103,10 +103,10 @@ def token_trakt(item):
         token = data['access_token']
         refresh = data['refresh_token']
 
-        config.set_setting('token_trakt', token, 'trakt')
-        config.set_setting('refresh_token_trakt', refresh, 'trakt')
+        config.setSetting('token_trakt', token, 'trakt')
+        config.setSetting('refresh_token_trakt', refresh, 'trakt')
         if not item.folder:
-            platformtools.dialog_notification(config.get_localized_string(60255), config.get_localized_string(60256))
+            platformtools.dialogNotification(config.getLocalizedString(60255), config.getLocalizedString(60256))
             if config.is_xbmc():
                 import xbmc
                 xbmc.executebuiltin('Container.Refresh')
@@ -116,14 +116,14 @@ def token_trakt(item):
         import traceback
         logger.error(traceback.format_exc())
         if not item.folder:
-            return platformtools.dialog_notification(config.get_localized_string(60527), config.get_localized_string(60258))
+            return platformtools.dialogNotification(config.getLocalizedString(60527), config.getLocalizedString(60258))
         token = ''
 
     itemlist = []
     if token:
-        itemlist.append(item.clone(title=config.get_localized_string(60256), action=''))
+        itemlist.append(item.clone(title=config.getLocalizedString(60256), action=''))
     else:
-        itemlist.append(item.clone(title=config.get_localized_string(60260), action=''))
+        itemlist.append(item.clone(title=config.getLocalizedString(60260), action=''))
 
     return itemlist
 
@@ -146,23 +146,23 @@ def get_trakt_watched(id_type, mediatype, update=False):
     id_list = []
     id_dict = dict()
 
-    token_auth = config.get_setting('token_trakt', 'trakt')
+    token_auth = config.getSetting('token_trakt', 'trakt')
 
     if token_auth:
-        sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt')
+        sync_path = os.path.join(config.getDataPath(), 'settings_channels', 'trakt')
 
         if os.path.exists(sync_path) and not update:
-            trakt_node = jsontools.get_node_from_file('trakt', 'TRAKT')
+            trakt_node = jsontools.getNodeFromFile('trakt', 'TRAKT')
             if mediatype == 'shows':
                 return trakt_node['shows']
             if mediatype == 'movies':
                 return trakt_node['movies']
 
         else:
-            token_auth = config.get_setting('token_trakt', 'trakt')
+            token_auth = config.getSetting('token_trakt', 'trakt')
             if token_auth:
                 try:
-                    token_auth = config.get_setting('token_trakt', 'trakt')
+                    token_auth = config.getSetting('token_trakt', 'trakt')
                     headers = [['Content-Type', 'application/json'], ['trakt-api-key', client_id],
                                ['trakt-api-version', '2']]
                     if token_auth:
@@ -232,24 +232,24 @@ def trakt_check(itemlist):
 
 def get_sync_from_file():
     logger.debug()
-    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt_data.json')
+    sync_path = os.path.join(config.getDataPath(), 'settings_channels', 'trakt_data.json')
     trakt_node = {}
     if os.path.exists(sync_path):
-        trakt_node = jsontools.get_node_from_file('trakt', 'TRAKT')
+        trakt_node = jsontools.getNodeFromFile('trakt', 'TRAKT')
 
     trakt_node['movies'] = get_trakt_watched('tmdb', 'movies')
     trakt_node['shows'] = get_trakt_watched('tmdb', 'shows')
-    jsontools.update_node(trakt_node, 'trakt', 'TRAKT')
+    jsontools.updateNode(trakt_node, 'trakt', 'TRAKT')
 
 
 def update_trakt_data(mediatype, trakt_data):
     logger.debug()
 
-    sync_path = os.path.join(config.get_data_path(), 'settings_channels', 'trakt_data.json')
+    sync_path = os.path.join(config.getDataPath(), 'settings_channels', 'trakt_data.json')
     if os.path.exists(sync_path):
-        trakt_node = jsontools.get_node_from_file('trakt', 'TRAKT')
+        trakt_node = jsontools.getNodeFromFile('trakt', 'TRAKT')
         trakt_node[mediatype] = trakt_data
-        jsontools.update_node(trakt_node, 'trakt', 'TRAKT')
+        jsontools.updateNode(trakt_node, 'trakt', 'TRAKT')
 
 
 def ask_install_script():
@@ -257,12 +257,12 @@ def ask_install_script():
 
     from platformcode import platformtools
 
-    respuesta = platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(70521))
+    respuesta = platformtools.dialogYesNo(config.getLocalizedString(20000), config.getLocalizedString(70521))
     if respuesta:
         xbmc.executebuiltin('InstallAddon(script.trakt)')
         return
     else:
-        config.set_setting('install_trakt', False)
+        config.setSetting('install_trakt', False)
         return
 
 
@@ -288,7 +288,7 @@ def update_all():
 def context(item):
     Type = item.contentType.replace("tv", "") + "s"
     item.action = 'traktResults'
-    title = config.get_localized_string(30122 if item.contentType == 'movie' else 30123)
+    title = config.getLocalizedString(30122 if item.contentType == 'movie' else 30123)
     context = []
     commands = []
     condition = "'tmdb': " + item.infoLabels["tmdb_id"] 
@@ -296,10 +296,10 @@ def context(item):
         result = execute(item.clone(url="/sync/watched/" + Type))
         post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if condition in str(result):
-            context.append(config.get_localized_string(60016 if item.contentType == 'movie' else 60020))
+            context.append(config.getLocalizedString(60016 if item.contentType == 'movie' else 60020))
             commands.append(item.clone(url="/sync/history/remove", post=post))
         else:
-            context.append(config.get_localized_string(60017 if item.contentType == 'movie' else 60021))
+            context.append(config.getLocalizedString(60017 if item.contentType == 'movie' else 60021))
             commands.append(item.clone(url="/sync/history", post=post))
     except:
         pass
@@ -308,10 +308,10 @@ def context(item):
         result = execute(item.clone(url="/sync/watchlist/" + Type))
         post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if condition in str(result):
-            context.append(config.get_localized_string(70343) % title)
+            context.append(config.getLocalizedString(70343) % title)
             commands.append(item.clone(url="/sync/watchlist/remove", post=post))
         else:
-            context.append(config.get_localized_string(70344) % title)
+            context.append(config.getLocalizedString(70344) % title)
             commands.append(item.clone(url="/sync/watchlist", post=post))
     except:
         pass
@@ -320,10 +320,10 @@ def context(item):
         result = execute(item.clone(url="/sync/collection/" + Type))
         post = {Type: [{"ids": {"tmdb": item.infoLabels["tmdb_id"]}}]}
         if condition in str(result):
-            context.append(config.get_localized_string(70345) % title)
+            context.append(config.getLocalizedString(70345) % title)
             commands.append(item.clone(url="/sync/collection/remove", post=post))
         else:
-            context.append(config.get_localized_string(70346) % title)
+            context.append(config.getLocalizedString(70346) % title)
             commands.append(item.clone(url="/sync/collection", post=post))
     except:
         pass
@@ -335,7 +335,7 @@ def context(item):
             execute(commands[index])
 
 def execute(item):
-    from platformcode.platformtools import dialog_notification
+    from platformcode.platformtools import dialogNotification
     url = host + item.url
 
     headers = [['Content-Type', 'application/json'], ['trakt-api-key', client_id], ['trakt-api-version', '2']]
@@ -349,5 +349,5 @@ def execute(item):
     if not post:
         return data
     else:
-        if 'not_found' in data: return dialog_notification('Trakt', config.get_localized_string(70347))
-        else: return dialog_notification('Trakt', config.get_localized_string(70348))
+        if 'not_found' in data: return dialogNotification('Trakt', config.getLocalizedString(70347))
+        else: return dialogNotification('Trakt', config.getLocalizedString(70348))

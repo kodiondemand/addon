@@ -28,9 +28,9 @@ def test_video_exists(page_url):
     return result, message
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
 
     data = httptools.downloadpage(page_url).data
     match = re.search('(.+)/v/(\w+)/file.html', page_url)
@@ -40,8 +40,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     numbers = scrapertools.find_single_match(media_url, '\((.*?)\)')
     url = media_url.replace('" + (' + numbers + ') + "', '%s' %eval(numbers))
 
-    mediaurl = '%s%s' % (domain, url)
-    extension = "." + mediaurl.split('.')[-1]
-    video_urls.append({'type':extension, 'url':mediaurl})
-    # logger.debug("url=%s" %video_urls)
-    return video_urls
+    mediaUrl = '%s%s' % (domain, url)
+    extension = "." + mediaUrl.split('.')[-1]
+    videoUrls.append({'type':extension, 'url':mediaUrl})
+    # logger.debug("url=%s" %videoUrls)
+    return videoUrls

@@ -174,7 +174,7 @@ class scrape:
                 scrapingTime = time()
                 if self.patronBlock:
                     if self.debugBlock: regexDbg(item, self.patronBlock, self.headers, self.data)
-                    blocks = scrapertools.find_multiple_matches_groups(self.data, self.patronBlock)
+                    blocks = scrapertools.findMultipleMatches_groups(self.data, self.patronBlock)
                     for bl in blocks:self._scrapeBlock(item, bl)
 
                 elif self.patron:
@@ -226,10 +226,6 @@ class scrape:
                     self.itemlist = newFunc()
                 self.itemlist = [i for i in self.itemlist if i.action not in ['add_movie_to_library', 'add_serie_to_library']]
 
-            if not self.group and not self.args.get('groupExplode') and ((self.pagination and len(self.matches) <= self.pag * self.pagination) or not self.pagination):  # next page with pagination
-                if self.patronNext and not stackCheck('newest') and not stackCheck('get_channel_results'):
-                    nextPage(self.itemlist, item, self.function, data=self.data, patron=self.patronNext,  patron_total_pages=self.patronTotalPages)
-
             if self.numerationEnabled and not stackCheck('find_episodes'):
                 from platformcode import autorenumber
                 if self.function == 'episodes':
@@ -251,9 +247,13 @@ class scrape:
         if self.tmdbEnabled and (
             self.action != 'play' and 'patronMenu' not in self.args and 'patronGenreMenu' not in self.args
             and not stackCheck(['add_tvshow', 'get_newest']) and (self.function not in ['episodes', 'mainlist']
-            or (self.function in ['episodes'] and config.get_setting('episode_info')))):
+            or (self.function in ['episodes'] and config.getSetting('episode_info')))):
 
             tmdb.set_infoLabels_itemlist(self.itemlist, seekTmdb=True)
+            
+        if not self.group and not self.args.get('groupExplode') and ((self.pagination and len(self.matches) <= self.pag * self.pagination) or not self.pagination):  # next page with pagination
+            if self.patronNext and not stackCheck('newest') and not stackCheck('get_channel_results'):
+                nextPage(self.itemlist, item, self.function, data=self.data, patron=self.patronNext,  patron_total_pages=self.patronTotalPages)
 
         if not stackCheck(['find_episodes', 'add_tvshow']):
             if self.videlibraryEnabled and (item.infoLabels["title"] or item.fulltitle):
@@ -274,7 +274,7 @@ class scrape:
                 raise logger.ChannelScraperException
 
 
-        if config.get_setting('trakt_sync'):
+        if config.getSetting('trakt_sync'):
             from core import trakt_tools
             trakt_tools.trakt_check(self.itemlist)
         logger.debug(item.channel, 'scraping time:', time()-scrapingTime)
@@ -292,7 +292,7 @@ class scrape:
         if self.debug:
             regexDbg(item, self.patron, self.headers, block)
 
-        matches = scrapertools.find_multiple_matches_groups(block, self.patron)
+        matches = scrapertools.findMultipleMatches_groups(block, self.patron)
         logger.debug('MATCHES =', matches)
 
         for match in matches:
@@ -320,7 +320,7 @@ class scrape:
             self.itemParams._plot = cleantitle(self.itemParams._plot)
             self.itemParams._language = scrapeLang(self.itemParams, self.lang)
 
-            self.set_infolabels(item)
+            self.setInfolabels(item)
             if self.sceneTitle: self.set_sceneTitle()
 
             if not self.group or item.grouped:
@@ -330,13 +330,13 @@ class scrape:
             if self.itemParams._season: self.itemParams.infoLabels['season'] = int(self.itemParams._season)
             if self.itemParams._episode: self.itemParams.infoLabels['episode'] = int(self.itemParams._episode)
 
-            it = self.set_item(item, match)
+            it = self.setItem(item, match)
             if it: itemlist.append(it)
 
         self.itemlist.extend(itemlist)
         self.matches.extend(matches)
 
-    def set_infolabels(self, item):
+    def setInfolabels(self, item):
         if item.infoLabels["title"]:
             infolabels = item.infoLabels
         else:
@@ -349,7 +349,7 @@ class scrape:
             if self.itemParams._plot:
                 infolabels['plot'] = self.itemParams._plot
             if self.itemParams._duration:
-                dur = scrapertools.find_multiple_matches(self.itemParams._duration, r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
+                dur = scrapertools.findMultipleMatches(self.itemParams._duration, r'([0-9])\s*?(?:[hH]|:|\.|,|\\|\/|\||\s)\s*?([0-9]+)')
                 for h, m in dur:
                     self.itemParams._duration = int(h) * 60 + int(m)
                 if not dur:
@@ -359,7 +359,7 @@ class scrape:
                 except:
                     self.itemParams._duration = ''
             if self.itemParams._genre:
-                genres = scrapertools.find_multiple_matches(self.itemParams._genre, '[A-Za-z]+')
+                genres = scrapertools.findMultipleMatches(self.itemParams._genre, '[A-Za-z]+')
                 infolabels['genere'] = ", ".join(genres)
             if self.itemParams._rating:
                 rating = scrapertools.decodeHtmlentities(self.itemParams._rating)
@@ -397,7 +397,7 @@ class scrape:
                     self.itemParams.infoLabels['episode'] = parsedTitle.get('episode')
 
             elif parsedTitle.get('season') and type(parsedTitle.get('season')) == list:
-                self.itemParams._extraInfo = '{}: {}-{}'.format(config.get_localized_string(30140), parsedTitle.get('season')[0], parsedTitle.get('season')[-1])
+                self.itemParams._extraInfo = '{}: {}-{}'.format(config.getLocalizedString(30140), parsedTitle.get('season')[0], parsedTitle.get('season')[-1])
             elif parsedTitle.get('season'):
                 self.itemParams._season = str(parsedTitle.get('season'))
             if parsedTitle.get('episode_title'):
@@ -439,7 +439,7 @@ class scrape:
                 logger.debug('invalid episode: ' + self.itemParams._episode)
                 pass
 
-    def set_item(self, item, match):
+    def setItem(self, item, match):
         AC = ''
         CT = ''
         if self.typeContentDict:
@@ -485,11 +485,6 @@ class scrape:
             else:
                 it.action=self.action
 
-            if it.action == 'findvideos':
-                platformtools.window_type(it)
-                # it.window = True if item.window_type == 0 or (config.get_setting("window_type") == 0) else False
-                if it.window: it.folder = False
-
             for lg in list(set(match.keys()).difference(self.known_keys)):
                 it.__setattr__(lg, match[lg])
 
@@ -506,7 +501,7 @@ class scrape:
 
 
 def regexDbg(item, patron, headers, data=''):
-    if config.dev_mode():
+    if config.devMode():
         import json, webbrowser
         url = 'https://regex101.com'
 
@@ -608,11 +603,11 @@ def menu(func):
         single_search = False
         # listUrls = ['film', 'filmSub', 'tvshow', 'tvshowSub', 'anime', 'animeSub', 'search', 'top', 'topSub']
         listUrls = ['top', 'film', 'tvshow', 'anime', 'search', 'host']
-        names = {'film':config.get_localized_string(30122),
-                 'tvshow':config.get_localized_string(30123),
-                 'anime':config.get_localized_string(30124),
-                 'doc':config.get_localized_string(30125),
-                 'music':config.get_localized_string(30139)}
+        names = {'film':config.getLocalizedString(30122),
+                 'tvshow':config.getLocalizedString(30123),
+                 'anime':config.getLocalizedString(30124),
+                 'doc':config.getLocalizedString(30125),
+                 'music':config.getLocalizedString(30139)}
         listUrls_extra = []
         dictUrl = {}
 
@@ -665,7 +660,7 @@ def menu(func):
                                  args=var[2] if len(var) > 2 else '',
                                  contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow')
                 # add search menu for category
-                if 'search' not in args: menuItem(itemlist, channel, config.get_localized_string(70741) % title + '… {submenu bold}', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow', style=not global_search)
+                if 'search' not in args: menuItem(itemlist, channel, config.getLocalizedString(70741) % title + '… {submenu bold}', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow', style=not global_search)
 
         # Make EXTRA MENU (on bottom)
         for name, var in args.items():
@@ -684,7 +679,7 @@ def menu(func):
                              contentType= var[3] if len(var) > 3 else 'movie',)
 
         if single_search:
-            menuItem(itemlist, channel, config.get_localized_string(70741).replace(' %s', '… {bold}'), 'search', host + dictUrl['search'], style=not global_search)
+            menuItem(itemlist, channel, config.getLocalizedString(70741).replace(' %s', '… {bold}'), 'search', host + dictUrl['search'], style=not global_search)
 
         if not global_search:
             channel_config(item, itemlist)
@@ -788,7 +783,7 @@ def match(item_url_string, **args):
         if type(patronBlocks) == str:
             patronBlocks = [patronBlocks]
         for p in patronBlocks:
-            blocks += scrapertools.find_multiple_matches(data, p)
+            blocks += scrapertools.findMultipleMatches(data, p)
     else:
         blocks = [data]
 
@@ -798,10 +793,10 @@ def match(item_url_string, **args):
             patron = [patron]
         for b in blocks:
             for p in patron:
-                matches += scrapertools.find_multiple_matches(b, p)
+                matches += scrapertools.findMultipleMatches(b, p)
 
     # debug mode
-    if config.dev_mode():
+    if config.devMode():
         if debugBlock:
             match_dbg(data, patronBlock)
         if debug:
@@ -884,7 +879,7 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
     # create Item
     if next_page or page:
         itemlist.append(item.clone(action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
-                                   title=typo(config.get_localized_string(90006), 'color kod bold'),
+                                   title=typo(config.getLocalizedString(90006), 'color kod bold'),
                                    nextPage=True,
                                    page=page if page else item.page + 1 if item.page else 2,
                                    prevthumb = item.thumbnail,
@@ -892,11 +887,12 @@ def nextPage(itemlist, item, function_or_level=1, **kwargs):
                                    thumbnail=thumb()))
 
 
-        itemlist.append(item.clone(action='gotopage',
+        itemlist.append(item.clone(from_cannel=item.channel,
+                                   channel='shortcuts',
+                                   action='gotopage',
                                    real_action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level,
-                                   title=typo(config.get_localized_string(90007), 'color kod bold'),
+                                   title=typo(config.getLocalizedString(90007), 'color kod bold'),
                                    nextPage=True,
-                                   total_pages = total_pages,
                                    page=page if page else item.page + 1 if item.page else 2,
                                    prevthumb = item.thumbnail,
                                    thumbnail=thumb(),
@@ -910,7 +906,7 @@ def pagination(itemlist, item, function_level=1):
 
     if not item.page:
         item.page = 1
-    perpage = config.get_setting('pagination', default=20)
+    perpage = config.getSetting('pagination', default=20)
     action = function_level if type(function_level) == str else inspect.stack()[function_level][3]
     itlist = []
     for i, it in enumerate(itemlist):
@@ -924,7 +920,7 @@ def pagination(itemlist, item, function_level=1):
             Item(channel=item.channel,
                  contentType=item.contentType,
                  action=action,
-                 title=typo(config.get_localized_string(90006), 'color kod bold'),
+                 title=typo(config.getLocalizedString(90006), 'color kod bold'),
                  page=item.page + 1,
                  total_pages=round(len(itemlist)/perpage),
                  nextPage = True,
@@ -933,18 +929,19 @@ def pagination(itemlist, item, function_level=1):
                  thumbnail=thumb()))
     if len(itemlist) > perpage:
         itlist.append(
-            Item(channel=item.channel,
-                contentType=item.contentType,
-                action='gotopage',
-                real_action=action,
-                title=typo(config.get_localized_string(90007), 'color kod bold'),
-                page=item.page + 1,
-                total_pages=round(len(itemlist)/perpage),
-                nextPage = True,
-                itemlist = True,
-                prevthumb = item.thumbnail,
-                thumbnail=thumb(),
-                folder = False))
+            Item(from_cannel=item.channel,
+                 channel='shortcuts',
+                 contentType=item.contentType,
+                 action='gotopage',
+                 real_action=action,
+                 title=typo(config.getLocalizedString(90007), 'color kod bold'),
+                 page=item.page + 1,
+                 total_pages=round(len(itemlist)/perpage),
+                 nextPage = True,
+                 itemlist = True,
+                 prevthumb = item.thumbnail,
+                 thumbnail=thumb(),
+                 folder = False))
 
     return itlist
 
@@ -981,17 +978,18 @@ def season_pagination(itemlist, item, seasons=[], function_level=1):
                 itlist.append(
                     Item(channel=item.channel,
                          action=action,
-                         title=typo(config.get_localized_string(90008), 'color kod bold'),
+                         title=typo(config.getLocalizedString(90008), 'color kod bold'),
                          allSeasons = seasons,
                          nextSeason = item.nextSeason + 1,
                          itemlist = True,
                          prevthumb = item.thumbnail,
                          thumbnail=thumb()))
             itlist.append(
-                    Item(channel=item.channel,
+                    Item(from_cannel=item.channel,
+                         channel='shortcuts',
                          action='gotoseason',
                          real_action=action,
-                         title=typo(config.get_localized_string(90009), 'color kod bold'),
+                         title=typo(config.getLocalizedString(90009), 'color kod bold'),
                          allSeasons = seasons,
                          nextSeason = item.nextSeason + 1,
                          itemlist = True,
@@ -1021,14 +1019,14 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
     verifiedItemlist = []
 
     def getItem(videoitem):
-        if not videoitem.video_urls:
+        if not videoitem.videoUrls:
             srv_param = servertools.get_server_parameters(videoitem.server.lower())
             if not srv_param:  # do not exists or it's empty
                 findS = servertools.get_server_from_url(videoitem.url)
                 logger.debug(findS)
                 if not findS:
                     if item.channel == 'community':
-                        findS= (config.get_localized_string(30137), videoitem.url, 'directo')
+                        findS= (config.getLocalizedString(30137), videoitem.url, 'directo')
                     else:
                         videoitem.url = unshortenit.unshorten_only(videoitem.url)[0]
                         findS = servertools.get_server_from_url(videoitem.url)
@@ -1042,12 +1040,12 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             else:
                 videoitem.server = videoitem.server.lower()
 
-        if videoitem.video_urls or srv_param.get('active', False):
+        if videoitem.videoUrls or srv_param.get('active', False):
 
             vi = item.clone(server=videoitem.server,
                             serverName=videoitem.serverName,
                             url=videoitem.url,
-                            video_urls= videoitem.video_urlsn,
+                            videoUrls= videoitem.videoUrlsn,
                             ch_name=channeltools.get_channel_parameters(item.channel)['title'],
                             action = "play")
 
@@ -1069,7 +1067,7 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
             # videoitem.fulltitle = item.fulltitle
             # videoitem.show = item.show
             # videoitem.ch_name = channeltools.get_channel_parameters(item.channel)['title']
-            # if not videoitem.video_urls:  videoitem.thumbnail = item.thumbnail
+            # if not videoitem.videoUrls:  videoitem.thumbnail = item.thumbnail
             # videoitem.contentType = item.contentType
             # videoitem.infoLabels = item.infoLabels
             # videoitem.quality = quality
@@ -1082,13 +1080,13 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
 
     # non threaded for webpdb
     # dbg()
-    thL = [getItem(videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
+    thL = [getItem(videoitem) for videoitem in itemlist if videoitem.url or videoitem.videoUrls]
     for it in thL:
-        if it and not config.get_setting("black_list", server=it.server.lower()):
+        if it and not config.getSetting("black_list", server=it.server.lower()):
             verifiedItemlist.append(it)
 
     # with futures.ThreadPoolExecutor() as executor:
-    #     thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
+    #     thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.videoUrls]
     #     for it in futures.as_completed(thL):
     #         if it.result():
     #             verifiedItemlist.append(it.result())
@@ -1097,8 +1095,8 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
     # Check Links
-    if not item.global_search and config.get_setting('checklinks') and CheckLinks and not config.get_setting('autoplay'):
-        checklinks_number = config.get_setting('checklinks_number')
+    if not item.global_search and config.getSetting('checklinks') and CheckLinks and not config.getSetting('autoplay'):
+        checklinks_number = config.getSetting('checklinks_number')
         verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
 
     try:
@@ -1145,7 +1143,7 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
 
     if not typography: typography = 'color kod bold'
 
-    title = typo(config.get_localized_string(30161), typography)
+    title = typo(config.getLocalizedString(30161), typography)
     contentSerieName=item.contentSerieName if item.contentSerieName else item.fulltitle if item.contentType != 'movie' else ''
     contentTitle=item.contentTitle if item.contentTitle else item.fulltitle if item.contentType == 'movie' else ''
 
@@ -1171,22 +1169,22 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
 
 
 def download(itemlist, item, typography='', function_level=1, function=''):
-    if config.get_setting('downloadenabled'):
+    if config.getSetting('downloadenabled'):
 
         if not typography: typography = 'color kod bold'
 
         if item.contentType == 'movie':
             from_action = 'findvideos'
-            title = typo(config.get_localized_string(60354), typography)
+            title = typo(config.getLocalizedString(60354), typography)
         elif item.contentType == 'episode':
             from_action = 'findvideos'
-            title = typo(config.get_localized_string(60356), typography) + ' - ' + item.title
+            title = typo(config.getLocalizedString(60356), typography) + ' - ' + item.title
         elif item.contentType in 'tvshow':
-            if item.channel == 'community' and config.get_setting('show_seasons', item.channel):
+            if item.channel == 'community' and config.getSetting('show_seasons', item.channel):
                 from_action = 'season'
             else:
                 from_action = 'episodes'
-            title = typo(config.get_localized_string(60355), typography)
+            title = typo(config.getLocalizedString(60355), typography)
         elif item.contentType in 'season':
             from_action = 'get_seasons'
         else:  # content type does not support download
@@ -1228,7 +1226,7 @@ def download(itemlist, item, typography='', function_level=1, function=''):
                 itemlist.append(
                     Item(channel='downloads',
                          from_channel=item.channel,
-                         title=typo(config.get_localized_string(60357),typography),
+                         title=typo(config.getLocalizedString(60357),typography),
                          fulltitle=item.fulltitle,
                          show=item.fulltitle,
                          contentType=item.contentType,
@@ -1261,7 +1259,7 @@ def channel_config(item, itemlist):
     itemlist.append(
         Item(channel='setting',
              action="channel_config",
-             title=typo(config.get_localized_string(60587), 'color kod bold'),
+             title=typo(config.getLocalizedString(60587), 'color kod bold'),
              config=item.channel,
              folder=False,
              thumbnail=thumb('setting'))
@@ -1373,8 +1371,8 @@ def thumb(data=None, mode=None):
     _year = ['anno', 'anni', 'year', 'years']
     _top = ['voto', 'voti', 'votato', 'votati', 'migliore', 'migliori', 'fortunato', 'classifica', 'classifiche', 'vote', 'voted', 'best', 'top', 'lucky', 'ranking', 'rating', 'charts']
     _popular = ['popolare', 'popolari', 'raccomandato', 'raccomandati', 'raccomandazione', 'raccomandazioni', 'momento', 'popular', 'recommended', 'recommendation', 'recommendations', 'moment']
-    _all = ['tutto', 'tutta', 'tutti', 'tutte' 'all']
-    _az = ['lettera', 'lettere', 'lista', 'liste', 'alfabetico', 'a-z', 'letter', 'letters', 'list', 'alphabetical']
+    _all = ['tutto', 'tutta', 'tutti', 'tutte', 'all']
+    _az = ['lettera', 'lettere', 'lista', 'liste', 'alfabetico', 'a-z', 'letter', 'letters', 'list', 'alphabetical', 'order', 'ordine']
     _news = ['novità', "novita'", 'aggiornamenti', 'nuovo', 'nuova', 'nuovi', 'nuove', 'ultimo', 'ultima', 'ultimi', 'ultime', 'notizia', 'notizie', 'new', 'newest', 'last', 'latest', 'news']
     _cinema = ['cinema', 'sala', 'theatre', 'theatres']
     _genre = ['genere', 'generi', 'categoria', 'categorie', 'genre', 'genres', 'category', 'categories']
@@ -1385,9 +1383,9 @@ def thumb(data=None, mode=None):
     _info = ['informazione', 'informazioni', 'info', 'information', 'informations']
     _star = ['attore', 'attrice', 'attori', 'attrici', 'regista', 'registi', 'personaggio', 'personaggi', 'interprete', 'interpreti', 'star', 'stars', 'character', 'characters', 'performer', 'performers', 'staff', 'actor', 'actors', 'actress', 'actresses', 'director', 'directors']
     _winter = ['inverno', 'winter']
-    _spring = ['primavera', 'spring'],
-    _summer = ['estate', 'summer'],
-    _autumn = ['autunno', 'autumn'],
+    _spring = ['primavera', 'spring']
+    _summer = ['estate', 'summer']
+    _autumn = ['autunno', 'autumn']
     _teenager = ['ragazzo', 'ragazza', 'ragazzi', 'ragazze','teenager', 'teen']
     _learning = ['imparare', 'scuola', 'learn', 'learning', 'school']
     _animation = ['animazione', 'cartoni', 'animation', 'cartoon']
@@ -1456,7 +1454,7 @@ def thumb(data=None, mode=None):
                  'teenager':_teenager,
                  'learning':_learning,
                  'quality':_quality,
-                 'autoplay':[config.get_localized_string(60071)]
+                 'autoplay':[config.getLocalizedString(60071)]
                 }
 
     genre_dict = {'documentary':_documentary,
@@ -1562,6 +1560,7 @@ def thumb(data=None, mode=None):
                             thumb = thumb + suffix
             if not thumb:
                 for t, titles in icon_dict.items():
+                    logger.debug(titles)
                     if any(word in searched_title for word in titles):
                         thumb = t
 
@@ -1590,10 +1589,10 @@ def get_thumb(thumb_name, view="thumb_"):
     from core import filetools
     if thumb_name.startswith('http'):
         return thumb_name
-    elif config.get_setting('enable_custom_theme') and config.get_setting('custom_theme') and filetools.isfile(config.get_setting('custom_theme') + view + thumb_name):
-        media_path = config.get_setting('custom_theme')
+    elif config.getSetting('enable_custom_theme') and config.getSetting('custom_theme') and filetools.isfile(config.getSetting('custom_theme') + view + thumb_name):
+        media_path = config.getSetting('custom_theme')
     else:
-        icon_pack_name = config.get_setting('icon_set', default="default")
+        icon_pack_name = config.getSetting('icon_set', default="default")
         media_path = filetools.join("https://raw.githubusercontent.com/kodiondemand/media/master/themes/new", icon_pack_name)
     return filetools.join(media_path, thumb_name)
 
@@ -1609,10 +1608,10 @@ def typo(string, typography=''):
     try: string = str(string)
     except: string = str(string.encode('utf8'))
 
-    if config.get_localized_string(30992) in string:
+    if config.getLocalizedString(30992) in string:
         string = string + ' >'
 
-    if int(config.get_setting('view_mode_channel').split(',')[-1]) in [0, 50, 55]:
+    if int(config.getSetting('view_mode_channel').split(',')[-1]) in [0, 50, 55]:
        VLT = True
     else:
         VLT = False
@@ -1683,7 +1682,7 @@ def hdpass_get_servers(item, data=''):
         page = httptools.downloadpage(url, CF=False).data
         mir = scrapertools.find_single_match(page, patron_mir)
 
-        for mir_url, srv in scrapertools.find_multiple_matches(mir, patron_option):
+        for mir_url, srv in scrapertools.findMultipleMatches(mir, patron_option):
             mir_url = scrapertools.decodeHtmlentities(mir_url)
             logger.debug(mir_url)
             it = hdpass_get_url(item.clone(action='play', quality=quality, url=mir_url))[0]
@@ -1712,13 +1711,13 @@ def hdpass_get_servers(item, data=''):
     res = scrapertools.find_single_match(data, patron_res)
 
     # non threaded for webpdb
-    # for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
+    # for res_url, res_video in scrapertools.findMultipleMatches(res, patron_option):
     #     res_url = scrapertools.decodeHtmlentities(res_url)
     #     itemlist.extend(get_hosts(res_url, res_video))
     #
     with futures.ThreadPoolExecutor() as executor:
         thL = []
-        for res_url, res_video in scrapertools.find_multiple_matches(res, patron_option):
+        for res_url, res_video in scrapertools.findMultipleMatches(res, patron_option):
             res_url = scrapertools.decodeHtmlentities(res_url)
             thL.append(executor.submit(get_hosts, res_url, res_video))
         for res in futures.as_completed(thL):
@@ -1758,7 +1757,7 @@ def dooplay_get_links(item, host, paramList=[]):
     if not paramList:
         data = httptools.downloadpage(item.url).data.replace("'", '"')
         patron = r'<li id="player-option-[0-9]".*?data-type="([^"]+)" data-post="([^"]+)" data-nume="([^"]+)".*?<span class="title".*?>([^<>]+)</span>(?:<span class="server">([^<>]+))?'
-        matches = scrapertools.find_multiple_matches(data, patron)
+        matches = scrapertools.findMultipleMatches(data, patron)
     else:
         matches = paramList
     ret = []
@@ -1846,9 +1845,9 @@ def dooplay_menu(item, type):
 
 ########## JWPLAYER ##########
 
-def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
+def get_jwplayer_mediaUrl(data, srvName, onlyHttp=False, dataIsBlock=False):
     from core import jsontools
-    video_urls = []
+    videoUrls = []
     block = scrapertools.find_single_match(data, r'sources"?\s*:\s*(.*?}?])') if not dataIsBlock else data
     if block:
         json = jsontools.load(block)
@@ -1865,17 +1864,17 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False):
                     sources.append((src, s.get('label')))
         else:
             if 'file:' in block:
-                sources = scrapertools.find_multiple_matches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
+                sources = scrapertools.findMultipleMatches(block, r'file:\s*"([^"]+)"(?:,label:\s*"([^"]+)")?')
             elif 'src:' in block:
-                sources = scrapertools.find_multiple_matches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
+                sources = scrapertools.findMultipleMatches(block, r'src:\s*"([^"]+)",\s*type:\s*"[^"]+"(?:,[^,]+,\s*label:\s*"([^"]+)")?')
             else:
                 sources =[(block.replace('"',''), '')]
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                video_urls.append({'type':url.split('.')[-1], 'res':quality, 'url':url if not onlyHttp else url.replace('https://', 'http://')})
+                videoUrls.append({'type':url.split('.')[-1], 'res':quality, 'url':url if not onlyHttp else url.replace('https://', 'http://')})
 
-    return video_urls
+    return videoUrls
 
 
 ########## ITEMLIST DB FOR PAGINATION ##########

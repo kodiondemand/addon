@@ -27,18 +27,18 @@ def test_video_exists(page_url):
 
 
 # Returns an array of possible video url's from the page_url
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
-    matches = scrapertools.find_multiple_matches(data, '<source src="([^"]+)" type="video/(\w+)')
+    matches = scrapertools.findMultipleMatches(data, '<source src="([^"]+)" type="video/(\w+)')
     for media_url, ext in matches:
         calidad = scrapertools.find_single_match(media_url, '(\d+)\.%s' % ext)
-        video_urls.append({'res':calidad, 'type':ext, 'url':media_url})
-    # video_urls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+        videoUrls.append({'res':calidad, 'type':ext, 'url':media_url})
+    # videoUrls.sort(key=lambda it: int(it[0].split("p ", 1)[0]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls
 
 
 def login():
@@ -47,8 +47,8 @@ def login():
         return True
     ip_h = scrapertools.find_single_match(data, 'ip_h=(\w+)')
     lg_h = scrapertools.find_single_match(data, 'lg_h=(\w+)')
-    vkemail = config.get_setting("vkemail",server="vk")
-    vkpassword = config.get_setting("vkpassword",server="vk")
+    vkemail = config.getSetting("vkemail",server="vk")
+    vkpassword = config.getSetting("vkpassword",server="vk")
     post = {"act":"login","role":"al_frame","expire":"","recaptcha":"","captcha_sid":"","captcha_key":"","_origin":"https://vk.com","email":vkemail,"pass":vkpassword, "ip_h":ip_h, "lg_h":lg_h}
     url = "https://login.vk.com/?act=login"
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True, post=urllib.urlencode(post)).headers.get("location", "")

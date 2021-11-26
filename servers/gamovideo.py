@@ -34,18 +34,18 @@ def test_video_exists(page_url):
     global DATA
     DATA = data
     if "images/proced.png" in data:
-        return False, config.get_localized_string(70449) % "Gamovideo"
+        return False, config.getLocalizedString(70449) % "Gamovideo"
     if "File was deleted" in data or ("Not Found"  in data and not "|mp4|" in data) or "File was locked by administrator" in data:
-        return False, config.get_localized_string(70449) % "Gamovideo"
+        return False, config.getLocalizedString(70449) % "Gamovideo"
     if "Video is processing now" in data:
         return False, "[Gamovideo] El video está procesándose en estos momentos. Inténtelo mas tarde."
     if "File is awaiting for moderation" in data:
-        return False,  config.get_localized_string(70449) % "Gamovideo"
+        return False,  config.getLocalizedString(70449) % "Gamovideo"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
 
     data = DATA
@@ -73,23 +73,23 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = re.sub(r'\n|\t|\s+', '', data)
 
     host = scrapertools.find_single_match(data, r'\[\{image:"(http://[^/]+/)')
-    mediaurl = scrapertools.find_single_match(data, r',\{file:"([^"]+)"')
-    if not mediaurl.startswith(host):
-        mediaurl = host + mediaurl
+    mediaUrl = scrapertools.find_single_match(data, r',\{file:"([^"]+)"')
+    if not mediaUrl.startswith(host):
+        mediaUrl = host + mediaUrl
 
     rtmp_url = scrapertools.find_single_match(data, 'file:"(rtmp[^"]+)"')
     playpath = scrapertools.find_single_match(rtmp_url, 'mp4:.*$')
     rtmp_url = rtmp_url.split(playpath)[
                    0] + " playpath=" + playpath + " swfUrl=http://gamovideo.com/player61/jwplayer.flash.swf"
 
-    video_urls = []
-    video_urls.append({'type':'rtmp', 'url':rtmp_url})
-    video_urls.append({'type':scrapertools.get_filename_from_url(mediaurl).split('.')[-1], 'url':mediaurl})
+    videoUrls = []
+    videoUrls.append({'type':'rtmp', 'url':rtmp_url})
+    videoUrls.append({'type':scrapertools.get_filename_from_url(mediaUrl).split('.')[-1], 'url':mediaUrl})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls
 
 def get_gcookie(data, realcheck=False):
     packer = scrapertools.find_single_match(data,

@@ -31,7 +31,7 @@ def test_video_exists(page_url):
         try:
             flashx_data = httptools.downloadpage(page_url).data
         except:
-            return False,  config.get_localized_string(70296) % "FlashX"
+            return False,  config.getLocalizedString(70296) % "FlashX"
     bloque = scrapertools.find_single_match(flashx_data, '(?s)Form method="POST" action(.*?)span')
     flashx_id = scrapertools.find_single_match(bloque, 'name="id" value="([^"]+)"')
     fname = scrapertools.find_single_match(bloque, 'name="fname" value="([^"]+)"')
@@ -42,17 +42,17 @@ def test_video_exists(page_url):
     flashx_post = 'op=download1&usr_login=&id=%s&fname=%s&referer=&hash=%s&imhuman=%s' % (
         flashx_id, urllib.quote(fname), flashx_hash_f, imhuman)
     if 'file was deleted' in flashx_data or 'File Not Found (Deleted or Abused)' in flashx_data:
-        return False, config.get_localized_string(70292) % "FlashX"
+        return False, config.getLocalizedString(70292) % "FlashX"
     elif 'Video is processing now' in flashx_data:
-        return False, config.get_localized_string(70293) % "FlashX"
+        return False, config.getLocalizedString(70293) % "FlashX"
     elif 'Too many views per minute' in flashx_data:
-        return False, config.get_localized_string(70300) % "FlashX"
+        return False, config.getLocalizedString(70300) % "FlashX"
 
     return True, ""
 
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     pfxfx = ""
     data = flashx_data
@@ -67,7 +67,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if len(js_fxfx) > 15:
         data_fxfx = httptools.downloadpage(js_fxfx).data
         mfxfx = scrapertools.find_single_match(data_fxfx, 'get.*?({.*?})').replace("'", "").replace(" ", "")
-        matches = scrapertools.find_multiple_matches(mfxfx, '(\w+):(\w+)')
+        matches = scrapertools.findMultipleMatches(mfxfx, '(\w+):(\w+)')
         for f, v in matches:
             pfxfx += f + "=" + v + "&"
     logger.debug("mfxfxfx1= %s" % js_fxfx)
@@ -83,7 +83,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     ts = int(time.time())
     flash_ts = scrapertools.find_single_match(flashx_hash_f, '-(\d{10})-')
     wait_time = int(flash_ts) - ts
-    platformtools.dialog_notification('Cargando flashx', 'Espera de %s segundos requerida' % wait_time)
+    platformtools.dialogNotification('Cargando flashx', 'Espera de %s segundos requerida' % wait_time)
     
     try:
         time.sleep(wait_time)
@@ -102,20 +102,20 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         except:
             pass
 
-    matches = scrapertools.find_multiple_matches(data, "(eval\(function\(p,a,c,k.*?)\s+</script>")
-    video_urls = []
+    matches = scrapertools.findMultipleMatches(data, "(eval\(function\(p,a,c,k.*?)\s+</script>")
+    videoUrls = []
     for match in matches:
         try:
             match = jsunpack.unpack(match)
             match = match.replace("\\'", "'")
-            media_urls = scrapertools.find_multiple_matches(match, "{src:'([^']+)'.*?,label:'([^']+)'")
+            media_urls = scrapertools.findMultipleMatches(match, "{src:'([^']+)'.*?,label:'([^']+)'")
             subtitle = ""
             for media_url, label in media_urls:
                 if media_url.endswith(".srt") and label == "Spanish":
                     try:
                         from core import filetools
                         data = httptools.downloadpage(media_url)
-                        subtitle = os.path.join(config.get_data_path(), 'sub_flashx.srt')
+                        subtitle = os.path.join(config.getDataPath(), 'sub_flashx.srt')
                         filetools.write(subtitle, data)
                     except:
                         import traceback
@@ -123,12 +123,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
             for media_url, label in media_urls:
                 if not media_url.endswith("png") and not media_url.endswith(".srt"):
-                    video_urls.append({'type':media_url.rsplit('.', 1)[1], 'url':media_url, 'sub':subtitle})
+                    videoUrls.append({'type':media_url.rsplit('.', 1)[1], 'url':media_url, 'sub':subtitle})
 
-            # for video_url in video_urls:
-            #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+            # for videoUrl in videoUrls:
+            #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
         except:
             pass
 
-    return video_urls
+    return videoUrls
 

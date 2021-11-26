@@ -47,7 +47,7 @@ def menu(item):
     if item.contentType == 'tvshow':
         itemlist += [item.clone(title='In Corso', args=InCorso),
                      item.clone(title='Terminato', args=Terminato)]
-    itemlist +=[item.clone(title=support.typo(config.get_localized_string(70741).replace(' %s', '…'),'bold'), action='search', thumbnail=support.thumb('search'))]
+    itemlist +=[item.clone(title=support.typo(config.getLocalizedString(70741).replace(' %s', '…'),'bold'), action='search', thumbnail=support.thumb('search'))]
     return itemlist
 
 
@@ -133,7 +133,7 @@ def news(item):
                        fulltitle=it['anime']['title'],
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
-                       video_url=it['scws_id'],
+                       videoUrl=it['scws_id'],
                        plot=it['anime']['plot'],
                        action='findvideos')
         )
@@ -149,7 +149,7 @@ def movies(item):
     page = item.page if item.page else 0
     item.args['offset'] = page * 30
 
-    order = support.config.get_setting('order', item.channel)
+    order = support.config.getSetting('order', item.channel)
     if order:
         order_list = [ "Standard", "Lista A-Z", "Lista Z-A", "Popolarità", "Valutazione" ]
         item.args['order'] = order_list[order]
@@ -186,7 +186,7 @@ def movies(item):
             itm.contentSerieName = ''
             itm.action = 'play'
             item.forcethumb=True
-            itm.video_url = it['episodes'][0]['scws_id']
+            itm.videoUrl = it['episodes'][0]['scws_id']
 
         else:
             itm.contentType = 'tvshow'
@@ -194,7 +194,7 @@ def movies(item):
             itm.fulltitle = itm.show = itm.contentSerieName = title
             itm.action = 'episodes'
             itm.episodes = it['episodes'] if 'episodes' in it else it['scws_id']
-            # itm.video_url = item.url
+            # itm.videoUrl = item.url
 
         itemlist.append(itm)
 
@@ -219,7 +219,7 @@ def episodes(item):
                        action='play',
                        contentType='episode',
                        forcethumb=True,
-                       video_url=it['scws_id']))
+                       videoUrl=it['scws_id']))
 
     if inspect.stack()[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -234,11 +234,11 @@ def play(item):
     from hashlib import md5
 
     # Calculate Token
-    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.video_url), headers=headers).json.get('client_ip')
+    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.videoUrl), headers=headers).json.get('client_ip')
     expires = int(time() + 172800)
     token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.video_url, token, expires)
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.videoUrl, token, expires)
 
     return [item.clone(server='directo', url=url,  manifest='hls')]
 

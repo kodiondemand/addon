@@ -25,52 +25,52 @@ def mainlist(item):
                  action='live',
                  thumbnail=support.thumb('tvshow_live')),
             Item(channel=item.channel,
-                     title=config.get_setting("film1", channel="filmontv"),
+                     title=config.getSetting("film1", channel="filmontv"),
                      action="now_on_tv",
                      url="%s/film-in-tv/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("film2", channel="filmontv"),
+                     title=config.getSetting("film2", channel="filmontv"),
                      action="now_on_tv",
                      url="%s/film-in-tv/oggi/premium/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("film3", channel="filmontv"),
+                     title=config.getSetting("film3", channel="filmontv"),
                      action="now_on_tv",
                      url="%s/film-in-tv/oggi/sky-intrattenimento/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("film4", channel="filmontv"),
+                     title=config.getSetting("film4", channel="filmontv"),
                      action="now_on_tv",
                      url="%s/film-in-tv/oggi/sky-cinema/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("film5", channel="filmontv"),
+                     title=config.getSetting("film5", channel="filmontv"),
                      action="now_on_tv",
                      url="%s/film-in-tv/oggi/sky-primafila/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("now1", channel="filmontv"),
+                     title=config.getSetting("now1", channel="filmontv"),
                      action="now_on_misc",
                      url="%s/ora-in-onda/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("now2", channel="filmontv"),
+                     title=config.getSetting("now2", channel="filmontv"),
                      action="now_on_misc",
                      url="%s/ora-in-onda/premium/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("now3", channel="filmontv"),
+                     title=config.getSetting("now3", channel="filmontv"),
                      action="now_on_misc",
                      url="%s/ora-in-onda/sky-intrattenimento/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("now4", channel="filmontv"),
+                     title=config.getSetting("now4", channel="filmontv"),
                      action="now_on_misc",
                      url="%s/ora-in-onda/sky-doc-e-lifestyle/" % host,
                      thumbnail=item.thumbnail),
             Item(channel=item.channel,
-                     title=config.get_setting("now5", channel="filmontv"),
+                     title=config.getSetting("now5", channel="filmontv"),
                      action="now_on_misc_film",
                      url="%s/ora-in-onda/sky-cinema/" % host,
                      thumbnail=item.thumbnail),
@@ -84,7 +84,7 @@ def mainlist(item):
     return itemlist
 
 def server_config(item):
-    return platformtools.show_channel_settings(channelpath=filetools.join(config.get_runtime_path(), "specials", item.config))
+    return platformtools.showChannelSettings(channelpath=filetools.join(config.getRuntimePath(), "specials", item.config))
 
 def now_on_misc_film(item):
     logger.debug("filmontv tvoggi")
@@ -264,7 +264,7 @@ def live(item):
 
 def load_live(channel_name):
     try:
-        channel = platformtools.channel_import(item.contentChannel)
+        channel = platformtools.channelImport(item.contentChannel)
         itemlist = channel.live(channel.mainlist(Item())[0])
     except:
         itemlist = []

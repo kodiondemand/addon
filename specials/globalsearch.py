@@ -19,16 +19,18 @@ else:
     from concurrent_py2 import futures
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
-def_lang = info_language[config.get_setting("info_language", "videolibrary")]
+def_lang = info_language[config.getSetting("info_language", "videolibrary")]
 close_action = False
 update_lock = threading.Lock()
+moduleDict = {}
+searchActions = []
 
-workers = config.get_setting('thread_number') if config.get_setting('thread_number') > 0 else None
+workers = config.getSetting('thread_number') if config.getSetting('thread_number') > 0 else None
 
 
 def new_search(*args):
     xbmc.executebuiltin('Dialog.Close(all)')
-    w = SearchWindow('GlobalSearch.xml', config.get_runtime_path())
+    w = SearchWindow('GlobalSearch.xml', config.getRuntimePath())
     w.start(*args)
     del w
 
@@ -90,7 +92,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.next = None
         self.previous = None
         self.FOCUS = False
-        self.mode = self.item.mode.split('_')[-1]
+        self.mode = self.item.mode.split('/')[-1]
 
         if not thActions and not self.searchActions:
             self.thActions = Thread(target=self.getActionsThread)
@@ -112,11 +114,11 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.item.text = self.item.contentSerieName
 
             if not self.item.text:
-                if config.get_setting('last_search'): last_search = channeltools.get_channel_setting('Last_searched', 'search', '')
+                if config.getSetting('last_search'): last_search = channeltools.getChannelSetting('Last_searched', 'search', '')
                 else: last_search = ''
-                if not self.item.text: self.item.text = platformtools.dialog_input(default=last_search, heading='')
+                if not self.item.text: self.item.text = platformtools.dialogInput(default=last_search, heading='')
                 if self.item.text:
-                    channeltools.set_channel_setting('Last_searched', self.item.text, 'search')
+                    channeltools.setChannelSetting('Last_searched', self.item.text, 'search')
                     from specials.search import save_search
                     save_search(self.item.text)
 
@@ -127,7 +129,7 @@ class SearchWindow(xbmcgui.WindowXML):
         for channel in self.channelsList:
             logger.debug(channel)
             try:
-                module = platformtools.channel_import(channel)
+                module = platformtools.channelImport(channel)
                 mainlist = getattr(module, 'mainlist')(Item(channel=channel, global_search=True))
                 actions = [elem for elem in mainlist if elem.action == "search" and (self.mode in ['all', 'person'] or elem.contentType in [self.mode, 'undefined'])]
                 self.moduleDict[channel] = module
@@ -198,7 +200,7 @@ class SearchWindow(xbmcgui.WindowXML):
             it = xbmcgui.ListItem('[B]{}[/B]'.format(title) + ('\n[I]{}[/I]'.format(tagline if tagline else '')))
             it.setArt({'poster':result.get('thumbnail', noThumb), 'fanart':result.get('fanart', '')})
 
-            platformtools.set_infolabels(it, new_item)
+            platformtools.setInfolabels(it, new_item)
 
             color = 'FFFFFFFF' if not rating else 'FFDB2360' if rating < 4 else 'FFD2D531' if rating < 7 else 'FF21D07A'
             it.setProperties({'rating': str(int(rating) * 10) if rating else 100, 'color':color, 'item': new_item.tourl(), 'search': 'search'})
@@ -259,17 +261,17 @@ class SearchWindow(xbmcgui.WindowXML):
                             mode='search_filmography')
 
             it = xbmcgui.ListItem(name)
-            platformtools.set_infolabels(it, new_item)
+            platformtools.setInfolabels(it, new_item)
             it.setArt({'poster':thumb})
             it.setProperties({'search': 'persons', 'item': new_item.tourl()})
             items.append(it)
         if len(results) > 19:
-            it = xbmcgui.ListItem(config.get_localized_string(70006))
+            it = xbmcgui.ListItem(config.getLocalizedString(70006))
             it.setArt({'poster':'Infoplus/next_focus.png'})
             it.setProperty('search','next')
             items.append(it)
         if self.page > 1:
-            it = xbmcgui.ListItem(config.get_localized_string(70005))
+            it = xbmcgui.ListItem(config.getLocalizedString(70005))
             it.setArt({'poster':'Infoplus/previous_focus.png'})
             it.setProperty('search','previous')
             items.insert(0, it)
@@ -303,7 +305,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 list_cat[n] = 'tvshow'
 
             if self.mode in ['all', 'person'] or self.mode in list_cat:
-                if config.get_setting("include_in_global_search", channel) and ch_param.get("active", False):
+                if config.getSetting("include_in_global_search", channel) and ch_param.get("active", False):
                     channels_list.append(channel)
 
         logger.debug('search in channels:', channels_list)
@@ -438,8 +440,8 @@ class SearchWindow(xbmcgui.WindowXML):
         thumb = item.thumbnail if item.thumbnail else 'Infoplus/' + item.contentType.replace('show', '') + '.png'
 
         it = xbmcgui.ListItem(title)
-        it.setArt({'poster':thumb, 'fanart':item.fanart, 'thumb':thumb if config.get_setting('episode_info') else ''})
-        platformtools.set_infolabels(it, item)
+        it.setArt({'poster':thumb, 'fanart':item.fanart, 'thumb':thumb if config.getSetting('episode_info') else ''})
+        platformtools.setInfolabels(it, item)
         # logger.debug(item)
 
         rating = info.get('rating')
@@ -490,7 +492,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.NORESULTS.setVisible(False)
 
         self.time = time.time()
-        self.mainTitle = config.get_localized_string(30993).replace('...', '') % '"%s"' % self.item.text
+        self.mainTitle = config.getLocalizedString(30993).replace('...', '') % '"%s"' % self.item.text
 
         # collect controls
         self.NEXT = self.getControl(NEXT)
@@ -507,7 +509,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.EPISODESLIST = self.getControl(EPISODESLIST)
         self.Focus(self.focus)
 
-        if self.item.mode.split('_')[0] in ['all', 'search']:
+        if self.item.mode.split('/')[0] in ['all', 'search']:
             if 'search' in self.item.mode:
                 self.item.text = scrapertools.title_unify(self.item.text)
             self.thread = Thread(target=self.search)
@@ -541,9 +543,9 @@ class SearchWindow(xbmcgui.WindowXML):
             if action in [RIGHT]:
                 item = self.next
             if item:
-                platformtools.dialog_busy(True)
+                platformtools.dialogBusy(True)
                 self.loadEpisodes(item)
-                platformtools.dialog_busy(False)
+                platformtools.dialogBusy(False)
 
         elif action in [SWIPEUP] and self.CHANNELS.isVisible():
             self.setFocusId(CHANNELS)
@@ -620,7 +622,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
         elif control_id in [RESULTS, EPISODESLIST]:
 
-            platformtools.dialog_busy(True)
+            platformtools.dialogBusy(True)
             if control_id in [RESULTS]:
                 name = self.CHANNELS.getSelectedItem().getLabel()
                 self.pos = self.RESULTS.getSelectedPosition()
@@ -631,19 +633,19 @@ class SearchWindow(xbmcgui.WindowXML):
                     item = Item().fromurl(item_url)
 
                 else:  # no results  item
-                    platformtools.dialog_busy(False)
+                    platformtools.dialogBusy(False)
                     return
 
                 if item.action:
                     item.window = True
                     item.folder = False
                     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
-                    platformtools.dialog_busy(False)
+                    platformtools.dialogBusy(False)
                     return
 
             self.loadEpisodes(item)
 
-            platformtools.dialog_busy(False)
+            platformtools.dialogBusy(False)
 
     def channelItems(self):
         items = []
@@ -658,7 +660,7 @@ class SearchWindow(xbmcgui.WindowXML):
 
     def loadEpisodes(self ,item):
         try:
-            self.channel = platformtools.channel_import(item.channel)
+            self.channel = platformtools.channelImport(item.channel)
             self.itemsResult = getattr(self.channel, item.action)(item)
         except:
             import traceback
@@ -690,7 +692,7 @@ class SearchWindow(xbmcgui.WindowXML):
         self.PREV.setVisible(True if self.previous else False)
 
         if not ep:
-            ep = [xbmcgui.ListItem(config.get_localized_string(60347))]
+            ep = [xbmcgui.ListItem(config.getLocalizedString(60347))]
             ep[0].setArt({'poster', support.thumb('nofolder')})
 
         self.Focus(EPISODES)
@@ -710,11 +712,11 @@ class SearchWindow(xbmcgui.WindowXML):
     def Close(self):
         self.exit = True
         if self.thread:
-            platformtools.dialog_busy(True)
+            platformtools.dialogBusy(True)
             for th in self.search_threads:
                 th.cancel()
             self.thread.join()
-            platformtools.dialog_busy(False)
+            platformtools.dialogBusy(False)
         self.close()
 
     def context(self):
@@ -727,7 +729,7 @@ class SearchWindow(xbmcgui.WindowXML):
             parent = self.item
         item = Item().fromurl(item_url)
         parent.noMainMenu = True
-        commands = platformtools.set_context_commands(item, item_url, parent)
+        commands = platformtools.setContextCommands(item, item_url, parent)
         context = [c[0] for c in commands]
         context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin').replace(')','&no_reload=True)') for c in commands]
         index = xbmcgui.Dialog().contextmenu(context)

@@ -427,7 +427,7 @@ class PyOpenSSLContext(object):
     @options.setter
     def options(self, value):
         self._options = value
-        self._ctx.set_options(value)
+        self._ctx.setOptions(value)
 
     @property
     def verify_mode(self):

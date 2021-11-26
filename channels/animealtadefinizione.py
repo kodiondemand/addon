@@ -11,7 +11,7 @@ host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
 perpage_list = ['20','30','40','50','60','70','80','90','100']
-perpage = perpage_list[support.config.get_setting('perpage' , 'animealtadefinizione')]
+perpage = perpage_list[support.config.getSetting('perpage' , 'animealtadefinizione')]
 epPatron = r'<td>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"'
 
 
@@ -118,7 +118,7 @@ def findvideos(item):
         for title, url in matches:
             get_video_list(item, url, title, itemlist)
     else:
-        get_video_list(item, item.url, support.config.get_localized_string(30137), itemlist)
+        get_video_list(item, item.url, support.config.getLocalizedString(30137), itemlist)
     return support.server(item, itemlist=itemlist)
 
 

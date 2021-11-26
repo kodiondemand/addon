@@ -16,37 +16,37 @@ def test_video_exists(page_url):
     logger.debug(page.url)
 
     if "the page you are looking for could not be found" in data:
-        return False, config.get_localized_string(70449) % "HDmario"
+        return False, config.getLocalizedString(70449) % "HDmario"
     return True, ""
 
 
 def login():
     r = httptools.downloadpage(page.url.replace('/unauthorized', '/login'),
-                           post={'email': config.get_setting('username', server='hdmario'),
-                                 'password': config.get_setting('password', server='hdmario')})
+                           post={'email': config.getSetting('username', server='hdmario'),
+                                 'password': config.getSetting('password', server='hdmario')})
     if not r.success or 'Email o Password non validi' in r.data:
-        platformtools.dialog_ok('HDmario', 'Username/password non validi')
+        platformtools.dialogOk('HDmario', 'Username/password non validi')
         return False
 
     return True
 
 
 def registerOrLogin(page_url):
-    if config.get_setting('username', server='hdmario') and config.get_setting('password', server='hdmario'):
+    if config.getSetting('username', server='hdmario') and config.getSetting('password', server='hdmario'):
         if login():
             return True
 
-    action = platformtools.dialog_yesno('HDmario',
+    action = platformtools.dialogYesNo('HDmario',
                                   'Questo server necessita di un account, ne hai già uno oppure vuoi tentare una registrazione automatica?',
                                   yeslabel='Accedi', nolabel='Tenta registrazione', customlabel='Annulla')
     if action == 1:  # accedi
         from specials import setting
         from core.item import Item
-        user_pre = config.get_setting('username', server='hdmario')
-        password_pre = config.get_setting('password', server='hdmario')
+        user_pre = config.getSetting('username', server='hdmario')
+        password_pre = config.getSetting('password', server='hdmario')
         setting.server_config(Item(config='hdmario'))
-        user_post = config.get_setting('username', server='hdmario')
-        password_post = config.get_setting('password', server='hdmario')
+        user_post = config.getSetting('username', server='hdmario')
+        password_post = config.getSetting('password', server='hdmario')
 
         if user_pre != user_post or password_pre != password_post:
             return registerOrLogin(page_url)
@@ -61,7 +61,7 @@ def registerOrLogin(page_url):
         # captcha = httptools.downloadpage(baseUrl + '/captchaInfo').json
         logger.debug('email: ' + mailbox.address)
         logger.debug('pass: ' + randPsw)
-        reg = platformtools.dialog_register(baseUrl + '/register/', email=True, password=True, email_default=mailbox.address, password_default=randPsw)
+        reg = platformtools.dialogRegister(baseUrl + '/register/', email=True, password=True, email_default=mailbox.address, password_default=randPsw)
         if not reg:
             return False
         regPost = httptools.downloadpage(baseUrl + '/register/',
@@ -73,27 +73,27 @@ def registerOrLogin(page_url):
         if '/register' in regPost.url:
             error = scrapertools.htmlclean(scrapertools.find_single_match(regPost.data, 'Impossibile proseguire.*?</div>'))
             error = scrapertools.unescape(scrapertools.re.sub('\n\s+', ' ', error))
-            platformtools.dialog_ok('HDmario', error)
+            platformtools.dialogOk('HDmario', error)
             return False
         if reg['email'] == mailbox.address:
             if "L'indirizzo email è già stato utilizzato" in regPost.data:
                 # httptools.downloadpage(baseUrl + '/forgotPassword', post={'email': reg['email']})
-                platformtools.dialog_ok('HDmario', 'Indirizzo mail già utilizzato')
+                platformtools.dialogOk('HDmario', 'Indirizzo mail già utilizzato')
                 return False
             mail = mailbox.waitForMail()
             if mail:
                 checkUrl = scrapertools.find_single_match(mail.body, 'href="([^"]+)">Premi qui').replace(r'\/', '/')
                 logger.debug('CheckURL: ' + checkUrl)
                 httptools.downloadpage(checkUrl)
-                config.set_setting('username', mailbox.address, server='hdmario')
-                config.set_setting('password', randPsw, server='hdmario')
-                platformtools.dialog_ok('HDmario',
+                config.setSetting('username', mailbox.address, server='hdmario')
+                config.setSetting('password', randPsw, server='hdmario')
+                platformtools.dialogOk('HDmario',
                                         'Registrato automaticamente con queste credenziali:\nemail:' + mailbox.address + '\npass: ' + randPsw)
             else:
-                platformtools.dialog_ok('HDmario', 'Impossibile registrarsi automaticamente')
+                platformtools.dialogOk('HDmario', 'Impossibile registrarsi automaticamente')
                 return False
         else:
-            platformtools.dialog_ok('HDmario', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
+            platformtools.dialogOk('HDmario', 'Hai modificato la mail quindi KoD non sarà in grado di effettuare la verifica in autonomia, apri la casella ' + reg['email']
                                     + ' e clicca sul link. Premi ok quando fatto')
         logger.debug('Registrazione completata')
     else:
@@ -102,7 +102,7 @@ def registerOrLogin(page_url):
     return True
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     global page, data
     page_url = page_url.replace('?', '')
     logger.debug("url=" + page_url)
@@ -125,7 +125,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if '/unauthorized' in page.url or '/not-active' in page.url:
         httptools.set_cookies({'domain': 'hdmario.live'}, True)  # clear cookies
         if not registerOrLogin(page_url):
-            platformtools.play_canceled = True
+            platformtools.playCanceled = True
             return []
         page = httptools.downloadpage(page_url)
         data = page.data
@@ -140,6 +140,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     data = httptools.downloadpage(baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', ''), headers=[['X-Secure-Proof', secureProof]]).data
     filetools.write(xbmc.translatePath('special://temp/hdmario.m3u8'), data, 'w')
 
-    video_urls = [{'type':'hls', 'url':baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '')}]
+    videoUrls = [{'type':'hls', 'url':baseUrl + '/pl/' + page_url.split('/')[-1].replace('?', '')}]
 
-    return video_urls
+    return videoUrls

@@ -153,7 +153,7 @@ def update_title(item):
                 item.channel = new_item.channel     # Restoring the name of the channel, in case we had changed it
             if item.tmdb_stat == True:
                 if new_item.contentSerieName:       # If it's serial ...
-                    filter_languages =  config.get_setting("filter_languages", item.channel)
+                    filter_languages =  config.getSetting("filter_languages", item.channel)
                     if filter_languages and filter_languages >= 0:
                         item.title_from_channel = new_item.contentSerieName         # I keep the initial title for Filtertools
                         item.contentSerieName = new_item.contentSerieName           # I keep the initial title for Filtertools
@@ -223,7 +223,7 @@ def refresh_screen(item):
         import xbmcgui
 
         xlistitem = xbmcgui.ListItem(path=item.url)                     # We create xlistitem for compatibility with Kodi 18
-        if config.get_platform(True)['num_version'] >= 16.0:
+        if config.getXBMCPlatform(True)['num_version'] >= 16.0:
             xlistitem.setArt({"thumb": item.contentThumbnail})          # We load the thumb
         else:
             xlistitem.setThumbnailImage(item.contentThumbnail)
@@ -234,7 +234,7 @@ def refresh_screen(item):
     except:
         logger.error(traceback.format_exc())
 
-    platformtools.itemlist_update(item)                                 # we refresh the screen with the new Item
+    platformtools.itemlistUpdate(item)                                 # we refresh the screen with the new Item
 
     return xlistitem
 
@@ -328,7 +328,7 @@ def post_tmdb_listado(item, itemlist):
         except:
             logger.error(traceback.format_exc())
 
-        __modo_grafico__ = config.get_setting('modo_grafico', item.channel)
+        __modo_grafico__ = config.getSetting('modo_grafico', item.channel)
 
         # If TMDB has not found the video we clean the year
         if item_local.infoLabels['year'] == "-":
@@ -431,7 +431,7 @@ def post_tmdb_listado(item, itemlist):
         title += title_add                          # Additional tags are added, if any
 
         # Now we make up the titles a bit depending on whether smart titles have been selected or not
-        if not config.get_setting("unify"):         # If Smart Titles NOT selected:
+        if not config.getSetting("unify"):         # If Smart Titles NOT selected:
             title = '%s [COLOR yellow][%s][/COLOR] [%s] [COLOR limegreen][%s][/COLOR] [COLOR red]%s[/COLOR]' % (title, str(item_local.infoLabels['year']), rating, item_local.quality, str(item_local.language))
 
         else:                                       # If Smart Titles YES selected:
@@ -512,7 +512,7 @@ def post_tmdb_seasons(item, itemlist):
     itemlist_temporadas = []
     itemlist_fo = []
 
-    if config.get_setting("no_pile_on_seasons", 'videolibrary') == 2:           # If you do not want to show seasonally, we are leaving ...
+    if config.getSetting("no_pile_on_seasons", 'videolibrary') == 2:           # If you do not want to show seasonally, we are leaving ...
         if item.season_colapse:                                                 # We remove the indicator from the list by Seasons
             del item.season_colapse
         return (item, itemlist)
@@ -558,13 +558,13 @@ def post_tmdb_seasons(item, itemlist):
     if rating and rating == 0.0:
         rating = ''
 
-    if not config.get_setting("unify"):                     # If Smart Titles NOT selected:
+    if not config.getSetting("unify"):                     # If Smart Titles NOT selected:
         title = '%s [COLOR yellow][%s][/COLOR] [%s] [COLOR limegreen][%s][/COLOR] [COLOR red]%s[/COLOR]' % (title, str(item_season.infoLabels['year']), rating, item_season.quality, str(item_season.language))
     else:                                                   # We fixed it a bit for Unify
         title = title.replace('[', '-').replace(']', '-').replace('.', ',').strip()
     title = title.replace("--", "").replace("[]", "").replace("()", "").replace("(/)", "").replace("[/]", "").strip()
 
-    if config.get_setting("show_all_seasons", 'videolibrary'):
+    if config.getSetting("show_all_seasons", 'videolibrary'):
         itemlist_temporadas.append(item_season.clone(title=title, from_title_season_colapse=item.title))
 
     # We review all the episodes to detect the different seasons
@@ -577,7 +577,7 @@ def post_tmdb_seasons(item, itemlist):
             itemlist_temporadas.append(item_season.clone(from_title_season_colapse=item.title))
 
     # If there is more than one season it is followed, or it has been forced to list by seasons, if the original Itemlist is not returned
-    if len(itemlist_temporadas) > 2 or config.get_setting("no_pile_on_seasons", 'videolibrary') == 0:
+    if len(itemlist_temporadas) > 2 or config.getSetting("no_pile_on_seasons", 'videolibrary') == 0:
         for item_local in itemlist_temporadas:
             if "** Todas las Temporadas" in item_local.title:       # If it's the title of ALL Seasons, we ignore it
                 continue
@@ -604,7 +604,7 @@ def post_tmdb_seasons(item, itemlist):
             if item_local.infoLabels['temporada_num_episodes']:    # No. of Temp Episodes
                 item_local.title += ' [%s epi]' % str(item_local.infoLabels['temporada_num_episodes'])
 
-            if not config.get_setting("unify"):                     # If Smart Titles NOT selected:
+            if not config.getSetting("unify"):                     # If Smart Titles NOT selected:
                 item_local.title = '%s [COLOR limegreen][%s][/COLOR] [COLOR red]%s[/COLOR]' % (item_local.title, item_local.quality, str(item_local.language))
             else:                                                   # We fixed it a bit for Unify
                 item_local.title = item_local.title.replace("[", "-").replace("]", "-").replace(".", ",").replace("GB", "G B").replace("Gb", "G b").replace("gb", "g b").replace("MB", "M B").replace("Mb", "M b").replace("mb", "m b")
@@ -667,11 +667,11 @@ def post_tmdb_episodes(item, itemlist):
     # logger.debug(item)
 
     modo_serie_temp = ''
-    if config.get_setting('seleccionar_serie_temporada', item.channel) >= 0:
-        modo_serie_temp = config.get_setting('seleccionar_serie_temporada', item.channel)
+    if config.getSetting('seleccionar_serie_temporada', item.channel) >= 0:
+        modo_serie_temp = config.getSetting('seleccionar_serie_temporada', item.channel)
     modo_ultima_temp = ''
-    if config.get_setting('seleccionar_ult_temporadda_activa', item.channel) is True or config.get_setting('seleccionar_ult_temporadda_activa', item.channel) is False:
-        modo_ultima_temp = config.get_setting('seleccionar_ult_temporadda_activa', item.channel)
+    if config.getSetting('seleccionar_ult_temporadda_activa', item.channel) is True or config.getSetting('seleccionar_ult_temporadda_activa', item.channel) is False:
+        modo_ultima_temp = config.getSetting('seleccionar_ult_temporadda_activa', item.channel)
 
     # Initiates variables to control the number of episodes per season
     num_episodes = 1
@@ -1015,16 +1015,16 @@ def post_tmdb_findvideos(item, itemlist):
     # logger.debug(item)
 
     # Know if we are in a popup window launched from a bullet in the main menu,
-    # with the function "play_from_library"
+    # with the function "playFromLibrary"
     item.unify = False
     Window_IsMedia = False
     try:
         import xbmc
         if xbmc.getCondVisibility('Window.IsMedia') == 1:
             Window_IsMedia = True
-            item.unify = config.get_setting("unify")
+            item.unify = config.getSetting("unify")
     except:
-        item.unify = config.get_setting("unify")
+        item.unify = config.getSetting("unify")
         logger.error(traceback.format_exc())
 
     if item.contentSeason_save:                                 # We restore the num. seasonal
@@ -1097,7 +1097,7 @@ def post_tmdb_findvideos(item, itemlist):
     tiempo = 0
     if item.infoLabels['duration']:
         try:
-            if config.get_platform(True)['num_version'] < 18 or not Window_IsMedia:
+            if config.getXBMCPlatform(True)['num_version'] < 18 or not Window_IsMedia:
                 tiempo = item.infoLabels['duration']
             elif xbmc.getCondVisibility('Window.IsMedia') == 1:
                 item.quality = re.sub(r'\s?\[\d+:\d+\ h]', '', item.quality)
@@ -1176,7 +1176,7 @@ def post_tmdb_findvideos(item, itemlist):
 
     if item.channel_alt:
         title_gen = '[COLOR yellow]%s [/COLOR][ALT]: %s' % (item.category.capitalize(), title_gen)
-    # elif (config.get_setting("quit_channel_name", "videolibrary") == 1 or item.channel == channel_py) and item.contentChannel == "videolibrary":
+    # elif (config.getSetting("quit_channel_name", "videolibrary") == 1 or item.channel == channel_py) and item.contentChannel == "videolibrary":
     else:
         title_gen = '[COLOR white]%s: %s' % (item.category.capitalize(), title_gen)
 
@@ -1230,10 +1230,10 @@ def get_field_from_kodi_DB(item, from_fields='*', files='file'):
 
     """
 
-    FOLDER_MOVIES = config.get_setting("folder_movies")
-    FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
-    VIDEOLIBRARY_PATH = config.get_videolibrary_config_path()
-    VIDEOLIBRARY_REAL_PATH = config.get_videolibrary_path()
+    FOLDER_MOVIES = config.getSetting("folder_movies")
+    FOLDER_TVSHOWS = config.getSetting("folder_tvshows")
+    VIDEOLIBRARY_PATH = config.getVideolibraryConfigPath()
+    VIDEOLIBRARY_REAL_PATH = config.getVideolibraryPath()
 
     if item.contentType == 'movie':                             # I add the folder corresponding to the path of the Video Library
         path = filetools.join(VIDEOLIBRARY_REAL_PATH, FOLDER_MOVIES)
@@ -1324,7 +1324,7 @@ def fail_over_newpct1(item, patron, patron2=None, timeout=None):
     # logger.debug(item)
 
     if timeout == None:
-        timeout = config.get_setting('clonenewpct1_timeout_downloadpage', channel_py)           # Timeout downloadpage
+        timeout = config.getSetting('clonenewpct1_timeout_downloadpage', channel_py)           # Timeout downloadpage
     if timeout == 0: timeout = None
     if item.action == "search" or item.action == "listado_busqueda": timeout = timeout * 2      # More time for searches
 
@@ -1563,9 +1563,9 @@ def web_intervenida(item, data, desactivar=True):
         # We save the changes made in the .json
         try:
             if item.channel != channel_py:
-                disabled = config.set_setting('enabled', False, item.channel)           # We deactivate the channel
-                disabled = config.set_setting('include_in_global_search', False, item.channel)      # We get it out of global searches
-            channel_path = filetools.join(config.get_runtime_path(), "channels", item.channel + ".json")
+                disabled = config.setSetting('enabled', False, item.channel)           # We deactivate the channel
+                disabled = config.setSetting('include_in_global_search', False, item.channel)      # We get it out of global searches
+            channel_path = filetools.join(config.getRuntimePath(), "channels", item.channel + ".json")
             with open(channel_path, 'w') as outfile:                                    # We record the updated .json
                 json.dump(json_data, outfile, sort_keys = True, indent = 2, ensure_ascii = False)
         except:
@@ -1590,20 +1590,20 @@ def regenerate_clones():
 
     try:
         # Find the paths where to leave the control .json file, and the Video Library
-        json_path = filetools.exists(filetools.join(config.get_runtime_path(), 'verify_cached_torrents.json'))
+        json_path = filetools.exists(filetools.join(config.getRuntimePath(), 'verify_cached_torrents.json'))
         if json_path:
             logger.debug('Previously repaired video library: WE ARE GOING')
             return False
-        json_path = filetools.join(config.get_runtime_path(), 'verify_cached_torrents.json')
+        json_path = filetools.join(config.getRuntimePath(), 'verify_cached_torrents.json')
         filetools.write(json_path, json.dumps({"CINE_verify": True}))   # Prevents another simultaneous process from being launched
-        json_error_path = filetools.join(config.get_runtime_path(), 'error_cached_torrents.json')
-        json_error_path_BK = filetools.join(config.get_runtime_path(), 'error_cached_torrents_BK.json')
+        json_error_path = filetools.join(config.getRuntimePath(), 'error_cached_torrents.json')
+        json_error_path_BK = filetools.join(config.getRuntimePath(), 'error_cached_torrents_BK.json')
 
-        videolibrary_path = config.get_videolibrary_path()          # We calculate the absolute path from the Video Library
-        movies = config.get_setting("folder_movies")
-        series = config.get_setting("folder_tvshows")
-        torrents_movies = filetools.join(videolibrary_path, config.get_setting("folder_movies"))    # path of CINE
-        torrents_series = filetools.join(videolibrary_path, config.get_setting("folder_tvshows"))   # path the SERIES
+        videolibrary_path = config.getVideolibraryPath()          # We calculate the absolute path from the Video Library
+        movies = config.getSetting("folder_movies")
+        series = config.getSetting("folder_tvshows")
+        torrents_movies = filetools.join(videolibrary_path, config.getSetting("folder_movies"))    # path of CINE
+        torrents_series = filetools.join(videolibrary_path, config.getSetting("folder_tvshows"))   # path the SERIES
 
         # We load in .json from Newpct1 to see the lists of values ​​in settings
         fail_over_list = channeltools.get_channel_json(channel_py)

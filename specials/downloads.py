@@ -27,12 +27,12 @@ ky = '0xFFDAAB65'
 
 STATUS_COLORS = {0: '', 1: '', 2: kg, 3: kr, 4: kb}
 STATUS_CODES = type("StatusCode", (), {"stoped": 0, "canceled": 1, "completed": 2, "error": 3, "downloading": 4 })
-DOWNLOAD_LIST_PATH = config.get_setting("downloadlistpath")
-DOWNLOAD_PATH = config.get_setting("downloadpath")
-STATS_FILE = filetools.join(config.get_data_path(), "servers.json")
+DOWNLOAD_LIST_PATH = config.getSetting("downloadlistpath")
+DOWNLOAD_PATH = config.getSetting("downloadpath")
+STATS_FILE = filetools.join(config.getDataPath(), "servers.json")
 
-FOLDER_MOVIES = config.get_setting("folder_movies")
-FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
+FOLDER_MOVIES = config.getSetting("folder_movies")
+FOLDER_TVSHOWS = config.getSetting("folder_tvshows")
 TITLE_FILE = "[COLOR %s]| %i%% |[/COLOR] - %s"
 TITLE_TVSHOW = "[COLOR %s]| %i%% |[/COLOR] - %s [%s]"
 extensions_list = ['.aaf', '.3gp', '.asf', '.avi', '.flv', '.mpeg', '.m1v', '.m2v', '.m4v', '.mkv', '.mov', '.mpg', '.mpe', '.mp4', '.ogg', '.wmv']
@@ -92,43 +92,43 @@ def mainlist(item):
 
     # If there is any completed
     if 2 in estados:
-        itemlist.insert(0, Item(channel=item.channel, action="clean_ready", title=config.get_localized_string(70218),
+        itemlist.insert(0, Item(channel=item.channel, action="clean_ready", title=config.getLocalizedString(70218),
                                 contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('delete'),
                                 contentSerieName=item.contentSerieName, text_color=STATUS_COLORS[STATUS_CODES.completed]))
 
     # If there is any error
     if 3 in estados:
-        itemlist.insert(0, Item(channel=item.channel, action="restart_error", title=config.get_localized_string(70219),
+        itemlist.insert(0, Item(channel=item.channel, action="restart_error", title=config.getLocalizedString(70219),
                                 contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('update'),
                                 contentSerieName=item.contentSerieName, text_color=STATUS_COLORS[STATUS_CODES.error]))
 
     # If there is any pending
     if 1 in estados or 0 in estados:
-        itemlist.insert(0, Item(channel=item.channel, action="download_all", title=support.typo(config.get_localized_string(70220),'bold'),
+        itemlist.insert(0, Item(channel=item.channel, action="download_all", title=support.typo(config.getLocalizedString(70220),'bold'),
                                 contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('download'),
                                 contentSerieName=item.contentSerieName))
 
     if len(itemlist):
-        itemlist.insert(0, Item(channel=item.channel, action="clean_all", title=support.typo(config.get_localized_string(70221),'bold'),
+        itemlist.insert(0, Item(channel=item.channel, action="clean_all", title=support.typo(config.getLocalizedString(70221),'bold'),
                                 contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('delete'),
                                 contentSerieName=item.contentSerieName))
 
     # if there's at least one downloading
     if 4 in estados:
-        itemlist.insert(0, Item(channel=item.channel, action="stop_all", title=config.get_localized_string(60222),
+        itemlist.insert(0, Item(channel=item.channel, action="stop_all", title=config.getLocalizedString(60222),
                                 contentType=item.contentType, contentChannel=item.contentChannel,
                                 contentSerieName=item.contentSerieName, thumbnail=thumb('stop'),
                                 text_color=STATUS_COLORS[STATUS_CODES.downloading]))
 
-    if not item.contentType == "tvshow" and config.get_setting("browser") == True:
-        itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.get_localized_string(70222),'bold'), thumbnail=thumb('search'), url=DOWNLOAD_PATH))
+    if not item.contentType == "tvshow" and config.getSetting("browser") == True:
+        itemlist.insert(0, Item(channel=item.channel, action="browser", title=support.typo(config.getLocalizedString(70222),'bold'), thumbnail=thumb('search'), url=DOWNLOAD_PATH))
 
     if not item.contentType == "tvshow":
-        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.get_localized_string(70288),'bold color kod'), thumbnail=thumb('setting')))
+        itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=6, setting=0, title= support.typo(config.getLocalizedString(70288),'bold color kod'), thumbnail=thumb('setting')))
 
     # Reload
     if estados:
-        itemlist.insert(0, Item(channel=item.channel, action="reload", title= support.typo(config.get_localized_string(70008),'bold color kod'),
+        itemlist.insert(0, Item(channel=item.channel, action="reload", title= support.typo(config.getLocalizedString(70008),'bold color kod'),
                                 contentType=item.contentType, contentChannel=item.contentChannel, thumbnail=thumb('update'),
                                 contentSerieName=item.contentSerieName))
 
@@ -136,8 +136,8 @@ def mainlist(item):
 
 
 def settings(item):
-    ret = platformtools.show_channel_settings(caption=config.get_localized_string(70224))
-    platformtools.itemlist_refresh()
+    ret = platformtools.showChannelSettings(caption=config.getLocalizedString(70224))
+    platformtools.itemlistRefresh()
     return ret
 
 
@@ -148,38 +148,38 @@ def browser(item):
     for file in filetools.listdir(item.url):
         if file == "list": continue
         if filetools.isdir(filetools.join(item.url, file)):
-            itemlist.append(Item(channel=item.channel, title=file, action=item.action, url=filetools.join(item.url, file), context=[{ 'title': config.get_localized_string(30037), 'channel': 'downloads', 'action': "del_dir"}]))
+            itemlist.append(Item(channel=item.channel, title=file, action=item.action, url=filetools.join(item.url, file), context=[{ 'title': config.getLocalizedString(30037), 'channel': 'downloads', 'action': "del_dir"}]))
         else:
             if not item.infoLabels:
                 infoLabels = {"mediatype":"video"}
             else:
                 infoLabels = item.infoLabels
-            itemlist.append(Item(channel=item.channel, title=file, action="play", infoLabels=infoLabels, url=filetools.join(item.url, file), context=[{ 'title': config.get_localized_string(30039), 'channel': 'downloads', 'action': "del_file"}]))
+            itemlist.append(Item(channel=item.channel, title=file, action="play", infoLabels=infoLabels, url=filetools.join(item.url, file), context=[{ 'title': config.getLocalizedString(30039), 'channel': 'downloads', 'action': "del_file"}]))
 
     return itemlist
 
 
 def del_file(item):
-    ok = platformtools.dialog_yesno(config.get_localized_string(30039),config.get_localized_string(30040) % item.title)
+    ok = platformtools.dialogYesNo(config.getLocalizedString(30039),config.getLocalizedString(30040) % item.title)
     if ok:
         filetools.remove(item.url)
         xbmc.sleep(100)
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()
 
 
 def del_dir(item):
-    ok = platformtools.dialog_yesno(config.get_localized_string(30037),config.get_localized_string(30038))
+    ok = platformtools.dialogYesNo(config.getLocalizedString(30037),config.getLocalizedString(30038))
     if ok:
         filetools.rmdirtree(item.url)
         xbmc.sleep(100)
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()
 
 
 def clean_all(item):
     logger.debug()
     stop_all()
     removeFiles = False
-    if platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(30300)):
+    if platformtools.dialogYesNo(config.getLocalizedString(20000), config.getLocalizedString(30300)):
         removeFiles = True
 
     for File in sorted(filetools.listdir(DOWNLOAD_LIST_PATH)):
@@ -194,11 +194,11 @@ def clean_all(item):
                         filetools.rmdir(dirName)
 
     xbmc.sleep(100)
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
 
 
 def reload(item):
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
 
 
 def stop_all(item=None):
@@ -216,7 +216,7 @@ def stop_all(item=None):
                 update_json(filetools.join(DOWNLOAD_LIST_PATH, fichero), {"downloadStatus": STATUS_CODES.stoped})
     xbmc.sleep(300)
     if item:
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()
 
 
 def clean_ready(item):
@@ -228,7 +228,7 @@ def clean_ready(item):
                 if download_item.downloadStatus == STATUS_CODES.completed:
                     filetools.remove(filetools.join(DOWNLOAD_LIST_PATH, fichero))
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
 
 
 def restart_error(item):
@@ -246,14 +246,14 @@ def restart_error(item):
 
                     update_json(item.path, {"downloadStatus": STATUS_CODES.stoped, "downloadComplete": 0, "downloadProgress": 0})
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
 
 
 def download_all(item):
     time.sleep(0.5)
     item.action = "download_all_background"
     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item.tourl() + ")")
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
 
 
 def download_all_background(item):
@@ -265,7 +265,7 @@ def download_all_background(item):
             if not item.contentType == "tvshow" or ( item.contentSerieName == download_item.contentSerieName and item.contentChannel == download_item.contentChannel):
                 if download_item.downloadStatus in [STATUS_CODES.stoped, STATUS_CODES.canceled]:
                     res = start_download(download_item)
-                    # platformtools.itemlist_refresh()
+                    # platformtools.itemlistRefresh()
                     # If canceled, we stop
                     if res == STATUS_CODES.canceled: break
 
@@ -277,9 +277,9 @@ def menu(item):
     else:
         servidor = "Auto"
     # Options available for the menu
-    op = [config.get_localized_string(70225), config.get_localized_string(70226), config.get_localized_string(70227),
-          config.get_localized_string(30165) % (servidor.capitalize()), config.get_localized_string(60220),
-          config.get_localized_string(60221)]
+    op = [config.getLocalizedString(70225), config.getLocalizedString(70226), config.getLocalizedString(70227),
+          config.getLocalizedString(30165) % (servidor.capitalize()), config.getLocalizedString(60220),
+          config.getLocalizedString(60221)]
 
     opciones = []
 
@@ -310,7 +310,7 @@ def menu(item):
         opciones.append(op[1])                          # Remove from the list
 
     # Show Dialog
-    seleccion = platformtools.dialog_select(config.get_localized_string(30163), opciones)
+    seleccion = platformtools.dialogSelect(config.getLocalizedString(30163), opciones)
     logger.debug('SELECTION: '+ op[seleccion])
 
     # -1 is cancel
@@ -322,7 +322,7 @@ def menu(item):
         if item.TorrentName:
             torrent.elementum_actions('delete', item.TorrentName)
         else:
-            if platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(30300)):
+            if platformtools.dialogYesNo(config.getLocalizedString(20000), config.getLocalizedString(30300)):
                 filetools.remove(filetools.join(DOWNLOAD_PATH, item.downloadFilename))
 
     # Start Download
@@ -355,7 +355,7 @@ def menu(item):
                 if os.path.splitext(f)[-1] in extensions_list:
                     videos.append(f)
             if len(videos) > 1:
-                selection = platformtools.dialog_select(config.get_localized_string(30034), files)
+                selection = platformtools.dialogSelect(config.getLocalizedString(30034), files)
             else:
                 selection = 0
             xbmc.executebuiltin('PlayMedia(' + filetools.join(path, files[selection]) + ',resume)')
@@ -363,7 +363,7 @@ def menu(item):
             xbmc.executebuiltin('PlayMedia(' + path + ',resume)')
 
     if opciones[seleccion] != op[5]:
-        platformtools.itemlist_refresh()
+        platformtools.itemlistRefresh()
 
 
 def move_to_libray(item):
@@ -372,12 +372,12 @@ def move_to_libray(item):
     if item.contentType == 'movie':
         FOLDER = FOLDER_MOVIES
         path_title = "%s [%s]" % (item.contentTitle.strip() if item.contentTitle else item.fulltitle.strip() , item.infoLabels['IMDBNumber'])
-        move_path = filetools.join(config.get_videolibrary_path(), FOLDER, path_title)
+        move_path = filetools.join(config.getVideolibraryPath(), FOLDER, path_title)
 
     else:
         FOLDER = FOLDER_TVSHOWS
         path_title = os.path.dirname(item.downloadFilename)
-        move_path = filetools.join(config.get_videolibrary_path(), FOLDER)
+        move_path = filetools.join(config.getVideolibraryPath(), FOLDER)
 
     download_path = filetools.join(DOWNLOAD_PATH, item.downloadFilename)
     library_path = filetools.join(move_path, *filetools.split(item.downloadFilename)) 
@@ -411,7 +411,7 @@ def move_to_libray(item):
             filetools.rmdir(filetools.dirname(download_path))
 
     name = item.contentTitle if item.contentType == 'movie' else str(item.infoLabels['season']) + 'x' + str(item.infoLabels['episode']).zfill(2)
-    list_item = filetools.listdir(filetools.join(config.get_videolibrary_path(), FOLDER, path_title))
+    list_item = filetools.listdir(filetools.join(config.getVideolibraryPath(), FOLDER, path_title))
 
     clean = False
     for File in list_item:
@@ -420,13 +420,13 @@ def move_to_libray(item):
 
         if filename.startswith(name) and (filename.endswith('.strm') or (filename.endswith('.json') and 'downloads' not in filename)):
             clean = True
-            file_path = filetools.join(config.get_setting("videolibrarypath"), FOLDER, path_title, File)
+            file_path = filetools.join(config.getSetting("videolibrarypath"), FOLDER, path_title, File)
             logger.debug('Delete File:', str(file_path))
             filetools.remove(file_path)
             if file_path.endswith('.strm'):
                 file_strm_path = file_path
 
-    if config.is_xbmc() and config.get_setting("videolibrary_kodi"):
+    if config.is_xbmc() and config.getSetting("videolibrary_kodi"):
         from platformcode import xbmc_videolibrary
         if clean == True:
             path_list = [file_strm_path]
@@ -554,12 +554,12 @@ def sort_method(item):
     quality_orders[2] = ["HD", "480P", "360P", "240P", "FULLHD", "BLURAY"]
     quality_orders[3] = ["480P", "360P", "240P", "BLURAY", "FULLHD", "HD"]
 
-    order_list_idiomas = lang_orders[config.get_setting("language")]
+    order_list_idiomas = lang_orders[config.getSetting("language")]
     match_list_idimas = {"ITA": ["ITA", "IT", "Italiano", "italiano", "ITALIANO"],
                          "Sub-ITA": ["Sottotitolato", "SUB", "sub-ita", "SUB-ITA", "Sub-ITA", "Sub-Ita"]}
 
     order_list_calidad = ["BLURAY", "FULLHD", "HD", "480P", "360P", "240P"]
-    order_list_calidad = quality_orders[int(config.get_setting("quality"))]
+    order_list_calidad = quality_orders[int(config.getSetting("quality"))]
     match_list_calidad = {"BLURAY": ["BR", "BLURAY", '4K'],
                           "FULLHD": ["FULLHD", "FULL HD", "1080", "HD1080", "HD 1080", "1080p"],
                           "HD": ["HD", "HD REAL", "HD 720", "720", "HDTV", "720p"],
@@ -570,7 +570,7 @@ def sort_method(item):
     value = (get_match_list(item.title, match_list_idimas, order_list_idiomas, ignorecase=True, only_ascii=True).index, \
              get_match_list(item.title, match_list_calidad, order_list_calidad, ignorecase=True, only_ascii=True).index)
 
-    if config.get_setting("server_speed"):
+    if config.getSetting("server_speed"):
         value += tuple([get_server_position(item.server)])
 
     return value
@@ -580,7 +580,7 @@ def download_from_url(url, item):
     logger.debug("Attempting to download:", url)
     if '.m3u8' in url.lower().split('|')[0] or url.lower().startswith("rtmp"):
         save_server_statistics(item.server, 0, False)
-        platformtools.dialog_notification('m3u8 Download',config.get_localized_string(60364), sound=False)
+        platformtools.dialogNotification('m3u8 Download',config.getLocalizedString(60364), sound=False)
         return {"downloadStatus": STATUS_CODES.error}
 
     # We get the download path and the file name
@@ -595,10 +595,10 @@ def download_from_url(url, item):
 
     # We launch the download
     d = Downloader(url, download_path, file_name,
-                   max_connections=1 + int(config.get_setting("max_connections", "downloads")),
-                   block_size=2 ** (17 + int(config.get_setting("block_size", "downloads"))),
-                   part_size=2 ** (20 + int(config.get_setting("part_size", "downloads"))),
-                   max_buffer=2 * int(config.get_setting("max_buffer", "downloads")),
+                   max_connections=1 + int(config.getSetting("max_connections", "downloads")),
+                   block_size=2 ** (17 + int(config.getSetting("block_size", "downloads"))),
+                   part_size=2 ** (20 + int(config.getSetting("part_size", "downloads"))),
+                   max_buffer=2 * int(config.getSetting("max_buffer", "downloads")),
                    json_path=item.path)
     dir = filetools.dirname(item.downloadFilename)
     file = filetools.join(dir, d.filename)
@@ -606,7 +606,7 @@ def download_from_url(url, item):
     update_json(item.path, {"downloadUrl": d.download_url, "downloadStatus": STATUS_CODES.downloading, "downloadSize": d.size[0],
             "downloadProgress": d.progress, "downloadCompleted": d.downloaded[0], "downloadFilename": file})
 
-    d.start_dialog(config.get_localized_string(30006))
+    d.start_dialog(config.getLocalizedString(30006))
 
     # Download stopped. We get the state:
     # Download failed
@@ -629,7 +629,7 @@ def download_from_url(url, item):
 
     save_server_statistics(item.server, d.speed[0], d.state != d.states.error)
 
-    if status == STATUS_CODES.completed and config.get_setting("library_move"):
+    if status == STATUS_CODES.completed and config.getSetting("library_move"):
         move_to_libray(item.clone(downloadFilename=file))
 
     return {"downloadUrl": d.download_url, "downloadStatus": status, "downloadSize": d.size[0],
@@ -643,13 +643,13 @@ def download_from_server(item):
     if item.contentChannel == 'local':
         return {"downloadStatus": STATUS_CODES.completed}
 
-    progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70178) % item.server)
+    progreso = platformtools.dialogProgressBg(config.getLocalizedString(30101), config.getLocalizedString(70178) % item.server)
 
     try:
-        channel = platformtools.channel_import(item.contentChannel)
+        channel = platformtools.channelImport(item.contentChannel)
         if hasattr(channel, "play") and not item.play_menu:
 
-            progreso.update(50, config.get_localized_string(70178) % item.server + '\n' + config.get_localized_string(70180) % item.contentChannel)
+            progreso.update(50, config.getLocalizedString(70178) % item.server + '\n' + config.getLocalizedString(70180) % item.contentChannel)
             try:
                 itemlist = getattr(channel, "play")(item.clone(channel=item.contentChannel, action=item.contentAction))
             except:
@@ -661,7 +661,7 @@ def download_from_server(item):
                     download_item.infoLabels = item.infoLabels
                     item = download_item
                 elif len(itemlist) and isinstance(itemlist[0], list):
-                    item.video_urls = itemlist
+                    item.videoUrls = itemlist
                     if not item.server: item.server = "directo"
                 else:
                     logger.debug("There is nothing to reproduce")
@@ -674,17 +674,17 @@ def download_from_server(item):
         import xbmcgui
         xlistitem = xbmcgui.ListItem(path=item.url)
         xlistitem.setArt({'icon': item.thumbnail, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.thumbnail})
-        platformtools.set_infolabels(xlistitem, item)
-        platformtools.play_torrent(item, xlistitem, item.url)
+        platformtools.setInfolabels(xlistitem, item)
+        platformtools.playTorrent(item, xlistitem, item.url)
 
     if not item.server or not item.url or not item.contentAction == "play" or item.server in unsupported_servers:
         logger.error("The Item does not contain the necessary parameters.")
         return {"downloadStatus": STATUS_CODES.error}
 
-    if not item.video_urls:
-        video_urls, puedes, motivo = servertools.resolve_video_urls_for_playing(item.server, item.url, item.password, True, True)
+    if not item.videoUrls:
+        videoUrls, puedes, motivo = servertools.resolve_videoUrls_for_playing(item.server, item.url, item.password, True, True)
     else:
-        video_urls, puedes, motivo = item.video_urls, True, ""
+        videoUrls, puedes, motivo = item.videoUrls, True, ""
 
     # If it is not available, we go out
     if not puedes:
@@ -697,9 +697,9 @@ def download_from_server(item):
         result = {}
 
         # Go through all the options until I can download one correctly
-        for video_url in reversed(video_urls):
+        for videoUrl in reversed(videoUrls):
 
-            result = download_from_url(video_url[1], item)
+            result = download_from_url(videoUrl[1], item)
 
             if result["downloadStatus"] in [STATUS_CODES.canceled, STATUS_CODES.completed]:
                 break
@@ -716,16 +716,16 @@ def download_from_best_server(item):
     logger.debug("contentAction: %s | contentChannel: %s | url: %s" % (item.contentAction, item.contentChannel, item.url))
 
     result = {"downloadStatus": STATUS_CODES.error}
-    progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70179))
+    progreso = platformtools.dialogProgressBg(config.getLocalizedString(30101), config.getLocalizedString(70179))
 
     try:
         if item.downloadItemlist:
             logger.debug('using cached servers')
             play_items = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            channel = platformtools.channel_import(item.contentChannel)
+            channel = platformtools.channelImport(item.contentChannel)
 
-            progreso.update(50, config.get_localized_string(70184) + '\n' + config.get_localized_string(70180) % item.contentChannel)
+            progreso.update(50, config.getLocalizedString(70184) + '\n' + config.getLocalizedString(70180) % item.contentChannel)
 
             if hasattr(channel, item.contentAction):
                 play_items = getattr(channel, item.contentAction)(item.clone(action=item.contentAction, channel=item.contentChannel))
@@ -734,9 +734,9 @@ def download_from_best_server(item):
 
         play_items = [x for x in play_items if x.action == "play" and not "trailer" in x.title.lower()]
 
-        progreso.update(100, config.get_localized_string(70183) + '\n' + config.get_localized_string(70181) % len(play_items))
+        progreso.update(100, config.getLocalizedString(70183) + '\n' + config.getLocalizedString(70181) % len(play_items))
 
-        # if config.get_setting("server_reorder", "downloads") == 1:
+        # if config.getSetting("server_reorder", "downloads") == 1:
         play_items.sort(key=sort_method)
 
         # if progreso.iscanceled():
@@ -767,14 +767,14 @@ def select_server(item):
     if item.server:
         return "Auto"
     logger.debug("contentAction: %s | contentChannel: %s | url: %s" % (item.contentAction, item.contentChannel, item.url))
-    progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70179))
+    progreso = platformtools.dialogProgressBg(config.getLocalizedString(30101), config.getLocalizedString(70179))
     try:
         if item.downloadItemlist:
             logger.debug('using cached servers')
             play_items = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            channel = platformtools.channel_import(item.contentChannel)
-            progreso.update(50, config.get_localized_string(70184) + '\n' + config.get_localized_string(70180) % item.contentChannel)
+            channel = platformtools.channelImport(item.contentChannel)
+            progreso.update(50, config.getLocalizedString(70184) + '\n' + config.getLocalizedString(70180) % item.contentChannel)
 
             if hasattr(channel, item.contentAction):
                 play_items = getattr(channel, item.contentAction)(
@@ -783,7 +783,7 @@ def select_server(item):
                 play_items = servertools.find_video_items(item.clone(action=item.contentAction, channel=item.contentChannel))
 
         play_items = [x for x in play_items if x.action == "play" and not "trailer" in x.title.lower()]
-        progreso.update(100, config.get_localized_string(70183) + '\n' + config.get_localized_string(70181) % len(play_items))
+        progreso.update(100, config.getLocalizedString(70183) + '\n' + config.getLocalizedString(70181) % len(play_items))
     finally:
         progreso.close()
 
@@ -796,7 +796,7 @@ def select_server(item):
         seleccion = 1
     else:
         # otherwise it shows the selection window
-        seleccion = platformtools.dialog_select(config.get_localized_string(70192), ["Auto"] + [s.title for s in play_items])
+        seleccion = platformtools.dialogSelect(config.getLocalizedString(70192), ["Auto"] + [s.title for s in play_items])
 
     if seleccion >= 1:
         update_json(item.path, {
@@ -805,7 +805,7 @@ def select_server(item):
     elif seleccion == 0:
         update_json(item.path, {"downloadServer": {}})
         return 'Auto'
-    # platformtools.itemlist_refresh()
+    # platformtools.itemlistRefresh()
 
 
 def start_download(item):
@@ -821,7 +821,7 @@ def start_download(item):
     else:
         ret = download_from_best_server(item)
 
-    if ret["downloadStatus"] == STATUS_CODES.completed and config.get_setting("library_move"):
+    if ret["downloadStatus"] == STATUS_CODES.completed and config.getSetting("library_move"):
         filetools.remove(item.path)
     else:
         update_json(item.path, ret)
@@ -845,7 +845,7 @@ def get_episodes(item):
         if item.downloadItemlist:
             episodes = [Item().fromurl(i) for i in item.downloadItemlist]
         else:
-            channel = platformtools.channel_import(item.contentChannel)
+            channel = platformtools.channelImport(item.contentChannel)
             # We get the list of episodes
             episodes = getattr(channel, item.contentAction)(item)
 
@@ -920,7 +920,7 @@ def write_json(item):
     item.downloadProgress = 0
     item.downloadSize = 0
     item.downloadCompleted = 0
-    title = re.sub(r'(?:\[[^\]]+\]|%s[^-]+-\s*)' %config.get_localized_string(60356), '', item.title).strip()
+    title = re.sub(r'(?:\[[^\]]+\]|%s[^-]+-\s*)' %config.getLocalizedString(60356), '', item.title).strip()
     if not item.contentThumbnail:
         item.contentThumbnail = item.thumbnail
 
@@ -990,9 +990,9 @@ def save_download_background(item):
             save_download_movie(parent)
     else:
         if item.contentType in ["tvshow", "episode", "season"]:
-            if ('download' in item and item.channel != 'community') or (item.channel == 'community' and config.get_setting('show_seasons',item.channel) == False):
-                heading = config.get_localized_string(70594) # <- Enter the season number
-                item.dlseason = platformtools.dialog_numeric(0, heading, '')
+            if ('download' in item and item.channel != 'community') or (item.channel == 'community' and config.getSetting('show_seasons',item.channel) == False):
+                heading = config.getLocalizedString(70594) # <- Enter the season number
+                item.dlseason = platformtools.dialogNumeric(0, heading, '')
                 if item.dlseason:
                     save_download_tvshow(item)
             else:
@@ -1022,8 +1022,8 @@ def save_download_video(item):
 
     write_json(item)
 
-    if not platformtools.dialog_yesno(config.get_localized_string(30101), config.get_localized_string(70189)):
-        platformtools.dialog_ok(config.get_localized_string(30101), item.contentTitle + '\n' + config.get_localized_string(30109))
+    if not platformtools.dialogYesNo(config.getLocalizedString(30101), config.getLocalizedString(70189)):
+        platformtools.dialogOk(config.getLocalizedString(30101), item.contentTitle + '\n' + config.getLocalizedString(30109))
     else:
         start_download(item)
 
@@ -1031,7 +1031,7 @@ def save_download_video(item):
 def save_download_movie(item):
     logger.debug("contentAction: %s | contentChannel: %s | contentTitle: %s" % ( item.contentAction, item.contentChannel, item.contentTitle))
 
-    progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70191))
+    progreso = platformtools.dialogProgressBg(config.getLocalizedString(30101), config.getLocalizedString(70191))
 
     set_movie_title(item)
 
@@ -1040,7 +1040,7 @@ def save_download_movie(item):
         progreso.close()
         return save_download_video(item)
 
-    progreso.update(0, config.get_localized_string(60062))
+    progreso.update(0, config.getLocalizedString(60062))
 
     item.downloadFilename = filetools.validate_path("%s [%s]" % (item.contentTitle.strip(), item.infoLabels['IMDBNumber']))
     item.backupFilename = filetools.validate_path("%s [%s]" % (item.contentTitle.strip(), item.infoLabels['IMDBNumber']))
@@ -1049,8 +1049,8 @@ def save_download_movie(item):
 
     progreso.close()
 
-    if not platformtools.dialog_yesno(config.get_localized_string(30101), config.get_localized_string(70189)):
-        platformtools.dialog_ok(config.get_localized_string(30101), item.contentTitle + '\n' + config.get_localized_string(30109))
+    if not platformtools.dialogYesNo(config.getLocalizedString(30101), config.getLocalizedString(70189)):
+        platformtools.dialogOk(config.getLocalizedString(30101), item.contentTitle + '\n' + config.getLocalizedString(30109))
     else:
         play_item = select_server(item)
         if play_item == 'Auto':
@@ -1064,7 +1064,7 @@ def save_download_movie(item):
 
 def save_download_tvshow(item):
     logger.debug("contentAction: %s | contentChannel: %s | contentType: %s | contentSerieName: %s" % (item.contentAction, item.contentChannel, item.contentType, item.contentSerieName))
-    progreso = platformtools.dialog_progress_bg(config.get_localized_string(30101), config.get_localized_string(70188))
+    progreso = platformtools.dialogProgressBg(config.getLocalizedString(30101), config.getLocalizedString(70188))
     try:
         item.show = item.fulltitle
         if item.channel not in ['videolibrary']:
@@ -1075,14 +1075,14 @@ def save_download_tvshow(item):
         if item.strm_path: item.downloadFilename = filetools.validate_path(item.strm_path.split(os.sep)[-2])
         else: item.downloadFilename = filetools.validate_path("%s [%s]" % (item.contentSerieName, item.infoLabels['IMDBNumber']))
 
-        if config.get_setting("lowerize_title", "videolibrary"):
+        if config.getSetting("lowerize_title", "videolibrary"):
             item.downloadFilename = item.downloadFilename.lower()
 
-        progreso.update(0, config.get_localized_string(70186) + '\n' + config.get_localized_string(70180) % item.contentChannel)
+        progreso.update(0, config.getLocalizedString(70186) + '\n' + config.getLocalizedString(70180) % item.contentChannel)
 
         episodes = get_episodes(item)
 
-        progreso.update(0, config.get_localized_string(70190))
+        progreso.update(0, config.getLocalizedString(70190))
 
         for x, i in enumerate(episodes):
             progreso.update(old_div(x * 100, len(episodes)), "%dx%0.2d: %s" % (i.contentSeason, i.contentEpisodeNumber, i.contentTitle))
@@ -1090,8 +1090,8 @@ def save_download_tvshow(item):
     finally:
         progreso.close()
 
-    if not platformtools.dialog_yesno(config.get_localized_string(30101), config.get_localized_string(70189)):
-        platformtools.dialog_ok(config.get_localized_string(30101), str(len(episodes)) + config.get_localized_string(30110) + '\n' + item.contentSerieName + '\n' + config.get_localized_string(30109))
+    if not platformtools.dialogYesNo(config.getLocalizedString(30101), config.getLocalizedString(70189)):
+        platformtools.dialogOk(config.getLocalizedString(30101), str(len(episodes)) + config.getLocalizedString(30110) + '\n' + item.contentSerieName + '\n' + config.getLocalizedString(30109))
 
     else:
         if len(episodes) == 1:
@@ -1121,7 +1121,7 @@ def set_movie_title(item):
 
 
 def show_disclaimer():
-    line1 = config.get_localized_string(70690)
-    line2 = config.get_localized_string(70691)
-    line3 = config.get_localized_string(70692)
-    platformtools.dialog_ok(config.get_localized_string(20000), line1 + '\n' + line2 + '\n' + line3)
+    line1 = config.getLocalizedString(70690)
+    line2 = config.getLocalizedString(70691)
+    line3 = config.getLocalizedString(70692)
+    platformtools.dialogOk(config.getLocalizedString(20000), line1 + '\n' + line2 + '\n' + line3)

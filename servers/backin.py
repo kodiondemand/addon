@@ -18,15 +18,15 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url).data
 
     if 'File Not Found' in data:
-        return False, config.get_localized_string(70449) % "backin"
+        return False, config.getLocalizedString(70449) % "backin"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("page_url=" + page_url)
 
-    video_urls = []
+    videoUrls = []
 
     headers = [["User-Agent", "Mozilla/5.0 (Windows NT 6.1; rv:54.0) Gecko/20100101 Firefox/54.0"]]
 
@@ -45,9 +45,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("URL=" + str(url))
 
     # URL del vídeo
-    video_urls.append({'type':'mp4', 'url':url})
+    videoUrls.append({'type':'mp4', 'url':url})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0],  httptools.get_url_headers(video_url[1])))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0],  httptools.get_url_headers(videoUrl[1])))
 
-    return video_urls
+    return videoUrls

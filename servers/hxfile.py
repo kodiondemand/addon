@@ -10,16 +10,16 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if "Can't create video code" in data:
-        return False, config.get_localized_string(70292) % 'HxFile'
+        return False, config.getLocalizedString(70292) % 'HxFile'
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     global data
-    video_urls = []
+    videoUrls = []
     packed = scrapertools.find_single_match(data, r'(eval\s?\(function\(p,a,c,k,e,d\).*?\n)')
     data = jsunpack.unpack(packed)
-    video_urls.extend(support.get_jwplayer_mediaurl(data, 'HxFile'))
+    videoUrls.extend(support.get_jwplayer_mediaUrl(data, 'HxFile'))
 
-    return video_urls
+    return videoUrls

@@ -22,7 +22,7 @@ from platformcode import config, logger, platformtools
 
 THUMBNAILS = {'0': 'posters', '1': 'banners', '2': 'squares'}
 
-__perfil__ = config.get_setting('perfil', "news")
+__perfil__ = config.getSetting('perfil', "news")
 
 # Set color profile
 perfil = [['0xFF0B7B92', '0xFF89FDFB', '0xFFACD5D4'],
@@ -38,8 +38,8 @@ list_newest = []
 list_newest_tourl = []
 channels_id_name = {}
 
-menu_cache_path = os.path.join(config.get_data_path(), "settings_channels", 'menu_cache_data.json')
-menu_settings_path = os.path.join(config.get_data_path(), "settings_channels", 'menu_settings_data.json')
+menu_cache_path = os.path.join(config.getDataPath(), "settings_channels", 'menu_cache_data.json')
+menu_settings_path = os.path.join(config.getDataPath(), "settings_channels", 'menu_settings_data.json')
 
 
 def mainlist(item):
@@ -47,79 +47,79 @@ def mainlist(item):
 
     itemlist = []
     # list_canales, any_active = get_channels_list()
-    channel_language = config.get_setting("channel_language", default="auto")
+    channel_language = config.getSetting("channel_language", default="auto")
     if channel_language == 'auto':
         channel_language = auto_filter()
 
     #if list_canales['movies']:
     # thumbnail = thumb("movie")
-    new_item = Item(channel=item.channel, action="novedades", extra="movies", title=config.get_localized_string(30122) + '{news}')
+    new_item = Item(channel=item.channel, action="novedades", extra="movies", title=config.getLocalizedString(30122) + '{news}')
 
     set_category_context(new_item)
     itemlist.append(new_item)
 
     # thumbnail = thumb("movie_4k")
-    # new_item = Item(channel=item.channel, action="novedades", extra="4k", title=config.get_localized_string(70208), thumbnail=thumbnail)
+    # new_item = Item(channel=item.channel, action="novedades", extra="4k", title=config.getLocalizedString(70208), thumbnail=thumbnail)
     #
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['terror']:
     # thumbnail = thumb("channels_horror")
-    # new_item = Item(channel=item.channel, action="novedades", extra="terror", title=config.get_localized_string(70209),
+    # new_item = Item(channel=item.channel, action="novedades", extra="terror", title=config.getLocalizedString(70209),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['infantiles']:
     # thumbnail = thumb("children")
-    # new_item = Item(channel=item.channel, action="novedades", extra="infantiles", title=config.get_localized_string(60510),
+    # new_item = Item(channel=item.channel, action="novedades", extra="infantiles", title=config.getLocalizedString(60510),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['series']:
-    new_item = Item(channel=item.channel, action="novedades", extra="series", title=config.get_localized_string(60511) + '{news}')
+    new_item = Item(channel=item.channel, action="novedades", extra="series", title=config.getLocalizedString(60511) + '{news}')
     set_category_context(new_item)
     itemlist.append(new_item)
 
     #if list_canales['anime']:
-    new_item = Item(channel=item.channel, action="novedades", extra="anime", title=config.get_localized_string(60512) + '{news}')
+    new_item = Item(channel=item.channel, action="novedades", extra="anime", title=config.getLocalizedString(60512) + '{news}')
     set_category_context(new_item)
     itemlist.append(new_item)
 
     # if channel_language == "all":
     #     # if list_canales['Italiano']:
     #     thumbnail = thumb("italian")
-    #     new_item = Item(channel=item.channel, action="novedades", extra="italiano", title=config.get_localized_string(70563),
+    #     new_item = Item(channel=item.channel, action="novedades", extra="italiano", title=config.getLocalizedString(70563),
     #                     thumbnail=thumbnail)
     #     set_category_context(new_item)
     #     itemlist.append(new_item)
 
     # if list_canales['Torrent']:
     # thumbnail = thumb("channels_torrent")
-    # new_item = Item(channel=item.channel, action="novedades", extra="torrent", title=config.get_localized_string(70171), thumbnail=thumbnail)
+    # new_item = Item(channel=item.channel, action="novedades", extra="torrent", title=config.getLocalizedString(70171), thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
 
     #if list_canales['documentales']:
     # thumbnail = thumb("documentary")
-    # new_item = Item(channel=item.channel, action="novedades", extra="documentales", title=config.get_localized_string(60513),
+    # new_item = Item(channel=item.channel, action="novedades", extra="documentales", title=config.getLocalizedString(60513),
     #                 thumbnail=thumbnail)
     # set_category_context(new_item)
     # itemlist.append(new_item)
     itemlist.append(Item(channel='shortcuts', action="SettingOnPosition", category=7, setting=1,
-                         title=typo(config.get_localized_string(70285), 'bold color kod')))
+                         title=typo(config.getLocalizedString(70285), 'bold color kod')))
     support.thumb(itemlist)
     return itemlist
 
 
 def set_category_context(item):
-    item.context = [{"title": config.get_localized_string(60514) % item.title,
+    item.context = [{"title": config.getLocalizedString(60514) % item.title,
                      "extra": item.extra,
                      "action": "setting_channel",
                      "channel": item.channel}]
-    item.category = config.get_localized_string(60679) % re.sub('\[[^\]]+\]','',item.title).strip()
+    item.category = config.getLocalizedString(60679) % re.sub('\[[^\]]+\]','',item.title).strip()
 
 
 def get_channels_list():
@@ -131,8 +131,8 @@ def get_channels_list():
 
     any_active = False
     # Fill available channel lists
-    channels_path = os.path.join(config.get_runtime_path(), "channels", '*.json')
-    channel_language = config.get_setting("channel_language", default="all")
+    channels_path = os.path.join(config.getRuntimePath(), "channels", '*.json')
+    channel_language = config.getSetting("channel_language", default="all")
     if channel_language =="auto":
         channel_language = auto_filter()
 
@@ -152,7 +152,7 @@ def get_channels_list():
         # Include in each category, if in your configuration the channel is activated to show news
 
         for categoria in list_canales:
-            include_in_newest = config.get_setting("include_in_newest_" + categoria, channel_id)
+            include_in_newest = config.getSetting("include_in_newest_" + categoria, channel_id)
             if include_in_newest:
                 channels_id_name[channel_id] = channel_parameters["title"]
                 list_canales[categoria].append((channel_id, channel_parameters["title"]))
@@ -170,7 +170,7 @@ def set_cache(item):
 def get_from_cache(item):
     logger.debug()
     itemlist=[]
-    cache_node = jsontools.get_node_from_file('menu_cache_data.json', 'cached')
+    cache_node = jsontools.getNodeFromFile('menu_cache_data.json', 'cached')
     first=item.last
     last = first+40
     #if last >=len(cache_node[item.extra]):
@@ -225,19 +225,19 @@ def novedades(item):
         if os.path.exists(menu_cache_path):
             return get_from_cache(item)
 
-    multithread = config.get_setting("multithread", "news")
+    multithread = config.getSetting("multithread", "news")
     logger.debug("multithread= " + str(multithread))
 
     if not multithread:
-        if platformtools.dialog_yesno(config.get_localized_string(60515),
-                                      config.get_localized_string(60516) + '\n' +
-                                      config.get_localized_string(60517) + '\n' +
-                                      config.get_localized_string(60518)):
-            if config.set_setting("multithread", True, "news"):
+        if platformtools.dialogYesNo(config.getLocalizedString(60515),
+                                      config.getLocalizedString(60516) + '\n' +
+                                      config.getLocalizedString(60517) + '\n' +
+                                      config.getLocalizedString(60518)):
+            if config.setSetting("multithread", True, "news"):
                 multithread = True
 
     if mode == 'normal':
-        progreso = platformtools.dialog_progress(item.category, config.get_localized_string(60519))
+        progreso = platformtools.dialogProgress(item.category, config.getLocalizedString(60519))
 
     list_canales, any_active = get_channels_list()
 
@@ -274,13 +274,13 @@ def novedades(item):
                 t.start()
                 threads.append(t)
                 if mode == 'normal':
-                    progreso.update(percentage, config.get_localized_string(60520) % channel_title)
+                    progreso.update(percentage, config.getLocalizedString(60520) % channel_title)
 
             # Modo single Thread
             else:
                 if mode == 'normal':
                     logger.debug("Obteniendo novedades de channel_id=" + channel_id)
-                    progreso.update(percentage, config.get_localized_string(60520) % channel_title)
+                    progreso.update(percentage, config.getLocalizedString(60520) % channel_title)
                 get_newest(channel_id, item.extra)
 
         # Multi Thread mode: wait for all threads to finish
@@ -293,8 +293,8 @@ def novedades(item):
 
                 list_pendent_names = [a.getName() for a in pendent]
                 if mode == 'normal':
-                    mensaje = config.get_localized_string(30994) % (", ".join(list_pendent_names))
-                    progreso.update(percentage, config.get_localized_string(60521) % (len(threads) - len(pendent), len(threads)) + '\n' +
+                    mensaje = config.getLocalizedString(30994) % (", ".join(list_pendent_names))
+                    progreso.update(percentage, config.getLocalizedString(60521) % (len(threads) - len(pendent), len(threads)) + '\n' +
                                 mensaje)
                     logger.debug(mensaje)
 
@@ -305,13 +305,13 @@ def novedades(item):
                 time.sleep(0.5)
                 pendent = [a for a in threads if a.is_alive()]
         if mode == 'normal':
-            mensaje = config.get_localized_string(60522) % (len(list_newest), time.time() - start_time)
+            mensaje = config.getLocalizedString(60522) % (len(list_newest), time.time() - start_time)
             progreso.update(100, mensaje)
             logger.debug(mensaje)
             start_time = time.time()
             # logger.debug(start_time)
 
-        result_mode = config.get_setting("result_mode", "news")
+        result_mode = config.getSetting("result_mode", "news")
         if mode != 'normal':
             result_mode=0
 
@@ -335,7 +335,7 @@ def novedades(item):
             return ret
     else:
         if mode != 'set_cache':
-            no_channels = platformtools.dialog_ok(config.get_localized_string(30130) + ' - ' + item.extra + '\n' + config.get_localized_string(70661) + '\n' + config.get_localized_string(70662))
+            no_channels = platformtools.dialogOk(config.getLocalizedString(30130) + ' - ' + item.extra + '\n' + config.getLocalizedString(70661) + '\n' + config.getLocalizedString(70662))
         return
 
 
@@ -348,7 +348,7 @@ def get_newest(channel_id, categoria):
     # We request the news of the category (item.extra) searched in the channel channel
     # If there are no news for that category in the channel, it returns an empty list
     try:
-        modulo = platformtools.channel_import(channel_id)
+        modulo = platformtools.channelImport(channel_id)
         if not modulo:
             return
 
@@ -357,7 +357,7 @@ def get_newest(channel_id, categoria):
         logger.debug("canal= %s %d resultados" % (channel_id, len(list_result)))
         exist=False
         if os.path.exists(menu_cache_path):
-            cache_node = jsontools.get_node_from_file('menu_cache_data.json', 'cached')
+            cache_node = jsontools.getNodeFromFile('menu_cache_data.json', 'cached')
             exist=True
         else:
             cache_node = {}
@@ -370,7 +370,7 @@ def get_newest(channel_id, categoria):
 
         cache_node[categoria] = list_newest_tourl
 
-        jsontools.update_node(cache_node, 'menu_cache_data.json', "cached")
+        jsontools.updateNode(cache_node, 'menu_cache_data.json', "cached")
 
     except:
         logger.error("No se pueden recuperar novedades de: " + channel_id)
@@ -422,7 +422,7 @@ def get_title(item):
     if item.quality:
         title += support.typo(item.quality, '_ [] color kod')
 
-    # season_ = support.typo(config.get_localized_string(70736), '_ [] color white bold') if (type(item.args) != bool and 'season_completed' in item.news and not item.episode) else ''
+    # season_ = support.typo(config.getLocalizedString(70736), '_ [] color white bold') if (type(item.args) != bool and 'season_completed' in item.news and not item.episode) else ''
     # if season_:
     #     title += season_
     return title
@@ -440,7 +440,7 @@ def no_group(list_result_canal):
 #        i.text_color = color3
 
         itemlist.append(i.clone())
-    if config.get_setting('order','news') == 1:
+    if config.getSetting('order','news') == 1:
         itemlist = sorted(itemlist, key=lambda it: it.title.lower())
     return itemlist
 
@@ -505,9 +505,9 @@ def group_by_content(list_result_canal):
 
             if len(canales_no_duplicados) > 1:
                 canales = ', '.join([i for i in canales_no_duplicados[:-1]])
-                title += config.get_localized_string(70210) % (canales, canales_no_duplicados[-1])
+                title += config.getLocalizedString(70210) % (canales, canales_no_duplicados[-1])
             else:
-                title += config.get_localized_string(70211) % (', '.join([i for i in canales_no_duplicados]))
+                title += config.getLocalizedString(70211) % (', '.join([i for i in canales_no_duplicados]))
 
             new_item = v[0].clone(channel="news", title=title, action="show_channels", sub_list=[i.tourl() for i in v], extra=channels_id_name)
         else:
@@ -543,52 +543,52 @@ def show_channels(item):
 
 def menu_opciones(item):
     itemlist = list()
-    itemlist.append(Item(channel=item.channel, title=config.get_localized_string(60525),
+    itemlist.append(Item(channel=item.channel, title=config.getLocalizedString(60525),
                          text_bold = True, thumbnail=thumb("setting"),
                          folder=False))
-    itemlist.append(Item(channel=item.channel, action="setting_channel", extra="movies", title=config.get_localized_string(60526),
+    itemlist.append(Item(channel=item.channel, action="setting_channel", extra="movies", title=config.getLocalizedString(60526),
                          thumbnail=thumb("movie"),
                          folder=False))
-    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="4K", title=config.get_localized_string(70207),
+    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="4K", title=config.getLocalizedString(70207),
     #                      thumbnail=thumb("movie"), folder=False))
-    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="infantiles", title=config.get_localized_string(60527),
+    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="infantiles", title=config.getLocalizedString(60527),
     #                      thumbnail=thumb("children"),
     #                      folder=False))
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="series",
-                         title=config.get_localized_string(60528),
+                         title=config.getLocalizedString(60528),
                          thumbnail=thumb("tvshow"),
                          folder=False))
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="anime",
-                         title=config.get_localized_string(60529),
+                         title=config.getLocalizedString(60529),
                          thumbnail=thumb("anime"),
                          folder=False))
     # itemlist.append(
-    #     Item(channel=item.channel, action="setting_channel", extra="castellano", title=config.get_localized_string(70212),
+    #     Item(channel=item.channel, action="setting_channel", extra="castellano", title=config.getLocalizedString(70212),
     #          thumbnail=thumb("documentary"), folder=False))
 
-    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="latino", title=config.get_localized_string(70213),
+    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="latino", title=config.getLocalizedString(70213),
     #                      thumbnail=thumb("documentary"), folder=False))
 
-    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="torrent", title=config.get_localized_string(70214),
+    # itemlist.append(Item(channel=item.channel, action="setting_channel", extra="torrent", title=config.getLocalizedString(70214),
     #                      thumbnail=thumb("documentary"), folder=False))
 
     itemlist.append(Item(channel=item.channel, action="setting_channel", extra="documentales",
-                         title=config.get_localized_string(60530),
+                         title=config.getLocalizedString(60530),
                          thumbnail=thumb("documentary"),
                          folder=False))
-    itemlist.append(Item(channel=item.channel, action="settings", title=config.get_localized_string(60531),
+    itemlist.append(Item(channel=item.channel, action="settings", title=config.getLocalizedString(60531),
                          thumbnail=thumb("setting"),
                          folder=False))
     return itemlist
 
 
 def settings(item):
-    return platformtools.show_channel_settings(caption=config.get_localized_string(60532))
+    return platformtools.showChannelSettings(caption=config.getLocalizedString(60532))
 
 
 def setting_channel(item):
-    channels_path = os.path.join(config.get_runtime_path(), "channels", '*.json')
-    channel_language = config.get_setting("channel_language", default="auto")
+    channels_path = os.path.join(config.getRuntimePath(), "channels", '*.json')
+    channel_language = config.getSetting("channel_language", default="auto")
     if channel_language == 'auto':
         channel_language = auto_filter()
 
@@ -608,7 +608,7 @@ def setting_channel(item):
             continue
 
         # Do not include if the channel does not exist 'include_in_newest' in your configuration
-        include_in_newest = config.get_setting("include_in_newest_" + item.extra, channel_id)
+        include_in_newest = config.getSetting("include_in_newest_" + item.extra, channel_id)
         if include_in_newest is None:
             continue
 
@@ -621,13 +621,13 @@ def setting_channel(item):
 
         list_controls.append(control)
 
-    caption = config.get_localized_string(60533) + item.title.replace(config.get_localized_string(60525), "- ").strip()
-    if config.get_setting("custom_button_value_news", item.channel):
-        custom_button_label = config.get_localized_string(59992)
+    caption = config.getLocalizedString(60533) + item.title.replace(config.getLocalizedString(60525), "- ").strip()
+    if config.getSetting("custom_button_value_news", item.channel):
+        custom_button_label = config.getLocalizedString(59992)
     else:
-        custom_button_label = config.get_localized_string(59991)
+        custom_button_label = config.getLocalizedString(59991)
 
-    return platformtools.show_channel_settings(list_controls=list_controls,
+    return platformtools.showChannelSettings(list_controls=list_controls,
                                                caption=caption,
                                                callback="save_settings", item=item,
                                                custom_button={'visible': True,
@@ -638,19 +638,19 @@ def setting_channel(item):
 
 def save_settings(item, dict_values):
     for v in dict_values:
-        config.set_setting("include_in_newest_" + item.extra, dict_values[v], v)
+        config.setSetting("include_in_newest_" + item.extra, dict_values[v], v)
 
 
 def cb_custom_button(item, dict_values):
-    value = config.get_setting("custom_button_value_news", item.channel)
+    value = config.getSetting("custom_button_value_news", item.channel)
     if value == "":
         value = False
 
     for v in list(dict_values.keys()):
         dict_values[v] = not value
 
-    if config.set_setting("custom_button_value_news", not value, item.channel) == True:
-        return {"label": config.get_localized_string(59992)}
+    if config.setSetting("custom_button_value_news", not value, item.channel) == True:
+        return {"label": config.getLocalizedString(59992)}
     else:
-        return {"label": config.get_localized_string(59991)}
+        return {"label": config.getLocalizedString(59991)}
 

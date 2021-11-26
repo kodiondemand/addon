@@ -16,15 +16,15 @@ def test_video_exists(page_url):
     # page_url is the {VIDEO_ID}. Es: 5957
     return True, ""
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
 
-    video_urls = []
+    videoUrls = []
 
     global c
-    c = SCClient("",video_id=page_url, is_playing_fnc=platformtools.is_playing)
+    c = SCClient("",video_id=page_url, isPlaying_fnc=platformtools.isPlaying)
 
     media_url = c.get_manifest_url()
 
-    video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1] , 'url':media_url})
+    videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1] , 'url':media_url})
 
-    return video_urls
+    return videoUrls

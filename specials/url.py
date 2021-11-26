@@ -10,9 +10,9 @@ def mainlist(item):
     logger.debug()
 
     itemlist = []
-    itemlist.append(Item(channel=item.channel, action="search", title=config.get_localized_string(60089), thumbnail=item.thumbnail, args='server'))
-    itemlist.append(Item(channel=item.channel, action="search", title=config.get_localized_string(60090), thumbnail=item.thumbnail, args='direct'))
-    itemlist.append(Item(channel=item.channel, action="search", title=config.get_localized_string(60091), thumbnail=item.thumbnail))
+    itemlist.append(Item(channel=item.channel, action="search", title=config.getLocalizedString(60089), thumbnail=item.thumbnail, args='server'))
+    itemlist.append(Item(channel=item.channel, action="search", title=config.getLocalizedString(60090), thumbnail=item.thumbnail, args='direct'))
+    itemlist.append(Item(channel=item.channel, action="search", title=config.getLocalizedString(60091), thumbnail=item.thumbnail))
 
     return itemlist
 
@@ -29,7 +29,7 @@ def search(item, text):
     if "server" in item.args:
         itemlist = server(item, text)
     elif "direct" in item.args:
-        itemlist.append(Item(channel=item.channel, action="play", url=text, server="directo", title=config.get_localized_string(60092)))
+        itemlist.append(Item(channel=item.channel, action="play", url=text, server="directo", title=config.getLocalizedString(60092)))
         itemlist = server(item, itemlist=itemlist)
     else:
         data = match(text).data
@@ -39,6 +39,6 @@ def search(item, text):
             item.action = "play"
 
     if len(itemlist) == 0:
-        itemlist.append(Item(channel=item.channel, action="search", title=config.get_localized_string(60093)))
+        itemlist.append(Item(channel=item.channel, action="search", title=config.getLocalizedString(60093)))
 
     return itemlist

@@ -42,7 +42,7 @@ def loadCommits(page=1):
         except:
             xbmc.sleep(1000)
     else:
-        platformtools.dialog_notification(addonname, config.get_localized_string(70675))
+        platformtools.dialogNotification(addonname, config.getLocalizedString(70675))
         ret = None
 
     return ret
@@ -158,7 +158,7 @@ def check(background=False):
 
         if addon.getSetting("addon_update_message"):
             if background:
-                platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
+                platformtools.dialogNotification(config.getLocalizedString(20000), config.getLocalizedString(80040) % commits[0]['sha'][:7], time=3000, sound=False)
                 try:
                     with open(config.changelogFile, 'a+') as fileC:
                         fileC.write(changelog)
@@ -166,7 +166,7 @@ def check(background=False):
                     import traceback
                     logger.error(traceback.format_exc())
             elif changelog:
-                platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80041) + changelog)
+                platformtools.dialogOk(config.getLocalizedString(20000), config.getLocalizedString(80041) + changelog)
     else:
         logger.info('Nessun nuovo aggiornamento')
 
@@ -221,8 +221,8 @@ def getShaStr(str):
 
 
 
-def updateFromZip(message=config.get_localized_string(80050)):
-    dp = platformtools.dialog_progress_bg(config.get_localized_string(20000), message)
+def updateFromZip(message=config.getLocalizedString(80050)):
+    dp = platformtools.dialogProgressBg(config.getLocalizedString(20000), message)
     dp.update(0)
 
     remotefilename = 'https://github.com/' + user + "/" + repo + "/archive/" + branch + ".zip"
@@ -242,7 +242,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
         urllib.urlretrieve(remotefilename, localfilename,
                            lambda nb, bs, fs, url=remotefilename: _pbhook(nb, bs, fs, url, dp))
     except Exception as e:
-        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80031))
+        platformtools.dialogOk(config.getLocalizedString(20000), config.getLocalizedString(80031))
         logger.info('Non sono riuscito a scaricare il file zip')
         logger.info(e)
         dp.close()
@@ -255,7 +255,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
     if os.path.isfile(localfilename):
         logger.info('il file esiste')
 
-    dp.update(80, config.get_localized_string(20000) + '\n' + config.get_localized_string(80032))
+    dp.update(80, config.getLocalizedString(20000) + '\n' + config.getLocalizedString(80032))
 
     import zipfile
     try:
@@ -297,7 +297,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
     dp.update(100)
     xbmc.sleep(1000)
     dp.close()
-    if message != config.get_localized_string(80050):
+    if message != config.getLocalizedString(80050):
         xbmc.executebuiltin("UpdateLocalAddons")
         refreshLang()
 
@@ -306,7 +306,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
 
 def refreshLang():
     from platformcode import config
-    language = config.get_localized_string(20001)
+    language = config.getLocalizedString(20001)
     if language == 'eng':
         xbmc.executebuiltin("SetGUILanguage(resource.language.it_it)")
         xbmc.executebuiltin("SetGUILanguage(resource.language.en_en)")

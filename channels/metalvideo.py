@@ -25,7 +25,7 @@ def mainlist(item):
         itemlist.append(
             support.Item(
                 channel=item.channel,
-                title=support.typo(config.get_localized_string(70741) % 'Musica… ', 'bold'),
+                title=support.typo(config.getLocalizedString(70741) % 'Musica… ', 'bold'),
                 contentType='music',
                 url=item.url,
                 action='search',

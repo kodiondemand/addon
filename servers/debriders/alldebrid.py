@@ -6,7 +6,7 @@ from platformcode import logger
 
 
 # Returns an array of possible video url's from the page_url
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug()
     page_url = correct_url(page_url)
     dd1 = httptools.downloadpage("https://api.alldebrid.com/user/login?agent=mySoft&username=%s&password=%s" %(user, password)).data
@@ -14,10 +14,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     dd2 = httptools.downloadpage("https://api.alldebrid.com/link/unlock?agent=mySoft&token=%s&link=%s" %(token, page_url)).data
     link = scrapertools.find_single_match(dd2, 'link":"([^"]+)')
     link = link.replace("\\","")
-    video_urls = []
+    videoUrls = []
     if link:
         extension = "mp4 [alldebrid]"
-        video_urls.append([extension, link])
+        videoUrls.append([extension, link])
     else:
         try:
             server_error = "Alldebrid: " + data["error"].decode("utf-8", "ignore")
@@ -27,8 +27,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                          "Servidor no soportado o en mantenimiento")
         except:
             server_error = "Alldebrid: Error en el usuario/password o en la web"
-        video_urls.append([server_error, ''])
-    return video_urls
+        videoUrls.append([server_error, ''])
+    return videoUrls
 
 
 def correct_url(url):

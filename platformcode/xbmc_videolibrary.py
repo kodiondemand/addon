@@ -18,15 +18,16 @@ from core import scrapertools
 from xml.dom import minidom
 
 
-def mark_auto_as_watched(item):
+def mark_auto_as_watched():
     def mark_as_watched_subThread(item):
         logger.debug()
+        # logger.dbg()
         actual_time = 0
         total_time = 0
 
-        time_limit = time.time() + 10
-        while not platformtools.is_playing() and time.time() < time_limit:
-            time.sleep(1)
+        # time_limit = time.time() + 10
+        # while not platformtools.isPlaying() and time.time() < time_limit:
+        #     time.sleep(1)
 
         marked = False
         sync = False
@@ -34,48 +35,46 @@ def mark_auto_as_watched(item):
         show_server = True
         mark_time = 100
 
-        percentage = float(config.get_setting("watched_setting")) / 100
-        time_from_end = config.get_setting('next_ep_seconds')
+        percentage = float(config.getSetting("watched_setting")) / 100
+        time_from_end = config.getSetting('next_ep_seconds')
 
-        if item.contentType != 'movie' and 0 < config.get_setting('next_ep') < 3:
+        if item.contentType != 'movie' and 0 < config.getSetting('next_ep') < 3:
             next_dialogs = ['NextDialog.xml', 'NextDialogExtended.xml', 'NextDialogCompact.xml']
-            next_ep_type = config.get_setting('next_ep_type')
+            next_ep_type = config.getSetting('next_ep_type')
             ND = next_dialogs[next_ep_type]
             try: next_episode = next_ep(item)
             except: next_episode = False
             logger.debug(next_episode)
 
         while not xbmc.Monitor().abortRequested():
-            if not platformtools.is_playing(): break
+            if not platformtools.isPlaying(): break
             try: actual_time = xbmc.Player().getTime()
             except: actual_time = 0
             try: total_time = xbmc.Player().getTotalTime()
             except: total_time = 0
-            if item.played_time and xbmcgui.getCurrentWindowId() == 12005:
+            if actual_time and item.played_time and xbmcgui.getCurrentWindowId() == 12005:
+                logger.debug('VAI A', item.played_time)
                 xbmc.Player().seekTime(item.played_time)
-                item.played_time = 0 # Fix for Slow Devices
-
+                item.played_time = 0
             mark_time = total_time * percentage
             difference = total_time - actual_time
 
             # Mark as Watched
-            if actual_time > mark_time and not marked:
+            if actual_time > mark_time and mark_time > 0 and not marked:
                 logger.info("Marked as Watched")
                 item.playcount = 1
                 marked = True
                 item.played_time = 0
-                platformtools.set_played_time(item)
+                platformtools.setPlayedTime(item)
                 if item.options['strm'] : sync = True
                 show_server = False
-                # from specials import videolibrary
-                # videolibrary.mark_content_as_watched(item)
                 if not next_episode:
                     break
 
             # check for next Episode
             if next_episode and marked and time_from_end >= difference:
-                nextdialog = NextDialog(ND, config.get_runtime_path(), item=next_episode)
-                while platformtools.is_playing() and not nextdialog.is_exit():
+                nextdialog = NextDialog(ND, config.getRuntimePath(), item=next_episode)
+                while platformtools.isPlaying() and not nextdialog.is_exit():
                     xbmc.sleep(100)
                 if nextdialog.continuewatching:
                     next_episode.next_ep = True
@@ -83,27 +82,32 @@ def mark_auto_as_watched(item):
                 nextdialog.close()
                 break
 
-        # if item.options['continue']:
         if actual_time < mark_time:
             item.played_time = actual_time
         else: item.played_time = 0
-        platformtools.set_played_time(item)
+        if mark_time:
+            logger.debug('Set Played Time', item.played_time)
+            platformtools.setPlayedTime(item)
 
         # Silent sync with Trakt
-        if sync and config.get_setting("trakt_sync"): sync_trakt_kodi()
+        if sync and config.getSetting("trakt_sync"): sync_trakt_kodi()
 
-        while platformtools.is_playing():
-            xbmc.sleep(100)
+        while platformtools.isPlaying():
+            xbmc.sleep(10)
 
-        if not show_server and not item.no_return and not item.window:
-            xbmc.sleep(700)
-            xbmc.executebuiltin('Action(ParentDir)')
+        if not show_server and not item.no_return:
+            if item.window:
+                # xbmc.executebuiltin('ActivateWindow({})'.format(filetools.join(config.getRuntimePath(), 'resources', 'skins', 'Default', '720p', 'Servers.xml')))
+                xbmc.executebuiltin('Action(BackSpace)')
+            else:
+                xbmc.sleep(700)
+                xbmc.executebuiltin('Action(ParentDir)')
 
         if marked:
             from specials import videolibrary
             videolibrary.mark_content_as_watched(item)
 
-        if next_episode and next_episode.next_ep and config.get_setting('next_ep') == 1:
+        if next_episode and next_episode.next_ep and config.getSetting('next_ep') == 1:
             from platformcode.launcher import run
             run(next_episode)
 
@@ -112,8 +116,15 @@ def mark_auto_as_watched(item):
         db.close()
 
     # If it is configured to mark as seen
-    if config.get_setting("mark_as_watched", "videolibrary"):
-        threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
+    if config.getSetting("mark_as_watched", "videolibrary"):
+        from core import db
+        item = db['playitem'].get('item')
+        db.close()
+        imdb_id = xbmc.Player().getVideoInfoTag().getIMDBNumber()
+        if item.infoLabels['imdb_id'] == imdb_id:
+            # mark_as_watched_subThread(item)
+            threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
+            logger.debug('EXIT MONITOR')
 
 
 def sync_trakt_addon(path_folder):
@@ -242,14 +253,14 @@ def sync_trakt_kodi(silent=True):
     # So that the synchronization is not silent it is worth with silent = False
     if xbmc.getCondVisibility('System.HasAddon("script.trakt")'):
         notificacion = True
-        if not config.get_setting("sync_trakt_notification", "videolibrary") and platformtools.is_playing():
+        if platformtools.isPlaying():
             notificacion = False
 
         xbmc.executebuiltin('RunScript(script.trakt,action=sync,silent=%s)' % silent)
         logger.debug("Synchronization with Trakt started")
 
         if notificacion:
-            platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(60045), sound=False, time=2000)
+            platformtools.dialogNotification(config.getLocalizedString(20000), config.getLocalizedString(60045), sound=False, time=2000)
 
 
 def mark_content_as_watched_on_kodi(item, value=1):
@@ -261,7 +272,7 @@ def mark_content_as_watched_on_kodi(item, value=1):
     @param value: > 0 for seen, 0 for not seen
     """
     logger.debug()
-    logger.dbg()
+    # logger.dbg()
 
     if item.contentType == 'movie':
         path = '%{}%'.format(item.strm_path.split('\\')[0].split('/')[0] if item.strm_path else item.base_name)
@@ -369,14 +380,14 @@ def mark_content_as_watched_on_kod(path):
     logger.debug()
     #logger.debug("path: " + path)
 
-    FOLDER_MOVIES = config.get_setting("folder_movies")
-    FOLDER_TVSHOWS = config.get_setting("folder_tvshows")
-    VIDEOLIBRARY_PATH = config.get_videolibrary_config_path()
+    FOLDER_MOVIES = config.getSetting("folder_movies")
+    FOLDER_TVSHOWS = config.getSetting("folder_tvshows")
+    VIDEOLIBRARY_PATH = config.getVideolibraryConfigPath()
     if not VIDEOLIBRARY_PATH:
         return
     # set_watched_on_kod
     # We can only mark the content as a view in the Kodi database if the database is local, in case of sharing database this functionality will not work
-    # if config.get_setting("db_mode", "videolibrary"):
+    # if config.getSetting("db_mode", "videolibrary"):
     #    return
 
     path2 = ''
@@ -465,14 +476,14 @@ def get_data(payload):
     # Required header for XBMC JSON-RPC calls, otherwise you'll get a 415 HTTP response code - Unsupported media type
     headers = {'content-type': 'application/json'}
 
-    if config.get_setting("db_mode", "videolibrary"):
+    if config.getSetting("db_mode", "videolibrary"):
         try:
             try:
-                xbmc_port = config.get_setting("xbmc_puerto", "videolibrary")
+                xbmc_port = config.getSetting("xbmc_puerto", "videolibrary")
             except:
                 xbmc_port = 0
 
-            xbmc_json_rpc_url = "http://" + config.get_setting("xbmc_host", "videolibrary") + ":" + str(xbmc_port) + "/jsonrpc"
+            xbmc_json_rpc_url = "http://" + config.getSetting("xbmc_host", "videolibrary") + ":" + str(xbmc_port) + "/jsonrpc"
             req = urllib2.Request(xbmc_json_rpc_url, data=jsontools.dump(payload), headers=headers)
             f = urllib.urlopen(req)
             response = f.read()
@@ -499,7 +510,7 @@ def get_data(payload):
     return data
 
 
-def update(folder_content=config.get_setting("folder_tvshows"), folder=""):
+def update(folder_content=config.getSetting("folder_tvshows"), folder=""):
     """
     Update the library depending on the type of content and the path passed to it.
 
@@ -518,7 +529,7 @@ def update(folder_content=config.get_setting("folder_tvshows"), folder=""):
 
     if folder:
         folder = str(folder)
-        videolibrarypath = config.get_videolibrary_config_path()
+        videolibrarypath = config.getVideolibraryConfigPath()
 
         if folder.endswith('/') or folder.endswith('\\'):
             folder = folder[:-1]
@@ -561,17 +572,17 @@ def search_local_path(item):
                 for record in records:
                     num_path, path_records = execute_sql_kodi('SELECT strPath FROM path WHERE idPath LIKE "%s"' % record[0])
                     for path in path_records:
-                        if config.get_setting('videolibrarypath') not in path[0]:
+                        if config.getSetting('videolibrarypath') not in path[0]:
                             return path[0]
     return ''
 
 
 def set_content(silent=False):
     logger.debug()
-    videolibrarypath = config.get_setting("videolibrarypath")
+    videolibrarypath = config.getSetting("videolibrarypath")
     sep = '/' if '/' in videolibrarypath else '\\'
-    paths = {'movie': filetools.join(videolibrarypath, config.get_setting('folder_movies')) + sep,
-             'tvshow': filetools.join(videolibrarypath, config.get_setting('folder_tvshows')) + sep}
+    paths = {'movie': filetools.join(videolibrarypath, config.getSetting('folder_movies')) + sep,
+             'tvshow': filetools.join(videolibrarypath, config.getSetting('folder_tvshows')) + sep}
     for k, v in paths.items():
         sql = 'SELECT idPath, strPath FROM path where strPath= "{}"'.format(v)
         n, records = execute_sql_kodi(sql)
@@ -631,7 +642,7 @@ def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvsh
         return
 
     p = 80
-    progress.update(p, config.get_localized_string(20000), config.get_localized_string(80013))
+    progress.update(p, config.getLocalizedString(20000), config.getLocalizedString(80013))
 
     for OldFolder, NewFolder in [[old_movies_folder, new_movies_folder], [old_tvshows_folder, new_tvshows_folder]]:
         sql_old_folder = sql_old_path + OldFolder
@@ -694,7 +705,7 @@ def update_db(old_path, new_path, old_movies_folder, new_movies_folder, old_tvsh
                     logger.debug('sql: ' + sql)
                     nun_records, records = execute_sql_kodi(sql)
         p += 5
-        progress.update(p, config.get_localized_string(20000), config.get_localized_string(80013))
+        progress.update(p, config.getLocalizedString(20000), config.getLocalizedString(80013))
 
     progress.update(100)
     xbmc.sleep(1000)
@@ -718,14 +729,14 @@ def clean(path_list=[]):
 
     logger.debug()
 
-    progress = platformtools.dialog_progress_bg(config.get_localized_string(20000), config.get_localized_string(80025))
+    progress = platformtools.dialogProgressBg(config.getLocalizedString(20000), config.getLocalizedString(80025))
     progress.update(0)
 
     # if the path list is empty, clean the entire video library
     if not path_list:
         logger.debug('the path list is empty, clean the entire video library')
-        if not config.get_setting("videolibrary_kodi"):
-            sql_path, sep = sql_format(config.get_setting("videolibrarypath"))
+        if not config.getSetting("videolibrary_kodi"):
+            sql_path, sep = sql_format(config.getSetting("videolibrarypath"))
             if not sql_path.endswith(sep): sql_path += sep
             sql = 'SELECT idPath FROM path where strPath LIKE "%s"' % sql_path
             logger.debug('sql: ' + sql)
@@ -742,13 +753,13 @@ def clean(path_list=[]):
         from core import videolibrarytools
         for path, folders, files in filetools.walk(videolibrarytools.MOVIES_PATH):
             for folder in folders:
-                path_list.append(filetools.join(config.get_setting("videolibrarypath"), videolibrarytools.FOLDER_MOVIES, folder))
+                path_list.append(filetools.join(config.getSetting("videolibrarypath"), videolibrarytools.FOLDER_MOVIES, folder))
 
         for path, folders, files in filetools.walk(videolibrarytools.TVSHOWS_PATH):
             for folder in folders:
                 tvshow_nfo = filetools.join(path, folder, "tvshow.nfo")
                 if filetools.exists(tvshow_nfo):
-                    path_list.append(filetools.join(config.get_setting("videolibrarypath"), videolibrarytools.FOLDER_TVSHOWS, folder))
+                    path_list.append(filetools.join(config.getSetting("videolibrarypath"), videolibrarytools.FOLDER_TVSHOWS, folder))
 
     logger.debug('path_list: ' + str(path_list))
     if path_list: t = float(100) / len(path_list)
@@ -781,7 +792,7 @@ def clean(path_list=[]):
             if records:
                 payload = {"jsonrpc": "2.0", "method": "VideoLibrary.RemoveTVShow", "id": 1, "params": {"tvshowid": records[0][0]}}
                 data = get_data(payload)
-        elif config.get_setting("folder_movies") in sql_path:
+        elif config.getSetting("folder_movies") in sql_path:
             # search movie in the DB
             sql = 'SELECT idMovie FROM movie where c22 LIKE "%s"' % sql_path
             logger.debug('sql: ' + sql)
@@ -866,7 +877,7 @@ def get_file_db():
     """
     file_db = ''
     # We look for the archive of the video database according to the version of kodi
-    video_db = config.get_platform(True)['video_db']
+    video_db = config.getXBMCPlatform(True)['video_db']
     if video_db:
         file_db = filetools.join(xbmc.translatePath("special://userdata/Database"), video_db)
 
@@ -1067,71 +1078,71 @@ def update_sources(new='', old=''):
 
 def ask_set_content(silent=False):
     logger.debug()
-    logger.debug("videolibrary_kodi %s" % config.get_setting("videolibrary_kodi"))
+    logger.debug("videolibrary_kodi %s" % config.getSetting("videolibrary_kodi"))
     def do_config(custom=False):
         if set_content("movie", True, custom) and set_content("tvshow", True, custom):
-            platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(70104))
-            config.set_setting("videolibrary_kodi", True)
+            platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(70104))
+            config.setSetting("videolibrary_kodi", True)
             from specials import videolibrary
             videolibrary.update_videolibrary()
             update()
         else:
-            platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80024))
-            config.set_setting("videolibrary_kodi", False)
+            platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(80024))
+            config.setSetting("videolibrary_kodi", False)
 
     # configuration during installation
     if not silent:
         # ask to configure Kodi video library
-        if platformtools.dialog_yesno(config.get_localized_string(20000), config.get_localized_string(80015)):
+        if platformtools.dialogYesNo(config.getLocalizedString(20000), config.getLocalizedString(80015)):
             # ask for custom or default settings
-            if not platformtools.dialog_yesno(config.get_localized_string(80026), config.get_localized_string(80016), config.get_localized_string(80017), config.get_localized_string(80018)):
+            if not platformtools.dialogYesNo(config.getLocalizedString(80026), config.getLocalizedString(80016), config.getLocalizedString(80017), config.getLocalizedString(80018)):
                 # input path and folders
-                path = platformtools.dialog_browse(3, config.get_localized_string(80019), config.get_setting("videolibrarypath"))
-                movies_folder = platformtools.dialog_input(config.get_setting("folder_movies"), config.get_localized_string(80020))
-                tvshows_folder = platformtools.dialog_input(config.get_setting("folder_tvshows"), config.get_localized_string(80021))
+                path = platformtools.dialogBrowse(3, config.getLocalizedString(80019), config.getSetting("videolibrarypath"))
+                movies_folder = platformtools.dialogInput(config.getSetting("folder_movies"), config.getLocalizedString(80020))
+                tvshows_folder = platformtools.dialogInput(config.getSetting("folder_tvshows"), config.getLocalizedString(80021))
 
                 if path != "" and movies_folder != "" and tvshows_folder != "":
                     movies_path, tvshows_path = check_sources(filetools.join(path, movies_folder), filetools.join(path, tvshows_folder))
                     # configure later
                     if movies_path or tvshows_path:
-                        platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80029))
+                        platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(80029))
                     # set path and folders
                     else:
-                        update_sources(path, config.get_setting("videolibrarypath"))
-                        config.set_setting("videolibrarypath", path)
-                        config.set_setting("folder_movies", movies_folder)
-                        config.set_setting("folder_tvshows", tvshows_folder)
-                        config.verify_directories_created()
+                        update_sources(path, config.getSetting("videolibrarypath"))
+                        config.setSetting("videolibrarypath", path)
+                        config.setSetting("folder_movies", movies_folder)
+                        config.setSetting("folder_tvshows", tvshows_folder)
+                        config.verifyDirectoriesCreated()
                         do_config(False)
                 # default path and folders
                 else:
-                    platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80030))
+                    platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(80030))
                     do_config(False)
             # default settings
             else:
-                platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80027))
+                platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(80027))
                 do_config(False)
         # configure later
         else:
-            platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(80022))
+            platformtools.dialogOk(config.getLocalizedString(20000), config.getLocalizedString(80022))
     # configuration from the settings menu
     else:
-        platformtools.dialog_ok(config.get_localized_string(80026), config.get_localized_string(80023))
+        platformtools.dialogOk(config.getLocalizedString(80026), config.getLocalizedString(80023))
         do_config(False)
 
 
 def next_ep(item):
     logger.debug(item)
     episode = '{}x{:02d}'.format(item.contentSeason, item.contentEpisodeNumber)
-    episodes = sorted(videolibrarydb.videolibrarydb['episode'][item.videolibrary_id].items())
-    videolibrarydb.videolibrarydb.close()
+    episodes = sorted(videolibrarydb['episode'][item.videolibrary_id].items())
+    videolibrarydb.close()
 
     nextIndex = [k for k, v in episodes].index(episode) + 1
     if nextIndex == 0 or nextIndex == len(episodes):
         it = None
     else:
         it = episodes[nextIndex][1]['item']
-        if item.from_library: it.action = 'play_from_library'
+        if item.from_library: it.action = 'playFromLibrary'
         logger.debug('Next File:' + '{}x{:02d}. {}'.format(it.contentSeason, it.contentEpisodeNumber, it.title))
 
     return it
@@ -1150,7 +1161,7 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         info = kwargs.get('item').infoLabels
         if "fanart" in info: img = info["fanart"]
         elif "thumbnail" in info: img = info["thumbnail"]
-        else: img = filetools.join(config.get_runtime_path(), "resources", "noimage.png")
+        else: img = filetools.join(config.getRuntimePath(), "resources", "noimage.png")
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
         self.setProperty("ep_title", "{}x{:02d}. {}".format(info["season"], info["episode"], info["title"]))

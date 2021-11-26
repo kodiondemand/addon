@@ -5,9 +5,9 @@ from core import scrapertools
 from platformcode import logger
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("( page_url='%s')")
-    video_urls = []
+    videoUrls = []
     itemlist = []
     data1 = ''
     data2 = ''
@@ -34,6 +34,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     alerta = filename + " " + alerta
     if "http" not in url: alerta = "[error de filesmonster premium]: " + url
 
-    video_urls.append([alerta, url])
+    videoUrls.append([alerta, url])
 
-    return video_urls
+    return videoUrls

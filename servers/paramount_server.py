@@ -10,16 +10,16 @@ def test_video_exists(page_url):
     response = httptools.downloadpage(page_url)
 
     if response.code == 404:
-        return False, config.get_localized_string(70449) % 'Paramount'
+        return False, config.getLocalizedString(70449) % 'Paramount'
     else:
         data = response.data
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
     qualities = []
-    video_urls = []
+    videoUrls = []
     mgid = support.match(data, patron=r'uri":"([^"]+)"').match
     url = 'https://media.mtvnservices.com/pmt/e1/access/index.html?uri=' + mgid + '&configtype=edge&ref=' + page_url
     ID, rootUrl = support.match(url, patron=[r'"id":"([^"]+)",',r'brightcove_mediagenRootURL":"([^"]+)"']).matches
@@ -29,6 +29,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         quality = quality.split('x')[0]
         if quality not in qualities:
             qualities.append(quality)
-            video_urls.append({'type':'m3u8', 'res':quality, 'url':url})
-    # video_urls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
-    return video_urls
+            videoUrls.append({'type':'m3u8', 'res':quality, 'url':url})
+    # videoUrls.sort(key=lambda url: int(support.match(url[0], patron=r'(\d+)p').match))
+    return videoUrls

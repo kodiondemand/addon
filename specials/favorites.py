@@ -16,7 +16,7 @@ try:
 
         FAVOURITES_PATH = xbmc.translatePath("special://profile/favourites.xml")
     else:
-        FAVOURITES_PATH = os.path.join(config.get_data_path(), "favourites.xml")
+        FAVOURITES_PATH = os.path.join(config.getDataPath(), "favourites.xml")
 except:
     import traceback
 
@@ -41,11 +41,11 @@ def mainlist(item):
             elif type(item.context) != list:
                 item.context = []
 
-            item.context.extend([{"title": config.get_localized_string(30154),  # "Remove from favorites "
+            item.context.extend([{"title": config.getLocalizedString(30154),  # "Remove from favorites "
                                   "action": "delFavourite",
                                   "channel": "favorites",
                                   "from_title": item.title},
-                                 {"title": config.get_localized_string(70278), # Rename
+                                 {"title": config.getLocalizedString(70278), # Rename
                                   "action": "renameFavourite",
                                   "channel": "favorites",
                                   "from_title": item.title}
@@ -61,7 +61,7 @@ def read_favourites():
     if filetools.exists(FAVOURITES_PATH):
         data = filetools.read(FAVOURITES_PATH)
 
-        matches = scrapertools.find_multiple_matches(data, "<favourite([^<]*)</favourite>")
+        matches = scrapertools.findMultipleMatches(data, "<favourite([^<]*)</favourite>")
         for match in matches:
             name = scrapertools.find_single_match(match, 'name="([^"]*)')
             thumb = scrapertools.find_single_match(match, 'thumb="([^"]*)')
@@ -96,7 +96,7 @@ def addFavourite(item):
     favourites_list.append((titulo, item.thumbnail, data))
 
     if save_favourites(favourites_list):
-        platformtools.dialog_ok(config.get_localized_string(30102), titulo + '\n' + config.get_localized_string(30108))  # 'added to favorites'
+        platformtools.dialogOk(config.getLocalizedString(30102), titulo + '\n' + config.getLocalizedString(30108))  # 'added to favorites'
 
 
 def delFavourite(item):
@@ -112,8 +112,8 @@ def delFavourite(item):
             favourites_list.remove(fav)
 
             if save_favourites(favourites_list):
-                platformtools.dialog_ok(config.get_localized_string(30102), item.title + '\n' + config.get_localized_string(30105).lower())  # 'Removed from favorites'
-                platformtools.itemlist_refresh()
+                platformtools.dialogOk(config.getLocalizedString(30102), item.title + '\n' + config.getLocalizedString(30105).lower())  # 'Removed from favorites'
+                platformtools.itemlistRefresh()
             break
 
 
@@ -126,12 +126,12 @@ def renameFavourite(item):
     for i, fav in enumerate(favourites_list):
         if fav[0] == item.from_title:
             # open keyboard
-            new_title = platformtools.dialog_input(item.from_title, item.title)
+            new_title = platformtools.dialogInput(item.from_title, item.title)
             if new_title:
                 favourites_list[i] = (new_title, fav[1], fav[2])
                 if save_favourites(favourites_list):
-                    platformtools.dialog_ok(config.get_localized_string(30102), item.from_title + '\n' + config.get_localized_string(60086) + '\n' + new_title)  # 'Removed from favorites'
-                    platformtools.itemlist_refresh()
+                    platformtools.dialogOk(config.getLocalizedString(30102), item.from_title + '\n' + config.getLocalizedString(60086) + '\n' + new_title)  # 'Removed from favorites'
+                    platformtools.itemlistRefresh()
 
 
 ##################################################
@@ -230,8 +230,8 @@ def check_bookmark(readpath):
 
 # This will only work when migrating from previous versions, there is no longer a "bookmarkpath"
 try:
-    if config.get_setting("bookmarkpath") != "":
-        check_bookmark(config.get_setting("bookmarkpath"))
+    if config.getSetting("bookmarkpath") != "":
+        check_bookmark(config.getSetting("bookmarkpath"))
     else:
         logger.debug("No path to old version favorites")
 except:

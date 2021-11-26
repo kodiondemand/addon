@@ -9,28 +9,28 @@ from datetime import datetime
 
 langs = Item(tmdb=[tmdb.def_lang, 'de', 'fr', 'pt', 'it', 'es-MX', 'ca', 'en', 'es'],
              imdb=[tmdb.def_lang, 'de-de', 'fr-fr', 'pt-pt', 'it-it', 'es-MX', 'ca-es', 'en', 'es'])
-lang = Item(tmdb=langs.tmdb[config.get_setting('tmdb', 'tvmoviedb')],
-            tmdbfallback= langs.tmdb[config.get_setting('tmdbfallback', 'tvmoviedb')],
-            imdb=langs.imdb[config.get_setting('imdb', 'tvmoviedb')])
+lang = Item(tmdb=langs.tmdb[config.getSetting('tmdb', 'tvmoviedb')],
+            tmdbfallback= langs.tmdb[config.getSetting('tmdbfallback', 'tvmoviedb')],
+            imdb=langs.imdb[config.getSetting('imdb', 'tvmoviedb')])
 
 imdb_host = 'http://www.imdb.com'
-mal_adult = config.get_setting('adult_mal', 'tvmoviedb')
+mal_adult = config.getSetting('adult_mal', 'tvmoviedb')
 mal_key = 'MzE1MDQ2cGQ5N2llYTY4Z2xwbGVzZjFzbTY='
-# fanart = filetools.join(config.get_runtime_path(), re 'fanart.jpg')
+# fanart = filetools.join(config.getRuntimePath(), re 'fanart.jpg')
 
 
 def mainlist(item):
     logger.debug()
     itemlist = [item.clone(title='TMDB', action='tmdbMenu', thumbnail=support.thumb('tmdb')),
                 item.clone(title='IMDB', action='imdbMenu', thumbnail=support.thumb('imdb'))]
-    itemlist += [item.clone(title=config.get_localized_string(70415), action='traktMenu', thumbnail=support.thumb('trakt')),
-                 item.clone(title=config.get_localized_string(70026), action='mal', thumbnail=support.thumb('mal')),
-                 item.clone(title=support.typo(config.get_localized_string(70027), 'bold'), action='configuracion', folder=False, thumbnail=support.thumb('setting'))]
+    itemlist += [item.clone(title=config.getLocalizedString(70415), action='traktMenu', thumbnail=support.thumb('trakt')),
+                 item.clone(title=config.getLocalizedString(70026), action='mal', thumbnail=support.thumb('mal')),
+                 item.clone(title=support.typo(config.getLocalizedString(70027), 'bold'), action='configuracion', folder=False, thumbnail=support.thumb('setting'))]
     return itemlist
 
 
 def _search(item):
-    text = platformtools.dialog_input(heading=item.title)
+    text = platformtools.dialogInput(heading=item.title)
     if text:
         if item.search:
             item.search['query'] = text
@@ -43,23 +43,23 @@ def _search(item):
 
 def tmdbMenu(item):
     if not item.args:
-        return support.thumb([item.clone(title=config.get_localized_string(30122), args='movie'),
-                item.clone(title=config.get_localized_string(30123), args='tv'),
-                item.clone(title=config.get_localized_string(70033), action='tmdbResults', args='person/popular'),
-                item.clone(title=config.get_localized_string(70036), action='_search', search={'url': 'search/person', 'language': lang.tmdb, 'page': 1}),
-                item.clone(title=config.get_localized_string(70037), action='_search', search={'url': 'search/person', 'language': lang.tmdb, 'page': 1}, crew=True)])
+        return support.thumb([item.clone(title=config.getLocalizedString(30122), args='movie'),
+                item.clone(title=config.getLocalizedString(30123), args='tv'),
+                item.clone(title=config.getLocalizedString(70033), action='tmdbResults', args='person/popular'),
+                item.clone(title=config.getLocalizedString(70036), action='_search', search={'url': 'search/person', 'language': lang.tmdb, 'page': 1}),
+                item.clone(title=config.getLocalizedString(70037), action='_search', search={'url': 'search/person', 'language': lang.tmdb, 'page': 1}, crew=True)])
 
     item.contentType = item.args.replace('tv', 'tvshow')
 
-    itemlist = [item.clone(title=config.get_localized_string(70028), action='tmdbResults', args=item.args + '/popular'),
-                item.clone(title=config.get_localized_string(70029), action='tmdbResults', args=item.args + '/top_rated'),
-                item.clone(title=config.get_localized_string(50001), action='tmdbResults', args=item.args + '/now_playing' if item.args == 'movie' else 'tv/on_the_air'),
-                item.clone(title=config.get_localized_string(70032), action='tmdbIndex', mode='genre'),
-                item.clone(title=config.get_localized_string(70042), action='tmdbIndex', mode='year')]
+    itemlist = [item.clone(title=config.getLocalizedString(70028), action='tmdbResults', args=item.args + '/popular'),
+                item.clone(title=config.getLocalizedString(70029), action='tmdbResults', args=item.args + '/top_rated'),
+                item.clone(title=config.getLocalizedString(50001), action='tmdbResults', args=item.args + '/now_playing' if item.args == 'movie' else 'tv/on_the_air'),
+                item.clone(title=config.getLocalizedString(70032), action='tmdbIndex', mode='genre'),
+                item.clone(title=config.getLocalizedString(70042), action='tmdbIndex', mode='year')]
 
 
-    itemlist.extend([item.clone(title=config.get_localized_string(70035) % config.get_localized_string(60244 if item.args == 'movie' else 60245).lower(), action='_search', search={'url': 'search/%s' % item.args, 'language': lang.tmdb, 'page': 1}),
-                     item.clone(title=support.typo(config.get_localized_string(70038),'bold'), action='filter', db_type='tmdb' )])
+    itemlist.extend([item.clone(title=config.getLocalizedString(70035) % config.getLocalizedString(60244 if item.args == 'movie' else 60245).lower(), action='_search', search={'url': 'search/%s' % item.args, 'language': lang.tmdb, 'page': 1}),
+                     item.clone(title=support.typo(config.getLocalizedString(70038),'bold'), action='filter', db_type='tmdb' )])
 
 
     return support.thumb(itemlist)
@@ -120,23 +120,23 @@ def tmdbIndex(item):
 def imdbMenu(item):
     itemlist = []
     if not item.args:
-        itemlist.extend([item.clone(title=config.get_localized_string(30122), args='movie'),
-                         item.clone(title=config.get_localized_string(30123), args='tvshow'),
-                         item.clone(title=config.get_localized_string(70033), action='imdbResults', args=['actors']),
-                         item.clone(title=config.get_localized_string(70036), action='_search', url='/search/name?name={}', args=['actors']),
-                         item.clone(title=config.get_localized_string(30980), action='_search', url= '/search/title?title={}')])
+        itemlist.extend([item.clone(title=config.getLocalizedString(30122), args='movie'),
+                         item.clone(title=config.getLocalizedString(30123), args='tvshow'),
+                         item.clone(title=config.getLocalizedString(70033), action='imdbResults', args=['actors']),
+                         item.clone(title=config.getLocalizedString(70036), action='_search', url='/search/name?name={}', args=['actors']),
+                         item.clone(title=config.getLocalizedString(30980), action='_search', url= '/search/title?title={}')])
     else:
         item.contentType = item.args
 
-        itemlist.append(item.clone(title=config.get_localized_string(70028), action='imdbResults', args=[item.contentType]))
-        itemlist.append(item.clone(title=config.get_localized_string(70029), action='imdbResults', args=[item.contentType,'top']))
+        itemlist.append(item.clone(title=config.getLocalizedString(70028), action='imdbResults', args=[item.contentType]))
+        itemlist.append(item.clone(title=config.getLocalizedString(70029), action='imdbResults', args=[item.contentType,'top']))
         if item.contentType == 'movie':
-            itemlist.extend([item.clone(title=config.get_localized_string(70030), action='imdbResults', args=['cinema']),
-                            item.clone(title=config.get_localized_string(70034), action='imdbResults', args=['soon'])])
+            itemlist.extend([item.clone(title=config.getLocalizedString(70030), action='imdbResults', args=['cinema']),
+                            item.clone(title=config.getLocalizedString(70034), action='imdbResults', args=['soon'])])
 
-        itemlist.extend([item.clone(title=config.get_localized_string(70032), action='imdbIndex', args='genre'),
-                         item.clone(title=config.get_localized_string(70042), action='imdbIndex', args='year'),
-                         item.clone(title=support.typo(config.get_localized_string(70038),'color kod'), action='filter', db_type='imdb')])
+        itemlist.extend([item.clone(title=config.getLocalizedString(70032), action='imdbIndex', args='genre'),
+                         item.clone(title=config.getLocalizedString(70042), action='imdbIndex', args='year'),
+                         item.clone(title=support.typo(config.getLocalizedString(70038),'color kod'), action='filter', db_type='imdb')])
 
     return support.thumb(itemlist)
 
@@ -194,29 +194,29 @@ def imdbIndex(item):
 
 def traktMenu(item):
     itemlist = []
-    token_auth = config.get_setting("token_trakt", "trakt")
+    token_auth = config.getSetting("token_trakt", "trakt")
     if not item.args:
-        itemlist.extend([item.clone(title=config.get_localized_string(30122), args='movies'),
-                         item.clone(title=config.get_localized_string(30123), args='shows')])
-        if token_auth: itemlist.append(item.clone(title=support.typo(config.get_localized_string(70057), 'bold'), action="traktResults", url="/users/me/lists"))
-        else: itemlist.append(item.clone(title=support.typo(config.get_localized_string(70054), 'bold'), action="traktAuth", folder=False))
+        itemlist.extend([item.clone(title=config.getLocalizedString(30122), args='movies'),
+                         item.clone(title=config.getLocalizedString(30123), args='shows')])
+        if token_auth: itemlist.append(item.clone(title=support.typo(config.getLocalizedString(70057), 'bold'), action="traktResults", url="/users/me/lists"))
+        else: itemlist.append(item.clone(title=support.typo(config.getLocalizedString(70054), 'bold'), action="traktAuth", folder=False))
     else:
         item.contentType = item.args.replace('shows', 'tvshow').replace('movies', 'movie')
-        item.title = config.get_localized_string(30122 if item.contentType == 'movie' else 30123)
-        itemlist.extend([item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70049)), action='traktResults', url= item.args + '/popular'),
-                        item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70050)), action='traktResults', url= item.args + '/trending'),
-                        item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70053)), action='traktResults', url= item.args + '/watched/all'),
-                        item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70051)), action='traktResults', url= item.args + '/anticipated')])
+        item.title = config.getLocalizedString(30122 if item.contentType == 'movie' else 30123)
+        itemlist.extend([item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70049)), action='traktResults', url= item.args + '/popular'),
+                        item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70050)), action='traktResults', url= item.args + '/trending'),
+                        item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70053)), action='traktResults', url= item.args + '/watched/all'),
+                        item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70051)), action='traktResults', url= item.args + '/anticipated')])
         if token_auth:
-            itemlist.extend([item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70052)), action='traktResults', url='/recommendations/' + item.args),
-                             item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70055)), action='traktResults', url='/users/me/watchlist/' + item.args),
-                             item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70056)), action='traktResults', url='/users/me/watched/' + item.args),
-                             item.clone(title='{} [{}]'.format(item.title, config.get_localized_string(70068)), action='traktResults', url='/users/me/collection/' + item.args)])
+            itemlist.extend([item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70052)), action='traktResults', url='/recommendations/' + item.args),
+                             item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70055)), action='traktResults', url='/users/me/watchlist/' + item.args),
+                             item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70056)), action='traktResults', url='/users/me/watched/' + item.args),
+                             item.clone(title='{} [{}]'.format(item.title, config.getLocalizedString(70068)), action='traktResults', url='/users/me/collection/' + item.args)])
     return itemlist
 
 
 def traktResults(item):
-    prepage = config.get_setting('pagination', default=20)
+    prepage = config.getSetting('pagination', default=20)
     if not item.page: item.page = 1
     if item.itemlist:
         itemlist = support.pagination(support.itemlistdb(), item, 'traktResults')
@@ -224,7 +224,7 @@ def traktResults(item):
         return itemlist
 
     if item.prevthumb: item.thumbnail = item.prevthumb
-    token_auth = config.get_setting('token_trakt', 'trakt')
+    token_auth = config.getSetting('token_trakt', 'trakt')
     itemlist = []
     client_id = trakt_tools.client_id
     headers = [['Content-Type', 'application/json'], ['trakt-api-key', client_id], ['trakt-api-version', '2']]
@@ -238,7 +238,7 @@ def traktResults(item):
     data = httptools.downloadpage(url, post=post, headers=headers)
     if data.code == '401':
         trakt_tools.token_trakt(item.clone(args='renew'))
-        token_auth = config.get_setting('token_trakt', 'trakt')
+        token_auth = config.getSetting('token_trakt', 'trakt')
         headers[3][1] = 'Bearer {}'.format(token_auth)
         data = httptools.downloadpage(url, post=post, headers=headers)
 
@@ -322,15 +322,15 @@ def traktAuth(item):
 
 def filter(item):
     import xbmcgui
-    orderTitle = [config.get_localized_string(70456), config.get_localized_string(70457), config.get_localized_string(70458), config.get_localized_string(70459), config.get_localized_string(70460), config.get_localized_string(70461), config.get_localized_string(70462), config.get_localized_string(70462)]
+    orderTitle = [config.getLocalizedString(70456), config.getLocalizedString(70457), config.getLocalizedString(70458), config.getLocalizedString(70459), config.getLocalizedString(70460), config.getLocalizedString(70461), config.getLocalizedString(70462), config.getLocalizedString(70462)]
     tmdbOrder = ['popularity.desc', 'popularity.asc', 'release_date.desc', 'release_date.asc', 'vote_average.desc', 'vote_average.asc', 'title.asc', 'title.desc']
     imdbOrder = ['moviemeter,asc', 'moviemeter,desc', 'release_date,asc', 'release_date,desc', 'user_rating,asc', 'user_rating,desc', 'alpha,asc', 'alpha,desc']
-    defControls = {'year':{'title': config.get_localized_string(60232), 'values': '', 'order':0},
-                           'genre':{'title': config.get_localized_string(70032), 'values': '', 'order':1},
-                           'rating':{'title': config.get_localized_string(70473), 'values': '', 'order':2},
-                           'order': {'title': config.get_localized_string(70455), 'values': orderTitle[0], 'order':3}}
+    defControls = {'year':{'title': config.getLocalizedString(60232), 'values': '', 'order':0},
+                           'genre':{'title': config.getLocalizedString(70032), 'values': '', 'order':1},
+                           'rating':{'title': config.getLocalizedString(70473), 'values': '', 'order':2},
+                           'order': {'title': config.getLocalizedString(70455), 'values': orderTitle[0], 'order':3}}
 
-    controls = dict(sorted(config.get_setting('controls', item.channel, default=defControls).items(), key=lambda k: k[1]['order']))
+    controls = dict(sorted(config.getSetting('controls', item.channel, default=defControls).items(), key=lambda k: k[1]['order']))
     class Filter(xbmcgui.WindowXMLDialog):
         def start(self, item):
             self.item = item
@@ -350,7 +350,7 @@ def filter(item):
             logger.debug('CONTROL', control)
             if control in [100]: # Year
                 years = [str(i) for i in range(datetime.now().year + 3, 1899, -1)]
-                selection = platformtools.dialog_select('', years)
+                selection = platformtools.dialogSelect('', years)
                 self.controls['year']['values'] = years[selection] if selection > -1 else ''
                 self.getControl(100).setLabel('{}: {}'.format(self.controls['year']['title'], self.controls['year']['values']))
             elif control in [101]: # Genre
@@ -369,17 +369,17 @@ def filter(item):
                         genresNames.append(genre)
                         genresIds.append(value)
                 selected = [genresIds.index(i.strip()) for i in self.controls['genre']['values'].split(',') if i]
-                selections = platformtools.dialog_multiselect('', genresNames, preselect=selected)
+                selections = platformtools.dialogMultiselect('', genresNames, preselect=selected)
                 self.controls['genre']['values'] = ','.join(genresIds[g] for g in selections)
                 names= ', '.join(genresNames[g] for g in selections)
                 self.getControl(101).setLabel('{}: {}'.format(self.controls['genre']['title'], names))
             elif control in [102]:
                 rating = [str(i) for i in range(1, 11)]
-                selection = platformtools.dialog_select('', rating, preselect=rating.index(self.controls['rating']['values']) if self.controls['rating']['values'] else 0)
+                selection = platformtools.dialogSelect('', rating, preselect=rating.index(self.controls['rating']['values']) if self.controls['rating']['values'] else 0)
                 self.controls['rating']['values'] = rating[selection]
                 self.getControl(102).setLabel('{}: {}'.format(self.controls['rating']['title'], self.controls['rating']['values']))
             elif control in [103]:
-                selection = platformtools.dialog_select('', orderTitle)
+                selection = platformtools.dialogSelect('', orderTitle)
                 if selection > -1:
                     self.controls['order']['values'] = self.order[selection]
                     self.getControl(103).setLabel('{}: {}'.format(self.controls['order']['title'], orderTitle[selection]))
@@ -388,12 +388,12 @@ def filter(item):
                 self.close()
 
             elif control in [201]:
-                config.set_setting('controls', self.controls, self.item.channel)
-                platformtools.dialog_notification('TMDB', 'Filtro salvato', time=1000, sound=False)
+                config.setSetting('controls', self.controls, self.item.channel)
+                platformtools.dialogNotification('TMDB', 'Filtro salvato', time=1000, sound=False)
 
             elif control in [202]:
-                config.set_setting('controls', defControls, self.item.channel)
-                platformtools.dialog_notification('TMDB', 'Filtro eliminato', time=1000, sound=False)
+                config.setSetting('controls', defControls, self.item.channel)
+                platformtools.dialogNotification('TMDB', 'Filtro eliminato', time=1000, sound=False)
                 self.controls = None
                 self.close()
                 return filter(self.item)
@@ -409,7 +409,7 @@ def filter(item):
                 self.close()
 
 
-    controls = Filter('Filter.xml', config.get_runtime_path()).start(item)
+    controls = Filter('Filter.xml', config.getRuntimePath()).start(item)
     if controls:
         item.search = {'url': 'discover/' + item.args, 'vote_count.gte': 10} if item.db_type == 'tmdb' else {}
 

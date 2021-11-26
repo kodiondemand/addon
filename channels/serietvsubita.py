@@ -55,7 +55,7 @@ def findvideos(item):
     data = re.sub(r'\n|\t|\s+', ' ', data)
     # recupero il blocco contenente i link
     blocco = scrapertools.find_single_match(data, r'<div class="entry">([\s\S.]*?)<div class="post').replace('..:: Episodio ', 'Episodio ').strip()
-    matches = scrapertools.find_multiple_matches(blocco, r'(S(\d*)E(\d*))\s')
+    matches = scrapertools.findMultipleMatches(blocco, r'(S(\d*)E(\d*))\s')
     if len(matches) > 0:
         for fullseasonepisode, season, episode in matches:
             blocco = blocco.replace(fullseasonepisode + ' ', 'Episodio ' + episode + ' ')
@@ -67,7 +67,7 @@ def findvideos(item):
     logger.debug(patron)
     logger.debug(blocco)
 
-    matches = scrapertools.find_multiple_matches(blocco, patron)
+    matches = scrapertools.findMultipleMatches(blocco, patron)
     if len(matches):
         data = matches[0][0]
 
@@ -78,7 +78,7 @@ def findvideos(item):
                    ['Referer', keeplinks]]
 
         html = httptools.downloadpage(keeplinks, headers=headers2).data
-        data += str(scrapertools.find_multiple_matches(html, '</lable><a href="([^"]+)" target="_blank"'))
+        data += str(scrapertools.findMultipleMatches(html, '</lable><a href="([^"]+)" target="_blank"'))
 
     return support.server(item, data=data)
 
@@ -157,7 +157,7 @@ def episodes(item, itemlist=[]):
             blocco = scrapertools.find_single_match(data, r'<div class="entry">[\s\S.]*?<div class="post')
             blocco = blocco.replace('<strong>Episodio ', '<strong>Episodio ').replace(' </strong>', ' </strong>')
             blocco = blocco.replace('<strong>Episodio ', '<strong>S' + season.zfill(2) + 'E')
-            matches = scrapertools.find_multiple_matches(blocco, r'(S(\d*)E(\d*))\s')
+            matches = scrapertools.findMultipleMatches(blocco, r'(S(\d*)E(\d*))\s')
             episodes = []
             if len(matches) > 0:
                 for fullepisode_s, season, episode in matches:
@@ -173,7 +173,7 @@ def episodes(item, itemlist=[]):
             title = scrapedtitle.split(" S0")[0].strip()
             title = title.split(" S1")[0].strip()
             title = title.split(" S2")[0].strip()
-            episodes = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')
+            episodes = scrapertools.findMultipleMatches(scrapedtitle, r'((\d*)x(\d*))')
 
         for fullepisode, season, episode in episodes:
             infoLabels = {}
@@ -227,7 +227,7 @@ def movies_tv(item):
         scrapedplot = ""
         scrapedtitle = cleantitle(scrapedtitle)
         infoLabels = {}
-        episode = scrapertools.find_multiple_matches(scrapedtitle, r'((\d*)x(\d*))')
+        episode = scrapertools.findMultipleMatches(scrapedtitle, r'((\d*)x(\d*))')
         if episode:  # workaround per quando mettono le serie intere o altra roba, sarebbero da intercettare TODO
             episode = episode[0]
             title = scrapedtitle.split(" S0")[0].strip()

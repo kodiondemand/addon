@@ -140,10 +140,6 @@ def movies(item):
 
 def episodes(item):
     itemlist = []
-    if config.get_setting("window_type") == 0:
-        item.window = True
-        item.folder = False
-
     if item.episodes:
         episodes = item.episodes
         show_id = item.show_id 
@@ -202,7 +198,7 @@ def findvideos(item):
                 url = url.split()[-1]
                 itemlist.append(
                     item.clone(action= 'play',
-                               title=config.get_localized_string(30137),
+                               title=config.getLocalizedString(30137),
                                url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
                                server= 'directo')
                 )
@@ -212,7 +208,7 @@ def findvideos(item):
 
                 itemlist.append(
                     item.clone(action= 'play',
-                               title=config.get_localized_string(30137),
+                               title=config.getLocalizedString(30137),
                                url= item.url + '?' + key,
                                server= 'directo'))
 

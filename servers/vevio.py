@@ -21,20 +21,20 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "File was deleted" in data or "Page Cannot Be Found" in data or "<title>Video not found" in data:
-        return False,  config.get_localized_string(70449) % "vevio"
+        return False,  config.getLocalizedString(70449) % "vevio"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     post = {}
     post = urllib.urlencode(post)
     url = page_url
     data = httptools.downloadpage("https://vev.io/api/serve/video/" + scrapertools.find_single_match(url, "embed/([A-z0-9]+)"), post=post).data
     bloque = scrapertools.find_single_match(data, 'qualities":\{(.*?)\}')
-    matches = scrapertools.find_multiple_matches(bloque, '"([^"]+)":"([^"]+)')
+    matches = scrapertools.findMultipleMatches(bloque, '"([^"]+)":"([^"]+)')
     for res, media_url in matches:
-        video_urls.append(
+        videoUrls.append(
             {'type':scrapertools.get_filename_from_url(media_url).split('.')[-1],'res':res, 'url':media_url})
-    return video_urls
+    return videoUrls

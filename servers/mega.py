@@ -66,7 +66,7 @@ def test_video_exists(page_url):
         #Comprobación limite cuota restante
         from lib.megaserver import Client
         global c
-        c = Client(url=page_url, is_playing_fnc=platformtools.is_playing)
+        c = Client(url=page_url, isPlaying_fnc=platformtools.isPlaying)
         global files
         files = c.get_files()
         if files == 509:
@@ -77,19 +77,19 @@ def test_video_exists(page_url):
 
         return True, ""
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     page_url = page_url.replace('/embed#', '/#')
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
 
     # If there are more than 5 files create a playlist with all
     # This function (the playlist) does not go, you have to browse megaserver / handler.py although the call is in client.py
     if len(files) > 5:
         media_url = c.get_play_list()
-        video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
+        videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
     else:
         for f in files:
             media_url = f["url"]
-            video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
+            videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
 
-    return video_urls
+    return videoUrls

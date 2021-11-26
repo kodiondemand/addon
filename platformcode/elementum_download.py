@@ -5,7 +5,7 @@ import xbmc, xbmcaddon, sys, platform
 
 host = 'https://github.com'
 elementum_url = host + '/elgatito/plugin.video.elementum/releases'
-filename = filetools.join(config.get_data_path(),'elementum.zip')
+filename = filetools.join(config.getDataPath(),'elementum.zip')
 addon_path = xbmc.translatePath('special://home/addons/')
 setting_path = xbmc.translatePath('special://profile/addon_data/')
 elementum_path = filetools.join(addon_path,'plugin.video.elementum')
@@ -17,16 +17,16 @@ kod_setting_file = filetools.join(addon_path,'plugin.video.kod', 'resources', 's
 def download(item=None):
 
     if filetools.exists(elementum_path):
-        if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70783)):
+        if platformtools.dialogYesNo(config.getLocalizedString(70784), config.getLocalizedString(70783)):
             addon_file = filetools.file_open(filetools.join(elementum_path,'addon.xml')).read()
             required = support.match(addon_file, patron=r'addon="([^"]+)').matches
             for r in required: xbmc.executebuiltin('InstallAddon(' + r + ')', wait=True)
             setting()
-            platformtools.dialog_ok('Elementum', config.get_localized_string(70783))
+            platformtools.dialogOk('Elementum', config.getLocalizedString(70783))
 
     else:
-        if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70782)):
-            pform = get_platform()
+        if platformtools.dialogYesNo(config.getLocalizedString(70784), config.getLocalizedString(70782)):
+            pform = getPlatform()
             url = support.match(elementum_url, patronBlock=r'<div class="release-entry">(.*?)<!-- /.release-body -->', patron=r'<a href="([a-zA-Z0-9/\.-]+%s.zip)' % pform).match
             logger.debug('OS:', pform)
             logger.debug('Extract IN:', elementum_path)
@@ -90,7 +90,7 @@ def setting():
         filetools.remove(filename)
 
 
-def get_platform():
+def getPlatform():
     build = xbmc.getInfoLabel("System.BuildVersion")
     kodi_version = int(build.split()[0][:2])
     ret = {

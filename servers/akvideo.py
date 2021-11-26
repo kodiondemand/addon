@@ -24,7 +24,7 @@ def test_video_exists(page_url):
         if code:
             page = httptools.downloadpage('http://akvideo.stream/video/' + code, headers=headers)
         else:
-            return False, config.get_localized_string(70449) % "Akvideo"
+            return False, config.getLocalizedString(70449) % "Akvideo"
 
     if 'video.php?file_code=' in page.url:
         page = httptools.downloadpage(page.url.replace('video.php?file_code=', 'video/'), headers=headers)
@@ -34,23 +34,23 @@ def test_video_exists(page_url):
     # post = urllib.urlencode({ID: code})
     # logger.debug('PAGE DATA' + data)
     if "File Not Found" in data:
-        return False, config.get_localized_string(70449) % "Akvideo"
+        return False, config.getLocalizedString(70449) % "Akvideo"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug(" url=" + page_url)
-    video_urls = []
+    videoUrls = []
 
     global data
     # logger.debug('PAGE DATA' + data)
     # sitekey = scrapertools.find_single_match(data, 'data-sitekey="([^"]+)')
-    # captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
+    # captcha = platformtools.showRecaptcha(sitekey, page_url) if sitekey else ''
     #
     # if captcha:
     #     data = httptools.downloadpage(page_url, post={'g-recaptcha-response': captcha}).data
-    vres = scrapertools.find_multiple_matches(data, 'nowrap[^>]+>([^,]+)')
-    if not vres: vres = scrapertools.find_multiple_matches(data, '<td>(\d+x\d+)')
+    vres = scrapertools.findMultipleMatches(data, 'nowrap[^>]+>([^,]+)')
+    if not vres: vres = scrapertools.findMultipleMatches(data, '<td>(\d+x\d+)')
 
     data_pack = scrapertools.find_single_match(data, "</div>\n\s*<script[^>]+>(eval.function.p,a,c,k,e,.*?)\s*</script>")
     if data_pack != "":
@@ -58,7 +58,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         data = jsunpack.unpack(data_pack)
 
     _headers = urllib.urlencode(httptools.default_headers)
-    video_urls = support.get_jwplayer_mediaurl(data, 'akvideo', onlyHttp=True)
+    videoUrls = support.get_jwplayer_mediaUrl(data, 'akvideo', onlyHttp=True)
 
 
-    return video_urls
+    return videoUrls

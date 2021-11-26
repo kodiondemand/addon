@@ -14,18 +14,18 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url)
     if data.code == 404:
-        return False,  config.get_localized_string(70449) % "CinemaUpload"
+        return False,  config.getLocalizedString(70449) % "CinemaUpload"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
     data = re.sub(r'\n|\r|\t|&nbsp;|<br>|\s{2,}', "", data)
     patron = 'file: "([^"]+)",'
-    matches = scrapertools.find_multiple_matches(data, patron)
+    matches = scrapertools.findMultipleMatches(data, patron)
     for url in matches:
         url += "|Referer=%s" %page_url
-        video_urls.append({'type':'m3u8', 'url':url})
-    return video_urls
+        videoUrls.append({'type':'m3u8', 'url':url})
+    return videoUrls

@@ -15,19 +15,19 @@ def test_video_exists(page_url):
     global page
     page = httptools.downloadpage(page_url)
     if not page.success:
-        return False,  config.get_localized_string(70449) % "Badshare"
+        return False,  config.getLocalizedString(70449) % "Badshare"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     ext = '.mp4'
 
     data = page.data
     data =  re.sub(r'\n|\r|\t|\s{2,}', "", data)
     media_url, ext = scrapertools.find_single_match(data, r'file:\s*"([^"]+)",type:\s*"([^"]+)"')
     
-    video_urls.append({'type':ext, 'url':media_url})
+    videoUrls.append({'type':ext, 'url':media_url})
 
-    return video_urls
+    return videoUrls

@@ -51,12 +51,12 @@ def test_video_exists(page_url):
     real_url = page_url
     for e in errorsStr:
         if e in data:
-            return False, config.get_localized_string(70449) % 'Wstream'
+            return False, config.getLocalizedString(70449) % 'Wstream'
     return True, ""
 
 
 # Returns an array of possible video url's from the page_url
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
 
     def int_bckup_method():
         global data,headers
@@ -69,7 +69,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             data = httptools.downloadpage(page_url, follow_redirects=True, post={'g-recaptcha-response': captcha}, verify=False).data
 
     def getSources(data):
-        possibileSources = scrapertools.find_multiple_matches(data, r'sources:\s*(\[[^\]]+\])')
+        possibileSources = scrapertools.findMultipleMatches(data, r'sources:\s*(\[[^\]]+\])')
         for data in possibileSources:
             try:
                 data = re.sub('([A-z]+):(?!/)', '"\\1":', data)
@@ -81,28 +81,28 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                         if not 'src' in key and 'file' in key:
                             key['src'] = key['file']
                         if '?' in key['src']: key['src'] = key['src'].split('?')[0]
-                        video_urls.append(['%s [%s]' % (key['type'].replace('video/', ''), key['label']), key['src'].replace('https', 'http') + '|' + _headers])
+                        videoUrls.append(['%s [%s]' % (key['type'].replace('video/', ''), key['label']), key['src'].replace('https', 'http') + '|' + _headers])
                     elif type(key) != dict:
                         filetype = key.split('.')[-1]
                         if '?' in filetype: filetype = filetype.split('?')[0]
-                        video_urls.append([filetype, key.replace('https', 'http') + '|' + _headers])
+                        videoUrls.append([filetype, key.replace('https', 'http') + '|' + _headers])
                     else:
                         if not 'src' in key and 'file' in key: key['src'] = key['file']
                         if '?' in key['src']: key['src'] = key['src'].split('?')[0]
                         if key['src'].split('.')[-1] == 'mpd': pass
-                        video_urls.append([key['src'].split('.')[-1], key['src'].replace('https', 'http') + '|' + _headers])
+                        videoUrls.append([key['src'].split('.')[-1], key['src'].replace('https', 'http') + '|' + _headers])
             except:
                 pass
 
     logger.debug("[Wstream] url=" + page_url)
-    video_urls = []
+    videoUrls = []
     global data, real_url, headers
 
-    sitekey = scrapertools.find_multiple_matches(data, """data-sitekey=['"] *([^"']+)""")
+    sitekey = scrapertools.findMultipleMatches(data, """data-sitekey=['"] *([^"']+)""")
     if sitekey: sitekey = sitekey[-1]
-    captcha = platformtools.show_recaptcha(sitekey, page_url) if sitekey else ''
+    captcha = platformtools.showRecaptcha(sitekey, page_url) if sitekey else ''
 
-    possibleParam = scrapertools.find_multiple_matches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
+    possibleParam = scrapertools.findMultipleMatches(data,r"""<input.*?(?:name=["']([^'"]+).*?value=["']([^'"]*)['"]>|>)""")
     if possibleParam and possibleParam[0][0]:
         post = {param[0]: param[1] for param in possibleParam if param[0]}
         if captcha: post['g-recaptcha-response'] = captcha
@@ -113,7 +113,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     elif captcha or not sitekey:
         int_bckup_method()
     else:
-        platformtools.dialog_ok(config.get_localized_string(20000), config.get_localized_string(707434))
+        platformtools.dialogOk(config.getLocalizedString(20000), config.getLocalizedString(707434))
         return []
 
     headers = [['Referer', real_url]]
@@ -127,10 +127,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     else:
         getSources(data)
 
-    if not video_urls:
-        media_urls = scrapertools.find_multiple_matches(data, r'(http[^\s]*?\.(?:mp4|m3u8))')
+    if not videoUrls:
+        media_urls = scrapertools.findMultipleMatches(data, r'(http[^\s]*?\.(?:mp4|m3u8))')
 
         for media_url in media_urls:
-            video_urls.append([media_url.split('.')[-1] + " [Wstream] ", media_url + '|' + _headers])
-    video_urls.sort(key=lambda x: x[0])
-    return video_urls
+            videoUrls.append([media_url.split('.')[-1] + " [Wstream] ", media_url + '|' + _headers])
+    videoUrls.sort(key=lambda x: x[0])
+    return videoUrls

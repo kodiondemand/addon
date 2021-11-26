@@ -2,7 +2,7 @@
 import xbmc, sys, xbmcgui, os, xbmcvfs, traceback
 from platformcode import config, logger
 
-librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
+librerias = xbmc.translatePath(os.path.join(config.getRuntimePath(), 'lib'))
 sys.path.insert(0, librerias)
 
 from core.item import Item
@@ -52,7 +52,7 @@ def search_paths(Id):
         for record in records:
             path_records = execute_sql('SELECT strPath FROM path WHERE idPath LIKE "%s"' % record[0])
             for path in path_records:
-                if config.get_setting('videolibrarypath') in path[0] and exists(join(path[0], 'tvshow.nfo')):
+                if config.getSetting('videolibrarypath') in path[0] and exists(join(path[0], 'tvshow.nfo')):
                     return path[0]
     return ''
 
@@ -63,7 +63,7 @@ def execute_sql(sql):
     records = None
 
     # We look for the archive of the video database according to the version of kodi
-    video_db = config.get_platform(True)['video_db']
+    video_db = config.getXBMCPlatform(True)['video_db']
     if video_db:
         file_db = os.path.join(xbmc.translatePath("special://userdata/Database"), video_db)
 
@@ -130,7 +130,7 @@ def check_condition():
 def get_menu_items():
     logger.debug('get menu item')
     if check_condition():
-        items = [(config.get_localized_string(70269), update)]
+        items = [(config.getLocalizedString(70269), update)]
         from core.videolibrarytools import read_nfo
         nfo = path + 'tvshow.nfo'
         item = read_nfo(nfo)[1]
@@ -139,16 +139,16 @@ def get_menu_items():
             item_url = item.tourl()
             # Context menu: Automatically search for new episodes or not
             if item.active and int(item.active) > 0:
-                update_text = config.get_localized_string(60022)
+                update_text = config.getLocalizedString(60022)
                 value = 0
             else:
-                update_text = config.get_localized_string(60023)
+                update_text = config.getLocalizedString(60023)
                 value = 1
             items.append((update_text, lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&title={}&action=mark_tvshow_as_updatable&channel=videolibrary&active={})".format(item_url, update_text, str(value)))))
             if item.local_episodes_path == "":
-                items.append((config.get_localized_string(80048), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&action=add_local_episodes&channel=videolibrary&path={})".format(item_url, path))))
+                items.append((config.getLocalizedString(80048), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&action=add_local_episodes&channel=videolibrary&path={})".format(item_url, path))))
             else:
-                items.append((config.get_localized_string(80049), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&action=remove_local_episodes&channel=videolibrary&path={})".format(item_url, path))))
+                items.append((config.getLocalizedString(80049), lambda: xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?{}&action=remove_local_episodes&channel=videolibrary&path={})".format(item_url, path))))
 
         return items
     else:

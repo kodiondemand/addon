@@ -9,16 +9,16 @@ def test_video_exists(page_url):
     response = httptools.downloadpage(page_url)
 
     if response.code == 404:
-        return False, config.get_localized_string(70449) % 'NinjaStream'
+        return False, config.getLocalizedString(70449) % 'NinjaStream'
     else:
         data = response.data
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     global data
     logger.debug("URL", page_url)
-    video_urls = []
+    videoUrls = []
     # logger.dbg()
 
     headers = {'User-Agent': httptools.get_user_agent(),
@@ -34,9 +34,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         # logger.dbg()
         url = data.get('result',{}).get('playlist')
 
-        video_urls.append({'type':url.split('.')[-1], 'url':url + '|Referer:' + page_url})
+        videoUrls.append({'type':url.split('.')[-1], 'url':url + '|Referer:' + page_url})
 
-    return video_urls
+    return videoUrls
 
 # def decode(host):
 #     Host = ''

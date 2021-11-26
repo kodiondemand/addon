@@ -24,8 +24,8 @@ headers = {
 
 @support.menu
 def mainlist(item):
-    top =  [('Dirette {bold}', ['', 'live']),
-            ('Replay {bold}', ['', 'replay_channels'])]
+    top =  [('Dirette {bullet bold}', ['', 'live']),
+            ('Replay {bullet bold}', ['', 'replay_channels'])]
 
     menu = [('Programmi TV {bullet bold}', ['/tutti-i-programmi', 'movies', '', 'tvshow']),
             ('Teche La7 {bullet bold}', ['/i-protagonisti', 'movies', '', 'tvshow'])]
@@ -35,14 +35,14 @@ def mainlist(item):
 
 
 def live(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True, no_return=True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True, no_return=True)]
+    itemlist = [item.clone(title='La7', fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True),
+                item.clone(title='La7d', fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True)]
     return support.thumb(itemlist, mode='live')
 
 
 def replay_channels(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True)]
+    itemlist = [item.clone(title='La7', fulltitle='La7', url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True),
+                item.clone(title='La7d', fulltitle='La7d', url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True)]
     return support.thumb(itemlist, mode='live')
 
 
@@ -51,17 +51,17 @@ def replay_menu(item):
     action = 'replay'
     patron = r'href="(?P<url>[^"]+)"><div class="giorno-text">\s*(?P<day>[^>]+)</div><[^>]+>\s*(?P<num>[^<]+)</div><[^>]+>\s*(?P<month>[^<]+)<'
     def itemHook(item):
-        item.title = support.typo(item.day + ' ' + item.num + ' ' + item.month,'bold')
+        item.title = '{} {} {}'.format(item.day, item.num, item.month)
         return item
     return locals()
 
 
 @support.scrape
 def replay(item):
-    action = 'play'
+    action = 'findvideos'
     patron = r'guida-tv"><[^>]+><[^>]+>(?P<hour>[^<]+)<[^>]+><[^>]+><[^>]+>\s*<a href="(?P<url>[^"]+)"><[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"><[^>]+><[^>]+><[^>]+><[^>]+>\s*(?P<name>[^<]+)<[^>]+><[^>]+><[^>]+>(?P<plot>[^<]+)<'
     def itemHook(item):
-        item.title = support.typo(item.hour + ' - ' + item.name,'bold')
+        item.title = '{} - {}'.format(item.hour, item.name)
         item.contentTitle = item.fulltitle = item.show = item.name
         item.thumbnail = 'http:' + item.t
         item.fanart = item.thumbnail
@@ -85,14 +85,18 @@ def search(item, text):
 @support.scrape
 def movies(item):
     search = item.search
-    tmdbEnabled = False
-    videlibraryEnabled = False
-    downloadEnabled = False
+    disableAll = True
     action = 'episodes'
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     def itemHook(item):
-        logger.debug(item)
-        item.thumbnail = 'http:' + item.t if item.t.startswith('//') else item.t if item.t else item.thumbnail
+        prepose = ''
+        if item.t.startswith('//'):
+            prepose = 'http:'
+        elif item.t.startswith('/'):
+            prepose = host
+        elif not item.t.startswith('http'):
+            prepose = host + '/'
+        item.thumbnail = prepose + item.t
         item.fanart = item.thumb
         return item
     return locals()
@@ -101,8 +105,7 @@ def movies(item):
 @support.scrape
 def episodes(item):
     data = support.match(item).data
-    # debug = True
-    action = 'play'
+    action = 'findvideos'
     if '>puntate<' in data:
         patronBlock = r'>puntate<(?P<block>.*?)home-block-outbrain'
         url = support.match(data, patron=r'>puntate<[^>]+>[^>]+>[^>]+><a href="([^"]+)"').match
@@ -119,10 +122,10 @@ def episodes(item):
     def itemHook(item):
         if item.Thumb: item.t = item.Thumb
         item.thumbnail = 'http:' + item.t if item.t.startswith('//') else item.t if item.t else item.thumbnail
-        if item.Title: item.title = support.typo(item.Title, 'bold')
+        if item.Title: item.title = item.Title
         if item.date:
             item.title = support.re.sub(r'[Pp]untata (?:del )?\d+/\d+/\d+', '', item.title)
-            item.title += support.typo(item.date, '_ [] bold')
+            item.title = '{} [{}]'.format(item.title, item.date)
         if item.desc: item.plot = item.desc
         item.forcethumb = True
         item.fanart = item.thumbnail
@@ -130,21 +133,16 @@ def episodes(item):
     return locals()
 
 
+def findvideos(item):
+    logger.debug()
+    return support.server(item, itemlist=[item.clone(server='directo', action='play')])
+
 def play(item):
     logger.debug()
-    if item.livefilter:
-        for it in live(item):
-            if it.fulltitle == item.livefilter:
-                item = it
-                break
     data = support.match(item).data
-    match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
-    if match:
-        url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
-        item = item.clone(title='Direct', url=url, server='directo', action='play')
-    else:
+    url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
+    if url:
         preurl = support.match(data, patron=r'preTokenUrl = "(.+?)"').match
-        url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
         tokenHeader = {
             'host': headers['host_token'],
             'user-agent': headers['user-agent'],
@@ -171,4 +169,9 @@ def play(item):
         lic_url='%s|%s|R{SSM}|'%(license_url, preLic)
         item.drm = DRM
         item.license = lic_url
+    else:
+        match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
+        if match:
+            url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
+            item = item.clone(url=url, server='directo', action='play')
     return support.servertools.find_video_items(item, data=url)

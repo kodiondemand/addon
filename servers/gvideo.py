@@ -27,7 +27,7 @@ def test_video_exists(page_url):
     page = response
 
     if "no+existe" in response.data or 'no existe.</p>' in response.data:
-        return False,  config.get_localized_string(70449) % "gvideo"
+        return False,  config.getLocalizedString(70449) % "gvideo"
     if "Se+ha+excedido+el" in response.data:
         return False, "[gvideo] Se ha excedido el número de reproducciones permitidas"
     if "No+tienes+permiso" in response.data:
@@ -41,9 +41,9 @@ def test_video_exists(page_url):
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug()
-    video_urls = []
+    videoUrls = []
     urls = []
     streams =[]
     logger.debug('page_url: %s'%page_url)
@@ -70,15 +70,15 @@ def get_video_url(page_url, user="", password="", video_password=""):
         data = urllib.unquote_plus(urllib.unquote_plus(data))
 
         headers_string = httptools.get_url_headers(page_url, forced=True)
-        streams = scrapertools.find_multiple_matches(data,
+        streams = scrapertools.findMultipleMatches(data,
                                                      'itag=(\d+)&url=(.*?)(?:;.*?quality=.*?(?:,|&)|&quality=.*?(?:,|&))')
 
     itags = {'18': '360p', '22': '720p', '34': '360p', '35': '480p', '37': '1080p', '43': '360p', '59': '480p'}
-    for itag, video_url in streams:
-        if not video_url in urls:
-            video_url += headers_string
-            video_urls.append({'res':itags.get(itag, ''), 'type':video_url.split('.')[-1], 'url':video_url})
-            urls.append(video_url)
-        # video_urls.sort(key=lambda video_urls: int(video_urls[0].replace("p", "")))
+    for itag, videoUrl in streams:
+        if not videoUrl in urls:
+            videoUrl += headers_string
+            videoUrls.append({'res':itags.get(itag, ''), 'type':videoUrl.split('.')[-1], 'url':videoUrl})
+            urls.append(videoUrl)
+        # videoUrls.sort(key=lambda videoUrls: int(videoUrls[0].replace("p", "")))
 
-    return video_urls
+    return videoUrls

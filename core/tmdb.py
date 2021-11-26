@@ -22,7 +22,7 @@ from core.item import InfoLabels
 from platformcode import config, logger, platformtools
 
 info_language = ["de", "en", "es", "fr", "it", "pt"] # from videolibrary.json
-def_lang = info_language[config.get_setting("info_language", "videolibrary")]
+def_lang = info_language[config.getSetting("info_language", "videolibrary")]
 
 host = 'https://api.themoviedb.org/3'
 api = 'a1ab8b8669da03637a4b98fa39c39228'
@@ -82,7 +82,7 @@ def cache_response(fn):
         def check_expired(saved_date):
             valided = False
 
-            cache_expire = config.get_setting("tmdb_cache_expire", default=0)
+            cache_expire = config.getSetting("tmdb_cache_expire", default=0)
             current_date = datetime.datetime.now()
             elapsed = current_date - saved_date
 
@@ -123,7 +123,7 @@ def cache_response(fn):
         try:
 
             # cache is not active
-            if not config.get_setting("tmdb_cache", default=False) or not kwargs.get('cache', True):
+            if not config.getSetting("tmdb_cache", default=False) or not kwargs.get('cache', True):
                 logger.debug('no cache')
                 result = fn(*args)
             else:
@@ -168,7 +168,7 @@ def set_infoLabels(source, seekTmdb=True, search_language=def_lang, forced=False
     @rtype: int, list
     """
 
-    if not config.get_setting('tmdb_active') and not forced:
+    if not config.getSetting('tmdb_active') and not forced:
         return
 
     start_time = time.time()
@@ -199,7 +199,7 @@ def set_infoLabels_itemlist(itemlist, seekTmdb=False, search_language=def_lang, 
     @rtype: list
     """
 
-    if not config.get_setting('tmdb_active') and not forced:
+    if not config.getSetting('tmdb_active') and not forced:
         return
 
     r_list = list()
@@ -406,7 +406,7 @@ def set_infoLabels_item(item, seekTmdb=True, search_language=def_lang):
                         otmdb = Tmdb(searched_text=searched_title, search_type=search_type, search_language=search_language,
                                      filtro=item.infoLabels.get('filtro', {}), year=item.infoLabels['year'])
                     if otmdb is not None:
-                        if otmdb.get_id() and config.get_setting("tmdb_plus_info", default=False):
+                        if otmdb.get_id() and config.getSetting("tmdb_plus_info", default=False):
                             # If the search has been successful and you are not looking for a list of items,
                             # carry out another search to expand the information
                             if search_type == 'multi':
@@ -457,11 +457,11 @@ def find_and_set_infoLabels(item):
 
     if item.contentType == "movie":
         search_type = "movie"
-        content_type = config.get_localized_string(60247)
+        content_type = config.getLocalizedString(60247)
         title = item.contentTitle
     else:
         search_type = "tv"
-        content_type = config.get_localized_string(60298)
+        content_type = config.getLocalizedString(60298)
         title = item.contentSerieName
 
     # If the title includes the (year) we will remove it
@@ -483,7 +483,7 @@ def find_and_set_infoLabels(item):
         # select tmdb_id at the first position
         if item.infoLabels['selected_tmdb_id']:
             results.insert(0, results.pop([r.get('id') for r in results].index(int(item.infoLabels['selected_tmdb_id']))))
-        tmdb_result = platformtools.show_video_info(results, item=item, caption= content_type % title)
+        tmdb_result = platformtools.showVideoInfo(results, item=item, caption= content_type % title)
     elif len(results) > 0:
         tmdb_result = results[0]
 
@@ -519,7 +519,7 @@ def get_nfo(item, search_groups=False):
 
     if search_groups:
         from platformcode.autorenumber import RENUMBER, GROUP
-        path = filetools.join(config.get_data_path(), "settings_channels", item.channel + "_data.json")
+        path = filetools.join(config.getDataPath(), "settings_channels", item.channel + "_data.json")
         if filetools.exists(path): 
             g = jsontools.load(filetools.read(path)).get(RENUMBER,{}).get(item.fulltitle.strip(),{}).get(GROUP,'')
             if g:
@@ -577,7 +577,7 @@ def select_group(groups, item):
             selections.append([group.get('name',''), group.get('group_count',0), group.get('episode_count',0), group.get('description',''), item.thumbnail])
             ids.append(ID)
     if selections and ids:
-        selected = platformtools.dialog_select_group(config.get_localized_string(70831), selections)
+        selected = platformtools.dialogSelectGroup(config.getLocalizedString(70831), selections)
     if selected > -1:
         return ids[selected]
     return ''
@@ -1040,7 +1040,7 @@ class Tmdb(object):
             self.result = ResultDictDefault(self.results[index_results])
             # self.result['mediatype'] = self.result['media_type']
 
-            if not config.get_setting('tmdb_plus_info'):
+            if not config.getSetting('tmdb_plus_info'):
                 self.result = self.get_mpaa(self.result)
             return len(self.results)
 
@@ -1369,7 +1369,7 @@ class Tmdb(object):
 
             if "status_code" in self.season[seasonNumber]:
                 # An error has occurred
-                msg = config.get_localized_string(70496) + searching + config.get_localized_string(70497)
+                msg = config.getLocalizedString(70496) + searching + config.getLocalizedString(70497)
                 msg += "\nTmdb error: %s %s" % (
                 self.season[seasonNumber]["status_code"], self.season[seasonNumber]["status_message"])
                 logger.debug(msg)

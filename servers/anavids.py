@@ -10,12 +10,12 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url, cookies=False).data
     if 'File you are looking for is not found.' in data:
-        return False, config.get_localized_string(70449) % "AvaVids"
+        return False, config.getLocalizedString(70449) % "AvaVids"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     global data
-    video_urls = support.get_jwplayer_mediaurl(data, 'AvaVids')
-    return video_urls
+    videoUrls = support.get_jwplayer_mediaUrl(data, 'AvaVids')
+    return videoUrls

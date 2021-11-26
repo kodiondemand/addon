@@ -15,15 +15,15 @@ def test_video_exists(page_url):
     data = httptools.downloadpage(page_url)
 
     if data.code == 404:
-        return False,  config.get_localized_string(70449) % "Uqload"
+        return False,  config.getLocalizedString(70449) % "Uqload"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
 
-    video_urls = []
+    videoUrls = []
     data = httptools.downloadpage(page_url).data
     data = re.sub(r'\n|\r|\t|&nbsp;|<br>|\s{2,}', "", data)
     patron = 'sources:.?\["([^"]+)"\]'
@@ -31,6 +31,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     for url in matches:
         url = url+'|Referer='+page_url
-        video_urls.append({'url':url})
+        videoUrls.append({'url':url})
 
-    return video_urls
+    return videoUrls

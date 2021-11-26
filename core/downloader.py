@@ -102,16 +102,16 @@ class Downloader(object):
         return os.path.abspath(filetools.join(self._path, self._filename))
 
     # Features
-    def start_dialog(self, title=config.get_localized_string(60200)):
+    def start_dialog(self, title=config.getLocalizedString(60200)):
         from platformcode import platformtools
-        progreso = platformtools.dialog_progress_bg(title, config.get_localized_string(60201))
+        progreso = platformtools.dialogProgressBg(title, config.getLocalizedString(60201))
         try:
             self.start()
             while self.state == self.states.downloading:
                 time.sleep(0.2)
                 line1 = "%s" % (self.filename)
-                line2 = config.get_localized_string(59983) % ( self.downloaded[1], self.downloaded[2], self.size[1], self.size[2], self.speed[1], self.speed[2], self.connections[0], self.connections[1])
-                line3 = config.get_localized_string(60202) % (self.remaining_time)
+                line2 = config.getLocalizedString(59983) % ( self.downloaded[1], self.downloaded[2], self.size[1], self.size[2], self.speed[1], self.speed[2], self.connections[0], self.connections[1])
+                line3 = config.getLocalizedString(60202) % (self.remaining_time)
 
                 progreso.update(int(self.progress), line1 + '\n' + line2 + " " + line3)
                 self.__update_json()

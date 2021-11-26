@@ -2,14 +2,14 @@ import xbmc, sys, os
 from platformcode import config, logger
 import re
 # incliuding folder libraries
-librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
+librerias = xbmc.translatePath(os.path.join(config.getRuntimePath(), 'lib'))
 sys.path.insert(0, librerias)
 
 
 from core import tmdb
 from core.item import Item
 
-addon_id = config.get_addon_core().getAddonInfo('id')
+addon_id = config.getAddonCore().getAddonInfo('id')
 global item_is_coming_from_kod
 
 
@@ -26,10 +26,10 @@ def check_condition():
     logger.debug('listitem mediatype:',mediatype )
     logger.debug('filenamepath:', fileNameAndPath )
     logger.info('filepath:', filePath )
-    
+
     item_is_coming_from_kod = addon_id in filePath
     if not item_is_coming_from_kod:
-        videolibpath = config.get_setting("videolibrarypath")
+        videolibpath = config.getSetting("videolibrarypath")
         if filePath.startswith(videolibpath):
             pattern = re.compile("\[.*\][\\\/]?$")
             item_is_coming_from_kod = pattern.search(filePath)
@@ -43,7 +43,7 @@ def check_condition():
 def get_menu_items():
     logger.debug('get menu item')
     if check_condition():
-        return [(config.get_localized_string(90003 if item_is_coming_from_kod else 90005), execute)]
+        return [(config.getLocalizedString(90003 if item_is_coming_from_kod else 90005), execute)]
     else:
         return []
 

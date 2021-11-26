@@ -11,14 +11,14 @@ def test_video_exists(page_url):
     
     data = httptools.downloadpage(page_url).data
     if "File was deleted" in data or "File not found" in data or 'og:video">' in data:
-        return False,  config.get_localized_string(70449) % "Yourupload"
+        return False,  config.getLocalizedString(70449) % "Yourupload"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     
     referer = {'Referer': page_url}
     url = scrapertools.find_single_match(data, '<meta property="og:video" content="([^"]+)"')
@@ -39,6 +39,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             ext = url[-4:]
             media_url = url +"|Referer=%s" % page_url
         
-        video_urls.append({'type':ext, 'url':media_url})
+        videoUrls.append({'type':ext, 'url':media_url})
     
-    return video_urls
+    return videoUrls

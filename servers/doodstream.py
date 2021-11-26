@@ -13,17 +13,17 @@ def test_video_exists(page_url):
     response = scraper.get(page_url)
 
     if response.status_code == 404 or 'File you are looking for is not found' in response.text:
-        return False, config.get_localized_string(70449) % 'DooD Stream'
+        return False, config.getLocalizedString(70449) % 'DooD Stream'
     else:
         data = response.text
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     global data
     logger.debug("URL", page_url)
 
-    video_urls = []
+    videoUrls = []
     host = 'https://dood.to'
     headers = {'User-Agent': httptools.get_user_agent(), 'Referer': page_url}
 
@@ -31,10 +31,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if match:
         url, token = match
         ret = scraper.get(host + url, headers=headers).text
-        video_urls.append({'type':'mp4', 'url':'{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)})
+        videoUrls.append({'type':'mp4', 'url':'{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)})
 
 
-    return video_urls
+    return videoUrls
 
 def randomize(data):
     t = string.ascii_letters + string.digits

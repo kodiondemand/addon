@@ -7,10 +7,10 @@ from platformcode import logger
 
 
 # Returns an array of possible video url's from the page_url
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
 
-    video_urls = []
+    videoUrls = []
 
     if page_url.startswith("http://www.4shared"):
         # http://www.4shared.com/embed/392975628/ff297d3f
@@ -22,13 +22,13 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         matches = re.compile(patron, re.DOTALL).findall(page_url)
 
         try:
-            video_urls.append({'url':matches[0]})
+            videoUrls.append({'url':matches[0]})
         except:
             pass
     else:
-        video_urls.append({'url':page_url})
+        videoUrls.append({'url':page_url})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

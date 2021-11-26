@@ -32,13 +32,13 @@ def start(itemlist, item):
     if not config.is_xbmc():
         return itemlist
 
-    if config.get_setting('autoplay') or item.autoplay:
+    if config.getSetting('autoplay') or item.autoplay:
         # Save the current value of "Action and Player Mode" in preferences
-        user_config_setting_action = config.get_setting("default_action")
-        # user_config_setting_player = config.get_setting("player_mode")
+        user_config_setting_action = config.getSetting("default_action")
+        # user_config_setting_player = config.getSetting("player_mode")
 
         # Enable the "View in high quality" action (if the server returns more than one quality, eg gdrive)
-        if not user_config_setting_action: config.set_setting("default_action", 2)
+        if not user_config_setting_action: config.setSetting("default_action", 2)
 
         from core.servertools import sort_servers
         autoplay_list = sort_servers(itemlist)
@@ -48,8 +48,8 @@ def start(itemlist, item):
             max_intents_servers = {}
 
             # If something is playing it stops playing
-            if platformtools.is_playing():
-                platformtools.stop_video()
+            if platformtools.isPlaying():
+                platformtools.stopVideo()
 
             for autoplay_elem in autoplay_list:
                 play_item = Item
@@ -57,7 +57,7 @@ def start(itemlist, item):
                 if autoplay_elem.channel == 'videolibrary':
                     channel_id = autoplay_elem.contentChannel
 
-                if not platformtools.is_playing() and not PLAYED:
+                if not platformtools.isPlaying() and not PLAYED:
                     videoitem = autoplay_elem
                     if videoitem.server.lower() not in max_intents_servers:
                         max_intents_servers[videoitem.server.lower()] = max_intents
@@ -69,16 +69,16 @@ def start(itemlist, item):
                     lang = " [{}]".format(videoitem.language) if videoitem.language else ''
                     quality = ' [{}]'.format(videoitem.quality) if videoitem.quality and videoitem.quality != 'default' else ''
                     name = servername(videoitem.server) 
-                    platformtools.dialog_notification('AutoPlay', '{}{}{}'.format(name, lang, quality), sound=False)
+                    platformtools.dialogNotification('AutoPlay', '{}{}{}'.format(name, lang, quality), sound=False)
 
                     # Try to play the links If the channel has its own play method, use it
-                    channel = platformtools.channel_import(channel_id)
+                    channel = platformtools.channelImport(channel_id)
                     if not channel:
                         return
                     if hasattr(channel, 'play'):
                         resolved_item = getattr(channel, 'play')(videoitem)
                         if len(resolved_item) > 0:
-                            if isinstance(resolved_item[0], list): videoitem.video_urls = resolved_item
+                            if isinstance(resolved_item[0], list): videoitem.videoUrls = resolved_item
                             else: videoitem = resolved_item[0]
 
                     play_item.autoplay = True
@@ -88,16 +88,16 @@ def start(itemlist, item):
                         if base_item.contentChannel == 'videolibrary' or base_item.nfo:
                             # Fill the video with the data of the main item and play
                             play_item = base_item.clone(**videoitem.__dict__)
-                            platformtools.play_video(play_item, autoplay=True)
+                            platformtools.playVideo(play_item, autoplay=True)
                         else:
                             videoitem.window = base_item.window
                             # If it doesn't come from the video library, just play
-                            platformtools.play_video(videoitem, autoplay=True)
+                            platformtools.playVideo(videoitem, autoplay=True)
                     except:
                         pass
                     # sleep(3)
                     try:
-                        if platformtools.is_playing():
+                        if platformtools.isPlaying():
                             PLAYED = True
                             break
                     except:
@@ -108,20 +108,20 @@ def start(itemlist, item):
 
                     # If the maximum number of attempts of this server has been reached, ask if we want to continue testing or ignore it.
                     if max_intents_servers[videoitem.server.lower()] == 0:
-                        text = config.get_localized_string(60072) % name
-                        if not platformtools.dialog_yesno("AutoPlay", text, config.get_localized_string(60073)):
+                        text = config.getLocalizedString(60072) % name
+                        if not platformtools.dialogYesNo("AutoPlay", text, config.getLocalizedString(60073)):
                             max_intents_servers[videoitem.server.lower()] = max_intents
 
                     # If there are no items in the list, it is reported
                     if autoplay_elem == autoplay_list[-1]:
-                        platformtools.dialog_notification('AutoPlay', config.get_localized_string(60072) % name)
+                        platformtools.dialogNotification('AutoPlay', config.getLocalizedString(60072) % name)
 
         else:
-            platformtools.dialog_notification(config.get_localized_string(60074), config.get_localized_string(60075))
+            platformtools.dialogNotification(config.getLocalizedString(60074), config.getLocalizedString(60075))
 
         # Restore if necessary the previous value of "Action and Player Mode" in preferences
-        if not user_config_setting_action: config.set_setting("default_action", user_config_setting_action)
-        # if user_config_setting_player != 0: config.set_setting("player_mode", user_config_setting_player)
+        if not user_config_setting_action: config.setSetting("default_action", user_config_setting_action)
+        # if user_config_setting_player != 0: config.setSetting("player_mode", user_config_setting_player)
 
     return itemlist
 
@@ -133,7 +133,7 @@ def play_multi_channel(item, itemlist):
 
 def servername(server):
     from core.servertools import translate_server_name
-    path = filetools.join(config.get_runtime_path(), 'servers', server.lower() + '.json')
+    path = filetools.join(config.getRuntimePath(), 'servers', server.lower() + '.json')
     name = jsontools.load(open(path, "rb").read())['name']
-    if name.startswith('@'): name = config.get_localized_string(int(name.replace('@','')))
+    if name.startswith('@'): name = config.getLocalizedString(int(name.replace('@','')))
     return translate_server_name(name)

@@ -15,9 +15,9 @@ def test_video_exists(page_url):
     else:
         return True, ""
         
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     if premium:
         #Si no hay almacenada una cookie activa, hacemos login
         if check_cookie("uploaded.net", "login") != True:
@@ -71,17 +71,17 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             logger.error(traceback.format_exc())
             extension = ""
 
-        video_urls.append({'type':extension, 'url':location})
+        videoUrls.append({'type':extension, 'url':location})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls
 
 def check_cookie(domain, cname):
     from platformcode import config
     #cargamos las cookies
-    cookies = config.get_cookie_data()
+    cookies = config.getCookieData()
     #buscamos el valor de la cookie "cname" del dominio "domain"
     cookie_value = scrapertools.find_single_match(cookies, domain + ".*?" + cname + "\s+([A-Za-z0-9\+\=\%\_]+)")
     if cookie_value:

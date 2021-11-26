@@ -62,6 +62,7 @@
                 <left>520</left>
                 <width>700</width>
                 <height>570</height>
+                <onup>101</onup>
                 <onleft>101</onleft>
                 <onright>101</onright>
                 <animation type="WindowOpen" reversible="false">
@@ -165,19 +166,54 @@
                 </focusedlayout>
             </control>
             <!-- END Servers List -->
-            <control type="button" id="101">
-                <description>Close</description>
+            <control type="group">
                 <top>30</top>
                 <right>30</right>
-                <height>40</height>
-                <width>40</width>
-                <onup>100</onup>
-                <ondown>100</ondown>
-                <onleft>100</onleft>
-                <onright>100</onright>
-                <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
-                <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
-                <onclick>Action(close)</onclick>
+                <control type="button" id="101">
+                    <description>Close</description>
+                    <top>0</top>
+                    <right>0</right>
+                    <height>40</height>
+                    <width>40</width>
+                    <onup>100</onup>
+                    <ondown>100</ondown>
+                    <onleft condition="Control.IsVisible(102)">102</onleft>
+                    <onleft condition="Control.IsVisible(103)">103</onleft>
+                    <onleft>100</onleft>
+                    <onright>100</onright>
+                    <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                    <onclick>Action(close)</onclick>
+                </control>
+                <control type="button" id="102">
+                    <description>videolibrary</description>
+                    <top>0</top>
+                    <right>40</right>
+                    <height>40</height>
+                    <width>40</width>
+                    <onup>100</onup>
+                    <ondown>100</ondown>
+                    <onleft condition="Control.IsVisible(103)">103</onleft>
+                    <onleft condition="Control.IsVisible(103)">100</onleft>
+                    <onright>101</onright>
+                    <texturefocus colordiffuse="FFFFFFFF">add.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">add.png</texturenofocus>
+                </control>
+                <control type="button" id="103">
+                    <description>Download</description>
+                    <top>0</top>
+                    <right>40</right>
+                    <animation effect="slide" end="-40,0" condition="Control.IsVisible(102)">Conditional</animation>
+                    <height>40</height>
+                    <width>40</width>
+                    <onup>100</onup>
+                    <ondown>100</ondown>
+                    <onleft>100</onleft>
+                    <onright condition="Control.IsVisible(102)">102</onright>
+                    <onright>101</onright>
+                    <texturefocus colordiffuse="FFFFFFFF">down.png</texturefocus>
+                    <texturenofocus colordiffuse="80FFFFFF">down.png</texturenofocus>
+                </control>
             </control>
         </control>
         <!-- END SERVERS GROUP -->

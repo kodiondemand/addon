@@ -8,11 +8,11 @@
 # - kodfavourites-default.json can be copied to other devices since the only local dependency is the thumbnail associated with the links,
 # but it is detected by code and adjusts to the current device.
 # - You can have different alphabet files and alternate between them, but only one of them is the "active list".
-# - Files must be in config.get_data_path () and start with kodfavourites- and end in .json
+# - Files must be in config.getDataPath () and start with kodfavourites- and end in .json
 
 # Requirements in other modules to run this channel:
 # - Add a link to this channel in channelselector.py
-# - Modify platformtools.py to control the context menu and add "Save link" in set_context_commands
+# - Modify platformtools.py to control the context menu and add "Save link" in setContextCommands
 # ------------------------------------------------------------
 
 # from builtins import str
@@ -38,7 +38,7 @@ PREFIJO_LISTA = 'kodfavorites-'
 
 # Returns the name of the active list (Ex: kodfavourites-default.json)
 def get_lista_activa():
-    return config.get_setting('lista_activa', default = PREFIJO_LISTA + 'default.json')
+    return config.getSetting('lista_activa', default = PREFIJO_LISTA + 'default.json')
 
 # Extract list name from file, removing prefix and suffix (Ex: kodfavourites-Test.json => Test)
 def get_name_from_filename(filename):
@@ -51,7 +51,7 @@ def get_filename_from_name(name):
 # Record the codes of the files that have been shared in a log file
 def save_log_lista_shared(msg):
     msg = fechahora_actual() + ': ' + msg + os.linesep
-    fullfilename = os.path.join(config.get_data_path(), 'kodfavorites_shared.log')
+    fullfilename = os.path.join(config.getDataPath(), 'kodfavorites_shared.log')
     with open(fullfilename, 'a') as f: f.write(msg); f.close()
 
 # Clean text to use as file name
@@ -78,10 +78,10 @@ class KodfavouritesData(object):
         if filename == None:
             filename = get_lista_activa()
 
-        self.user_favorites_file = os.path.join(config.get_data_path(), filename)
+        self.user_favorites_file = os.path.join(config.getDataPath(), filename)
 
         if not os.path.exists(self.user_favorites_file):
-            fichero_anterior = os.path.join(config.get_data_path(), 'user_favorites.json')
+            fichero_anterior = os.path.join(config.getDataPath(), 'user_favorites.json')
             if os.path.exists(fichero_anterior): # old format, convert (to delete after some versions)
                 jsondata = jsontools.load(filetools.read(fichero_anterior))
                 self.user_favorites = jsondata
@@ -103,9 +103,9 @@ class KodfavouritesData(object):
             self.info_lista = {}
 
             # Create some default folders
-            self.user_favorites.append({ 'title': config.get_localized_string(30122), 'items': [] })
-            self.user_favorites.append({ 'title': config.get_localized_string(30123), 'items': [] })
-            self.user_favorites.append({ 'title': config.get_localized_string(70149), 'items': [] })
+            self.user_favorites.append({ 'title': config.getLocalizedString(30122), 'items': [] })
+            self.user_favorites.append({ 'title': config.getLocalizedString(30123), 'items': [] })
+            self.user_favorites.append({ 'title': config.getLocalizedString(70149), 'items': [] })
 
             self.save()
 
@@ -118,7 +118,7 @@ class KodfavouritesData(object):
         jsondata['user_favorites'] = self.user_favorites
         jsondata['info_lista'] = self.info_lista
         if not filetools.write(self.user_favorites_file, jsontools.dump(jsondata)):
-            platformtools.dialog_ok('KoD', config.get_localized_string(70614) + '\n' + os.path.basename(self.user_favorites_file))
+            platformtools.dialogOk('KoD', config.getLocalizedString(70614) + '\n' + os.path.basename(self.user_favorites_file))
 
 
 # ============================
@@ -127,7 +127,7 @@ class KodfavouritesData(object):
 
 def addFavourite(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
     # If you get here through the context menu, you must retrieve the action and channel parameters
     if item.from_action:
@@ -141,12 +141,12 @@ def addFavourite(item):
         item.__dict__.pop('text_color')
 
     # Dialog to choose / create folder
-    i_perfil = _selecciona_perfil(alfav, config.get_localized_string(70546))
+    i_perfil = _selecciona_perfil(kodfav, config.getLocalizedString(70546))
     if i_perfil == -1: return False
 
     # Detect that the same link does not already exist in the folder
     campos = ['channel','action','url','extra','list_type'] # if all these fields match the link is considered to already exist
-    for enlace in alfav.user_favorites[i_perfil]['items']:
+    for enlace in kodfav.user_favorites[i_perfil]['items']:
         it = Item().fromurl(enlace)
         repe = True
         for prop in campos:
@@ -154,11 +154,11 @@ def addFavourite(item):
                 repe = False
                 break
         if repe:
-            platformtools.dialog_notification(config.get_localized_string(70615), config.get_localized_string(70616))
+            platformtools.dialogNotification(config.getLocalizedString(70615), config.getLocalizedString(70616))
             return False
 
     # If it is a movie / series, fill in tmdb information if tmdb_plus_info is not activated (for season / episode it is not necessary because the "second pass" will have already been done)
-    if (item.contentType == 'movie' or item.contentType == 'tvshow') and not config.get_setting('tmdb_plus_info', default=False):
+    if (item.contentType == 'movie' or item.contentType == 'tvshow') and not config.getSetting('tmdb_plus_info', default=False):
         from core import tmdb
         tmdb.set_infoLabels(item, True) # get more data in "second pass" (actors, duration, ...)
 
@@ -166,10 +166,10 @@ def addFavourite(item):
     item.date_added = fechahora_actual()
 
     # save
-    alfav.user_favorites[i_perfil]['items'].append(item.tourl())
-    alfav.save()
+    kodfav.user_favorites[i_perfil]['items'].append(item.tourl())
+    kodfav.save()
 
-    platformtools.dialog_notification(config.get_localized_string(70531), config.get_localized_string(70532) % alfav.user_favorites[i_perfil]['title'])
+    platformtools.dialogNotification(config.getLocalizedString(70531), config.getLocalizedString(70532) % kodfav.user_favorites[i_perfil]['title'])
 
     return True
 
@@ -180,56 +180,56 @@ def addFavourite(item):
 
 def mainlist(item):
     logger.debug()
-    alfav = KodfavouritesData()
-    item.category = get_name_from_filename(os.path.basename(alfav.user_favorites_file))
+    kodfav = KodfavouritesData()
+    item.category = get_name_from_filename(os.path.basename(kodfav.user_favorites_file))
 
     itemlist = []
-    last_i = len(alfav.user_favorites) - 1
+    last_i = len(kodfav.user_favorites) - 1
 
-    for i_perfil, perfil in enumerate(alfav.user_favorites):
+    for i_perfil, perfil in enumerate(kodfav.user_favorites):
         context = []
 
-        context.append({'title': config.get_localized_string(70533), 'channel': item.channel, 'action': 'editar_perfil_titulo', 'i_perfil': i_perfil})
-        context.append({'title': config.get_localized_string(70534), 'channel': item.channel, 'action': 'eliminar_perfil', 'i_perfil': i_perfil})
+        context.append({'title': config.getLocalizedString(70533), 'channel': item.channel, 'action': 'editar_perfil_titulo', 'i_perfil': i_perfil})
+        context.append({'title': config.getLocalizedString(70534), 'channel': item.channel, 'action': 'eliminar_perfil', 'i_perfil': i_perfil})
 
         if i_perfil > 0:
-            context.append({'title': config.get_localized_string(70535), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'top'})
-            context.append({'title': config.get_localized_string(70536), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'arriba'})
+            context.append({'title': config.getLocalizedString(70535), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'top'})
+            context.append({'title': config.getLocalizedString(70536), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'arriba'})
         if i_perfil < last_i:
-            context.append({'title': config.get_localized_string(70537), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'abajo'})
-            context.append({'title': config.get_localized_string(70538), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'bottom'})
+            context.append({'title': config.getLocalizedString(70537), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'abajo'})
+            context.append({'title': config.getLocalizedString(70538), 'channel': item.channel, 'action': 'mover_perfil', 'i_perfil': i_perfil, 'direccion': 'bottom'})
 
-        plot = str(len(perfil['items'])) + " " + config.get_localized_string(70723)
+        plot = str(len(perfil['items'])) + " " + config.getLocalizedString(70723)
         itemlist.append(Item(channel=item.channel, action='mostrar_perfil', title=perfil['title'], plot=plot, i_perfil=i_perfil, context=context, thumbnail=support.thumb('mylink')))
     support.thumb(itemlist)
-    itemlist.append(item.clone(action='crear_perfil', title=config.get_localized_string(70542), folder=False, thumbnail=support.thumb('more')))
-    itemlist.append(item.clone(action='mainlist_listas', title=config.get_localized_string(70603), thumbnail=support.thumb('setting')))
+    itemlist.append(item.clone(action='crear_perfil', title=config.getLocalizedString(70542), folder=False, thumbnail=support.thumb('more')))
+    itemlist.append(item.clone(action='mainlist_listas', title=config.getLocalizedString(70603), thumbnail=support.thumb('setting')))
 
     return itemlist
 
 
 def mostrar_perfil(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
     itemlist = []
 
     i_perfil = item.i_perfil
-    if not alfav.user_favorites[i_perfil]: return itemlist
-    last_i = len(alfav.user_favorites[i_perfil]['items']) - 1
+    if not kodfav.user_favorites[i_perfil]: return itemlist
+    last_i = len(kodfav.user_favorites[i_perfil]['items']) - 1
 
-    ruta_runtime = config.get_runtime_path()
+    ruta_runtime = config.getRuntimePath()
 
-    for i_enlace, enlace in enumerate(alfav.user_favorites[i_perfil]['items']):
+    for i_enlace, enlace in enumerate(kodfav.user_favorites[i_perfil]['items']):
 
         it = Item().fromurl(enlace)
-        it.context = [ {'title': config.get_localized_string(70617), 'channel': item.channel, 'action': 'acciones_enlace',
+        it.context = [ {'title': config.getLocalizedString(70617), 'channel': item.channel, 'action': 'acciones_enlace',
                         'i_enlace': i_enlace, 'i_perfil': i_perfil} ]
 
-        it.plot += '[CR][CR]' + config.get_localized_string(70724) + ': ' + it.channel + ' ' + config.get_localized_string(60266) + ': ' + it.action
+        it.plot += '[CR][CR]' + config.getLocalizedString(70724) + ': ' + it.channel + ' ' + config.getLocalizedString(60266) + ': ' + it.action
         if it.extra != '': it.plot += ' Extra: ' + it.extra
         it.plot += '[CR]Url: ' + it.url if isinstance(it.url, str) else '...'
-        if it.date_added != '': it.plot += '[CR]' + config.get_localized_string(70469) + ': ' + it.date_added
+        if it.date_added != '': it.plot += '[CR]' + config.getLocalizedString(70469) + ': ' + it.date_added
 
         # If it is not a url, nor does it have the system path, convert the path since it will have been copied from another device.
         # It would be more optimal if the conversion was done with an import menu, but at the moment it is controlled in run-time.
@@ -250,31 +250,31 @@ def mostrar_perfil(item):
 # Shared internal routines
 
 # Dialog to select / create a folder. Returns index of folder on user_favorites (-1 if cancel)
-def _selecciona_perfil(alfav, titulo=config.get_localized_string(70549), i_actual=-1):
-    acciones = [(perfil['title'] if i_p != i_actual else '[I][COLOR pink]%s[/COLOR][/I]' % perfil['title']) for i_p, perfil in enumerate(alfav.user_favorites)]
-    acciones.append(config.get_localized_string(70542))
+def _selecciona_perfil(kodfav, titulo=config.getLocalizedString(70549), i_actual=-1):
+    acciones = [(perfil['title'] if i_p != i_actual else '[I][COLOR pink]%s[/COLOR][/I]' % perfil['title']) for i_p, perfil in enumerate(kodfav.user_favorites)]
+    acciones.append(config.getLocalizedString(70542))
 
     i_perfil = -1
     while i_perfil == -1: # repeat until a folder is selected or cancel
-        ret = platformtools.dialog_select(titulo, acciones)
+        ret = platformtools.dialogSelect(titulo, acciones)
         if ret == -1: return -1 # order cancel
-        if ret < len(alfav.user_favorites):
+        if ret < len(kodfav.user_favorites):
             i_perfil = ret
         else: # create new folder
-            if _crea_perfil(alfav):
-                i_perfil = len(alfav.user_favorites) - 1
+            if _crea_perfil(kodfav):
+                i_perfil = len(kodfav.user_favorites) - 1
 
     return i_perfil
 
 
 # Dialog to create a folder
-def _crea_perfil(alfav):
-    titulo = platformtools.dialog_input(default='', heading=config.get_localized_string(70551))
+def _crea_perfil(kodfav):
+    titulo = platformtools.dialogInput(default='', heading=config.getLocalizedString(70551))
     if titulo is None or titulo == '':
         return False
 
-    alfav.user_favorites.append({'title': titulo, 'items': []})
-    alfav.save()
+    kodfav.user_favorites.append({'title': titulo, 'items': []})
+    kodfav.save()
 
     return True
 
@@ -283,55 +283,55 @@ def _crea_perfil(alfav):
 
 def crear_perfil(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not _crea_perfil(alfav): return False
+    if not _crea_perfil(kodfav): return False
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def editar_perfil_titulo(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
 
-    titulo = platformtools.dialog_input(default=alfav.user_favorites[item.i_perfil]['title'], heading=config.get_localized_string(70533))
-    if titulo is None or titulo == '' or titulo == alfav.user_favorites[item.i_perfil]['title']:
+    titulo = platformtools.dialogInput(default=kodfav.user_favorites[item.i_perfil]['title'], heading=config.getLocalizedString(70533))
+    if titulo is None or titulo == '' or titulo == kodfav.user_favorites[item.i_perfil]['title']:
         return False
 
-    alfav.user_favorites[item.i_perfil]['title'] = titulo
-    alfav.save()
+    kodfav.user_favorites[item.i_perfil]['title'] = titulo
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def eliminar_perfil(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
 
     # Ask for confirmation
-    if not platformtools.dialog_yesno(config.get_localized_string(70618), config.get_localized_string(70619)): return False
+    if not platformtools.dialogYesNo(config.getLocalizedString(70618), config.getLocalizedString(70619)): return False
 
-    del alfav.user_favorites[item.i_perfil]
-    alfav.save()
+    del kodfav.user_favorites[item.i_perfil]
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def acciones_enlace(item):
     logger.debug()
 
-    acciones = [config.get_localized_string(70620), config.get_localized_string(70621), config.get_localized_string(70622), config.get_localized_string(70623),
-                config.get_localized_string(70624), config.get_localized_string(70548), config.get_localized_string(70625),
-                config.get_localized_string(70626), config.get_localized_string(70627), config.get_localized_string(70628)]
+    acciones = [config.getLocalizedString(70620), config.getLocalizedString(70621), config.getLocalizedString(70622), config.getLocalizedString(70623),
+                config.getLocalizedString(70624), config.getLocalizedString(70548), config.getLocalizedString(70625),
+                config.getLocalizedString(70626), config.getLocalizedString(70627), config.getLocalizedString(70628)]
 
-    ret = platformtools.dialog_select('Action to execute', acciones)
+    ret = platformtools.dialogSelect('Action to execute', acciones)
     if ret == -1:
         return False # order cancel
     elif ret == 0:
@@ -358,61 +358,61 @@ def acciones_enlace(item):
 
 def editar_enlace_titulo(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
-    it = Item().fromurl(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
+    it = Item().fromurl(kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
 
-    titulo = platformtools.dialog_input(default=it.title, heading=config.get_localized_string(70553))
+    titulo = platformtools.dialogInput(default=it.title, heading=config.getLocalizedString(70553))
     if titulo is None or titulo == '' or titulo == it.title:
         return False
 
     it.title = titulo
 
-    alfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
-    alfav.save()
+    kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def editar_enlace_color(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
-    it = Item().fromurl(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
+    it = Item().fromurl(kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
 
     colores = ['green','yellow','red','blue','white','orange','lime','aqua','pink','violet','purple','tomato','olive','antiquewhite','gold']
     opciones = ['[COLOR %s]%s[/COLOR]' % (col, col) for col in colores]
 
-    ret = platformtools.dialog_select(config.get_localized_string(70558), opciones)
+    ret = platformtools.dialogSelect(config.getLocalizedString(70558), opciones)
 
     if ret == -1: return False # order cancel
     it.text_color = colores[ret]
 
-    alfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
-    alfav.save()
+    kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def editar_enlace_thumbnail(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
-    it = Item().fromurl(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
+    it = Item().fromurl(kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
 
     # Starting with Kodi 17, you can use xbmcgui.Dialog (). Select with thumbnails (ListItem & useDetails = True)
-    is_kodi17 = (config.get_platform(True)['num_version'] >= 17.0)
+    is_kodi17 = (config.getXBMCPlatform(True)['num_version'] >= 17.0)
     if is_kodi17:
         import xbmcgui
 
@@ -434,7 +434,7 @@ def editar_enlace_thumbnail(item):
     except:
         pass
 
-    resource_path = os.path.join(config.get_runtime_path(), 'resources', 'media', 'themes', 'default')
+    resource_path = os.path.join(config.getRuntimePath(), 'resources', 'media', 'themes', 'default')
     for f in sorted(os.listdir(resource_path)):
         if f.startswith('thumb_') and not f.startswith('thumb_intervenido') and f != 'thumb_back.png':
             nombre = f.replace('thumb_', '').replace('_', ' ').replace('.png', '')
@@ -447,46 +447,46 @@ def editar_enlace_thumbnail(item):
             ids.append(os.path.join(resource_path, f))
 
     if is_kodi17:
-        ret = xbmcgui.Dialog().select(config.get_localized_string(70554), opciones, useDetails=True)
+        ret = xbmcgui.Dialog().select(config.getLocalizedString(70554), opciones, useDetails=True)
     else:
-        ret = platformtools.dialog_select(config.get_localized_string(70554), opciones)
+        ret = platformtools.dialogSelect(config.getLocalizedString(70554), opciones)
 
     if ret == -1: return False # order cancel
 
     it.thumbnail = ids[ret]
 
-    alfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
-    alfav.save()
+    kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace] = it.tourl()
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def editar_enlace_carpeta(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
     # Dialog to choose / create folder
-    i_perfil = _selecciona_perfil(alfav, config.get_localized_string(70555), item.i_perfil)
+    i_perfil = _selecciona_perfil(kodfav, config.getLocalizedString(70555), item.i_perfil)
     if i_perfil == -1 or i_perfil == item.i_perfil: return False
 
-    alfav.user_favorites[i_perfil]['items'].append(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
-    del alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
-    alfav.save()
+    kodfav.user_favorites[i_perfil]['items'].append(kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
+    del kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def editar_enlace_lista(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
     # Dialog to choose list
     opciones = []
@@ -496,63 +496,63 @@ def editar_enlace_lista(item):
             opciones.append(it.lista)
 
     if len(opciones) == 0:
-        platformtools.dialog_ok('KoD', 'There are no other lists where to move the link.\nYou can create them from the Manage link lists menu')
+        platformtools.dialogOk('KoD', 'There are no other lists where to move the link.\nYou can create them from the Manage link lists menu')
         return False
 
-    ret = platformtools.dialog_select('Select destination list', opciones)
+    ret = platformtools.dialogSelect('Select destination list', opciones)
 
     if ret == -1:
         return False # order cancel
 
-    alfav_destino = KodfavouritesData(opciones[ret])
+    kodfav_destino = KodfavouritesData(opciones[ret])
 
     # Dialog to choose / create folder in the destination list
-    i_perfil = _selecciona_perfil(alfav_destino, 'Select destination folder', -1)
+    i_perfil = _selecciona_perfil(kodfav_destino, 'Select destination folder', -1)
     if i_perfil == -1: return False
 
-    alfav_destino.user_favorites[i_perfil]['items'].append(alfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
-    del alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
-    alfav_destino.save()
-    alfav.save()
+    kodfav_destino.user_favorites[i_perfil]['items'].append(kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace])
+    del kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
+    kodfav_destino.save()
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def eliminar_enlace(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    if not alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    if not kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]: return False
 
-    del alfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
-    alfav.save()
+    del kodfav.user_favorites[item.i_perfil]['items'][item.i_enlace]
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 # Move profiles and links (up, down, top, bottom)
 def mover_perfil(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    alfav.user_favorites = _mover_item(alfav.user_favorites, item.i_perfil, item.direccion)
-    alfav.save()
+    kodfav.user_favorites = _mover_item(kodfav.user_favorites, item.i_perfil, item.direccion)
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 def mover_enlace(item):
     logger.debug()
-    alfav = KodfavouritesData()
+    kodfav = KodfavouritesData()
 
-    if not alfav.user_favorites[item.i_perfil]: return False
-    alfav.user_favorites[item.i_perfil]['items'] = _mover_item(alfav.user_favorites[item.i_perfil]['items'], item.i_enlace, item.direccion)
-    alfav.save()
+    if not kodfav.user_favorites[item.i_perfil]: return False
+    kodfav.user_favorites[item.i_perfil]['items'] = _mover_item(kodfav.user_favorites[item.i_perfil]['items'], item.i_enlace, item.direccion)
+    kodfav.save()
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
@@ -598,7 +598,7 @@ def mainlist_listas(item):
 
     import glob
 
-    path = os.path.join(config.get_data_path(), PREFIJO_LISTA+'*.json')
+    path = os.path.join(config.getDataPath(), PREFIJO_LISTA+'*.json')
     for fichero in glob.glob(path):
         lista = os.path.basename(fichero)
         nombre = get_name_from_filename(lista)
@@ -606,7 +606,7 @@ def mainlist_listas(item):
 
         itemlist.append(item.clone(action='acciones_lista', lista=lista, title=titulo, folder=False))
 
-    itemlist.append(item.clone(action='acciones_nueva_lista', title=config.get_localized_string(70642), folder=False))
+    itemlist.append(item.clone(action='acciones_nueva_lista', title=config.getLocalizedString(70642), folder=False))
 
     return itemlist
 
@@ -614,10 +614,10 @@ def mainlist_listas(item):
 def acciones_lista(item):
     logger.debug()
 
-    acciones = [config.get_localized_string(70604), config.get_localized_string(70629),
-                config.get_localized_string(70605), config.get_localized_string(70606), config.get_localized_string(70607)]
+    acciones = [config.getLocalizedString(70604), config.getLocalizedString(70629),
+                config.getLocalizedString(70605), config.getLocalizedString(70606), config.getLocalizedString(70607)]
 
-    ret = platformtools.dialog_select(item.lista, acciones)
+    ret = platformtools.dialogSelect(item.lista, acciones)
 
     if ret == -1:
         return False # pedido cancel
@@ -636,113 +636,113 @@ def acciones_lista(item):
 def activar_lista(item):
     logger.debug()
 
-    fullfilename = os.path.join(config.get_data_path(), item.lista)
+    fullfilename = os.path.join(config.getDataPath(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70630) + '\n' + item.lista)
         return False
 
-    config.set_setting('lista_activa', item.lista)
+    config.setSetting('lista_activa', item.lista)
 
     from core.support import thumb
-    item_inicio = Item(title=config.get_localized_string(70527), channel="kodfavorites", action="mainlist",
+    item_inicio = Item(title=config.getLocalizedString(70527), channel="kodfavorites", action="mainlist",
                        thumbnail=thumb("mylink"),
-                       category=config.get_localized_string(70527), viewmode="thumbnails")
-    platformtools.itemlist_update(item_inicio, replace=True)
+                       category=config.getLocalizedString(70527), viewmode="thumbnails")
+    platformtools.itemlistUpdate(item_inicio, replace=True)
     return True
 
 
 def renombrar_lista(item):
     logger.debug()
 
-    fullfilename_current = os.path.join(config.get_data_path(), item.lista)
+    fullfilename_current = os.path.join(config.getDataPath(), item.lista)
     if not os.path.exists(fullfilename_current):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + fullfilename_current)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70630) + '\n' + fullfilename_current)
         return False
 
     nombre = get_name_from_filename(item.lista)
-    titulo = platformtools.dialog_input(default=nombre, heading=config.get_localized_string(70612))
+    titulo = platformtools.dialogInput(default=nombre, heading=config.getLocalizedString(70612))
     if titulo is None or titulo == '' or titulo == nombre:
         return False
     titulo = text_clean(titulo, blank_char='_')
 
     filename = get_filename_from_name(titulo)
-    fullfilename = os.path.join(config.get_data_path(), filename)
+    fullfilename = os.path.join(config.getDataPath(), filename)
 
     # Check that the new name does not exist
     if os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70613) + '\n' + fullfilename)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70613) + '\n' + fullfilename)
         return False
 
     # Rename the file
     if not filetools.rename(fullfilename_current, filename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70631) + '\n' + fullfilename)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70631) + '\n' + fullfilename)
         return False
 
     # Update settings if it is the active list
     if item.lista == get_lista_activa():
-        config.set_setting('lista_activa', filename)
+        config.setSetting('lista_activa', filename)
 
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def eliminar_lista(item):
     logger.debug()
 
-    fullfilename = os.path.join(config.get_data_path(), item.lista)
+    fullfilename = os.path.join(config.getDataPath(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70630) + '\n' + item.lista)
         return False
 
     if item.lista == get_lista_activa():
-        platformtools.dialog_ok('KoD', config.get_localized_string(70632) + '\n' + item.lista)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70632) + '\n' + item.lista)
         return False
 
-    if not platformtools.dialog_yesno(config.get_localized_string(70606), config.get_localized_string(70633) + ' %s ?' % item.lista): return False
+    if not platformtools.dialogYesNo(config.getLocalizedString(70606), config.getLocalizedString(70633) + ' %s ?' % item.lista): return False
     filetools.remove(fullfilename)
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
 def informacion_lista(item):
     logger.debug()
 
-    fullfilename = os.path.join(config.get_data_path(), item.lista)
+    fullfilename = os.path.join(config.getDataPath(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + item.lista)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70630) + '\n' + item.lista)
         return False
 
-    alfav = KodfavouritesData(item.lista)
+    kodfav = KodfavouritesData(item.lista)
 
     txt = 'Lista: %s' % item.lista
-    txt += '[CR]' + config.get_localized_string(70634) + ' ' + alfav.info_lista['created'] + ' ' + config.get_localized_string(70635) + ' ' + alfav.info_lista['updated']
+    txt += '[CR]' + config.getLocalizedString(70634) + ' ' + kodfav.info_lista['created'] + ' ' + config.getLocalizedString(70635) + ' ' + kodfav.info_lista['updated']
 
-    if 'downloaded_date' in alfav.info_lista:
-        txt += '[CR]' + config.get_localized_string(70636) + ' ' + alfav.info_lista['downloaded_date'] + ' ' + alfav.info_lista['downloaded_from'] + ' ' + config.get_localized_string(70637)
+    if 'downloaded_date' in kodfav.info_lista:
+        txt += '[CR]' + config.getLocalizedString(70636) + ' ' + kodfav.info_lista['downloaded_date'] + ' ' + kodfav.info_lista['downloaded_from'] + ' ' + config.getLocalizedString(70637)
 
-    if 'tinyupload_date' in alfav.info_lista:
-        txt += '[CR]' + config.get_localized_string(70638) + ' ' + alfav.info_lista['tinyupload_date'] + ' ' + config.get_localized_string(70639) + ' [COLOR blue]' + alfav.info_lista['tinyupload_code'] + '[/COLOR]'
+    if 'tinyupload_date' in kodfav.info_lista:
+        txt += '[CR]' + config.getLocalizedString(70638) + ' ' + kodfav.info_lista['tinyupload_date'] + ' ' + config.getLocalizedString(70639) + ' [COLOR blue]' + kodfav.info_lista['tinyupload_code'] + '[/COLOR]'
 
-    txt += '[CR]' + config.get_localized_string(70640) + ' ' + str(len(alfav.user_favorites))
-    for perfil in alfav.user_favorites:
-        txt += '[CR]- %s (%d %s)' % (perfil['title'], len(perfil['items']), config.get_localized_string(70641))
+    txt += '[CR]' + config.getLocalizedString(70640) + ' ' + str(len(kodfav.user_favorites))
+    for perfil in kodfav.user_favorites:
+        txt += '[CR]- %s (%d %s)' % (perfil['title'], len(perfil['items']), config.getLocalizedString(70641))
 
-    platformtools.dialog_textviewer(config.get_localized_string(70607), txt)
+    platformtools.dialogTextviewer(config.getLocalizedString(70607), txt)
     return True
 
 
 def compartir_lista(item):
     logger.debug()
 
-    fullfilename = os.path.join(config.get_data_path(), item.lista)
+    fullfilename = os.path.join(config.getDataPath(), item.lista)
     if not os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70630) + '\n' + fullfilename)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70630) + '\n' + fullfilename)
         return False
 
     try:
-        progreso = platformtools.dialog_progress_bg(config.get_localized_string(70643), config.get_localized_string(70644))
+        progreso = platformtools.dialogProgressBg(config.getLocalizedString(70643), config.getLocalizedString(70644))
 
         # Access to the tinyupload home page to obtain necessary data
         from core import httptools, scrapertools
@@ -750,7 +750,7 @@ def compartir_lista(item):
         upload_url = scrapertools.find_single_match(data, 'form action="([^"]+)')
         sessionid = scrapertools.find_single_match(upload_url, 'sid=(.+)')
 
-        progreso.update(10, config.get_localized_string(70645) + '\n' + config.get_localized_string(70646))
+        progreso.update(10, config.getLocalizedString(70645) + '\n' + config.getLocalizedString(70646))
 
         # Sending the file to tinyupload using multipart / form-data
         from future import standard_library
@@ -766,24 +766,24 @@ def compartir_lista(item):
 
         if not 'File was uploaded successfuly' in data:
             logger.debug(data)
-            platformtools.dialog_ok('KoD', config.get_localized_string(70647))
+            platformtools.dialogOk('KoD', config.getLocalizedString(70647))
             return False
 
         codigo = scrapertools.find_single_match(data, 'href="index\.php\?file_id=([^"]+)')
 
     except:
-        platformtools.dialog_ok('KoD', config.get_localized_string(70647) + '\n' + item.lista)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70647) + '\n' + item.lista)
         return False
 
     # Point code in log file and inside the list
-    save_log_lista_shared(config.get_localized_string(70648) + ' ' + item.lista + ' ' + codigo + ' ' + config.get_localized_string(70649))
+    save_log_lista_shared(config.getLocalizedString(70648) + ' ' + item.lista + ' ' + codigo + ' ' + config.getLocalizedString(70649))
 
-    alfav = KodfavouritesData(item.lista)
-    alfav.info_lista['tinyupload_date'] = fechahora_actual()
-    alfav.info_lista['tinyupload_code'] = codigo
-    alfav.save()
+    kodfav = KodfavouritesData(item.lista)
+    kodfav.info_lista['tinyupload_date'] = fechahora_actual()
+    kodfav.info_lista['tinyupload_code'] = codigo
+    kodfav.save()
 
-    platformtools.dialog_ok('KoD', config.get_localized_string(70650) + '\n' + codigo)
+    platformtools.dialogOk('KoD', config.getLocalizedString(70650) + '\n' + codigo)
     return True
 
 
@@ -791,12 +791,12 @@ def compartir_lista(item):
 def acciones_nueva_lista(item):
     logger.debug()
 
-    acciones = [config.get_localized_string(70651),
-                config.get_localized_string(70652),
-                config.get_localized_string(70653),
-                config.get_localized_string(70654)]
+    acciones = [config.getLocalizedString(70651),
+                config.getLocalizedString(70652),
+                config.getLocalizedString(70653),
+                config.getLocalizedString(70654)]
 
-    ret = platformtools.dialog_select(config.get_localized_string(70608), acciones)
+    ret = platformtools.dialogSelect(config.getLocalizedString(70608), acciones)
 
     if ret == -1:
         return False # order cancel
@@ -805,43 +805,43 @@ def acciones_nueva_lista(item):
         return crear_lista(item)
 
     elif ret == 1:
-        codigo = platformtools.dialog_input(default='', heading=config.get_localized_string(70609)) # 05370382084539519168
+        codigo = platformtools.dialogInput(default='', heading=config.getLocalizedString(70609)) # 05370382084539519168
         if codigo is None or codigo == '':
             return False
         return descargar_lista(item, 'http://s000.tinyupload.com/?file_id=' + codigo)
 
     elif ret == 2:
-        url = platformtools.dialog_input(default='https://', heading=config.get_localized_string(70610))
+        url = platformtools.dialogInput(default='https://', heading=config.getLocalizedString(70610))
         if url is None or url == '':
             return False
         return descargar_lista(item, url)
 
     elif ret == 3:
-        txt = config.get_localized_string(70611)
-        platformtools.dialog_textviewer(config.get_localized_string(70607), txt)
+        txt = config.getLocalizedString(70611)
+        platformtools.dialogTextviewer(config.getLocalizedString(70607), txt)
         return False
 
 
 def crear_lista(item):
     logger.debug()
 
-    titulo = platformtools.dialog_input(default='', heading=config.get_localized_string(70612))
+    titulo = platformtools.dialogInput(default='', heading=config.getLocalizedString(70612))
     if titulo is None or titulo == '':
         return False
     titulo = text_clean(titulo, blank_char='_')
 
     filename = get_filename_from_name(titulo)
-    fullfilename = os.path.join(config.get_data_path(), filename)
+    fullfilename = os.path.join(config.getDataPath(), filename)
 
     # Check that the file does not already exist
     if os.path.exists(fullfilename):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70613) + '\n' + fullfilename)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70613) + '\n' + fullfilename)
         return False
 
     # Cause it to be saved with empty folders by default
-    alfav = KodfavouritesData(filename)
+    kodfav = KodfavouritesData(filename)
 
-    platformtools.itemlist_refresh()
+    platformtools.itemlistRefresh()
     return True
 
 
@@ -857,17 +857,17 @@ def descargar_lista(item, url):
             down_url, url_name = scrapertools.find_single_match(data, ' href="(download\.php[^"]*)"><b>([^<]*)')
             url_json = '{uri.scheme}://{uri.netloc}/'.format(uri=urlparse(url)) + down_url
         except:
-            platformtools.dialog_ok('KoD', config.get_localized_string(70655) + '\n' + url)
+            platformtools.dialogOk('KoD', config.getLocalizedString(70655) + '\n' + url)
             return False
 
     elif 'zippyshare.com/' in url:
         from core import servertools
-        video_urls, puedes, motivo = servertools.resolve_video_urls_for_playing('zippyshare', url)
+        videoUrls, puedes, motivo = servertools.resolve_videoUrls_for_playing('zippyshare', url)
 
         if not puedes:
-            platformtools.dialog_ok('KoD', config.get_localized_string(70655) + '\n' + motivo)
+            platformtools.dialogOk('KoD', config.getLocalizedString(70655) + '\n' + motivo)
             return False
-        url_json = video_urls[0][1] # https://www58.zippyshare.com/d/qPzzQ0UM/25460/kodfavourites-testeanding.json
+        url_json = videoUrls[0][1] # https://www58.zippyshare.com/d/qPzzQ0UM/25460/kodfavourites-testeanding.json
         url_name = url_json[url_json.rfind('/')+1:]
 
     elif 'friendpaste.com/' in url:
@@ -886,7 +886,7 @@ def descargar_lista(item, url):
     jsondata = jsontools.load(data)
     if 'user_favorites' not in jsondata or 'info_lista' not in jsondata:
         logger.debug(data)
-        platformtools.dialog_ok('KoD', config.get_localized_string(70656))
+        platformtools.dialogOk('KoD', config.getLocalizedString(70656))
         return False
 
     jsondata['info_lista']['downloaded_date'] = fechahora_actual()
@@ -895,22 +895,22 @@ def descargar_lista(item, url):
 
     # Ask for name for downloaded list
     nombre = get_name_from_filename(url_name)
-    titulo = platformtools.dialog_input(default=nombre, heading=config.get_localized_string(70657))
+    titulo = platformtools.dialogInput(default=nombre, heading=config.getLocalizedString(70657))
     if titulo is None or titulo == '':
         return False
     titulo = text_clean(titulo, blank_char='_')
 
     filename = get_filename_from_name(titulo)
-    fullfilename = os.path.join(config.get_data_path(), filename)
+    fullfilename = os.path.join(config.getDataPath(), filename)
 
     # If the new name already exists ask for confirmation to overwrite
     if os.path.exists(fullfilename):
-        if not platformtools.dialog_yesno('KoD', config.get_localized_string(70613), config.get_localized_string(70658), filename):
+        if not platformtools.dialogYesNo('KoD', config.getLocalizedString(70613), config.getLocalizedString(70658), filename):
             return False
 
     if not filetools.write(fullfilename, data):
-        platformtools.dialog_ok('KoD', config.get_localized_string(70659) + '\n' + filename)
+        platformtools.dialogOk('KoD', config.getLocalizedString(70659) + '\n' + filename)
 
-    platformtools.dialog_ok('KoD', config.get_localized_string(70660) + '\n' + filename)
-    platformtools.itemlist_refresh()
+    platformtools.dialogOk('KoD', config.getLocalizedString(70660) + '\n' + filename)
+    platformtools.itemlistRefresh()
     return True

@@ -21,16 +21,16 @@ from core import scrapertools
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # Get the addon version
-__version = config.get_addon_version()
+__version = config.getAddonVersion()
 
 cookies_lock = Lock()
 
 cj = cookielib.MozillaCookieJar()
-cookies_file = os.path.join(config.get_data_path(), "cookies.dat")
+cookies_file = os.path.join(config.getDataPath(), "cookies.dat")
 
 # Headers by default, if nothing is specified
 default_headers = dict()
-default_headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s Safari/537.36" % config.get_setting("chrome_ua_version")
+default_headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s Safari/537.36" % config.getSetting("chrome_ua_version")
 default_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8"
 default_headers["Accept-Language"] = "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3"
 default_headers["Accept-Charset"] = "UTF-8"
@@ -52,7 +52,7 @@ directIP = {
 }
 
 # Maximum wait time for downloadpage, if nothing is specified
-HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = config.get_setting('httptools_timeout', default=15)
+HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = config.getSetting('httptools_timeout', default=15)
 if HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT == 0: HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = None
 
 # Random use of User-Agents, if nad is not specified
@@ -67,7 +67,7 @@ HTTPTOOLS_DEFAULT_RANDOM_HEADERS = False
 # domainCF.extend(otherCF)
 
 # CF_LIST = list()
-# CF_LIST_PATH = os.path.join(config.get_data_path(), "CF_Domains.txt")
+# CF_LIST_PATH = os.path.join(config.getDataPath(), "CF_Domains.txt")
 #
 # if os.path.exists(CF_LIST_PATH):
 #     with open(CF_LIST_PATH, "rb") as CF_File:
@@ -167,7 +167,7 @@ def random_useragent():
 
     import random
 
-    UserAgentPath = os.path.join(config.get_runtime_path(), 'tools', 'UserAgent.csv')
+    UserAgentPath = os.path.join(config.getRuntimePath(), 'tools', 'UserAgent.csv')
     if os.path.exists(UserAgentPath):
         UserAgentIem = random.choice(list(open(UserAgentPath))).strip()
         if UserAgentIem:
@@ -203,7 +203,7 @@ def show_infobox(info_dict):
 
 
     width = 100
-    version = '%s: %s' % (config.get_localized_string(20000), __version)
+    version = '%s: %s' % (config.getLocalizedString(20000), __version)
     if config.is_xbmc():
         box = box_items_kodi
     else:
@@ -292,7 +292,7 @@ def downloadpage(url, **opt):
         from lib import requests
         session = requests.session()
 
-        if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
+        if config.getSetting('resolver_dns') and not opt.get('use_requests', False):
             from core import resolverdns
             session.mount('https://', resolverdns.CipherSuiteAdapter(domain))
 
@@ -454,7 +454,7 @@ def downloadpage(url, **opt):
 
     if not 'api.themoviedb' in url and not opt.get('alfa_s', False):
         show_infobox(info_dict)
-    if not config.get_setting("debug"): logger.info('Page URL:',url)
+    if not config.getSetting("debug"): logger.info('Page URL:',url)
     return type('HTTPResponse', (), response)
 
 def fill_fields_pre(url, opt, proxy_data, file_name):

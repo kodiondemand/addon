@@ -38,7 +38,7 @@ session.headers.update({'authorization': 'Bearer ' + Token})
 sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
 session.headers.update({'x-session': sessionKey})
 
-pagination = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100][config.get_setting('pagination', 'mediasetplay')]
+pagination = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100][config.getSetting('pagination', 'mediasetplay')]
 
 
 @support.menu
@@ -224,7 +224,7 @@ def episodes(item):
 def play(item):
     logger.debug()
     item.no_return=True
-    mpd = config.get_setting('mpd', item.channel)
+    mpd = config.getSetting('mpd', item.channel)
 
 
     lic_url = 'https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid={pid}&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token={token}|Accept=*/*&Content-Type=&User-Agent={ua}|R{{SSM}}|'

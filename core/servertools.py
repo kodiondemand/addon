@@ -223,7 +223,7 @@ def get_server_from_url(url):
     return None
 
 
-def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialogo=False, background_dialog=False):
+def resolve_videoUrls_for_playing(server, url, video_password="", muestra_dialogo=False, background_dialog=False):
     """
     Function to get the real url of the video
     @param server: Server where the video is hosted
@@ -244,7 +244,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
 
     server = server.lower()
 
-    video_urls = []
+    videoUrls = []
     video_exists = True
     error_messages = []
     opciones = []
@@ -254,7 +254,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if isinstance(video_password, list):
             return video_password, len(video_password) > 0, "<br/>".join(error_messages)
         logger.info("Server: %s, url is good" % server)
-        video_urls.append({'type':urlparse.urlparse(url)[2].split('.')[-1], 'url':url})
+        videoUrls.append({'type':urlparse.urlparse(url)[2].split('.')[-1], 'url':url})
 
     # Find out the video URL
     else:
@@ -266,7 +266,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if server_parameters:
             # Show a progress dialog
             if muestra_dialogo:
-                progreso = (platformtools.dialog_progress_bg if background_dialog else platformtools.dialog_progress)(config.get_localized_string(20000), config.get_localized_string(70180) % translate_server_name(server_parameters["name"]))
+                progreso = (platformtools.dialogProgressBg if background_dialog else platformtools.dialogProgress)(config.getLocalizedString(20000), config.getLocalizedString(70180) % translate_server_name(server_parameters["name"]))
 
             # Count the available options, to calculate the percentage
 
@@ -279,15 +279,15 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
             if server_parameters["free"] == True:
                 opciones.append("free")
             opciones.extend(
-                [premium for premium in server_parameters["premium"] if config.get_setting("premium", server=premium)])
+                [premium for premium in server_parameters["premium"] if config.getSetting("premium", server=premium)])
 
-            priority = int(config.get_setting("resolve_priority"))
+            priority = int(config.getSetting("resolve_priority"))
             opciones = sorted(opciones, key=lambda x: order[priority].index(x))
 
             logger.info("Available options: %s | %s" % (len(opciones), opciones))
         else:
             logger.error("There is no connector for the server %s" % server)
-            error_messages.append(config.get_localized_string(60004) % server)
+            error_messages.append(config.getLocalizedString(60004) % server)
             muestra_dialogo = False
 
         # Import the server
@@ -336,60 +336,60 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
 
                 # Show progress
                 if muestra_dialogo:
-                    progreso.update((old_div(100, len(opciones))) * opciones.index(opcion), config.get_localized_string(70180) % server_name)
+                    progreso.update((old_div(100, len(opciones))) * opciones.index(opcion), config.getLocalizedString(70180) % server_name)
 
                 # Free mode
                 if opcion == "free":
                     try:
-                        logger.info("Invoking a %s.get_video_url" % server)
-                        response = serverid.get_video_url(page_url=url, video_password=video_password)
-                        video_urls.extend(response)
+                        logger.info("Invoking a %s.get_videoUrl" % server)
+                        response = serverid.get_videoUrl(page_url=url, video_password=video_password)
+                        videoUrls.extend(response)
                     except:
                         logger.error("Error getting url in free mode")
-                        error_messages.append(config.get_localized_string(60014))
+                        error_messages.append(config.getLocalizedString(60014))
                         import traceback
                         logger.error(traceback.format_exc())
 
                 # Premium mode
                 else:
                     try:
-                        logger.info("Invoking a %s.get_video_url" % opcion)
-                        response = serverid.get_video_url(page_url=url, premium=True,
-                                                          user=config.get_setting("user", server=opcion),
-                                                          password=config.get_setting("password", server=opcion),
+                        logger.info("Invoking a %s.get_videoUrl" % opcion)
+                        response = serverid.get_videoUrl(page_url=url, premium=True,
+                                                          user=config.getSetting("user", server=opcion),
+                                                          password=config.getSetting("password", server=opcion),
                                                           video_password=video_password)
                         if response and response[0][1]:
-                            video_urls.extend(response)
+                            videoUrls.extend(response)
                         elif response and response[0][0]:
                             error_messages.append(response[0][0])
                         else:
-                            error_messages.append(config.get_localized_string(60014))
+                            error_messages.append(config.getLocalizedString(60014))
                     except:
                         logger.error("Server errorr: %s" % opcion)
-                        error_messages.append(config.get_localized_string(60014))
+                        error_messages.append(config.getLocalizedString(60014))
                         import traceback
                         logger.error(traceback.format_exc())
 
                 # If we already have URLS, we stop searching
-                if video_urls and config.get_setting("resolve_stop") == True:
+                if videoUrls and config.getSetting("resolve_stop") == True:
                     break
 
             # We close progress
             if muestra_dialogo:
-                progreso.update(100, config.get_localized_string(60008))
+                progreso.update(100, config.getLocalizedString(60008))
                 progreso.close()
 
             # If there are no options available, we show the notice of premium accounts
             if video_exists and not opciones and server_parameters.get("premium"):
                 listapremium = [get_server_parameters(premium)["name"] for premium in server_parameters["premium"]]
                 error_messages.append(
-                    config.get_localized_string(60009) % (server, " o ".join(listapremium)))
+                    config.getLocalizedString(60009) % (server, " o ".join(listapremium)))
 
             # If we do not have urls or error messages, we put a generic one
-            elif not video_urls and not error_messages:
-                error_messages.append(config.get_localized_string(60014))
+            elif not videoUrls and not error_messages:
+                error_messages.append(config.getLocalizedString(60014))
 
-    return video_urls, len(video_urls) > 0, "<br/>".join(error_messages)
+    return videoUrls, len(videoUrls) > 0, "<br/>".join(error_messages)
 
 
 def get_server_name(serverid):
@@ -444,11 +444,11 @@ def is_server_enabled(server):
 
     server_parameters = get_server_parameters(server)
     if server_parameters["active"] == True:
-        if not config.get_setting("hidepremium"):
+        if not config.getSetting("hidepremium"):
             return True
         elif server_parameters["free"] == True:
             return True
-        elif [premium for premium in server_parameters["premium"] if config.get_setting("premium", server=premium)]:
+        elif [premium for premium in server_parameters["premium"] if config.getSetting("premium", server=premium)]:
             return True
 
     return False
@@ -473,12 +473,12 @@ def get_server_parameters(server):
         try:
             path = ''
             # Servers
-            if filetools.isfile(filetools.join(config.get_runtime_path(), "servers", server + ".json")):
-                path = filetools.join(config.get_runtime_path(), "servers", server + ".json")
+            if filetools.isfile(filetools.join(config.getRuntimePath(), "servers", server + ".json")):
+                path = filetools.join(config.getRuntimePath(), "servers", server + ".json")
 
             # Debriders
-            elif filetools.isfile(filetools.join(config.get_runtime_path(), "servers", "debriders", server + ".json")):
-                path = filetools.join(config.get_runtime_path(), "servers", "debriders", server + ".json")
+            elif filetools.isfile(filetools.join(config.getRuntimePath(), "servers", "debriders", server + ".json")):
+                path = filetools.join(config.getRuntimePath(), "servers", "debriders", server + ".json")
 
             # When the server is not well defined in the channel (there is no connector), it shows an error because there is no "path" and the channel has to be checked
             dict_server = jsontools.load(filetools.read(path))
@@ -487,7 +487,7 @@ def get_server_parameters(server):
 
             # Images: url and local files are allowed inside "resources / images"
             if dict_server.get("thumbnail") and "://" not in dict_server["thumbnail"]:
-                dict_server["thumbnail"] = filetools.join(config.get_runtime_path(), "resources", "media",
+                dict_server["thumbnail"] = filetools.join(config.getRuntimePath(), "resources", "media",
                                                         "servers", dict_server["thumbnail"])
             for k in ['premium', 'id']:
                 dict_server[k] = dict_server.get(k, list())
@@ -507,7 +507,7 @@ def get_server_parameters(server):
             dict_servers_parameters[server] = dict_server
 
         except:
-            mensaje = config.get_localized_string(59986) % server
+            mensaje = config.getLocalizedString(59986) % server
             import traceback
             logger.error(mensaje + traceback.format_exc())
             return {}
@@ -539,7 +539,7 @@ def get_server_controls_settings(server_name):
     return list_controls, dict_settings
 
 
-def get_server_setting(name, server, default=None):
+def getServerSetting(name, server, default=None):
     """
         Returns the configuration value of the requested parameter.
 
@@ -563,10 +563,10 @@ def get_server_setting(name, server, default=None):
 
         """
     # We create the folder if it does not exist
-    if not filetools.exists(filetools.join(config.get_data_path(), "settings_servers")):
-        filetools.mkdir(filetools.join(config.get_data_path(), "settings_servers"))
+    if not filetools.exists(filetools.join(config.getDataPath(), "settings_servers")):
+        filetools.mkdir(filetools.join(config.getDataPath(), "settings_servers"))
 
-    file_settings = filetools.join(config.get_data_path(), "settings_servers", server + "_data.json")
+    file_settings = filetools.join(config.getDataPath(), "settings_servers", server + "_data.json")
     dict_settings = {}
     dict_file = {}
     if filetools.exists(file_settings):
@@ -596,12 +596,12 @@ def get_server_setting(name, server, default=None):
     return dict_settings.get(name, default)
 
 
-def set_server_setting(name, value, server):
+def setServerSetting(name, value, server):
     # We create the folder if it does not exist
-    if not filetools.exists(filetools.join(config.get_data_path(), "settings_servers")):
-        filetools.mkdir(filetools.join(config.get_data_path(), "settings_servers"))
+    if not filetools.exists(filetools.join(config.getDataPath(), "settings_servers")):
+        filetools.mkdir(filetools.join(config.getDataPath(), "settings_servers"))
 
-    file_settings = filetools.join(config.get_data_path(), "settings_servers", server + "_data.json")
+    file_settings = filetools.join(config.getDataPath(), "settings_servers", server + "_data.json")
     dict_settings = {}
 
     dict_file = None
@@ -639,7 +639,7 @@ def get_servers_list():
     """
     global server_list
     if not server_list:
-        for server in filetools.listdir(filetools.join(config.get_runtime_path(), "servers")):
+        for server in filetools.listdir(filetools.join(config.getRuntimePath(), "servers")):
             if server.endswith(".json") and not server == "version.json":
                 server_parameters = get_server_parameters(server)
                 if server_parameters['active']:
@@ -657,7 +657,7 @@ def get_debriders_list():
     @rtype: dict
     """
     server_list = {}
-    for server in filetools.listdir(filetools.join(config.get_runtime_path(), "servers", "debriders")):
+    for server in filetools.listdir(filetools.join(config.getRuntimePath(), "servers", "debriders")):
         if server.endswith(".json"):
             server_parameters = get_server_parameters(server)
             if server_parameters["active"] == True:
@@ -682,13 +682,13 @@ def sort_servers(servers_list):
     if not servers_list:
         return []
 
-    blacklisted_servers = config.get_setting("black_list", server='servers', default=[])
-    favorite_servers = [s for s in config.get_setting('favorites_servers_list', server='servers', default=[]) if s not in blacklisted_servers]
+    blacklisted_servers = config.getSetting("black_list", server='servers', default=[])
+    favorite_servers = [s for s in config.getSetting('favorites_servers_list', server='servers', default=[]) if s not in blacklisted_servers]
 
     sorted_list = []
     inverted = False
 
-    if config.get_setting('default_action') == 2:
+    if config.getSetting('default_action') == 2:
         inverted = True
 
     # Priorities when ordering itemlist:
@@ -697,8 +697,8 @@ def sort_servers(servers_list):
     #       2: Qualities and Servers
 
     priority = 0
-    if config.get_setting('favorites_servers') and favorite_servers: priority = 1
-    if config.get_setting('quality_priority'): priority = 2
+    if config.getSetting('favorites_servers') and favorite_servers: priority = 1
+    if config.getSetting('quality_priority'): priority = 2
 
     for item in servers_list:
         element = dict()
@@ -802,16 +802,16 @@ def check_video_link(item, timeout=3):
 
 
 def translate_server_name(name):
-    if '@' in name: return config.get_localized_string(int(name.replace('@','')))
+    if '@' in name: return config.getLocalizedString(int(name.replace('@','')))
     else: return name
 
 
 # def get_server_json(server_name):
 #     # logger.info("server_name=" + server_name)
 #     try:
-#         server_path = filetools.join(config.get_runtime_path(), "servers", server_name + ".json")
+#         server_path = filetools.join(config.getRuntimePath(), "servers", server_name + ".json")
 #         if not filetools.exists(server_path):
-#             server_path = filetools.join(config.get_runtime_path(), "servers", "debriders", server_name + ".json")
+#             server_path = filetools.join(config.getRuntimePath(), "servers", "debriders", server_name + ".json")
 #
 #         # logger.info("server_path=" + server_path)
 #         server_json = jsontools.load(filetools.read(server_path))

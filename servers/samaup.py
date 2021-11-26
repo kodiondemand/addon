@@ -14,13 +14,13 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
     if "Not Found" in data or "File was deleted" in data:
-        return False,  config.get_localized_string(70449) % "Samaup"
+        return False,  config.getLocalizedString(70449) % "Samaup"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     ext = 'mp4'
 
     packed = scrapertools.find_single_match(data, "text/javascript'>(eval.*?)\s*</script>")
@@ -30,6 +30,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     #media_url += "|Referer=%s" %page_url
     if "m3u8" in media_url:
         ext = "m3u8"
-    video_urls.append({'type':ext, 'url':media_url})
+    videoUrls.append({'type':ext, 'url':media_url})
 
-    return video_urls
+    return videoUrls

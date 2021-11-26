@@ -16,8 +16,7 @@ remote_path = 'https://raw.githubusercontent.com/kodiondemand/media/master/'
 
 def is_enabled(channel_name):
     logger.debug("channel_name=" + channel_name)
-    return get_channel_parameters(channel_name)["active"] and get_channel_setting("enabled", channel=channel_name,
-                                                                                  default=True)
+    return get_channel_parameters(channel_name)["active"] and getChannelSetting("enabled", channel=channel_name, default=True)
 
 
 def get_channel_parameters(channel_name):
@@ -90,13 +89,13 @@ def get_channel_json(channel_name):
     from core import filetools
     channel_json = None
     try:
-        channel_path = filetools.join(config.get_runtime_path(), "channels", channel_name + ".json")
+        channel_path = filetools.join(config.getRuntimePath(), "channels", channel_name + ".json")
         if not filetools.isfile(channel_path):
-            channel_path = filetools.join(config.get_runtime_path(), "specials", channel_name + ".json")
+            channel_path = filetools.join(config.getRuntimePath(), "specials", channel_name + ".json")
             if not filetools.isfile(channel_path):
-                channel_path = filetools.join(config.get_runtime_path(), "servers", channel_name + ".json")
+                channel_path = filetools.join(config.getRuntimePath(), "servers", channel_name + ".json")
                 if not filetools.isfile(channel_path):
-                    channel_path = filetools.join(config.get_runtime_path(), "servers", "debriders",
+                    channel_path = filetools.join(config.getRuntimePath(), "servers", "debriders",
                                                   channel_name + ".json")
 
         if filetools.isfile(channel_path):
@@ -115,24 +114,27 @@ def get_channel_json(channel_name):
 def get_channel_controls_settings(channel_name):
     logger.debug("channel_name=" + channel_name)
     dict_settings = {}
-    # import web_pdb; web_pdb.set_trace()
-    # list_controls = get_channel_json(channel_name).get('settings', list())
+
     list_controls = get_default_settings(channel_name)
 
     for c in list_controls:
         if 'id' not in c or 'type' not in c or 'default' not in c:
             # If any control in the list does not have id, type or default, we ignore it
             continue
-
         # new dict with key(id) and value(default) from settings
-        dict_settings[c['id']] = c['default']
+        if c['type'] == 'list' and c.get('values'):
+            dict_settings[c['id']] = list(c['values'])[c['default']]
+        elif c['type'] == 'list' and c.get('dvalues'):
+            dict_settings[c['id']] = list(c['dvalues'].values())[c['default']]
+        else:
+            dict_settings[c['id']] = c['default']
 
     return list_controls, dict_settings
 
 
 def get_lang(channel_name):
     channel = __import__('channels.%s' % channel_name, fromlist=["channels.%s" % channel_name])
-    list_language = [config.get_localized_string(70522)]
+    list_language = [config.getLocalizedString(70522)]
     if hasattr(channel, 'list_language'):
         for language in channel.list_language:
             list_language.append(language)
@@ -160,7 +162,7 @@ def get_default_settings(channel_name):
     from core import filetools
     import copy
 
-    default_path = filetools.join(config.get_runtime_path(), 'default_channel_settings' + '.json')
+    default_path = filetools.join(config.getRuntimePath(), 'default_channel_settings' + '.json')
     if channel_name not in ['trakt', 'autoplay']:
         global default_file
     else:
@@ -168,7 +170,7 @@ def get_default_settings(channel_name):
     if not default_file:
         default_file = jsontools.load(filetools.read(default_path))
 
-    channel_path = filetools.join(config.get_runtime_path(), 'channels', channel_name + '.json')
+    channel_path = filetools.join(config.getRuntimePath(), 'channels', channel_name + '.json')
 
     if filetools.exists(channel_path):
         default_controls = default_file['settings']
@@ -183,35 +185,36 @@ def get_default_settings(channel_name):
         default_off = channel_json['default_off'] if 'default_off' in channel_json else []
 
         # Apply default configurations if they do not exist
+        # logger.dbg()
         for control in copy.deepcopy(default_controls):
             if control['id'] not in str(channel_controls):
                 if 'include_in_newest' in control['id'] and 'include_in_newest' not in not_active and control['id'] not in not_active:
                     label = control['id'].split('_')
                     label = label[-1]
-                    if label == 'movies':
+                    if label == 'movie':
                         if 'movie' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30122)
+                            control['label'] = config.getLocalizedString(70727) + ' - ' + config.getLocalizedString( 30122)
                             control['default'] = False if ('include_in_newest' in default_off) or ( ' include_in_newest_movie' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
-                    elif label == 'tvshows':
+                    elif label == 'tvshow':
                         if 'tvshow' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30123)
-                            control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_series' in default_off) else True
+                            control['label'] = config.getLocalizedString(70727) + ' - ' + config.getLocalizedString( 30123)
+                            control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_tvshow' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
                     elif label == 'anime':
                         if 'anime' in categories:
-                            control['label'] = config.get_localized_string(70727) + ' - ' + config.get_localized_string( 30124)
+                            control['label'] = config.getLocalizedString(70727) + ' - ' + config.getLocalizedString( 30124)
                             control['default'] = False if ('include_in_newest' in default_off) or ( 'include_in_newest_anime' in default_off) else True
                             channel_controls.append(control)
                         else:
                             pass
 
                     else:
-                        control['label'] = config.get_localized_string(70727) + ' - ' + label.capitalize()
+                        control['label'] = config.getLocalizedString(70727) + ' - ' + label.capitalize()
                         control['default'] = control['default'] if control['id'] not in default_off else False
                         channel_controls.append(control)
 
@@ -231,7 +234,7 @@ def get_default_settings(channel_name):
     return channel_controls
 
 
-def get_channel_setting(name, channel, default=None):
+def getChannelSetting(name, channel, default=None):
     from core import filetools
     """
     Returns the configuration value of the requested parameter.
@@ -255,7 +258,7 @@ def get_channel_setting(name, channel, default=None):
     @rtype: any
 
     """
-    file_settings = filetools.join(config.get_data_path(), "settings_channels", channel + "_data.json")
+    file_settings = filetools.join(config.getDataPath(), "settings_channels", channel + "_data.json")
     dict_settings = {}
     dict_file = {}
 
@@ -288,7 +291,7 @@ def get_channel_setting(name, channel, default=None):
     return dict_settings.get(name, default)
 
 
-def set_channel_setting(name, value, channel):
+def setChannelSetting(name, value, channel):
     from core import filetools
     """
     Sets the configuration value of the indicated parameter.
@@ -312,10 +315,10 @@ def set_channel_setting(name, value, channel):
 
     """
     # We create the folder if it does not exist
-    if not filetools.exists(filetools.join(config.get_data_path(), "settings_channels")):
-        filetools.mkdir(filetools.join(config.get_data_path(), "settings_channels"))
+    if not filetools.exists(filetools.join(config.getDataPath(), "settings_channels")):
+        filetools.mkdir(filetools.join(config.getDataPath(), "settings_channels"))
 
-    file_settings = filetools.join(config.get_data_path(), "settings_channels", channel + "_data.json")
+    file_settings = filetools.join(config.getDataPath(), "settings_channels", channel + "_data.json")
     dict_settings = {}
 
     dict_file = None

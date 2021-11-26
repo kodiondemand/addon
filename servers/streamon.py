@@ -12,12 +12,12 @@ def test_video_exists(page_url):
     htmldata = httptools.downloadpage(page_url).data
 
     if 'Oops! video not found' in htmldata:
-        return False, config.get_localized_string(70449) % "Streamon"
+        return False, config.getLocalizedString(70449) % "Streamon"
     else:
         return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
 
     tabbler = httptools.downloadpage('https://streamon.to/assets/js/tabber.js').data
     params_tabber = scrapertools.find_single_match(tabbler, r'\}\(([^\)]+)')
@@ -54,11 +54,11 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     res2 = res.replace(decoder[2], "")
     media_url = base64.b64decode( res2 ).decode('ascii')
 
-    video_urls = []
+    videoUrls = []
 
-    video_urls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
+    videoUrls.append({'type':scrapertools.get_filename_from_url(media_url).split('.')[-1], 'url':media_url})
 
-    return video_urls
+    return videoUrls
 
 
 

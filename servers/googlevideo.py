@@ -6,9 +6,9 @@ from core import httptools
 from platformcode import logger
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     # Lo extrae a partir de flashvideodownloader.org
     if page_url.startswith("http://"):
         url = 'http://www.flashvideodownloader.org/download.php?u=' + page_url
@@ -21,9 +21,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     newpatron = '</script>.*?<a href="(.*?)" title="Click to Download">'
     newmatches = re.compile(newpatron, re.DOTALL).findall(data)
     if len(newmatches) > 0:
-        video_urls.append({'url':newmatches[0]})
+        videoUrls.append({'url':newmatches[0]})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

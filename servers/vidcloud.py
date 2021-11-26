@@ -16,15 +16,15 @@ def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
     if "We're Sorry" in data:
-        return False, config.get_localized_string(70292) % "Vidcloud"
+        return False, config.getLocalizedString(70292) % "Vidcloud"
 
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
 
-    video_urls = []
+    videoUrls = []
 
     data = httptools.downloadpage(page_url).data
 
@@ -47,15 +47,15 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         data = httptools.downloadpage(page_url, headers=headers).data
         data = data.replace('\\\\', '\\').replace('\\','')
 
-        media_urls = scrapertools.find_multiple_matches(data, '\{"file"\s*:\s*"([^"]+)"\}')
+        media_urls = scrapertools.findMultipleMatches(data, '\{"file"\s*:\s*"([^"]+)"\}')
 
         for media_url in media_urls:
             ext = "mp4"
             if "m3u8" in media_url:
                 ext = "m3u8"
-            video_urls.append({'type':ext, 'url':media_url})
+            videoUrls.append({'type':ext, 'url':media_url})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls
 

@@ -13,15 +13,15 @@ def test_video_exists(page_url):
     if "please+try+again+later." in data:
         return False, "[Downace] Error de downace, no se puede generar el enlace al video"
     if "File has been removed due to inactivity" in data:
-        return False,  config.get_localized_string(70449) % "Downace"
+        return False,  config.getLocalizedString(70449) % "Downace"
     return True, ""
 
 
-def get_video_url(page_url, user="", password="", video_password=""):
+def get_videoUrl(page_url, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
-    video_urls = []
+    videoUrls = []
     videourl = scrapertools.find_single_match(data, 'controls preload.*?src="([^"]+)')
-    video_urls.append({'type':'mp4', 'url':videourl})
+    videoUrls.append({'type':'mp4', 'url':videourl})
 
-    return video_urls
+    return videoUrls

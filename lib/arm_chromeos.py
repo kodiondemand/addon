@@ -80,7 +80,7 @@ class ChromeOSImage:
         """Extracts the file from the image"""
         self.progress = progress
 
-        self.progress.update(2, config.get_localized_string(70813))
+        self.progress.update(2, config.getLocalizedString(70813))
         self.part_offset = self.chromeos_offset()
         self.sb_dict = self.superblock()
         self.blk_groups = self.block_groups()
@@ -88,7 +88,7 @@ class ChromeOSImage:
         bin_filename = filename.encode('ascii')
         chunksize = 4 * 1024**2
         percent8 = 40
-        self.progress.update(int(percent8 / 8), config.get_localized_string(70814))
+        self.progress.update(int(percent8 / 8), config.getLocalizedString(70814))
         chunk1 = self.read_stream(chunksize)
         while True:
             chunk2 = self.read_stream(chunksize)
@@ -107,7 +107,7 @@ class ChromeOSImage:
                 percent8 += 1
                 self.progress.update(int(percent8 / 8))
 
-        self.progress.update(32, config.get_localized_string(70815))
+        self.progress.update(32, config.getLocalizedString(70815))
 
         blk_group_num = (dir_dict['inode'] - 1) // self.sb_dict['s_inodes_per_group']
         blk_group = self.blk_groups[blk_group_num]
@@ -199,7 +199,7 @@ class ChromeOSImage:
     @staticmethod
     def dir_entry(chunk):
         """Returns the directory entry found in chunk"""
-        dir_names = ('inode', 'rec_len', 'name_len', 'file_type', 'name')
+        dir_names = ('inode', 'rec_len', 'name_len', 'fileType', 'name')
         dir_fmt = '<IHBB' + str(len(chunk) - 8) + 's'
 
         dir_dict = dict(zip(dir_names, unpack(dir_fmt, chunk)))
@@ -284,7 +284,7 @@ class ChromeOSImage:
         block_dict = {}
         for block_id in block_ids:
             percent = int(35 + 60 * block_ids.index(block_id) / len(block_ids))
-            self.progress.update(percent, config.get_localized_string(70816))
+            self.progress.update(percent, config.getLocalizedString(70816))
             seek_pos = self.part_offset + self.blocksize * block_id
             self.seek_stream(seek_pos)
             block_dict[block_id] = self.read_stream(self.blocksize)

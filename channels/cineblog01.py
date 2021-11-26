@@ -191,7 +191,7 @@ def episodes(item):
             itemlist = support.season_pagination(itemlist, item, [], 'episodes')
         else:
             itemlist = support.pagination(itemlist, item, 'episodes')
-        if config.get_setting('episode_info'):
+        if config.getSetting('episode_info'):
             support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
         support.videolibrary(itemlist, item)
         support.download(itemlist, item)

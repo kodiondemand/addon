@@ -11,22 +11,22 @@ def test_video_exists(page_url):
 
     response = httptools.downloadpage(page_url, cookies=False)
     if "Pagina non trovata" in response.data:
-        return False, config.get_localized_string(70449) % "dailymotion"
+        return False, config.getLocalizedString(70449) % "dailymotion"
     if response.code == 404:
-        return False, config.get_localized_string(70449) % "dailymotion"
+        return False, config.getLocalizedString(70449) % "dailymotion"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    video_urls = []
+    videoUrls = []
     cookie = {'Cookie': response.headers["set-cookie"]}
     data = response.data.replace("\\", "")
     subtitle = scrapertools.find_single_match(data, '"subtitles":.*?"es":.*?urls":\["([^"]+)"')
-    qualities = scrapertools.find_multiple_matches(data, '"([^"]+)":(\[\{"type":".*?\}\])')
+    qualities = scrapertools.findMultipleMatches(data, '"([^"]+)":(\[\{"type":".*?\}\])')
     for calidad, urls in qualities:
         patron = '"type":"(?:video|application)\\/([^"]+)","url":"([^"]+)"'
-        matches = scrapertools.find_multiple_matches(urls, patron)
+        matches = scrapertools.findMultipleMatches(urls, patron)
         for stream_type, stream_url in matches:
             stream_type = stream_type.replace('x-mpegURL', 'm3u8')
             if stream_type == "mp4":
@@ -38,7 +38,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
                 stream_url_http = scrapertools.find_single_match(data_m3u8, r'PROGRESSIVE-URI="([^"]+)"')
                 if stream_url_http:
                     stream_url = stream_url_http
-            video_urls.append({'type':calidad, 'res':stream_type, 'url':stream_url, 'sub':subtitle})
-    for video_url in video_urls:
-        logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+            videoUrls.append({'type':calidad, 'res':stream_type, 'url':stream_url, 'sub':subtitle})
+    for videoUrl in videoUrls:
+        logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls

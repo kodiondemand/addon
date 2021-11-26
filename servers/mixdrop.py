@@ -20,13 +20,13 @@ def test_video_exists(page_url):
         data = httptools.downloadpage(url).data
 
     if "<h2>WE ARE SORRY</h2>" in data or '<title>404 Not Found</title>' in data:
-        return False, config.get_localized_string(70449) % "MixDrop"
+        return False, config.getLocalizedString(70449) % "MixDrop"
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     ext = 'mp4'
 
     global data
@@ -34,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     unpacked = jsunpack.unpack(packed)
 
     # mixdrop like to change var name very often, hoping that will catch every
-    list_vars = scrapertools.find_multiple_matches(unpacked, r'MDCore\.\w+\s*=\s*"([^"]+)"')
+    list_vars = scrapertools.findMultipleMatches(unpacked, r'MDCore\.\w+\s*=\s*"([^"]+)"')
     for var in list_vars:
         if '.mp4' in var:
             media_url = var
@@ -43,6 +43,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         media_url = ''
     if not media_url.startswith('http'):
         media_url = 'http:' + media_url
-    video_urls.append({'type':ext, 'url': media_url})
+    videoUrls.append({'type':ext, 'url': media_url})
 
-    return video_urls
+    return videoUrls

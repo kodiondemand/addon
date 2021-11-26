@@ -8,14 +8,14 @@ from platformcode import logger
 
 host = support.config.get_channel_url()
 __channel__ = 'animesaturn'
-cookie = support.config.get_setting('cookie', __channel__)
+cookie = support.config.getSetting('cookie', __channel__)
 headers = {'X-Requested-With': 'XMLHttpRequest', 'Cookie': cookie}
 
 
 def get_cookie(data):
     global cookie, headers
     cookie = support.match(data, patron=r'document.cookie="([^\s]+)').match
-    support.config.set_setting('cookie', cookie, __channel__)
+    support.config.setSetting('cookie', cookie, __channel__)
     headers = [['Cookie', cookie]]
 
 
@@ -129,7 +129,7 @@ def movies(item):
             action = 'findvideos'
             def itemlistHook(itemlist):
                 if page:
-                    itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),page= page, thumbnail=support.thumb()))
+                    itemlist.append(item.clone(title=support.typo(support.config.getLocalizedString(30992), 'color kod bold'),page= page, thumbnail=support.thumb()))
                 return itemlist
         elif 'filter' in item.args:
             page = support.match(data, patron=r'totalPages:\s*(\d+)').match
@@ -138,7 +138,7 @@ def movies(item):
                 if item.nextpage: item.nextpage += 1
                 else: item.nextpage = 2
                 if page and item.nextpage < int(page):
-                    itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), url= '{}&page={}'.format(item.url, item.nextpage), infoLabels={}, thumbnail=support.thumb()))
+                    itemlist.append(item.clone(title=support.typo(support.config.getLocalizedString(30992), 'color kod bold'), url= '{}&page={}'.format(item.url, item.nextpage), infoLabels={}, thumbnail=support.thumb()))
                 return itemlist
 
         else:

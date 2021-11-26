@@ -20,11 +20,11 @@ def test_video_exists(page_url):
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("(page_url='%s')" % page_url)
-    if config.get_setting("premium", server="onefichier"):
-        user = config.get_setting("user", server="onefichier")
-        password = config.get_setting("password", server="onefichier")
+    if config.getSetting("premium", server="onefichier"):
+        user = config.getSetting("user", server="onefichier")
+        password = config.getSetting("password", server="onefichier")
         url = "https://1fichier.com/login.pl"
         logger.debug("url=" + url)
         post_parameters = {"mail": user, "pass": password, "lt": "on", "purge": "on", "valider": "Send"}
@@ -34,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         data = httptools.downloadpage(url, post=post).data
         # logger.debug("data="+data)
 
-        cookies = config.get_cookie_data()
+        cookies = config.getCookieData()
         logger.debug("cookies=" + cookies)
 
         # 1fichier.com   TRUE    /   FALSE   1443553315  SID imC3q8MQ7cARw5tkXeWvKyrH493rR=1yvrjhxDAA0T0iEmqRfNF9GXwjrwPHssAQ
@@ -56,11 +56,11 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         location = page_url + "|Cookie=" + cookie
         logger.debug("location=" + location)
 
-        video_urls = []
-        # video_urls.append([filename[-4:] + " (Premium) [1fichier]", location])
-        video_urls.append({'type':filename.split('.')[-1], 'url':location})
+        videoUrls = []
+        # videoUrls.append([filename[-4:] + " (Premium) [1fichier]", location])
+        videoUrls.append({'type':filename.split('.')[-1], 'url':location})
 
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
 
-    return video_urls
+    return videoUrls

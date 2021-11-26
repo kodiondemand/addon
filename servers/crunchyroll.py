@@ -42,10 +42,10 @@ def test_video_exists(page_url):
     return True, ""
 
 
-def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+def get_videoUrl(page_url, premium=False, user="", password="", video_password=""):
     #page_url='https://www.crunchyroll.com/es-es/one-piece/episode-891-climbing-up-a-waterfall-a-great-journey-through-the-land-of-wanos-sea-zone-786643'
     logger.debug("url=" + page_url)
-    video_urls = []
+    videoUrls = []
     if "crunchyroll.com" in page_url:
         media_id = page_url.rsplit("-", 1)[1]
     else:
@@ -62,7 +62,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         data = httptools.downloadpage(get, post=post, headers=GLOBAL_HEADER).data
     media_url = scrapertools.find_single_match(data, '<file>(.*?)</file>').replace("&amp;", "&")
     if not media_url:
-        return video_urls
+        return videoUrls
     elif not media_url.startswith("http"):
         rtmp = scrapertools.find_single_match(data, '<host>(.*?)</host>').replace("&amp;", "&")
         media_url = rtmp + " playpath=%s" % media_url
@@ -73,7 +73,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     try:
         #idiomas = ['Español \(España\)', 'Español\]', 'English', 'Italiano', 'Français', 'Português', 'Deutsch']
         idiomas = ['Deutsch', 'Português', 'Français', 'Italiano', 'English', 'Español\]', 'Español \(España\)']
-        index_sub = int(config.get_setting("crunchyrollsub", "crunchyroll"))
+        index_sub = int(config.getSetting("crunchyrollsub", "crunchyroll"))
         idioma_sub = idiomas[index_sub]
 
         link_sub = scrapertools.find_single_match(data, "link='([^']+)' title='\[%s" % idioma_sub)
@@ -92,16 +92,16 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         import traceback
         logger.error(traceback.format_exc())
         file_sub = ""
-    video_urls.append({'type':filename, 'res':quality, 'url':media_url, 'sub':file_sub})
-    # for video_url in video_urls:
-    #     logger.debug("%s - %s" % (video_url[0], video_url[1]))
-    return video_urls
+    videoUrls.append({'type':filename, 'res':quality, 'url':media_url, 'sub':file_sub})
+    # for videoUrl in videoUrls:
+    #     logger.debug("%s - %s" % (videoUrl[0], videoUrl[1]))
+    return videoUrls
 
 
 def login(page_url):
     login_page = "https://www.crunchyroll.com/login"
-    user = config.get_setting("user", server="crunchyroll")
-    password = config.get_setting("password", server="crunchyroll")
+    user = config.getSetting("user", server="crunchyroll")
+    password = config.getSetting("password", server="crunchyroll")
     data = httptools.downloadpage(login_page, headers=GLOBAL_HEADER).data
     if not "<title>Redirecting" in data:
         token = scrapertools.find_single_match(data, 'name="login_form\[_token\]" value="([^"]+)"')
@@ -159,7 +159,7 @@ def decrypt_subs(iv, data, id):
     import xml.etree.ElementTree as ET
     raiz = ET.fromstring(data)
     ass_sub = convert_to_ass(raiz)
-    file_sub = filetools.join(config.get_data_path(), 'crunchyroll_sub.ass')
+    file_sub = filetools.join(config.getDataPath(), 'crunchyroll_sub.ass')
     filetools.write(file_sub, ass_sub)
     return file_sub
 

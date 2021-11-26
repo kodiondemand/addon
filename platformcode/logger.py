@@ -16,7 +16,7 @@ try:
 except:
     testMode = False
 LOG_FORMAT = '{addname}[{filename}.{function}:{line}]{sep} {message}'
-DEBUG_ENABLED = config.get_setting("debug")
+DEBUG_ENABLED = config.getSetting("debug")
 DEF_LEVEL = xbmc.LOGINFO if sys.version_info[0] >= 3 else xbmc.LOGNOTICE
 
 
@@ -52,7 +52,7 @@ def log(*args, **kwargs):
                               message=msg), kwargs.get('level', DEF_LEVEL))
 
 def dbg(open=True):
-    if config.dev_mode():
+    if config.devMode():
         try:
             import web_pdb
             if not web_pdb.WebPdb.active_instance and open:

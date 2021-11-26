@@ -53,13 +53,13 @@ class ziptools(object):
                 try:
                     if filetools.exists(outfilename) and overwrite_question:
                         from platformcode import platformtools
-                        dyesno = platformtools.dialog_yesno("File already exists "," File %s to unzip already exists, do you want to overwrite it?" % filetools.basename(outfilename))
+                        dyesno = platformtools.dialogYesNo("File already exists "," File %s to unzip already exists, do you want to overwrite it?" % filetools.basename(outfilename))
                         if not dyesno:
                             break
                         if backup:
                             import time
                             hora_folder = "Backup [%s]" % time.strftime("%d-%m_%H-%M", time.localtime())
-                            backup = filetools.join(config.get_data_path(), 'backups', hora_folder, folder_to_extract)
+                            backup = filetools.join(config.getDataPath(), 'backups', hora_folder, folder_to_extract)
                             if not filetools.exists(backup):
                                 filetools.mkdir(backup)
                             filetools.copy(outfilename, filetools.join(backup, filetools.basename(outfilename)))

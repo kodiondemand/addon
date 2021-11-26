@@ -177,7 +177,7 @@ def findvideos(item):
         item.contentType = 'movie'
 
     # if 'protectlink' in data:
-    #     urls = scrapertools.find_multiple_matches(data, r'<iframe src="[^=]+=(.*?)"')
+    #     urls = scrapertools.findMultipleMatches(data, r'<iframe src="[^=]+=(.*?)"')
     #     logger.debug("SONO QUI: ", urls)
     #     for url in urls:
     #         url = url.decode('base64')
