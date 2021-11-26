@@ -78,19 +78,26 @@ def live(item):
     stations = res['stations']
 
     for it in stations.values():
+        logger.debug(jsontools.dump(it))
         plot = ''
         title = it['title']
         url = 'https:' + it['mediasetstation$pageUrl']
-        if 'plus' in title.lower() or 'premium' in title.lower(): continue
+        if 'SVOD' in it['mediasetstation$channelsRights']: continue
+        thumb = it.get('thumbnails',{}).get('channel_logo-100x100',{}).get('url','')
         if it['callSign'] in allguide:
 
             guide = allguide[it['callSign']]
-            plot = '[B]{}[/B]\n{}'.format(guide.get('currentListing', {}).get('mediasetlisting$epgTitle', ''),
-                                                                       guide.get('currentListing', {}).get('description', ''))
+            plot = '[B]{}[/B]\n{}'.format(guide.get('currentListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('currentListing', {}).get('description', ''))
             if 'nextListing' in guide.keys():
-                plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),
-                                                               guide.get('nextListing', {}).get('description', ''))
-            itemlist.append(item.clone(title=support.typo(title, 'bold'), fulltitle=title, callSign=it['callSign'], urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'], plot=plot, url=url, action='play', forcethumb=True))
+                plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('nextListing', {}).get('description', ''))
+            itemlist.append(item.clone(title=support.typo(title, 'bold'),
+                                       fulltitle=title, callSign=it['callSign'],
+                                       urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'],
+                                       plot=plot,
+                                       url=url,
+                                       action='play',
+                                       thumbnail=thumb,
+                                       forcethumb=True))
 
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
     support.thumb(itemlist, live=True)

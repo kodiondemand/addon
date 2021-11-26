@@ -17,7 +17,7 @@ else:
     from urllib import urlencode
 
 from time import time
-from core import httptools, scrapertools, servertools, tmdb, channeltools, autoplay, scraper
+from core import filetools, httptools, scrapertools, servertools, tmdb, channeltools, autoplay, scraper
 from core.item import Item
 from lib import unshortenit
 from platformcode import config
@@ -1482,11 +1482,14 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
     from channelselector import get_thumb
 
     if live:
+        def liveThumb(item):
+            thumb = 'https://raw.githubusercontent.com/kodiondemand/media/master/live/{}.png'.format(item.fulltitle.lower().replace(' ','_'))
+            if filetools.exists(thumb):
+                item.thumbnail = thumb
         if type(item_itemlist_string) == list:
-            for item in item_itemlist_string:
-                item.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item.fulltitle.lower().replace(' ','_') + '.png'
+            with futures.ThreadPoolExecutor() as executor: [executor.submit(liveThumb, it) for it in item_itemlist_string]
         else:
-            item_itemlist_string.thumbnail = "https://raw.githubusercontent.com/kodiondemand/media/master/live/" + item_itemlist_string.fulltitle.lower().replace(' ','_') + '.png'
+            item_itemlist_string.thumbnail = liveThumb(item_itemlist_string)
         return item_itemlist_string
 
     icon_dict = {'movie':['film', 'movie'],
