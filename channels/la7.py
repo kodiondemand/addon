@@ -135,13 +135,10 @@ def play(item):
                 item = it
                 break
     data = support.match(item).data
-    match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
-    if match:
-        url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
-        item = item.clone(title='Direct', url=url, server='directo', action='play')
-    else:
+
+    url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
+    if url:
         preurl = support.match(data, patron=r'preTokenUrl = "(.+?)"').match
-        url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
         tokenHeader = {
             'host': headers['host_token'],
             'user-agent': headers['user-agent'],
@@ -168,4 +165,9 @@ def play(item):
         lic_url='%s|%s|R{SSM}|'%(license_url, preLic)
         item.drm = DRM
         item.license = lic_url
+    else:
+        match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
+        if match:
+            url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
+            item = item.clone(title='Direct', url=url, server='directo', action='play')
     return support.servertools.find_video_items(item, data=url)
