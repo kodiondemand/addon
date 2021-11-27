@@ -533,7 +533,7 @@ def getCurrentView(item=None, parent_item=None):
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_tvshows']):
         return 'tvshow', 'tvshows'
 
-    elif parent_item.action in ['episode', 'get_episodes'] or item.contentType == 'episode':
+    elif parent_item.action in ['episodes', 'get_episodes'] or item.contentType == 'episode':
         return 'episode', 'tvshows'
 
     elif parent_item.action in ['get_seasons']:
@@ -546,11 +546,11 @@ def getCurrentView(item=None, parent_item=None):
     elif parent_item.action in ['filterchannels']:
         return 'channels', addons
 
-    elif item.action:
+    else:
         return 'menu', addons
 
-    else:
-        return None, None
+    # else:
+    #     return None, None
 
 
 def setViewMode(item, parent_item):
@@ -1387,12 +1387,14 @@ def setPlayer(item, xlistitem, mediaUrl, view, strm):
     item.options = {'strm':False}
     # logger.debug("item:\n" + item.tostring('\n'))
 
-    # Moved del conector "torrent" here
+    # Get Media Url for play Torrent
     if item.server == "torrent":
-        playTorrent(item, xlistitem, mediaUrl)
-        return
+        mediaUrl = playTorrent(item, mediaUrl)
+        if not mediaUrl:
+            return
+
     # If it is a strm file, play is not necessary
-    elif strm:
+    if strm:
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xlistitem)
         if item.subtitle:
             xbmc.sleep(2000)
@@ -1408,13 +1410,11 @@ def setPlayer(item, xlistitem, mediaUrl, view, strm):
         logger.info("mediaUrl=" + mediaUrl)
 
         if player_mode in [0,1]:
-            # preventBusy(item)
-            if player_mode in [1]:
-                # logger.dbg()
+            if player_mode in [1] and item.server != "torrent":
                 item.played_time = resumePlayback(getPlayedTime(item))
 
             from core import db
-            db['playitem']['item'] = item
+            db['control']['playItem'] = item
             db.close()
 
             logger.info('Player Mode:',['Direct', 'Bookmark'][player_mode])
@@ -1484,8 +1484,9 @@ def torrentClientInstalled(showTuple=False):
     return torrentOptions
 
 
-def playTorrent(item, xlistitem, mediaUrl):
+def playTorrent(item, mediaUrl):
     logger.debug()
+    # logger.dbg()
     import time
     from servers import torrent
 
@@ -1493,14 +1494,14 @@ def playTorrent(item, xlistitem, mediaUrl):
     if len(torrentOptions) == 0:
         from platformcode import elementum_download
         elementum_download.download()
-        return playTorrent(item, xlistitem, mediaUrl)
+        return playTorrent(item, mediaUrl)
     elif len(torrentOptions) > 1:
         selection = dialogSelect(config.getLocalizedString(70193), [opcion[0] for opcion in torrentOptions])
     else:
         selection = 0
 
     if selection >= 0:
-        preventBusy()
+        # preventBusy()
 
         mediaUrl = urllib.quote_plus(item.url)
         torr_client = torrentOptions[selection][0]
@@ -1514,14 +1515,14 @@ def playTorrent(item, xlistitem, mediaUrl):
         if torr_client in ['elementum'] and item.downloadFilename:
             torrent.elementum_download(item)
         else:
-            time.sleep(3)
-            xbmc.executebuiltin("PlayMedia(" + torrentOptions[selection][1] % mediaUrl + ")")
-
-            torrent.mark_auto_as_watched(item)
-
-            if not item.globalsearch:
-                while isPlaying() and not xbmc.Monitor().abortRequested():
-                    time.sleep(3)
+            import xbmcaddon
+            addon = xbmcaddon.Addon(id='plugin.video.elementum')
+            if addon.getSetting('download_storage') == '0':
+                addon.setSetting('download_storage', '1')
+                xbmc.sleep(3000)
+            mediaUrl = torrentOptions[selection][1] % mediaUrl
+        return mediaUrl
+    return ''
 
 
 def resumePlayback(played_time):
@@ -1557,7 +1558,7 @@ def resumePlayback(played_time):
                 self.set_values(False)
                 self.close()
 
-    if played_time and played_time > 30:
+    if played_time:
         Dialog = ResumePlayback('ResumePlayback.xml', config.getRuntimePath(), played_time=played_time)
         Dialog.show()
         t = 0

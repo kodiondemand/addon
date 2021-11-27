@@ -1882,9 +1882,9 @@ def get_jwplayer_mediaUrl(data, srvName, onlyHttp=False, dataIsBlock=False):
 def itemlistdb(itemlist=None):
     from core import db
     if itemlist:
-        db['itemlist']['itemlist'] = itemlist
+        db['control']['itemlist'] = itemlist
     else:
-        itemlist = db['itemlist'].get('itemlist',[])
+        itemlist = db['control'].get('itemlist',[])
     db.close()
     return itemlist
 

@@ -12,7 +12,7 @@ if PY3:
 else:
     import urllib2                                                  # Usamos el nativo de PY2 que es más rápido
 
-from core import filetools, jsontools, videolibrarydb
+from core import filetools, jsontools, support, videolibrarydb
 from platformcode import config, logger, platformtools
 from core import scrapertools
 from xml.dom import minidom
@@ -118,13 +118,10 @@ def mark_auto_as_watched():
     # If it is configured to mark as seen
     if config.getSetting("mark_as_watched", "videolibrary"):
         from core import db
-        item = db['playitem'].get('item')
+        item = db['control'].get('playItem')
         db.close()
-        imdb_id = xbmc.Player().getVideoInfoTag().getIMDBNumber()
-        if item.infoLabels['imdb_id'] == imdb_id:
-            # mark_as_watched_subThread(item)
-            threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
-            logger.debug('EXIT MONITOR')
+        threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
+        logger.debug('EXIT MONITOR')
 
 
 def sync_trakt_addon(path_folder):

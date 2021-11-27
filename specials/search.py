@@ -191,6 +191,7 @@ def saved_search(item):
     return itemlist
 
 def get_saved_searches():
+    # logger.dbg()
     current_saved_searches_list = config.getSetting("saved_searches_list", "search")
     if not current_saved_searches_list:
         current_saved_searches_list = []
@@ -209,9 +210,11 @@ def get_saved_searches():
                      thumbnail=thumb('search')))
         else:
             item = Item().fromjson(json.dumps(saved_search_item))
-            if item.action == 'Search':
-                item.action = 'new_search'
-                if item.type: item.mode = 'search/'+item.type
+            item.saved = True
+            item.channel = 'globalsearch' if config.getSetting('new_search') else 'classicsearch'
+            item.folder = False if config.getSetting('new_search') else True
+            if item.type: item.mode = 'search/' + item.type
+            if item.action == 'Search': item.action = 'new_search'
             saved_searches_list.append(item)
 
     return saved_searches_list

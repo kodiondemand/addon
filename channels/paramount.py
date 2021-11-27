@@ -64,7 +64,7 @@ def live(item):
     logger.debug()
     itemlist=[]
     for key, value in liveDict().items():
-        itemlist.append(item.clone(title=support.typo(key,'bold'), contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=key, contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='findvideos', forcethumb=True, no_return=True))
     return support.thumb(itemlist, mode='live')
 
 
@@ -92,7 +92,7 @@ def movies(item):
                 continue
             if item.text.lower() in title.lower():
                 itemlist.append(
-                    item.clone(title=support.typo(title,'bold'),
+                    item.clone(title=title,
                                fulltitle = title,
                                show = title,
                                contentTitle = title if item.contentType == 'movie' else '',
@@ -137,10 +137,10 @@ def episodes(item):
                 s = support.match(se, patron=r'S\s*(?P<season>\d+)').match
                 e = support.match(se, patron=r'E\s*(?P<episode>\d+)').match
                 if not e: e = support.match(it['meta']['subHeader'], patron=r'(\d+)').match
-                title = support.typo((s + 'x' if s else 'Episodio ') + e.zfill(2) + ' - ' + it['meta']['subHeader'],'bold')
+                title = (s + 'x' if s else 'Episodio ') + e.zfill(2) + ' - ' + it['meta']['subHeader']
             else:
                 s = e = '0'
-                title = support.typo(it['meta']['header']['title'],'bold')
+                title = it['meta']['header']['title']
             itemlist.append(
                 item.clone(title=title,
                         season=int(s) if s else '',
@@ -170,9 +170,4 @@ def play(item):
     url = 'https://media.mtvnservices.com/pmt/e1/access/index.html?uri=' + mgid + '&configtype=edge&ref=' + item.url
     ID, rootUrl = support.match(url, patron=[r'"id":"([^"]+)",',r'brightcove_mediagenRootURL":"([^"]+)"']).matches
     item.url = jsontools.load(support.match(rootUrl.replace('&device={device}','').format(uri = ID)).data)['package']['video']['item'][0]['rendition'][0]['src']
-
-    if item.livefilter:
-        d = liveDict()[item.livefilter]
-        item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
-        support.thumb(item, mode='live')
     return [item]

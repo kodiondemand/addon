@@ -10,6 +10,7 @@ from core import channeltools, scrapertools, support
 from platformcode import platformtools, config, logger
 from threading import Thread
 from collections import OrderedDict
+from specials.search import save_search
 
 if sys.version_info[0] >= 3:
     PY3 = True
@@ -69,7 +70,7 @@ PREV = 507
 
 
 class SearchWindow(xbmcgui.WindowXML):
-    def start(self, item, moduleDict={}, searchActions=[], thActions=None):
+    def start(self, item, thActions=None):
         logger.debug()
 
         self.exit = False
@@ -119,8 +120,12 @@ class SearchWindow(xbmcgui.WindowXML):
                 if not self.item.text: self.item.text = platformtools.dialogInput(default=last_search, heading='')
                 if self.item.text:
                     channeltools.setChannelSetting('Last_searched', self.item.text, 'search')
-                    from specials.search import save_search
-                    save_search(self.item.text)
+                    if self.item.mode == 'all':
+                        save_search(self.item.text)
+        else:
+            if self.item.context:
+                del self.item.context  # needed for preventing same content twice in saved search
+            if not self.item.saved: save_search(self.item.clone(channel='search', action='new_search').__dict__)
 
     def getActionsThread(self):
         logger.debug()
@@ -147,7 +152,7 @@ class SearchWindow(xbmcgui.WindowXML):
         # wait and return as getActionsThread load
         lastLen = len(self.searchActions)
         if self.thActions:
-            while self.thActions.is_alive():
+            while self.thActions.is_alive() or lastLen < len(self.searchActions):
                 while len(self.searchActions) == lastLen:
                     if not self.thActions.is_alive():
                         return
@@ -322,7 +327,7 @@ class SearchWindow(xbmcgui.WindowXML):
             self.PROGRESS.setPercent(percent)
             self.MAINTITLE.setText('{} | {}/{} [{}"]'.format(self.mainTitle,self.count, len(self.searchActions), int(time.time() - self.time)))
 
-            if percent == 100:
+            if percent == 100 and not self.thActions.is_alive():
                 if len(self.channels['valid']) or len(self.channels) == 2:
                     self.setFocusId(RESULTS)
                 elif not len(self.channels['valid']) and not len(self.channels):
@@ -608,7 +613,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.actors()
             elif search == 'persons':
                 item = self.item.clone(mode='person_', discovery=self.persons[pos])
-                new_search(item, self.moduleDict, self.searchActions)
+                new_search(item)
                 if close_action:
                     self.close()
             else:
@@ -616,7 +621,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 if self.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
 
-                new_search(item, self.moduleDict, self.searchActions)
+                new_search(item)
                 if close_action:
                     self.close()
 

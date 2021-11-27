@@ -283,6 +283,12 @@ class Item(object):
     def __str__(self):
         return '\r\t' + self.tostring('\r\t')
 
+    def __eq__(self, other):
+        if type(other) == Item:
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
     def set_parent_content(self, parentContent):
         """
         Fill the contentDetails fields with the information of the item "parent"

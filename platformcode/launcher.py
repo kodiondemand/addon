@@ -115,7 +115,8 @@ def run(item=None):
                 platformtools.itemlistUpdate(Item(channel='setting', action='report_menu'), True)
     finally:
         # db need to be closed when not used, it will cause freezes
-        from core import db
+        from core import db, videolibrarydb
+        videolibrarydb.close()
         db.close()
 
 

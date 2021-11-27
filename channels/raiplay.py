@@ -19,8 +19,8 @@ host = support.config.get_channel_url()
 
 @support.menu
 def mainlist(item):
-    top =  [('Dirette {bold}', ['/dirette', 'live', '/palinsesto/onAir.json']),
-            ('Replay {bold}', ['/guidatv', 'replayMenu', '/guidatv.json'])]
+    top =  [('Dirette {bullet bold}', ['/dirette', 'live', '/palinsesto/onAir.json']),
+            ('Replay {bullet bold}', ['/guidatv', 'replayMenu', '/guidatv.json'])]
 
     menu = [('Film {bullet bold}', ['/film', 'menu', '/tipologia/film/index.json']),
             ('Serie TV {bullet bold}', ['/serietv', 'menu', '/tipologia/serietv/index.json']),
@@ -58,7 +58,7 @@ def menu(item):
                 thumb = item.thumbnail
                 if 'RaiPlay Slider Generi Block' in it['type']:
                     action = 'menu'
-                    thumb = support.thumb('genres')
+                    thumb = support.thumb('genre')
                 itemlist.append(item.clone(title=support.typo(it['name'], 'bold'), data=it.get('contents', item.data), thumbnail=thumb, action=action))
 
     return itemlist
@@ -141,7 +141,7 @@ def live(item):
         current = it['currentItem']
         next = it['nextItem']
         plot = '[B]{}[/B]\n{}\n\nA Seguire: [B]{}[/B]\n{}'.format(current['name'], current['description'], next['name'], next['description'])
-        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, videoUrl=url + '.json', action='play'))
+        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, videoUrl=url + '.json', action='findvideos'))
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
     support.thumb(itemlist, mode='live')
     return itemlist
@@ -207,7 +207,7 @@ def replay(item):
                          plot = info['description'],
                          url = getUrl(it['weblink']),
                          videoUrl = getUrl(it['path_id']),
-                         action = 'play',
+                         action = 'findvideos',
                          forcethumb = True)
 
 
@@ -225,7 +225,7 @@ def replay(item):
         return [Item(title='Non ci sono Replay per questo Canale')]
     return itemlist
 
-def play(item):
+def findvideos(item):
     logger.debug()
 
     res = requests.get(item.videoUrl).json()
@@ -283,7 +283,7 @@ def addinfo(items, item):
                         plot=info.get('description', ''))
 
         if 'Genere' not in key.get('sub_type', '') and ('layout' not in key or key['layout'] == 'single'):
-            it.action = 'play'
+            it.action = 'findvideos'
             it.contentTitle = it.fulltitle
         else:
             it.action = 'episodes'

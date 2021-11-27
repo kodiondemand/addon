@@ -19,11 +19,10 @@ except:
 librerias = xbmc.translatePath(os.path.join(config.getRuntimePath(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import filetools, httptools, jsontools, scrapertools, db, support
+from core import filetools, httptools, scrapertools, db, videolibrarydb
 from lib import schedule
 from platformcode import logger, platformtools, updater, xbmc_videolibrary
 from specials import videolibrary
-from servers import torrent
 
 # if this service need to be reloaded because an update changed it
 needsReload = False
@@ -243,8 +242,10 @@ if __name__ == "__main__":
             logger.error(traceback.format_exc())
 
         if needsReload:
-            join_threads()
             db.close()
+            videolibrarydb.close()
+            join_threads()
+
             logger.info('Relaunching service.py')
             xbmc.executeJSONRPC(
                 '{"jsonrpc": "2.0", "id":1, "method": "Addons.SetAddonEnabled", "params": { "addonid": "plugin.video.kod", "enabled": false }}')
@@ -254,7 +255,8 @@ if __name__ == "__main__":
             break
 
         if monitor.waitForAbort(1):  # every second
-            join_threads()
             # db need to be closed when not used, it will cause freezes
             db.close()
+            videolibrarydb.close()
+            join_threads()
             break

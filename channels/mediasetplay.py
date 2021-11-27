@@ -2,12 +2,14 @@
 # ------------------------------------------------------------
 # Canale per Mediaset Play
 # ------------------------------------------------------------
+import functools
 
 from platformcode import logger, config
 import uuid, datetime, xbmc
 
 import requests, sys
-from core import support
+from core import jsontools, support, httptools
+
 if sys.version_info[0] >= 3:
     from urllib.parse import urlencode, quote
 else:
@@ -23,6 +25,7 @@ loginData = {"client_id": clientid, "platform": "pc", "appName": "web//mediasetp
 sessionUrl = "https://api.one.accedo.tv/session?appKey=59ad346f1de1c4000dfd09c5&uuid={uuid}&gid=default"
 
 session = requests.Session()
+session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 session.headers.update({'Content-Type': 'application/json', 'User-Agent': support.httptools.get_user_agent(), 'Referer': host})
 
 entry = 'https://api.one.accedo.tv/content/entry/{id}?locale=it'
@@ -75,19 +78,26 @@ def live(item):
     stations = res['stations']
 
     for it in stations.values():
+        logger.debug(jsontools.dump(it))
         plot = ''
         title = it['title']
         url = 'https:' + it['mediasetstation$pageUrl']
-        if 'plus' in title.lower() or 'premium' in title.lower(): continue
+        if 'SVOD' in it['mediasetstation$channelsRights']: continue
+        thumb = it.get('thumbnails',{}).get('channel_logo-100x100',{}).get('url','')
         if it['callSign'] in allguide:
 
             guide = allguide[it['callSign']]
-            plot = '[B]{}[/B]\n{}\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide['currentListing']['mediasetlisting$epgTitle'],
-                                                                        guide['currentListing']['description'],
-                                                                        guide['nextListing']['mediasetlisting$epgTitle'],
-                                                                        guide['nextListing']['description'],)
-
-            itemlist.append(item.clone(title=support.typo(title, 'bold'), fulltitle=title, callSign=it['callSign'], urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'], plot=plot, url=url, action='play', forcethumb=True))
+            plot = '[B]{}[/B]\n{}'.format(guide.get('currentListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('currentListing', {}).get('description', ''))
+            if 'nextListing' in guide.keys():
+                plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('nextListing', {}).get('description', ''))
+            itemlist.append(item.clone(title=title,
+                                       fulltitle=title, callSign=it['callSign'],
+                                       urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'],
+                                       plot=plot,
+                                       url=url,
+                                       action='findvideos',
+                                       thumbnail=thumb,
+                                       forcethumb=True))
 
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
     support.thumb(itemlist, mode='live')
@@ -103,7 +113,7 @@ def search(item, text):
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("%s" % line)
+            support.logger.error("%s" % line)
         return []
 
 
@@ -131,7 +141,7 @@ def movies(item):
         else:
             contentType = 'movie'
             video_id = it['guid']
-            action = 'play'
+            action = 'findvideos'
         for k, v in it['thumbnails'].items():
             if 'image_vertical' in k and not thumb:
                 thumb = v['url'].replace('.jpg', '@3.jpg')
@@ -140,7 +150,7 @@ def movies(item):
             if thumb and fanart:
                 break
 
-        itemlist.append(item.clone(title=support.typo(title, 'bold'),
+        itemlist.append(item.clone(title=title,
                                    fulltitle=title,
                                    contentTitle=title,
                                    contentSerieName=contentSerieName,
@@ -172,14 +182,14 @@ def epmenu(item):
             for s in item.seriesid:
                 itemlist.append(
                     item.clone(seriesid = s['id'],
-                               title=support.typo(s['title'], 'bold')))
+                               title=s['title']))
             if len(itemlist) == 1: return epmenu(itemlist[0])
         else:
             res = requests.get(epUrl.format(item.seriesid)).json()['entries']
             for it in res:
                 itemlist.append(
                     item.clone(seriesid = '',
-                               title=support.typo(it['description'], 'bold'),
+                               title=it['description'],
                                subbrand=it['mediasetprogram$subBrandId'],
                                action='episodes'))
             itemlist = sorted(itemlist, key=lambda it: it.title, reverse=True)
@@ -195,15 +205,18 @@ def episodes(item):
     except:  # per i test, xbmc.getLocalizedString non è supportato
         for month in range(21, 33): months.append('dummy')
 
+    # i programmi tv vanno ordinati per data decrescente, gli episodi delle serie per data crescente
+    order = 'desc' if '/programmi-tv/' in item.url else 'asc'
+
     itemlist = []
-    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|asc,tvSeasonEpisodeNumber').json()['entries']
+    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|' + order + ',tvSeasonEpisodeNumber').json()['entries']
 
     for it in res:
         thumb = ''
         titleDate = ''
         if 'mediasetprogram$publishInfo_lastPublished' in it:
             date = datetime.date.fromtimestamp(it['mediasetprogram$publishInfo_lastPublished'] / 1000)
-            titleDate ='  [{} {}]'.format(date.day, months[date.month])
+            titleDate ='  [{} {}]'.format(date.day, months[date.month-1])
         title = '[B]{}[/B]{}'.format(it['title'], titleDate)
         for k, v in it['thumbnails'].items():
             if 'image_keyframe' in k and not thumb:
@@ -215,15 +228,21 @@ def episodes(item):
                                    thumbnail=thumb,
                                    forcethumb=True,
                                    contentType='episode',
-                                   action='play',
+                                   action='findvideos',
                                    video_id=it['guid']))
 
     return itemlist
 
 
+def findvideos(item):
+    logger.debug()
+    return support.server(item, itemlist=[item.clone(server='directo', action='play')])
+
+
 def play(item):
     logger.debug()
     item.no_return=True
+    # support.dbg()
     mpd = config.getSetting('mpd', item.channel)
 
 
@@ -238,6 +257,8 @@ def play(item):
             if Format in it['format']:
                 item.url = requests.head(it['publicUrls'][0]).headers['Location']
                 pid = it['releasePids'][0]
+                if mpd and 'widevine' in it['assetTypes']:
+                    break
 
         if mpd:
             item.manifest = 'mpd'

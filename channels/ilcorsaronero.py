@@ -59,8 +59,7 @@ def movies(item):
         def itemlistHook(itemlist):
             args = item.args
             args[0] += 1
-            support.nextPage(itemlist, item, next_page=item.url, "movies")
-            # itemlist.append(item.clone(title=support.typo(support.config.getLocalizedString(30992), 'color kod bold'), args=args, thumbnail=support.thumb()))
+            support.nextPage(itemlist, item, 'movies', next_page=item.url, total_pages=15)
             return itemlist
     return locals()
 
@@ -73,7 +72,7 @@ def search(item, text):
         item.url += text + '.html'
     try:
         return movies(item)
-    # Cattura la eccezione così non interrompe la ricerca globle se il canale si rompe!
+    # Cattura l' eccezione così non interrompe la ricerca globle se il canale si rompe!
     except:
         import sys
         for line in sys.exc_info():
