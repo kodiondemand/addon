@@ -7,3 +7,5 @@ custom_code.json
 last_commit.txt
 __pycache__/
 .vscode/settings.json
+bin/
+lib/abi

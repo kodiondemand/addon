@@ -140,6 +140,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    registerOrLogin()
     logger.debug(item)
     # debug = True
     data = item.data

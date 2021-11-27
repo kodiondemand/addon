@@ -284,7 +284,10 @@ class Item(object):
         return '\r\t' + self.tostring('\r\t')
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if type(other) == Item:
+            return self.__dict__ == other.__dict__
+        else:
+            return False
 
     def set_parent_content(self, parentContent):
         """

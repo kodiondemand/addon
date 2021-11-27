@@ -222,6 +222,13 @@ def run(item=None):
             # Special action for findvideos, where the plugin looks for known urls
             elif item.action == "findvideos":
                 from core import servertools
+                from core import db
+                if db['OnPlay'].get('addon', False):
+                    item.autoplay = True
+                    db['OnPlay']['addon'] = False
+                    platformtools.fakeVideo()
+                db.close()
+
 
                 # First checks if channel has a "findvideos" function
                 if hasattr(channel, 'findvideos'):
@@ -292,9 +299,20 @@ def run(item=None):
 
                 platformtools.render_items(itemlist, item)
 
-            # For all other actions
+                # For all other actions
             else:
-                # import web_pdb; web_pdb.set_trace()
+                if item.channel == 'filmontv':
+                    reload = False
+                    from core import db
+                    if db['OnPlay'].get('addon', False):
+                        reload = True
+                    db['OnPlay']['addon'] = False
+                    db.close()
+                    if reload:
+                        platformtools.fakeVideo()
+                        import xbmc
+                        return xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
+
                 logger.debug("Executing channel '%s' method" % item.action)
                 itemlist = getattr(channel, item.action)(item)
                 if config.get_setting('trakt_sync'):
@@ -468,12 +486,8 @@ def play_from_library(item):
     import xbmcgui, xbmcplugin, xbmc
     from time import sleep
 
-    # logger.debug("item: \n" + item.tostring('\n'))
-    # xbmc.Player().play(os.path.join(config.get_runtime_path(), "resources", "kod.mp4"))
     if not item.autoplay and not item.next_ep:
         platformtools.fakeVideo()
-    # from core.support import dbg;dbg()
-    # platformtools.prevent_busy(item)
 
 
     itemlist=[]

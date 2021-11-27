@@ -4,9 +4,9 @@ import re, os, sys, time, requests, xbmc, xbmcaddon
 
 from core import filetools, httptools, jsontools
 from core.support import info, match
-from platformcode import config, platformtools
+from platformcode import config, platformtools, logger
 from lib.guessit import guessit
-from torrentool.api import Torrent
+from lib.torrentool.api import Torrent
 
 if sys.version_info[0] >= 3:
     import urllib.parse as urllib
@@ -92,13 +92,15 @@ def elementum_download(item):
             while not filetools.isfile(filetools.join(elementum_setting.getSetting('torrents_path'), TorrentName + '.torrent')):
                 time.sleep(1)
 
-            monitor_update(TorrentPath, TorrentName)
+        monitor_update(TorrentPath, TorrentName)
 
 
 def elementum_monitor():
+    # from core.support import dbg;dbg()
     path = xbmc.translatePath(config.get_setting('downloadlistpath'))
     elementum_setting, elementum_host, TorrentPath = setting()
     # active_torrent = filetools.listdir(TorrentPath)
+    # logger.debug('ELEMENTUM:', elementum_setting, elementum_host, TorrentPath)
 
     if elementum_setting:
         # check if command file exist
@@ -113,10 +115,11 @@ def elementum_monitor():
 
         if len(Monitor) > 0:
             try:
-                data = requests.get(elementum_host + '/list').json()
+                data = requests.get(elementum_host + '/list', timeout=2).json()
             except:
                 data = ''
             if data:
+                # from core.support import dbg;dbg()
                 for it in data:
                     progress = round(it['progress'], 2)
                     status = it['status']
@@ -143,6 +146,7 @@ def monitor_update(TorrentPath, value, remove=False):
     json = jsontools.load(open(monitor, "r").read())
     Monitor = json['monitor']
     info = Torrent.from_file(filetools.join(TorrentPath, value + '.torrent'))
+    logger.debug('ELEMENTUM MONITOR', Monitor)
     path = xbmc.translatePath(config.get_setting('downloadlistpath'))
 
     if not value in Monitor:
@@ -174,13 +178,14 @@ def set_elementum(SET=False):
     backup_setting = json['settings']
     write = False
     if SET:
+        elementum_setting.setSetting('download_storage', '0')  
         if elementum_setting.getSetting('logger_silent') == False or not 'logger_silent' in backup_setting:
             elementum_setting.setSetting('logger_silent', 'true')
             backup_setting['logger_silent'] = 'false'
 
-        if elementum_setting.getSetting('download_storage') != 0 or not 'download_storage' in backup_setting:
-            backup_setting['download_storage'] = elementum_setting.getSetting('download_storage')           # Backup Setting
-            elementum_setting.setSetting('download_storage', '0')                                    # Set Setting
+        # if elementum_setting.getSetting('download_storage') != 0 or not 'download_storage' in backup_setting:
+        #     backup_setting['download_storage'] = elementum_setting.getSetting('download_storage')           # Backup Setting
+        #     elementum_setting.setSetting('download_storage', '0')                                    # Set Setting
 
         if elementum_setting.getSetting('download_path') != config.get_setting('downloadpath') or not 'download_path' in backup_setting:
             backup_setting['download_path'] = elementum_setting.getSetting('download_path')              # Backup Setting
@@ -189,7 +194,8 @@ def set_elementum(SET=False):
 
     elif backup_setting:
         elementum_setting.setSetting('logger_silent', backup_setting['logger_silent'])
-        elementum_setting.setSetting('download_storage', backup_setting['download_storage'])
+        elementum_setting.setSetting('download_storage', '1')
+        # elementum_setting.setSetting('download_storage', backup_setting['download_storage'])
         elementum_setting.setSetting('download_path', backup_setting['download_path'])
         json['settings'] = {}
         write = True

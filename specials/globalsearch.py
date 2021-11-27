@@ -8,6 +8,7 @@ from core import channeltools, servertools, scrapertools
 from platformcode import platformtools, config, logger
 from platformcode.launcher import run
 from threading import Thread
+from specials.search import save_search
 
 if sys.version_info[0] >= 3:
     PY3 = True
@@ -28,9 +29,11 @@ def busy(state):
     if state: xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
     else: xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
 
+
 def set_workers():
     workers = config.get_setting('thread_number') if config.get_setting('thread_number') > 0 else None
     return workers
+
 
 def Search(*args):
     xbmc.executebuiltin('Dialog.Close(all)')
@@ -119,9 +122,12 @@ class SearchWindow(xbmcgui.WindowXML):
                 if not self.item.text: self.item.text = platformtools.dialog_input(default=last_search, heading='')
                 if self.item.text:
                     channeltools.set_channel_setting('Last_searched', self.item.text, 'search')
-                    from specials.search import save_search
-                    save_search(self.item.text)
-
+                    if self.item.mode == 'all':
+                        save_search(self.item.text)
+        else:
+            if self.item.context:
+                del self.item.context  # needed for preventing same content twice in saved search
+            save_search(self.item.__dict__)
 
     def getActionsThread(self):
         logger.debug()
@@ -186,7 +192,7 @@ class SearchWindow(xbmcgui.WindowXML):
             rating = str(result.get('vote_average', ''))
 
             new_item = Item(channel='globalsearch',
-                            action=True,
+                            action="Search",
                             title=title,
                             thumbnail=thumbnail,
                             fanart=fanart,
@@ -246,8 +252,8 @@ class SearchWindow(xbmcgui.WindowXML):
             discovery = {'url': 'person/%s/combined_credits' % cast_id, 'page': '1', 'sort_by': 'primary_release_date.desc', 'language': def_lang}
             self.persons.append(discovery)
 
-            new_item = Item(channel='search',
-                            action=True,
+            new_item = Item(channel='globalsearch',
+                            action="Search",
                             title=name,
                             thumbnail=thumb,
                             mode='search')
@@ -641,7 +647,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.page -= 1
                 self.actors()
             elif search == 'persons':
-                item = self.item.clone(mode='person_', discovery=self.persons[pos])
+                item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item')).clone(mode='person_', discovery=self.persons[pos], text=True, folder=False)
                 Search(item, self.thActions)
                 if close_action:
                     self.close()
@@ -649,7 +655,9 @@ class SearchWindow(xbmcgui.WindowXML):
                 item = Item().fromurl(self.RESULTS.getSelectedItem().getProperty('item'))
                 if self.item.mode == 'movie': item.contentTitle = self.RESULTS.getSelectedItem().getLabel()
                 else: item.contentSerieName = self.RESULTS.getSelectedItem().getLabel()
+                item.folder = False
 
+                logger.debug(item)
                 Search(item, self.thActions)
                 if close_action:
                     self.close()
@@ -789,7 +797,6 @@ class SearchWindow(xbmcgui.WindowXML):
             self.thread.join()
             busy(False)
         self.close()
-
 
     def context(self):
         focus = self.getFocusId()

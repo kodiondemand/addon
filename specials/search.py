@@ -77,21 +77,9 @@ def sub_menu(item):
 def saved_search(item):
     logger.debug()
 
-    itemlist = list()
-    saved_searches_list = get_saved_searches()
+    itemlist = get_saved_searches()
 
-
-    for saved_search_text in saved_searches_list:
-        itemlist.append(
-            Item(channel=item.channel if not config.get_setting('new_search') else 'globalsearch',
-                 action="new_search" if not config.get_setting('new_search') else 'Search',
-                 title=typo(saved_search_text.split('{}')[0], 'bold'),
-                 search_text=saved_search_text.split('{}')[0],
-                 text=saved_search_text.split('{}')[0],
-                 mode='all',
-                 thumbnail=get_thumb('search.png')))
-
-    if len(saved_searches_list) > 0:
+    if len(itemlist) > 0:
         itemlist.append(
             Item(channel=item.channel,
                  action="clear_saved_searches",
@@ -807,11 +795,9 @@ def save_search(text):
     if text:
         saved_searches_limit = config.get_setting("saved_searches_limit")
 
-        current_saved_searches_list = config.get_setting("saved_searches_list", "search")
-        if current_saved_searches_list is None:
+        saved_searches_list = config.get_setting("saved_searches_list", "search")
+        if not saved_searches_list:
             saved_searches_list = []
-        else:
-            saved_searches_list = list(current_saved_searches_list)
 
         if text in saved_searches_list:
             saved_searches_list.remove(text)
@@ -824,13 +810,25 @@ def save_search(text):
 def clear_saved_searches(item):
     config.set_setting("saved_searches_list", list(), "search")
     platformtools.dialog_ok(config.get_localized_string(60423), config.get_localized_string(60424))
+    platformtools.itemlist_refresh()
 
 
 def get_saved_searches():
     current_saved_searches_list = config.get_setting("saved_searches_list", "search")
-    if current_saved_searches_list is None:
-        saved_searches_list = []
-    else:
-        saved_searches_list = list(current_saved_searches_list)
+    if not current_saved_searches_list:
+        current_saved_searches_list = []
+    saved_searches_list = []
+    for saved_search_item in current_saved_searches_list:
+        if type(saved_search_item) == str:
+            saved_searches_list.append(
+                Item(channel='search' if not config.get_setting('new_search') else 'globalsearch',
+                     action="new_search" if not config.get_setting('new_search') else 'Search',
+                     title=typo(saved_search_item.split('{}')[0], 'bold'),
+                     search_text=saved_search_item.split('{}')[0],
+                     text=saved_search_item.split('{}')[0],
+                     mode='all',
+                     thumbnail=get_thumb('search.png')))
+        else:
+            saved_searches_list.append(Item().fromjson(json.dumps(saved_search_item)))
 
     return saved_searches_list

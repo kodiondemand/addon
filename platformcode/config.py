@@ -439,3 +439,7 @@ def verify_directories_created():
 
 def get_online_server_thumb(server):
     return "https://raw.github.com/kodiondemand/media/master/resources/servers/" + server.lower().replace('_server','') + '.png'
+
+
+def get_language():
+    return get_localized_string(20001)

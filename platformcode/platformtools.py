@@ -408,7 +408,8 @@ def viewmodeMonitor():
                     if currentMode != defaultMode:
                         # logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
                         config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
-                        dialog_notification(config.get_localized_string(70153),
+                        if config.get_setting('viewchange_notify'):
+                            dialog_notification(config.get_localized_string(70153),
                                                         config.get_localized_string(70187) % (content, currentModeName),
                                                         sound=False)
         except:
@@ -1138,8 +1139,8 @@ def show_video_info(*args, **kwargs):
 
 
 def show_recaptcha(key, referer):
-    from platformcode.recaptcha import Recaptcha
-    return Recaptcha("Recaptcha.xml", config.get_runtime_path()).Start(key, referer)
+    from platformcode.recaptcha import Kodi
+    return Kodi(key, referer).run()
 
 
 def alert_no_disponible_server(server):
@@ -1489,39 +1490,27 @@ def play_torrent(item, xlistitem, mediaurl):
         selection = 0
 
     if selection >= 0:
-        prevent_busy()
+        prevent_busy(item)
 
         mediaurl = urllib.quote_plus(item.url)
         torr_client = torrent_options[selection][0]
 
         if torr_client in ['elementum'] and item.infoLabels['tmdb_id']:
             if item.contentType == 'episode' and "elementum" not in torr_client:
-                mediaurl += "&episode=%s&library=&season=%s&show=%s&tmdb=%s&type=episode" % (item.infoLabels['episode'], item.infoLabels['season'], item.infoLabels['tmdb_id'], item.infoLabels['tmdb_id'])
+                mediaurl += "&episode=%s&season=%s&show=%s&tmdb=%s&type=episode" % (item.infoLabels['episode'], item.infoLabels['season'], item.infoLabels['tmdb_id'], item.infoLabels['tmdb_id'])
             elif item.contentType == 'movie':
-                mediaurl += "&library=&tmdb=%s&type=movie" % (item.infoLabels['tmdb_id'])
+                mediaurl += "&tmdb=%s&type=movie" % (item.infoLabels['tmdb_id'])
 
         if torr_client in ['elementum'] and item.downloadFilename:
             torrent.elementum_download(item)
 
         else:
-            # xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
-            if (item.fromLibrary and item.play_from == 'window') or item.window:
-                xlistitem.setPath(torrent_options[selection][1] % mediaurl)
-                playlist = xbmc.PlayList(xbmc.PLAYLIST_VIDEO)
-                playlist.clear()
-                playlist.add(torrent_options[selection][1] % mediaurl, xlistitem)
-                xbmc_player.play(playlist, xlistitem)
-            else:
-                if not item.autoplay and item.channel != 'videolibrary': fakeVideo()
-                if xbmc.getCondVisibility("system.platform.android"): xbmc.sleep(3000)
-                xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
-
-            # torrent.mark_auto_as_watched(item)
-
-            # if not item.globalsearch:
-            #     while is_playing() and not xbmc.Monitor().abortRequested():
-            #         time.sleep(3)
-
+            import xbmcaddon
+            addon = xbmcaddon.Addon(id='plugin.video.elementum')
+            if addon.getSetting('download_storage') == '0':
+                addon.setSetting('download_storage', '1')
+                xbmc.sleep(3000)
+            xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
 
 def resume_playback(played_time):
     class ResumePlayback(xbmcgui.WindowXMLDialog):
@@ -1597,173 +1586,38 @@ def install_inputstream():
 
 
 def install_widevine():
-    platform = get_platform()
-    if platform['os'] != 'android':
-        from core.httptools import downloadpage
-        from xbmcaddon import Addon
-        from core import jsontools
-        from distutils.version import LooseVersion
-        path = xbmc.translatePath(Addon('inputstream.adaptive').getSetting('DECRYPTERPATH'))
-
-        # if Widevine CDM is not installed
-        if not os.path.exists(path) or not os.listdir(path):
-            select = dialog_yesno('Widevine CDM', config.get_localized_string(70808))
-            if select > 0:
-                if not 'arm' in platform['arch']:
-                    last_version = downloadpage('https://dl.google.com/widevine-cdm/versions.txt').data.split()[-1]
-                    download_widevine(last_version, platform, path)
-                else:
-                    json = downloadpage('https://dl.google.com/dl/edgedl/chromeos/recovery/recovery.json').data
-                    devices = jsontools.load(json)
-                    download_chromeos_image(devices, platform, path)
-
-        # if Widevine CDM is outdated
-        elif platform['os'] != 'android':
-            if not 'arm' in platform['arch']:
-                last_version = downloadpage('https://dl.google.com/widevine-cdm/versions.txt').data.split()[-1]
-                current_version = jsontools.load(open(os.path.join(path, 'manifest.json')).read())['version']
-                if LooseVersion(last_version) > LooseVersion(current_version):
-                    select = dialog_yesno(config.get_localized_string(70810),config.get_localized_string(70809))
-                    if select > 0: download_widevine(last_version, platform, path)
-            else:
-                devices = jsontools.load(downloadpage('https://dl.google.com/dl/edgedl/chromeos/recovery/recovery.json').data)
-                current_version = jsontools.load(open(os.path.join(path, 'config.json')).read())['version']
-                last_version = best_chromeos_image(devices)['version']
-                if LooseVersion(last_version) > LooseVersion(current_version):
-                    select = dialog_yesno(config.get_localized_string(70810),config.get_localized_string(70809))
-                    if select > 0:download_chromeos_image(devices, platform, path)
-
-
-def download_widevine(version, platform, path):
-    # for x86 architectures
-    from zipfile import ZipFile
-    from core import downloadtools
-    archiveName = 'https://dl.google.com/widevine-cdm/' + version + '-' + platform['os'] + '-' + platform['arch'] + '.zip'
-    fileName = config.get_temp_file('widevine.zip')
-    if not os.path.exists(archiveName):
-        if not os.path.exists(fileName):
-            downloadtools.downloadfile(archiveName, fileName, header='Download Widevine CDM')
-        zip_obj = ZipFile(fileName)
-        for filename in zip_obj.namelist():
-            zip_obj.extract(filename, path)
-        zip_obj.close()
-        os.remove(fileName)
-
-
-def download_chromeos_image(devices, platform, path):
-    # for arm architectures
-    from core import downloadtools
-    from core import jsontools
-    best = best_chromeos_image(devices)
-    archiveName = best['url']
-    version = best['version']
-
-    fileName = config.get_temp_file(archiveName.split('/')[-1])
-    if not os.path.exists(fileName):
-        downloadtools.downloadfile(archiveName, fileName, header='Download Widevine CDM')
-    from lib.arm_chromeos import ChromeOSImage
-    ChromeOSImage(fileName).extract_file(
-                filename='libwidevinecdm.so',
-                extract_path=os.path.join(path),
-                progress=dialog_progress(config.get_localized_string(70811),config.get_localized_string(70812)))
-    recovery_file = os.path.join(path, os.path.basename('https://dl.google.com/dl/edgedl/chromeos/recovery/recovery.json'))
-    config_file = os.path.join(path, 'config.json')
-    if not os.path.exists(path):
-        os.mkdir(path)
-    with open(recovery_file, 'w') as reco_file:
-        reco_file.write(jsontools.dump(devices, indent=4))
-        reco_file.close()
-    with open(config_file, 'w') as conf_file:
-        conf_file.write(jsontools.dump(best))
-        conf_file.close()
-    os.remove(fileName)
-
-def best_chromeos_image(devices):
-    best = None
-    for device in devices:
-        # Select ARM hardware only
-        for arm_hwid in ['BIG','BLAZE','BOB','DRUWL','DUMO','ELM','EXPRESSO','FIEVEL','HANA','JAQ','JERRY','KEVIN','KITTY','MICKEY','MIGHTY','MINNIE','PHASER','PHASER360','PI','PIT','RELM','SCARLET','SKATE','SNOW','SPEEDY','SPRING','TIGER']:
-            if arm_hwid in device['hwidmatch']:
-                hwid = arm_hwid
-                break  # We found an ARM device, rejoice !
-        else:
-            continue  # Not ARM, skip this device
-
-        device['hwid'] = hwid
-
-        # Select the first ARM device
-        if best is None:
-            best = device
-            continue  # Go to the next device
-
-        # Skip identical hwid
-        if hwid == best['hwid']:
-            continue
-
-        # Select the newest version
-        from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module,useless-suppression
-        if LooseVersion(device['version']) > LooseVersion(best['version']):
-            logger.info('%s (%s) is newer than %s (%s)' % (device['hwid'], device['version'], best['hwid'], best['version']))
-            best = device
-
-        # Select the smallest image (disk space requirement)
-        elif LooseVersion(device['version']) == LooseVersion(best['version']):
-            if int(device['filesize']) + int(device['zipfilesize']) < int(best['filesize']) + int(best['zipfilesize']):
-                logger.info('%s (%d) is smaller than %s (%d)' % (device['hwid'], int(device['filesize']) + int(device['zipfilesize']), best['hwid'], int(best['filesize']) + int(best['zipfilesize'])))
-                best = device
-    return best
-
-def get_platform():
-    import platform
-    build = xbmc.getInfoLabel("System.BuildVersion")
-    kodi_version = int(build.split()[0][:2])
-    ret = {
-        "auto_arch": sys.maxsize > 2 ** 32 and "64-bit" or "32-bit",
-        "arch": sys.maxsize > 2 ** 32 and "x64" or "ia32",
-        "os": "",
-        "version": platform.release(),
-        "kodi": kodi_version,
-        "build": build
-    }
+    # Not necessary on Android devices
     if xbmc.getCondVisibility("system.platform.android"):
-        ret["os"] = "android"
-        if "arm" in platform.machine() or "aarch" in platform.machine():
-            ret["arch"] = "arm"
-            if "64" in platform.machine() and ret["auto_arch"] == "64-bit":
-                ret["arch"] = "arm64"
-    elif xbmc.getCondVisibility("system.platform.linux"):
-        ret["os"] = "linux"
-        if "aarch" in platform.machine() or "arm64" in platform.machine():
-            if xbmc.getCondVisibility("system.platform.linux.raspberrypi"):
-                ret["arch"] = "armv7"
-            elif ret["auto_arch"] == "32-bit":
-                ret["arch"] = "armv7"
-            elif ret["auto_arch"] == "64-bit":
-                ret["arch"] = "arm64"
-            elif platform.architecture()[0].startswith("32"):
-                ret["arch"] = "arm"
-            else:
-                ret["arch"] = "arm64"
-        elif "armv7" in platform.machine():
-            ret["arch"] = "armv7"
-        elif "arm" in platform.machine():
-            ret["arch"] = "arm"
-    elif xbmc.getCondVisibility("system.platform.xbox"):
-        ret["os"] = "win"
-        ret["arch"] = "x64"
-    elif xbmc.getCondVisibility("system.platform.windows"):
-        ret["os"] = "win"
-        if platform.machine().endswith('64'):
-            ret["arch"] = "x64"
-    elif xbmc.getCondVisibility("system.platform.osx"):
-        ret["os"] = "mac"
-        ret["arch"] = "x64"
-    elif xbmc.getCondVisibility("system.platform.ios"):
-        ret["os"] = "ios"
-        ret["arch"] = "arm"
+        return
 
-    return ret
+    # For all other devices use InputSeream Helper to install or update Widevine
+    from core import filetools
+    from xbmcaddon import Addon
+    addonName = 'script.module.inputstreamhelper'
 
+    def isHelper():
+        # If InputStream Helper is not installed requires installation
+        ret = False
+        if filetools.exists(xbmc.translatePath('special://home/addons/{}'.format(addonName))):
+            ret = True
+        else:
+            xbmc.executebuiltin('InstallAddon({})'.format(addonName), wait=True)
+            try:
+                addon = Addon(id=addonName)
+                ret = True
+            except:
+                pass
+        return ret
+
+    # If InputStream Helper is installed, install or update Widevine
+    if isHelper():
+        addon = Addon(id=addonName)
+        path = filetools.join(addon.getAddonInfo('Path'), 'lib')
+        sys.path.append(path)
+        from inputstreamhelper import Helper
+        helper = Helper('mpd', drm='widevine')
+        if not helper._check_widevine():
+            helper.install_widevine()
 
 
 def get_played_time(item):
@@ -1831,7 +1685,9 @@ def prevent_busy(item=None):
 
 
 def fakeVideo():
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True,
+                              xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
+    sleep = 200
     while not is_playing():
-        xbmc.sleep(10)
+        xbmc.sleep(sleep)
     xbmc.Player().stop()

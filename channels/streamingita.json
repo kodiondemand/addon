@@ -1,0 +1,11 @@
+{
+	"id": "streamingita",
+	"name": "StreamingITA",
+	"language": ["ita"],
+	"active": true,
+	"thumbnail": "streamingita.png",
+	"banner": "streamingita.png",
+	"categories": ["tvshow", "movie"],
+	"not_active": ["include_in_newest_peliculas", "include_in_newest_anime", "include_in_newest_series"],
+	"settings": []
+}

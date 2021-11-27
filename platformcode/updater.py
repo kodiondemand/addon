@@ -306,7 +306,7 @@ def updateFromZip(message=config.get_localized_string(80050)):
 
 def refreshLang():
     from platformcode import config
-    language = config.get_localized_string(20001)
+    language = config.get_language()
     if language == 'eng':
         xbmc.executebuiltin("SetGUILanguage(resource.language.it_it)")
         xbmc.executebuiltin("SetGUILanguage(resource.language.en_en)")

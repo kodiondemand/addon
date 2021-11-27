@@ -34,6 +34,7 @@ def mark_auto_as_watched(item):
         sync = False
         next_episode = None
         show_server = True
+        mark_time = 0
 
         percentage = float(config.get_setting("watched_setting")) / 100
         time_from_end = config.get_setting('next_ep_seconds')
@@ -85,7 +86,7 @@ def mark_auto_as_watched(item):
                 break
 
         # if item.options['continue']:
-        if actual_time < mark_time:
+        if actual_time < mark_time and mark_time:
             item.played_time = actual_time
         else: item.played_time = 0
         platformtools.set_played_time(item)

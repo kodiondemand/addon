@@ -485,7 +485,8 @@ def findvideos(item):
             except ImportError: from urlparse import urlsplit
             try:
                 if urlsplit(item_json.url).netloc.split('.')[0] in channel.host:
-                    item_json.url = channel.host + urlsplit(item_json.url).path
+                    spurl = urlsplit(item_json.url)
+                    item_json.url = channel.host + spurl.path + ('?' + spurl.query if spurl.query else '')
             except: pass
 
             try:

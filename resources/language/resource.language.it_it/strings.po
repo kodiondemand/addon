@@ -4856,8 +4856,8 @@ msgid "Insert page number"
 msgstr "Inserisci numero di pagina"
 
 msgctxt "#70514"
-msgid ""
-msgstr ""
+msgid "Notify current view saves"
+msgstr "Notifica i salvataggi della vista attuale"
 
 msgctxt "#70515"
 msgid "Completed %s"

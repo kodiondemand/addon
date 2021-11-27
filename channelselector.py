@@ -253,7 +253,7 @@ def set_channel_info(parameters):
 def auto_filter(auto_lang=False):
     list_lang = ['ita', 'vos', 'sub-ita']
     if config.get_setting("channel_language") == 'auto' or auto_lang == True:
-        lang = config.get_localized_string(20001)
+        lang = config.get_language()
 
     else:
         lang = config.get_setting("channel_language", default="all")
