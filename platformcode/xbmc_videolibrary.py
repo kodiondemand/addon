@@ -377,19 +377,20 @@ def set_watched_on_kod(data):
                     filename = 'tvshow.nfo'
 
                 path = filetools.join(path, filename)
-                head_nfo, item = videolibrarytools.read_nfo(path)
-                if item.library_playcounts:
-                    item.library_playcounts.update({title: playcount})
-                else:
-                    item.library_playcounts = {title: playcount}
-                filetools.write(path, head_nfo + item.tojson())
+                if filetools.exists(path):
+                    head_nfo, item = videolibrarytools.read_nfo(path)
+                    if item.library_playcounts:
+                        item.library_playcounts.update({title: playcount})
+                    else:
+                        item.library_playcounts = {title: playcount}
+                    filetools.write(path, head_nfo + item.tojson())
 
-                if item.infoLabels['mediatype'] == "tvshow":
-                    for season in item.library_playcounts:
-                        if "season" in season:
-                            season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))
-                            item = videolibrary.check_season_playcount(item, season_num)
-                            filetools.write(path, head_nfo + item.tojson())
+                    if item.infoLabels['mediatype'] == "tvshow":
+                        for season in item.library_playcounts:
+                            if "season" in season:
+                                season_num = int(scrapertools.find_single_match(season, r'season (\d+)'))
+                                item = videolibrary.check_season_playcount(item, season_num)
+                                filetools.write(path, head_nfo + item.tojson())
 
 def mark_content_as_watched_on_kod(path):
     from specials import videolibrary
