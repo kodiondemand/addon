@@ -69,6 +69,13 @@ def run(item=None):
 
     logger.info(item.tostring())
 
+    reload = False
+    from core import db
+    if db['OnPlay'].get('addon', False):
+        reload = True
+    db['OnPlay']['addon'] = False
+    db.close()
+
     try:
         if not config.get_setting('tmdb_active'):
             config.set_setting('tmdb_active', True)
@@ -161,6 +168,11 @@ def run(item=None):
                     import re
                     item.url = re.sub('([=/])[0-9]+(/?)$', '\g<1>' + page + '\g<2>', item.url)
                 xbmc.executebuiltin("Container.Update(%s?%s)" % (sys.argv[0], item.tourl()))
+
+        elif reload and item.channel == 'filmontv' and item.action == 'new_search':
+            platformtools.fakeVideo()
+            import xbmc
+            return xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
         else:
             # Checks if channel exists
             if os.path.isfile(os.path.join(config.get_runtime_path(), 'channels', item.channel + ".py")):
@@ -222,13 +234,9 @@ def run(item=None):
             # Special action for findvideos, where the plugin looks for known urls
             elif item.action == "findvideos":
                 from core import servertools
-                from core import db
-                if db['OnPlay'].get('addon', False):
+                if reload:
                     item.autoplay = True
-                    db['OnPlay']['addon'] = False
                     platformtools.fakeVideo()
-                db.close()
-
 
                 # First checks if channel has a "findvideos" function
                 if hasattr(channel, 'findvideos'):
@@ -301,17 +309,6 @@ def run(item=None):
 
                 # For all other actions
             else:
-                if item.channel == 'filmontv':
-                    reload = False
-                    from core import db
-                    if db['OnPlay'].get('addon', False):
-                        reload = True
-                    db['OnPlay']['addon'] = False
-                    db.close()
-                    if reload:
-                        platformtools.fakeVideo()
-                        import xbmc
-                        return xbmc.executebuiltin("Container.Update(" + sys.argv[0] + "?" + item.tourl() + ")")
 
                 logger.debug("Executing channel '%s' method" % item.action)
                 itemlist = getattr(channel, item.action)(item)
