@@ -3,10 +3,11 @@
 # Canale per streamingITA
 # ------------------------------------------------------------
 
-from core import support
+from core import support, httptools
 from platformcode import logger, config
 
 host = config.get_channel_url()
+headers = [['Referer', host]]
 
 
 @support.menu
@@ -42,23 +43,11 @@ def episodios(item):
 
 
 def findvideos(item):
-    itemlist = []
+    data = []
     for link in support.dooplay_get_links(item, host):
-        itemlist.append(
-            item.clone(action="play", url=link['url']))
-    # if item.contentType == 'episode':
-    #     linkHead = support.httptools.downloadpage(item.url, only_headers=True).headers['link']
-    #     epId = support.scrapertools.find_single_match(linkHead, r'\?p=([0-9]+)>')
-    #     for link in support.dooplay_get_links(item, host, paramList=[['tv', epId, 1, 'title', 'server']]):
-    #         itemlist.append(
-    #             item.clone(action="play", url=link['url']))
-    # else:
-    #     for link, quality in support.match(item.url, patron="(" + host + """links/[^"]+).*?class="quality">([^<]+)""").matches:
-    #         srv = support.servertools.find_video_items(data=support.httptools.downloadpage(link).data)
-    #         for s in srv:
-    #             s.quality = quality
-    #         itemlist.extend(srv)
-    return support.server(item, itemlist=itemlist)
+        url = httptools.downloadpage(link['url'], only_headers=True, headers=headers).url
+        data.append(url)
+    return support.server(item, data)
 
 
 @support.scrape
