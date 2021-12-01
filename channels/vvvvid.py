@@ -2,17 +2,17 @@
 # ------------------------------------------------------------
 # Canale per vvvvid
 # ----------------------------------------------------------
-import functools
+import functools, re
 
 import requests, sys, inspect
-from core import jsontools, support, tmdb, httptools
+from core import support, tmdb, httptools
 from platformcode import autorenumber, logger, config
 
 host = support.config.get_channel_url()
 
 # Creating persistent session
 current_session = requests.Session()
-current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
+# current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36'}
 
 # Getting conn_id token from vvvvid and creating payload
@@ -27,7 +27,7 @@ except:
 
 
 main_host = host + '/vvvvid/ondemand/'
-# host = main_host
+pagination = 20
 
 
 @support.menu
@@ -103,12 +103,13 @@ def newest(categoria):
 
 
 def peliculas(item):
+    if not item.page:item.page = 1
     itemlist = []
-    # support.dbg()
     if not item.args:
-        json_file =loadjs(item.url + 'channel/10005/last/')
-        support.logger.debug(json_file)
-        make_itemlist(itemlist, item, json_file)
+        if not itemlist:
+            json_file =loadjs(item.url + 'channel/10005/last/')
+            support.logger.debug(json_file)
+            make_itemlist(itemlist, item, json_file)
 
     elif ('=' not in item.args) and ('=' not in item.url):
         json_file=loadjs(item.url + item.args)
@@ -130,6 +131,27 @@ def peliculas(item):
         json_file=loadjs(item.url)
         item.args=''
         make_itemlist(itemlist, item, json_file)
+
+    itlist = []
+    for i, it in enumerate(itemlist):
+        if pagination and (item.page - 1) * pagination > i: continue  # pagination
+        if pagination and i >= item.page * pagination: break  # pagination
+
+        itlist.append(it)
+
+    if pagination and len(itemlist) >= pagination:
+        if inspect.stack()[1][3] != 'get_newest':
+            itlist.append(
+                item.clone(action='peliculas',
+                    title=support.typo(config.get_localized_string(30992), 'color kod bold'),
+                    fulltitle=item.fulltitle,
+                    show=item.show,
+                    url=item.url,
+                    args=item.args,
+                    page=item.page + 1,
+                    thumbnail=support.thumb()))
+        itemlist = itlist
+
     if 'category' in item.args:
         support.thumb(itemlist,genre=True)
     elif not 'filter' in item.args:
@@ -225,22 +247,31 @@ def make_itemlist(itemlist, item, data):
     for key in data['data']:
         if search.lower() in encode(key['title']).lower():
             title = encode(key['title'])
-            fulltitle=title.split('-')[0].strip()
-            infoLabels['year'] = key['date_published']
+            fulltitle=re.split(' - |\(', title)[0].strip()
+            ct = key.get('show_type_name', '').lower()
+
+            if ct == 'serie': contentType = 'tvshow'
+            elif ct == 'film': contentType = 'movie'
+            else: contentType = item.contentType
+
             infoLabels['title'] = fulltitle
-            if item.contentType != 'movie': infoLabels['tvshowtitle'] = fulltitle
-            itemlist.append(
-                item.clone(title = support.typo(title, 'bold'),
-                           fulltitle= title,
-                           show= title,
-                           url= main_host + str(key['show_id']) + '/seasons/',
-                           action= 'findvideos' if item.contentType == 'movie' else 'episodios',
-                           contentType = item.contentType,
-                           contentSerieName= fulltitle if item.contentType != 'movie' else '',
-                           contentTitle= fulltitle if item.contentType == 'movie' else '',
-                           infoLabels=infoLabels,
-                           videolibrary=False))
+            infoLabels['tvshowtitle'] = fulltitle
+            infoLabels['mediatype'] = contentType
+            infoLabels['year'] = key['date_published']
+
+            it = item.clone(title = support.typo(title, 'bold'),
+                            fulltitle= title,
+                            show= title,
+                            url= main_host + str(key['show_id']) + '/seasons/',
+                            action= 'findvideos' if contentType == 'movie' else 'episodios',
+                            infoLabels=infoLabels,
+                            thumbnail=support.thumb(contentType),
+                            videolibrary=False)
+
+            itemlist.append(it)
+
     return itemlist
+
 
 def loadjs(url):
     if '?category' not in url:
