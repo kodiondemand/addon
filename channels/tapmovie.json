@@ -2,7 +2,7 @@
     "id": "tapmovie",
     "name": "Tap Movie",
     "language": ["ita", "sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "tapmovie.png",
     "banner": "tapmovie.png",
     "categories": ["movie", "tvshow", "anime"],
