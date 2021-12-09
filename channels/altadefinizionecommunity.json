@@ -2,7 +2,7 @@
     "id": "altadefinizionecommunity",
     "name": "Altadefinizione Community",
     "language": ["ita", "sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "altadefinizionecommunity.png",
     "banner": "",
     "categories": ["movie", "tvshow", "vos"],
