@@ -161,6 +161,8 @@ def episodios(item):
 
                 for season in seasons:
                     for episode in season:
+                        if episode['type'] == 'video':
+                            logger.debug('{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name']), episode['attributes']['packages'])
                         if episode['type'] == 'video' and 'Free' in episode['attributes']['packages']:
                             title = '{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name'])
                             plot = episode['attributes']['description']
@@ -189,7 +191,7 @@ def play(item):
         support.thumb(item, live=True)
     if item.contentType == 'episode': data = session.get('{}/playback/v2/videoPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
     else: data = session.get('{}/playback/v2/channelPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
-    if data.get('protection', {}).get('drm_enabled',True):
+    if data.get('protection', {}).get('drmEnabled',False):
         item.url = data['streaming']['dash']['url']
         item.drm = 'com.widevine.alpha'
         item.license = data['protection']['schemes']['widevine']['licenseUrl'] + '|PreAuthorization=' + data['protection']['drmToken'] + '|R{SSM}|'
