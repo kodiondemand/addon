@@ -128,9 +128,9 @@ def episodios(item):
                 servers = support.server(item, it.stagione, AutoPlay=False, CheckLinks=False, Download=False, Videolibrary=False)
                 episodes = {}
 
-                for s in servers:
-                    # ottengo l'episodio dal nome del file
-                    with futures.ThreadPoolExecutor() as executor:
+                # ottengo l'episodio dal nome del file
+                with futures.ThreadPoolExecutor() as executor:
+                    for s in servers:
                         executor.submit(get_ep, s)
                 ret.extend([it.clone(title=ep, contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
             else:
