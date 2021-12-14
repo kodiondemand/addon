@@ -359,6 +359,8 @@ def run(item=None):
         # db need to be closed when not used, it will cause freezes
         from core import db
         db.close()
+        import threading
+        logger.debug(threading.enumerate())
 
 
 def new_search(item, channel=None):

@@ -438,15 +438,17 @@ def get_season_and_episode(title):
     @return: Nseason and episode number in "1x01" format or empty string if not found
     """
     filename = ""
-
-    patrons = ["(\d+)\s*[x-]\s*(\d+)", "(\d+)\s*×\s*(\d+)", "(?:[Ss]|[Tt])(\d+)\s?(?:[Ee]|Ep\.?)(\d+)",
-               "(?:[Ss]tag|[Ss]eason|[Ss]tagione\w*)\s*(\d+)\s*(?:[Ee]pi|[Ee]pisode|[Ee]pisodio\w*)\s*(\d+)"]
+    patrons = ["[ .](\d+)\s*[x-]\s*(\d+)[ .]", "(\d+)\s*×\s*(\d+)", "(?:s|t)(\d+)[ .]?(?:e|Ep\.?)(\d+)",
+               "(?:(?:stag|season|stagione\w*)\s*(\d+))?\s*(?:ep|epi|epis|episod[ioe]?|puntata)[ .-]*(\d+)"]
 
     for patron in patrons:
         try:
             matches = re.compile(patron, re.I).search(title)
             if matches:
-                filename =  str(int(matches.group(1))) + "x" + str(int(matches.group(2))).zfill(2)
+                season = matches.group(1)
+                if not season:
+                    season = 1
+                filename = str(int(season)) + "x" + str(int(matches.group(2))).zfill(2)
                 break
         except:
             pass

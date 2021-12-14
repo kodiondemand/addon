@@ -44,14 +44,15 @@ class UnshortenIt(object):
     _snip_regex = r'[0-9a-z]+snip\.|uprotector\.xyz'
     _linksafe_regex = r'linksafe\.cc'
     _protectlink_regex = r'(?:s\.)?protectlink\.stream'
+    _uprot_regex = r'uprot\.net'
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|uprot\.net|is\.gd'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
-                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _simple_redirect]
+                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect]
 
     _maxretries = 5
 
@@ -105,6 +106,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_linksafe(uri)
             if re.search(self._protectlink_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_protectlink(uri)
+            if re.search(self._uprot_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_uprot(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -593,7 +596,11 @@ class UnshortenIt(object):
                 uri = 'https://linkhub.icu/view/' + re.search('\.\./view/([^"]+)', r.data).group(1)
                 logger.info(uri)
                 r = httptools.downloadpage(uri, follow_redirect=True, timeout=self._timeout, cookies=False)
-            uri = re.search('<div id="text-url".*\n\s+<a href="([^"]+)', r.data).group(0)
+            links = re.findall('<a href="(http[^"]+)', r.data)
+            if len(links) == 1:
+                uri = links[0]
+            else:
+                uri = "\n".join(links)  # folder
             return uri, r.code
         except Exception as e:
             return uri, str(e)
@@ -641,6 +648,7 @@ class UnshortenIt(object):
             id = uri.split('/')[-2]
             reqUrl = 'https://stayonline.pro/ajax/linkView.php'
             p = urlencode({"id": id, "ref": ""})
+            time.sleep(1)
             r = httptools.downloadpage(reqUrl, post=p, headers={'Referer': uri})
             data = r.data
             try:
@@ -685,6 +693,15 @@ class UnshortenIt(object):
             return b64decode(uri.split('?data=')[-1]).decode(), 200
         else:
             return httptools.downloadpage(uri, only_headers=True, follow_redirects=False).headers.get('location', uri), 200
+
+    def _unshorten_uprot(self, uri):
+        from core.support import dbg
+        dbg()
+        for link in scrapertools.find_multiple_matches(httptools.downloadpage(uri, cloudscraper=True).data, '<a[^>]+href="([^"]+)'):
+            if link.startswith('https://maxstream.video') or link.startswith('https://uprot.net') and link != uri:
+                return link, 200
+        return uri, 200
+
 
 def decrypt_aes(text, key):
     try:

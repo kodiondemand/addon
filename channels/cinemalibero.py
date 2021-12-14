@@ -8,7 +8,11 @@ import re
 from core import httptools, support, scrapertools
 from core.item import Item
 from platformcode import config
-
+import sys
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 # rimanda a .today che contiene tutti link a .plus
 # def findhost(url):
@@ -87,26 +91,51 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    data=item.data
-    # debug=True
+    data = item.data
+    # debug = True
     if item.args == 'anime':
         support.info("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
-    elif item.args == 'serie':
+    elif item.args == 'serie' or item.contentType == 'tvshow':
         support.info("Serie :", item)
-        patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+)[;]?[ ]?(?:(?P<title>[^<–-]+)(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)'
+        patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)[;]?[ ]?(?:(?P<title>[^<–-]+)?(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)|(?P<stagione>.+)'
         patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
         item.contentType = 'tvshow'
     else:
         patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)(?:<br|</p)'
 
-    def itemHook(item):
-        if not scrapertools.find_single_match(item.title, r'(\d+x\d+)'):
-            item.title = re.sub(r'(\d+) -', '1x\\1', item.title)
-        return item
+    def itemHook(it):
+        if not scrapertools.find_single_match(it.title, r'(\d+x\d+)'):
+            it.title = re.sub(r'(\d+) -', '1x\\1', it.title)
+        return it
+
+    def itemlistHook(itl):
+        ret = []
+        for it in itl:
+            if it.stagione:  # stagione intera
+                def get_ep(s):
+                    srv_mod = __import__('servers.%s' % s.server, None, None, ["servers.%s" % s.server])
+                    if hasattr(srv_mod, 'get_filename'):
+                        title = srv_mod.get_filename(s.url)
+                        ep = scrapertools.get_season_and_episode(title)
+                        if ep:
+                            if ep not in episodes:
+                                episodes[ep] = []
+                            episodes[ep].append(s)
+                servers = support.server(item, it.stagione, AutoPlay=False, CheckLinks=False, Download=False, Videolibrary=False)
+                episodes = {}
+
+                for s in servers:
+                    # ottengo l'episodio dal nome del file
+                    with futures.ThreadPoolExecutor() as executor:
+                        executor.submit(get_ep, s)
+                ret.extend([it.clone(title=ep, contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
+            else:
+                ret.append(it)
+        return sorted(ret, key=lambda i: i.title)
 
     return locals()
 
@@ -135,6 +164,7 @@ def search(item, texto):
         for line in sys.exc_info():
             support.info("%s" % line)
     return []
+
 
 def newest(categoria):
     support.info('newest ->', categoria)
@@ -192,6 +222,29 @@ def check(item):
 
 
 def findvideos(item):
+    def filter_ep(s):
+        srv_mod = __import__('servers.%s' % s.server, None, None, ["servers.%s" % s.server])
+        if hasattr(srv_mod, 'get_filename'):
+            title = srv_mod.get_filename(s.url)
+            # support.dbg()
+            if scrapertools.get_season_and_episode(title) == str(item.contentSeason) + "x" + str(
+                    item.contentEpisodeNumber).zfill(2):
+                servers.append(s)
     support.info()
-    item.data = item.data.replace('http://rapidcrypt.net/verys/', '').replace('http://rapidcrypt.net/open/', '') #blocca la ricerca
-    return support.server(item, data=item.data)
+    if item.servers:
+        return support.server(item, itemlist=[Item().fromurl(s) for s in item.servers])
+    if not item.data:
+        item.data = support.match(item, patron='<p>\s*<strong>\s*<u>.*?</p>').match
+    servers = []
+    total_servers = support.server(item, data=item.data)
+    if item.contentType == 'episode' and len(set([srv.server for srv in total_servers])) < len([srv.server for srv in total_servers]):
+        # i link contengono più puntate, cerco quindi quella selezionata
+        with futures.ThreadPoolExecutor() as executor:
+            for s in total_servers:
+                if s.server:
+                    executor.submit(filter_ep, s)
+                else:
+                    servers.append(s)
+        return servers
+    else:
+        return total_servers

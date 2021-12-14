@@ -36,3 +36,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     url = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers.get("location", "")
     video_urls.append(['MP4 [Streamtape]', url])
     return video_urls
+
+
+def get_filename(page_url):
+    return httptools.downloadpage(page_url).data.split('<meta name="og:title" content="')[1].split('"')[0]

@@ -34,3 +34,11 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             if media_url:
                 video_urls.append([s[0], media_url])
     return video_urls
+
+
+def get_filename(page_url):
+    title = httptools.downloadpage(page_url).data.split('<title>')[1].split('</title>')[0]
+    prefix = 'Watch '
+    if title.startswith(prefix):
+        return title[len(prefix):]
+    return ""
