@@ -438,7 +438,7 @@ def get_season_and_episode(title):
     @return: Nseason and episode number in "1x01" format or empty string if not found
     """
     filename = ""
-    patrons = ["(?:[ .]|^)(\d+)\s*[x-]\s*(\d+)(?:[ .]|$)", "(\d+)\s*×\s*(\d+)", "(?:s|t)(\d+)[ .]?(?:e|Ep\.?)(\d+)",
+    patrons = ["(?:[^\w]|^)(\d+)\s*[x-]\s*(\d+)(?:[^\w]|$)", "(\d+)\s*×\s*(\d+)", "(?:s|t)(\d+)[ .]?(?:e|Ep\.?)(\d+)",
                "(?:(?:stag|season|stagione\w*)\s*(\d+))?\s*(?:ep|epi|epis|episod[ioe]?|puntata)[ .-]*(\d+)"]
 
     for patron in patrons:
