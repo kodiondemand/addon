@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "dailymotion.com/(?:video/|swf/(?:video/|)|)(?:embed/video/|)([A-z0-9]+)",
-        "url": "http://www.dailymotion.com/embed/video/\\1"
+        "url": "https://www.dailymotion.com/player/metadata/video/\\1"
       }
     ]
   },
