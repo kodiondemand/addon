@@ -250,7 +250,7 @@ def play(item):
         Format = 'dash+xml' if mpd else 'x-mpegURL'
         for it in item.urls:
             if Format in it['format']:
-                item.url = requests.head(it['publicUrls'][0]).headers['Location']
+                item.url = requests.head(it['publicUrls'][0]).headers['Location'] + '|User-Agent=' + support.httptools.get_user_agent()
                 pid = it['releasePids'][0]
                 if mpd and 'widevine' in it['assetTypes']:
                     break
@@ -278,7 +278,7 @@ def play(item):
     if url:
 
         sec_data = support.match(url + '?' + urlencode(res)).data
-        item.url = support.match(sec_data, patron=r'<video src="([^"]+)').match
+        item.url = support.match(sec_data, patron=r'<video src="([^"]+)').match  + '|User-Agent=' + support.httptools.get_user_agent()
         pid = support.match(sec_data, patron=r'pid=([^|]+)').match
 
         if mpd and pid:
