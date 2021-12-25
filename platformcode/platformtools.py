@@ -613,16 +613,23 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
 
-        # InfoPlus
-        if config.get_setting("infoplus"):
-            #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
-            #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
-            if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
-                context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
+        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
+            # Add Series to the video library
+            if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
+                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (
+                    sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
+            # Add Movie to Video Library
+            elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
+                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (
+                    sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
+            # Add to Video Library
+            elif item.action in ['check'] and item.contentTitle:
+                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (
+                    sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
 
-        # Open in browser and previous menu
-        if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
-            context_commands.insert(1, (config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
+        # Search trailer...
+        if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
+            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         # Add to kodfavoritos (My links)
         if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
@@ -630,7 +637,15 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
         # Add to kodfavoritos 
         if parent_item.channel == 'globalsearch':
             context_commands.append( (config.get_localized_string(30155), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "favorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
-        # Search in other channels
+
+        # InfoPlus
+        if config.get_setting("infoplus"):
+            #if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id'] or \
+            #        (item.contentTitle and item.infoLabels["year"]) or item.contentSerieName:
+            if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
+                context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
+
+         # Search in other channels
         if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play'] and parent_item.action != 'mainlist':
 
             # Search in other channels
@@ -650,16 +665,10 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append((config.get_localized_string(60350), "Container.Refresh (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
 
-        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
-            # Add Series to the video library
-            if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
-                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
-            # Add Movie to Video Library
-            elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
-            # Add to Video Library
-            elif item.action in ['check'] and item.contentTitle:
-                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
+
+        # Open in browser and previous menu
+        if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
+            context_commands.append((config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled') and not item.disable_videolibrary:
             # Download movie
@@ -679,10 +688,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 # Download season
                 elif item.contentType == "season":
                     context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
-
-        # Search trailer...
-        if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
-            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         if item.nextPage:
             context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
