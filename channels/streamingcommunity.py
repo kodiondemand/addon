@@ -231,6 +231,6 @@ def play(item):
     expires = int(time() + 172800)
     token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1|User-Agent={}&Referer={}'.format(scws_id, token, expires, httptools.get_user_agent(), host)
 
-    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url, manifest='hls')]
+    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url)]
