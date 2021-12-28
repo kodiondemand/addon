@@ -605,8 +605,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             else:
                 context_commands.append((command["title"], "RunPlugin(%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
     # Do not add more predefined options if you are inside kodfavoritos
-    if parent_item.channel == 'kodfavorites':
-        return context_commands
+    # if parent_item.channel == 'kodfavorites':
+    #     return context_commands
         # Options according to criteria, only if the item is not a tag, nor is it "Add to the video library", etc...
     if item.action and item.action not in ["add_pelicula_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
@@ -632,7 +632,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
 
         # Add to kodfavoritos (My links)
-        if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites":
+        if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "kodfavorites":
             context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
         # Add to kodfavoritos 
         if parent_item.channel == 'globalsearch':
@@ -646,7 +646,7 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
 
          # Search in other channels
-        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play'] and parent_item.action != 'mainlist':
+        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play']: #and parent_item.action != 'mainlist':
 
             # Search in other channels
             if item.contentSerieName != '':
