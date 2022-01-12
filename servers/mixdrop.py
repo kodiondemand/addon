@@ -14,13 +14,14 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
 
+    if "<h2>WE ARE SORRY</h2>" in data or "<h2>ALMOST THERE</h2>" in data or '<title>404 Not Found</title>' in data:
+        return False, config.get_localized_string(70449) % "MixDrop"
+
     if 'window.location' in data:
         domain = 'https://' + servertools.get_server_host('mixdrop')[0]
         url = domain + scrapertools.find_single_match(data, "window\.location\s*=\s*[\"']([^\"']+)")
         data = httptools.downloadpage(url).data
 
-    if "<h2>WE ARE SORRY</h2>" in data or '<title>404 Not Found</title>' in data:
-        return False, config.get_localized_string(70449) % "MixDrop"
     return True, ""
 
 

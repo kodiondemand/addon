@@ -1,7 +1,7 @@
 {
     "id": "ilgeniodellostreaming",
     "name": "IlGenioDelloStreaming",
-    "active": true,
+    "active": false,
     "language": ["ita", "sub-ita"],
     "thumbnail": "ilgeniodellostreaming.png",
     "banner": "ilgeniodellostreaming.png",

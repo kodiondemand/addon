@@ -25,6 +25,7 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    data = item.data
     if item.args == 'sala':
         patronBlock = r'insala(?P<block>.*?)<header>'
         patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})'
@@ -55,8 +56,7 @@ def genres(item):
 
 def search(item, text):
     info(text)
-    text = text.replace(' ', '+')
-    item.url = host + "/search/" + text
+    item.data = support.httptools.downloadpage(host + '/?s=' + text, post={'story': text, 'do': 'search', 'subaction': 'search'}).data
     try:
         return peliculas(item)
     except:
