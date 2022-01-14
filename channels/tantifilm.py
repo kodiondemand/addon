@@ -119,7 +119,7 @@ def episodios(item):
     with futures.ThreadPoolExecutor() as executor:
         thL = []
         for i, season in enumerate(seasons.matches):
-            thL.append(executor.submit(get_season, seasons.data if i == 0 else '', season[0], season[1]))
+            thL.append(executor.submit(get_season, '', season[0], season[1]))
         for res in futures.as_completed(thL):
             if res.result():
                 data += res.result()
