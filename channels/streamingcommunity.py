@@ -3,11 +3,14 @@
 # Canale per StreamingCommunity
 # ------------------------------------------------------------
 import functools
-import json, requests, sys
-from channels.mediasetplay import Token
-from core import support, channeltools, httptools
-from platformcode import logger
+import json, requests, re, sys
+from core import support, channeltools, httptools, jsontools, filetools
+from platformcode import logger, config, platformtools
 
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 # def findhost(url):
 #     return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
@@ -87,6 +90,7 @@ def newest(category):
     itemlist = []
     item = support.Item()
     item.args = 1
+    item.newest = True
     if category == 'peliculas':
         item.url = host + '/film'
     else:
@@ -114,6 +118,7 @@ def peliculas(item):
 
     global host
     itemlist = []
+    items = []
     recordlist = []
     videoType = 'movie' if item.contentType == 'movie' else 'tv'
 
@@ -124,7 +129,7 @@ def peliculas(item):
         records = item.records
     elif type(item.args) == int:
         data = support.scrapertools.decodeHtmlentities(support.match(item).data)
-        records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)" slider-name="').matches[item.args])
+        records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)"\s*slider-name="').matches[item.args])
     elif not item.search:
         payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
         records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
@@ -142,25 +147,32 @@ def peliculas(item):
 
     for i, it in enumerate(js):
         if i < 20:
-            itemlist.append(makeItem(i, it, item))
+            items.append(it)
         else:
             recordlist.append(it)
 
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(makeItem, i, it, item) for i, it in enumerate(items)]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+
     itemlist.sort(key=lambda item: item.n)
-    if recordlist:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
-    elif len(itemlist) >= 20:
-        itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
+    if not item.newest:
+        if recordlist:
+            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
+        elif len(itemlist) >= 20:
+            itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
 
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
     return itemlist
 
 def makeItem(n, it, item):
     info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
-    title, lang = support.match(info['name'], patron=r'([^\[|$]+)(?:\[([^\]]+)\])?').match
-    title = support.cleantitle(title)
-    if not lang:
-        lang = 'ITA'
+    title = info['name']
+    lang = 'Sub-ITA' if 'sub-ita' in title.lower() else 'ITA'
+    title = support.cleantitle(re.sub('\[|\]|[Ss][Uu][Bb]-[Ii][Tt][Aa]', '', title))
     itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
     itm.contentType = info['type'].replace('tv', 'tvshow')
     itm.language = lang
@@ -191,25 +203,37 @@ def episodios(item):
     js = json.loads(support.match(item.url, patron=r'seasons="([^"]+)').match.replace('&quot;','"'))
 
     for episodes in js:
+        logger.debug(jsontools.dump(js))
         for it in episodes['episodes']:
+
             itemlist.append(
-                support.Item(channel=item.channel,
-                             title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + support.cleantitle(it['name']), 'bold'),
-                             episode = it['number'],
-                             season=episodes['number'],
-                             thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
-                             fanart=item.fanart,
-                             plot=it['plot'],
-                             action='findvideos',
-                             contentType='episode',
-                             contentSerieName=item.fulltitle,
-                             url=host + '/watch/' + str(episodes['title_id']),
-                             episodeid= '?e=' + str(it['id'])))
+                item.clone(title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + support.cleantitle(it['name']), 'bold'),
+                           episode=it['number'],
+                           season=episodes['number'],
+                           contentSeason=episodes['number'],
+                           contentEpisodeNumber=it['number'],
+                           thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
+                           contentThumbnail=item.thumbnail,
+                           fanart=item.fanart,
+                           contentFanart=item.fanart,
+                           plot=it['plot'],
+                           action='findvideos',
+                           contentType='episode',
+                           contentSerieName=item.fulltitle,
+                           url=host + '/watch/' + str(episodes['title_id']),
+                           episodeid= '?e=' + str(it['id'])))
+
+    if config.get_setting('episode_info') and not support.stackCheck(['add_tvshow', 'get_newest']):
+        support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
     return itemlist
 
+
+def findvideos(item):
+    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo')]
+    return support.server(item, itemlist=itemlist)
 
 def findvideos(item):
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo')]
