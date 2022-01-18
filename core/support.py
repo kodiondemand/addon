@@ -604,7 +604,9 @@ def scrape(func):
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and not disabletmdb and function != 'episodios' and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']:
+        if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
+            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodes', 'mainlist'] \
+            or (function in ['episodes'] and config.get_setting('episode_info'))):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
@@ -1495,7 +1497,7 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
     icon_dict = {'movie':['film', 'movie'],
                  'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
                  'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
-                 'teenager':['ragazzi','teenager', 'teen'],
+                 'teenager':['ragazzi','teenager', 'giovani', 'teen'],
                  'learning':['learning', 'school', 'scuola'],
                  'all':['tutti', 'all'],
                  'news':['novità', "novita'", 'aggiornamenti', 'nuovi', 'nuove', 'new', 'newest', 'news', 'ultimi', 'notizie'],
@@ -1521,11 +1523,11 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
                  'noir':['noir'],
                  'popular':['popolari','popolare', 'più visti', 'raccomandati', 'raccomandazioni' 'recommendations'],
                  'thriller':['thriller'],
-                 'top_rated' : ['fortunato', 'votati', 'lucky', 'top'],
+                 'top_rated' : ['fortunato', 'votati', 'primo', 'lucky', 'top'],
                  'on_the_air' : ['corso', 'onda', 'diretta', 'dirette'],
                  'western':['western'],
                  'vos':['sub','sub-ita'],
-                 'romance':['romantico','sentimentale', 'romance', 'soap'],
+                 'romance':['romantico', 'romantici', 'sentimentale', 'romance', 'soap'],
                  'family':['famiglia','famiglie', 'family'],
                  'historical':['storico', 'history', 'storia', 'historical'],
                  'az':['lettera','lista','alfabetico','a-z', 'alphabetical'],
@@ -1553,19 +1555,20 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
                     '_tvshow':['serie','tv', 'fiction']}
 
     def autoselect_thumb(item, genre):
-        # logger.debug('SPLIT',re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()))
+        searched = re.split(r'\:|\.|\{|\}|\[|\]|\(|\)|/| ', item.title.lower())
+        # logger.debug('SPLIT',searched)
         if genre == False:
             for thumb, titles in icon_dict.items():
-                if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in search):
+                if any(word in searched for word in search):
                     thumb = 'search'
                     for suffix, titles in search_suffix.items():
-                        if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
+                        if any(word in searched for word in titles ):
                             thumb = thumb + suffix
                     item.thumbnail = get_thumb(thumb + '.png')
-                elif any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)| ',item.title.lower()) for word in titles ):
+                elif any(word in searched for word in titles ):
                     if thumb == 'movie' or thumb == 'tvshow':
                         for suffix, titles in suffix_dict.items():
-                            if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
+                            if any(word in searched for word in titles ):
                                 thumb = thumb + suffix
                         item.thumbnail = get_thumb(thumb + '.png')
                     else: item.thumbnail = get_thumb(thumb + '.png')
@@ -1574,7 +1577,7 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
 
         else:
             for thumb, titles in icon_dict.items():
-                if any(word in re.split(r'\.|\{|\}|\[|\]|\(|\)|/| ',item.title.lower()) for word in titles ):
+                if any(word in searched for word in titles ):
                     item.thumbnail = get_thumb(thumb + '.png')
                 else:
                     thumb = item.thumbnail
