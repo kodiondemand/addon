@@ -604,10 +604,10 @@ def scrape(func):
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
-            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodes', 'mainlist'] \
-            or (function in ['episodes'] and config.get_setting('episode_info'))):
+        if action != 'play' and 'patronMenu' not in args and not disabletmdb and function != 'episodios' \
+            and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']:
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:

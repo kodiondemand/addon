@@ -253,7 +253,7 @@ def live(item):
                 channels_dict[channel_name] = itlist
 
     # default order
-    channel_list = ['raiplay', 'mediasetplay', 'la7', 'paramount', 'discoveryplus']
+    channel_list = ['raiplay', 'mediasetplay', 'la7', 'discoveryplus']
 
     # add channels not in list
     for ch in channels:
