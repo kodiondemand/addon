@@ -1,7 +1,7 @@
 {
     "id": "paramount",
     "name": "Paramount Network",
-    "active": true,
+    "active": false,
     "language": ["ita"],
     "thumbnail": "paramount.png",
     "banner": "paramount.png",
