@@ -257,4 +257,4 @@ def play(item):
 
     url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1|User-Agent={}&Referer={}'.format(scws_id, token, expires, httptools.get_user_agent(), host)
 
-    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url)]
+    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url, manifest='hls')]
