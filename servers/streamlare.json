@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "https://streamlare.com/(?:v|e)/(\\w+)",
+        "pattern": "https://streamlare.com/[ve]/(\\w+)",
         "url": "https://streamlare.com/e/\\1"
       }
     ]
