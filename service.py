@@ -513,8 +513,8 @@ if __name__ == "__main__":
             # scan new info
             xbmc.executebuiltin('UpdateLibrary(video)')
             xbmc.executebuiltin('CleanLibrary(video)')
-            while xbmc.getCondVisibility('Library.IsScanningVideo()'):
-                xbmc.sleep(1000)
+            # while xbmc.getCondVisibility('Library.IsScanningVideo()'):
+            #     xbmc.sleep(1000)
 
     # check if the user has any connection problems
     from platformcode.checkhost import test_conn
@@ -546,8 +546,12 @@ if __name__ == "__main__":
             logger.debug(threading.enumerate())
             break
 
-        if monitor.waitForAbort(1):  # every second
+        if monitor.waitForAbort(1): # every second
+            logger.debug('KoD service EXIT')
             # db need to be closed when not used, it will cause freezes
-            db.close()
             join_threads()
+            logger.debug('Close Threads')
+            db.close()
+            logger.debug('Close DB')
             break
+    logger.debug('KoD service STOPPED')

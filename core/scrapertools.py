@@ -504,3 +504,49 @@ def title_unify(title):
         u_title = spl[0] if len(spl[0]) > 5 else spl[1]
 
     return u_title.strip()
+
+
+def girc(page_data, url, co):
+    """
+    Code adapted from https://github.com/vb6rocod/utils/
+    Copyright (C) 2019 vb6rocod
+    and https://github.com/addon-lab/addon-lab_resolver_Project
+    Copyright (C) 2021 ADDON-LAB, KAR10S
+    """
+    import re
+    from core import httptools
+    hdrs = {'Referer': url}
+    rurl = 'https://www.google.com/recaptcha/api.js'
+    aurl = 'https://www.google.com/recaptcha/api2'
+    key = re.search(r'(?:src="{0}\?.*?render|data-sitekey)="?([^"]+)'.format(rurl), page_data)
+    if key:
+        key = key.group(1)
+        rurl = '{0}?render={1}'.format(rurl, key)
+        page_data1 = httptools.downloadpage(rurl, headers=hdrs).data
+        v = re.findall('releases/([^/]+)', page_data1)[0]
+        rdata = {'ar': 1,
+                 'k': key,
+                 'co': co,
+                 'hl': 'en',
+                 'v': v,
+                 'size': 'invisible',
+                 'cb': '123456789'}
+        page_data2 = httptools.downloadpage('{0}/anchor?{1}'.format(aurl, httptools.urlparse.urlencode(rdata)), headers=hdrs).data
+        rtoken = re.search('recaptcha-token.+?="([^"]+)', page_data2)
+        if rtoken:
+            rtoken = rtoken.group(1)
+        else:
+            return ''
+        pdata = {'v': v,
+                 'reason': 'q',
+                 'k': key,
+                 'c': rtoken,
+                 'sa': '',
+                 'co': co}
+        hdrs.update({'Referer': aurl})
+        page_data3 = httptools.downloadpage('{0}/reload?k={1}'.format(aurl, key), post=pdata, headers=hdrs).data
+        gtoken = re.search('rresp","([^"]+)', page_data3)
+        if gtoken:
+            return gtoken.group(1)
+
+    return ''

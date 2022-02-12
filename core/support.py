@@ -604,10 +604,10 @@ def scrape(func):
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and not disabletmdb and function != 'episodios' \
-            and item.contentType in ['movie', 'tvshow', 'episode', 'undefined']:
+        if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
+            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodes', 'mainlist'] \
+            or (function in ['episodes'] and config.get_setting('episode_info'))):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
             if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
@@ -655,9 +655,7 @@ def scrape(func):
 
         # itemlist = filterLang(item, itemlist)   # causa problemi a newest
 
-        if config.get_setting('trakt_sync'):
-            from core import trakt_tools
-            trakt_tools.trakt_check(itemlist)
+        check_trakt(itemlist)
         return itemlist
 
     return wrapper
@@ -731,6 +729,7 @@ def dooplay_search(item, blacklist=""):
 
 
 def dooplay_search_vars(item, blacklist):
+    actLike = 'peliculas'
     if item.contentType == 'undefined':  # ricerca globale
         type = '(?P<type>movies|tvshows)'
         typeActionDict = {'findvideos': ['movies'], 'episodios': ['tvshows']}
@@ -1280,26 +1279,23 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
                 videoitem.server = videoitem.server.lower()
 
         if videoitem.video_urls or srv_param.get('active', False):
-            title = typo(item.contentTitle.strip(), 'bold') if item.contentType == 'movie' or (config.get_localized_string(30161) in item.title) else item.title
+            vi = item.clone(server=videoitem.server,
+                            extraInfo=videoitem.extraInfo,
+                            serverName=videoitem.serverName,
+                            url=videoitem.url,
+                            videoUrls= videoitem.videoUrlsn,
+                            ch_name=channeltools.get_channel_parameters(item.channel)['title'],
+                            action = "play")
 
-            quality = videoitem.quality if videoitem.quality else item.quality if item.quality else ''
-            videoitem.title = (title if item.channel not in ['url'] else '')\
-                + (typo(videoitem.title, '_ color kod [] bold') if videoitem.title else "")\
-                + (typo(videoitem.quality, '_ color kod []') if videoitem.quality else "")\
-                + (typo(videoitem.contentLanguage, '_ color kod []') if videoitem.contentLanguage else "")\
-                + (typo(videoitem.extraInfo, '_ color kod []') if videoitem.extraInfo else "")
-            videoitem.plot = typo(videoitem.title, 'bold') + (typo(quality, '_ [] bold') if quality else '')
-            videoitem.channel = item.channel
-            videoitem.fulltitle = item.fulltitle
-            videoitem.show = item.show
-            if not videoitem.video_urls:  videoitem.thumbnail = item.thumbnail
-            videoitem.contentType = item.contentType
-            videoitem.infoLabels = item.infoLabels
-            videoitem.quality = quality
-            videoitem.referer = item.referer if item.referer else item.url
-            videoitem.action = "play"
-            # videoitem.nfo = item.nfo
-            # videoitem.strm_path = item.strm_path
+            if videoitem.title: vi.serverName = videoitem.title
+            if videoitem.quality: vi.quality = videoitem.quality
+            if not vi.referer: vi.referer = item.url
+            vi.contentFanart = item.infoLabels['fanart']
+            vi.contentThumb = item.infoLabels['fanart']
+            if videoitem.forcethumb:
+                vi.thumbnail = videoitem.thumbnail
+                vi.forcethumb = True
+            videoitem = vi
             return videoitem
 
     # non threaded for webpdb
@@ -1409,7 +1405,7 @@ def addQualityTag(item, itemlist, data, patron):
             "DTS": "audio ricavato dai dischi DTS2, quindi la qualità audio è elevata.",
             "LD": "l’audio è stato registrato tramite jack collegato alla macchina da presa, pertanto di discreta qualità.",
             "DD": "audio ricavato dai dischi DTS cinema. L’audio è di buona qualità, ma potreste riscontrare il fatto che non potrebbe essere più riproducibile.",
-            "AC3": "audio in Dolby Digital puo' variare da 2.0 a 5.1 canali in alta qualità.",
+            "AC3": "audio in Dolby Digital può variare da 2.0 a 5.1 canali in alta qualità.",
             "MP3": "codec per compressione audio utilizzato MP3.",
             "RESYNC": "il film è stato lavorato e re sincronizzato con una traccia audio. A volte potresti riscontrare una mancata sincronizzazione tra audio e video.",
         }
@@ -1436,7 +1432,7 @@ def addQualityTag(item, itemlist, data, patron):
                 descr = ''
             itemlist.insert(0,Item(channel=item.channel,
                                    action="",
-                                   title=typo(qualityStr, '[] color kod bold'),
+                                   title=typo(qualityStr, 'bold'),
                                    fulltitle=qualityStr,
                                    plot=descr,
                                    folder=False,
@@ -1600,3 +1596,45 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
 
     else:
         return get_thumb('next.png')
+
+
+def vttToSrt(data):
+    # Code adapted by VTT_TO_SRT.PY (c) Jansen A. Simanullang
+    ret = ''
+
+    data = re.sub(r'(\d\d:\d\d:\d\d).(\d\d\d) --> (\d\d:\d\d:\d\d).(\d\d\d)(?:[ \-\w]+:[\w\%\d:]+)*\n', r'\1,\2 --> \3,\4\n', data)
+    data = re.sub(r'(\d\d:\d\d).(\d\d\d) --> (\d\d:\d\d).(\d\d\d)(?:[ \-\w]+:[\w\%\d:]+)*\n', r'00:\1,\2 --> 00:\3,\4\n', data)
+    data = re.sub(r'(\d\d).(\d\d\d) --> (\d\d).(\d\d\d)(?:[ \-\w]+:[\w\%\d:]+)*\n', r'00:00:\1,\2 --> 00:00:\3,\4\n', data)
+    data = re.sub(r'WEBVTT\n', '', data)
+    data = re.sub(r'Kind:[ \-\w]+\n', '', data)
+    data = re.sub(r'Language:[ \-\w]+\n', '', data)
+    data = re.sub(r'<c[.\w\d]*>', '', data)
+    data = re.sub(r'</c>', '', data)
+    data = re.sub(r'<\d\d:\d\d:\d\d.\d\d\d>', '', data)
+    data = re.sub(r'::[\-\w]+\([\-.\w\d]+\)[ ]*{[.,:;\(\) \-\w\d]+\n }\n', '', data)
+    data = re.sub(r'Style:\n##\n', '', data)
+
+    lines = data.split(os.linesep)
+
+    for n, line in enumerate(lines):
+        if re.match(r"((\d\d:){2}\d\d),(\d{3}) --> ((\d\d:){2}\d\d),(\d{3})", line):
+            ret += str(n + 1) + os.linesep + line + os.linesep
+        else:
+            ret += line + os.linesep
+
+    return ret
+
+def check_trakt(itemlist):
+    if config.get_setting('trakt_sync'):
+        from core import trakt_tools
+        trakt_tools.trakt_check(itemlist)
+    return itemlist
+
+
+def stackCheck(values):
+    stacks = [s[3] for s in inspect.stack()]
+    logger.debug('STAKS', stacks)
+    if type(values) == str:
+        return values in stacks
+    else:
+        return any(v in values for v in stacks)

@@ -45,7 +45,7 @@ def live(item):
         itemlist.append(item.clone(title= '[B]{}[/B] | {}'.format(it['name'], guide[it['number']][0]),
                                    number=it['number'],
                                    contentTitle=it['name'],
-                                   action='play',
+                                   action='findvideos',
                                    thumbnail=it['solidLogoPNG']['path'],
                                    fanart=it['featuredImage']['path'],
                                    plot='{}\n\n[B]A seguire:[/B]\n{}'.format(it['summary'], guide[it['number']][1]),
@@ -84,12 +84,11 @@ def peliculas(item):
                        contentSerieName= it['name'] if it['type'] == 'series' else '',
                        plot=it['description'],
                        contentType='tvshow' if it['type'] == 'series' else 'movie',
-                       action='episodios' if it['type'] == 'series' else 'play',
+                       action='episodios' if it['type'] == 'series' else 'findvideos',
                        thumbnail= it['covers'][0]['url'],
                        fanart= it['covers'][2]['url'] if len(it['covers']) > 2 else '',
                        id= it['_id'],
-                       videourl= it['stitched']['urls'][0]['url'].split('?')[0],
-                       forcethumb=True)
+                       videourl= it['stitched']['urls'][0]['url'].split('?')[0])
 
             if i < 20 or item.search:
                 itemlist.append(itm)
@@ -115,8 +114,7 @@ def episodios(item):
                                        plot=episode['description'],
                                        thumbnail=episode['covers'][1]['url'],
                                        videourl=episode['stitched']['urls'][0]['url'].split('?')[0],
-                                       action='play',
-                                       forcethumb=True))
+                                       action='findvideos'))
 
     if config.get_setting('episode_info'):
         support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -124,7 +122,7 @@ def episodios(item):
     return itemlist
 
 
-def play(item):
+def findvideos(item):
     item.server = 'directo'
     item.manifest='hls'
     params = '{}?deviceDNT=0&deviceVersion=unknow&appVersion=unknow&deviceType=web&deviceMake=firefox&deviceModel=firefox&appName=web&{}'

@@ -7,6 +7,8 @@ from core import support, jsontools
 from platformcode import autorenumber, logger
 from collections import OrderedDict
 
+from specials import videolibrary
+
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
 
@@ -64,7 +66,7 @@ def live(item):
     logger.debug()
     itemlist=[]
     for key, value in liveDict().items():
-        itemlist.append(item.clone(title=support.typo(key,'bold'), contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=support.typo(key,'bold'), contentTitle=key, fulltitle=key, show=key, url=value['url'], plot=value['plot'], action='findvideos', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 
@@ -160,19 +162,22 @@ def episodios(item):
 
 def findvideos(item):
     logger.debug()
-    return support.server(item, itemlist=[item.clone(title='Paramount', server='directo', action='play')], Download=False)
-
-
-def play(item):
     logger.debug()
     item.manifest = 'hls'
     mgid = support.match(item.url, patron=r'uri":"([^"]+)"').match
     url = 'https://media.mtvnservices.com/pmt/e1/access/index.html?uri=' + mgid + '&configtype=edge&ref=' + item.url
     ID, rootUrl = support.match(url, patron=[r'"id":"([^"]+)",',r'brightcove_mediagenRootURL":"([^"]+)"']).matches
     item.url = jsontools.load(support.match(rootUrl.replace('&device={device}','').format(uri = ID)).data)['package']['video']['item'][0]['rendition'][0]['src']
+    return support.server(item, itemlist=[item.clone(title='Paramount', server='directo', action='play')], Download=False, Videolibrary=False)
 
-    if item.livefilter:
-        d = liveDict()[item.livefilter]
-        item = item.clone(title=support.typo(item.livefilter, 'bold'), fulltitle=item.livefilter, url=d['url'], plot=d['plot'], action='play', forcethumb=True, no_return=True)
-        support.thumb(item, live=True)
-    return [item]
+
+# def play(item):
+#     logger.debug()
+#     item.manifest = 'hls'
+#     mgid = support.match(item.url, patron=r'uri":"([^"]+)"').match
+#     url = 'https://media.mtvnservices.com/pmt/e1/access/index.html?uri=' + mgid + '&configtype=edge&ref=' + item.url
+#     ID, rootUrl = support.match(url, patron=[r'"id":"([^"]+)",',r'brightcove_mediagenRootURL":"([^"]+)"']).matches
+#     item.url = jsontools.load(support.match(rootUrl.replace('&device={device}','').format(uri = ID)).data)['package']['video']['item'][0]['rendition'][0]['src']
+
+
+#     return [item]

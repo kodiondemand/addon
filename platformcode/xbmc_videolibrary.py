@@ -33,7 +33,6 @@ def mark_auto_as_watched(item):
         marked = False
         sync = False
         next_episode = None
-        show_server = True
         mark_time = 0
 
         percentage = float(config.get_setting("watched_setting")) / 100
@@ -53,22 +52,18 @@ def mark_auto_as_watched(item):
             except: pass
             try: total_time = xbmc.Player().getTotalTime()
             except: pass
-            if item.played_time and xbmcgui.getCurrentWindowId() == 12005:
-                xbmc.Player().seekTime(item.played_time)
-                item.played_time = 0 # Fix for Slow Devices
 
             mark_time = total_time * percentage
             difference = total_time - actual_time
 
             # Mark as Watched
-            if actual_time > mark_time and not marked:
+            if mark_time and total_time > actual_time > mark_time and not marked:
                 logger.info("Marked as Watched")
                 item.playcount = 1
                 marked = True
                 item.played_time = 0
                 platformtools.set_played_time(item)
                 if item.options['strm'] : sync = True
-                show_server = False
                 from specials import videolibrary
                 videolibrary.mark_content_as_watched2(item)
                 if not next_episode:
@@ -86,9 +81,16 @@ def mark_auto_as_watched(item):
                 break
 
         # if item.options['continue']:
-        if actual_time < mark_time and mark_time:
+        from core import db
+        if marked:
+            logger.debug('CLOSE')
+            item.played_time = 0
+            db['controls']['reopen'] = False
+        else:
+            logger.debug('REOPEN')
             item.played_time = actual_time
-        else: item.played_time = 0
+            db['controls']['reopen'] = True
+        db.close()
         platformtools.set_played_time(item)
 
         # Silent sync with Trakt
@@ -97,23 +99,14 @@ def mark_auto_as_watched(item):
         while platformtools.is_playing():
             xbmc.sleep(100)
 
-        if not show_server and item.play_from != 'window' and not item.no_return:
-            xbmc.sleep(700)
-            xbmc.executebuiltin('Action(ParentDir)')
-            xbmc.sleep(500)
-
         if next_episode and next_episode.next_ep and config.get_setting('next_ep') < 3:
             from platformcode.launcher import run
             run(next_episode)
 
-        # db need to be closed when not used, it will cause freezes
-        from core import db
-        db.close()
-
     # If it is configured to mark as seen
     if config.get_setting("mark_as_watched", "videolibrary"):
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
-
+        logger.debug('EXIT MONITOR')
 
 def sync_trakt_addon(path_folder):
     """

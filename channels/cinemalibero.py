@@ -7,6 +7,7 @@ import re
 
 from core import httptools, support, scrapertools
 from core.item import Item
+from core.support import typo
 from platformcode import config
 import sys
 if sys.version_info[0] >= 3:
@@ -57,11 +58,13 @@ def peliculas(item):
         patron = r'<div class="col-lg-3">[^>]+>[^>]+>\s<a href="(?P<url>[^"]+)".+?url\((?P<thumb>[^\)]+)\)">[^>]+>(?P<title>[^<]+)<[^>]+>[^>]+>(?:[^>]+>)?\s?(?P<rating>[\d\.]+)?[^>]+>.+?(?:[ ]\((?P<year>\d{4})\))?<[^>]+>[^>]+>(.?[\d\-x]+\s\(?(?P<lang>[sSuUbBiItTaA\-]+)?\)?\s?(?P<quality>[\w]+)?[|]?\s?(?:[fFiInNeE]+)?\s?\(?(?P<lang2>[sSuUbBiItTaA\-]+)?\)?)?'
         pagination = 25
     elif item.contentType == 'movie':
-        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>.+?)(?:[ ]\[(?P<lang>[sSuUbB\-iItTaA]+)\])?(?:[ ]\((?P<year>\d{4})\))?"\s*alt="[^"]+"\s*class="[^"]+"(?: style="background-image: url\((?P<thumb>.+?)\)">)?\s*<div class="voto">[^>]+>[^>]+>.(?P<rating>[\d\.a-zA-Z\/]+)?[^>]+>[^>]+>[^>]+>(?:<div class="genere">(?P<quality>[^<]+)</div>)?'
+        # action = 'findvideos'
+        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>.+?)(?:[ ]\[(?P<lang>[sSuUbB\-iItTaA]+)\])?(?:[ ]\((?P<year>\d{4})?\))?"\s*alt="[^"]+"\s*class="[^"]+"(?: style="background-image: url\((?P<thumb>.+?)\)">)?\s*<div class="voto">[^>]+>[^>]+>.(?P<rating>[\d\.a-zA-Z\/]+)?[^>]+>[^>]+>[^>]+>(?:<div class="genere">(?P<quality>[^<]+)</div>)?'
         if item.args == 'update':
             patronBlock = r'<section id="slider">(?P<block>.*?)</section>'
-            patron = r'<a href="(?P<url>(?:https:\/\/.+?\/(?P<title>[^\/]+[a-zA-Z0-9\-]+)(?P<year>\d{4})))/".+?url\((?P<thumb>[^\)]+)\)">'
+            patron = r'<a href="(?P<url>(?:https:\/\/.+?\/(?P<title>[^\/]+[a-zA-Z0-9\-]+)(?P<year>\d{4})?))/".+?url\((?P<thumb>[^\)]+)\)">'
     elif item.contentType == 'tvshow':
+        # action = 'episodios'
         if item.args == 'update':
             patron = r'<a href="(?P<url>[^"]+)"[^<]+?url\((?P<thumb>.+?)\)">\s*?<div class="titolo">(?P<title>.+?)(?: &#8211; Serie TV)?(?:\([sSuUbBiItTaA\-]+\))?[ ]?(?P<year>\d{4})?</div>\s*?(?:<div class="genere">)?(?:[\w]+?\.?\s?[\s|S]?[\dx\-S]+?\s\(?(?P<lang>[iItTaA]+|[sSuUbBiItTaA\-]+)\)?\s?(?P<quality>[HD]+)?|.+?\(?(?P<lang2>[sSuUbBiItTaA\-]+)?\)?</div>)'
             pagination = 25
@@ -92,7 +95,7 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = item.data
-    # debug = True
+    # debugBlock = True
     if item.args == 'anime':
         support.info("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
@@ -132,7 +135,7 @@ def episodios(item):
                 with futures.ThreadPoolExecutor() as executor:
                     for s in servers:
                         executor.submit(get_ep, s)
-                ret.extend([it.clone(title=ep, contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
+                ret.extend([it.clone(title=ep+typo(it.contentLanguage, '_ [] color kod'), contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
             else:
                 ret.append(it)
         return sorted(ret, key=lambda i: i.title)
@@ -142,7 +145,6 @@ def episodios(item):
 
 @support.scrape
 def genres(item):
-
     action='peliculas'
     patron_block=r'<div id="bordobar" class="dropdown-menu(?P<block>.*?)</li>'
     patronMenu=r'<a class="dropdown-item" href="(?P<url>[^"]+)" title="(?P<title>[A-z]+)"'
@@ -203,11 +205,16 @@ def check(item):
             item.contentType = 'tvshow'
             item.args = 'anime'
             item.data = data
-            return episodios(item)
+            itemlist = episodios(item)
+            if not itemlist:
+                item.data = data
+                item.action = 'findvideos'
+                return findvideos(item)
 
         elif ck == 'film':
             item.contentType = 'movie'
             item.data = data
+            item.action = 'findvideos'
             return findvideos(item)
 
         else:
@@ -217,8 +224,9 @@ def check(item):
             if not itemlist:
                 item.contentType = 'movie'
                 item.data = data
+                item.action = 'findvideos'
                 return findvideos(item)
-            return itemlist
+
 
 
 def findvideos(item):
@@ -234,9 +242,27 @@ def findvideos(item):
     if item.servers:
         return support.server(item, itemlist=[Item().fromurl(s) for s in item.servers])
     if not item.data:
-        item.data = support.match(item, patron='<p>\s*<strong>\s*<u>.*?</p>').match
+        item.data = httptools.downloadpage(item.url)
+    item.data = scrapertools.find_single_match(item.data, '<div class="at-above-post addthis_tool"(.*?)<div class="at-below-post')
+
     servers = []
+    if item.args == 'anime':
+        if item.urls:  # this is a episode
+            return support.server(item, itemlist=[Item(url=support.unshortenit.FileCrypt().unshorten(u)) for u in item.urls])
+        itemlist = []
+        episodes = {}
+        # support.dbg()
+        for uri in support.unshortenit.FileCrypt().find(item.data):
+            for ep in support.unshortenit.FileCrypt(uri).list_files():
+                ep = ('.'.join(ep[0].split('.')[:-1]), ep[1])  # remove extension
+                if not ep[0] in episodes:
+                    episodes[ep[0]] = []
+                episodes[ep[0]].append(ep[1])
+        for ep in episodes.keys():
+            itemlist.append(item.clone(title=ep, urls=episodes[ep], action='findvideos', data=''))
+        return itemlist
     total_servers = support.server(item, data=item.data)
+
     if item.contentType == 'episode' and len(set([srv.server for srv in total_servers])) < len([srv.server for srv in total_servers]):
         # i link contengono più puntate, cerco quindi quella selezionata
         with futures.ThreadPoolExecutor() as executor:

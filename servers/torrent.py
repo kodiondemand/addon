@@ -219,8 +219,11 @@ def find_file(hash):
 def elementum_actions(parameter, TorrentHash):
     elementum_setting, elementum_host, TorrentPath = setting()
     if elementum_setting:
-        if parameter == 'delete': monitor_update(TorrentPath, TorrentHash, remove=True)
-        requests.get('%s/%s/%s' %(elementum_host, parameter, TorrentHash))
+        try:
+            if parameter == 'delete': monitor_update(TorrentPath, TorrentHash, remove=True)
+            requests.get('%s/%s/%s' %(elementum_host, parameter, TorrentHash))
+        except:
+            pass
 
 
 def process_filename(filename, Title, ext=True):

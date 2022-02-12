@@ -74,20 +74,15 @@ def search(item, text):
 def peliculas(item):
     search = item.search
     anime = True
-    # debug = True
-    if 'movie' in item.url:
-        action = 'findvideos'
-    else:
-        action = 'check'
+    action = 'check'
 
-    # if not item.args:
-    #     pagination = ''
-    #     patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)">'
-    # else:
     patron = r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>.*?)(?: Sub| sub| SUB|")'
 
+    if search:
+        patron = r'<a href="(?P<url>[^"]+)"\s*title="(?P<title>.*?)(?: Sub| sub| SUB|")'
+
     if item.args == 'newest': item.action = 'findvideos'
-    
+
     patronNext = '<li class="page-item disabled">(?:[^>]+>){4}<a class="page-link" href="([^"]+)'
 
     def itemHook(item):
@@ -100,7 +95,7 @@ def peliculas(item):
 
 
 def check(item):
-    m = support.match(item, headers=headers, patron=r'Tipologia[^>]+><a href="([^"]+)"')
+    m = support.match(item, headers=headers, patron=r'Tipologia[^>]+>\s*<a href="([^"]+)"')
     item.data = m.data
     if 'movie' in m.match:
         item.contentType = 'movie'
@@ -112,6 +107,7 @@ def check(item):
 @support.scrape
 def episodios(item):
     anime = True
+    pagination = 50
     data = item.data
 
     if '<h6>Streaming</h6>' in data:
@@ -130,30 +126,37 @@ def episodios(item):
 def findvideos(item):
     support.info(item)
     itemlist = []
-
-    if 'adf.ly' in item.url:
-        from servers.decrypters import adfly
-        url = adfly.get_long_url(item.url)
-
-    elif 'bit.ly' in item.url:
-        url = support.httptools.downloadpage(item.url, only_headers=True, follow_redirects=False).headers.get("location")
-
+    if item.data:
+        url = support.match(item.data, patron=r'<a\s*href="([^"]+)"\s*title="[^"]+"\s*class="btn btn-dark mb-1">').match
     else:
-        url = host
-        for u in item.url.split('/'):
-            if u and 'animeforce' not in u and 'http' not in u:
-                url += '/' + u
+        url = item.url
 
-        if 'php?' in url:
-            url = support.httptools.downloadpage(url, only_headers=True, follow_redirects=False).headers.get("location")
-            url = support.match(url, patron=r'class="button"><a href=(?:")?([^" ]+)', headers=headers).match
-        else:
-            if item.data: url = item.data
-            url = support.match(url, patron=r'data-href="([^"]+)" target').match
-            if not url: url = support.match(url, patron=[r'<source src=(?:")?([^" ]+)',r'name="_wp_http_referer" value="([^"]+)"']).match
-        if url.startswith('//'): url = 'https:' + url
-        elif url.startswith('/'): url = 'https:/' + url
-        if 'vvvvid' in url: itemlist.append(item.clone(action="play", title='VVVVID', url=url, server='vvvvid'))
-        else: itemlist.append(item.clone(action="play", title=support.config.get_localized_string(30137), url=url, server='directo'))
+    # if 'adf.ly' in item.url:
+    #     from servers.decrypters import adfly
+    #     url = adfly.get_long_url(item.url)
+
+    # elif 'bit.ly' in item.url:
+    #     url = support.httptools.downloadpage(item.url, only_headers=True, follow_redirects=False).headers.get("location")
+
+    # else:
+    #     url = host
+    #     for u in item.url.split('/'):
+    #         if u and 'animeforce' not in u and 'http' not in u:
+    #             url += '/' + u
+
+
+    #     if 'php?' in url:
+    #         url = support.httptools.downloadpage(url, only_headers=True, follow_redirects=False).headers.get("location")
+    #         url = support.match(url, patron=r'class="button"><a href=(?:")?([^" ]+)', headers=headers).match
+    #     else:
+    #         if item.data: url = item.data
+    #         if item.contentType == 'movie': url = support.match()
+    #         url = support.match(url, patron=r'data-href="([^"]+)" target').match
+    #         if not url: url = support.match(url, patron=[r'<source src=(?:")?([^" ]+)',r'name="_wp_http_referer" value="([^"]+)"']).match
+    #     if url.startswith('//'): url = 'https:' + url
+    #     elif url.startswith('/'): url = 'https:/' + url
+    url = support.match(url, patron=r'data-href="([^"]+)" target').match
+    if 'vvvvid' in url: itemlist.append(item.clone(action="play", title='VVVVID', url=url, server='vvvvid'))
+    else: itemlist.append(item.clone(action="play", title=support.config.get_localized_string(30137), url=url, server='directo'))
 
     return support.server(item, itemlist=itemlist)

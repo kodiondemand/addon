@@ -90,6 +90,7 @@ def search(item, text):
 def newest(categoria):
     item = support.Item()
     item.args = 'channel/10007/last/'
+    item.newest = True
     if categoria == 'peliculas':
         item.contentType = 'movie'
         item.url = main_host + 'film/'
@@ -133,24 +134,25 @@ def peliculas(item):
         make_itemlist(itemlist, item, json_file)
 
     itlist = []
-    for i, it in enumerate(itemlist):
-        if pagination and (item.page - 1) * pagination > i: continue  # pagination
-        if pagination and i >= item.page * pagination: break  # pagination
+    if not item.newest:
+        for i, it in enumerate(itemlist):
+            if pagination and (item.page - 1) * pagination > i: continue  # pagination
+            if pagination and i >= item.page * pagination: break  # pagination
 
-        itlist.append(it)
+            itlist.append(it)
 
-    if pagination and len(itemlist) >= pagination:
-        if inspect.stack()[1][3] != 'get_newest':
-            itlist.append(
-                item.clone(action='peliculas',
-                    title=support.typo(config.get_localized_string(30992), 'color kod bold'),
-                    fulltitle=item.fulltitle,
-                    show=item.show,
-                    url=item.url,
-                    args=item.args,
-                    page=item.page + 1,
-                    thumbnail=support.thumb()))
-        itemlist = itlist
+        if pagination and len(itemlist) >= pagination:
+            if inspect.stack()[1][3] != 'get_newest':
+                itlist.append(
+                    item.clone(action='peliculas',
+                        title=support.typo(config.get_localized_string(30992), 'color kod bold'),
+                        fulltitle=item.fulltitle,
+                        show=item.show,
+                        url=item.url,
+                        args=item.args,
+                        page=item.page + 1,
+                        thumbnail=support.thumb()))
+            itemlist = itlist
 
     if 'category' in item.args:
         support.thumb(itemlist,genre=True)

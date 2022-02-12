@@ -254,7 +254,7 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
         if isinstance(video_password, list):
             return video_password, len(video_password) > 0, "<br/>".join(error_messages)
         logger.info("Server: %s, url is good" % server)
-        video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2][-4:], config.get_localized_string(30137)), url])
+        video_urls.append(["%s [%s]" % (urlparse.urlparse(url)[2].split('|')[0][-4:], config.get_localized_string(30137)), url])
 
     # Find out the video URL
     else:

@@ -16,15 +16,22 @@ if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
 
 def load(*args, **kwargs):
+    silent = False
+    if 'silent' in kwargs:
+        silent = kwargs['silent']
+        kwargs.pop('silent')
+
     if "object_hook" not in kwargs:
         kwargs["object_hook"] = to_utf8
 
     try:
         value = json.loads(*args, **kwargs)
     except:
-        logger.error("**NOT** able to load the JSON")
-        logger.error(traceback.format_exc())
-        logger.error('ERROR STACK ' + str(stack()[1][3]))
+        if not silent:
+            logger.error("**NOT** able to load the JSON")
+            logger.error(traceback.format_exc())
+            if len(stack()) > 1:
+                logger.error('ERROR STACK {}'.format(stack()[2]) )
         value = {}
 
     return value

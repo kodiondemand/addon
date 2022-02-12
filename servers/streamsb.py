@@ -2,10 +2,8 @@
 # https://github.com/tvaddonsco/script.module.urlresolver/blob/master/lib/urlresolver/plugins/streamsb.py
 
 from core import httptools, scrapertools
-from platformcode import config, logger
-import time
-
-host = 'streamsb.net'
+from platformcode import config
+import base64
 
 
 def test_video_exists(page_url):
@@ -21,8 +19,8 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     video_urls = []
     global data
+    host = scrapertools.get_domain_from_url(page_url)
     sources = scrapertools.find_multiple_matches(data, r'download_video([^"]+)[^\d]+\d+x(\d+)')
-    time.sleep(1)
     if sources:
         sources.sort(key=lambda x: int(x[1]), reverse=True)
         sources = [(x[1] + 'p', x[0]) for x in sources]
@@ -30,9 +28,14 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
             code, mode, hash = eval(s[1])
             dl_url = 'https://{0}/dl?op=download_orig&id={1}&mode={2}&hash={3}'.format(host, code, mode, hash)
             data = httptools.downloadpage(dl_url).data
-            media_url = scrapertools.find_single_match(data, 'href="([^"]+)">Direct')
-            if media_url:
-                video_urls.append([s[0], media_url])
+
+            captcha = scrapertools.girc(data, 'https://{0}/'.format(host), base64.b64encode('https://{0}:443'.format(host).encode('utf-8')).decode('utf-8').replace('=', ''))
+            if captcha:
+                data = httptools.downloadpage(dl_url, post={'op': 'download_orig', 'id': code, 'mode': mode,
+                                                            'hash': hash, 'g-recaptcha-response': captcha}, timeout=10).data
+                media_url = scrapertools.find_single_match(data, 'href="([^"]+)">Direct')
+                if media_url:
+                    video_urls.append([s[0], media_url])
     return video_urls
 
 

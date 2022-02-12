@@ -16,12 +16,11 @@ def http_Resp(lst_urls):
             s = httplib2.Http()
             code, resp = s.request(sito, body=None)
             if code.previous:
-                print("r1 http_Resp: %s %s %s %s" %
-                            (code.status, code.reason, code.previous['status'],
-                             code.previous['-x-permanent-redirect-url']))
                 rslt['code'] = code.previous['status']
-                rslt['redirect'] = code.previous['-x-permanent-redirect-url']
+                rslt['redirect'] = code.get('content-location', sito)
                 rslt['status'] = code.status
+                print("r1 http_Resp: %s %s %s %s" %
+                      (code.status, code.reason, rslt['code'], rslt['redirect']))
             else:
                 rslt['code'] = code.status
         except httplib2.ServerNotFoundError as msg:
@@ -32,6 +31,7 @@ def http_Resp(lst_urls):
             # [Errno 111] Connection refused
             rslt['code'] = 111
         except:
+            print()
             rslt['code'] = 'Connection error'
     return rslt
 
@@ -49,6 +49,8 @@ if __name__ == '__main__':
             if chann + '.json' not in chList:
                 print(chann + ' not exists anymore')
                 del data[k][chann]
+                continue
+            if k == 'findhost':
                 continue
             # to get an idea of the timing
             # useful only if you control all channels

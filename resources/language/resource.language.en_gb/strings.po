@@ -2605,12 +2605,12 @@ msgid "Links view"
 msgstr ""
 
 msgctxt "#60622"
-msgid "Normal window"
+msgid "Pop-up window"
 msgstr ""
 
 msgctxt "#60623"
-msgid "Pop-up window"
-msgstr ""
+msgid "Fullscreen window"
+msgstr "
 
 msgctxt "#60624"
 msgid "      Maximum number of links to display"

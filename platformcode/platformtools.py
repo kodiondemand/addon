@@ -10,9 +10,12 @@ import sys
 if sys.version_info[0] >= 3:
     PY3 = True
     import urllib.parse as urllib
+    from concurrent import futures
 else:
     PY3 = False
     import urllib
+    from concurrent_py2 import futures
+
 
 import os, xbmc, xbmcgui, xbmcplugin
 from past.utils import old_div
@@ -310,46 +313,69 @@ def render_items(itemlist, parent_item):
     """
     Function used to render itemlist on kodi
     """
+
     # if it's not a list, do nothing
     if not isinstance(itemlist, list):
         return
 
-    logger.debug('START render_items')
+    logger.debug('START renderItems')
     thumb_type = config.get_setting('video_thumbnail_type')
     from platformcode import shortcuts
-    # from core import httptools
     _handle = int(sys.argv[1])
     default_fanart = config.get_fanart()
     def_context_commands = shortcuts.context()
 
     # if there's no item, add "no elements" item
     if not len(itemlist):
-        itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=get_thumb('nofolder.png')))
+        from core.support import thumb
+        itemlist.append(Item(title=config.get_localized_string(60347), thumbnail=thumb('nofolder')))
+
+    mode, Type = get_view_mode(itemlist[0], parent_item)
+    # from core.support import dbg;dbg()
+    if mode:
+        set_view_mode(sys.argv[2], mode)
 
     dirItems = []
-    for n, item in enumerate(itemlist):
-        # item.itemlistPosition = n + 1
+
+    def setItem(n, item, parent_item):
+        item.itemlistPosition = n
         item_url = item.tourl()
 
         if item.category == "":
             item.category = parent_item.category
-        if not item.title:
-            item.title = ''
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
-        if item.action in ['play', '']:
+        if item.action in ['play', 'findvideos', '']:
             item.folder = False
         if item.fanart == "":
             item.fanart = parent_item.fanart
-        if item.action == 'play' and thumb_type == 1 and not item.forcethumb:
-            item.thumbnail = config.get_online_server_thumb(item.server)
 
         icon_image = "DefaultFolder.png" if item.folder else "DefaultVideo.png"
-        listitem = xbmcgui.ListItem(item.title)
-        listitem.setArt({'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail,
-                         'fanart': item.fanart if item.fanart else default_fanart})
+
+        title = item.title
+
+
+        listitem = xbmcgui.ListItem(title)
+        art = {'icon': icon_image, 'thumb': item.thumbnail, 'poster': item.thumbnail, 'fanart': item.fanart if item.fanart else default_fanart}
+        if item.infoLabels.get('landscape'): art['landscape'] = item.infoLabels['landscape']
+        if item.infoLabels.get('clearlogo'): art['clearlogo'] = item.infoLabels['clearlogo']
+        if item.infoLabels.get('clearart'): art['clearart'] = item.infoLabels['clearart']
+        if item.infoLabels.get('banner'): art['banner'] = item.infoLabels['banner']
+        if item.infoLabels.get('disc'): art['disc'] = item.infoLabels['disc']
+        listitem.setProperty('ResumeTime', str(get_played_time(item)))
+
+        listitem.setArt(art)
 
         if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
             listitem.setProperty('IsPlayable', 'true')
+
+        if item.infoLabels.get('castandrole'):
+            try:
+                cast = [{'name':c[0], 'role':c[1], 'thumbnail':c[2], 'order':c[3]} for c in item.infoLabels.get("castandrole", [])]
+                cast.sort(key=lambda c: c['order'])
+                listitem.setCast(cast)
+                del item.infoLabels['castandrole']
+            except:
+                pass
 
         set_infolabels(listitem, item)
 
@@ -359,11 +385,30 @@ def render_items(itemlist, parent_item):
         else:
             context_commands = def_context_commands
         listitem.addContextMenuItems(context_commands)
+        return item, item_url, listitem
 
-        dirItems.append(('%s?%s' % (sys.argv[0], item_url), listitem, item.folder))
+    # For Debug
+    # from core.support import dbg;dbg()
+    # r_list = [setItem(i, item, parent_item) for i, item in enumerate(itemlist)]
 
-    set_view_mode(itemlist[0], parent_item)
+    r_list = []
+
+    with futures.ThreadPoolExecutor() as executor:
+        searchList = [executor.submit(setItem, i, item, parent_item) for i, item in enumerate(itemlist)]
+        for res in futures.as_completed(searchList):
+            r_list.append(res.result())
+    r_list.sort(key=lambda it: it[0].itemlistPosition)
+
+
+    for item, item_url, listitem in r_list:
+        dirItems.append(('{}?{}'.format(sys.argv[0], item_url), listitem, item.folder, len(r_list)))
     xbmcplugin.addDirectoryItems(_handle, dirItems)
+
+    if Type: xbmcplugin.setContent(handle=int(sys.argv[1]), content=Type)
+
+    if parent_item.sorted:
+        if parent_item.sorted == 'year': xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_DATE)
+        elif parent_item.sorted == 'name':xbmcplugin.addSortMethod(int(sys.argv[1]), xbmcplugin.SORT_METHOD_TITLE_IGNORE_THE)
 
     if parent_item.list_type == '':
         breadcrumb = parent_item.category #.capitalize()
@@ -378,40 +423,41 @@ def render_items(itemlist, parent_item):
 
     xbmcplugin.setPluginCategory(handle=_handle, category=breadcrumb)
 
+    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc= True) # if parent_item.action in ['news', 'search', 'new_search', 'now_on_tv'] else False)
 
+    # if mode:
+    #     xbmc.sleep(50)
+    #     xbmc.executebuiltin('Container.SetViewMode(%s)' % mode)
 
-    # cacheToDisc = False
-    # if (parent_item.action == 'findvideos' and config.get_setting('autoplay')) or parent_item.action == 'search':
-    #     cacheToDisc = True
-
-    xbmcplugin.endOfDirectory(_handle, succeeded=True, updateListing=False, cacheToDisc=True)
-    logger.debug('END render_items')
+    from core import db; db.close()
+    logger.debug('END renderItems')
 
 
 def viewmodeMonitor():
-    # logger.debug('WINDOW:',get_window())
+    # logger.debug('WINDOW:',get_window(), xbmcgui.getCurrentWindowId())
     if get_window() == 'WINDOW_VIDEO_NAV':
         try:
-            currentModeName = xbmc.getInfoLabel('Container.Viewmode')
             parent_info = xbmc.getInfoLabel('Container.FolderPath')
-            item_info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')
-            win = xbmcgui.Window(10025)
-            currentMode = int(win.getFocusId())
-            # logger.debug('CM', currentMode, 'CN',currentModeName, 'label',xbmc.getInfoLabel('Container.FolderPath'))
-            # if not parent_info:
+            if 'plugin.video.kod' in parent_info:
+                parent = Item().fromurl(parent_info, silent=True)
+                item = Item().fromurl(xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath'), silent=True)
+                currentModeName = xbmc.getInfoLabel('Container.Viewmode')
+                currentMode = int(xbmcgui.Window(10025).getFocusId())
+                # logger.debug('SAVE VIEW 1', currentMode, parent.action, item.action)
+                if 50 <= currentMode < 520 and parent and parent.action != item.action:
+                    content, Type = getCurrentView(item, parent)
+                    view_mode_type = config.get_setting('view_mode_%s' % content)
+                    # logger.debug('VIEW MODE TYPE')
+                    if view_mode_type:
+                        defaultMode = int(view_mode_type.split(',')[-1])
+                        if content and currentMode != defaultMode:
+                            config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
+                            # logger.debug('SAVE VIEW 2', defaultMode, '->', currentMode)
+                            if config.get_setting('viewchange_notify'):
+                                dialog_notification(config.get_localized_string(70153),
+                                                            config.get_localized_string(70187) % (content, currentModeName),
+                                                            sound=False)
 
-            if currentModeName and 'plugin.video.kod' in parent_info and 50 <= currentMode < 1000:# and currentMode >= 50:  # inside addon and in itemlist view
-                # logger.debug('CAMBIO VISUALE')
-                content, Type = getCurrentView(Item().fromurl(item_info) if item_info else Item(), Item().fromurl(parent_info))
-                if content:
-                    defaultMode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
-                    if currentMode != defaultMode:
-                        # logger.debug('viewmode changed: ' + currentModeName + '-' + str(currentMode) + ' - content: ' + content)
-                        config.set_setting('view_mode_%s' % content, currentModeName + ', ' + str(currentMode))
-                        if config.get_setting('viewchange_notify'):
-                            dialog_notification(config.get_localized_string(70153),
-                                                        config.get_localized_string(70187) % (content, currentModeName),
-                                                        sound=False)
         except:
             import traceback
             logger.error(traceback.print_exc())
@@ -422,20 +468,9 @@ def getCurrentView(item=None, parent_item=None):
     if not item:
         item = Item()
     if not parent_item:
-        logger.debug('ESCO')
+        # logger.debug('ESCO')
         return None, None
 
-    # if not parent_item:
-    #     info = xbmc.getInfoLabel('Container.FolderPath')
-    #     if not info:
-    #         return None, None
-    #     parent_item = Item().fromurl(info)
-    # if not item:
-    #     info = xbmc.getInfoLabel('Container.ListItemPosition(2).FileNameAndPath')  # first addon listitem (consider "..")
-    #     if not info:
-    #         item = Item()
-    #     else:
-    #         item = Item().fromurl(info) if info else Item()
     parent_actions = ['peliculas', 'novedades', 'search', 'get_from_temp', 'newest', 'discover_list', 'new_search', 'channel_search']
 
     addons = 'addons' if config.get_setting('touch_view') else ''
@@ -445,6 +480,9 @@ def getCurrentView(item=None, parent_item=None):
 
     elif parent_item.action == 'mainlist':
         return 'channel', addons
+
+    elif item.contentType == 'music':
+        return 'musicvideo', 'musicvideos'
 
     elif (item.contentType in ['movie'] and parent_item.action in parent_actions) \
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_movies']) \
@@ -460,11 +498,10 @@ def getCurrentView(item=None, parent_item=None):
         return 'episode', 'tvshows'
 
     elif parent_item.action in ['get_seasons']:
-        logger.debug('CONTENTTYPE:',item.contentType)
         return 'season', 'tvshows'
 
     elif parent_item.action in ['getmainlist', '', 'getchanneltypes']:
-        return 'home', addons
+        return None, None
 
     elif parent_item.action in ['filterchannels']:
         return 'channels', addons
@@ -476,27 +513,84 @@ def getCurrentView(item=None, parent_item=None):
         return None, None
 
 
-
-def set_view_mode(item, parent_item):
+def get_view_mode(item, parent_item):
     def reset_view_mode():
         for mode in ['home','menu','channels','channel','movie','tvshow','season','episode','server']:
             config.set_setting('skin_name', xbmc.getSkinDir())
             config.set_setting('view_mode_%s' % mode, config.get_localized_string(70003) + ' , 0')
 
+    content, Type = getCurrentView(item, parent_item)
+
     if xbmc.getSkinDir() != config.get_setting('skin_name') or not config.get_setting('skin_name'):
         reset_view_mode()
-        xbmcplugin.setContent(handle=int(sys.argv[1]), content='')
-        xbmc.executebuiltin('Container.SetViewMode(%s)' % 55)
+        return 55, Type
 
-    content, Type = getCurrentView(item, parent_item)
     if content:
         mode = int(config.get_setting('view_mode_%s' % content).split(',')[-1])
         if mode == 0:
             logger.debug('default mode')
             mode = 55
-        xbmcplugin.setContent(handle=int(sys.argv[1]), content=Type)
-        xbmc.executebuiltin('Container.SetViewMode(%s)' % mode)
-        logger.debug('TYPE: ' + Type + ' - ' + 'CONTENT: ' + content)
+        return mode, Type
+
+    return None, None
+
+
+def set_view_mode(url, mode):
+    import re
+    find = re.findall('(%\d\w)', url, flags=re.DOTALL)
+    for f in find:
+        url = url.replace(f, f.lower())
+
+    def get_connection():
+        from core import filetools
+
+        file_db = ""
+
+        # We look for the archive of the video database according to the version of kodi
+        view_db = config.get_platform(True)['view_db']
+        if view_db:
+            file_db = filetools.join(xbmc.translatePath("special://userdata/Database"), view_db)
+
+        # alternative method to locate the database
+        if not file_db or not filetools.exists(file_db):
+            file_db = ""
+            for f in filetools.listdir(xbmc.translatePath("special://userdata/Database")):
+                path_f = filetools.join(xbmc.translatePath("special://userdata/Database"), f)
+
+                if filetools.isfile(path_f) and f.lower().startswith('viewmodes') and f.lower().endswith('.db'):
+                    file_db = path_f
+                    break
+        try:
+            import sqlite3
+            return sqlite3.connect(file_db)
+        except:
+            return None
+
+    def execute_sql(conn, sql):
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        conn.commit()
+
+        return cursor.fetchall()
+
+    conn = get_connection()
+    if conn:
+        skin_name = config.get_skin()
+        try:
+            sql = 'select idView from view where (path="{}{}" and skin="{}")'.format(sys.argv[0], url, skin_name)
+            records = execute_sql(conn, sql)
+            if records:
+                # from core.support import dbg;dbg()
+                sql = 'update view set viewMode={} where idView={}'.format(mode, records[0][0])
+                records = execute_sql(conn, sql)
+            else:
+                # from core.support import dbg;dbg()
+                sql = 'INSERT INTO view (window, path, viewMode, sortMethod, sortOrder, sortAttributes, skin) VALUES ' \
+                    '(10025, "{}{}", {}, 0, 1, 0, "{}")'.format(sys.argv[0], url, mode, skin_name)
+                records = execute_sql(conn, sql)
+        except:
+            pass
+        conn.close()
 
 
 def set_infolabels(listitem, item, player=False):
@@ -511,33 +605,23 @@ def set_infolabels(listitem, item, player=False):
     @type item: item
     """
 
-    infoLabels_dict = {'aired': 'aired', 'album': 'album', 'artist': 'artist', 'cast': 'cast',
-                       'castandrole': 'castandrole', 'tmdb_id': 'code', 'code': 'code', 'country': 'country',
-                       'credits': 'credits', 'release_date': 'dateadded', 'dateadded': 'dateadded', 'dbid': 'dbid',
-                       'director': 'director', 'duration': 'duration', 'episode': 'episode',
-                       'episodio_sinopsis': 'episodeguide', 'episodio_air_date': 'None', 'episodio_imagen': 'None',
-                       'episodio_titulo': 'title', 'episodio_vote_average': 'rating', 'episodio_vote_count': 'votes',
-                       'fanart': 'None', 'genre': 'genre', 'homepage': 'None', 'imdb_id': 'imdbnumber',
-                       'imdbnumber': 'imdbnumber', 'in_production': 'None', 'last_air_date': 'lastplayed',
-                       'mediatype': 'mediatype', 'mpaa': 'mpaa', 'number_of_episodes': 'None',
-                       'number_of_seasons': 'None', 'original_language': 'None', 'originaltitle': 'originaltitle',
-                       'overlay': 'overlay', 'poster_path': 'path', 'popularity': 'None', 'playcount': 'playcount',
-                       'plot': 'plot', 'plotoutline': 'plotoutline', 'premiered': 'premiered', 'quality': 'None',
-                       'rating': 'rating', 'season': 'season', 'set': 'set', 'setid': 'setid',
-                       'setoverview': 'setoverview', 'showlink': 'showlink', 'sortepisode': 'sortepisode',
-                       'sortseason': 'sortseason', 'sorttitle': 'sorttitle', 'status': 'status', 'studio': 'studio',
-                       'tag': 'tag', 'tagline': 'tagline', 'temporada_air_date': 'None', 'temporada_nombre': 'None',
-                       'temporada_num_episodios': 'None', 'temporada_poster': 'None', 'title': 'title',
-                       'top250': 'top250', 'tracknumber': 'tracknumber', 'trailer': 'trailer', 'thumbnail': 'None',
-                       'tvdb_id': 'None', 'tvshowtitle': 'tvshowtitle', 'type': 'None', 'userrating': 'userrating',
-                       'url_scraper': 'None', 'votes': 'votes', 'writer': 'writer', 'year': 'year'}
+    infoLabels_dict = {'aired': 'aired', 'album': 'album', 'artist': 'artist', 'cast': 'cast', 'castandrole': 'castandrole',
+                       'tmdb_id': 'code', 'code': 'code', 'country': 'country', 'credits': 'credits', 'release_date': 'dateadded',
+                       'dateadded': 'dateadded', 'dbid': 'dbid', 'director': 'director', 'duration': 'duration', 'episode': 'episode',
+                       'episode_plot': 'episodeguide', 'episode_title': 'title', 'episode_vote_average': 'rating', 'episode_vote_count': 'votes',
+                       'genre': 'genre', 'imdb_id': 'imdbnumber', 'imdbnumber': 'imdbnumber', 'last_air_date': 'lastplayed', 'mediatype': 'mediatype',
+                       'mpaa': 'mpaa', 'originaltitle': 'originaltitle', 'overlay': 'overlay', 'poster_path': 'path', 'playcount': 'playcount',
+                       'plot': 'plot', 'plotoutline': 'plotoutline', 'premiered': 'premiered', 'rating': 'rating', 'season': 'season', 'set': 'set',
+                       'setid': 'setid', 'setoverview': 'setoverview', 'showlink': 'showlink', 'sortepisode': 'sortepisode', 'sortseason': 'sortseason',
+                       'sorttitle': 'sorttitle', 'status': 'status', 'studio': 'studio', 'tag': 'tag', 'tagline': 'tagline', 'title': 'title',
+                       'top250': 'top250', 'tracknumber': 'tracknumber', 'trailer': 'trailer', 'tvshowtitle': 'tvshowtitle', 'userrating': 'userrating',
+                       'votes': 'votes', 'writer': 'writer', 'year': 'year'}
     # if item.infoLabels:
     try:
-        infoLabels_kodi = {infoLabels_dict[label_tag]: item.infoLabels[label_tag] for label_tag, label_value in list(item.infoLabels.items()) if infoLabels_dict[label_tag] != 'None'}
+        infoLabels_kodi = {infoLabels_dict[label_tag]: label_value for label_tag, label_value in list(item.infoLabels.items()) if label_tag in infoLabels_dict}
         listitem.setInfo("video", infoLabels_kodi)
     except:
         listitem.setInfo("video", item.infoLabels)
-        # logger.error(item.infoLabels)
 
 
 def set_context_commands(item, item_url, parent_item, **kwargs):
@@ -605,38 +689,15 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             else:
                 context_commands.append((command["title"], "RunPlugin(%s?%s)" % (sys.argv[0], item.clone(**command).tourl())))
     # Do not add more predefined options if you are inside kodfavoritos
-    # if parent_item.channel == 'kodfavorites':
-    #     return context_commands
+    if parent_item.channel == 'kodfavorites':
+        if config.dev_mode():
+            context_commands.insert(0, ("item info", "Container.Update (%s?%s)" % (sys.argv[0], Item(action="itemInfo", parent=item.tojson()).tourl())))
+        return context_commands
         # Options according to criteria, only if the item is not a tag, nor is it "Add to the video library", etc...
     if item.action and item.action not in ["add_pelicula_to_library", "add_serie_to_library", "buscartrailer", "actualizar_titulos"]:
         # Show information: if the item has a plot, we assume that it is a series, season, chapter or movie
         # if item.infoLabels['plot'] and (num_version_xbmc < 17.0 or item.contentType == 'season'):
         #     context_commands.append((config.get_localized_string(60348), "Action(Info)"))
-
-        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
-            # Add Series to the video library
-            if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
-                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (
-                    sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
-            # Add Movie to Video Library
-            elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
-                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (
-                    sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
-            # Add to Video Library
-            elif item.action in ['check'] and item.contentTitle:
-                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (
-                    sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
-
-        # Search trailer...
-        if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
-            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
-
-        # Add to kodfavoritos (My links)
-        if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "kodfavorites":
-            context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
-        # Add to kodfavoritos 
-        if parent_item.channel == 'globalsearch':
-            context_commands.append( (config.get_localized_string(30155), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "favorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
 
         # InfoPlus
         if config.get_setting("infoplus"):
@@ -645,8 +706,35 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             if item.infoLabels['tmdb_id'] or item.infoLabels['imdb_id'] or item.infoLabels['tvdb_id']:
                 context_commands.append(("InfoPlus", "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=infoplus&action=Main&from_channel=' + item.channel)))
 
-         # Search in other channels
-        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play']: #and parent_item.action != 'mainlist':
+        if item.channel != "videolibrary" and item.videolibrary != False and not item.disable_videolibrary:
+            # Add Series to the video library
+            if item.action in ["episodios", "get_episodios", "get_seasons"] and item.contentSerieName:
+                context_commands.append((config.get_localized_string(60352), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_serie_to_library&from_action=' + item.action)))
+            # Add Movie to Video Library
+            elif item.action in ["detail", "findvideos"] and item.contentType == 'movie' and item.contentTitle:
+                context_commands.append((config.get_localized_string(60353), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_pelicula_to_library&from_action=' + item.action)))
+            # Add to Video Library
+            elif item.action in ['check'] and item.contentTitle:
+                context_commands.append((config.get_localized_string(30161), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=add_to_library&from_action=' + item.action)))
+
+        # Search trailer...
+        if (item.contentTitle and item.contentType in ['movie', 'tvshow']) or "buscar_trailer" in context:
+            context_commands.append((config.get_localized_string(60359), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({ 'channel': "trailertools", 'action': "buscartrailer", 'search_title': item.contentTitle if item.contentTitle else item.fulltitle, 'contextual': True}))))
+
+        # Add to kodfavoritos (My links)
+        if item.channel not in ["favorites", "videolibrary", "help", ""] and parent_item.channel != "favorites" and parent_item.from_channel != "kodfavorites":
+            context_commands.append( (config.get_localized_string(70557), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "kodfavorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
+
+        # Add to kodfavoritos
+        if parent_item.channel == 'globalsearch':
+            context_commands.append( (config.get_localized_string(30155), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': "favorites", 'action': "addFavourite", 'from_channel': item.channel, 'from_action': item.action}))))
+
+        # Open in browser and previous menu
+        if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist":
+            context_commands.append((config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
+
+        # Search in other channels
+        if item.contentTitle and item.contentType in ['movie', 'tvshow'] and parent_item.channel not in ['search', 'globalsearch'] and item.action not in ['play'] and parent_item.action != 'mainlist':
 
             # Search in other channels
             if item.contentSerieName != '':
@@ -664,11 +752,6 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
             else:
                 context_commands.append((config.get_localized_string(60350), "Container.Refresh (%s?%s&%s)" % (sys.argv[0], item_url, urllib.urlencode({'channel': 'search', 'action': "from_context", 'from_channel': item.channel, 'contextual': True, 'text': item.wanted}))))
             context_commands.append( (config.get_localized_string(70561), "Container.Update (%s?%s&%s)" % (sys.argv[0], item_url, 'channel=search&action=from_context&search_type=list&page=1&list_type=%s/%s/similar' % (mediatype, item.infoLabels['tmdb_id']))))
-
-
-        # Open in browser and previous menu
-        if parent_item.channel not in ["news", "channelselector", "downloads", "search"] and item.action != "mainlist" and not parent_item.noMainMenu:
-            context_commands.append((config.get_localized_string(70739), "Container.Update (%s?%s)" % (sys.argv[0], Item(action="open_browser", url=item.url).tourl())))
 
         if not item.local and item.channel not in ["downloads", "filmontv", "search"] and item.server != 'torrent' and parent_item.action != 'mainlist' and config.get_setting('downloadenabled') and not item.disable_videolibrary:
             # Download movie
@@ -960,6 +1043,7 @@ def get_window():
 
 
 def play_video(item, strm=False, force_direct=False, autoplay=False):
+    from core import httptools
     logger.debug()
     logger.debug(item.tostring('\n'))
 
@@ -977,7 +1061,6 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
         # pass referer
         if item.referer:
-            from core import httptools
             httptools.default_headers['Referer'] = item.referer
 
         # Open the selection dialog to see the available options
@@ -999,9 +1082,33 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         # we get the selected video
         mediaurl, view, mpd, hls = get_video_seleccionado(item, seleccion, video_urls, autoplay)
         if not mediaurl: return
+        # to better disguise KoD as a browser
+        headers = {'User-Agent': httptools.get_user_agent(), 'Referer': item.referer if item.server == 'directo' else item.url}
+        # Kodi does not seems to allow this, leaving there as may work in the future
+        # if config.get_setting('resolver_dns'):
+        #     try:
+        #         import urllib.parse as urlparse
+        #     except ImportError:
+        #         import urlparse
+        #     from lib import doh
+        #     try:
+        #         parse = urlparse.urlparse(mediaurl)
+        #         if parse.netloc:
+        #             domain = parse.netloc
+        #             if not scrapertools.find_single_match(domain, '\d+\.\d+\.\d+\.\d+'):
+        #                 ip = doh.query(domain)[0]
+        #                 logger.info('Query DoH: ' + domain + ' = ' + str(ip))
+        #                 parse = list(parse)
+        #                 parse[1] = ip
+        #                 mediaurl = urlparse.urlunparse(parse)
+        #                 headers['Host'] = domain
+        #     except:
+        #         logger.error('Failed to resolve hostname, fallback to normal dns')
+        if '|' not in mediaurl:
+            mediaurl = mediaurl + '|' + urllib.urlencode(headers)
 
         # video information is obtained.
-        xlistitem = xbmcgui.ListItem(path=item.url)
+        xlistitem = xbmcgui.ListItem(item.title, path=item.url)
         xlistitem.setArt({"thumb": item.contentThumbnail if item.contentThumbnail else item.thumbnail})
         set_infolabels(xlistitem, item, True)
 
@@ -1016,12 +1123,14 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
+                xlistitem.setProperty('inputstream.adaptive.stream_headers', httptools.get_user_agent())
         elif hls or item.manifest == 'hls':# or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
             xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
             xlistitem.setMimeType('application/x-mpegURL')
+            xlistitem.setProperty('inputstream.adaptive.stream_headers', httptools.get_user_agent())
 
         if force_direct: item.play_from = 'window'
 
@@ -1368,7 +1477,10 @@ def get_video_seleccionado(item, seleccion, video_urls, autoplay=False):
 def set_player(item, xlistitem, mediaurl, view, strm):
     logger.debug()
     item.options = {'strm':False}
-    # logger.debug("item:\n" + item.tostring('\n'))
+    if item.subtitle:
+        if type(item.subtitle) != list: item.subtitle = [item.subtitle]
+        # item.subtitle.reverse()
+        xlistitem.setSubtitles(item.subtitle)
 
     # Moved del conector "torrent" here
     if item.server == "torrent":
@@ -1377,9 +1489,6 @@ def set_player(item, xlistitem, mediaurl, view, strm):
     # If it is a strm file, play is not necessary
     elif strm:
         xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xlistitem)
-        if item.subtitle:
-            xbmc.sleep(2000)
-            xbmc_player.setSubtitles(item.subtitle)
 
     else:
         if type(item.player_mode) == int:
@@ -1389,11 +1498,10 @@ def set_player(item, xlistitem, mediaurl, view, strm):
         if (player_mode == 3 and mediaurl.startswith("rtmp")): player_mode = 0
         elif "megacrypter.com" in mediaurl: player_mode = 3
         logger.info("mediaurl=" + mediaurl)
-
+        prevent_busy()
         if player_mode in [0,1]:
-            prevent_busy(item)
             if player_mode in [1]:
-                item.played_time = resume_playback(get_played_time(item))
+                xlistitem.setProperty('StartOffset','{}'.format(resume_playback(get_played_time(item))))
 
             logger.info('Player Mode:',['Direct', 'Bookmark'][player_mode])
             # Add the listitem to a playlist
@@ -1418,25 +1526,12 @@ def set_player(item, xlistitem, mediaurl, view, strm):
             download_and_play.download_and_play(mediaurl, "download_and_play.tmp", config.get_setting("downloadpath"))
             return
 
-    # ALL LOOKING TO REMOVE VIEW
-    if item.subtitle and view:
-        logger.info("External subtitles: " + item.subtitle)
-        xbmc.sleep(2000)
-        xbmc_player.setSubtitles(item.subtitle)
-
     # if it is a video library file send to mark as seen
     if strm or item.strm_path: item.options['strm'] = True
-    # if player_mode == 1: item.options['continue'] = True
+
     if not mediaurl.startswith('plugin'):
         from platformcode import xbmc_videolibrary
         xbmc_videolibrary.mark_auto_as_watched(item)
-
-    # for cases where the audio playback window appears in place of the video one
-    if item.focusOnVideoPlayer:
-        while is_playing() and xbmcgui.getCurrentWindowId() != 12006:
-            continue
-        xbmc.sleep(500)
-        xbmcgui.Window(12005).show()
 
 
 def add_next_to_playlist(item):
@@ -1451,7 +1546,7 @@ def add_next_to_playlist(item):
                 nfo_path = filetools.join(config.get_videolibrary_path(), config.get_setting("folder_tvshows"), next.strm_path.replace('strm','nfo'))
                 if nfo_path and filetools.isfile(nfo_path):
                     head_nfo, item_nfo = videolibrarytools.read_nfo(nfo_path)
-                nextItem = xbmcgui.ListItem(path=item_nfo.url)
+                nextItem = xbmcgui.ListItem(item_nfo.fulltitle, path=item_nfo.url)
                 nextItem.setArt({"thumb": item_nfo.contentThumbnail if item_nfo.contentThumbnail else item_nfo.thumbnail})
                 set_infolabels(nextItem, item_nfo, True)
                 nexturl = "plugin://plugin.video.kod/?" + next.tourl()
@@ -1495,7 +1590,7 @@ def play_torrent(item, xlistitem, mediaurl):
         selection = 0
 
     if selection >= 0:
-        prevent_busy(item)
+        prevent_busy()
 
         mediaurl = urllib.quote_plus(item.url)
         torr_client = torrent_options[selection][0]
@@ -1650,7 +1745,7 @@ def get_played_time(item):
         import traceback
         logger.error(traceback.format_exc())
         del db['viewed'][ID]
-
+    # db.close()
     return played_time
 
 
@@ -1680,19 +1775,264 @@ def set_played_time(item):
         import traceback
         logger.error(traceback.format_exc())
         del db['viewed'][ID]
+    db.close()
+
+def prevent_busy():
+    xbmc.executebuiltin('Dialog.Close(all,true)')
 
 
-def prevent_busy(item=None):
-    if item and (not item.autoplay and item.channel != 'videolibrary' and not item.window):
-        fakeVideo()
-    else:
-        xbmc.executebuiltin('Dialog.Close(all,true)')
-
-
-def fakeVideo():
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True,
-                              xbmcgui.ListItem(path=os.path.join(config.get_runtime_path(), "resources", "kod.mp4")))
-    sleep = 200
+def fakeVideo(sleep = False):
+    mediaurl = os.path.join(config.get_runtime_path(), "resources", "kod.mp4")
+    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=mediaurl))
     while not is_playing():
-        xbmc.sleep(sleep)
+        xbmc.sleep(200)
     xbmc.Player().stop()
+
+
+def channelImport(channelId):
+    from core import filetools
+    ch = ''
+    path = filetools.join(config.get_runtime_path(), '{}', channelId + ".py")
+    if filetools.exists(path.format('channels')): ch = 'channels.{}'.format(channelId)
+    elif filetools.exists(path.format('specials')): ch = 'specials.{}'.format(channelId)
+    elif filetools.exists(path.format('platformcode')): ch = 'platformcode.{}'.format(channelId)
+    elif filetools.exists(path.format('core')): ch = 'core.{}'.format(channelId)
+    if ch:
+        channel = __import__(ch, None, None, [ch])
+    else:
+        logger.info('Channel {} not Exist'.format(channelId))
+        channel = None
+    return channel
+
+def serverWindow(item, itemlist):
+    from core import db
+    LEFT = 1
+    RIGHT = 2
+    UP = 3
+    DOWN = 4
+    ENTER = 7
+    EXIT = 10
+    BACKSPACE = 92
+
+    CONTEXT = 117
+
+    class ServerWindow(xbmcgui.WindowXMLDialog):
+        def start(self, item, itemlist):
+            prevent_busy()
+            self.itemlist = itemlist
+            self.item = item
+            self.servers = []
+            items = []
+            self.selection = -1
+            self.actions = {}
+            for videoitem in self.itemlist:
+                videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
+                quality = ' [' + videoitem.quality + ']' if videoitem.quality else ''
+                info = ' [' + videoitem.extraInfo + ']' if videoitem.extraInfo else ''
+                if videoitem.server:
+                    color = scrapertools.find_single_match(videoitem.alive, r'(FF[^\]]+)')
+                    it = xbmcgui.ListItem('{}{}{}'.format(videoitem.serverName, quality, info))
+
+                    # format Title
+                    if videoitem.contentSeason and videoitem.contentEpisodeNumber:
+                        title = '{}x{:02d}. {}'.format(videoitem.contentSeason, videoitem.contentEpisodeNumber, videoitem.contentTitle)
+                    elif videoitem.contentEpisodeNumber:
+                        title = '{:02d}. {}'.format(videoitem.contentEpisodeNumber, videoitem.contentTitle)
+                    else:
+                        title = videoitem.title
+
+                    it.setProperties({'name': title, 'channel': videoitem.ch_name, 'color': color if color else 'FF0082C2'})
+                    it.setArt({'poster':videoitem.contentThumbnail, 'thumb':videoitem.thumbnail, 'fanart':videoitem.contentFanart})
+                    self.servers.append(it)
+                    items.append(videoitem)
+                else:
+                    it = xbmcgui.ListItem(videoitem.title)
+                    if 'library' in videoitem.action:
+                        self.actions['videolibrary'] = videoitem
+                    if 'download' in videoitem.action:
+                        self.actions['download'] = videoitem
+
+            self.itemlist = items
+            self.doModal()
+            return self.selection
+
+        def onInit(self):
+            self.SERVERS = self.getControl(100)
+            self.VIDEOLIBRARY = self.getControl(103)
+            self.DOWNLOAD = self.getControl(104)
+            if 'videolibrary' not in self.actions.keys():
+                self.VIDEOLIBRARY.setVisible(False)
+            if 'download' not in self.actions.keys():
+                self.DOWNLOAD.setVisible(False)
+            self.SERVERS.reset()
+            self.SERVERS.addItems(self.servers)
+            self.setFocusId(100)
+            # from core.support import dbg;dbg()
+
+        def onFocus(self, control):
+            if is_playing() and db['controls'].get('reopen', False):
+                self.close()
+                serverWindow(self.item, self.itemlist)
+
+        def onAction(self, action):
+            action = action.getId()
+            focus = self.getFocusId()
+            if action in [UP, DOWN, LEFT, RIGHT] and focus not in [100, 101, 102, 103, 104]:
+                self.setFocusId(100)
+            elif action in [EXIT, BACKSPACE]:
+                self.close()
+            if action in [CONTEXT]:
+                context(self)
+
+        def onClick(self, control):
+            if control == 100:
+                self.selection = self.itemlist[self.SERVERS.getSelectedPosition()].clone(window=True)
+                self.close()
+            elif control in [101]:
+                self.close()
+            elif control in [102]:
+                context(self)
+            elif control in [103]:
+                self.run(self.actions['videolibrary'])
+            elif control in [104]:
+                self.run(self.actions['download'])
+
+        def run(self, action):
+            from platformcode.launcher import run
+            run(action)
+
+    class ServerSkinWindow(xbmcgui.WindowXMLDialog):
+        def start(self, item, itemlist):
+            prevent_busy()
+            self.item = item
+            self.itemlist = itemlist
+            self.selection = -1
+            self.actions = []
+            self.doModal()
+            return self.selection
+
+        def onInit(self):
+            try:
+                self.SERVERS = self.getControl(6)
+                self.exit = self.getControl(5)
+                self.exit.setNavigation(self.exit, self.exit, self.SERVERS, self.SERVERS)
+            except:
+                pass
+
+            try: self.getControl(7).setVisible(False)
+            except: pass
+            try: self.getControl(8).setVisible(False)
+            except: pass
+
+            self.exit.setLabel(config.get_localized_string(60396))
+
+            for item in itemlist:
+                if item.server: break
+            if item.contentSeason and item.contentEpisodeNumber:
+                title = '{}x{:02d}. {}'.format(item.contentSeason, item.contentEpisodeNumber, item.contentTitle)
+            elif item.contentEpisodeNumber:
+                title = '{:02d}. {}'.format(item.contentEpisodeNumber, item.contentTitle)
+            else:
+                title = item.fulltitle
+
+            self.getControl(1).setLabel(title)
+
+            items = []
+
+            from core.support import typo
+            for videoitem in self.itemlist:
+                if videoitem.server:
+                    logger.debug(videoitem)
+                    videoitem.thumbnail = config.get_online_server_thumb(videoitem.server)
+                    quality = ' [' + videoitem.quality + ']' if videoitem.quality else ''
+                    color = scrapertools.find_single_match(videoitem.alive, r'(FF[^\]]+)')
+                    color = typo(' •', 'bold color 0x{}'.format(color)) if color else ''
+                    info = ' [' + videoitem.extraInfo + ']' if videoitem.extraInfo else ''
+                    title = '{}{}{}{}'.format(videoitem.serverName, quality, info, color)
+                else:
+                    title = videoitem.title
+                it = xbmcgui.ListItem(title)
+                if videoitem.ch_name:
+                    it.setLabel2(videoitem.ch_name)
+                elif not videoitem.action:
+                    it.setLabel2(videoitem.plot)
+                else:
+                    it.setLabel2(videoitem.fulltitle)
+                it.setArt({'thumb': videoitem.thumbnail})
+
+                items.append(it)
+            self.SERVERS.reset()
+            self.SERVERS.addItems(items)
+            self.setFocus(self.SERVERS)
+
+        def onFocus(self, control):
+            if is_playing() and db['controls'].get('reopen', False):
+                self.close()
+                serverWindow(self.item, self.itemlist)
+
+        def onAction(self, action):
+            action = action.getId()
+            if action in [CONTEXT]:
+                context(self)
+            if action in [EXIT, BACKSPACE]:
+                self.close()
+
+        def onClick(self, control):
+            if control == 6:
+                self.selection = self.itemlist[self.SERVERS.getSelectedPosition()]
+                if not self.selection.action:
+                    it = self.selection
+                    self.selection = -1
+                    dialog_textviewer(it.title, it.plot)
+                else:
+                    self.close()
+            if control == 5:
+                self.close()
+            elif control == 7:
+                from platformcode.launcher import run
+                run(self.actions[1])
+            elif control == 8:
+                from platformcode.launcher import run
+                run(self.actions[0])
+
+
+    def context(self):
+        pos = self.SERVERS.getSelectedPosition()
+        parent = self.item
+        item = self.itemlist[pos]
+        if not item.server:
+            return
+        commands = set_context_commands(item, item.tourl(), parent)
+        context = [c[0] for c in commands]
+        context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
+        index = xbmcgui.Dialog().contextmenu(context)
+        if index > 0: xbmc.executebuiltin(context_commands[index])
+
+
+    if itemlist:
+        def monitor(itemlist):
+            reopen = False
+            while not xbmc.Monitor().abortRequested():
+                if not is_playing():
+                    if reopen:
+                        xbmc.sleep(200)
+                        if not db['controls'].get('reopen', False):
+                            break
+                    if config.get_setting('window_type') == 0:
+                        selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
+                    else:
+                        selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
+
+                    if selection == -1:
+                        break
+
+                    else:
+                        from platformcode.launcher import run
+                        run(selection)
+                        reopen = True
+                        if not selection.server or selection.server == 'torrent': break
+
+            db.close()
+            logger.debug('Server Window EXIT')
+        import threading
+        threading.Thread(target=monitor, args=[itemlist]).start()

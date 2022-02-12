@@ -355,7 +355,7 @@ class Item(object):
             dump = "".encode("utf8")
         return str(urllib.quote(base64.b64encode(dump)))
 
-    def fromurl(self, url):
+    def fromurl(self, url, silent=False):
         """
         Generate an item from a text string. The string can be created by the tourl () function or have
         the old format: plugin: //plugin.video.kod/? channel = ... (+ other parameters)
@@ -369,7 +369,7 @@ class Item(object):
         decoded = False
         try:
             str_item = base64.b64decode(urllib.unquote(url))
-            json_item = json.load(str_item, object_hook=self.toutf8)
+            json_item = json.load(str_item, object_hook=self.toutf8, silent=silent)
             if json_item is not None and len(json_item) > 0:
                 self.__dict__.update(json_item)
                 decoded = True

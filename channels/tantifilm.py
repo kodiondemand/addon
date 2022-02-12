@@ -54,7 +54,7 @@ def search(item, texto):
 
     item.url = host + "/?s=" + texto
     try:
-        item.contentType = 'undefined'
+        item.args = 'search'
         return peliculas(item)
 
     # Continua la ricerca in caso di errore
@@ -78,11 +78,11 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    if item.contentType == 'undefined':
-        action = 'check'
+    action = 'check'
+    item.contentType = 'undefined'
+    if item.args == 'search':
         patron = r'<a href="(?P<url>[^"]+)" title="Permalink to\s*(?P<title>[^"]+) \((?P<year>[0-9]+)[^<]*\)[^"]*"[^>]+>\s*<img[^s]+src="(?P<thumb>[^"]+)".*?<div class="calitate">\s*<p>(?P<quality>[^<]+)<\/p>'
     else:
-        action = 'findvideos' if item.contentType == 'movie' else 'episodios' 
         patronNext = r'<a class="nextpostslink" rel="next" href="([^"]+)">'
         patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*(?:<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>\s*)?<\/a>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+?)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?)\).[^<]+[^>]+><\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z-0-9\.]+)?'
         patronBlock = r'<div id="main_col">(?P<block>.*?)<!\-\- main_col \-\->'
@@ -124,6 +124,7 @@ def episodios(item):
             if res.result():
                 data += res.result()
     patron = r'(?P<season>\d+)x(?P<episode>\d+)\s*-\s*(?P<title>[^\|]+)\|(?P<url>[^ ]+)'
+    # debug = True
     action = 'findvideos'
 
     def itemlistHook(itemlist):
@@ -139,14 +140,14 @@ def check(item):
     if 'sub' in check.lower():
         item.contentLanguage = 'Sub-ITA'
     logger.debug("CHECK : ", check)
-    if 'anime' in check.lower():
-        item.contentType = 'tvshow'
-        logger.debug('select = ### è una anime ###')
-        try:
-            return episodios(item)
-        except:
-            pass
-    elif 'serie' in check.lower():
+    # if 'anime' in check.lower():
+    #     item.contentType = 'tvshow'
+    #     logger.debug('select = ### è una anime ###')
+    #     try:
+    #         return episodios(item)
+    #     except:
+    #         pass
+    if 'serie' in check.lower():
         item.contentType = 'tvshow'
         return episodios(item)
     else:

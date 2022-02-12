@@ -29,6 +29,8 @@ def start(itemlist, item):
 
     if item.global_search or item.from_action or item.contentAction:  # from_action means that's a special function calling this (ex: add to videolibrary)
         return itemlist
+    if len([s for s in itemlist if s.server]) == 1:
+        return itemlist
     logger.debug()
 
     global PLAYED

@@ -3,7 +3,7 @@
 # Canale per streamingITA
 # ------------------------------------------------------------
 
-from core import support, httptools
+from core import httptools, support
 from platformcode import logger, config
 
 host = config.get_channel_url()
@@ -34,7 +34,8 @@ def search(item, text):
 
 
 def peliculas(item):
-    return support.dooplay_peliculas(item, False)
+    mixed = True if item.contentType == 'undefined' else False
+    return support.dooplay_peliculas(item, mixed)
 
 
 def episodios(item):
@@ -53,7 +54,7 @@ def findvideos(item):
 @support.scrape
 def menu(item):
     action = 'peliculas'
-    # debug = True
+    item.contentType = 'undefined'
     if item.args in ['genres', 'releases']:
         patronBlock = r'<nav class="' + item.args + r'">(?P<block>.*?)</nav'
         patronMenu= r'<a href="(?P<url>[^"]+)"[^>]*>(?P<title>[^<]+)<'

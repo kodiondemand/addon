@@ -30,7 +30,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     matches = re.compile(patron, re.DOTALL).findall(data)
 
     for url in matches:
-        url = url+'|Referer='+page_url
+        # url = url+'|Referer='+page_url
         video_urls.append(["[uqload]", url])
 
     return video_urls

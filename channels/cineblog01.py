@@ -9,14 +9,14 @@ from core import scrapertools, httptools, servertools, support
 from platformcode import logger, config
 
 
-# def findhost(url):
-#     host = httptools.downloadpage(url, follow_redirect=True).url
-#     if host == 'https://cb01.uno/':
-#         host = support.match(host, patron=r'<a href="([^"]+)').match
-#     return host
+def findhost(url):
+    host = httptools.downloadpage(url, follow_redirect=True).url
+    if host == 'https://cb01.uno/':
+        host = support.match(host, patron=r'<a href="([^"]+)').match
+    return host
 
 
-host = config.get_channel_url()
+host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
 
@@ -223,7 +223,7 @@ def findvideos(item):
     patronvideos = r'([\w.]+)</strong></div></td>'
     support.addQualityTag(item, itemlist, data, patronvideos)
 
-    return itemlist
+    return support.server(item, itemlist=itemlist)
 
     # Estrae i contenuti - Download
     # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")

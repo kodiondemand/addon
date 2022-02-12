@@ -142,7 +142,7 @@ def live(item):
         current = it['currentItem']
         next = it['nextItem']
         plot = '[B]{}[/B]\n{}\n\nA Seguire: [B]{}[/B]\n{}'.format(current['name'], current['description'], next['name'], next['description'])
-        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, video_url=url + '.json', action='play'))
+        itemlist.append(item.clone(title=title, fulltitle=title, fanart=fanart, plot=plot, url=url, video_url=url + '.json', action='findvideos'))
     itemlist.sort(key=lambda it: support.channels_order.get(it.fulltitle, 999))
     support.thumb(itemlist, live=True)
     return itemlist
@@ -209,7 +209,7 @@ def replay(item):
                          plot = info['description'],
                          url = getUrl(it['weblink']),
                          video_url = getUrl(it['path_id']),
-                         action = 'play',
+                         action = 'findvideos',
                          forcethumb = True)
 
 
@@ -229,7 +229,7 @@ def replay(item):
     return itemlist
 
 
-def play(item):
+def findvideos(item):
     logger.debug()
 
     res = requests.get(item.video_url).json()
@@ -245,7 +245,7 @@ def play(item):
 
     item = item.clone(server='directo', url=url, no_return=True) # , manifest='hls')
 
-    return [item]
+    return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
 
 def getUrl(url):
@@ -306,7 +306,7 @@ def addinfo(items, item):
                         order=n)
 
         if 'Genere' not in key.get('sub_type', '') and ('layout' not in key or key['layout'] == 'single'):
-            it.action = 'play'
+            it.action = 'findvideos'
             it.contentTitle = it.fulltitle
         else:
             it.action = 'episodios'

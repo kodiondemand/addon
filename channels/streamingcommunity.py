@@ -113,9 +113,8 @@ def newest(category):
 
 
 def peliculas(item):
-    # getHeaders()
     logger.debug()
-
+    if item.mainThumb: item.thumbnail = item.mainThumb
     global host
     itemlist = []
     items = []
@@ -159,17 +158,19 @@ def peliculas(item):
 
     itemlist.sort(key=lambda item: item.n)
     if not item.newest:
+        item.mainThumb = item.thumbnail
         if recordlist:
             itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), page=page, records=recordlist))
         elif len(itemlist) >= 20:
             itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'), thumbnail=support.thumb(), records=[], page=page + 1))
 
     support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
+    support.check_trakt(itemlist)
     return itemlist
 
 def makeItem(n, it, item):
     info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
+    logger.debug(jsontools.dump(it))
     title = info['name']
     lang = 'Sub-ITA' if 'sub-ita' in title.lower() else 'ITA'
     title = support.cleantitle(re.sub('\[|\]|[Ss][Uu][Bb]-[Ii][Tt][Aa]', '', title))
@@ -203,7 +204,7 @@ def episodios(item):
     js = json.loads(support.match(item.url, patron=r'seasons="([^"]+)').match.replace('&quot;','"'))
 
     for episodes in js:
-        logger.debug(jsontools.dump(js))
+        # logger.debug(jsontools.dump(js))
         for it in episodes['episodes']:
 
             itemlist.append(
@@ -225,15 +226,11 @@ def episodios(item):
 
     if config.get_setting('episode_info') and not support.stackCheck(['add_tvshow', 'get_newest']):
         support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
+    support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
     return itemlist
 
-
-def findvideos(item):
-    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo')]
-    return support.server(item, itemlist=itemlist)
 
 def findvideos(item):
     itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo')]
@@ -246,8 +243,12 @@ def play(item):
 
     data = support.httptools.downloadpage(item.url + item.episodeid, headers=headers).data.replace('&quot;','"').replace('\\','')
     scws_id = support.match(data, patron=r'scws_id"\s*:\s*(\d+)').match
+    # support.dbg()
 
     if not scws_id:
+        if '<strong>Prossimamente' in data:
+            platformtools.dialog_ok('StreamingCommunity', 'Il sito notifica che il contenuto sarà disponibile prossimamente')
+            platformtools.play_canceled = True
         return []
 
     # Calculate Token
@@ -255,6 +256,21 @@ def play(item):
     expires = int(time() + 172800)
     token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1|User-Agent={}&Referer={}'.format(scws_id, token, expires, httptools.get_user_agent(), host)
+    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
+    subs = []
+    urls = []
 
-    return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url, manifest='hls')]
+    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)').matches
+    if info:
+        for lang, sub, res, url in info:
+            if sub:
+                if lang == 'auto': lang = 'ita-forced'
+                s = config.get_temp_file(lang +'.srt')
+                subs.append(s)
+                filetools.write(s, support.vttToSrt(httptools.downloadpage(support.match(sub, patron=r'(http[^\s\n]+)').match).data))
+            elif url:
+                urls.append(['hls [{}]'.format(res), url])
+
+        return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', video_urls=urls, subtitle=subs, manifest='hls')]
+    else:
+        return [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], server='directo', url=url, manifest='hls')]

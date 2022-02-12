@@ -1,10 +1,10 @@
 {
     "id": "mediasetplay",
-    "name": "Mediaset Play",
+    "name": "Mediaset play infinity [free]",
     "active": true,
     "language": ["ita"],
-    "thumbnail": "mediasetplay.png",
-    "banner": "mediasetplay.png",
+    "thumbnail": "mediasetplayinfinity.png",
+    "banner": "mediasetplayinfinity.png",
     "categories": ["movie", "tvshow", "documentary", "live"],
     "not_active": ["include_in_newest"],
     "default_off": ["include_in_global_search"],

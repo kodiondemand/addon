@@ -62,6 +62,7 @@
       "type": "list",
       "label": "@60618",
       "default": 0,
+      "visible": false,
       "enabled": "!eq(-4,@60615)",
       "lvalues": [
         "@60619",
@@ -110,7 +111,7 @@
       "label": "@60653",
       "default": true,
       "enabled": "eq(-1,TVDB)",
-      "visible": true
+      "visible": false
     },
     {
       "id": "info_language",
@@ -125,18 +126,6 @@
         "fr",
         "it",
         "pt"
-      ]
-    },
-    {
-      "id": "window_type",
-      "type": "list",
-      "label": "@60621",
-      "default": 0,
-      "enabled": true,
-      "visible": true,
-      "lvalues": [
-        "@60622",
-        "@60623"
       ]
     },
     {
@@ -162,7 +151,7 @@
       "type": "bool",
       "label": "@60626",
       "enabled": true,
-      "visible": true,
+      "visible": false,
       "default": false
     },
     {
@@ -170,7 +159,7 @@
       "type": "bool",
       "label": "@60627",
       "enabled": true,
-      "visible": true,
+      "visible": false,
       "default": false
     },
     {
@@ -178,7 +167,7 @@
       "type": "bool",
       "label": "@60628",
       "enabled": "eq(-4,@60623)",
-      "visible": true,
+      "visible": false,
       "default": false
     },
     {
@@ -223,7 +212,7 @@
       "type": "bool",
       "label": "@60638",
       "default": false,
-      "visible": true,
+      "visible": false,
       "enabled": "eq(-3,true)"
     },
     {
@@ -231,7 +220,7 @@
       "type": "bool",
       "label": "@60639",
       "default": true,
-      "visible": true,
+      "visible": false,
       "enabled": "eq(-1,true)"
     },
     {

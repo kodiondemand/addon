@@ -34,8 +34,8 @@ def mainlist(item):
 
 
 def live(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='play', forcethumb = True, no_return=True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='play', forcethumb = True, no_return=True)]
+    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True),
+                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)]
     return support.thumb(itemlist, live=True)
 
 
@@ -57,7 +57,7 @@ def replay_menu(item):
 
 @support.scrape
 def replay(item):
-    action = 'play'
+    action = 'findvideos'
     patron = r'guida-tv"><[^>]+><[^>]+>(?P<hour>[^<]+)<[^>]+><[^>]+><[^>]+>\s*<a href="(?P<url>[^"]+)"><[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"><[^>]+><[^>]+><[^>]+><[^>]+>\s*(?P<name>[^<]+)<[^>]+><[^>]+><[^>]+>(?P<plot>[^<]+)<'
     def itemHook(item):
         item.title = support.typo(item.hour + ' - ' + item.name,'bold')
@@ -99,7 +99,7 @@ def peliculas(item):
 def episodios(item):
     data = support.match(item).data
     # debug = True
-    action = 'play'
+    action = 'findvideos'
     if '>puntate<' in data:
         patronBlock = r'>puntate<(?P<block>.*?)home-block-outbrain'
         url = support.match(data, patron=r'>puntate<[^>]+>[^>]+>[^>]+><a href="([^"]+)"').match
@@ -127,7 +127,7 @@ def episodios(item):
     return locals()
 
 
-def play(item):
+def findvideos(item):
     support.info()
     if item.livefilter:
         for it in live(item):
@@ -169,5 +169,6 @@ def play(item):
         match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
         if match:
             url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
-            item = item.clone(title='Direct', url=url, server='directo', action='play')
-    return support.servertools.find_video_items(item, data=url)
+
+    item = item.clone(title='Direct', server='directo', url=url, action='play')
+    return support.server(item, itemlist=[item], Download=False, Videolibrary=False)

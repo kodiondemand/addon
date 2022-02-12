@@ -17,6 +17,8 @@
 
 # from builtins import str
 import sys
+
+from lib import requests
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 from builtins import object
@@ -158,9 +160,9 @@ def addFavourite(item):
             return False
 
     # If it is a movie / series, fill in tmdb information if tmdb_plus_info is not activated (for season / episode it is not necessary because the "second pass" will have already been done)
-    if (item.contentType == 'movie' or item.contentType == 'tvshow') and not config.get_setting('tmdb_plus_info', default=False):
-        from core import tmdb
-        tmdb.set_infoLabels(item, True) # get more data in "second pass" (actors, duration, ...)
+    # if (item.contentType == 'movie' or item.contentType == 'tvshow') and not config.get_setting('tmdb_plus_info', default=False):
+    #     from core import tmdb
+    #     tmdb.set_infoLabels(item, True) # get more data in "second pass" (actors, duration, ...)
 
     # Add date saved
     item.date_added = fechahora_actual()
@@ -224,6 +226,7 @@ def mostrar_perfil(item):
     for i_enlace, enlace in enumerate(alfav.user_favorites[i_perfil]['items']):
 
         it = Item().fromurl(enlace)
+        it.from_channel = 'kodfavorites'
         it.context = [ {'title': config.get_localized_string(70617), 'channel': item.channel, 'action': 'acciones_enlace',
                         'i_enlace': i_enlace, 'i_perfil': i_perfil} ]
 
@@ -232,16 +235,20 @@ def mostrar_perfil(item):
         it.plot += '[CR]Url: ' + it.url if isinstance(it.url, str) else '...'
         if it.date_added != '': it.plot += '[CR]' + config.get_localized_string(70469) + ': ' + it.date_added
 
+        if it.server:
+            it.thumbnail = it.contentThumbnail
+            it.title += ' [{}]'.format(it.serverName)
+
         # If it is not a url, nor does it have the system path, convert the path since it will have been copied from another device.
         # It would be more optimal if the conversion was done with an import menu, but at the moment it is controlled in run-time.
-        if it.thumbnail and '://' not in it.thumbnail and not it.thumbnail.startswith(ruta_runtime):
-            ruta, fichero = filetools.split(it.thumbnail)
-            if ruta == '' and fichero == it.thumbnail: # in linux the split with a windows path does not separate correctly
-                ruta, fichero = filetools.split(it.thumbnail.replace('\\','/'))
-            if 'channels' in ruta and 'thumb' in ruta:
-                it.thumbnail = filetools.join(ruta_runtime, 'resources', 'media', 'channels', 'thumb', fichero)
-            elif 'themes' in ruta and 'default' in ruta:
-                it.thumbnail = filetools.join(ruta_runtime, 'resources', 'media', 'themes', 'default', fichero)
+        # if it.thumbnail and '://' not in it.thumbnail and not it.thumbnail.startswith(ruta_runtime):
+        #     ruta, fichero = filetools.split(it.thumbnail)
+        #     if ruta == '' and fichero == it.thumbnail: # in linux the split with a windows path does not separate correctly
+        #         ruta, fichero = filetools.split(it.thumbnail.replace('\\','/'))
+        #     if 'channels' in ruta and 'thumb' in ruta:
+        #         it.thumbnail = filetools.join(ruta_runtime, 'resources', 'media', 'channels', 'thumb', fichero)
+        #     elif 'themes' in ruta and 'default' in ruta:
+        #         it.thumbnail = filetools.join(ruta_runtime, 'resources', 'media', 'themes', 'default', fichero)
 
         itemlist.append(it)
 
@@ -420,37 +427,30 @@ def editar_enlace_thumbnail(item):
     # Dialog to choose thumbnail (the channel or predefined icons)
     opciones = []
     ids = []
-    try:
-        from core import channeltools
-        channel_parameters = channeltools.get_channel_parameters(it.channel)
-        if channel_parameters['thumbnail'] != '':
-            nombre = 'Canal %s' % it.channel
-            if is_kodi17:
-                it_thumb = xbmcgui.ListItem(nombre)
-                it_thumb.setArt({ 'thumb': channel_parameters['thumbnail'] })
-                opciones.append(it_thumb)
-            else:
-                opciones.append(nombre)
-            ids.append(channel_parameters['thumbnail'])
-    except:
-        pass
+    # try:
+    #     from core import channeltools
+    #     channel_parameters = channeltools.get_channel_parameters(it.channel)
+    #     if channel_parameters['thumbnail'] != '':
+    #         nombre = 'Channel %s' % it.channel
+    #         if is_kodi17:
+    #             it_thumb = xbmcgui.ListItem(nombre)
+    #             it_thumb.setArt({ 'thumb': channel_parameters['thumbnail'] })
+    #             opciones.append(it_thumb)
+    #         else:
+    #             opciones.append(nombre)
+    #         ids.append(channel_parameters['thumbnail'])
+    # except:
+    #     pass
 
-    resource_path = os.path.join(config.get_runtime_path(), 'resources', 'media', 'themes', 'default')
-    for f in sorted(os.listdir(resource_path)):
-        if f.startswith('thumb_') and not f.startswith('thumb_intervenido') and f != 'thumb_back.png':
-            nombre = f.replace('thumb_', '').replace('_', ' ').replace('.png', '')
-            if is_kodi17:
-                it_thumb = xbmcgui.ListItem(nombre)
-                it_thumb.setArt({ 'thumb': os.path.join(resource_path, f) })
-                opciones.append(it_thumb)
-            else:
-                opciones.append(nombre)
-            ids.append(os.path.join(resource_path, f))
+    resource_path = 'https://api.github.com/repos/kodiondemand/media/git/trees/b36040432b9be120f04e986277fd34f09dcdb4db'
+    for f in sorted(requests.get(resource_path).json().get('tree', []), key=lambda p: p.get('path')):
+        nombre = f['path'].replace('thumb_', '').replace('.png', '')
+        it_thumb = xbmcgui.ListItem(nombre)
+        it_thumb.setArt({ 'thumb': support.thumb(nombre)})
+        opciones.append(it_thumb)
+        ids.append(support.thumb(nombre))
 
-    if is_kodi17:
-        ret = xbmcgui.Dialog().select(config.get_localized_string(70554), opciones, useDetails=True)
-    else:
-        ret = platformtools.dialog_select(config.get_localized_string(70554), opciones)
+    ret = xbmcgui.Dialog().select(config.get_localized_string(70554), opciones, useDetails=True)
 
     if ret == -1: return False # order cancel
 

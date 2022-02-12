@@ -95,7 +95,7 @@ def live(item):
                                        urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'],
                                        plot=plot,
                                        url=url,
-                                       action='play',
+                                       action='findvideos',
                                        thumbnail=thumb,
                                        forcethumb=True))
 
@@ -141,7 +141,7 @@ def peliculas(item):
         else:
             contentType = 'movie'
             video_id = it['guid']
-            action = 'play'
+            action = 'findvideos'
         for k, v in it['thumbnails'].items():
             if 'image_vertical' in k and not thumb:
                 thumb = v['url'].replace('.jpg', '@3.jpg')
@@ -228,13 +228,13 @@ def episodios(item):
                                    thumbnail=thumb,
                                    forcethumb=True,
                                    contentType='episode',
-                                   action='play',
+                                   action='findvideos',
                                    video_id=it['guid']))
 
     return itemlist
 
 
-def play(item):
+def findvideos(item):
     logger.debug()
     item.no_return=True
     # support.dbg()
@@ -262,7 +262,7 @@ def play(item):
 
         else:
             item.manifest = 'hls'
-        return[item]
+        return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
     elif item.video_id:
         payload = '{"contentId":"' + item.video_id + ' ","streamType":"VOD","delivery":"Streaming","createDevice":true}'
@@ -288,7 +288,7 @@ def play(item):
         else:
             item.manifest = 'hls'
 
-        return [item]
+        return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
 
 def get_from_id(item):

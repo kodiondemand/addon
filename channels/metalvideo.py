@@ -41,6 +41,10 @@ def peliculas(item):
     patron= r'<img src="[^"]+" alt="(?P<title>[^"]+)" data-echo="(?P<thumb>[^"]+)"(?:[^>]+>){7}<a href="(?P<url>[^"]+)"'
     patronNext = r'<a href="([^"]+)">(?:&raquo|»)'
     typeContentDict = {'': 'music'}
+    def itemHook(item):
+        item.contentType = 'music'
+        item.thumbnail = item.thumbnail.replace('https:','http:')
+        return item
     return locals()
 
 

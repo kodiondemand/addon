@@ -695,12 +695,11 @@ class UnshortenIt(object):
             return httptools.downloadpage(uri, only_headers=True, follow_redirects=False).headers.get('location', uri), 200
 
     def _unshorten_uprot(self, uri):
-        from core.support import dbg
-        dbg()
         for link in scrapertools.find_multiple_matches(httptools.downloadpage(uri, cloudscraper=True).data, '<a[^>]+href="([^"]+)'):
             if link.startswith('https://maxstream.video') or link.startswith('https://uprot.net') and link != uri:
                 return link, 200
         return uri, 200
+
 
 
 def decrypt_aes(text, key):
@@ -775,3 +774,25 @@ def findlinks(text):
                     else:
                         text += '\n' + str(link.result()[0])
     return text
+
+
+class FileCrypt:
+    def __init__(self, uri=None):
+        self.uri = uri
+
+    def find(self, data):
+        _filecrypt_regex = r'https?://\w+\.filecrypt\.cc/[a-zA-Z0-9_=/]+'
+        return scrapertools.find_multiple_matches(data, _filecrypt_regex)
+
+    def list_files(self):
+        reg = """<td title="([^"]+).*?<button onclick="openLink\('([^']+)"""
+        data = httptools.downloadpage(self.uri).data
+        ret = scrapertools.find_multiple_matches(data, reg)
+        return ret
+
+    def unshorten(self, link):
+        link_data = httptools.downloadpage('https://www.filecrypt.cc/Link/' + link + '.html').data
+        time.sleep(0.1)
+        url = httptools.downloadpage(scrapertools.find_single_match(link_data, "location.href='([^']+)"), headers={'Referer': 'http://www.filecrypt.cc/'}, only_headers=True).url
+        logger.info(url)
+        return url

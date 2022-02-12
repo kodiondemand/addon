@@ -14,7 +14,7 @@ def test_video_exists(page_url):
     data = page.data.replace('"', "'")
     real_url = page.url
 
-    if "Not Found" in data or "File Does not Exist" in data:
+    if "Not Found" in data or "File Does not Exist" in data or "File doesn't exits" in data:
         return False, config.get_localized_string(70449) % "DeltaBit"
     return True, ""
 

@@ -41,7 +41,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(http:\\/\\/(?:[a-zA-Z0-9]+)\\.torrent)",
+        "pattern": "(https?:\/\/\\S+.torrent)",
         "url": "\\1"
       },
       {
@@ -49,7 +49,7 @@
         "url": "\\1"
       },
       {
-        "pattern": "(http://tumejorjuego.com/descargar/index.php\\?link=[^\"]+)",
+        "pattern": "(http[s]?://tumejorjuego.com/descargar/index.php\\?link=[^\"]+)",
         "url": "\\1"
       }
     ]

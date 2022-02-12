@@ -974,7 +974,7 @@ def add_movie(item):
         @param item: item to be saved.
     """
     logger.debug()
-    from platformcode.launcher import set_search_temp; set_search_temp(item)
+    # from platformcode.launcher import set_search_temp; set_search_temp(item)
     item.contentType = 'movie'
 
     # To disambiguate titles, TMDB is caused to ask for the really desired title
@@ -1023,7 +1023,7 @@ def add_tvshow(item, channel=None, itemlist=[]):
 
     logger.debug("show=#" + item.show + "#")
     item.contentType = 'tvshow'
-    from platformcode.launcher import set_search_temp; set_search_temp(item)
+    # from platformcode.launcher import set_search_temp; set_search_temp(item)
 
     if item.channel == "downloads":
         itemlist = [item.clone()]

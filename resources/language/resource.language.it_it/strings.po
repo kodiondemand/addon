@@ -2604,12 +2604,12 @@ msgid "Links view"
 msgstr "Visualizzazione collegamenti"
 
 msgctxt "#60622"
-msgid "Normal window"
-msgstr "Finestra normale"
-
-msgctxt "#60623"
 msgid "Pop-up window"
 msgstr "Finestra pop-up"
+
+msgctxt "#60623"
+msgid "Fullscreen window"
+msgstr "Finestra a schermo intero"
 
 msgctxt "#60624"
 msgid "      Maximum number of links to display"

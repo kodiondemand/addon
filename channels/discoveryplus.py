@@ -67,7 +67,7 @@ def live(item):
     logger.debug()
     itemlist =[]
     for name, values in liveDict().items():
-        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='play', forcethumb=True, no_return=True))
+        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='findvideos', forcethumb=True, no_return=True))
     return support.thumb(itemlist, live=True)
 
 
@@ -171,7 +171,7 @@ def episodios(item):
                                            fulltitle=title,
                                            plot=plot,
                                            id=episode['id'],
-                                           action='play',
+                                           action='findvideos',
                                            contentType='episode',
                                            season=option['id'],
                                            episode=episode['attributes']['episodeNumber'],
@@ -182,7 +182,7 @@ def episodios(item):
     return itemlist
 
 
-def play(item):
+def findvideos(item):
     if item.livefilter:
         item.id = liveDict()[item.livefilter]['id']
         item.fulltitle = item.livefilter
@@ -198,4 +198,4 @@ def play(item):
     else:
         item.url = data['streaming']['hls']['url']
         item.manifest = 'hls'
-    return [item]
+    return support.server(item, itemlist=[item], Download=False, Videolibrary=False)

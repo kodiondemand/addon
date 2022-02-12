@@ -3,11 +3,14 @@
 # -*- Created for Alfa-addon -*-
 # -*- By the Alfa Develop Group -*
 
+#from builtins import str
+
 import os, xbmc
-from core import httptools, jsontools
+from core import httptools,  jsontools
 from core.item import Item
 from platformcode import config, logger
 from threading import Thread
+
 import sys
 if sys.version_info[0] >= 3: from concurrent import futures
 else: from concurrent_py2 import futures
@@ -26,7 +29,7 @@ def auth_trakt():
         post = {'client_id': client_id}
         post = jsontools.dump(post)
         # Se solicita url y código de verificación para conceder permiso a la app
-        url = "http://api.trakt.tv/oauth/device/code"
+        url = "http://api-v2launch.trakt.tv/oauth/device/code"
         data = httptools.downloadpage(url, post=post, headers=headers).data
         data = jsontools.load(data)
         item.verify_url = data["verification_url"]
@@ -57,14 +60,13 @@ def token_trakt(item):
     try:
         if item.extra == "renew":
             refresh = config.get_setting("refresh_token_trakt", "trakt")
-            url = "http://api.trakt.tv/oauth/device/token"
+            url = "https://api.trakt.tv/oauth/token"
             post = {'refresh_token': refresh, 'client_id': client_id, 'client_secret': client_secret,
                     'redirect_uri': 'urn:ietf:wg:oauth:2.0:oob', 'grant_type': 'refresh_token'}
-            post = jsontools.dump(post)
-            data = httptools.downloadpage(url, post=post, headers=headers).data
+            data = httptools.downloadpage(url, post=post).data
             data = jsontools.load(data)
         elif item.action == "token_trakt":
-            url = "http://api.trakt.tv/oauth/device/token"
+            url = "https://api-v2launch.trakt.tv/oauth/device/token"
             post = "code=%s&client_id=%s&client_secret=%s" % (item.device_code, client_id, client_secret)
             data = httptools.downloadpage(url, post=post, headers=headers).data
             data = jsontools.load(data)
@@ -83,7 +85,7 @@ def token_trakt(item):
                         config.set_setting("trakt_sync", False)
                         return
 
-                    url = "http://api.trakt.tv/oauth/device/token"
+                    url = "http://api-v2launch.trakt.tv/oauth/device/token"
                     post = {'code': item.device_code, 'client_id': client_id, 'client_secret': client_secret}
                     post = jsontools.dump(post)
                     data = httptools.downloadpage(url, post=post, headers=headers).data
@@ -106,9 +108,7 @@ def token_trakt(item):
         config.set_setting("refresh_token_trakt", refresh, "trakt")
         if not item.folder:
             platformtools.dialog_notification(config.get_localized_string(60255), config.get_localized_string(60256))
-            if config.is_xbmc():
-                import xbmc
-                xbmc.executebuiltin("Container.Refresh")
+            xbmc.executebuiltin("Container.Refresh")
             return
 
     except:
@@ -166,8 +166,12 @@ def get_trakt_watched(id_type, mediatype, update=False):
                     if token_auth:
                         headers.append(['Authorization', "Bearer %s" % token_auth])
                         url = "https://api.trakt.tv/sync/watched/%s" % mediatype
-                        data = httptools.downloadpage(url, headers=headers).data
-                        watched_dict = jsontools.load(data)
+                        data = httptools.downloadpage(url, headers=headers)
+                        if data.code == 401:
+                            token_trakt(Item(extra="renew"))
+                            return get_trakt_watched(id_type, mediatype, update)
+
+                        watched_dict = jsontools.load(data.data)
 
                         if mediatype == 'shows':
 
@@ -266,14 +270,12 @@ def ask_install_script():
 
 def wait_for_update_trakt():
     logger.debug()
-    t = Thread(target=update_all)
+    t = Thread(update_all)
     t.setDaemon(True)
     t.start()
     t.is_alive()
 
-
 def update_all():
-    # from core.support import dbg;dbg()
     from time import sleep
     logger.debug()
     sleep(20)
@@ -282,4 +284,3 @@ def update_all():
     for mediatype in ['movies', 'shows']:
         trakt_data = get_trakt_watched('tmdb', mediatype, True)
         update_trakt_data(mediatype, trakt_data)
-
