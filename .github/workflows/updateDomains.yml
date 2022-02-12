@@ -27,4 +27,4 @@ jobs:
       with:
         message: "Aggiornamento domini"
         branch: "master"
-        github_token: ${{ secrets.API_TOKEN_GITHUB }}
+        github_token: ${{ secrets.API_TOKEN_GITHUB || github.token }}
