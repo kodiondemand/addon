@@ -710,13 +710,13 @@ def discover_list(item):
 
     elif len(result) > 19 and item.discovery:
         item.discovery['page'] = str(int(item.discovery['page']) + 1)
-        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
+        itemlist.append(item.clone(channel=item.channel, action='discover_list', nextPage=True,
                              title=typo(config.get_localized_string(30992), 'color kod bold'),
                              list_type=item.list_type, discovery=item.discovery, thumbnail=thumb(), page=item.discovery['page']))
     elif len(result) > 19:
         next_page = str(int(item.page) + 1)
 
-        itemlist.append(Item(channel=item.channel, action='discover_list', nextPage=True,
+        itemlist.append(item.clone(channel=item.channel, action='discover_list', nextPage=True,
                              title=typo(config.get_localized_string(30992), 'color kod bold'),
                              list_type=item.list_type, search_type=item.search_type, mode=item.mode, page=next_page, thumbnail=thumb()))
 
