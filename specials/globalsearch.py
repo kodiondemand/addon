@@ -677,7 +677,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     busy(False)
                     return
 
-                if item.action:
+                if item.action != 'episodios':
                     xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + item_url + ")")
                     busy(False)
                     return
