@@ -231,7 +231,7 @@ def mostrar_perfil(item):
                         'i_enlace': i_enlace, 'i_perfil': i_perfil} ]
 
         it.plot += '[CR][CR]' + config.get_localized_string(70724) + ': ' + it.channel + ' ' + config.get_localized_string(60266) + ': ' + it.action
-        if it.extra != '': it.plot += ' Extra: ' + it.extra
+        if (type(it.extra) is str) and it.extra != '': it.plot += ' Extra: ' + it.extra
         it.plot += '[CR]Url: ' + it.url if isinstance(it.url, str) else '...'
         if it.date_added != '': it.plot += '[CR]' + config.get_localized_string(70469) + ': ' + it.date_added
 
