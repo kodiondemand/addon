@@ -1869,10 +1869,10 @@ def serverWindow(item, itemlist):
             self.setFocusId(100)
             # from core.support import dbg;dbg()
 
-        def onFocus(self, control):
-            if is_playing() and db['controls'].get('reopen', False):
-                self.close()
-                serverWindow(self.item, self.itemlist)
+        # def onFocus(self, control):
+        #     if is_playing() and db['controls'].get('reopen', False):
+        #         self.close()
+        #         serverWindow(self.item, self.itemlist)
 
         def onAction(self, action):
             action = action.getId()
@@ -1965,10 +1965,10 @@ def serverWindow(item, itemlist):
             self.SERVERS.addItems(items)
             self.setFocus(self.SERVERS)
 
-        def onFocus(self, control):
-            if is_playing() and db['controls'].get('reopen', False):
-                self.close()
-                serverWindow(self.item, self.itemlist)
+        # def onFocus(self, control):
+        #     if is_playing() and db['controls'].get('reopen', False):
+        #         self.close()
+        #         serverWindow(self.item, self.itemlist)
 
         def onAction(self, action):
             action = action.getId()
@@ -2010,8 +2010,13 @@ def serverWindow(item, itemlist):
 
 
     if itemlist:
-        def monitor(itemlist):
-            reopen = False
+        reopen = False
+        if config.get_setting('autoplay'):
+            reopen = True
+            from core import autoplay
+            autoplay.start(itemlist, item)
+
+        def monitor(itemlist, reopen):
             while not xbmc.Monitor().abortRequested():
                 if not is_playing():
                     if reopen:
@@ -2036,7 +2041,6 @@ def serverWindow(item, itemlist):
                             reopen = False
                         if not selection.server or selection.server == 'torrent': break
 
-            db.close()
-            logger.debug('Server Window EXIT')
-        import threading
-        threading.Thread(target=monitor, args=[itemlist]).start()
+        # import threading
+        monitor(itemlist, reopen)
+        # threading.Thread(target=monitor, args=[itemlist, reopen]).start()

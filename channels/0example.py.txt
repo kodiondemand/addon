@@ -9,7 +9,7 @@
 # fix:
 # 1. aggiunto pagination e sistemate alcune voci
 # 2. modificato problemi in eccezioni
-# 3. aggiunta la def select
+# 3. aggiunta la def check
 # 4. modifica alla legenda e altre aggiunte
 
 # Questo vuole solo essere uno scheletro per velocizzare la scrittura di un canale.
@@ -197,7 +197,7 @@ def genres(item):
 # per quei casi dove il sito non differenzia film e/o serie e/o anime
 # e la ricerca porta i titoli mischiati senza poterli distinguere tra loro
 # andranno modificate anche le def peliculas e episodios ove occorre
-def select(item):
+def check(item):
     support.info('select --->', item)
     #support.dbg()
     data = httptools.downloadpage(item.url, headers=headers).data

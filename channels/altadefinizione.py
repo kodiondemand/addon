@@ -20,7 +20,8 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
 
-    film = [('Al Cinema', ['/al-cinema/', 'peliculas']),
+    film = ['/genere/film/',
+            ('Al Cinema', ['/al-cinema/', 'peliculas']),
             ('Generi', ['', 'genres']),
             ('Sub-ITA', ['/sub-ita/', 'peliculas'])]
 

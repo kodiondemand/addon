@@ -17,7 +17,7 @@ else:
     from urllib import urlencode
 
 from time import time
-from core import filetools, httptools, scrapertools, servertools, tmdb, channeltools, autoplay, scraper
+from core import filetools, httptools, scrapertools, servertools, tmdb, channeltools
 from core.item import Item
 from lib import unshortenit
 from platformcode import config
@@ -1240,7 +1240,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
     return itemlist
 
 
-def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
+def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
     logger.debug()
 
     if not data and not itemlist:
@@ -1318,17 +1318,9 @@ def server(item, data='', itemlist=[], headers='', AutoPlay=True, CheckLinks=Tru
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
     # Check Links
-    if not item.global_search and config.get_setting('checklinks') and CheckLinks and not config.get_setting('autoplay'):
+    if not item.global_search and config.get_setting('checklinks') and CheckLinks: # and not config.get_setting('autoplay'):
         checklinks_number = config.get_setting('checklinks_number')
         verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
-
-    try:
-        if AutoPlay and item.contentChannel not in ['downloads', 'videolibrary']:
-            autoplay.start(verifiedItemlist, item)
-    except:
-        import traceback
-        logger.error(traceback.format_exc())
-        pass
 
     verifiedItemlist = servertools.sort_servers(verifiedItemlist)
 

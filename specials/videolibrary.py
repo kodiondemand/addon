@@ -343,7 +343,6 @@ def get_episodes(item):
 
 
 def findvideos(item):
-    from core import autoplay
     from platformcode import platformtools
 
     logger.debug()
@@ -553,9 +552,9 @@ def findvideos(item):
 
         # logger.debug("server:\n%s" % server.tostring('\n'))
         itemlist.append(server)
-
-    if autoplay.play_multi_channel(item, itemlist):  # hideserver
-        return []
+    # from core.support import dbg;dbg()
+    # if autoplay.play_multi_channel(item, itemlist):  # hideserver
+    #     return []
 
     add_download_items(item, itemlist)
     return itemlist

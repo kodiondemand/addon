@@ -85,7 +85,10 @@ def mark_auto_as_watched(item):
         if marked:
             logger.debug('CLOSE')
             item.played_time = 0
-            db['controls']['reopen'] = False
+            if total_time > 20:
+                db['controls']['reopen'] = False
+            else:
+                db['controls']['reopen'] = True
         else:
             logger.debug('REOPEN')
             item.played_time = actual_time
@@ -110,7 +113,7 @@ def mark_auto_as_watched(item):
 
 def sync_trakt_addon(path_folder):
     """
-       Updates the values ​​of episodes seen if
+       Updates the values of episodes seen if
     """
     logger.debug()
     # if the addon exists we do the search

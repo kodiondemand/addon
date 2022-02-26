@@ -763,7 +763,7 @@ class SearchWindow(xbmcgui.WindowXML):
         context = [c[0] for c in commands]
         context_commands = [c[1].replace('Container.Refresh', 'RunPlugin').replace('Container.Update', 'RunPlugin') for c in commands]
         index = xbmcgui.Dialog().contextmenu(context)
-        if index > 0: xbmc.executebuiltin(context_commands[index])
+        if index > -1: xbmc.executebuiltin(context_commands[index])
 
 
     def play(self, server=None):

@@ -128,7 +128,7 @@ def episodios(item):
                             if ep not in episodes:
                                 episodes[ep] = []
                             episodes[ep].append(s)
-                servers = support.server(item, it.stagione, AutoPlay=False, CheckLinks=False, Download=False, Videolibrary=False)
+                servers = support.server(item, it.stagione, CheckLinks=False, Download=False, Videolibrary=False)
                 episodes = {}
 
                 # ottengo l'episodio dal nome del file

@@ -35,7 +35,7 @@ def genres(item):
     return locals()
 
 
-def select(item):
+def check(item):
     item.data = support.match(item).data
     if 'continua con il video' in item.data.lower():
         support.info('select = ### è un film ###')
@@ -101,7 +101,7 @@ def peliculas(item):
         action = 'episodios'
         pagination = ''
     else:
-        action = 'select'
+        action = 'check'
 
     if item.args == 'newest':
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?:\[(?P<quality1>HD)\])?[ ]?(?:\(|\[)?(?P<lang>[sS]ub-[iI][tT][aA])?(?:\)|\])?[ ]?(?:\[(?P<quality>.+?)\])?[ ]?(?:\((?P<year>\d+)\))?<(?:[^>]+>.+?(?:title="Nuovi episodi">(?P<episode>\d+x\d+)[ ]?(?P<lang2>Sub-Ita)?|title="IMDb">(?P<rating>[^<]+)))?'

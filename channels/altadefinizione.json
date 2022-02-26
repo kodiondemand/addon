@@ -2,7 +2,7 @@
     "id": "altadefinizione",
     "name": "Altadefinizione",
     "language": ["ita", "sub-ita"],
-    "active": false,
+    "active": true,
     "thumbnail": "altadefinizione.png",
     "banner": "altadefinizione.png",
     "categories": ["movie", "tvshow", "vos"],

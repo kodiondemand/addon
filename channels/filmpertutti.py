@@ -48,13 +48,13 @@ def peliculas(item):
         patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\s\[(?P<quality>HD)\])?<\/div>\s*<div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
 
     if item.args == 'search':
-        action = 'select'
+        action = 'check'
     elif item.contentType == 'tvshow':
         action = 'episodios'
     elif item.contentType == 'movie':
         action ='findvideos'
     else:
-        action = 'select'
+        action = 'check'
 
     def itemHook(item):
         item.title = item.title.replace(' - La Serie', '')
@@ -97,7 +97,7 @@ def genres(item):
     return locals()
 
 
-def select(item):
+def check(item):
     support.info()
     patron=r'class="taxonomy category"\s*><span property="name">([^>]+)</span></a><meta property="position" content="2">'
     block = support.match(item.url, patron=patron,headers=headers).match
