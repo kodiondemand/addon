@@ -11,8 +11,8 @@ def test_video_exists(page_url):
     logger.debug('page url=', page_url)
 
     response = scraper.get(page_url)
-
-    if response.status_code == 404 or 'Not Found' in response.text:
+    # support.dbg()
+    if response.status_code == 404 or 'dsplayer' not in response.text:
         return False, config.get_localized_string(70449) % 'DooD Stream'
     else:
         data = response.text
