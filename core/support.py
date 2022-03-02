@@ -351,6 +351,8 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                         episode = str(int(ep[0])).zfill(1) + 'x' + str(int(ep[1])).zfill(2)
                         infolabels['season'] = int(ep[0])
                         infolabels['episode'] = int(ep[1])
+                    else:
+                        infolabels['episode'] = int(episode)
                     second_episode = scrapertools.find_single_match(episode, r'x\d+x-\d+)')
                     if second_episode: episode = re.sub(r'(\d+x\d+)x\d+',r'\1-', episode) + second_episode.zfill(2)
                 except:
@@ -604,9 +606,10 @@ def scrape(func):
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
-        if action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
-            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodes', 'mainlist'] \
-            or (function in ['episodes'] and config.get_setting('episode_info'))):
+        if itemlist and action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
+            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodios', 'mainlist'] \
+            or (function in ['episodios'] and config.get_setting('episode_info') and itemlist[0].season)):
+            # dbg()
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
