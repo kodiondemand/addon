@@ -4,198 +4,221 @@
 # ------------------------------------------------------------
 import functools
 
-import requests
-from core import support, httptools
-from platformcode import logger, config
+import requests, uuid
+from core import jsontools, support, httptools
+from platformcode import logger
+
+
 typo = support.typo
 session = requests.Session()
 session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 host = support.config.get_channel_url()
+deviceId = uuid.uuid4().hex
 
-token = session.get('https://disco-api.discoveryplus.it/token?realm=dplayit').json()['data']['attributes']['token']
-
-api = "https://disco-api.discoveryplus.it"
-headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
-           'Referer': host,
-           'Cookie' : 'st=' + token}
-
-def Dict(item):
-    global pdict
-    pdict = session.get(api + '/cms/routes/{}?decorators=viewingHistory&include=default'.format(item.args), headers=headers).json()['included']
-
+domain = 'https://eu1-prod-direct.discoveryplus.com'
+token = session.get(f'{domain}/token?deviceId={deviceId}&realm=dplay&shortlived=true').json()['data']['attributes']['token']
+session.headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
+                   'Referer': host,
+                   'Origin': host,
+                   'Cookie': f'st={token}',
+                   'content-type': 'application/json',
+                   'x-disco-params': 'realm=dplay,siteLookupKey=dplus_it'}
 
 @support.menu
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live']),
-            ('Programmi {bullet bold tv}', ['', 'peliculas', 'programmi']),
-            ('Generi {bullet bold tv}', ['', 'genres'])]
+            ('Programmi {bullet bold tv}', ['', 'programs', 'programmi'])]
 
     search = ''
 
     return locals()
 
 
-def liveDict():
-    livedict = {}
-
-    for key in session.get(api + '/cms/routes/canali?decorators=viewingHistory&include=default', headers=headers).json()['included']:
-
-        if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
-            title = key['attributes']['name']
-            livedict[title] = {}
-            livedict[title]['plot'] = key['attributes']['description']
-            livedict[title]['url'] = '{}/canali/{}'.format(host, key['attributes']['alternateId'])
-            livedict[title]['id'] = key['id']
-    return livedict
-
-
 def search(item, text):
     itemlist = []
-    item.args = 'search'
+
     item.text = text
+
     try:
         itemlist = peliculas(item)
     except:
         import sys
         for line in sys.exc_info():
-            support.logger.error("%s" % line)
+            logger.error(line)
 
     return itemlist
 
 
 def live(item):
     logger.debug()
+
     itemlist =[]
-    for name, values in liveDict().items():
-        itemlist.append(item.clone(title=typo(name,'bold'), fulltitle=name, plot=values['plot'], url=values['url'], id=values['id'], action='findvideos', forcethumb=True, no_return=True))
+    data = session.get(f'{domain}/cms/routes/epg?include=default').json()['included']
+
+    for key in data:
+
+        if key['type'] == 'channel' and key.get('attributes',{}).get('hasLiveStream', '') and 'Free' in key.get('attributes',{}).get('packages', []):
+            itemlist.append(item.clone(title = typo(key['attributes']['name'], 'bold'),
+                                       fulltitle = key['attributes']['name'],
+                                       plot = key['attributes'].get('description', ''),
+                                       url = f"{host}/canali/{key['attributes']['alternateId']}",
+                                       id = key['id'],
+                                       action = 'findvideos'))
     return support.thumb(itemlist, live=True)
 
 
+def programs(item):
+    logger.debug()
+
+    itemlist = []
+    data = session.get(f'{domain}/cms/routes/browse?include=default').json()['included']
+    images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
+
+    channels = {}
+    for key in data:
+        if key['type'] == 'link' and 'Free' in key['attributes']['packages']:
+            logger.debug(jsontools.dump(key))
+            _title = key['attributes'].get('title', key['attributes'].get('name',''))
+            _id = key['relationships']['linkedContent']['data']['id']
+            _thumb = images.get(key['relationships'].get('images', {}).get('data',[{}])[0].get('id'))
+            channels[_title] ={'id':_id, 'thumb':_thumb}
+
+    itemlist = [item.clone(title='Tutti', id=channels['Tutti']['id'], action='peliculas'),
+                item.clone(title='Generi', id=channels['Tutti']['id'], action='genres'),
+                item.clone(title='Per canale', channels=channels, action='channels')]
+
+    return support.thumb(itemlist)
+
+
 def genres(item):
-    item.action = 'peliculas'
-    itemlist = [
-        item.clone(title='Attualità e inchiesta', args='genere/attualita-e-inchiesta'),
-        item.clone(title='Beauty and style', args='genere/beauty-and-style'),
-        item.clone(title='Serie TV', args='genere/serie-tv'),
-        item.clone(title='Casa', args='genere/casa'),
-        item.clone(title='Comedy', args='genere/comedy'),
-        item.clone(title='Crime', args='genere/crime'),
-        item.clone(title='Documentari', args='genere/documentari'),
-        # item.clone(title='Discovery + Originals', args='genere/discoveryplus-original'),
-        item.clone(title='Food', args='genere/food'),
-        item.clone(title='Medical', args='genere/medical'),
-        item.clone(title='Motori', args='genere/motori'),
-        item.clone(title='Natura', args='genere/natura'),
-        item.clone(title='Paranormal', args='genere/paranormal'),
-        item.clone(title='People', args='genere/people'),
-        item.clone(title='Real Adventure', args='genere/real-adventure'),
-        item.clone(title='Real Life', args='genere/real-life'),
-        item.clone(title='Scienza e Spazio', args='genere/scienza-e-spazio'),
-        item.clone(title='Sex and love', args='genere/sex-and-love'),
-        item.clone(title='Sport', args='genere/sport'),
-        item.clone(title='Talent Show', args='genere/talent-show'),
-        ]
+    logger.debug()
+
+    itemlist = []
+    data = session.get(f'{domain}/cms/collections/{item.id}?include=default').json()['included']
+    collection = {k['id']: k['relationships'].get('show', k['relationships'].get('collection'))['data']['id'] for k in data if k['type'] == 'collectionItem'}
+
+    included = {}
+    for key in data:
+        if key.get('relationships', {}).get('items') and key['type'] == 'collection' and key['attributes']['title'] not in ['A-Z', 'I più visti']:
+            included[key['attributes']['title']] = [k['id'] for k in key['relationships']['items']['data']]
+
+    for title, values in included.items():
+        itemlist.append(item.clone(title=title, action='peliculas', filter=[collection[k] for k in values]))
+
+    itemlist.sort(key=lambda it: it.title)
+
+    return support.thumb(itemlist, genre=True)
+
+
+def channels(item):
+    logger.debug()
+
+    itemlist = [item.clone(title=k, id=v['id'], thumbnail=v['thumb'], action='peliculas') for k, v in item.channels.items() if k !='Tutti']
+    itemlist.sort(key=lambda it: it.title)
+
     return itemlist
 
 
 def peliculas(item):
     logger.debug()
-    itemlist =[]
-    if 'search' in item.args:
-        pdict = session.get('{}/content/shows?include=genres,images,primaryChannel.images,contentPackages&page[size]=12&query={}'.format(api, item.text), headers=headers).json()['data']
-    else:
-        pdict = session.get('{}/cms/routes/{}?decorators=viewingHistory&include=default'.format(api, item.args), headers=headers).json()['included']
-    images = list(filter(lambda x: x['type'] == 'image', pdict))
 
-    for key in pdict:
-        if key['type'] == 'show' and 'Free' in str(key.get('relationships',{}).get('contentPackages',{}).get('data',[])):
-            title = key['attributes']['name']
-            plot = key['attributes'].get('description','')
-            url = '{}/programmi/{}'.format(host, key['attributes']['alternateId'])
-            seasons = key['attributes']['seasonNumbers']
-            thumbs = [image['attributes']['src'] for image in images if image['id'] == key['relationships']['images']['data'][0]['id']]
-            thumb = thumbs[0] if thumbs else item.thumbnail
-            fanarts = [image['attributes']['src'] for image in images if len(key['relationships']['images']['data']) > 1 and image['id'] == key['relationships']['images']['data'][1]['id']]
-            fanart = fanarts[0] if fanarts else item.fanart
+    itemlist =[]
+
+    if item.text:
+        data = session.get(f'{domain}/cms/routes/search/result?include=default&contentFilter[query]={item.text}').json()['included']
+    else:
+        data = session.get(f'{domain}/cms/collections/{item.id}?include=default').json()['included']
+
+    images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
+
+    for key in data:
+        if key['type'] == 'show' and 'Free' in str(key.get('relationships',{}).get('contentPackages',{}).get('data',[])) and key['attributes']['episodeCount']:
+
+            if item.filter and key['id'] not in item.filter:
+                continue
+
+            thumbId = key['relationships'].get('images',{}).get('data', [{},{},{}])[2].get('id', '')
+            fanartId = key['relationships'].get('images',{}).get('data', [{}])[0].get('id', '')
             itemlist.append(
-                item.clone(title=typo(title,'bold'),
-                            fulltitle=title,
-                            plot=plot,
-                            url=url,
-                            programid=key['attributes']['alternateId'],
-                            id=key['id'],
-                            seasons=seasons,
-                            action='episodios',
-                            thumbnail=thumb,
-                            fanart=fanart,
-                            contentType='tvshow'))
+                item.clone(title=typo(key['attributes']['name'],'bold'),
+                           plot=key['attributes'].get('description',''),
+                           programid=key['attributes']['alternateId'],
+                           seasons=key['attributes']['seasonNumbers'],
+                           action='seasons',
+                           thumbnail=images[thumbId] if thumbId else item.thumbnail,
+                           fanart=images[fanartId] if fanartId else item.fanart,
+                           contentType='tvshow'))
+
+    itemlist.sort(key=lambda it: it.title)
+
+    if not itemlist:
+        from core.item import Item
+        itemlist = [Item(title='Nessun Contenuto Free Disponibile', thumbnail=support.thumb('info'))]
+
+    return itemlist
+
+
+def seasons(item):
+    logger.debug()
+
+    itemlist = []
+    data = session.get(f'{domain}/cms/routes/show/{item.programid}?include=default').json()['included']
+
+    for key in data:
+        if key['type'] == 'collection':
+            for option in key['attributes']['component']['filters'][0]['options']:
+                itemlist.append(item.clone(title=f"Stagione {option['value']}",
+                                           season=int(option['value']),
+                                           seasonparams=option['parameter'],
+                                           showparams=key['attributes']['component']['mandatoryParams'],
+                                           id=key['id'],
+                                           contentType='season',
+                                           action='episodios'))
+            break
 
     return itemlist
 
 
 def episodios(item):
     logger.debug()
+
     itemlist =[]
-    pdict = session.get(api + '/cms/routes/programmi/{}?decorators=viewingHistory&include=default'.format(item.programid), headers=headers).json()['included']
+    data = session.get(f'{domain}/cms/collections/{item.id}?include=default&{item.seasonparams}&{item.showparams}').json()['included']
+    images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
 
-    for key in pdict:
-        if key['type'] == 'collection' and key.get('attributes',{}).get('component',{}).get('id', '') == 'tabbed-content':
-            mandatory = key['attributes']['component'].get('mandatoryParams','')
-            if not mandatory: return [support.Item(title='CONTENUTO PLUS')]
-            for option in key['attributes']['component']['filters'][0]['options']:
-                url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}'.format(api, key['id'], mandatory, option['parameter'])
-                seasons = []
-                season = {}
-                try:
-                    season = session.get(url, headers=headers).json()
-                    seasons.append(season['included'])
-                    pages = season['data'].get('meta',{}).get('itemsTotalPages', 0)
-                    if pages:
-                        for page in range(2,pages + 1):
-                            url = '{}/cms/collections/{}?decorators=viewingHistory&include=default&{}&{}&page[items.number]={}'.format(api, key['id'], mandatory, option['parameter'], page)
-                            logger.debug(url)
-                            season = session.get(url, headers=headers).json()['included']
-                            seasons.append(season)
-                except:
-                    pass
+    for key in data:
+        if key['type'] == 'video' and 'Free' in str(key.get('relationships',{}).get('contentPackages',{}).get('data',[])):
+            itemlist.append(item.clone(title = f"{item.season}x{key['attributes']['episodeNumber']:02d} - {key['attributes']['name']}",
+                                       plot = key['attributes']['description'],
+                                       episode = key['attributes']['episodeNumber'],
+                                       contentType = 'episode',
+                                       action = 'findvideos',
+                                       thumbnail = images[key['relationships']['images']['data'][0]['id']],
+                                       id=key['id']))
 
-                for season in seasons:
-                    for episode in season:
-                        if episode['type'] == 'video':
-                            logger.debug('{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name']), episode['attributes']['packages'])
-                        if episode['type'] == 'video' and 'Free' in episode['attributes']['packages']:
-                            title = '{}x{:02d} - {}'.format(option['id'], episode['attributes']['episodeNumber'], episode['attributes']['name'])
-                            plot = episode['attributes']['description']
-                            itemlist.append(
-                                item.clone(title=typo(title,'bold'),
-                                           fulltitle=title,
-                                           plot=plot,
-                                           id=episode['id'],
-                                           action='findvideos',
-                                           contentType='episode',
-                                           season=option['id'],
-                                           episode=episode['attributes']['episodeNumber'],
-                                           forcethumb=True,
-                                           no_return=True))
+    itemlist.sort(key=lambda it: it.episode)
 
-    if itemlist: itemlist.sort(key=lambda it: (int(it.season), int(it.episode)))
+    if not itemlist:
+        from core.item import Item
+        itemlist = [Item(title='Nessun Episodio Free Disponibile', thumbnail=support.thumb('info'))]
+
     return itemlist
 
 
 def findvideos(item):
-    if item.livefilter:
-        item.id = liveDict()[item.livefilter]['id']
-        item.fulltitle = item.livefilter
-        item.forcethumb = True
-        item.no_return = True
-        support.thumb(item, live=True)
-    if item.contentType == 'episode': data = session.get('{}/playback/v2/videoPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
-    else: data = session.get('{}/playback/v2/channelPlaybackInfo/{}?usePreAuth=true'.format(api, item.id), headers=headers).json().get('data',{}).get('attributes',{})
+    logger.debug()
+
+    content = 'video' if item.contentType == 'episode' else 'channel'
+    post = {f'{content}Id': item.id, 'deviceInfo': {'adBlocker': False,'drmSupported': True}}
+
+    data = session.post(f'{domain}/playback/v3/{content}PlaybackInfo', json=post).json().get('data',{}).get('attributes',{})
+
     if data.get('protection', {}).get('drmEnabled',False):
         item.url = data['streaming']['dash']['url']
         item.drm = 'com.widevine.alpha'
-        item.license = data['protection']['schemes']['widevine']['licenseUrl'] + '|PreAuthorization=' + data['protection']['drmToken'] + '|R{SSM}|'
+        item.license =f"{data['protection']['schemes']['widevine']['licenseUrl']}|PreAuthorization={data['protection']['drmToken']}|R{{SSM}}|"
     else:
-        item.url = data['streaming']['hls']['url']
+        item.url = data['streaming'][0]['url']
         item.manifest = 'hls'
+
     return support.server(item, itemlist=[item], Download=False, Videolibrary=False)

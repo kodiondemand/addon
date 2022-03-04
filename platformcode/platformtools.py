@@ -497,7 +497,7 @@ def getCurrentView(item=None, parent_item=None):
     elif parent_item.action in ['episodios', 'get_episodes'] or item.contentType == 'episode':
         return 'episode', 'tvshows'
 
-    elif parent_item.action in ['get_seasons']:
+    elif parent_item.action in ['get_seasons', 'seasons']:
         return 'season', 'tvshows'
 
     elif parent_item.action in ['getmainlist', '', 'getchanneltypes']:
