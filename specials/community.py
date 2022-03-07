@@ -688,7 +688,7 @@ def load_json(item, no_order=False):
         if url.startswith('http'):
             json_file = httptools.downloadpage(url).data
         else:
-            json_file = open(url, "r").read()
+            json_file = open(url, "r", encoding='utf-8').read()
         if no_order or filterkey:
             json = jsontools.load(json_file)
         else:
@@ -753,7 +753,7 @@ def set_extra_values(item, json, path):
             ret.url['videolibrary'] = json.get('videolibrary', True)
             ret.url['autoplay'] = json.get('autoplay', False)
         elif key == 'filter':
-            filterkey = json[key].keys()[0]
+            filterkey = [k for k in json[key].keys()][0]
             ret.filter = json[key][filterkey]
             ret.filterkey = filterkey
         elif key == 'description':
