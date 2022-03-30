@@ -92,7 +92,7 @@ def live(item):
                 plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('nextListing', {}).get('description', ''))
             itemlist.append(item.clone(title=support.typo(title, 'bold'),
                                        fulltitle=title, callSign=it['callSign'],
-                                       urls=guide['tuningInstruction']['urn:theplatform:tv:location:any'],
+                                       urls=[guide['publicUrl']],
                                        plot=plot,
                                        url=url,
                                        action='findvideos',
@@ -247,13 +247,13 @@ def findvideos(item):
     if item.urls:
         url = ''
         pid = ''
-        Format = 'dash+xml' if mpd else 'x-mpegURL'
-        for it in item.urls:
-            if Format in it['format']:
-                item.url = requests.head(it['publicUrls'][0]).headers['Location'] + '|User-Agent=' + support.httptools.get_user_agent()
-                pid = it['releasePids'][0]
-                if mpd and 'widevine' in it['assetTypes']:
-                    break
+        # Format = 'dash+xml' if mpd else 'x-mpegURL'
+        # for it in item.urls:
+        #     if Format in it['format']:
+        item.url = requests.head(item.urls[0], headers={'User-Agent': support.httptools.get_user_agent()}).headers['Location']
+        # pid = it['releasePids'][0]
+        # if mpd and 'widevine' in it['assetTypes']:
+        #     break
 
         if mpd:
             item.manifest = 'mpd'

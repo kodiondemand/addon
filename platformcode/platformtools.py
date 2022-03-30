@@ -1716,8 +1716,7 @@ def install_widevine():
         sys.path.append(path)
         from inputstreamhelper import Helper
         helper = Helper('mpd', drm='widevine')
-        if not helper._check_widevine():
-            helper.install_widevine()
+        helper.check_inputstream()
 
 
 def get_played_time(item):
