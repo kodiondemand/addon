@@ -59,7 +59,8 @@ def peliculas(item):
     n = '22' if '/?s=' in item.url else '8'
     item.contentType = "undefined"
     action = 'check'
-    patron = r'data-src="(?P<thumb>http[^"]+)(?:[^>]+>){' + n + r'}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
+    # patron = r'data-src="(?P<thumb>http[^"]+)(?:[^>]+>){' + n + r'}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
+    patron = r'data-src="(?P<poster>http[^"]+)(?:[^>]+>){7,18}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
     patronNext = r'href="([^"]+)[^>]+>»'
     return locals()
 
@@ -69,7 +70,8 @@ def episodios(item):
     item.quality = ''
     data = item.data
     action='findvideos'
-    patronBlock = r'Stagione[^;]+;\s(?P<lang>(?:Sub-)?ITA)(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
+    # patronBlock = r'[Ss]tagione.*?\s(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
+    patronBlock = r'<strong>\s*\w+\s*[Ss]tagione.*?(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
     patron = r'(?P<season>\d+)&[^:]+;(?P<episode>\d+)(?P<data>.*?)(?:<br|$)'
     return locals()
 
