@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
-from core import filetools, jsontools, trakt_tools
+from core import filetools, jsontools, trakt_tools, scrapertools
 from core import support
 from core.tmdb import Tmdb
 from core.scrapertools import htmlclean, decodeHtmlentities

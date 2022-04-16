@@ -951,7 +951,7 @@ class Tmdb(object):
                 url = ('{}/{}/{}?api_key={}&language={}&append_to_response=images,videos,external_ids,credits&include_image_language={},en,null'.format(host, self.search_type, self.search_id, api, self.search_language, self.search_language))
                 searching = "id_Tmdb: {}".format(self.search_id)
             else:
-                url = ('{}/find/{}?external_source={}&api_key={}8&language={}'.format(host, self.search_id, source, api, self.search_language))
+                url = ('{}/find/{}?external_source={}&api_key={}&language={}'.format(host, self.search_id, source, api, self.search_language))
                 searching = "{}: {}".format(source.capitalize(), self.search_id)
 
             logger.debug("[Tmdb.py] Searching %s:\n%s" % (searching, url))
