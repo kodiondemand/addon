@@ -110,7 +110,7 @@ def get_videolibrary_support():
 
 
 def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
-    from core import jsontools
+    from core import jsontools, httptools
     import inspect
 
     LOCAL_FILE = os.path.join(get_runtime_path(), "channels.json")
@@ -129,7 +129,8 @@ def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
             jsontools.update_node(url, name, 'url')
         return url
     else:
-        return channels_data['direct'][name]
+        url = httptools.downloadpage(channels_data['direct'][name], follow_redirects=True, only_headers=True).url
+        return url
 
 
 def get_system_platform():
