@@ -289,8 +289,9 @@ def findvideos(item):
 
     if json.get('episodes', []):
         json = httptools.downloadpage('{}/api/episode/{}'.format(host, json['episodes'][0]['id'])).json
+    # logger.debug(json)
 
-    videourl = json['episodeVideo']
+    videourl = json['videoUrl']
 
     itemlist = [item.clone(title=config.get_localized_string(30137),
                            url=videourl,
