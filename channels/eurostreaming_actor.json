@@ -1,0 +1,10 @@
+{
+    "id": "eurostreaming_actor",
+    "name": "Eurostreaming Actor",
+    "active": true,
+    "language": ["ita","sub-ita"],
+    "thumbnail": "eurostreaming.png",
+    "banner": "eurostreaming.png",
+    "categories": ["tvshow","anime","vos"],
+    "settings": []
+}
