@@ -744,8 +744,8 @@ def from_context(item):
         return globalsearch.Search(item)
 
     if 'list_type' not in item:
-        if 'wanted' in item:
-            item.title = item.wanted
+        if 'text' in item:
+            item.title = item.text
         return channel_search(item)
 
     return discover_list(item)

@@ -82,7 +82,7 @@
     <!-- Search -->
     <category label="60423">
         <setting label="60422" type="lsep"/>
-        <setting id="new_search" type="bool" label="Usa la nuova ricerca globale dove disponibile" default="true" visible="true"/>
+        <setting id="new_search" type="bool" label="Usa la nuova ricerca globale" default="true" visible="true"/>
         <setting id="last_search" type="bool" label="60678" default="true" visible="true"/>
         <setting id="saved_searches_limit" type="slider" option="int" range="10,10,40" label="60677" default="10" visible="eq(-1,0)" subsetting="true"/>
         <setting id="result_mode" type="select" label="60657" lvalues="60675|60676" default="0"/>

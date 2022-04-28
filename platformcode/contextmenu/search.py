@@ -120,7 +120,11 @@ def execute():
     logger.info("Invoking Item: ", item.tostring() )
 
     itemurl = item.tourl()
-    xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + itemurl + ")")
+
+    if config.get_setting('new_search'):
+        xbmc.executebuiltin("RunPlugin(plugin://plugin.video.kod/?" + itemurl + ")")
+    else:
+        xbmc.executebuiltin("Container.Update(plugin://plugin.video.kod/?" + itemurl + ")")
 
 
 
