@@ -17,8 +17,6 @@ else:
 
 
 host = support.config.get_channel_url()
-session = requests.Session()
-session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
 headers = {}
 
 
@@ -28,10 +26,10 @@ def getHeaders(forced=False):
     if not headers:
         # try:
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
-        response = session.get(host, headers=headers)
+        response = httptools.downloadpage(host, headers=headers)
         # if not response.url.startswith(host):
         #     host = support.config.get_channel_url(findhost, forceFindhost=True)
-        csrf_token = support.match(response.text, patron='name="csrf-token" content="([^"]+)"').match
+        csrf_token = support.match(response.data, patron='name="csrf-token" content="([^"]+)"').match
         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
                     'content-type': 'application/json;charset=UTF-8',
                     'Referer': host,
@@ -92,8 +90,10 @@ def newest(category):
     item.args = 1
     item.newest = True
     if category == 'peliculas':
+        item.contentType = 'movie'
         item.url = host + '/film'
     else:
+        item.contentType = 'tvshow'
         item.url = host + '/serie-tv'
 
     try:
@@ -131,10 +131,10 @@ def peliculas(item):
         records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)"\s*slider-name="').matches[item.args])
     elif not item.search:
         payload = json.dumps({'type': videoType, 'offset':offset, 'genre':item.args})
-        records = session.post(host + '/api/browse', headers=headers, data=payload).json()['records']
+        records = httptools.downloadpage(host + '/api/browse', headers=headers, post=payload).json['records']
     else:
         payload = json.dumps({'q': item.search})
-        records = session.post(host + '/api/search', headers=headers, data=payload).json()['records']
+        records = httptools.downloadpage(host + '/api/search', headers=headers, post=payload).json['records']
 
 
     if records and type(records[0]) == list:
@@ -169,8 +169,8 @@ def peliculas(item):
     return itemlist
 
 def makeItem(n, it, item):
-    info = session.post(host + '/api/titles/preview/{}'.format(it['id']), headers=headers).json()
-    logger.debug(jsontools.dump(it))
+    info = httptools.downloadpage(host + '/api/titles/preview/{}'.format(it['id']), headers=headers, post={}).json
+    logger.debug(it)
     title = info['name']
     lang = 'Sub-ITA' if 'sub-ita' in title.lower() else 'ITA'
     title = support.cleantitle(re.sub('\[|\]|[Ss][Uu][Bb]-[Ii][Tt][Aa]', '', title))
@@ -213,7 +213,7 @@ def episodios(item):
                            season=episodes['number'],
                            contentSeason=episodes['number'],
                            contentEpisodeNumber=it['number'],
-                           thumbnail=it['images'][0]['original_url'] if 'images' in it and 'original_url' in it['images'][0] else item.thumbnail,
+                           thumbnail=it['images'][0].get('original_url', item.thumbnail) if it['images'] else item.thumbnail,
                            contentThumbnail=item.thumbnail,
                            fanart=item.fanart,
                            contentFanart=item.fanart,

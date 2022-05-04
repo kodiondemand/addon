@@ -375,8 +375,14 @@ def downloadpage(url, **opt):
                                        timeout=opt['timeout'])
                 else:
                     # Makes the request with POST method
-                    req = session.post(url, data=payload, allow_redirects=opt.get('follow_redirects', True),
+                    req = session.post(url, data=payload, allow_redirects=False,
                                        files=files, timeout=opt['timeout'])
+                    # Make sure it follows redirects
+                    i = 10
+                    while opt.get('follow_redirects', True) and i > 0 and req.status_code == 301:
+                        req = session.post(req.headers['Location'], data=payload, allow_redirects=False,
+                                           files=files, timeout=opt['timeout'])
+                        i -= 1
 
             elif opt.get('only_headers', False):
                 info_dict = fill_fields_pre(url, opt, proxy_data, file_name)
