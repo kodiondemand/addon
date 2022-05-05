@@ -15,7 +15,8 @@ session.request = functools.partial(session.request, timeout=httptools.HTTPTOOLS
 host = support.config.get_channel_url()
 deviceId = uuid.uuid4().hex
 
-domain = 'https://eu1-prod-direct.discoveryplus.com'
+# domain = 'https://eu1-prod-direct.discoveryplus.com'
+domain = 'https://' + session.get("https://prod-realmservice.mercury.dnitv.com/realm-config/www.discoveryplus.com%2Fit%2Fepg").json()["domain"]
 token = session.get(f'{domain}/token?deviceId={deviceId}&realm=dplay&shortlived=true').json()['data']['attributes']['token']
 session.headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
                    'Referer': host,
