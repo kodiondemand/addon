@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 # ------------------------------------------------------------
-# Canale per Eurostreaming
-# by Greko
+# Canale per Eurostreaming.Actor
+# by Napster32
 # ------------------------------------------------------------
 
 from core import support
 from core.item import Item
-
-# def findhost(url):
-#     permUrl = httptools.downloadpage(url, follow_redirects=False, only_headers=True).headers
-#     host = 'https://'+permUrl['location'].replace('https://www.google.it/search?q=site:', '')
-#     return host
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -19,9 +14,8 @@ headers = [['Referer', host]]
 def mainlist(item):
     support.info()
     tvshow = []
-    anime = ['/category/anime-cartoni-animati/']
-    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-nuovi-episodi/', 'peliculas', 'newest']),
-           ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
+    anime = ['/animazione/']
+    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi/', 'peliculas', 'newest'])]
     search = ''
 
     return locals()
@@ -29,13 +23,12 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    #debug = True
     action = 'episodios'
-    
+
     if item.args == 'newest':
         item.contentType = 'episode'
-        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+) –\s*<a href="(?P<url>[^"]+)"[^>]*>\s+?(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<\(]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
-        pagination = ''
+        patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+) –\s*<a href="(?P<url>[^"]+)"[^>]*>(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<\(]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
+        pagination = r'class="next".*?"(.+?)"'
     else:
         patron = r'<div class="post-thumb">.*?<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)\s?(?: Serie Tv)?\s?\(?(?P<year>\d{4})?\)?<\/a><\/h2>'
         patronNext=r'a class="next page-numbers" href="?([^>"]+)">Avanti &raquo;</a>'
@@ -45,8 +38,6 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    #debugBlock = True
-    #debug = True
     data = support.match(item, headers=headers).data
     if 'clicca qui per aprire' in data.lower():
         data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
@@ -85,9 +76,10 @@ def newest(categoria):
     item.contentType = 'tvshow'
     item.args = 'newest'
     try:
-        item.url = "%s/aggiornamento-nuovi-episodi/" % host
+        item.url = "%s/aggiornamento-episodi/" % host
         item.action = "peliculas"
         itemlist = peliculas(item)
+        
     # Continua la ricerca in caso di errore
     except:
         import sys
