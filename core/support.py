@@ -412,6 +412,19 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 if parsedTitle.get('episode_title'):
                     longtitle += s + parsedTitle.get('episode_title')
                     infolabels['episodeName'] = parsedTitle.get('episode_title')
+                if parsedTitle.get('language'):
+                    langs = parsedTitle.get('language')
+                    if isinstance(langs, list):
+                        lang = 'MULTI'
+                    else:
+                        lang = vars(langs).get('alpha3').upper()
+                    if not (lang.startswith('MUL') or lang.startswith('ITA')):
+                        subs = parsedTitle.get('subtitle_language')
+                        if isinstance(subs, list):
+                            lang = 'Multi-Sub'
+                        else:
+                            lang = vars(subs).get('alpha3').upper()
+
             except:
                 import traceback
                 logger.error(traceback.format_exc())
@@ -450,7 +463,7 @@ def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, t
                 infoLabels=infolabels,
                 thumbnail=item.prevthumb if item.prevthumb else item.thumbnail if not scraped["thumb"] else scraped["thumb"],
                 args=item.args,
-                contentSerieName= title if contentType not in ['movie'] and function != 'episodios' or contentType in ['undefined'] else item.contentSerieName,
+                contentSerieName= title if contentType not in ['movie'] and function not in ['episodios', 'seasons'] or contentType in ['undefined'] else item.contentSerieName,
                 contentTitle= title if contentType in ['movie', 'undefined'] and function == 'peliculas' else item.contentTitle,
                 contentLanguage = lang1,
                 contentSeason= infolabels.get('season', ''),
@@ -608,7 +621,7 @@ def scrape(func):
 
         if itemlist and action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
             and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodios', 'mainlist'] \
-            or (function in ['episodios'] and config.get_setting('episode_info') and itemlist[0].season)):
+            or (function in ['episodios', 'seasons'] and config.get_setting('episode_info') and itemlist[0].season)):
             # dbg()
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
@@ -757,7 +770,7 @@ def dooplay_menu(item, type):
     return locals()
 
 
-def menuItem(itemlist, filename, title='', action='', url='', contentType='undefined', args=[], style=True):
+def menuItem(itemlist, filename, title='', action='', url='', contentType='undefined', args=[], style=True, folder=True):
     # Function to simplify menu creation
 
     # Call typo function
@@ -775,7 +788,8 @@ def menuItem(itemlist, filename, title='', action='', url='', contentType='undef
         extra = extra,
         args = args,
         contentType = contentType,
-        globalsearch = not style
+        globalsearch = not style,
+        folder = folder
     ))
 
 
@@ -821,7 +835,8 @@ def menu(func):
                                  url = host + var[0] if len(var) > 0 else '',
                                  action = var[1] if len(var) > 1 else 'peliculas',
                                  args=var[2] if len(var) > 2 else '',
-                                 contentType= var[3] if len(var) > 3 else 'movie')
+                                 contentType= var[3] if len(var) > 3 else 'movie',
+                                 folder = var[4] if len(var) > 4 else True)
 
             # Make MAIN MENU
             elif dictUrl[name] is not None:
@@ -844,7 +859,8 @@ def menu(func):
                                  url = host + var[0] if len(var) > 0 else '',
                                  action = var[1] if len(var) > 1 else 'peliculas',
                                  args=var[2] if len(var) > 2 else '',
-                                 contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow')
+                                 contentType= var[3] if len(var) > 3 else 'movie' if name == 'film' else 'tvshow',
+                                 folder = var[4] if len(var) > 4 else True)
                 # add search menu for category
                 if 'search' not in args: menuItem(itemlist, filename, config.get_localized_string(70741) % title + '… {submenu bold}', 'search', host + url, contentType='movie' if name == 'film' else 'tvshow', style=not global_search)
 
@@ -860,7 +876,8 @@ def menu(func):
                              url = host + var[0] if len(var) > 0 else '',
                              action = var[1] if len(var) > 1 else 'peliculas',
                              args=var[2] if len(var) > 2 else '',
-                             contentType= var[3] if len(var) > 3 else 'movie',)
+                             contentType= var[3] if len(var) > 3 else 'movie',
+                             folder = var[4] if len(var) > 4 else True)
 
         if single_search:
             menuItem(itemlist, filename, config.get_localized_string(70741) % '… {bold}', 'search', host + dictUrl['search'], style=not global_search)
@@ -1243,7 +1260,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
     return itemlist
 
 
-def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=True, patronTag=None, Videolibrary=True):
+def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=True, patronTag=None, Videolibrary=True, Sorted=True):
     logger.debug()
 
     if not data and not itemlist:
@@ -1253,7 +1270,7 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
         itemlist = itemlist + itemList
     verifiedItemlist = []
 
-    def getItem(videoitem):
+    def getItem(n, videoitem):
         # if not videoitem.server:
         #     s = servertools.get_server_from_url(videoitem.url)
         #     videoitem.server = s[2] if s else 'directo'
@@ -1299,6 +1316,7 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
                 vi.thumbnail = videoitem.thumbnail
                 vi.forcethumb = True
             videoitem = vi
+            videoitem.position = n
             return videoitem
 
     # non threaded for webpdb
@@ -1309,14 +1327,18 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
     #         verifiedItemlist.append(it)
 
     with futures.ThreadPoolExecutor() as executor:
-        thL = [executor.submit(getItem, videoitem) for videoitem in itemlist if videoitem.url or videoitem.video_urls]
+        thL = [executor.submit(getItem, n, videoitem) for n,videoitem in enumerate(itemlist) if videoitem.url or videoitem.video_urls]
         for it in futures.as_completed(thL):
             if it.result() and not config.get_setting("black_list", server=it.result().server.lower()):
                 verifiedItemlist.append(it.result())
-    try:
-        verifiedItemlist.sort(key=lambda it: int(re.sub(r'\D','',it.quality)))
-    except:
-        verifiedItemlist.sort(key=lambda it: it.quality, reverse=True)
+
+    if not Sorted:
+        verifiedItemlist.sort(key=lambda it: it.position)
+    # if Sorted:
+    #     try:
+    #         verifiedItemlist.sort(key=lambda it: int(re.sub(r'\D','',it.quality)))
+    #     except:
+    #         verifiedItemlist.sort(key=lambda it: it.quality, reverse=True)
     if patronTag:
         addQualityTag(item, verifiedItemlist, data, patronTag)
 
@@ -1325,7 +1347,8 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
         checklinks_number = config.get_setting('checklinks_number')
         verifiedItemlist = servertools.check_list_links(verifiedItemlist, checklinks_number)
 
-    verifiedItemlist = servertools.sort_servers(verifiedItemlist)
+    if Sorted:
+        verifiedItemlist = servertools.sort_servers(verifiedItemlist)
 
     if Videolibrary and item.contentChannel != 'videolibrary':
         videolibrary(verifiedItemlist, item)

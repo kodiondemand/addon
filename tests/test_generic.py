@@ -64,7 +64,7 @@ validUrlRegex = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-chBlackList = ['url', 'mediasetplay', 'metalvideo', 'altadefinizionecommunity']
+chBlackList = ['url', 'mediasetplay', 'metalvideo', 'accuradio']
 srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {
@@ -186,7 +186,7 @@ for chItem in channel_list:
                 else:
                     itemlist = getattr(module, it.action)(it)
 
-                    if itemlist and itemlist[0].action in ('findvideos', 'episodios'):
+                    if not firstContent and itemlist and itemlist[0].action in ('findvideos', 'episodios'):
                         firstContent = re.match('[ \w]*', itemlist[0].fulltitle).group(0)
 
                     # some sites might have no link inside, but if all results are without servers, there's something wrong
@@ -195,7 +195,7 @@ for chItem in channel_list:
                             if hasattr(module, resIt.action):
                                 serversFound[it.title] = getattr(module, resIt.action)(resIt)
                                 if serversFound[it.title] and resIt.action == 'episodios':
-                                    getattr(module, serversFound[it.title][0].action)(serversFound[it.title][0])
+                                    serversFound[it.title] = getattr(module, serversFound[it.title][0].action)(serversFound[it.title][0])
                             else:
                                 serversFound[it.title] = [resIt]
 

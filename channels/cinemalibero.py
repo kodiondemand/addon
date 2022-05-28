@@ -8,8 +8,10 @@ import re
 from core import httptools, support, scrapertools
 from core.item import Item
 from core.support import typo
-from platformcode import config
+from platformcode import config, logger
 import sys
+
+from platformcode.logger import debug
 if sys.version_info[0] >= 3:
     from concurrent import futures
 else:
@@ -97,15 +99,16 @@ def episodios(item):
     data = item.data
     # debugBlock = True
     if item.args == 'anime':
-        support.info("Anime :", item)
+        logger.debug("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
     elif item.args == 'serie' or item.contentType == 'tvshow':
-        support.info("Serie :", item)
-        patron = r'(?:>| )(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)[;]?[ ]?(?:(?P<title>[^<–-]+)?(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:</a><br /|</a></p|$)|(?P<stagione>.+)'
-        patronBlock = r'>(?:[^<]+[Ss]tagione\s|[Ss]tagione [Uu]nica)(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:<strong|<div class="at-below)'
+        logger.debug("Serie :", item)
+        # debugBlock = True
+        patron = r'(?:/>|<p>)\s*(?:(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)[;]?[ ]?(?P<title>[^<–-]+))?(?P<data>.*?)(?:<br|</p)'
+        patronBlock = r'Stagione\s(?:[Uu]nica)?(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:strong>|<div class="at-below)'
         item.contentType = 'tvshow'
     else:
         patron = r'(?P<title>\s*[0-9]{2}/[0-9]{2}/[0-9]{4})(?P<data>.*?)(?:<br|</p)'
@@ -118,7 +121,10 @@ def episodios(item):
     def itemlistHook(itl):
         ret = []
         for it in itl:
-            if it.stagione:  # stagione intera
+            ep = scrapertools.find_single_match(it.title, r'(\d+x\d+)')
+            if not ep and 'http' in it.data:  # stagione intera
+                from lib import unshortenit
+                data = unshortenit.findlinks(it.data)
                 def get_ep(s):
                     srv_mod = __import__('servers.%s' % s.server, None, None, ["servers.%s" % s.server])
                     if hasattr(srv_mod, 'get_filename'):
@@ -128,15 +134,18 @@ def episodios(item):
                             if ep not in episodes:
                                 episodes[ep] = []
                             episodes[ep].append(s)
-                servers = support.server(item, it.stagione, CheckLinks=False, Download=False, Videolibrary=False)
-                episodes = {}
 
+                servers = support.server(item, data, CheckLinks=False, Download=False, Videolibrary=False)
+                episodes = {}
+                for s in servers:
+                    get_ep(s)
                 # ottengo l'episodio dal nome del file
-                with futures.ThreadPoolExecutor() as executor:
-                    for s in servers:
-                        executor.submit(get_ep, s)
-                ret.extend([it.clone(title=ep+typo(it.contentLanguage, '_ [] color kod'), contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
-            else:
+                # with futures.ThreadPoolExecutor() as executor:
+                #     for s in servers:
+                #         executor.submit(get_ep, s)
+                # logger.debug(it.contentLanguage)
+                ret.extend([it.clone(title=typo(ep, 'bold')+typo(it.contentLanguage, '_ [] color kod bold'), contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
+            elif ep:
                 ret.append(it)
         return sorted(ret, key=lambda i: i.title)
 
@@ -153,7 +162,7 @@ def genres(item):
 
 
 def search(item, texto):
-    support.info(item.url,texto)
+    logger.debug(item.url,texto)
     texto = texto.replace(' ', '+')
     item.url = host + "/?s=" + texto
     # item.contentType = 'tv'
@@ -164,12 +173,12 @@ def search(item, texto):
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("%s" % line)
     return []
 
 
 def newest(categoria):
-    support.info('newest ->', categoria)
+    logger.debug('newest ->', categoria)
     itemlist = []
     item = Item()
     item.args = 'newest'
@@ -183,14 +192,14 @@ def newest(categoria):
     except:
         import sys
         for line in sys.exc_info():
-            support.info('newest log: ', (line))
+            logger.error('newest log: ', (line))
         return []
 
     return itemlist
 
 
 def check(item):
-    support.info()
+    logger.debug()
     data = support.match(item.url, headers=headers).data
     if data:
         ck = support.match(data, patron=r'Supportaci condividendo quest[oa] ([^:]+)').match.lower()
@@ -208,13 +217,13 @@ def check(item):
             itemlist = episodios(item)
             if not itemlist:
                 item.data = data
-                item.action = 'findvideos'
+                # item.action = 'findvideos'
                 return findvideos(item)
 
         elif ck == 'film':
             item.contentType = 'movie'
             item.data = data
-            item.action = 'findvideos'
+            # item.action = 'findvideos'
             return findvideos(item)
 
         else:
@@ -224,7 +233,7 @@ def check(item):
             if not itemlist:
                 item.contentType = 'movie'
                 item.data = data
-                item.action = 'findvideos'
+                # item.action = 'findvideos'
                 return findvideos(item)
 
 
@@ -238,7 +247,7 @@ def findvideos(item):
             if scrapertools.get_season_and_episode(title) == str(item.contentSeason) + "x" + str(
                     item.contentEpisodeNumber).zfill(2):
                 servers.append(s)
-    support.info()
+    logger.debug()
     if item.servers:
         return support.server(item, itemlist=[Item().fromurl(s) for s in item.servers])
     if not item.data:

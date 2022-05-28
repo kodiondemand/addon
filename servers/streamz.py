@@ -38,3 +38,11 @@ def get_video_url(page_url, video_password=""):
     video_urls.append(["mp4 [streamZ]", url])
 
     return video_urls
+
+def get_filename(page_url):
+    # support.dbg()
+    title = httptools.downloadpage(page_url).data.split('<title>')[1].split('</title>')[0]
+    prefix = 'StreamZZ.to '
+    if title.startswith(prefix):
+        return title[len(prefix):]
+    return ""

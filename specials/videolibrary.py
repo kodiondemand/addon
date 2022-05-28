@@ -270,7 +270,7 @@ def get_seasons(item):
             itemlist = sorted(itemlist, key=lambda it: int(it.contentSeason))
 
         if config.get_setting("show_all_seasons", "videolibrary"):
-            new_item = item.clone(action="get_episodes", title=config.get_localized_string(60030))
+            new_item = item.clone(action="get_episodes", channel='videolibrary', title=config.get_localized_string(60030))
             new_item.infoLabels["playcount"] = 0
             itemlist.insert(0, new_item)
 
@@ -363,12 +363,17 @@ def findvideos(item):
         content_title = str(item.contentSeason) + 'x' + (str(item.contentEpisodeNumber) if item.contentEpisodeNumber > 9 else '0' + str(item.contentEpisodeNumber))
     else:
         content_title = item.contentTitle.strip().lower()
+
+    # Fix in case item.streampath is a full path
+    import re
+    paths = re.split('\\\|/', item.strm_path)
+    strm_path = filetools.join(paths[-2],paths[-1])
     if item.contentType == 'movie':
-        strm_path = filetools.join(videolibrarytools.MOVIES_PATH, item.strm_path)
+        strm_path = filetools.join(videolibrarytools.MOVIES_PATH, strm_path)
         path_dir = filetools.dirname(strm_path)
         item.nfo = filetools.join(path_dir, filetools.basename(path_dir) + ".nfo")
     else:
-        strm_path = filetools.join(videolibrarytools.TVSHOWS_PATH, item.strm_path)
+        strm_path = filetools.join(videolibrarytools.TVSHOWS_PATH, strm_path)
         path_dir = filetools.dirname(strm_path)
         item.nfo = filetools.join(path_dir, 'tvshow.nfo')
 
@@ -1087,6 +1092,7 @@ def delete(item):
             if item_nfo.emergency_urls and item_nfo.emergency_urls.get(canal, False):
                 del item_nfo.emergency_urls[canal]
             filetools.write(item.nfo, head_nfo + item_nfo.tojson())
+            platformtools.itemlist_refresh()
         return num_enlaces
     else:
         if platformtools.dialog_yesno(heading, config.get_localized_string(70088) % item.infoLabels['title']):

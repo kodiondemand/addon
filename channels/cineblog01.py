@@ -194,7 +194,6 @@ def findvideos(item):
 
     def load_links(itemlist, re_txt, desc_txt, quality=""):
         streaming = scrapertools.find_single_match(data, re_txt).replace('"', '')
-        logger.debug('STREAMING', streaming)
         logger.debug('STREAMING=', streaming)
         matches = support.match(streaming, patron = r'<td><a.*?href=([^ ]+) [^>]+>([^<]+)<').matches
         for scrapedurl, scrapedtitle in matches:
@@ -218,12 +217,9 @@ def findvideos(item):
     # Estrae i contenuti - Streaming 3D
     load_links(itemlist, '<strong>Streamin?g 3D[^<]+</strong>(.*?)cbtable', "Streaming 3D")
 
-    itemlist = support.server(item, itemlist=itemlist)
     # Extract the quality format
     patronvideos = r'([\w.]+)</strong></div></td>'
-    support.addQualityTag(item, itemlist, data, patronvideos)
-
-    return support.server(item, itemlist=itemlist)
+    return support.server(item, itemlist=itemlist, patronTag=patronvideos)
 
     # Estrae i contenuti - Download
     # load_links(itemlist, '<strong>Download:</strong>(.*?)<tableclass=cbtable height=30>', "aqua", "Download")

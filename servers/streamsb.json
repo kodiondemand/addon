@@ -4,7 +4,7 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "(?:streamsb|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas).\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
+        "pattern": "(?:streamsb|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb).\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
         "url": "https://streamsb.net/d/\\1"
       },
       {

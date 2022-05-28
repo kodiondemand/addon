@@ -1,133 +1,139 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <window>
-	<depth>0.52</depth>
-	<coordinates>
-		<left>0</left>
-		<top>0</top>
-	</coordinates>
-	<controls>
-		<!-- GROUP CONTROLS -->
-		<control type="group">
-			<left>0</left>
-			<top>0</top>
-			<animation type="WindowOpen" reversible="false">
-				<effect type="slide" start="0,100" end="0,0" delay="160" time="160" />
-				<effect type="fade" delay="160" end="100" time="100" />
-			</animation>
-			<animation type="WindowClose" reversible="false">
-				<effect type="slide" start="0,0" end="0,100" delay="160" time="160" />
-				<effect type="fade" delay="160" start="100" end="0" time="100" />
-			</animation>
-
-			<!-- BACKGROUND -->
-			<control type="image">
-				<width>1280</width>
-				<height>720</height>
-				<texture colordiffuse="FF232323">white.png</texture>
-			</control>
-
-      <!-- FANART -->
-			<control type="image" id='30000'>
-				<width>1280</width>
-				<height>720</height>
-				<texture colordiffuse="FF555555"></texture>
-			</control>
-
-			<!-- LOADING -->
-			<control type="image" id='30001'>
-				<top>355</top>
-				<left>490</left>
-				<width>300</width>
-				<height>10</height>
-				<texture>white.png</texture>
-				<animation effect="zoom" pulse ="true" center="auto" start="0,100" end="100,100" time="1000" condition="Control.IsVisible(30001)">Conditional</animation>
-			</control>
-
-      <control type="button" id="30003">
-        <top>40</top>
-        <right>40</right>
-        <height>50</height>
-        <width>50</width>
-        <textcolor>FFFFFFFF</textcolor>
-        <aligny>center</aligny>
-        <align>center</align>
-        <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
-        <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
-        <ondown>30002</ondown>
-      </control>
-
-			<!-- SELECTION -->
-      <control type="fixedlist" id="30002">
-      <top>40</top>
-        <width>100%</width>
-        <height>640</height>
-        <viewtype>wrap</viewtype>
-        <orientation>horizontal</orientation>
-        <scrolltime tween="cubic" easing="out">300</scrolltime>
-        <onup>30003</onup>
-        <itemlayout width="180">
-          <!-- Poster -->
-          <control type="image">
-            <top>370</top>
+    <depth>0.52</depth>
+    <coordinates>
+        <left>0</left>
+        <top>0</top>
+    </coordinates>
+    <controls>
+        <!-- GROUP CONTROLS -->
+        <control type="group">
             <left>0</left>
-            <width>180</width>
-            <height>270</height>
-            <texture>$INFO[ListItem.Property(thumbnail)]</texture>
-            <aspectratio>scale</aspectratio>
-            <bordersize>10</bordersize>
-          </control>
-        </itemlayout>
-        <focusedlayout width="427">
-          <!-- Title -->
-          <control type="textbox">
-            <left>447</left>
-            <top>10</top>
-            <width>783</width>
-            <height>30</height>
-            <font>font13</font>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>00000000</shadowcolor>
-            <label>[B]$INFO[ListItem.Label] [COLOR FFAAAAAA] $INFO[ListItem.Property(year)][/COLOR][/B] </label>
-            <align>left</align>
-            <aligny>center</aligny>
-          </control>
-          <!-- info -->
-          <control type="textbox">
-            <left>447</left>
-            <top>50</top>
-            <width>783</width>
-            <height>30</height>
-            <font>font13</font>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>00000000</shadowcolor>
-            <label>$ADDON[plugin.video.kod 60382] $INFO[ListItem.Property(genre)] | $ADDON[plugin.video.kod 60380] [B]$INFO[ListItem.Property(rating)][/B]</label>
-            <align>left</align>
-          </control>
-          <!-- Plot -->
-          <control type="textbox">
-            <left>447</left>
-            <top>90</top>
-            <width>783</width>
-            <height>250</height>
-            <font>font13</font>
-            <textcolor>FFFFFFFF</textcolor>
-            <shadowcolor>00000000</shadowcolor>
-            <label>$INFO[ListItem.Property(plot)]</label>
-            <autoscroll time="3000" delay="3000" repeat="3000">True</autoscroll>
-            <align>left</align>
-          </control>
-          <!-- Poster -->
-          <control type="image">
-            <bottom>0</bottom>
-            <left>0</left>
-            <width>427</width>
-            <height>640</height>
-            <texture>$INFO[ListItem.Property(thumbnail)]</texture>
-            <aspectratio>scale</aspectratio>
-            <bordersize>10</bordersize>
-          </control>
-        </focusedlayout>
-      </control>
-		</control> <!-- GROUP CONTROLS END -->
-	</controls>
+            <top>0</top>
+            <animation type="WindowOpen" reversible="false">
+                <effect type="slide" start="0,100" end="0,0" delay="160" time="160" />
+                <effect type="fade" delay="160" end="100" time="100" />
+            </animation>
+            <animation type="WindowClose" reversible="false">
+                <effect type="slide" start="0,0" end="0,100" delay="160" time="160" />
+                <effect type="fade" delay="160" start="100" end="0" time="100" />
+            </animation>
+            <!-- BACKGROUND -->
+            <control type="image">
+                <width>1280</width>
+                <height>720</height>
+                <texture colordiffuse="FF232323">white.png</texture>
+            </control>
+            <!-- FANART -->
+            <control type="image" id='30000'>
+                <width>1280</width>
+                <height>720</height>
+                <texture colordiffuse="FF555555"></texture>
+            </control>
+            <!-- LOADING -->
+            <control type="image" id='30001'>
+                <top>355</top>
+                <left>490</left>
+                <width>300</width>
+                <height>10</height>
+                <texture>white.png</texture>
+                <animation effect="zoom" pulse ="true" center="auto" start="0,100" end="100,100" time="1000" condition="Control.IsVisible(30001)">Conditional</animation>
+            </control>
+            <!-- SELECTION -->
+            <control type="fixedlist" id="30002">
+                <top>40</top>
+                <width>100%</width>
+                <height>640</height>
+                <viewtype>wrap</viewtype>
+                <orientation>horizontal</orientation>
+                <scrolltime tween="cubic" easing="out">300</scrolltime>
+                <onup>30003</onup>
+                <itemlayout width="180">
+                    <!-- Poster -->
+                    <control type="image">
+                        <top>370</top>
+                        <left>0</left>
+                        <width>180</width>
+                        <height>270</height>
+                        <texture>$INFO[ListItem.Property(thumbnail)]</texture>
+                        <aspectratio>scale</aspectratio>
+                        <bordersize>10</bordersize>
+                    </control>
+                </itemlayout>
+                <focusedlayout width="427">
+                    <!-- Title -->
+                    <control type="textbox">
+                        <left>447</left>
+                        <top>10</top>
+                        <width>783</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>[B]$INFO[ListItem.Label] [COLOR FFAAAAAA] $INFO[ListItem.Property(year)][/COLOR][/B] </label>
+                        <align>left</align>
+                        <aligny>center</aligny>
+                    </control>
+                    <!-- info -->
+                    <control type="textbox">
+                        <left>447</left>
+                        <top>50</top>
+                        <width>783</width>
+                        <height>30</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>$ADDON[plugin.video.kod 60382] $INFO[ListItem.Property(genre)] | $ADDON[plugin.video.kod 60380] [B]$INFO[ListItem.Property(rating)][/B]</label>
+                        <align>left</align>
+                    </control>
+                    <!-- Plot -->
+                    <control type="textbox">
+                        <left>447</left>
+                        <top>90</top>
+                        <width>783</width>
+                        <height>250</height>
+                        <font>font13</font>
+                        <textcolor>FFFFFFFF</textcolor>
+                        <shadowcolor>00000000</shadowcolor>
+                        <label>$INFO[ListItem.Property(plot)]</label>
+                        <autoscroll time="3000" delay="3000" repeat="3000">True</autoscroll>
+                        <align>left</align>
+                    </control>
+                    <!-- Poster -->
+                    <control type="image">
+                        <bottom>0</bottom>
+                        <left>0</left>
+                        <width>427</width>
+                        <height>640</height>
+                        <texture>$INFO[ListItem.Property(thumbnail)]</texture>
+                        <aspectratio>scale</aspectratio>
+                        <bordersize>10</bordersize>
+                    </control>
+                </focusedlayout>
+            </control>
+            <control type='button'>
+                <description>Result Overflow</description>
+                <top>0</top>
+                <left>430</left>
+                <width>880</width>
+                <height>100%</height>
+                <texturefocus></texturefocus>
+                <texturenofocus></texturenofocus>
+            </control>
+            <control type="button" id="30003">
+                <description>Close</description>
+                <top>40</top>
+                <right>40</right>
+                <height>50</height>
+                <width>50</width>
+                <textcolor>FFFFFFFF</textcolor>
+                <aligny>center</aligny>
+                <align>center</align>
+                <texturefocus colordiffuse="FFFFFFFF">close.png</texturefocus>
+                <texturenofocus colordiffuse="80FFFFFF">close.png</texturenofocus>
+                <ondown>30002</ondown>
+            </control>
+        </control>
+        <!-- GROUP CONTROLS END -->
+    </controls>
 </window>

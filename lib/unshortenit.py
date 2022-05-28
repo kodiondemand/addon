@@ -17,7 +17,6 @@ from base64 import b64decode
 from core import httptools, scrapertools
 from platformcode import config, logger
 
-
 def find_in_text(regex, text, flags=re.IGNORECASE | re.DOTALL):
     rec = re.compile(regex, flags=flags)
     match = rec.search(text)
@@ -48,11 +47,13 @@ class UnshortenIt(object):
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|isecure\.link'
+    _filecrypt_regex = r'filecrypt\.cc'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
-                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect]
+                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect,
+                 _filecrypt_regex]
 
     _maxretries = 5
 
@@ -61,7 +62,7 @@ class UnshortenIt(object):
 
     def unshorten(self, uri, type=None):
         code = 0
-        originalUri = uri
+        originalUri = uri.replace('%0A', '\n')
         while True:
             uri = uri.strip()
             oldUri = uri
@@ -108,6 +109,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_protectlink(uri)
             if re.search(self._uprot_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_uprot(uri)
+            if re.search(self._filecrypt_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_filecrypt(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -700,6 +703,19 @@ class UnshortenIt(object):
                 return link, 200
         return uri, 200
 
+    # container, for returning only the first result
+    def _unshorten_filecrypt(self, uri):
+        url = ''
+        try:
+            fc = FileCrypt(uri)
+            url = fc.unshorten(fc.list_files()[0][1])
+        except:
+            import traceback
+            logger.error(traceback.format_exc())
+        if url:
+            return url, 200
+        else:
+            return uri, 200
 
 
 def decrypt_aes(text, key):

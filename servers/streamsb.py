@@ -40,8 +40,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
 
 def get_filename(page_url):
-    title = httptools.downloadpage(page_url).data.split('<title>')[1].split('</title>')[0]
-    prefix = 'Watch '
+    # from core.support import dbg;dbg()
+    title = httptools.downloadpage(page_url).data.split('<h3>')[1].split('</h3>')[0]
+    prefix = 'Download '
     if title.startswith(prefix):
         return title[len(prefix):]
     return ""

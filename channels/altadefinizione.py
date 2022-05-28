@@ -79,6 +79,7 @@ def episodios(item):
 def check(item):
     item.data = httptools.downloadpage(item.url).data
     if 'rel="tag">Serie TV' in item.data:
+        item.contentType = 'tvshow'
         return episodios(item)
     else:
         return findvideos(item)

@@ -444,7 +444,7 @@ def viewmodeMonitor():
                 currentModeName = xbmc.getInfoLabel('Container.Viewmode')
                 currentMode = int(xbmcgui.Window(10025).getFocusId())
                 # logger.debug('SAVE VIEW 1', currentMode, parent.action, item.action)
-                if 50 <= currentMode < 520 and parent and parent.action != item.action:
+                if 50 <= currentMode < 599 and parent and parent.action != item.action:
                     content, Type = getCurrentView(item, parent)
                     view_mode_type = config.get_setting('view_mode_%s' % content)
                     # logger.debug('VIEW MODE TYPE')
@@ -771,7 +771,8 @@ def set_context_commands(item, item_url, parent_item, **kwargs):
                 # Download season
                 elif item.contentType == "season":
                     context_commands.append((config.get_localized_string(60357), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'channel=downloads&action=save_download&download=season&from_channel=' + item.channel + '&from_action=' + item.action)))
-
+        if item.contentType in ['movie', 'episode'] and config.get_setting('autoplay'):
+            context_commands.append((config.get_localized_string(70192), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'disableAutoplay=true')))
         if item.nextPage:
             context_commands.append((config.get_localized_string(70511), "RunPlugin(%s?%s&%s)" % (sys.argv[0], item_url, 'action=gotopage&real_action='+item.action)))
     if config.dev_mode():
@@ -2010,7 +2011,7 @@ def serverWindow(item, itemlist):
 
     if itemlist:
         reopen = False
-        if config.get_setting('autoplay'):
+        if config.get_setting('autoplay') and not item.disableAutoplay:
             reopen = True
             from core import autoplay
             autoplay.start(itemlist, item)

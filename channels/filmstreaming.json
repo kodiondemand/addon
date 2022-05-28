@@ -1,0 +1,10 @@
+{
+    "id": "filmstreaming",
+    "name": "Film Streaming",
+    "language": ["ita"],
+    "active": true,
+    "thumbnail": "filmstreaming.png",
+    "banner": "filmstreaming.png",
+    "categories": ["movie"],
+    "settings": []
+}
