@@ -11,6 +11,7 @@ from platformcode import logger
 
 def test_video_exists(page_url):
     logger.debug("(page_url='%s')" % page_url)
+    global json
     json = get_json(page_url)
     if not json or ('xstatus' in json and json['xstatus'] == 'del'):
         return False,  config.get_localized_string(70449) % "EvoLoad"
@@ -32,17 +33,12 @@ def get_json(page_url):
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     logger.debug("url=" + page_url)
+    global json
     video_urls = []
 
-    json = get_json(page_url)
-    label = url = ''
-
     if json:
-        if 'name' in json:
-            label = json['name']
-        if 'stream' in json and 'src' in json['stream']:
-            url = json['stream']['src']
-
+        label = json.get('name', '').split('/')[-1]
+        url = json.get('stream', {}).get('src', '')
         if url:
             video_urls.append(['%s [evoload]' % label, url])
     return video_urls

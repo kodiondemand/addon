@@ -4,14 +4,14 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "evoload.io/[ve]/([a-zA-Z0-9]+)",
-        "url": "https://evoload.io/e/\\1?h=https://evoload.io/v/\\1"
+        "pattern": "goodstream.uno/(?:video/embed/)?([a-zA-Z0-9]+)",
+        "url": "https://goodstream.uno/video/embed/\\1/680x420"
       }
     ]
   },
   "free": true,
-  "id": "evoload",
-  "name": "EvoLoad",
+  "id": "goodstream",
+  "name": "GoodStream",
   "settings": [
     {
       "default": false,
