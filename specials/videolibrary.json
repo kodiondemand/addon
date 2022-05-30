@@ -220,8 +220,8 @@
       "type": "bool",
       "label": "@60639",
       "default": true,
-      "visible": false,
-      "enabled": "eq(-1,true)"
+      "visible": true,
+      "enabled": true
     },
     {
       "id": "sync_trakt_new_tvshow",
