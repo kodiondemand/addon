@@ -28,10 +28,11 @@ def peliculas(item):
     if item.args == 'newest':
         item.contentType = 'episode'
         patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+) –\s*<a href="(?P<url>[^"]+)"[^>]*>(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<\(]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
-        pagination = r'class="next".*?"(.+?)"'
+        patronNext = r'class="next".*?"(.+?)"'
+        
     else:
         patron = r'<div class="post-thumb">.*?<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)\s?(?: Serie Tv)?\s?\(?(?P<year>\d{4})?\)?<\/a><\/h2>'
-        patronNext=r'a class="next page-numbers" href="?([^>"]+)">Avanti &raquo;</a>'
+        patronNext = r'next.*?href="(.*?)"'
 
     return locals()
 
@@ -45,9 +46,9 @@ def episodios(item):
     elif 'clicca qui</span>' in data.lower():
         data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
 
-    patronBlock = r'</a></span>(?P<block>[a-zA-Z\s].*?)></div>'
-    patron = r'data.num..(?P<season>\d+)x(?P<episode>\d+).*?>(?P<title>.*?)<.*?"(?P<url>.*?)"'
-
+    patronBlock = r'tab-content(?P<block>.*?)serie-player'
+    patron = r'value="(?P<url>http.*?)".*?data.num..(?P<season>\d+)x(?P<episode>\d+).*?>(?P<title>.*?)<'
+    
     return locals()
 
 
