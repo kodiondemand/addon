@@ -513,7 +513,7 @@ def girc(page_data, url, co):
     and https://github.com/addon-lab/addon-lab_resolver_Project
     Copyright (C) 2021 ADDON-LAB, KAR10S
     """
-    import re
+    import re, random, string
     from core import httptools
     hdrs = {'Referer': url}
     rurl = 'https://www.google.com/recaptcha/api.js'
@@ -527,10 +527,11 @@ def girc(page_data, url, co):
         rdata = {'ar': 1,
                  'k': key,
                  'co': co,
-                 'hl': 'en',
+                 'hl': 'it',
                  'v': v,
                  'size': 'invisible',
-                 'cb': '123456789'}
+                 'sa': 'submit',
+                 'cb': ''.join([random.choice(string.ascii_lowercase + string.digits) for i in range(12)])}
         page_data2 = httptools.downloadpage('{0}/anchor?{1}'.format(aurl, httptools.urlparse.urlencode(rdata)), headers=hdrs).data
         rtoken = re.search('recaptcha-token.+?="([^"]+)', page_data2)
         if rtoken:
