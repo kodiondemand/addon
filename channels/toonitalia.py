@@ -4,7 +4,7 @@
 # ------------------------------------------------------------
 
 from core import httptools, scrapertools, support
-import sys
+import inspect
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -93,14 +93,17 @@ def peliculas(item):
 def episodios(item):
     @support.scrape
     def findepisode(item):
-        anime = True
         actLike = 'episodios'
         patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
         return locals()
 
     itemlist = findepisode(item)
-    if itemlist: return itemlist
-    else: return [item.clone(action='findvideos')]
+    if not itemlist: itemlist = [item.clone(action='findvideos')]
+
+    if inspect.stack()[1][3] not in ['find_episodes']:
+        from platformcode import autorenumber
+        autorenumber.start(itemlist, item)
+    return itemlist
 
 
 def findvideos(item):
