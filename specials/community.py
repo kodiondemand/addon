@@ -178,6 +178,9 @@ def peliculas(item, json='', key='', itemlist=[]):
 
     # logger.debug('DEBUG:', json)
 
+    if item.sort:
+        json.sort(key=lambda x: x.get('title', ''), reverse=False)
+
     infoLabels = item.infoLabels if item.infoLabels else {}
     contentType = 'tvshow' if 'tvshow' in key else 'movie'
     itlist = filterkey = []
@@ -237,8 +240,8 @@ def peliculas(item, json='', key='', itemlist=[]):
         tmdb.set_infoLabels(itlist, seekTmdb=True)
     itemlist += itlist
 
-    if item.sort:
-        itemlist.sort(key=lambda x: x.title.lower(), reverse=False)
+    # if item.sort:
+    #     itemlist.sort(key=lambda x: x.title.lower(), reverse=False)
     if Pagination and len(itemlist) >= Pagination:
         if inspect.stack()[1][3] != 'get_newest':
             item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
@@ -725,6 +728,7 @@ def load_and_check(item):
 # set extra values
 def set_extra_values(item, json, path):
     logger.debug()
+    # support.dbg()
     ret = Item()
     for key in json:
         if key == 'quality':
@@ -740,7 +744,7 @@ def set_extra_values(item, json, path):
         elif key == 'fanart':
             ret.fanart = json[key] if ':/' in json[key] else filetools.join(path, json[key])
         elif key in ['url', 'link']:
-            ret.url = json[key] if ':/' in json[key] or type(json[key]) == dict else filetools.join(path, json[key])
+            ret.url = json[key] if ':/' in json[key] or type(json[key]) in (dict, OrderedDict) else filetools.join(path, json[key])
         elif key == 'seasons_list':
             ret.url = {}
             ret.url['seasons_list'] = json['seasons_list']

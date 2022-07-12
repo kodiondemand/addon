@@ -31,7 +31,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         bloque = scrapertools.find_single_match(data, "sources.*?\}")
         video_srcs = scrapertools.find_multiple_matches(bloque, ': "([^"]+)')
     for url in video_srcs:
-        video_urls.append([" [Voe]", url])
+        video_urls.append([url.split('.')[-1] + " [Voe]", url])
 
     return video_urls
 

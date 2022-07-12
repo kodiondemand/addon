@@ -8,7 +8,7 @@ import requests, sys, inspect
 from core import support, tmdb, httptools
 from platformcode import autorenumber, logger, config
 
-host = support.config.get_channel_url()
+host = 'https://www.vvvvid.it'
 
 # Creating persistent session
 current_session = requests.Session()

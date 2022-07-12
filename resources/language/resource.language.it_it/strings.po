@@ -6140,6 +6140,10 @@ msgctxt "#70834"
 msgid "Playlist"
 msgstr "Playlist"
 
+msgctxt "#70835"
+msgid "Search information from TMDB..."
+msgstr "Ricerca informazioni da TMDB..."
+
 # DNS start [ settings and declaration ]
 msgctxt "#707401"
 msgid "Enable DNS check alert"

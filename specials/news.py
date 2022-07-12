@@ -15,7 +15,7 @@ import glob, os, re, time
 from threading import Thread
 
 from channelselector import get_thumb, auto_filter
-from core import channeltools, jsontools, scrapertools, support
+from core import channeltools, jsontools, scrapertools, support, tmdb
 from core.item import Item
 from platformcode import config, logger, platformtools
 
@@ -52,7 +52,7 @@ def mainlist(item):
 
     #if list_canales['peliculas']:
     thumbnail = get_thumb("movie.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="peliculas", title=config.get_localized_string(30122),
+    new_item = Item(channel=item.channel, action="novedades", contentType='movie', extra="peliculas", title=config.get_localized_string(30122),
                     thumbnail=thumbnail)
 
     set_category_context(new_item)
@@ -80,14 +80,14 @@ def mainlist(item):
 
     #if list_canales['series']:
     thumbnail = get_thumb("tvshow.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="series", title=config.get_localized_string(60511),
+    new_item = Item(channel=item.channel, action="novedades", contentType='tvshow', extra="series", title=config.get_localized_string(60511),
                     thumbnail=thumbnail)
     set_category_context(new_item)
     itemlist.append(new_item)
 
     #if list_canales['anime']:
     thumbnail = get_thumb("anime.png")
-    new_item = Item(channel=item.channel, action="novedades", extra="anime", title=config.get_localized_string(60512),
+    new_item = Item(channel=item.channel, action="novedades", contentType='tvshow', extra="anime", title=config.get_localized_string(60512),
                     thumbnail=thumbnail)
     set_category_context(new_item)
     itemlist.append(new_item)
@@ -319,6 +319,9 @@ def novedades(item):
         result_mode = config.get_setting("result_mode", "news")
         if mode != 'normal':
             result_mode=0
+        if config.get_setting("tmdb", "news"):
+            progreso.update(100, config.get_localized_string(70835))
+            tmdb.set_infoLabels_itemlist(list_newest, seekTmdb=True)
 
         if result_mode == 0:  # Grouped by content
             ret = group_by_content(list_newest)

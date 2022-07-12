@@ -211,7 +211,7 @@ def cleantitle(title):
         if type(title) != str: title.decode('UTF-8')
         title = scrapertools.unescape(title)
         title = scrapertools.decodeHtmlentities(title)
-        cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip()
+        cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip().strip('-').strip()
     return cleantitle
 
 
@@ -509,7 +509,7 @@ def scrape(func):
         # info('STACK= ',inspect.stack()[1][3])
         item = args['item']
 
-        action = args.get('action', 'findvideos')
+        action = args.get('action', 'episodios' if item.contentType == 'tvshow' and function != 'episodios' else 'findvideos')
         anime = args.get('anime', '')
         addVideolibrary = args.get('addVideolibrary', True)
         search = args.get('search', '')

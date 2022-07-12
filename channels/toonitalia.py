@@ -3,7 +3,7 @@
 # Canale per ToonItalia
 # ------------------------------------------------------------
 
-from core import scrapertools, support
+from core import httptools, scrapertools, support
 import sys
 
 host = support.config.get_channel_url()
@@ -90,24 +90,39 @@ def peliculas(item):
     return locals()
 
 
-@support.scrape
 def episodios(item):
-    anime = True
-    # debug = True
-    patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
-    # data = ''
-    # match = support.match(item, headers=headers, patron=r'(?: /> |<p>)(?:(?P<season>\d+)&#215;)?(?P<episode>\d+)(?:\s+&#8211;\s+)?(?P<title>[^<]+)<a (?P<data>.*?)(?:<br|</p)').matches
-    # if match:
-    #     for m in match:
-    #         data += '{}{:02d}|{}|{}|'.format(m[0]+'x' if m[0] else '', int(m[1]), clean_title(m[2]), m[3])
-    #
-    # patron = r'(?P<episode>[^|]+)\|(?P<title>[^|]+)\|(?P<data>[^|]+)\|'
+    @support.scrape
+    def findepisode(item):
+        anime = True
+        actLike = 'episodios'
+        patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
+        return locals()
 
-    return locals()
+    itemlist = findepisode(item)
+    if itemlist: return itemlist
+    else: return [item.clone(action='findvideos')]
 
 
 def findvideos(item):
-    return support.server(item, item.data if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
+    servers = []
+    itemlist = []
+
+    if item.data:
+        data = item.data
+    else:
+        data = httptools.downloadpage(item.url, headers=headers).data
+
+    matches =support.match(data, patron='href="([^"]+)[^>]+>([^<\d]+)(\d+p)?').matches
+    if matches:
+        for match in matches:
+            itemlist.append(item.clone(server=match[1].strip().lower(), quality=match[2], url=match[0]))
+    if itemlist:
+        servers = support.server(item, itemlist=itemlist)
+    else:
+        servvers = support.server(item, data=data)
+    return servers
+
+    # return support.server(item, item.data if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
 
 
 def clean_title(title):
