@@ -631,7 +631,7 @@ def set_content(content_type, silent=False, custom=False):
 
     # Configure scraper
     if seleccion != -1:
-        xbmc.executebuiltin(f'Addon.OpenSettings({values[seleccion]})', True)
+        xbmc.executebuiltin('Addon.OpenSettings({})'.format(values[seleccion]), True)
     else:
         continuar = False
 
@@ -691,7 +691,7 @@ def set_content(content_type, silent=False, custom=False):
             strContent = 'movies'
             scanRecursive = 2147483647
             strScraper = values[seleccion]
-            path_settings = xbmc.translatePath(f"special://profile/addon_data/{strScraper}/settings.xml")
+            path_settings = xbmc.translatePath("special://profile/addon_data/{}/settings.xml".format(strScraper))
             if not os.path.exists(path_settings):
                 logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
                 return continuar
@@ -706,7 +706,7 @@ def set_content(content_type, silent=False, custom=False):
             strContent = 'tvshows'
             scanRecursive = 0
             strScraper = values[seleccion]
-            path_settings = xbmc.translatePath(f"special://profile/addon_data/{strScraper}/settings.xml")
+            path_settings = xbmc.translatePath("special://profile/addon_data/{}/settings.xml".format(strScraper))
             if not os.path.exists(path_settings):
                 logger.debug("%s: %s" % (content_type, path_settings + " doesn't exist"))
                 return continuar
@@ -1303,9 +1303,9 @@ class NextDialog(xbmcgui.WindowXMLDialog):
         else: img = filetools.join(config.get_runtime_path(), "resources", "noimage.png")
         self.setProperty("next_img", img)
         self.setProperty("title", info["tvshowtitle"])
-        ep_title = f'{info["season"]}x{info["episode"]:02d}'
+        ep_title = '{}x{:02d}'.format(info['season'], info["episode"])
         if info.get("title",''):
-            ep_title += f' - {info["title"]}'
+            ep_title += ' - ' + info["title"]
         self.setProperty("ep_title", ep_title)
         self.show()
 

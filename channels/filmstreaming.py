@@ -27,7 +27,7 @@ def search(item, text):
     logger.debug('search', text)
     itemlist = []
     text = text.replace(" ", "+")
-    item.url = f'{host}/index.php?do=search&subaction=search&story={text}'
+    item.url = '{}/index.php?do=search&subaction=search&story={}'.format(host, text)
 
     try:
         return peliculas(item)
@@ -76,7 +76,7 @@ def genres(item):
     action = "peliculas"
     _type ={'years':'Anno', 'genres':'Categorie'}
 
-    patronBlock = f'{_type[item.args]}(?:[^>]+>){{4}}(?P<block>.*?)</ul>'
+    patronBlock = _type[item.args] + r'(?:[^>]+>){4}(?P<block>.*?)</ul>'
     patronMenu = '<li><a href="(?P<url>[^"]+)">(?P<title>.*?)</a>'
 
     return locals()

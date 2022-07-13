@@ -17,11 +17,11 @@ deviceId = uuid.uuid4().hex
 
 # domain = 'https://eu1-prod-direct.discoveryplus.com'
 domain = 'https://' + session.get("https://prod-realmservice.mercury.dnitv.com/realm-config/www.discoveryplus.com%2Fit%2Fepg").json()["domain"]
-token = session.get(f'{domain}/token?deviceId={deviceId}&realm=dplay&shortlived=true').json()['data']['attributes']['token']
+token = session.get('{}/token?deviceId={}&realm=dplay&shortlived=true'.format(domain, deviceId)).json()['data']['attributes']['token']
 session.headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
                    'Referer': host,
                    'Origin': host,
-                   'Cookie': f'st={token}',
+                   'Cookie': 'st={}'.format(token),
                    'content-type': 'application/json',
                    'x-disco-params': 'realm=dplay,siteLookupKey=dplus_it'}
 
@@ -54,7 +54,7 @@ def live(item):
     logger.debug()
 
     itemlist =[]
-    data = session.get(f'{domain}/cms/routes/epg?include=default').json()['included']
+    data = session.get(domain + '/cms/routes/epg?include=default').json()['included']
 
     for key in data:
 
@@ -62,7 +62,7 @@ def live(item):
             itemlist.append(item.clone(title = typo(key['attributes']['name'], 'bold'),
                                        fulltitle = key['attributes']['name'],
                                        plot = key['attributes'].get('description', ''),
-                                       url = f"{host}/canali/{key['attributes']['alternateId']}",
+                                       url = "{}/canali/{}".format(host, key['attributes']['alternateId']),
                                        id = key['id'],
                                        action = 'findvideos'))
     return support.thumb(itemlist, live=True)
@@ -72,7 +72,7 @@ def programs(item):
     logger.debug()
 
     itemlist = []
-    data = session.get(f'{domain}/cms/routes/browse?include=default').json()['included']
+    data = session.get(domain + '/cms/routes/browse?include=default').json()['included']
     images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
 
     channels = {}
@@ -95,7 +95,7 @@ def genres(item):
     logger.debug()
 
     itemlist = []
-    data = session.get(f'{domain}/cms/collections/{item.id}?include=default').json()['included']
+    data = session.get('{}/cms/collections/{}?include=default'. format(domain, item.id)).json()['included']
     collection = {k['id']: k['relationships'].get('show', k['relationships'].get('collection'))['data']['id'] for k in data if k['type'] == 'collectionItem'}
 
     included = {}
@@ -126,9 +126,9 @@ def peliculas(item):
     itemlist =[]
 
     if item.text:
-        data = session.get(f'{domain}/cms/routes/search/result?include=default&contentFilter[query]={item.text}').json()['included']
+        data = session.get('{}/cms/routes/search/result?include=default&contentFilter[query]={}').json()['included']
     else:
-        data = session.get(f'{domain}/cms/collections/{item.id}?include=default').json()['included']
+        data = session.get('{}/cms/collections/{}?include=default'.format(domain, item.id)).json()['included']
 
     images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
 
@@ -163,12 +163,12 @@ def seasons(item):
     logger.debug()
 
     itemlist = []
-    data = session.get(f'{domain}/cms/routes/show/{item.programid}?include=default').json()['included']
+    data = session.get('{}/cms/routes/show/{}?include=default'.format(domain, item.programid)).json()['included']
 
     for key in data:
         if key['type'] == 'collection':
             for option in key['attributes']['component']['filters'][0]['options']:
-                itemlist.append(item.clone(title=f"Stagione {option['value']}",
+                itemlist.append(item.clone(title="Stagione {}".format(option['value']),
                                            season=int(option['value']),
                                            seasonparams=option['parameter'],
                                            showparams=key['attributes']['component']['mandatoryParams'],
@@ -184,12 +184,12 @@ def episodios(item):
     logger.debug()
 
     itemlist =[]
-    data = session.get(f'{domain}/cms/collections/{item.id}?include=default&{item.seasonparams}&{item.showparams}').json()['included']
+    data = session.get('{}/cms/collections/{}?include=default&{}&{}'.format(domain, item.id, item.seasonparams, item.showparams)).json()['included']
     images = {key['id'] : key['attributes']['src'] for key in data if key['type'] == 'image'}
 
     for key in data:
         if key['type'] == 'video' and 'Free' in str(key.get('relationships',{}).get('contentPackages',{}).get('data',[])):
-            itemlist.append(item.clone(title = f"{item.season}x{key['attributes']['episodeNumber']:02d} - {key['attributes']['name']}",
+            itemlist.append(item.clone(title = "{}x{:02d} - {}".format(item.season, key['attributes']['episodeNumber'], key['attributes']['name']),
                                        plot = key['attributes']['description'],
                                        episode = key['attributes']['episodeNumber'],
                                        contentType = 'episode',
@@ -210,14 +210,14 @@ def findvideos(item):
     logger.debug()
 
     content = 'video' if item.contentType == 'episode' else 'channel'
-    post = {f'{content}Id': item.id, 'deviceInfo': {'adBlocker': False,'drmSupported': True}}
+    post = {content + 'Id': item.id, 'deviceInfo': {'adBlocker': False,'drmSupported': True}}
 
-    data = session.post(f'{domain}/playback/v3/{content}PlaybackInfo', json=post).json().get('data',{}).get('attributes',{})
+    data = session.post('{}/playback/v3/{}PlaybackInfo'.format(domain, content), json=post).json().get('data',{}).get('attributes',{})
 
     if data.get('protection', {}).get('drmEnabled',False):
         item.url = data['streaming']['dash']['url']
         item.drm = 'com.widevine.alpha'
-        item.license =f"{data['protection']['schemes']['widevine']['licenseUrl']}|PreAuthorization={data['protection']['drmToken']}|R{{SSM}}|"
+        item.license ="{}|PreAuthorization={}|R{{SSM}}|".format(data['protection']['schemes']['widevine']['licenseUrl'], data['protection']['drmToken'])
     else:
         item.url = data['streaming'][0]['url']
         item.manifest = 'hls'

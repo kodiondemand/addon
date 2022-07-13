@@ -24,7 +24,7 @@ def mainlist(item):
 
 def moviefilter(item):
     if logger.testMode:
-        return f'{host}/movie-lib-sort/all/all/score/desc/all/1/'
+        return host +'/movie-lib-sort/all/all/score/desc/all/1/'
     from platformcode import platformtools
 
     item.args = ''
@@ -68,14 +68,14 @@ def filtered(item, values):
     order = item.orderValues[values['order']]
     year = item.yearValues[values['year']]
 
-    return f'{host}/movie-lib-sort/{genre}/{lang}/{sortby}/{order}/{year}/1/'
+    return '{}/movie-lib-sort/{}/{}/{}/{}/{}/1/'.format(host, genre, lang, sortby, order, year)
 
 
 def az(item):
     import string
-    itemlist = [item.clone(title='1-9', url=f'{item.url}num/1/', action='peliculas', thumbnail=support.thumb('az'))]
+    itemlist = [item.clone(title='1-9', url=item.url +'num/1/', action='peliculas', thumbnail=support.thumb('az'))]
     for letter in list(string.ascii_lowercase):
-        itemlist.append(item.clone(title=letter.upper(), url=f'{item.url}{letter}/1/', action='peliculas', thumbnail=support.thumb('az')))
+        itemlist.append(item.clone(title=letter.upper(), url=item.url + letter +'/1/', action='peliculas', thumbnail=support.thumb('az')))
     return itemlist
 
 
@@ -85,7 +85,7 @@ def search(item, text):
     if config.get_setting('itaSearch', channel=item.channel, default=False):
         text += ' ita'
     text = text.replace(' ', '+')
-    item.url = f'{host}/search/{text}/1/'
+    item.url = '{}/search/{}/1/'.format(host, text)
     try:
         return peliculas(item)
     # Cattura la eccezione così non interrompe la ricerca globle se il canale si rompe!
@@ -122,7 +122,7 @@ def peliculas(item):
             if lastUrl:
                 currentPage = support.match(item.url, string=True, patron=r'/(\d+)/').match
                 nextPage = int(currentPage) + 1
-                support.nextPage(itemlist, item, next_page=item.url.replace(f'/{currentPage}', f'/{nextPage}'), function_or_level='peliculas')
+                support.nextPage(itemlist, item, next_page=item.url.replace('/{}'.format(currentPage), '/{}'.format(nextPage)), function_or_level='peliculas')
             return itemlist
 
     return locals()
@@ -173,14 +173,14 @@ def findvideos(item):
                     else:
                         lang = vars(subs).get('alpha3').upper()
             if lang:
-                title = f'{title} [{lang}]'
+                title = '{} [{}]'.format(title, lang)
 
             sizematch = support.match(size, patron='(\d+(?:\.\d+)?)\s* (\w+)').match
             sizenumber = float(sizematch[0])
             if sizematch[1].lower() == 'gb':
                 sizenumber = sizenumber * 1024
 
-            itemlist.append(item.clone(title = f'{title} [{seed} SEEDS] [{size}]', seed=int(seed), size=sizenumber, url=host + url, server='torrent', action='play'))
+            itemlist.append(item.clone(title = '{} [{} SEEDS] [{}]'.format(title, seed, size), seed=int(seed), size=sizenumber, url=host + url, server='torrent', action='play'))
         itemlist.sort(key=lambda it: (it.seed, it.size), reverse=True)
 
     Videolibrary = True if 'movie' in item.args else False
