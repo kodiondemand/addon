@@ -97,12 +97,20 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = item.data
+    # support.dbg()
     # debugBlock = True
     if item.args == 'anime':
         logger.debug("Anime :", item)
         # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
+        item.contentType = 'tvshow'
+    elif item.args == 'wrestling':
+        
+        logger.debug("Wrestling :", item)
+        # debugBlock = True
+        patron = r'(?:/>|<p>)\s*(?P<title>[^-]+)-(?P<data>.+?)(?:<br|</p)'
+        patronBlock = r'</strong>\s*</p>(?P<block>.*?</p>)'
         item.contentType = 'tvshow'
     elif item.args == 'serie' or item.contentType == 'tvshow':
         logger.debug("Serie :", item)
@@ -120,6 +128,8 @@ def episodios(item):
 
     def itemlistHook(itl):
         ret = []
+        if item.args == 'wrestling':
+            return itl
         for it in itl:
             ep = scrapertools.find_single_match(it.title, r'(\d+x\d+)')
             if not ep and 'http' in it.data:  # stagione intera
@@ -203,39 +213,22 @@ def check(item):
     data = support.match(item.url, headers=headers).data
     if data:
         ck = support.match(data, patron=r'Supportaci condividendo quest[oa] ([^:]+)').match.lower()
-
-        if ck == 'serie tv':
-            item.contentType = 'tvshow'
-            item.args = 'serie'
-            item.data = data
-            return episodios(item)
-
-        elif ck == 'anime':
-            item.contentType = 'tvshow'
-            item.args = 'anime'
-            item.data = data
-            itemlist = episodios(item)
-            if not itemlist:
-                item.data = data
-                # item.action = 'findvideos'
-                return findvideos(item)
-
-        elif ck == 'film':
+        if ck == 'film':
             item.contentType = 'movie'
             item.data = data
             # item.action = 'findvideos'
             return findvideos(item)
 
-        else:
+        elif ck in ['serie tv', 'wrestling wwe', 'anime']:
             item.contentType = 'tvshow'
+            item.args = ck.split()[0]
             item.data = data
             itemlist = episodios(item)
             if not itemlist:
-                item.contentType = 'movie'
                 item.data = data
-                # item.action = 'findvideos'
                 return findvideos(item)
 
+        return itemlist
 
 
 def findvideos(item):
@@ -248,11 +241,14 @@ def findvideos(item):
                     item.contentEpisodeNumber).zfill(2):
                 servers.append(s)
     logger.debug()
+    # support.dbg()
     if item.servers:
         return support.server(item, itemlist=[Item().fromurl(s) for s in item.servers])
     if not item.data:
         item.data = httptools.downloadpage(item.url)
-    item.data = scrapertools.find_single_match(item.data, '<div class="at-above-post addthis_tool"(.*?)<div class="at-below-post')
+    data = scrapertools.find_single_match(item.data, '<div class="at-above-post addthis_tool"(.*?)<div class="at-below-post')
+    if data:
+        item.data = data
 
     servers = []
     if item.args == 'anime':
