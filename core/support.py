@@ -1302,6 +1302,7 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
             vi = item.clone(server=videoitem.server,
                             extraInfo=videoitem.extraInfo,
                             serverName=videoitem.serverName,
+                            subtitle=videoitem.subtitle,
                             url=videoitem.url,
                             videoUrls= videoitem.videoUrlsn,
                             ch_name=channeltools.get_channel_parameters(item.channel)['title'],

@@ -459,6 +459,7 @@ def findvideos(item):
             item.clone(url=option['url'],
                        action='play',
                        quality=extra.quality,
+                       subtitle=extra.subtitle,
                        contentLanguage=extra.language,
                        extraInfo=extra.info))
 
@@ -764,6 +765,8 @@ def set_extra_values(item, json, path):
             ret.description = json[key]
         elif key == 'info':
             ret.info = json[key]
+        elif key == 'subtitle':
+            ret.subtitle = json[key]
 
     if not ret.thumb:
         if 'get_search_menu' in inspect.stack()[1][3]:
