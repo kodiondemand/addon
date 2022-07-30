@@ -87,6 +87,6 @@ def check(item):
 
 def findvideos(item):
     logger.debug()
-    if item.contentType == 'movie':
+    if item.contentType == 'movie' and isinstance(item.data, str):
         item.data = support.match(item.data, patron=r'data-id="([^"]+)').matches
     return support.server(item, item.data)
