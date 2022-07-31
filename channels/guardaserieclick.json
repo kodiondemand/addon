@@ -1,7 +1,7 @@
 {
     "id": "guardaserieclick",
     "name": "GuardaSerie.click",
-    "active": true,
+    "active": false,
     "language": ["ita", "vos"],
     "thumbnail": "guardaserieclick.png",
     "bannermenu": "guardaserieclick.png",

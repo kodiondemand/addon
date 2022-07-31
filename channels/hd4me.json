@@ -2,7 +2,7 @@
     "id": "hd4me",
     "name": "HD4ME",
     "language": ["ita", "sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "hd4me.png",
     "banner": "hd4me.png",
     "categories": ["movie", "vos"],
