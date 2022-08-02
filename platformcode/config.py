@@ -118,10 +118,9 @@ def get_channel_url(findhostMethod=None, name=None, forceFindhost=False):
     if not channels_data:
         with open(LOCAL_FILE) as f:
             channels_data = jsontools.load(f.read())
-
-    frame = inspect.stack()[1]
+    frame = inspect.currentframe().f_back
     if not name:
-        name = os.path.basename(frame[0].f_code.co_filename).replace('.py', '')
+        name = os.path.basename(frame.f_code.co_filename).replace('.py', '')
     if findhostMethod:
         url = jsontools.get_node_from_file(name, 'url')
         if not url or forceFindhost:
