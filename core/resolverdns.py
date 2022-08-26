@@ -59,7 +59,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         cache = db['dnscache'].get(domain, {})
         ip = None
         if type(cache) != dict or (cache.get('datetime') and
-                                   current_date - cache.get('datetime') > datetime.timedelta(days=7)):
+                                   current_date - cache.get('datetime') > datetime.timedelta(hours=1)):
             cache = None
 
         if not cache:  # not cached
