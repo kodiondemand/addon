@@ -33,3 +33,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         media_url += "|User-Agent=%s" %(httptools.get_user_agent())
         video_urls.append(["MP4", media_url])
     return video_urls
+
+def get_filename(page_url):
+    from core import jsontools
+    file = jsontools.load(scrapertools.decodeHtmlentities(httptools.downloadpage(page_url).data.split(':file="')[1].split('"')[0]))
+    return file['name']
