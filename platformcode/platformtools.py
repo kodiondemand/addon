@@ -1782,11 +1782,12 @@ def prevent_busy():
 
 
 def fakeVideo(sleep = False):
-    mediaurl = os.path.join(config.get_runtime_path(), "resources", "kod.mp4")
-    xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=mediaurl))
-    while not is_playing():
-        xbmc.sleep(200)
-    xbmc.Player().stop()
+    if len(sys.argv) > 1:
+        mediaurl = os.path.join(config.get_runtime_path(), "resources", "kod.mp4")
+        xbmcplugin.setResolvedUrl(int(sys.argv[1]), True, xbmcgui.ListItem(path=mediaurl))
+        while not is_playing():
+            xbmc.sleep(200)
+        xbmc.Player().stop()
 
 
 def channelImport(channelId):

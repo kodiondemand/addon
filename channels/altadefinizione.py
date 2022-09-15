@@ -20,12 +20,14 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
 
-    film = ['/genere/film/',
+    film = ['/category/film/',
             ('Al Cinema', ['/al-cinema/', 'peliculas']),
             ('Generi', ['', 'genres']),
-            ('Sub-ITA', ['/sub-ita/', 'peliculas'])]
+            # ('Sub-ITA', ['/sub-ita/', 'peliculas'])
+            ]
 
-    tvshow = ['/genere/serie-tv/']
+    tvshow = ['/category/serie-tv/',
+             ('Aggiornamenti Serie TV', ['/aggiornamenti-serie-tv/', 'peliculas']),]
 
     search = ''
 
@@ -37,12 +39,19 @@ def genres(item):
     action = 'peliculas'
     blacklist = ['Scegli il Genere', 'Film', 'Serie TV', 'Sub-Ita', 'Anime']
     patronMenu = r'<option value="(?P<url>[^"]+)">(?P<title>[^<]+)'
+    def itemlistHook(itemlist):
+        itl = []
+        for item in itemlist:
+            if len(item.fulltitle) != 3:
+                itl.append(item)
+        return itl
     return locals()
 
 
 def search(item, text):
     logger.debug(text)
-    item.url = "{}/?s={}".format(host, text)
+    item.url = "{}/search/{}/feed/rss2/".format(host, text)
+    item.args = 'search'
 
     try:
         return peliculas(item)
@@ -59,9 +68,10 @@ def peliculas(item):
     n = '22' if '/?s=' in item.url else '8'
     item.contentType = "undefined"
     action = 'check'
-    # patron = r'data-src="(?P<thumb>http[^"]+)(?:[^>]+>){' + n + r'}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
-    patron = r'data-src="(?P<poster>http[^"]+)(?:[^>]+>){7,18}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
-    patronNext = r'href="([^"]+)[^>]+>»'
+    patron = r'src="(?P<poster>http[^"]+)(?:[^>]+>){4}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
+    if item.args == 'search':
+        patron = r'<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
+    patronNext = r'href="([^"]+)[^>]+>Successivo'
     return locals()
 
 
@@ -70,15 +80,15 @@ def episodios(item):
     item.quality = ''
     data = item.data
     action='findvideos'
-    # patronBlock = r'[Ss]tagione.*?\s(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
-    patronBlock = r'<strong>\s*\w+\s*[Ss]tagione.*?(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
-    patron = r'(?P<season>\d+)&[^:]+;(?P<episode>\d+)(?P<data>.*?)(?:<br|$)'
+    # debug=True
+    patronBlock = r'<span>\s*\w+\s*[Ss]tagione.*?(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
+    patron = r'(?P<season>\d+)x(?P<episode>\d+)[^>]+>(?P<data>.*?)(?:</table)'
     return locals()
 
 
 def check(item):
     item.data = httptools.downloadpage(item.url).data
-    if 'rel="tag">Serie TV' in item.data:
+    if 'Stagione' in item.data:
         item.contentType = 'tvshow'
         return episodios(item)
     else:

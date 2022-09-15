@@ -2,7 +2,7 @@
     "id": "dreamsub",
     "name": "DreamSub",
     "language": ["ita", "sub-ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "dreamsub.png",
     "banner": "dreamsub.png",
     "categories": ["anime", "vos"],

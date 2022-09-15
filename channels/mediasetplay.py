@@ -92,7 +92,7 @@ def live(item):
                 plot += '\n\nA Seguire:\n[B]{}[/B]\n{}'.format(guide.get('nextListing', {}).get('mediasetlisting$epgTitle', ''),guide.get('nextListing', {}).get('description', ''))
             itemlist.append(item.clone(title=support.typo(title, 'bold'),
                                        fulltitle=title, callSign=it['callSign'],
-                                       urls=[guide['publicUrl']],
+                                    #    urls=[guide['publicUrl']],
                                        plot=plot,
                                        url=url,
                                        action='findvideos',
@@ -243,7 +243,7 @@ def findvideos(item):
 
     lic_url = 'https://widevine.entitlement.theplatform.eu/wv/web/ModularDrm/getRawWidevineLicense?releasePid={pid}&account=http://access.auth.theplatform.com/data/Account/2702976343&schema=1.0&token={token}|Accept=*/*&Content-Type=&User-Agent={ua}|R{{SSM}}|'
     url = ''
-
+    # support.dbg()
     if item.urls:
         url = ''
         pid = ''
@@ -265,12 +265,12 @@ def findvideos(item):
         return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
     elif item.video_id:
-        payload = '{"contentId":"' + item.video_id + ' ","streamType":"VOD","delivery":"Streaming","createDevice":true}'
-        res = session.post('https://api-ott-prod-fe.mediaset.net/PROD/play/playback/check/v2.0?sid=' + sid, data=payload).json()['response']['mediaSelector']
+        payload = {"contentId":item.video_id, "streamType":"VOD", "delivery":"Streaming", "createDevice":"true", "overrideAppName":"web//mediasetplay-web/5.2.4-6ad16a4"}
+        res = session.post('https://api-ott-prod-fe.mediaset.net/PROD/play/playback/check/v2.0?sid=' + sid, json=payload).json()['response']['mediaSelector']
 
     else:
-        payload = '{"channelCode":"' + item.callSign + '","streamType":"LIVE","delivery":"Streaming","createDevice":true}'
-        res = session.post('https://api-ott-prod-fe.mediaset.net/PROD/play/playback/check/v2.0?sid=' + sid, data=payload).json()['response']['mediaSelector']
+        payload = {"channelCode":item.callSign, "streamType":"LIVE", "delivery":"Streaming", "createDevice":"true", "overrideAppName":"web//mediasetplay-web/5.2.4-6ad16a4"}
+        res = session.post('https://api-ott-prod-fe.mediaset.net/PROD/play/playback/check/v2.0?sid=' + sid, json=payload).json()['response']['mediaSelector']
 
     url = res['url']
     mpd = True if 'dash' in res['formats'].lower() else False
@@ -292,7 +292,6 @@ def findvideos(item):
 
 
 def get_from_id(item):
-    logger.debug()
     sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
     session.headers.update({'x-session': sessionKey})
     res = session.get(entry.format(id=item.args)).json()

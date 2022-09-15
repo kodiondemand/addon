@@ -64,9 +64,11 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     if item.args == 'last':
         patronBlock = r'inseriti:(?P<block>.*?)<div class="block-showmore'
-    patron = r'item-movie">[^>]+><a href="(?P<url>[^"]+)[^>]+><img data-src="(?P<thumb>[^"]+)(?:[^>]+>){6}(?P<title>[^<]+)(?:[^>]+>){6}(?P<quality>[^<]+)'
+    patron = r'item-movie">[^>]+><a href="(?P<url>[^"]+)[^>]+><img data-src="(?P<thumb>[^"]+)(?:[^>]+>){6}(?P<title>[^<]+)(?:[^>]+>){4}(?P<year>\d+)?(?:[^>]+>){2}(?P<quality>[^<]+)'
+    # patron = r'item-movie">[^>]+><a href="(?P<url>[^"]+)[^>]+><img data-src="(?P<thumb>[^"]+)(?:[^>]+>){6}(?P<title>[^<]+)(?:[^>]+>){6}(?P<quality>[^<]+)'
     patronNext = r'<a href="([^"]+)">&rarr'
     return locals()
 

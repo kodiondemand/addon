@@ -1,11 +1,11 @@
 {
-	"id": "tantifilm",
-	"name": "Tantifilm",
-	"language": ["ita"],
-	"active": true,
-	"thumbnail": "tantifilm.png",
-	"banner": "tantifilm.png",
+    "id": "tantifilm",
+    "name": "Tantifilm",
+    "language": ["ita"],
+    "active": false,
+    "thumbnail": "tantifilm.png",
+    "banner": "tantifilm.png",
     "categories": ["tvshow", "movie", "anime"],
-    "not_active":["include_in_newest_anime", "include_in_newest_peliculas"],
+    "not_active": ["include_in_newest_anime", "include_in_newest_peliculas"],
     "settings": []
 }

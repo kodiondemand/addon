@@ -36,7 +36,7 @@ class captchaSolver(Captcha):
     def checkErrorStatus(response):
         if response.status_code in [500, 502]:
             raise CaptchaServiceUnavailable(
-                'CapMonster: Server Side Error {}'.format(response.status_code)
+                f'CapMonster: Server Side Error {response.status_code}'
             )
 
         payload = response.json()
@@ -66,7 +66,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                '{}/getTaskResult'.format(self.host),
+                f'{self.host}/getTaskResult',
                 json={
                     'clientKey': self.clientKey,
                     'taskId': taskID
@@ -101,9 +101,9 @@ class captchaSolver(Captcha):
             'task': {
                 'websiteURL': url,
                 'websiteKey': siteKey,
-                'softId': 37,
                 'type': 'NoCaptchaTask' if captchaType == 'reCaptcha' else 'HCaptchaTask'
-            }
+            },
+            'softId': 37
         }
 
         if self.proxy:
@@ -113,7 +113,7 @@ class captchaSolver(Captcha):
 
         response = polling2.poll(
             lambda: self.session.post(
-                '{}/createTask'.format(self.host),
+                f'{self.host}/createTask',
                 json=data,
                 allow_redirects=False,
                 timeout=30

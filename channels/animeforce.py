@@ -111,9 +111,9 @@ def episodios(item):
     data = item.data
 
     if '<h6>Streaming</h6>' in data:
-        patron = r'<td style[^>]+>\s*.*?(?:<span[^>]+)?<strong>(?P<title>[^<]+)<\/strong>.*?<td style[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>'
+        patron = r'<td style[^>]+>\s*.*?(?:<span[^>]+)?<strong>(?P<title>[^<]+)<\/strong>.*?<td style[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>(?P<episode>\d+)'
     else:
-        patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)"\s*class="btn btn-dark mb-1">'
+        patron = r'<a\s*href="(?P<url>[^"]+)"\s*title="(?P<title>[^"]+)"\s*class="btn btn-dark mb-1">(?P<episode>\d+)'
     def itemHook(item):
         support.info(item)
         if item.url.startswith('//'): item.url= 'https:' + item.url

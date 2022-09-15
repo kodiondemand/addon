@@ -46,6 +46,7 @@ def mainlist(item):
 @support.scrape
 def peliculas(item):
     # debug = True
+    action = 'findvideos'
     sceneTitle = item.args[2]
     if item.args[1] in ['tvshow', 'anime', 'music', 'other']:
         patron = r'>[^"<]+'

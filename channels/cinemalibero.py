@@ -97,25 +97,21 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = item.data
-    # support.dbg()
-    # debugBlock = True
+
     if item.args == 'anime':
         logger.debug("Anime :", item)
-        # blacklist = ['Clipwatching', 'Verystream', 'Easybytez', 'Flix555', 'Cloudvideo']
         patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
-    elif item.args == 'wrestling':
-        
-        logger.debug("Wrestling :", item)
-        # debugBlock = True
+    elif item.args == 'sport':
+        logger.debug("Sport :", item)
         patron = r'(?:/>|<p>)\s*(?P<title>[^-]+)-(?P<data>.+?)(?:<br|</p)'
         patronBlock = r'</strong>\s*</p>(?P<block>.*?</p>)'
         item.contentType = 'tvshow'
     elif item.args == 'serie' or item.contentType == 'tvshow':
         logger.debug("Serie :", item)
-        # debugBlock = True
-        patron = r'(?:/>|<p>)\s*(?:(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)[;]?[ ]?(?P<title>[^<–-]+))?(?P<data>.*?)(?:<br|</p)'
+        # debug=True
+        patron = r'(?:/>|<p>)\s*(?:(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)(?:-(?P<episode2>\d+))?[;]?[ ]?(?P<title>[^<–-]+))?(?P<data>.*?)(?:<br|</p)'
         patronBlock = r'Stagione\s(?:[Uu]nica)?(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:strong>|<div class="at-below)'
         item.contentType = 'tvshow'
     else:
@@ -128,8 +124,9 @@ def episodios(item):
 
     def itemlistHook(itl):
         ret = []
-        if item.args == 'wrestling':
+        if item.args == 'sport':
             return itl
+        # support.dbg()
         for it in itl:
             ep = scrapertools.find_single_match(it.title, r'(\d+x\d+)')
             if not ep and 'http' in it.data:  # stagione intera
@@ -211,22 +208,28 @@ def newest(categoria):
 def check(item):
     logger.debug()
     data = support.match(item.url, headers=headers).data
+    # support.dbg()
     if data:
-        ck = support.match(data, patron=r'Supportaci condividendo quest[oa] ([^:]+)').match.lower()
-        if ck == 'film':
-            item.contentType = 'movie'
-            item.data = data
-            # item.action = 'findvideos'
-            return findvideos(item)
+        ck = str(support.match(data, patronBlock=r'Genere:(.*?)</span>', patron=r'tag">([^<]+)').matches).lower()
 
-        elif ck in ['serie tv', 'wrestling wwe', 'anime']:
+        if 'serie tv' in ck or 'anime' in ck:# in ['serie tv', 'wrestling wwe', 'anime']:
+            if 'anime' in ck:
+                item.args = 'anime'
+            elif 'sport' in ck:
+                item.args = 'sport'
+            else:
+                item.args = 'serie'
             item.contentType = 'tvshow'
-            item.args = ck.split()[0]
             item.data = data
             itemlist = episodios(item)
             if not itemlist:
                 item.data = data
                 return findvideos(item)
+        else:
+            item.contentType = 'movie'
+            item.data = data
+            # item.action = 'findvideos'
+            return findvideos(item)
 
         return itemlist
 

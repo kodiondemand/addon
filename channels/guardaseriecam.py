@@ -44,10 +44,10 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    patronBlock = r'<div class="tab-pane fade" id="season-(?P<season>.)"(?P<block>.*?)</div>'
+    patronBlock = r'<div class="tab-pane fade" id="season-(?P<season>.)"(?P<block>.*?)</ul>\s*</div>'
     patron = r'<a href="#" allowfullscreen data-link="(?P<url>[^"]+).*?title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]-?[iI][tT][aA])?\s*">(?P<episode>[^<]+)'
     action = 'findvideos'
-    # debug = True
+    # debugBlock = True
     return locals()
 
 

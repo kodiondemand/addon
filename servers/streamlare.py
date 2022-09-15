@@ -23,21 +23,16 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     global data, response
     logger.info("(page_url='%s')" % page_url)
-    # from core.support import dbg
-    # dbg()
+
     video_urls = []
     id = scrapertools.find_single_match(page_url, '/e/(\w+)')
     post = {"id": id}
-    token = scrapertools.find_single_match(data, '<meta name="csrf-token" content="([^"]+)')
-    data = httptools.downloadpage("https://streamlare.com/api/video/stream/get",
-                                  post=post, headers={'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest',
-                                                      'X-XSRF-TOKEN': httptools.urlparse.unquote(response.cookies.get('XSRF-TOKEN'))}).json
-    # src = data["result"]["Original"]["src"]
-    # media_url = ''.join([chr(51 ^ c) for c in base64.b64decode(src)])
-    media_url = data["result"]["file"]
-    video_urls.append(["MP4", media_url])
+    data = httptools.downloadpage("https://streamlare.com/api/video/stream/get", post=post).data.replace("\\","")
+    matches = scrapertools.find_multiple_matches(data, 'label":"([^"]+).*?file":"([^"]+)')
+    for res, media_url in matches:
+        media_url += "|User-Agent=%s" %(httptools.get_user_agent())
+        video_urls.append(["MP4", media_url])
     return video_urls
-
 
 def get_filename(page_url):
     from core import jsontools

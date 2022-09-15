@@ -1,10 +1,10 @@
 {
-	"id": "cb01anime",
-	"name": "Cb01anime",
-	"language": ["ita", "vos", "sub-ita"],
-	"active": true,
-	"thumbnail": "cb01anime.png",
-	"banner": "cb01anime.png",
-	"categories": ["anime"],
-	"settings": []
+    "id": "cb01anime",
+    "name": "Cb01anime",
+    "language": ["ita", "vos", "sub-ita"],
+    "active": false,
+    "thumbnail": "cb01anime.png",
+    "banner": "cb01anime.png",
+    "categories": ["anime"],
+    "settings": []
 }

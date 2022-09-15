@@ -122,7 +122,10 @@ def check_for_update(overwrite=True):
     estado_verify_playcount_series = False
 
     try:
-        if overwrite or (config.get_setting("update", "videolibrary") != 0 and hoy.strftime('%Y-%m-%d') != config.get_setting('updatelibrary_last_check', 'videolibrary')):
+        if overwrite or \
+            config.get_setting("update", "videolibrary") in [4, 5] or \
+            (config.get_setting("update", "videolibrary") not in [0, 4] and hoy.strftime('%Y-%m-%d') != config.get_setting('updatelibrary_last_check', 'videolibrary')):
+
             config.set_setting("updatelibrary_last_check", hoy.strftime('%Y-%m-%d'), "videolibrary")
 
             heading = config.get_localized_string(60601)
@@ -434,8 +437,8 @@ class AddonMonitor(xbmc.Monitor):
 
     def scheduleVideolibrary(self):
         self.update_setting = config.get_setting("update", "videolibrary")
-        # 2= daily 3=daily and when kodi starts
-        if self.update_setting == 2 or self.update_setting == 3:
+        # 2 = Daily, 3 = When Kodi starts and daily, 5 = Each time you start Kodi and daily
+        if self.update_setting in [2, 3, 5]:
             self.update_hour = config.get_setting("everyday_delay", "videolibrary") * 4
             schedule.every().day.at(str(self.update_hour).zfill(2) + ':00').do(run_threaded, check_for_update, (False,)).tag('videolibrary')
             logger.debug('scheduled videolibrary at ' + str(self.update_hour).zfill(2) + ':00')
@@ -498,8 +501,7 @@ if __name__ == "__main__":
             updater.refreshLang()
 
             # prepare to replace strSettings
-            path_settings = xbmc.translatePath(
-                "special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
+            path_settings = xbmc.translatePath("special://profile/addon_data/metadata.tvshows.themoviedb.org/settings.xml")
             settings_data = filetools.read(path_settings)
             strSettings = ' '.join(settings_data.split()).replace("> <", "><")
             strSettings = strSettings.replace("\"", "\'")

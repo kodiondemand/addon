@@ -25,16 +25,19 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    data = item.data
-    if item.args == 'sala':
-        patronBlock = r'insala(?P<block>.*?)<header>'
-        patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})'
-    elif item.args == 'az':
-        patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>.*?<span class="labelimdb">(?P<rating>[^>]+)<'
+    if item.text:
+        data = support.httptools.downloadpage(host + '/?s=' + item.text, post={'story': item.text, 'do': 'search', 'subaction': 'search'}).data
+        patron = '<img src="(?P<thumb>[^"]+)(?:[^>]+>){8}\s*<a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)(?:[^>]+>){4}IMDb\s(?P<rating>[^<]+)(?:[^>]+>){2}(?P<year>\d+)'
     else:
-        patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<plot>[^<]+)<[^>]+>'
+        if item.args == 'sala':
+            patronBlock = r'insala(?P<block>.*?)<header>'
+            patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})'
+        elif item.args == 'az':
+            patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)<[^>]+>[^>]+>[^>]+>.*?<span class="labelimdb">(?P<rating>[^>]+)<'
+        else:
+            patron = r'<img src="(?P<thumb>[^"]+)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<rating>[^<]+)[^>]+>[^>]+>(?P<quality>[^<]+)[^>]+>[^>]+>[^>]+>[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)[^>]+>[^>]+>[^>]+>(?P<year>\d{4})[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<plot>[^<]+)<[^>]+>'
 
-    patronNext = 'href="([^>]+)">»'
+        patronNext = 'href="([^>]+)">»'
 
     return locals()
 
@@ -56,7 +59,7 @@ def genres(item):
 
 def search(item, text):
     info(text)
-    item.data = support.httptools.downloadpage(host + '/?s=' + text, post={'story': text, 'do': 'search', 'subaction': 'search'}).data
+    item.text = text
     try:
         return peliculas(item)
     except:

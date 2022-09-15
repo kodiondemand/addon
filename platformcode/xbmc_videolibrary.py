@@ -627,7 +627,7 @@ def set_content(content_type, silent=False, custom=False):
         else:
             seleccion = values.index('metadata.tvshows.themoviedb.org.python')
     else:
-        seleccion = platformtools.dialog_select(config.get_localized_string(70094), scraper)
+        seleccion = platformtools.dialog_select(config.get_localized_string(70094 if content_type == 'movie' else 70107), scraper)
 
     # Configure scraper
     if seleccion != -1:

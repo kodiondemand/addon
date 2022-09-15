@@ -1033,7 +1033,13 @@ class Tmdb(object):
             if len(results) > 1:
                 from lib.fuzzy_match import algorithims
                 if self.search_type == 'multi':
-                    results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if r.get('media_type') == 'tv' else r.get('title', '')), reverse=True)
+                    if self.search_year:
+                        for r in results:
+                            if (r.get('release_date', '') and r.get('release_date', '')[:4] == self.search_year) or (r.get('first_air_date', '') and r.get('first_air_date', '')[:4] == self.search_year):
+                                results = [r]
+                                break
+                    if len(results) > 1:
+                        results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if r.get('media_type') == 'tv' else r.get('title', '')), reverse=True)
                 else:
                     results.sort(key=lambda r: algorithims.trigram(text_simple, r.get('name', '') if self.search_type == 'tv' else r.get('title', '')), reverse=True)
 

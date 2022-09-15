@@ -6,6 +6,7 @@
 from lib import js2py
 from core import support
 from platformcode import config
+from platformcode.logger import debug
 
 host = support.config.get_channel_url()
 __channel__ = 'animesaturn'
@@ -170,7 +171,7 @@ def check(item):
 @support.scrape
 def episodios(item):
     if item.contentType != 'movie': anime = True
-    patron = r'episodi-link-button">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^<]+)</a>'
+    patron = r'episodi-link-button">\s*<a href="(?P<url>[^"]+)"[^>]+>\s*(?P<title>[^\d<]+(?P<episode>\d+))\s*</a>'
     return locals()
 
 

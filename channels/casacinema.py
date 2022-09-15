@@ -134,8 +134,11 @@ def episodios(item):
     action = 'findvideos'
     item.contentType = 'tvshow'
     blacklist = ['']
-    patron = r'(?P<episode>\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+)[;]?(?:(?P<title>[^<]+)<(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:<br />|</p>)'
-    patronBlock = r'<strong>(?P<block>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?(?:.+?|</strong>)(/?:</span>)?</p>.*?</p>)'
+    # debug = True
+    patron = r'"season-no">(?P<season>\d+)x(?P<episode>\d+)(?:[^>]+>){5}\s*(?P<title>[^<]+)(?P<data>.*?)</table>'
+    # patron = r'(?P<episode>\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+)[;]?(?:(?P<title>[^<]+)<(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:<br />|</p>)'
+    patronBlock = r'<span>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?.*?</span>.*?class="content(?P<block>.*?)(?:"accordion-item|<script>)'
+    # patronBlock = r'<strong>(?P<block>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?(?:.+?|</strong>)(/?:</span>)?</p>.*?</p>)'
     return locals()
 
 

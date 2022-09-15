@@ -50,7 +50,7 @@ def loadCommits(page=1):
 
 # ret -> aggiornato, necessita reload service
 def check(background=False):
-    if not addon.getSetting('addon_update_enabled'):
+    if not config.get_setting('addon_update_enabled'):
         return False, False
     logger.info('Cerco aggiornamenti..')
     commits = loadCommits()
@@ -156,7 +156,7 @@ def check(background=False):
             xbmc.sleep(1000)
         updated = True
 
-        if addon.getSetting("addon_update_message"):
+        if config.get_setting("addon_update_message"):
             if background:
                 platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(80040) % commits[0]['sha'][:7], time=3000, sound=False)
                 try:

@@ -66,6 +66,9 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
             try:
                 ip = doh.query(domain)[0]
                 logger.info('Query DoH: ' + domain + ' = ' + str(ip))
+                # IPv6 address
+                if ':' in ip:
+                    ip = '[' + ip + ']'
                 self.writeToCache(domain, ip)
             except Exception:
                 logger.error('Failed to resolve hostname, fallback to normal dns')
@@ -96,7 +99,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
             domain = parse.netloc
         else:
             raise requests.exceptions.URLRequired
-        if not scrapertools.find_single_match(domain, '\d+\.\d+\.\d+\.\d+'):
+        if not scrapertools.find_single_match(domain, '\d+\.\d+\.\d+\.\d+') and ':' not in domain:
             ip = self.getIp(domain)
         else:
             ip = None
