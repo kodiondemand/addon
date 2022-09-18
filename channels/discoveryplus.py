@@ -126,7 +126,7 @@ def peliculas(item):
     itemlist =[]
 
     if item.text:
-        data = session.get('{}/cms/routes/search/result?include=default&contentFilter[query]={}').json()['included']
+        data = session.get('{}/cms/routes/search/result?include=default&contentFilter[query]={}'.format(domain, item.text)).json()['included']
     else:
         data = session.get('{}/cms/collections/{}?include=default'.format(domain, item.id)).json()['included']
 

@@ -113,7 +113,7 @@ def check(item):
 
 def search(item, texto):
     support.info()
-    item.url = host + "/?s=" + texto
+    item.url = host + "/search/" + texto
     item.args = 'search'
     try:
         return peliculas(item)

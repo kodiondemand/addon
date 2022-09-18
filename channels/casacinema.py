@@ -14,7 +14,6 @@ headers = [['Referer', host]]
 def mainlist(item):
     film = ['/category/film',
         ('Generi', ['', 'genres', 'genres']),
-        ('Sub-ITA', ['/category/sub-ita/', 'peliculas', 'sub'])
         ]
 
     tvshow = ['/category/serie-tv',

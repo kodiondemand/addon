@@ -20,7 +20,7 @@ def mainlist(item):
     support.info()
     tvshow = []
     anime = ['/category/anime-cartoni-animati/']
-    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-nuovi-episodi/', 'peliculas', 'newest']),
+    mix = [('Aggiornamenti {bullet bold} {TV}', ['/aggiornamento-episodi-nuovi/', 'peliculas', 'newest']),
            ('Archivio {bullet bold} {TV}', ['/category/serie-tv-archive/', 'peliculas'])]
     search = ''
 
