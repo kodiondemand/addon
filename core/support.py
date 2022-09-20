@@ -529,7 +529,7 @@ def scrape(func):
         debug = args.get('debug', False)
         debugBlock = args.get('debugBlock', False)
         disabletmdb = args.get('disabletmdb', False)
-        if 'pagination' in args and inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']: pagination = args['pagination'] if args['pagination'] else 20
+        if 'pagination' in args and inspect.currentframe().f_back.f_code.co_name not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes']: pagination = args['pagination'] if args['pagination'] else 20
         else: pagination = ''
         lang = args.get('deflang', '')
         sceneTitle = args.get('sceneTitle')
@@ -614,19 +614,19 @@ def scrape(func):
             itemlist = [i for i in itemlist if i.action not in ['add_pelicula_to_library', 'add_serie_to_library']]
         logger.debug(item.channel + ' scraping time ' + ':', time()-scrapingTime)
 
-        if anime and inspect.stack()[1][3] not in ['find_episodes']:
+        if anime and inspect.currentframe().f_back.f_code.co_name not in ['find_episodes']:
             from platformcode import autorenumber
             if function == 'episodios': autorenumber.start(itemlist, item)
             else: autorenumber.start(itemlist)
 
         if itemlist and action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
-            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodios', 'mainlist'] \
+            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodios', 'mainlist']
             or (function in ['episodios', 'seasons'] and config.get_setting('episode_info') and itemlist[0].season)):
             # dbg()
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
-            if patronNext and inspect.stack()[1][3] not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
+            if patronNext and inspect.currentframe().f_back.f_code.co_name not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
         # for it in itemlist:
@@ -639,7 +639,7 @@ def scrape(func):
 
         # next page for pagination
         if pagination and len(matches) > pag * pagination and not search:
-            if inspect.stack()[1][3] not in ['newest','get_newest']:
+            if inspect.currentframe().f_back.f_code.co_name not in ['newest','get_newest']:
                 itemlist.append(
                     Item(channel=item.channel,
                          action = item.action,
@@ -653,7 +653,7 @@ def scrape(func):
                          thumbnail=thumb(),
                          prevthumb=item.prevthumb if item.prevthumb else item.thumbnail))
 
-        if inspect.stack()[1][3] not in ['find_episodes']:
+        if inspect.currentframe().f_back.f_code.co_name not in ['find_episodes']:
             if addVideolibrary and (item.infoLabels["title"] or item.fulltitle):
                 # item.fulltitle = item.infoLabels["title"]
                 videolibrary(itemlist, item, function=function)
@@ -1651,9 +1651,10 @@ def check_trakt(itemlist):
 
 
 def stackCheck(values):
-    stacks = [s[3] for s in inspect.stack()]
-    logger.debug('STAKS', stacks)
-    if type(values) == str:
-        return values in stacks
-    else:
-        return any(v in values for v in stacks)
+    logger.debug()
+    frame = inspect.currentframe()
+    while frame:
+        if frame.f_code.co_name in values:
+            return True
+        frame = frame.f_back
+    return False
