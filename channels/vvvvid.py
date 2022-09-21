@@ -142,7 +142,7 @@ def peliculas(item):
             itlist.append(it)
 
         if pagination and len(itemlist) >= pagination:
-            if inspect.stack()[1][3] != 'get_newest':
+            if inspect.stack(0)[1][3] != 'get_newest':
                 itlist.append(
                     item.clone(action='peliculas',
                         title=support.typo(config.get_localized_string(30992), 'color kod bold'),
@@ -192,7 +192,7 @@ def episodios(item):
                     action= 'findvideos',
                     video_id= episode['video_id']))
 
-    if inspect.stack()[1][3] not in ['find_episodes']:
+    if inspect.stack(0)[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
 
     support.videolibrary(itemlist,item)

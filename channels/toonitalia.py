@@ -100,7 +100,7 @@ def episodios(item):
     itemlist = findepisode(item)
     if not itemlist: itemlist = [item.clone(action='findvideos')]
 
-    if inspect.stack()[1][3] not in ['find_episodes']:
+    if inspect.stack(0)[1][3] not in ['find_episodes']:
         from platformcode import autorenumber
         autorenumber.start(itemlist, item)
     return itemlist

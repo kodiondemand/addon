@@ -155,7 +155,7 @@ def episodios(item):
                         action='findvideos'))
 
     itemlist.sort(key=lambda item: (item.season, item.episode))
-    if inspect.stack()[1][3] not in ['find_episodes']:
+    if inspect.stack(0)[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
     return support.videolibrary(itemlist, item)
 

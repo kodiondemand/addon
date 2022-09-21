@@ -210,7 +210,7 @@ def episodios(item):
                        scws_id=it.get('scws_id', ''),
                        video_url=it.get('link', '')))
 
-    if inspect.stack()[1][3] not in ['find_episodes']:
+    if inspect.stack(0)[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)

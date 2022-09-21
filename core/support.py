@@ -626,7 +626,7 @@ def scrape(func):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
-            if patronNext and inspect.currentframe().f_back.f_code.co_name not in ['newest'] and len(inspect.stack()) > 2 and inspect.stack()[2][3] not in ['get_channel_results']:
+            if patronNext and inspect.currentframe().f_back.f_code.co_name not in ['newest'] and len(inspect.stack(0)) > 2 and inspect.stack(0)[2][3] not in ['get_channel_results']:
                 nextPage(itemlist, item, data, patronNext, function)
 
         # for it in itemlist:
@@ -1174,12 +1174,12 @@ def videolibrary(itemlist, item, typography='', function_level=1, function=''):
         extra = 'episodios'
         contentType = 'tvshow'
 
-    function = function if function else inspect.stack()[function_level][3]
+    function = function if function else inspect.stack(0)[function_level][3]
     # go up until find findvideos/episodios
     while function not in ['findvideos', 'episodios']:
         function_level += 1
         try:
-            function = inspect.stack()[function_level][3]
+            function = inspect.stack(0)[function_level][3]
         except:
             break
 
@@ -1215,7 +1215,7 @@ def nextPage(itemlist, item, data='', patron='', function_or_level=1, next_page=
     # Function_level is useful if the function is called by another function.
     # If the call is direct, leave it blank
     logger.debug()
-    action = inspect.stack()[function_or_level][3] if type(function_or_level) == int else function_or_level
+    action = inspect.stack(0)[function_or_level][3] if type(function_or_level) == int else function_or_level
 
     if not data and not patron and not next_page:
         itemlist.append(
@@ -1250,7 +1250,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
     if len(itemlist) >= page * perpage:
         itemlist.append(
             Item(channel=item.channel,
-                 action=inspect.stack()[function_level][3],
+                 action=inspect.stack(0)[function_level][3],
                  contentType=item.contentType,
                  title=typo(config.get_localized_string(30992), 'color kod bold'),
                  url=item.url,
