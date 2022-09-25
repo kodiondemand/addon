@@ -224,13 +224,13 @@ def findvideos(item):
         from hashlib import md5
 
         # Calculate Token
-        client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(item.scws_id), headers=headers).json.get(
+        client_ip = support.httptools.downloadpage('https://scws.work/videos/{}'.format(item.scws_id), headers=headers).json.get(
             'client_ip')
         logger.debug(client_ip)
         expires = int(time() + 172800)
         token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-        url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
+        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
         itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play', manifest='hls')]
     else:
         itemlist = [item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')]

@@ -252,12 +252,12 @@ def play(item):
         return []
 
     # Calculate Token
-    client_ip = support.httptools.downloadpage('https://scws.xyz/videos/{}'.format(scws_id), headers=headers).json.get('client_ip')
+    client_ip = support.httptools.downloadpage('https://scws.work/videos/{}'.format(scws_id), headers=headers).json.get('client_ip')
     logger.debug(client_ip)
     expires = int(time() + 172800)
     token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
 
-    url = 'https://scws.xyz/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
+    url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
     subs = []
     urls = []
 
