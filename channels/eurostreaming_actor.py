@@ -39,6 +39,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
+    # debug = True
     data = support.match(item, headers=headers).data
     if 'clicca qui per aprire' in data.lower():
         data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
@@ -47,7 +48,7 @@ def episodios(item):
         data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
 
     patronBlock = r'tab-content(?P<block>.*?)serie-player'
-    patron = r'value="(?P<url>http.*?)".*?data.num..(?P<season>\d+)x(?P<episode>\d+).*?>(?P<title>.*?)<'
+    patron = r'data-link="(?P<url>http.*?)".*?data.num..(?P<season>\d+)x(?P<episode>\d+)" data-title="(?P<title>[^"]+)'
     
     return locals()
 
