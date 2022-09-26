@@ -224,8 +224,7 @@ def findvideos(item):
         from hashlib import md5
 
         # Calculate Token
-        client_ip = support.httptools.downloadpage('https://scws.work/videos/{}'.format(item.scws_id), headers=headers).json.get(
-            'client_ip')
+        client_ip = support.httptools.downloadpage('https://scws.work/videos/{}'.format(item.scws_id)).json.get('client_ip')
         logger.debug(client_ip)
         expires = int(time() + 172800)
         token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
