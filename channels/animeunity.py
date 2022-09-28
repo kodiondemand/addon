@@ -195,6 +195,7 @@ def episodios(item):
     support.info()
     itemlist = []
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
+
     for it in item.episodes:
         itemlist.append(
             item.clone(title=support.typo(title + it['number'], 'bold'),
@@ -218,20 +219,6 @@ def episodios(item):
 
 
 def findvideos(item):
-    if item.scws_id:
-        from time import time
-        from base64 import b64encode
-        from hashlib import md5
-
-        # Calculate Token
-        client_ip = support.httptools.downloadpage('https://scws.work/videos/{}'.format(item.scws_id)).json.get('client_ip')
-        logger.debug(client_ip)
-        expires = int(time() + 172800)
-        token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-
-        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
-        itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play', manifest='hls')]
-    else:
-        itemlist = [item.clone(title=support.config.get_localized_string(30137), url=item.video_url, server='directo', action='play')]
-    return support.server(item, itemlist=itemlist)
+    itemlist = [item.clone(title=support.config.get_localized_string(30137), server='streamingcommunityws', url=str(item.scws_id))]
+    return support.server(item, itemlist=itemlist, referer=False)
 

@@ -1,30 +1,36 @@
 # -*- coding: utf-8 -*-
-import sys
-PY3 = False
-if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
+from core import httptools, support
+from platformcode import logger, config
 
-import json
-import random
-from core import httptools, support, scrapertools
-from platformcode import platformtools, logger
-from lib.streamingcommunity import Client as SCClient
-
-files = None
 
 def test_video_exists(page_url):
+    global scws_id
+    logger.debug('page url=', page_url)
 
-    # page_url is the {VIDEO_ID}. Es: 5957
+    if page_url.isdigit():
+        scws_id = page_url
+    else:
+        scws_id = support.match(page_url, patron=r'scws_id[^:]+:(\d+)').match
+
+    if not scws_id:
+        return False, config.get_localized_string(70449) % 'StreamingCommunityWS'
     return True, ""
 
+
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
+    from time import time
+    from base64 import b64encode
+    from hashlib import md5
 
-    video_urls = []
+    global scws_id
+    video_urls = list()
 
-    global c
-    c = SCClient("",video_id=page_url, is_playing_fnc=platformtools.is_playing)
-
-    media_url = c.get_manifest_url()
-
-    video_urls.append([scrapertools.get_filename_from_url(media_url)[-4:] + " [Streaming Community]", media_url])
+    # clientIp = httptools.downloadpage(f'https://scws.work/videos/{scws_id}').json.get('client_ip')
+    clientIp = httptools.downloadpage('http://ip-api.com/json/').json.get('query')
+    if clientIp:
+        expires = int(time() + 172800)
+        token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, clientIp).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
+        video_urls.append(['hls', url])
 
     return video_urls

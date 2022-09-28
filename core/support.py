@@ -1260,7 +1260,7 @@ def pagination(itemlist, item, page, perpage, function_level=1):
     return itemlist
 
 
-def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=True, patronTag=None, Videolibrary=True, Sorted=True):
+def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=True, patronTag=None, Videolibrary=True, Sorted=True, referer=True):
     logger.debug()
 
     if not data and not itemlist:
@@ -1310,7 +1310,8 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
 
             if videoitem.title: vi.serverName = videoitem.title
             if videoitem.quality: vi.quality = videoitem.quality
-            if not vi.referer: vi.referer = item.url
+            if referer == False: vi.referer = False
+            elif referer and not vi.referer: vi.referer = item.url
             vi.contentFanart = item.infoLabels['fanart']
             vi.contentThumb = item.infoLabels['fanart']
             if videoitem.forcethumb:
