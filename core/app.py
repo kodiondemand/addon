@@ -23,7 +23,7 @@ class MyServer(BaseHTTPRequestHandler):
 def call_url(url):
     webServer = HTTPServer((hostName, serverPort), MyServer)
     logger.info("Server started http://%s:%s" % (hostName, serverPort))
-    s = jsontools.dump({'url': url})
+    s = jsontools.dump({'url': url}).encode()
     xbmc.executebuiltin('StartAndroidActivity("",{})'.format(call.format(base64.b64encode(s), hostName, serverPort)))
     while not cookie_ricevuto:
         webServer.handle_request()
