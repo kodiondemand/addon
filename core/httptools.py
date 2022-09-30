@@ -431,13 +431,15 @@ def downloadpage(url, **opt):
     if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
             and not opt.get('CF', False) and 'Ray ID' in response['data'] and not opt.get('post', None):
         logger.debug("CF retry... for domain: %s" % domain)
-        from lib import proxytranslate
-        gResp = proxytranslate.process_request_proxy(url)
-        if gResp:
-            req = gResp['result']
-            response_code = req.status_code
-            response['url'] = gResp['url']
-            response['data'] = gResp['data']
+        from core import app
+        app.call_url(url)
+        # from lib import proxytranslate
+        # gResp = proxytranslate.process_request_proxy(url)
+        # if gResp:
+        #     req = gResp['result']
+        #     response_code = req.status_code
+        #     response['url'] = gResp['url']
+        #     response['data'] = gResp['data']
 
     if not response['data']:
         response['data'] = ''
