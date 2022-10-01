@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from core import httptools, support
+from core import httptools, support, filetools
 from platformcode import logger, config
 
 
@@ -30,7 +30,25 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if clientIp:
         expires = int(time() + 172800)
         token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, clientIp).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
-        video_urls.append(['hls', url])
+        url = 'https://scws.work/master/{}?token={}&expires={}&n=1|User-Agent={}'.format(scws_id, token, expires, httptools.random_useragent())
+        if page_url.isdigit():
+            video_urls.append(['m3u8', url])
+        else:
+            video_urls = compose(url)
 
+    return video_urls
+
+def compose(url):
+    subs = []
+    video_urls = []
+    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)').matches
+    if info:
+        for lang, sub, res, url in info:
+            if sub and not logger.testMode: # ai test non piace questa parte
+                if lang == 'auto': lang = 'ita-forced'
+                s = config.get_temp_file(lang +'.srt')
+                subs.append(s)
+                filetools.write(s, support.vttToSrt(httptools.downloadpage(support.match(sub, patron=r'(http[^\s\n]+)').match).data))
+            elif url:
+                video_urls.append(['m3u8 [{}]'.format(res), url, 0, subs])
     return video_urls
