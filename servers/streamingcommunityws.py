@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from wsgiref import headers
 from core import httptools, support, filetools
 from platformcode import logger, config
+UA = httptools.random_useragent()
 
 
 def test_video_exists(page_url):
@@ -30,9 +32,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if clientIp:
         expires = int(time() + 172800)
         token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, clientIp).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-        url = 'https://scws.work/master/{}?token={}&expires={}&n=1|User-Agent={}'.format(scws_id, token, expires, httptools.random_useragent())
+        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
         if page_url.isdigit():
-            video_urls.append(['m3u8', url])
+            video_urls.append(['m3u8', '{}|User-Agent={}'.format(url, UA)])
         else:
             video_urls = compose(url)
 
@@ -41,7 +43,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 def compose(url):
     subs = []
     video_urls = []
-    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)').matches
+    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)', headers={'User-Agent':UA}).matches
     if info:
         for lang, sub, res, url in info:
             if sub and not logger.testMode: # ai test non piace questa parte
@@ -50,5 +52,5 @@ def compose(url):
                 subs.append(s)
                 filetools.write(s, support.vttToSrt(httptools.downloadpage(support.match(sub, patron=r'(http[^\s\n]+)').match).data))
             elif url:
-                video_urls.append(['m3u8 [{}]'.format(res), url, 0, subs])
+                video_urls.append(['m3u8 [{}]'.format(res), '{}|User-Agent={}'.format(url, UA), 0, subs])
     return video_urls

@@ -219,6 +219,7 @@ def episodios(item):
 
 
 def findvideos(item):
-    itemlist = [item.clone(title=support.config.get_localized_string(30137), server='streamingcommunityws', url=str(item.scws_id))]
+    itemlist = [item.clone(title='StreamingCommunityWS', server='streamingcommunityws', url=str(item.scws_id)),
+                item.clone(title=support.config.get_localized_string(30137), server='directo', url=item.video_url)]
     return support.server(item, itemlist=itemlist, referer=False)
 
