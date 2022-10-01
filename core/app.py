@@ -3,11 +3,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import xbmc
 from core import jsontools
 from platformcode import logger
-from urllib.parse import parse_qs
 hostName = "localhost"
 serverPort = 8080
 cookie_ricevuto = False
-call = 'kodapp://app.kod/open?s={}&cb=http://{}:{}/cb'
+call = 'kodapp://app.kod/open?s={}&cb=http://{}:{}/'
 
 
 class MyServer(BaseHTTPRequestHandler):
@@ -21,6 +20,7 @@ class MyServer(BaseHTTPRequestHandler):
 
 
 def call_url(url):
+    global cookie_ricevuto
     webServer = HTTPServer((hostName, serverPort), MyServer)
     logger.info("Server started http://%s:%s" % (hostName, serverPort))
     s = base64.b64encode(jsontools.dump({'url': url}).encode()).decode()
