@@ -128,6 +128,8 @@ def save_movie(item, silent=False):
     else:
         base_name = item.contentTitle
 
+    base_name = base_name.lstrip('.')
+
     if not PY3:
         base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
     else:
@@ -472,10 +474,13 @@ def save_tvshow(item, episodelist, silent=False):
     else:
         base_name = item.contentSerieName
 
+    base_name = base_name.lstrip('.')
+
     if not PY3:
         base_name = unicode(filetools.validate_path(base_name.replace('/', '-')), "utf8").encode("utf8")
     else:
         base_name = filetools.validate_path(base_name.replace('/', '-'))
+
 
     if config.get_setting("lowerize_title", "videolibrary"):
         base_name = base_name.lower()
