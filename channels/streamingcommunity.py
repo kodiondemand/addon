@@ -18,24 +18,24 @@ else:
 
 host = support.config.get_channel_url()
 headers = {}
-headers = {'user-agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36 Edg/105.0.1343.53',
+headers = {'user-agent':httptools.random_useragent(),
            'referer': host + '/browse'}
 
-def getHeaders(forced=False):
-    global headers
-    global host
-    if not headers:
-        # try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
-        response = httptools.downloadpage(host, headers=headers)
-        # if not response.url.startswith(host):
-        #     host = support.config.get_channel_url(findhost, forceFindhost=True)
-        csrf_token = support.match(response.data, patron='name="csrf-token" content="([^"]+)"').match
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
-                    # 'content-type': 'application/json;charset=UTF-8',
-                    'Referer': host,
-                    'x-csrf-token': csrf_token,
-                    'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
+# def getHeaders(forced=False):
+#     global headers
+#     global host
+#     if not headers:
+#         # try:
+#         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14'}
+#         response = httptools.downloadpage(host, headers=headers)
+#         # if not response.url.startswith(host):
+#         #     host = support.config.get_channel_url(findhost, forceFindhost=True)
+#         csrf_token = support.match(response.data, patron='name="csrf-token" content="([^"]+)"').match
+#         headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14',
+#                     # 'content-type': 'application/json;charset=UTF-8',
+#                     'Referer': host,
+#                     'x-csrf-token': csrf_token,
+#                     'Cookie': '; '.join([x.name + '=' + x.value for x in response.cookies])}
         # except:
         #     host = support.config.get_channel_url(findhost, forceFindhost=True)
         #     if not forced: getHeaders(True)
