@@ -440,6 +440,7 @@ def downloadpage(url, **opt):
                 for cookie in elem:
                     if cookie == 'key': # not a cookie
                         continue
+                    elem[cookie]['domain'] = domain
                     set_cookies(elem[cookie])
         response_code = 200
         # from lib import proxytranslate
