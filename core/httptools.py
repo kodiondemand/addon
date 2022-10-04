@@ -432,7 +432,16 @@ def downloadpage(url, **opt):
             and not opt.get('CF', False) and 'Ray ID' in response['data'] and not opt.get('post', None):
         logger.debug("CF retry... for domain: %s" % domain)
         from core import app
-        app.call_url(url)
+        ret = app.call_url(url)
+        for elem in ret:
+            if elem['key'] == 'html':
+                response['data'] = elem['html']
+            elif elem['key'] == 'cookie':
+                for cookie in elem:
+                    if cookie == 'key': # not a cookie
+                        continue
+                    set_cookies(elem[cookie])
+        response_code = 200
         # from lib import proxytranslate
         # gResp = proxytranslate.process_request_proxy(url)
         # if gResp:

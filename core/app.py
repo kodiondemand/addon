@@ -3,20 +3,20 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import xbmc
 from core import jsontools
 from platformcode import logger
-hostName = "localhost"
+hostName = xbmc.getIPAddress()
 serverPort = 8080
-cookie_ricevuto = False
+ret = None
 call = 'kodapp://app.kod/open?s={}&cb=http://{}:{}/'
 
 
 class MyServer(BaseHTTPRequestHandler):
     def do_POST(self):
+        global ret
         length = int(self.headers['content-length'])
-        postvars = self.rfile.read(length)
-        logger.info(postvars)
+        postvars = self.rfile.read(length).decode()
+        ret = jsontools.load(postvars)
+        logger.info(ret)
         self.send_response(200)
-        global cookie_ricevuto
-        cookie_ricevuto = True
 
 
 def call_url(url):
@@ -27,6 +27,7 @@ def call_url(url):
     activity = 'StartAndroidActivity("com.kodapp","android.intent.action.VIEW","",{})'.format(call.format(s, hostName, serverPort))
     logger.info(activity)
     xbmc.executebuiltin(activity)
-    while not cookie_ricevuto:
+    while not ret:
         webServer.handle_request()
     logger.info("Server stopped.")
+    return ret
