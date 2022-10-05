@@ -44,13 +44,21 @@ def compose(url):
     subs = []
     video_urls = []
     info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)', headers={'User-Agent':UA}).matches
-    if info:
+    if info and not logger.testMode: # ai test non piace questa parte
         for lang, sub, res, url in info:
-            if sub and not logger.testMode: # ai test non piace questa parte
+            if sub: 
+                while True:
+                    match = support.match(sub, patron=r'(http[^\s\n]+)').match
+                    if match:
+                        sub = httptools.downloadpage(match).data
+                    else:
+                        break
                 if lang == 'auto': lang = 'ita-forced'
                 s = config.get_temp_file(lang +'.srt')
                 subs.append(s)
-                filetools.write(s, support.vttToSrt(httptools.downloadpage(support.match(sub, patron=r'(http[^\s\n]+)').match).data))
+                filetools.write(s, support.vttToSrt(sub))
             elif url:
                 video_urls.append(['m3u8 [{}]'.format(res), '{}|User-Agent={}'.format(url, UA), 0, subs])
+    else:
+        video_urls.append(['m3u8', '{}|User-Agent={}'.format(url, UA)])
     return video_urls

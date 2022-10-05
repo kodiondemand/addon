@@ -1659,3 +1659,14 @@ def stackCheck(values):
             return True
         frame = frame.f_back
     return False
+
+
+def callAds(url, host):
+    try:
+        import requests
+        headers = {{'User-Agent': httptools.random_useragent(),
+                    'Origin': host,
+                    'Referer': host}}
+        requests.get(url, headers=headers)
+    except:
+        pass

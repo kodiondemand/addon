@@ -236,6 +236,7 @@ def episodios(item):
 
 
 def findvideos(item):
+    support.callAds('https://thaudray.com/5/3523301', host)
     # Fix for old items in videolibrary
     if item.episodeid and not item.episodeid in item.url:
         item.url += item.episodeid
