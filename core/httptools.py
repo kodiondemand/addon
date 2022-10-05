@@ -418,6 +418,8 @@ def downloadpage(url, **opt):
         return type('HTTPResponse', (), response)
 
     response_code = req.status_code
+    response_headers = req.headers
+    cookies = req.cookies
     response['url'] = req.url
 
     response['data'] = req.content if req.content else ''
@@ -438,11 +440,11 @@ def downloadpage(url, **opt):
                 response['data'] = elem['html']
             elif elem['key'] == 'cookie':
                 for cookie in elem:
-                    if cookie == 'key': # not a cookie
+                    if cookie == 'key':  # not a cookie
                         continue
                     elem[cookie]['domain'] = domain
-                    set_cookies(elem[cookie])
-        response_code = 200
+                    set_cookies(elem[cookie], False)
+        response_code = [r['status'] for r in ret if r['key'] == 'request'][0]
         # from lib import proxytranslate
         # gResp = proxytranslate.process_request_proxy(url)
         # if gResp:
@@ -460,8 +462,8 @@ def downloadpage(url, **opt):
         response['json'] = dict()
 
     response['code'] = response_code
-    response['headers'] = req.headers
-    response['cookies'] = req.cookies
+    response['headers'] = response_headers
+    response['cookies'] = cookies
 
     info_dict, response = fill_fields_post(info_dict, req, response, req_headers, inicio)
 
