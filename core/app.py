@@ -1,12 +1,12 @@
 import base64
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import xbmc
-from core import jsontools
+from core import jsontools, httptools
 from platformcode import logger
 hostName = xbmc.getIPAddress()
 serverPort = 8080
 ret = None
-call = 'kodapp://app.kod/open?s={}&cb=http://{}:{}/'
+call = 'kodapp://app.kod/open?s={}&ua={}&cb=http://{}:{}/'
 
 
 class MyServer(BaseHTTPRequestHandler):
@@ -24,7 +24,7 @@ def call_url(url):
     webServer = HTTPServer((hostName, serverPort), MyServer)
     logger.info("Server started http://%s:%s" % (hostName, serverPort))
     s = base64.b64encode(jsontools.dump({'url': url}).encode()).decode()
-    activity = 'StartAndroidActivity("com.kodapp","android.intent.action.VIEW","",{})'.format(call.format(s, hostName, serverPort))
+    activity = 'StartAndroidActivity("com.kodapp","android.intent.action.VIEW","",{})'.format(call.format(s, httptools.get_user_agent(), hostName, serverPort))
     logger.info(activity)
     xbmc.executebuiltin(activity)
     while not ret:
