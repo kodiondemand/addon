@@ -24,7 +24,8 @@ def call_url(url):
     webServer = HTTPServer((hostName, serverPort), MyServer)
     logger.info("Server started http://%s:%s" % (hostName, serverPort))
     s = base64.b64encode(jsontools.dump({'url': url}).encode()).decode()
-    activity = 'StartAndroidActivity("com.kodapp","android.intent.action.VIEW","",{})'.format(call.format(s, httptools.get_user_agent(), hostName, serverPort))
+    ua = base64.b64encode(httptools.get_user_agent())
+    activity = 'StartAndroidActivity("com.kodapp","android.intent.action.VIEW","",{})'.format(call.format(s, ua, hostName, serverPort))
     logger.info(activity)
     xbmc.executebuiltin(activity)
     while not ret:
