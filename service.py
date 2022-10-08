@@ -301,7 +301,7 @@ def get_ua_list():
     try:
         current_ver = config.get_setting("chrome_ua_version", default="").split(".")
         data = httptools.downloadpage(url, alfa_s=True).data
-        new_ua_ver = scrapertools.find_single_match(data, "win64,stable,([^,]+),")
+        new_ua_ver = scrapertools.find_single_match(data, "android,stable,([^,]+),")
 
         if not current_ver:
             config.set_setting("chrome_ua_version", new_ua_ver)
