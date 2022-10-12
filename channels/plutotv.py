@@ -6,7 +6,7 @@
 import uuid, datetime
 from platformcode import logger, config
 from core.item import Item
-from core import support, httptools
+from core import jsontools, support, httptools
 
 host = support.config.get_channel_url()
 
@@ -14,17 +14,20 @@ api = 'https://api.pluto.tv'
 UUID = 'sid={}&deviceId={}'.format(uuid.uuid1().hex, uuid.uuid4().hex)
 vod_url = '{}/v3/vod/categories?includeItems=true&deviceType=web&'.format(api, UUID)
 
-
 @support.menu
 def mainlist(item):
     top =  [('Dirette {bold}', ['/it/live-tv/', 'live'])]
 
-    menu = sorted([(it['name'], ['/it/on-demand', 'peliculas', it['items']]) for it in httptools.downloadpage(vod_url).json['categories'][1:]])
+    menu = [('Categorie', ['', 'category'])]
 
     search = ''
 
     return locals()
 
+@support.menu
+def category(item):
+    menu = sorted([(it['name'], ['/it/on-demand', 'peliculas', it['items']]) for it in httptools.downloadpage(vod_url).json['categories'][1:]])
+    return locals()
 
 def live(item):
     logger.debug()
@@ -75,6 +78,7 @@ def peliculas(item):
     logger.debug()
     itemlist = []
     recordlist = []
+
     for i, it in enumerate(item.args):
         if item.search in it['name'].lower():
             itm = Item(channel=item.channel,
@@ -88,7 +92,7 @@ def peliculas(item):
                        thumbnail= it['covers'][0]['url'],
                        fanart= it['covers'][2]['url'] if len(it['covers']) > 2 else '',
                        id= it['_id'],
-                       videourl= it['stitched']['urls'][0]['url'].split('?')[0])
+                       videourl= it.get('stitched', {}).get('urls', [{}])[0].get('url','').split('?')[0])
 
             if i < 20 or item.search:
                 itemlist.append(itm)
