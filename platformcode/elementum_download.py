@@ -1,5 +1,5 @@
 
-from core import filetools, downloadtools, support
+from core import filetools, downloadtools, httptools, support
 from platformcode import config, platformtools, updater
 import xbmc, xbmcaddon, sys, platform
 
@@ -30,7 +30,8 @@ def download(item=None):
     else:
         if platformtools.dialog_yesno(config.get_localized_string(70784), config.get_localized_string(70782)):
             pform = get_platform()
-            url = support.match(elementum_url, patron=r'<a href="([a-zA-Z0-9/\.-]+{}.zip)'.format(pform)).match
+            real_elementum_url = elementum_url + '/expanded_assets/' + httptools.downloadpage(elementum_url +'/latest').url.split('/')[-1]
+            url = support.match(real_elementum_url, patron=r'<a href="([a-zA-Z0-9/\.-]+{}.zip)'.format(pform)).match
             support.info('OS:', pform)
             support.info('Extract IN:', elementum_path)
             support.info('URL:', url)
