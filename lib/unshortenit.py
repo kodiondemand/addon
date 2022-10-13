@@ -36,7 +36,7 @@ class UnshortenIt(object):
     _shrink_service_regex = r'shrink-service\.it'
     _rapidcrypt_regex = r'rapidcrypt\.net'
     # _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
-    _linkup_regex = r'linkup\.pro|buckler.link'
+    _linkup_regex = r'linkup\.pro|buckler.link|clicka\.cc'
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
     _stayonline_regex = r'stayonline\.pro'
