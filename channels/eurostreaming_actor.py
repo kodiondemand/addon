@@ -48,7 +48,7 @@ def episodios(item):
         data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
 
     patronBlock = r'tab-content(?P<block>.*?)serie-player'
-    patron = r'data-link="(?P<url>http.*?)".*?data.num..(?P<season>\d+)x(?P<episode>\d+)" data-title="(?P<title>[^"]+)'
+    patron = r'data.num..(?P<season>\d+)x(?P<episode>\d+)" data-title="(?P<title>[^"]+).*?data-link="(?P<url>http.*?)</li>'
     
     return locals()
 

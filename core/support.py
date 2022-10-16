@@ -1487,7 +1487,7 @@ def get_jwplayer_mediaurl(data, srvName, onlyHttp=False, dataIsBlock=False, hls=
         for url, quality in sources:
             quality = 'auto' if not quality else quality
             if url.split('.')[-1] != 'mpd':
-                _type = url.split('.')[-1].split('?')[0]
+                _type = url.split('?')[0].split('.')[-1]
                 if _type == 'm3u8' and hls:
                     _type = 'hls'
                 video_urls.append([_type + ' [' + quality + '] [' + srvName + ']', url.replace(' ', '%20') if not onlyHttp else url.replace('https://', 'http://')])

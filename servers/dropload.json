@@ -1,0 +1,29 @@
+{
+  "active": true,
+  "find_videos": {
+    "patterns": [
+      {
+        "pattern": "https?://dropload.io/(\\w{12})",
+        "url": "https://dropload.io/\\1"
+      },
+      {
+        "pattern": "https?://dropload.io/embed-(\\w{12}).html",
+        "url": "https://dropload.io/\\1"
+      }
+    ]
+  },
+  "free": true,
+  "id": "dropload",
+  "name": "Dropload",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "$ADDON[plugin.video.kod 70708]",
+      "type": "bool",
+      "visible": true
+    }
+  ],
+  "cloudflare": true
+}
