@@ -2044,6 +2044,6 @@ def serverWindow(item, itemlist):
                             reopen = False
                         if not selection.server or selection.server == 'torrent': break
 
-        # import threading
-        monitor(itemlist, reopen)
-        # threading.Thread(target=monitor, args=[itemlist, reopen]).start()
+        import threading
+        # monitor(itemlist, reopen)
+        threading.Thread(target=monitor, args=[itemlist, reopen]).start()
