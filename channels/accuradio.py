@@ -35,8 +35,9 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
+    # debug=True
     action = 'playradio'
-    patron = r'data-id="(?P<id>[^"]+)"\s*data-oldid="(?P<oldid>[^"]+)".*?data-name="(?P<title>[^"]+)(?:[^>]+>){5}<img class="[^"]+"\s*src="(?P<thumb>[^"]+)(?:[^>]+>){6}\s*(?P<plot>[^<]+)'
+    patron = r'data-id="(?P<id>[^"]+)"\s*data-oldid="(?P<oldid>[^"]+)".*?data-name="(?P<title>[^"]+)(?:[^>]+>){2}<img src="(?P<thumb>[^"]+)(?:[^>]+>){16}\s*(?P<plot>[^<]+)'
     return locals()
 
 
