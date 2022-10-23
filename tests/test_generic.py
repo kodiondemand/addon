@@ -8,7 +8,9 @@
 # python tests/test_generic.py
 import html
 import os
+import random
 import sys
+import time
 import unittest
 
 import xbmc
@@ -53,7 +55,7 @@ import channelselector
 import re
 
 
-httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = 60
+httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = 10
 
 outDir = os.path.join(os.getcwd(), 'reports')
 validUrlRegex = re.compile(
@@ -142,6 +144,11 @@ chNumRis = {
     },
 }
 
+
+def wait():
+    time.sleep(random.randint(1, 3))
+
+
 servers = []
 channels = []
 
@@ -152,6 +159,7 @@ results = []
 logger.record = True
 for chItem in channel_list:
     ch = chItem.channel
+    wait()
     if ch not in chBlackList:
         hasChannelConfig = False
         mainlist = []
@@ -171,6 +179,7 @@ for chItem in channel_list:
             error = logger.recordedLog
             logger.recordedLog = ''
         for it in mainlist:
+            wait()
             try:
                 print('preparing ' + ch + ' -> ' + it.title)
 
@@ -186,15 +195,18 @@ for chItem in channel_list:
                 else:
                     itemlist = getattr(module, it.action)(it)
 
-                    if not firstContent and itemlist and itemlist[0].action in ('findvideos', 'episodios'):
+                    # if more search action (ex: movie, tvshow), firstcontent need to be changed in every menu
+                    if itemlist and itemlist[0].action in ('findvideos', 'episodios'):
                         firstContent = re.match('[ \w]*', itemlist[0].fulltitle).group(0)
 
                     # some sites might have no link inside, but if all results are without servers, there's something wrong
                     for resIt in itemlist:
+                        wait()
                         if resIt.action == 'findvideos' or resIt.action == 'episodios':
                             if hasattr(module, resIt.action):
                                 serversFound[it.title] = getattr(module, resIt.action)(resIt)
                                 if serversFound[it.title] and resIt.action == 'episodios':
+                                    wait()
                                     serversFound[it.title] = getattr(module, serversFound[it.title][0].action)(serversFound[it.title][0])
                             else:
                                 serversFound[it.title] = [resIt]

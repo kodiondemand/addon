@@ -84,7 +84,7 @@ def newest(categoria):
     item.contentType = 'tvshow'
     item.args = 'newest'
     try:
-        item.url = "%s/aggiornamento-nuovi-episodi/" % host
+        item.url = "%s/aggiornamento-episodi-nuovi/" % host
         item.action = "peliculas"
         itemlist = peliculas(item)
     # Continua la ricerca in caso di errore

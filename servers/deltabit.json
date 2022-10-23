@@ -1,7 +1,7 @@
 {
   "active": true,
   "find_videos": {
-    "ignore_urls": [],
+    "ignore_urls": ["https://deltabit.co/api"],
     "patterns": [
       {
         "pattern": "https://deltabit.co/([A-z0-9]+)",

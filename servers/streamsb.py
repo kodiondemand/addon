@@ -22,7 +22,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     dl_url = 'https://{}/dl?op=download_orig&id={}&mode={}&hash={}'
 
     host = scrapertools.get_domain_from_url(page_url)
-    sources = scrapertools.find_multiple_matches(data, r'download_video([^"]+)[^\d]+\d+x(\d+)')
+    sources = scrapertools.find_multiple_matches(data, r'download_video([^"]+)[^\d]+(\d+)p')
     hash = scrapertools.find_single_match(data, r"file_id',\s'(\d+)")
 
     if sources:

@@ -6,6 +6,7 @@
     "thumbnail": "1337x.png",
     "banner": "1337x.png",
     "categories": ["movie", "tvshow", "torrent"],
+    "not_active": ["include_in_newest"],
     "settings": [
         {
             "id": "itaSearch",

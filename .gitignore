@@ -9,3 +9,5 @@ __pycache__/
 .vscode/settings.json
 bin/
 lib/abi
+tests/home/
+reports/

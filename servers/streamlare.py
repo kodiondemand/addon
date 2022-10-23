@@ -23,16 +23,16 @@ def test_video_exists(page_url):
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     global data, response
     logger.info("(page_url='%s')" % page_url)
-
     video_urls = []
     id = scrapertools.find_single_match(page_url, '/e/(\w+)')
     post = {"id": id}
     data = httptools.downloadpage("https://streamlare.com/api/video/stream/get", post=post).data.replace("\\","")
-    matches = scrapertools.find_multiple_matches(data, 'label":"([^"]+).*?file":"([^"]+)')
-    for res, media_url in matches:
-        media_url += "|User-Agent=%s" %(httptools.get_user_agent())
+    matches = scrapertools.find_multiple_matches(data, 'file":"([^"]+)')
+    for media_url in matches:
+        media_url += "|User-Agent=%s" % (httptools.get_user_agent())
         video_urls.append(["MP4", media_url])
     return video_urls
+
 
 def get_filename(page_url):
     from core import jsontools

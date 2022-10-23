@@ -306,9 +306,8 @@ def findvideos(item, itemlist=[]):
 
             itemlist = limitItemlist(itemlist)
         except Exception as ex:
-            template = "An exception of type %s occured. Arguments:\n%r"
-            message = template % (type(ex).__name__, ex.args)
-            logger.error(" %s" % message)
+            import traceback
+            logger.error(traceback.format_exc())
 
         p_dialog.update(100)
         p_dialog.close()

@@ -506,7 +506,7 @@ def title_unify(title):
     return u_title.strip()
 
 
-def girc(page_data, url, co):
+def girc(page_data, url, co, size='invisible'):
     """
     Code adapted from https://github.com/vb6rocod/utils/
     Copyright (C) 2019 vb6rocod
@@ -518,10 +518,10 @@ def girc(page_data, url, co):
     hdrs = {'Referer': url}
     rurl = 'https://www.google.com/recaptcha/api.js'
     aurl = 'https://www.google.com/recaptcha/api2'
-    key = re.search(r'(?:src="{0}\?.*?render|data-sitekey)="?([^"]+)'.format(rurl), page_data)
+    key = re.search(r"""(?:src="{0}\?.*?render|data-sitekey)=['"]?([^"']+)""".format(rurl), page_data)
     if key:
         key = key.group(1)
-        rurl = '{0}?render={1}'.format(rurl, key)
+        # rurl = '{0}?render={1}'.format(rurl, key)
         page_data1 = httptools.downloadpage(rurl, headers=hdrs).data
         v = re.findall('releases/([^/]+)', page_data1)[0]
         rdata = {'ar': 1,
@@ -529,7 +529,7 @@ def girc(page_data, url, co):
                  'co': co,
                  'hl': 'it',
                  'v': v,
-                 'size': 'invisible',
+                 'size': size,
                  'sa': 'submit',
                  'cb': ''.join([random.choice(string.ascii_lowercase + string.digits) for i in range(12)])}
         page_data2 = httptools.downloadpage('{0}/anchor?{1}'.format(aurl, httptools.urlparse.urlencode(rdata)), headers=hdrs).data

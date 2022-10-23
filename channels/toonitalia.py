@@ -61,7 +61,7 @@ def peliculas(item):
     # debug = True
     # search = item.text
     if item.contentType != 'movie': anime = True
-    action = 'findvideos' if item.contentType == 'movie' else 'episodios'
+    action = 'check'
     blacklist = ['-Film Animazione disponibili in attesa di recensione ']
 
     if item.action == 'search':
@@ -90,39 +90,25 @@ def peliculas(item):
     return locals()
 
 
-def episodios(item):
-    @support.scrape
-    def findepisode(item):
-        actLike = 'episodios'
-        patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
-        return locals()
-
-    itemlist = findepisode(item)
-    if not itemlist: itemlist = [item.clone(action='findvideos')]
-
-    if inspect.stack(0)[1][3] not in ['find_episodes']:
-        from platformcode import autorenumber
-        autorenumber.start(itemlist, item)
+def check(item):
+    itemlist = episodios(item)
+    if not itemlist:
+        itemlist = findvideos(item)
     return itemlist
 
 
+@support.scrape
+def episodios(item):
+    patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
+
+    # if inspect.stack(0)[1][3] not in ['find_episodes']:
+    #     from platformcode import autorenumber
+    #     autorenumber.start(itemlist, item)
+    return locals()
+
+
 def findvideos(item):
-    servers = []
-    itemlist = []
-
-    if item.data:
-        data = item.data
-    else:
-        data = httptools.downloadpage(item.url, headers=headers).data
-
-    matches =support.match(data, patron='href="([^"]+)[^>]+>([^<\d]+)(\d+p)?').matches
-    if matches:
-        for match in matches:
-            itemlist.append(item.clone(server=match[1].strip().lower(), quality=match[2], url=match[0]))
-    if itemlist:
-        servers = support.server(item, itemlist=itemlist)
-    else:
-        servvers = support.server(item, data=data)
+    servers = support.server(item, data=item.data)
     return servers
 
     # return support.server(item, item.data if item.contentType != 'movie' else support.match(item.url, headers=headers).data )
