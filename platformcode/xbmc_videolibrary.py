@@ -83,18 +83,8 @@ def mark_auto_as_watched(item):
                 break
 
         # if item.options['continue']:
-        from core import db
-        if marked:
-            logger.debug('CLOSE')
-            item.played_time = 0
-            if total_time > 20:
-                db['controls']['reopen'] = False
-            else:
-                db['controls']['reopen'] = True
-        else:
-            logger.debug('REOPEN')
-            item.played_time = actual_time
-            db['controls']['reopen'] = True
+        if (marked and total_time < 20) or not marked:
+            platformtools.serverWindow(item, itemlist)
 
         platformtools.set_played_time(item)
 
@@ -112,7 +102,10 @@ def mark_auto_as_watched(item):
         db.close()
 
     # If it is configured to mark as seen
+    from core import db
     if config.get_setting("mark_as_watched", "videolibrary"):
+        itemlist = db['player'].get('itemlist', [])
+        db.close()
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
         logger.debug('EXIT MONITOR')
 

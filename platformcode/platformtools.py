@@ -2013,37 +2013,18 @@ def serverWindow(item, itemlist):
 
 
     if itemlist:
-        reopen = False
+
         if config.get_setting('autoplay') and not item.disableAutoplay:
-            reopen = True
             from core import autoplay
             autoplay.start(itemlist, item)
 
-        def monitor(itemlist, reopen):
-            while not xbmc.Monitor().abortRequested():
-                if not is_playing():
-                    if reopen:
-                        xbmc.sleep(200)
-                        if not db['controls'].get('reopen', False):
-                            break
-                    if config.get_setting('window_type') == 0:
-                        selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
-                        reopen = True
-                    else:
-                        selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
-                        reopen = True
-
-                    if selection == -1:
-                        break
-
-                    else:
-                        from platformcode.launcher import run
-                        try:
-                            run(selection)
-                        except:
-                            reopen = False
-                        if not selection.server or selection.server == 'torrent': break
-
-        import threading
-        # monitor(itemlist, reopen)
-        threading.Thread(target=monitor, args=[itemlist, reopen]).start()
+        if config.get_setting('window_type') == 0:
+            selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
+        else:
+            selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
+        if selection != -1:
+            from core import db
+            from platformcode.launcher import run
+            db['player']['itemlist'] = itemlist
+            db.close()
+            run(selection)

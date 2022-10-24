@@ -313,12 +313,16 @@ def findvideos(item, itemlist=[]):
         p_dialog.close()
 
     serverlist = [s for s in itemlist if s.server]
+
     if itemlist and not serverlist:
         platformtools.render_items(itemlist, item)
     if not serverlist:
         platformtools.dialog_notification(config.get_localized_string(20000), config.get_localized_string(60347))
     elif len(serverlist) == 1:
         # If there is only one server play it immediately
+        from core import db
+        db['player']['itemlist'] = []
+        db.close()
         play(itemlist[0].clone(no_return=True))
     else:
         platformtools.serverWindow(item, itemlist)
