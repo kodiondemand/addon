@@ -1,29 +1,26 @@
 {
-  "active": true,
-  "find_videos": {
-    "ignore_urls": [],
-    "patterns": [
-      {
-        "pattern": "(?:streamsb|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
-        "url": "https://streamsb.net/d/\\1"
-      },
-      {
-        "pattern": "(?:cloudemb.com)/([A-z0-9]+)",
-        "url": "https://streamsb.net/d/\\1"
-      }
-    ]
-  },
-  "free": true,
-  "id": "streamsb",
-  "name": "StreamSB",
-  "settings": [
-    {
-      "default": false,
-      "enabled": true,
-      "id": "black_list",
-      "label": "@70708",
-      "type": "bool",
-      "visible": true
-    }
-  ]
+    "active": true,
+    "find_videos": {
+        "ignore_urls": [],
+        "patterns": [{
+                "pattern": "(?:streamsb|sblanh|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
+                "url": "https://streamsb.net/d/\\1"
+            },
+            {
+                "pattern": "(?:cloudemb.com)/([A-z0-9]+)",
+                "url": "https://streamsb.net/d/\\1"
+            }
+        ]
+    },
+    "free": true,
+    "id": "streamsb",
+    "name": "StreamSB",
+    "settings": [{
+        "default": false,
+        "enabled": true,
+        "id": "black_list",
+        "label": "@70708",
+        "type": "bool",
+        "visible": true
+    }]
 }
