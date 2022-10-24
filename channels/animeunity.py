@@ -4,7 +4,7 @@
 # ------------------------------------------------------------
 
 import cloudscraper, json, copy, inspect
-from core import support
+from core import jsontools, support
 from platformcode import autorenumber, logger
 
 session = cloudscraper.create_scraper()
@@ -130,7 +130,7 @@ def news(item):
                        thumbnail=it['anime']['imageurl'],
                        forcethumb = True,
                        scws_id=it.get('scws_id', ''),
-                       video_url=it.get('link', ''),
+                    #    video_url=it.get('link', ''),
                        plot=it['anime']['plot'],
                        action='findvideos')
         )
@@ -174,7 +174,7 @@ def peliculas(item):
             itm.contentSerieName = ''
             itm.action = 'findvideos'
             itm.scws_id = it['episodes'][0].get('scws_id', '')
-            itm.video_url = it['episodes'][0].get('link', '')
+            # itm.video_url = it['episodes'][0].get('link', '')
 
         else:
             itm.contentType = 'tvshow'
@@ -208,8 +208,9 @@ def episodios(item):
                        plot=item.plot,
                        action='findvideos',
                        contentType='episode',
-                       scws_id=it.get('scws_id', ''),
-                       video_url=it.get('link', '')))
+                       scws_id=it.get('scws_id', ''))
+                    #    video_url=it.get('link', ''))
+            )
 
     if inspect.stack(0)[1][3] not in ['find_episodes']:
         autorenumber.start(itemlist, item)
@@ -219,7 +220,8 @@ def episodios(item):
 
 
 def findvideos(item):
-    itemlist = [item.clone(title='StreamingCommunityWS', server='streamingcommunityws', url=str(item.scws_id)),
-                item.clone(title=support.config.get_localized_string(30137), server='directo', url=item.video_url)]
+    itemlist = [item.clone(title='StreamingCommunityWS', server='streamingcommunityws', url=str(item.scws_id))]
+    # itemlist = [item.clone(title='StreamingCommunityWS', server='streamingcommunityws', url=str(item.scws_id)),
+    #             item.clone(title=support.config.get_localized_string(30137), server='directo', url=item.video_url)]
     return support.server(item, itemlist=itemlist, referer=False)
 
