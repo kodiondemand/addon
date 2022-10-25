@@ -84,6 +84,7 @@ def mark_auto_as_watched(item):
 
         # if item.options['continue']:
         if (marked and total_time < 20) or not marked:
+            item.disableAutoplay=True
             platformtools.serverWindow(item, itemlist)
 
         platformtools.set_played_time(item)
@@ -105,6 +106,7 @@ def mark_auto_as_watched(item):
     from core import db
     if config.get_setting("mark_as_watched", "videolibrary"):
         itemlist = db['player'].get('itemlist', [])
+        db['player']['itemlist'] = []
         db.close()
         threading.Thread(target=mark_as_watched_subThread, args=[item]).start()
         logger.debug('EXIT MONITOR')

@@ -88,7 +88,7 @@ def episodios(item):
 
 def check(item):
     item.data = httptools.downloadpage(item.url).data
-    if 'Stagione' in item.data:
+    if 'stagione' in item.data.lower():
         item.contentType = 'tvshow'
         return episodios(item)
     else:

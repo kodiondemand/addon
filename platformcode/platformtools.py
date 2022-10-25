@@ -2013,18 +2013,17 @@ def serverWindow(item, itemlist):
 
 
     if itemlist:
+        db['player']['itemlist'] = itemlist
+        db.close()
 
         if config.get_setting('autoplay') and not item.disableAutoplay:
             from core import autoplay
             autoplay.start(itemlist, item)
-
-        if config.get_setting('window_type') == 0:
-            selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
         else:
-            selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
-        if selection != -1:
-            from core import db
-            from platformcode.launcher import run
-            db['player']['itemlist'] = itemlist
-            db.close()
-            run(selection)
+            if config.get_setting('window_type') == 0:
+                selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
+            else:
+                selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
+            if selection != -1:
+                from platformcode.launcher import run
+                run(selection)
