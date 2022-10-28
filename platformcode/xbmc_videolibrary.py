@@ -82,18 +82,17 @@ def mark_auto_as_watched(item):
                 nextdialog.close()
                 break
 
-        # if item.options['continue']:
-        if (marked and total_time < 20) or not marked:
-            item.disableAutoplay=True
-            platformtools.serverWindow(item, itemlist)
-
-        platformtools.set_played_time(item)
 
         # Silent sync with Trakt
         if sync and config.get_setting("trakt_sync"): sync_trakt_kodi()
 
         while platformtools.is_playing():
             xbmc.sleep(300)
+
+        if (marked and total_time < 20) or not marked:
+            platformtools.set_played_time(item.clone(played_time=actual_time))
+            item.disableAutoplay=True
+            platformtools.serverWindow(item, itemlist)
 
         if next_episode and next_episode.next_ep and config.get_setting('next_ep') < 3:
             from platformcode.launcher import run
