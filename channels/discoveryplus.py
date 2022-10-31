@@ -54,7 +54,8 @@ def live(item):
     logger.debug()
 
     itemlist =[]
-    data = session.get(domain + '/cms/routes/epg?include=default').json()['included']
+    # data = session.get(domain + '/cms/routes/epg?include=default').json()['included']
+    data = session.get(domain + '/cms/routes/home?include=default&decorators=playbackAllowed').json()['included']
 
     for key in data:
 
