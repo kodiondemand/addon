@@ -99,6 +99,7 @@ def check(item):
 
 @support.scrape
 def episodios(item):
+    anime = True
     patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
 
     # if inspect.stack(0)[1][3] not in ['find_episodes']:
