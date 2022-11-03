@@ -8,6 +8,11 @@ import requests, sys, inspect
 from core import support, tmdb, httptools
 from platformcode import autorenumber, logger, config
 
+try:
+    import urlparse
+except:
+    import urllib.parse as urlparse
+
 host = 'https://www.vvvvid.it'
 
 # Creating persistent session
@@ -228,6 +233,21 @@ def findvideos(item):
                                title=config.get_localized_string(30137),
                                url= 'https://or01.top-ix.org/videomg/_definst_/mp4:' + item.url + '/' + url,
                                server= 'directo')
+                )
+            if episode['video_type'] == 'video/dash':
+                drm = ''
+                license = ''
+                if episode.get('drm'):
+                    drm = 'com.widevine.alpha',
+                    license= 'https://www.vvvvid.it/drm/license/widevine?content_id={drm}&conn_id={conn}|Accept=*/*&Content-Type=&User-Agent={ua}|R{{SSM}}|'.format(drm=urlparse.quote(episode['drm']), conn=conn_id, ua=headers['User-Agent']),
+                itemlist.append(
+                    item.clone(action= 'play',
+                               title=config.get_localized_string(30137),
+                               url= item.url + '|User-Agent=' + headers['User-Agent'],
+                               drm=drm,
+                               license=license,
+                               server= 'directo',
+                               manifest='mpd')
                 )
             else:
                 key_url = 'https://www.vvvvid.it/kenc?action=kt&conn_id=' + conn_id + '&url=' + item.url.replace(':','%3A').replace('/','%2F')

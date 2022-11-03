@@ -1306,6 +1306,8 @@ def server(item, data='', itemlist=[], headers='', CheckLinks=True, Download=Tru
                             subtitle=videoitem.subtitle,
                             url=videoitem.url,
                             videoUrls= videoitem.videoUrlsn,
+                            drm=videoitem.drm,
+                            license=videoitem.license,
                             ch_name=channeltools.get_channel_parameters(item.channel)['title'],
                             action = "play")
 
