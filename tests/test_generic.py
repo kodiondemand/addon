@@ -378,10 +378,10 @@ class GenericServerTest(unittest.TestCase):
 
                 self.assertTrue(page.success, self.name + ' scraper returned an invalid link')
                 self.assertLess(page.code, 400, self.name + ' scraper returned a ' + str(page.code) + ' link')
-                contentType = page.headers['Content-Type']
+                contentType = page.headers['Content-Type'].lower()
                 self.assert_(contentType.startswith(
                     'video') or 'mpegurl' in contentType or 'octet-stream' in contentType or 'dash+xml' in contentType,
-                             self.name + ' scraper did not return valid url for link ' + page_url + '<br>Direct url: ' + directUrl + '<br>Content-Type: ' + contentType)
+                             self.name + ' scraper did not return valid url for link ' + page_url + '<br>Direct url: ' + directUrl + '<br>Content-Type: ' + page.headers['Content-Type'])
                 print('test passed')
 
 

@@ -10,7 +10,7 @@ headers = {}
 
 perpage_list = ['20','30','40','50','60','70','80','90','100']
 perpage = perpage_list[support.config.get_setting('perpage' , 'animeuniverse')]
-epPatron = r'<td>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"'
+epPatron = r'<td>\s*(?P<title>[^<]+)[^>]+>[^>]+>\s*<a href="(?P<url>[^"]+)"[^>]+>\s*<img [^>]+Streaming'
 
 
 @support.menu
@@ -103,6 +103,7 @@ def episodios(item):
     anime = True
     pagination = int(perpage)
     patron = epPatron
+    # debug = True
     return locals()
 
 
