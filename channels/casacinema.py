@@ -49,7 +49,7 @@ def check(item):
 def search(item, text):
     support.info(text)
     text = text.replace(' ', '+')
-    item.url = host + '/?s=' + text
+    item.url = host + '/?a=b&s=' + text
     item.args = 'search'
     try:
         return peliculas(item)
