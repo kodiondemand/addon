@@ -3,10 +3,7 @@
 # Canale per AnimeSaturn
 # ----------------------------------------------------------
 
-from lib import js2py
 from core import support
-from platformcode import config
-from platformcode.logger import debug
 
 host = support.config.get_channel_url()
 __channel__ = 'animesaturn'

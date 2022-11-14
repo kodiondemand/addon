@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from wsgiref import headers
 from core import httptools, support, filetools
 from platformcode import logger, config
 UA = httptools.random_useragent()
@@ -8,11 +7,14 @@ UA = httptools.random_useragent()
 def test_video_exists(page_url):
     global scws_id
     logger.debug('page url=', page_url)
+    scws_id = ''
 
     if page_url.isdigit():
         scws_id = page_url
     else:
-        scws_id = support.match(page_url, patron=r'scws_id[^:]+:(\d+)').match
+        page = httptools.downloadpage(page_url)
+        if page.url == page_url:  # se non esiste, reindirizza all'ultimo url chiamato esistente
+            scws_id = support.scrapertools.find_single_match(page.data, r'scws_id[^:]+:(\d+)')
 
     if not scws_id:
         return False, config.get_localized_string(70449) % 'StreamingCommunityWS'

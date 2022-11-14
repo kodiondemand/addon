@@ -17,8 +17,7 @@ else:
 
 
 host = support.config.get_channel_url()
-headers = {}
-headers = {'user-agent':httptools.random_useragent(),
+headers = {'user-agent': httptools.random_useragent(),
            'referer': host + '/browse'}
 
 # def getHeaders(forced=False):
@@ -112,7 +111,6 @@ def newest(category):
     return itemlist
 
 
-
 def peliculas(item):
     logger.debug()
     if item.mainThumb: item.thumbnail = item.mainThumb
@@ -138,7 +136,6 @@ def peliculas(item):
         headers['referer'] = host + '/search'
         records = requests.post(host + '/api/search', headers=headers, json=payload).json()['records']
 
-
     if records and type(records[0]) == list:
         js = []
         for record in records:
@@ -152,7 +149,7 @@ def peliculas(item):
         else:
             recordlist.append(it)
 
-    itlist = [makeItem(i, it, item) for i, it in enumerate(items)]
+    # itlist = [makeItem(i, it, item) for i, it in enumerate(items)]
 
     with futures.ThreadPoolExecutor() as executor:
         itlist = [executor.submit(makeItem, i, it, item) for i, it in enumerate(items)]
@@ -172,6 +169,7 @@ def peliculas(item):
     support.check_trakt(itemlist)
     return itemlist
 
+
 def makeItem(n, it, item):
     info = httptools.downloadpage(host + '/api/titles/preview/{}'.format(it['id']), headers=headers, post={}).json
     logger.debug(jsontools.dump(info))
@@ -182,7 +180,6 @@ def makeItem(n, it, item):
     itm.contentType = info['type'].replace('tv', 'tvshow')
     itm.language = lang
     itm.year = info['release_date'].split('-')[0]
-
 
     if itm.contentType == 'movie':
         # itm.contentType = 'movie'
@@ -199,6 +196,7 @@ def makeItem(n, it, item):
         itm.url = host + '/titles/%s-%s' % (it['id'], it['slug'])
     itm.n = n
     return itm
+
 
 def episodios(item):
     # getHeaders()
@@ -238,8 +236,9 @@ def episodios(item):
 def findvideos(item):
     support.callAds('https://thaudray.com/5/3523301', host)
     # Fix for old items in videolibrary
-    if item.episodeid and not item.episodeid in item.url:
+    if item.episodeid and item.episodeid not in item.url:
         item.url += item.episodeid
-    itemlist = [item.clone(title = channeltools.get_channel_parameters(item.channel)['title'], url=item.url, server='streamingcommunityws')]
+
+    itemlist = [item.clone(title=channeltools.get_channel_parameters(item.channel)['title'], url=item.url, server='streamingcommunityws')]
     return support.server(item, itemlist=itemlist, referer=False)
 
