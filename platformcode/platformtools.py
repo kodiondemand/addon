@@ -1330,7 +1330,7 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
 
     seleccion = 0
     # If you can see the video, present the options
-    if puedes:
+    if puedes == True:
         for video_url in video_urls:
             opciones.append(config.get_localized_string(60221) + " " + video_url[0])
 
@@ -1359,7 +1359,7 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
             opciones.append(config.get_localized_string(30162))
 
     # If you can't see the video it informs you
-    else:
+    elif puedes == False:
         if not autoplay:
             if item.server != "":
                 if "<br/>" in motivo:
@@ -1377,6 +1377,9 @@ def get_dialogo_opciones(item, default_action, strm, autoplay):
 
             if len(opciones) == 0:
                 error = True
+
+    else:
+        dialog_notification(puedes, motivo)
 
     return opciones, video_urls, seleccion, error
 

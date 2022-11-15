@@ -308,20 +308,22 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
             try:
                 video_exists, message = server_module.test_video_exists(page_url=url)
 
-                if not video_exists:
+                if video_exists == False:
                     error_messages.append(message)
                     logger.info("test_video_exists says video doesn't exist")
                     if muestra_dialogo:
                         progreso.close()
-                else:
+                elif video_exists == True:
                     logger.info("test_video_exists says the video DOES exist")
+                else:
+                    error_messages.append(message)
             except:
                 logger.error("Could not verify if the video exists")
                 import traceback
                 logger.error(traceback.format_exc())
 
         # If the video exists and the free mode is available, we get the url
-        if video_exists:
+        if video_exists == True:
             for opcion in opciones:
                 # Own free and premium option uses the same server
                 if opcion == "free" or opcion == server:
@@ -388,8 +390,9 @@ def resolve_video_urls_for_playing(server, url, video_password="", muestra_dialo
             # If we do not have urls or error messages, we put a generic one
             elif not video_urls and not error_messages:
                 error_messages.append(config.get_localized_string(60014))
+            video_exists = len(video_urls) > 0
 
-    return video_urls, len(video_urls) > 0, "<br/>".join(error_messages)
+    return video_urls, video_exists, "<br/>".join(error_messages)
 
 
 def get_server_name(serverid):

@@ -15,6 +15,8 @@ def test_video_exists(page_url):
         page = httptools.downloadpage(page_url)
         if page.url == page_url:  # se non esiste, reindirizza all'ultimo url chiamato esistente
             scws_id = support.scrapertools.find_single_match(page.data, r'scws_id[^:]+:(\d+)')
+        else:
+            return 'StreamingCommunity', 'Prossimamente'
 
     if not scws_id:
         return False, config.get_localized_string(70449) % 'StreamingCommunityWS'
