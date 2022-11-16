@@ -2,10 +2,10 @@
 # ------------------------------------------------------------
 # Canale per StreamingCommunity
 # ------------------------------------------------------------
-import functools
-import json, requests, re, sys
-from core import support, channeltools, httptools, jsontools, filetools
-from platformcode import logger, config, platformtools
+
+import json, re, sys
+from core import support, channeltools, httptools, jsontools
+from platformcode import logger, config
 
 if sys.version_info[0] >= 3:
     from concurrent import futures
@@ -130,11 +130,11 @@ def peliculas(item):
         records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)"\s*slider-name="').matches[item.args])
     elif not item.search:
         payload = {'type': videoType, 'offset':offset, 'genre':item.args}
-        records = requests.post(host + '/api/browse', headers=headers, json=payload).json()['records']
+        records = httptools.downloadpage(host + '/api/browse', headers=headers, post=payload).json['records']
     else:
         payload = {'q': item.search}
         headers['referer'] = host + '/search'
-        records = requests.post(host + '/api/search', headers=headers, json=payload).json()['records']
+        records = httptools.downloadpage(host + '/api/search', headers=headers, post=payload).json['records']
 
     if records and type(records[0]) == list:
         js = []

@@ -1066,7 +1066,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
 
         # Open the selection dialog to see the available options
         opciones, video_urls, seleccion, salir = get_dialogo_opciones(item, default_action, strm, autoplay)
-        if salir: return
+        if salir or len(opciones) == 0: return
 
         # get default option of addon configuration
         seleccion = get_seleccion(default_action, opciones, seleccion, video_urls)
