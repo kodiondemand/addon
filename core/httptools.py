@@ -36,6 +36,8 @@ default_headers["Accept-Language"] = "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3"
 default_headers["Accept-Charset"] = "UTF-8"
 default_headers["Accept-Encoding"] = "gzip"
 
+cf_proxy = {'url': 'quiet-base-584a.ifewfijdqwji.workers.dev', 'token': 'c48912u84u0238u82'}
+
 # direct IP access for some hosts
 directIP = {
     'akki.monster': '31.220.1.77',
@@ -57,21 +59,6 @@ if HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT == 0: HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT =
 
 # Random use of User-Agents, if nad is not specified
 HTTPTOOLS_DEFAULT_RANDOM_HEADERS = False
-
-# old
-# domainCF = list()
-# channelsCF = ['guardaserieclick', 'ilgeniodellostreaming']
-# otherCF = ['akvideo.stream', 'backin.net', 'vcrypt.net']
-# for ch in channelsCF:
-#     domainCF.append(urlparse.urlparse(config.get_channel_url(name=ch)).hostname)
-# domainCF.extend(otherCF)
-
-# CF_LIST = list()
-# CF_LIST_PATH = os.path.join(config.get_data_path(), "CF_Domains.txt")
-#
-# if os.path.exists(CF_LIST_PATH):
-#     with open(CF_LIST_PATH, "rb") as CF_File:
-#         CF_LIST = CF_File.read().splitlines()
 
 
 def get_user_agent():
@@ -430,14 +417,21 @@ def downloadpage(url, **opt):
 
     if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
             and not opt.get('CF', False) and 'Ray ID' in response['data'] and not opt.get('post', None):
-        logger.debug("CF retry... for domain: %s" % domain)
-        from lib import proxytranslate
-        gResp = proxytranslate.process_request_proxy(url)
-        if gResp:
-            req = gResp['result']
-            response_code = req.status_code
-            response['url'] = gResp['url']
-            response['data'] = gResp['data']
+        if 'Px-Host' in req_headers:  # first try with proxy
+            logger.debug("CF retry with google translate for domain: %s" % domain)
+            from lib import proxytranslate
+            gResp = proxytranslate.process_request_proxy(url)
+            if gResp:
+                req = gResp['result']
+                response_code = req.status_code
+                response['url'] = gResp['url']
+                response['data'] = gResp['data']
+        else:
+            logger.debug("CF retry with proxy for domain: %s" % domain)
+            if not opt.get('headers'):
+                opt['headers'] = []
+            opt['headers'].extend([['Px-Host', domain], ['Px-Token', cf_proxy['token']]])
+            return downloadpage(urlparse.urlunparse((parse.scheme, cf_proxy['url'], parse.path, parse.params, parse.query, parse.fragment)), **opt)
 
     if not response['data']:
         response['data'] = ''
