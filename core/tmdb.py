@@ -1396,6 +1396,7 @@ class Tmdb(object):
             if collection:
                 _id = collection.get('id')
         if _id:
+            translation = {}
             url = '{}/collection/{}?api_key={}&language={}&append_to_response=images&include_image_language={},en,null'.format(host, _id, api, self.search_language, self.search_language)
             tanslationurl = '{}/collection/{}/translations?api_key={}'.format(host, _id, api)
             info = self.get_json(url)
@@ -1405,7 +1406,7 @@ class Tmdb(object):
                     break
             ret['set'] = info.get('name') if info.get('name') else translation.get('name')
             ret['setid'] = _id
-            ret['setoverview'] = info.get('overview') if info.get('overview') else translation.get('overview')
+            ret['setoverview'] = info.get('overview') if info.get('overview') else translation.get('overview', '')
             posters = ['https://image.tmdb.org/t/p/original' + info.get('poster_path')] if info.get('poster_path') else []
             fanarts = ['https://image.tmdb.org/t/p/original' + info.get('backdrop_path')] if info.get('backdrop_path') else []
             for image in info['images']['posters']:
