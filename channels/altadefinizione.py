@@ -51,6 +51,7 @@ def genres(item):
 def search(item, text):
     logger.debug(text)
     item.url = "{}/search/{}/feed/rss2/".format(host, text)
+    # item.url = "{}/s={}".format(host, text)
     item.args = 'search'
 
     try:
@@ -70,7 +71,7 @@ def peliculas(item):
     action = 'check'
     patron = r'src="(?P<poster>http[^"]+)(?:[^>]+>){4}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
     if item.args == 'search':
-        patron = r'<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
+        patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
     return locals()
 
