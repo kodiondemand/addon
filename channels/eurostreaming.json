@@ -1,10 +1,10 @@
 {
     "id": "eurostreaming",
     "name": "Eurostreaming",
-    "active": true,
-    "language": ["ita","sub-ita"],
+    "active": false,
+    "language": ["ita", "sub-ita"],
     "thumbnail": "eurostreaming.png",
     "banner": "eurostreaming.png",
-    "categories": ["tvshow","anime","vos"],
+    "categories": ["tvshow", "anime", "vos"],
     "settings": []
 }
