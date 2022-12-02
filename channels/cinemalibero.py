@@ -206,16 +206,15 @@ def newest(categoria):
 
 
 def check(item):
-    logger.debug()
     data = support.match(item.url, headers=headers).data
-    # support.dbg()
+
     if data:
         ck = str(support.match(data, patronBlock=r'Genere:(.*?)</span>', patron=r'tag">([^<]+)').matches).lower()
 
-        if 'serie tv' in ck or 'anime' in ck:# in ['serie tv', 'wrestling wwe', 'anime']:
+        if 'serie tv' in ck or 'anime' in ck or 'wrestling wwe' in ck :# in ['serie tv', 'wrestling wwe', 'anime']:
             if 'anime' in ck:
                 item.args = 'anime'
-            elif 'sport' in ck:
+            elif 'sport' in ck or 'wrestling' in ck:
                 item.args = 'sport'
             else:
                 item.args = 'serie'
