@@ -2,7 +2,7 @@
 # ------------------------------------------------------------
 # Canale per vvvvid
 # ----------------------------------------------------------
-import functools, re
+import re
 
 import requests, sys, inspect
 from core import support, tmdb, httptools
@@ -18,7 +18,7 @@ host = 'https://www.vvvvid.it'
 # Creating persistent session
 current_session = requests.Session()
 # current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36'}
+headers = httptools.default_headers
 
 # Getting conn_id token from vvvvid and creating payload
 login_page = host + '/user/login'
@@ -26,7 +26,7 @@ try:
     res = current_session.get(login_page, headers=headers)
     conn_id = res.json()['data']['conn_id']
     payload = {'conn_id': conn_id}
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 5.1; en-GB; rv:1.8.1.14) Gecko/20080404 Firefox/2.0.0.14', 'Cookie': res.headers['set-cookie']}
+    headers['Cookie'] = res.headers['set-cookie']
 except:
     conn_id = ''
 
@@ -238,8 +238,8 @@ def findvideos(item):
                 drm = ''
                 license = ''
                 if episode.get('drm'):
-                    drm = 'com.widevine.alpha',
-                    license= 'https://www.vvvvid.it/drm/license/widevine?content_id={drm}&conn_id={conn}|Accept=*/*&Content-Type=&User-Agent={ua}|R{{SSM}}|'.format(drm=urlparse.quote(episode['drm']), conn=conn_id, ua=headers['User-Agent']),
+                    drm = 'com.widevine.alpha'
+                    license= 'https://www.vvvvid.it/drm/license/widevine?content_id={drm}&conn_id={conn}|Accept=*/*&Content-Type=&User-Agent={ua}|R{{SSM}}|'.format(drm=urlparse.quote(episode['drm']), conn=conn_id, ua=headers['User-Agent'])
                 itemlist.append(
                     item.clone(action= 'play',
                                title=config.get_localized_string(30137),
