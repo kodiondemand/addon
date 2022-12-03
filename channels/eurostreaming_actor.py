@@ -31,9 +31,9 @@ def peliculas(item):
         patronNext = r'class="next".*?"(.+?)"'
         
     else:
-        patron = r'<div class="post-thumb">.*?<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)[\<]?[/(](?P<year>.*?)[\)|a]'
+        patron = r'<div class="post-thumb">.*?<img src="(?P<thumb>[^"]+)".*?><a href="(?P<url>[^"]+)"[^>]+>(?P<title>.+?)[\<]'
         patronNext = r'next.*?href="(.*?)"'
-
+    # debug = True
     return locals()
 
 

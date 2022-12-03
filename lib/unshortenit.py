@@ -121,7 +121,7 @@ class UnshortenIt(object):
 
             logger.info(uri)
 
-        if originalUri == uri and logger.testMode:
+        if originalUri == uri and logger.testMode and code != 404:
             raise Exception('Not un-shortened link: ' + uri)
         return uri, code
 
@@ -507,6 +507,8 @@ class UnshortenIt(object):
             html = r.data
 
             uri = re.findall(r'<iframe\s+src="([^"]+)', html)[0]
+            if not uri and 'Questo video è in conversione' in html:
+                return uri, 404
 
             return uri, r.code
 
