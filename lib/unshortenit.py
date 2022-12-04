@@ -506,11 +506,11 @@ class UnshortenIt(object):
             r = httptools.downloadpage(uri, timeout=self._timeout, cookies=False)
             html = r.data
 
-            uri = re.findall(r'<iframe\s+src="([^"]+)', html)[0]
-            if not uri and 'Questo video è in conversione' in html:
+            n_uri = re.findall(r'<iframe\s+src="([^"]+)', html)
+            if not n_uri and 'Questo video è in conversione' in html:
                 return uri, 404
 
-            return uri, r.code
+            return n_uri[0], r.code
 
         except Exception as e:
             return uri, str(e)
