@@ -1,5 +1,5 @@
 from platformcode import config, logger, autorenumber
-from core import httptools, scrapertools, support, tmdb
+from core import httptools, scrapertools, support, tmdb, jsontools
 from inspect import stack
 
 import sys
@@ -34,6 +34,7 @@ def submenu_az(item):
                                 thumbnail=support.thumb('az')))
     return itemlist
 
+
 def submenu_year(item):
     itemlist = []
     from datetime import date
@@ -46,6 +47,7 @@ def submenu_year(item):
                                 thumbnail=support.thumb('year')))
     return itemlist
 
+
 def submenu_top(item):
     itemlist = []
     links = {'Top del giorno':'daily-top', 'Top della settimana':'weekly-top', 'Top del mese':'monthly-top'}
@@ -56,6 +58,7 @@ def submenu_top(item):
                                 variable= link))
     return itemlist
 
+
 def submenu_season(item):
     itemlist = []
     seasons = {'winter':'Inverno', 'spring':'Primavera', 'summer':'Estate', 'fall':'Autunno'}
@@ -65,11 +68,12 @@ def submenu_season(item):
         s = season['season'].split('.')[-1]
         title = seasons[s]
         itemlist.append(item.clone(title=title,
-                                url = '{}/api/seasonal-view/{}-{}'.format(host, s, item.variable),
-                                thumbnail = support.thumb(s),
-                                action = 'peliculas',
-                                variable=''))
+                                   url = '{}/api/seasonal-view/{}-{}'.format(host, s, item.variable),
+                                   thumbnail = support.thumb(s),
+                                   action = 'peliculas',
+                                   variable=''))
     return itemlist
+
 
 def submenu_top_of(item):
     itemlist = []
@@ -83,13 +87,12 @@ def submenu_top_of(item):
         long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
 
         itemlist.append(item.clone(title=long_title,
-                                id=anime['animeId'],
-                                url = '{}/api/anime/{}'.format(host, anime['animeId']),
-                                thumbnail = get_thumbnail(anime, 'animeHorizontalImages'),
-                                action = 'episodios',
-                                variable=anime['animeId']))
+                                   url = '{}/anime/{}'.format(host, anime['animeId']),
+                                   video_url = '{}/api/anime/{}'.format(host, anime['animeId']),
+                                   thumbnail = get_thumbnail(anime, 'animeHorizontalImages'),
+                                   action = 'episodios',
+                                   variable=anime['animeId']))
     return itemlist
-
 
 
 def search(item, texto):
@@ -136,15 +139,14 @@ def latest_added(item):
 
         itemlist.append(item.clone(title=long_title,
                                    fulltitle=title,
-                                   animeId = episode['animeId'],
-                                   id=episode['id'],
+                                   url='{}/play/{}'.format(host, episode['id']),
                                    contentType = 'episode',
                                    contentTitle = title,
                                    contentSerieName = animeTitle,
                                    contentLanguage = lang,
                                    quality = quality,
                                    contentEpisodeNumber = int(float(episode['episodeNumber'])),
-                                   animeUrl = '{}/api/anime/{}'.format(host, episode['animeId']),
+                                   video_url = '{}/api/episode/{}'.format(host, episode['id']),
                                    thumbnail = image,
                                    fanart = image,
                                    action = 'findvideos'))
@@ -163,6 +165,7 @@ def peliculas(item):
     js = httptools.downloadpage('{}?page={}&size={}{}&sort={},{}&sort=id'.format(item.url, page, perpage, item.variable, sort, order)).json
 
     for it in js:
+        logger.debug(jsontools.dump(js))
         title, lang = get_lang(it['title'])
 
         long_title = support.typo(title, 'bold') + support.typo(lang, '_ [] color kod')
@@ -174,10 +177,10 @@ def peliculas(item):
                                    contentType = 'movie' if it['type'] == 'Movie' else 'tvshow',
                                    contentTitle = title,
                                    contentSerieName = title if it['type'] == 'Serie' else '',
-                                   action ='findvideos' if it['type'] == 'Movie' else 'episodios',# '' if not active else 'findvideos' if it['type'] == 'Movie' else 'episodios',
+                                   action ='findvideos' if it['type'] == 'Movie' else 'episodios',
                                    plot = it['storyline'],
-                                #    year = it['startDate'].split('-')[0],
-                                   url = '{}/api/anime/{}'.format(host, it['id']),
+                                   url = '{}/anime/{}'.format(host, it['id']),
+                                   video_url = '{}/api/anime/{}'.format(host, it.get('animeId', it.get('id'))),
                                    thumbnail = get_thumbnail(it),
                                    fanart = get_thumbnail(it, 'horizontalImages')))
 
@@ -194,7 +197,7 @@ def episodios(item):
     itemlist = []
 
     # url = '{}/api/anime/{}'.format(host, item.id)
-    json = httptools.downloadpage(item.url, CF=False ).json
+    json = httptools.downloadpage(item.video_url, CF=False ).json
 
     if type(json) == list:
         item.show_renumber = False
@@ -208,7 +211,7 @@ def episodios(item):
             title = it['name']
 
             itemlist.append(item.clone(title = title,
-                                       id= '{}/season/{}'.format(it['animeId'], it['id']),
+                                       video_url = '{}/api/anime/{}/season/{}'.format(host, it['animeId'], it['id']),
                                        contentType = 'season',
                                        action = 'list_episodes',
                                        plot = json['storyline'],
@@ -245,8 +248,7 @@ def list_episodes(item, json=None):
     itemlist = []
 
     if not json:
-        url = '{}/api/anime/{}'.format(host, item.id)
-        json = httptools.downloadpage(url, CF=False ).json
+        json = httptools.downloadpage(item.video_url, CF=False ).json
 
     episodes = json['episodes'] if 'episodes' in json else json
     episodes.sort(key=lambda ep: int(ep['episodeNumber'].split('.')[0]))
@@ -263,8 +265,8 @@ def list_episodes(item, json=None):
         image = get_thumbnail(it, 'episodeImages')
 
         itemlist.append(item.clone(title = title,
-                                   id= it['id'],
-                                   url= 'api/episode/{}'.format(it['id']),
+                                   url= '{}/play/{}'.format(host, it['id']),
+                                   video_url= '{}/api/episode/{}'.format(host, it['id']),
                                    contentType = 'episode',
                                    contentEpisodeNumber = int(it['episodeNumber'].split('.')[0]),
                                    contentSeason = item.contentSeason if item.contentSeason else '',
@@ -283,21 +285,17 @@ def list_episodes(item, json=None):
 def findvideos(item):
     logger.debug()
 
-    url = '{}/api/{}/{}'.format(host, 'episode' if item.contentType == 'episode' else 'anime', item.id)
+    # url = '{}/api/{}/{}'.format(host, 'episode' if item.contentType == 'episode' else 'anime', item.id)
 
-    json = httptools.downloadpage(url, CF=False ).json
+    res = httptools.downloadpage(item.video_url, CF=False ).json
 
-    if json.get('episodes', []):
-        json = httptools.downloadpage('{}/api/episode/{}'.format(host, json['episodes'][0]['id'])).json
-    # logger.debug(json)
+    if res.get('episodes', []):
+        res = httptools.downloadpage('{}/api/episode/{}'.format(host, res['episodes'][0]['id'])).json
 
-    videourl = json['videoUrl']
+    item.manifest = 'hls'
+    item.url = res['videoUrl']
 
-    itemlist = [item.clone(title=config.get_localized_string(30137),
-                           url=videourl,
-                           server='directo')]
-
-    return support.server(item, itemlist=itemlist)
+    return support.server(item, itemlist=[item])
 
 
 def get_thumbnail(data, prop = 'verticalImages', key = 'full'):
