@@ -93,7 +93,6 @@ def newest(categoria):
 
 @support.scrape
 def peliculas(item):
-    # debug = True
     if item.contentType == 'movie':
         action = 'findvideos'
     elif item.contentType == 'tvshow':
@@ -105,11 +104,10 @@ def peliculas(item):
     if item.args == 'newest':
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?:\[(?P<quality1>HD)\])?[ ]?(?:\(|\[)?(?P<lang>[sS]ub-[iI][tT][aA])?(?:\)|\])?[ ]?(?:\[(?P<quality>.+?)\])?[ ]?(?:\((?P<year>\d+)\))?<(?:[^>]+>.+?(?:title="Nuovi episodi">(?P<episode>\d+x\d+)[ ]?(?P<lang2>Sub-Ita)?|title="IMDb">(?P<rating>[^<]+)))?'
     else:
-        # patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?:\[(?P<quality1>HD)\])?\s?(?:[\(\[])?(?P<lang>[sS]ub-[iI][tT][aA])?(?:[\)\]])?\s?(?:\[(?P<quality>.+?)\])?\s?(?:\((?P<year>\d+)\))?<'
         patron = r'<li><a href="(?P<url>[^"]+)"[^=]+="(?P<thumb>[^"]+)"><div>\s*?<div[^>]+>(?P<title>[^\(\[<]+)(?P<title2>\([\D*]+\))?(?:\[(?P<quality1>HD)\])?\s?(?:[\(\[])?(?P<lang>[sS]ub-[iI][tT][aA])?(?:[\)\]])?\s?(?:\[(?P<quality>.+?)\])?\s?(?:\((?P<year>\d+)\))?(?:\(\D{2}\s\d{4}\))?<'
 
     patronNext = r'<a href="([^"]+)"\s*>Pagina'
-    # debug = True
+
 
     def itemHook(item):
         if item.quality1:
@@ -120,8 +118,7 @@ def peliculas(item):
             item.title += support.typo(item.lang2, '_ [] color kod')
         if item.args == 'novita':
             item.title = item.title
-        # if 'wp-content' in item.thumbnail and not item.infoLabels['year']:
-        #     item.infoLabels['year'] = item.thumbnail.split('/')[5]
+
         return item
     return locals()
 
@@ -133,11 +130,8 @@ def episodios(item):
     action = 'findvideos'
     item.contentType = 'tvshow'
     blacklist = ['']
-    # debug = True
     patron = r'"season-no">(?P<season>\d+)x(?P<episode>\d+)(?:[^>]+>){5}\s*(?P<title>[^<]+)(?P<data>.*?)</table>'
-    # patron = r'(?P<episode>\d+(?:&#215;|×)?\d+\-\d+|\d+(?:&#215;|×)\d+)[;]?(?:(?P<title>[^<]+)<(?P<data>.*?)|(\2[ ])(?:<(\3.*?)))(?:<br />|</p>)'
     patronBlock = r'<span>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?.*?</span>.*?class="content(?P<block>.*?)(?:"accordion-item|<script>)'
-    # patronBlock = r'<strong>(?P<block>(?:.+?Stagione*.+?(?P<lang>[Ii][Tt][Aa]|[Ss][Uu][Bb][\-]?[iI][tT][aA]))?(?:.+?|</strong>)(/?:</span>)?</p>.*?</p>)'
     return locals()
 
 
@@ -145,10 +139,7 @@ def findvideos(item):
     if item.contentType != 'movie':
         links = support.match(item.data, patron=r'href="([^"]+)"').matches
     else:
-        matchData = item.data if item.data else item
-        links = support.match(matchData, patron=r'(?:SRC|href)="([^"]+)"', patronBlock=r'<div class="col-md-10">(.+?)<div class="ads">').matches
-    data = ''
-    for link in links:
-        support.info('URL=',link)
-        data += link + '\n'
-    return support.server(item, data)
+        matchData = item.data if item.data else support.match(item.url, headers=headers).data
+        links = support.match(matchData, patron=r'data-id="([^"]+)"').matches
+
+    return support.server(item, links)
