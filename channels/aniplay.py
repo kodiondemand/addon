@@ -195,7 +195,8 @@ def peliculas(item):
 def episodios(item):
     logger.debug()
     itemlist = []
-
+    if not item.video_url:
+        item.video_url = item.url.replace('/anime/', '/api/anime/')
     # url = '{}/api/anime/{}'.format(host, item.id)
     json = httptools.downloadpage(item.video_url, CF=False ).json
 
