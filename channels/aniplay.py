@@ -286,15 +286,16 @@ def list_episodes(item, json=None):
 def findvideos(item):
     logger.debug()
 
-    # url = '{}/api/{}/{}'.format(host, 'episode' if item.contentType == 'episode' else 'anime', item.id)
-
     res = httptools.downloadpage(item.video_url, CF=False ).json
 
     if res.get('episodes', []):
         res = httptools.downloadpage('{}/api/episode/{}'.format(host, res['episodes'][0]['id'])).json
 
-    item.manifest = 'hls'
     item.url = res['videoUrl']
+    item.server = 'directo'
+
+    if '.m3u' in item.url:
+        item.manifest = 'hls'
 
     return support.server(item, itemlist=[item])
 
