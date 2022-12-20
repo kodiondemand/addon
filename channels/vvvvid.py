@@ -23,7 +23,7 @@ headers = httptools.default_headers
 # Getting conn_id token from vvvvid and creating payload
 login_page = host + '/user/login'
 try:
-    res = current_session.get(login_page, headers=headers)
+    res = current_session.get(login_page)
     conn_id = res.json()['data']['conn_id']
     payload = {'conn_id': conn_id}
     headers['Cookie'] = res.headers['set-cookie']
