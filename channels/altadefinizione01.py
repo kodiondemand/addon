@@ -141,13 +141,15 @@ def newest(categoria):
 
     return itemlist
 
+
 def findvideos(item):
     support.info('findvideos', item)
-    data = httptools.downloadpage(item.url).data
-    iframe = support.match(data, patron='src="(http[^"]+)" frameborder').match
-    if iframe:
-        item.url = iframe
-        return support.server(item)
-    else:
-        itemlist = [item.clone(action="play", url=srv[0], quality=srv[1]) for srv in support.match(item, patron='<a href="#" data-link="([^"]+).*?<span class="d">([^<]+)').matches]
-        return support.server(item, itemlist=itemlist, headers=headers)
+    itemlist = [item.clone(action="play", url=srv[0], quality=srv[1]) for srv in support.match(item, patron='<a href="#" data-link="([^"]+).*?<span class="d">([^<]+)').matches]
+    itemlist = support.server(item, itemlist=itemlist, headers=headers)
+    if not itemlist:
+        data = httptools.downloadpage(item.url).data
+        iframe = support.match(data, patron='src="(http[^"]+)" frameborder').match
+        if iframe:
+            item.url = iframe
+            return support.server(item)
+    return itemlist
