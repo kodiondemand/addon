@@ -45,15 +45,16 @@ class UnshortenIt(object):
     _protectlink_regex = r'(?:s\.)?protectlink\.stream'
     _uprot_regex = r'uprot\.net'
     # for services that only include real link inside iframe
-    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link|icu'
+    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link|isecure\.icu'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|isecure\.link|icu'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|isecure\.link|isecure\.icu'
     _filecrypt_regex = r'filecrypt\.cc'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
-                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex, _linkhub_regex,
+                 _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex,
                  _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect,
-                 _filecrypt_regex]
+                 ]
+    folderRegex = [_filecrypt_regex, _linkhub_regex]
 
     _maxretries = 5
 
@@ -95,8 +96,6 @@ class UnshortenIt(object):
             #     uri, code = self._unshorten_vcrypt(uri)
             if re.search(self._linkup_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_linkup(uri)
-            if re.search(self._linkhub_regex, uri, re.IGNORECASE):
-                uri, code = self._unshorten_linkhub(uri)
             if re.search(self._swzz_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_swzz(uri)
             if re.search(self._stayonline_regex, uri, re.IGNORECASE):
@@ -109,8 +108,6 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_protectlink(uri)
             if re.search(self._uprot_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_uprot(uri)
-            if re.search(self._filecrypt_regex, uri, re.IGNORECASE):
-                uri, code = self._unshorten_filecrypt(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -124,6 +121,14 @@ class UnshortenIt(object):
         if originalUri == uri and logger.testMode and code != 404:
             raise Exception('Not un-shortened link: ' + uri)
         return uri, code
+
+    def expand_folder(self, uri):
+        links = []
+        if re.search(self._linkhub_regex, uri, re.IGNORECASE):
+            links = self._unshorten_linkhub(uri)
+        if re.search(self._filecrypt_regex, uri, re.IGNORECASE):
+            links = self._unshorten_filecrypt(uri)
+        return links
 
     def unwrap_30x(self, uri, timeout=10):
         def unwrap_30x(uri, timeout=10):
@@ -602,13 +607,9 @@ class UnshortenIt(object):
                 logger.info(uri)
                 r = httptools.downloadpage(uri, follow_redirect=True, timeout=self._timeout, cookies=False)
             links = re.findall('<a href="(http[^"]+)', r.data)
-            if len(links) == 1:
-                uri = links[0]
-            else:
-                uri = "\n".join(links)  # folder
-            return uri, r.code
+            return links
         except Exception as e:
-            return uri, str(e)
+            return []
 
     def _unshorten_swzz(self, uri):
         try:
@@ -705,19 +706,24 @@ class UnshortenIt(object):
                 return link, 200
         return uri, 200
 
-    # container, for returning only the first result
     def _unshorten_filecrypt(self, uri):
-        url = ''
+        import sys
+        if sys.version_info[0] >= 3:
+            from concurrent import futures
+        else:
+            from concurrent_py2 import futures
+        links = []
         try:
             fc = FileCrypt(uri)
-            url = fc.unshorten(fc.list_files()[0][1])
+            # links = [fc.unshorten(f[2]) for f in fc.list_files()]
+            with futures.ThreadPoolExecutor() as executor:
+                unshList = [executor.submit(fc.unshorten, f[2]) for f in fc.list_files()]
+                for link in futures.as_completed(unshList):
+                    links.append(link.result())
         except:
             import traceback
             logger.error(traceback.format_exc())
-        if url:
-            return url, 200
-        else:
-            return uri, 200
+        return links
 
 
 def decrypt_aes(text, key):
@@ -758,9 +764,31 @@ def unshorten(uri, type=None, timeout=10):
 
 
 def findlinks(text):
+    import sys
+    if sys.version_info[0] >= 3:
+        from concurrent import futures
+    else:
+        from concurrent_py2 import futures
+
     unshortener = UnshortenIt()
     matches = []
 
+    # expand folders
+    regex = '(?:https?://(?:[\w\d]+\.)?)?(?:'
+    for rg in unshortener.folderRegex:
+         regex += rg + '|'
+    regex = regex[:-1] + ')/[a-zA-Z0-9_=/]+'
+    for match in re.findall(regex, text):
+        matches.append(match)
+
+    with futures.ThreadPoolExecutor() as executor:
+        unshList = [executor.submit(unshortener.expand_folder, match) for match in matches]
+        for ret in futures.as_completed(unshList):
+            text += '\n'.join(ret.result())
+            text += '\n'
+
+    # unshorten
+    matches = []
     regex = '(?:https?://(?:[\w\d]+\.)?)?(?:'
     for rg in unshortener.listRegex:
          regex += rg + '|'
@@ -776,11 +804,6 @@ def findlinks(text):
         # for match in matches:
         #     sh = unshorten(match)[0]
         #     text += '\n' + sh
-        import sys
-        if sys.version_info[0] >= 3:
-            from concurrent import futures
-        else:
-            from concurrent_py2 import futures
         with futures.ThreadPoolExecutor() as executor:
             unshList = [executor.submit(unshorten, match) for match in matches]
             for link in futures.as_completed(unshList):
@@ -795,22 +818,32 @@ def findlinks(text):
 
 
 class FileCrypt:
+    hostToFilter = ('https://nitroflare.com', 'http://easybytez.com', 'http://drop.download', 'https://rapidgator.net')
+    extensionToFilter = ('rar',)
+
     def __init__(self, uri=None):
         self.uri = uri
 
     def find(self, data):
-        _filecrypt_regex = r'https?://\w+\.filecrypt\.cc/[a-zA-Z0-9_=/]+'
+        _filecrypt_regex = r'https?://(?:\w+\.)?filecrypt\.cc/[a-zA-Z0-9_=/]+'
         return scrapertools.find_multiple_matches(data, _filecrypt_regex)
 
     def list_files(self):
-        reg = """<td title="([^"]+).*?<button onclick="openLink\('([^']+)"""
+        reg = """<td title="([^"]+).*?<a href="([^"]+).*?<button onclick="openLink\('([^']+)"""
         data = httptools.downloadpage(self.uri).data
+        if 'Richiamo alla sicurezza' in data:  # captcha, try with gtranslate
+            from lib import proxytranslate
+            data = proxytranslate.process_request_proxy(self.uri).get('data', '')
         ret = scrapertools.find_multiple_matches(data, reg)
-        return ret
+        return [r for r in ret if r[1] not in self.hostToFilter and r[0].split('.')[-1] not in self.extensionToFilter]
 
     def unshorten(self, link):
-        link_data = httptools.downloadpage('https://www.filecrypt.cc/Link/' + link + '.html').data
-        time.sleep(0.1)
-        url = httptools.downloadpage(scrapertools.find_single_match(link_data, "location.href='([^']+)"), headers={'Referer': 'http://www.filecrypt.cc/'}, only_headers=True).url
-        logger.info(url)
-        return url
+        link_data = httptools.downloadpage('https://filecrypt.cc/Link/' + link + '.html').data
+        link_url = scrapertools.find_single_match(link_data, "location.href='([^']+)")
+        if link_url:
+            time.sleep(0.1)
+            url = httptools.downloadpage(link_url, headers={'Referer': 'http://filecrypt.cc/'}, only_headers=True).url
+            logger.info(url)
+            return url
+        else:
+            return ''

@@ -98,6 +98,7 @@ def process_request_proxy(url):
         data = re.sub('https://translate\.googleusercontent\.com/.*?u=(.*?)&amp;usg=[A-Za-z0-9_-]+', '\\1', data)
         data = re.sub('https?://[a-zA-Z0-9-]*' + domain.replace('.', '-') + '\.translate\.goog(/[a-zA-Z0-9#/-]+)', 'https://' + domain + '\\1', data)
         data = re.sub('\s+<', '<', data)
+        data = re.sub('https://translate\.google\.com/website\?[^ ]+u=', '', data)
         data = data.replace('&amp;', '&').replace('https://translate.google.com/website?sl=' + SL + '&tl=' + TL + '&ajax=1&u=', '')
 
         return {'url': url.strip(), 'result': result, 'data': data}

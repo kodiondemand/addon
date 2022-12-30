@@ -97,10 +97,11 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     data = item.data
+    # debug=True
 
     if item.args == 'anime':
         logger.debug("Anime :", item)
-        patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))'
+        patron = r'<a target=(?P<url>[^>]+>(?P<title>Episodio\s(?P<episode>\d+))(?::)?(?:(?P<title2>[^<]+))?.*?(?:<br|</p))|(?P<data>.+)'
         patronBlock = r'(?:Stagione (?P<season>\d+))?(?:</span><br />|</span></p>|strong></p>)(?P<block>.*?)(?:<div style="margin-left|<span class="txt_dow">)'
         item.contentType = 'tvshow'
     elif item.args == 'sport':
@@ -110,7 +111,6 @@ def episodios(item):
         item.contentType = 'tvshow'
     elif item.args == 'serie' or item.contentType == 'tvshow':
         logger.debug("Serie :", item)
-        # debug=True
         patron = r'(?:/>|<p>)\s*(?:(?P<episode>\d+(?:x|×|&#215;)\d+|Puntata \d+)(?:-(?P<episode2>\d+))?[;]?[ ]?(?P<title>[^<–-]+))?(?P<data>.*?)(?:<br|</p)'
         patronBlock = r'Stagione\s(?:[Uu]nica)?(?:(?P<lang>iTA|ITA|Sub-ITA|Sub-iTA))?.*?</strong>(?P<block>.+?)(?:strong>|<div class="at-below)'
         item.contentType = 'tvshow'
@@ -130,26 +130,30 @@ def episodios(item):
         for it in itl:
             ep = scrapertools.find_single_match(it.title, r'(\d+x\d+)')
             if not ep and 'http' in it.data:  # stagione intera
-                from lib import unshortenit
-                data = unshortenit.findlinks(it.data)
+                # from lib import unshortenit
+                # data = unshortenit.findlinks(it.data)
+                episodes = {}
+
                 def get_ep(s):
                     srv_mod = __import__('servers.%s' % s.server, None, None, ["servers.%s" % s.server])
                     if hasattr(srv_mod, 'get_filename'):
                         title = srv_mod.get_filename(s.url)
-                        ep = scrapertools.get_season_and_episode(title)
+                        if item.args == 'anime':
+                            ep = title
+                        else:
+                            ep = scrapertools.get_season_and_episode(title)
                         if ep:
                             if ep not in episodes:
                                 episodes[ep] = []
                             episodes[ep].append(s)
 
-                servers = support.server(item, data, CheckLinks=False, Download=False, Videolibrary=False)
-                episodes = {}
-                for s in servers:
-                    get_ep(s)
+                servers = support.server(item, it.data, CheckLinks=False, Download=False, Videolibrary=False)
+                # for s in servers:
+                #     get_ep(s)
                 # ottengo l'episodio dal nome del file
-                # with futures.ThreadPoolExecutor() as executor:
-                #     for s in servers:
-                #         executor.submit(get_ep, s)
+                with futures.ThreadPoolExecutor() as executor:
+                    for s in servers:
+                        executor.submit(get_ep, s)
                 # logger.debug(it.contentLanguage)
                 ret.extend([it.clone(title=typo(ep, 'bold')+typo(it.contentLanguage, '_ [] color kod bold'), contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1]), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
             elif ep:
@@ -248,26 +252,25 @@ def findvideos(item):
         return support.server(item, itemlist=[Item().fromurl(s) for s in item.servers])
     if not item.data:
         item.data = httptools.downloadpage(item.url)
-    data = scrapertools.find_single_match(item.data, '<div class="at-above-post addthis_tool"(.*?)<div class="at-below-post')
+    data = scrapertools.find_single_match(item.data, '<div class="at-above-post addthis_tool"(.*?)(?:<div class="at-below-post|[dD][oO][wW][nN][lL][oO][aA][dD])')
     if data:
         item.data = data
 
     servers = []
-    if item.args == 'anime':
-        if item.urls:  # this is a episode
-            return support.server(item, itemlist=[Item(url=support.unshortenit.FileCrypt().unshorten(u)) for u in item.urls])
-        itemlist = []
-        episodes = {}
-        # support.dbg()
-        for uri in support.unshortenit.FileCrypt().find(item.data):
-            for ep in support.unshortenit.FileCrypt(uri).list_files():
-                ep = ('.'.join(ep[0].split('.')[:-1]), ep[1])  # remove extension
-                if not ep[0] in episodes:
-                    episodes[ep[0]] = []
-                episodes[ep[0]].append(ep[1])
-        for ep in episodes.keys():
-            itemlist.append(item.clone(title=ep, urls=episodes[ep], action='findvideos', data=''))
-        return itemlist
+    # if item.args == 'anime':
+    #     if item.urls:  # this is a episode
+    #         return support.server(item, itemlist=[Item(url=support.unshortenit.FileCrypt().unshorten(u)) for u in item.urls])
+    #     itemlist = []
+    #     episodes = {}
+    #     for uri in support.unshortenit.FileCrypt().find(item.data):
+    #         for ep in support.unshortenit.FileCrypt(uri).list_files():
+    #             ep = ('.'.join(ep[0].split('.')[:-1]), ep[1])  # remove extension
+    #             if not ep[0] in episodes:
+    #                 episodes[ep[0]] = []
+    #             episodes[ep[0]].append(ep[1])
+    #     for ep in episodes.keys():
+    #         itemlist.append(item.clone(title=ep, urls=episodes[ep], action='findvideos', data=''))
+    #     return itemlist
     total_servers = support.server(item, data=item.data)
 
     if item.contentType == 'episode' and len(set([srv.server for srv in total_servers])) < len([srv.server for srv in total_servers]):

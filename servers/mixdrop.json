@@ -4,11 +4,11 @@
     "ignore_urls": [],
     "patterns": [
       {
-        "pattern": "mixdrop[s]?.[^/]+/(?:f|e)/([a-z0-9]+)",
+        "pattern": "mixdro?ps?.[^/]+/(?:f|e)/([a-z0-9]+)",
         "url": "https://mixdrop.co/e/\\1"
       },
       {
-        "pattern": "(mixdrop[s]?.[^/]+/player\\.php\\?id=[a-z0-9-]+)",
+        "pattern": "(mixdro?ps?.[^/]+/player\\.php\\?id=[a-z0-9-]+)",
         "url": "https://\\1"
       }
     ]
