@@ -361,8 +361,11 @@ def render_items(itemlist, parent_item):
         if item.infoLabels.get('clearart'): art['clearart'] = item.infoLabels['clearart']
         if item.infoLabels.get('banner'): art['banner'] = item.infoLabels['banner']
         if item.infoLabels.get('disc'): art['disc'] = item.infoLabels['disc']
-        listitem.setProperty('ResumeTime', str(get_played_time(item)))
-
+        #listitem.setProperty('ResumeTime', str(get_played_time(item)))
+        if config.get_platform(True)['num_version'] >= 20.0:
+                infotagvideo = xbmc.InfoTagVideo(offscreen=True)
+        else:
+            listitem = xbmcgui.ListItem(item.title)
         listitem.setArt(art)
 
         if config.get_setting("player_mode") == 1 and item.action == "play" and not item.nfo:
@@ -622,6 +625,9 @@ def set_infolabels(listitem, item, player=False):
         listitem.setInfo("video", infoLabels_kodi)
     except:
         listitem.setInfo("video", item.infoLabels)
+    infoLabels_kodi = {}
+    if config.get_platform(True)['num_version'] >= 20.0:
+        infotagvideo = xbmc.InfoTagVideo(offscreen=True)
 
 
 def set_context_commands(item, item_url, parent_item, **kwargs):
