@@ -189,7 +189,7 @@ def downloadbest(video_urls, title, continuar=False):
         try:
             ret = downloadfile(url, fullpath, continuar=continuar)
         # At this point, it is usually a timeout.
-        except urllib.error.URLError as e:
+        except urllib_error.URLError as e:
             import traceback
             logger.error(traceback.format_exc())
             ret = -2
