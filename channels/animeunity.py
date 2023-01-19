@@ -5,7 +5,7 @@
 
 import cloudscraper, json, copy, inspect
 from core import jsontools, support
-from platformcode import autorenumber, logger
+from platformcode import autorenumber
 
 session = cloudscraper.create_scraper()
 
@@ -154,15 +154,19 @@ def peliculas(item):
 
     payload = json.dumps(item.args)
     records = session.post(host + '/archivio/get-animes', headers=headers, data=payload).json()['records']
-
     for it in records:
+        if not it['title']:
+            it['title'] = ''
         lang = support.match(it['title'], patron=r'\(([It][Tt][Aa])\)').match
         title = support.re.sub(r'\s*\([^\)]+\)', '', it['title'])
 
         if 'ita' in lang.lower(): language = 'ITA'
         else: language = 'Sub-ITA'
 
-        itm = item.clone(title=support.typo(title,'bold') + support.typo(language,'_ [] color kod') + (support.typo(it['title_eng'],'_ ()') if it['title_eng'] else ''))
+        if title:
+            itm = item.clone(title=support.typo(title,'bold') + support.typo(language,'_ [] color kod') + (support.typo(it['title_eng'],'_ ()') if it['title_eng'] else ''))
+        else:
+            itm = item.clone(title=support.typo(it['title_eng'],'bold') + support.typo(language,'_ [] color kod'))
         itm.contentLanguage = language
         itm.type = it['type']
         itm.thumbnail = it['imageurl']
