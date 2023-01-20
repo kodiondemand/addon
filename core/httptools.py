@@ -420,7 +420,7 @@ def downloadpage(url, **opt):
         if 'Px-Host' in req_headers:  # first try with proxy
             logger.debug("CF retry with google translate for domain: %s" % domain)
             from lib import proxytranslate
-            gResp = proxytranslate.process_request_proxy(url)
+            gResp = proxytranslate.process_request_proxy(opt.get('real-url', url))
             if gResp:
                 req = gResp['result']
                 response_code = req.status_code
@@ -431,7 +431,10 @@ def downloadpage(url, **opt):
             if not opt.get('headers'):
                 opt['headers'] = []
             opt['headers'].extend([['Px-Host', domain], ['Px-Token', cf_proxy['token']]])
-            return downloadpage(urlparse.urlunparse((parse.scheme, cf_proxy['url'], parse.path, parse.params, parse.query, parse.fragment)), **opt)
+            opt['real-url'] = url
+            ret = downloadpage(urlparse.urlunparse((parse.scheme, cf_proxy['url'], parse.path, parse.params, parse.query, parse.fragment)), **opt)
+            ret.url = url
+            return ret
 
     if not response['data']:
         response['data'] = ''

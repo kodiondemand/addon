@@ -3,19 +3,17 @@
 import time, string, random
 from core import httptools, support
 from platformcode import logger, config
-import cloudscraper
-scraper = cloudscraper.create_scraper()
 
 def test_video_exists(page_url):
     global data
     logger.debug('page url=', page_url)
 
-    response = scraper.get(page_url)
-    # support.dbg()
-    if response.status_code == 404 or 'dsplayer' not in response.text:
+    response = httptools.downloadpage(page_url)
+    support.dbg()
+    if response.code == 404 or 'dsplayer' not in response.data:
         return False, config.get_localized_string(70449) % 'DooD Stream'
     else:
-        data = response.text
+        data = response.data
     return True, ""
 
 
@@ -30,7 +28,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     match = support.match(data, patron=r'''dsplayer\.hotkeys[^']+'([^']+).+?function\s*makePlay.+?return[^?]+([^"]+)''').match
     if match:
         url, token = match
-        ret = scraper.get(host + url, headers=headers).text
+        ret = httptools.downloadpage(host + url, headers=headers).data
         video_urls.append(['mp4 [DooD Stream]', '{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)])
 
 
