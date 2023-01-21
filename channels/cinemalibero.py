@@ -155,11 +155,13 @@ def episodios(item):
                     for s in servers:
                         executor.submit(get_ep, s)
                 # logger.debug(it.contentLanguage)
-                ret.extend([it.clone(title=typo(ep, 'bold')+typo(it.contentLanguage, '_ [] color kod bold'), servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
                 if item.args != 'anime':
-                    for n, r in enumerate(ret):
-                        r.contentSeason = int(episodes[n].split('x')[0])
-                        r.contentEpisodeNumber = int(episodes[n].split('x')[1])
+                    for ep in episodes:
+                        ret.append(it.clone(title=typo(ep, 'bold') + typo(it.contentLanguage, '_ [] color kod bold'),
+                                 servers=[srv.tourl() for srv in episodes[ep]], contentSeason=int(ep.split('x')[0]), contentEpisodeNumber=int(ep.split('x')[1])))
+                else:
+                    ret.extend([it.clone(title=typo(ep, 'bold') + typo(it.contentLanguage, '_ [] color kod bold'),
+                                         servers=[srv.tourl() for srv in episodes[ep]]) for ep in episodes])
             elif ep:
                 ret.append(it)
         return sorted(ret, key=lambda i: i.title)
