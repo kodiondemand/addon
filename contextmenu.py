@@ -1,13 +1,19 @@
+# functions that on kodi 19 moved to xbmcvfs
+import xbmc
+try:
+    import xbmcvfs
+    xbmc.translatePath = xbmcvfs.translatePath
+    xbmc.validatePath = xbmcvfs.validatePath
+    xbmc.makeLegalFilename = xbmcvfs.makeLegalFilename
+except:
+    pass
 from platformcode import config, logger
-import xbmc, sys, xbmcgui, os
-
+import sys, xbmc, xbmcgui, os
 
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
 
-from core import jsontools, support
-from core.item import Item
-
+from core import jsontools
 addon_id = config.get_addon_core().getAddonInfo('id')
 
 LOCAL_FILE = os.path.join(config.get_runtime_path(), "platformcode/contextmenu/contextmenu.json")
