@@ -7,7 +7,7 @@ sys.path.insert(0, librerias)
 
 from core.item import Item
 from lib.sambatools import libsmb as samba
-from core import scrapertools, support
+from core import scrapertools
 
 path = ''
 mediatype = ''
@@ -70,10 +70,10 @@ def execute_sql(sql):
     # alternative method to locate the database
     if not file_db or not os.path.exists(file_db):
         file_db = ""
-        for f in os.path.listdir(xbmc.translatePath("special://userdata/Database")):
+        for f in os.listdir(xbmc.translatePath("special://userdata/Database")):
             path_f = os.path.join(xbmc.translatePath("special://userdata/Database"), f)
 
-            if os.path.pathoos.pathols.isfile(path_f) and f.lower().startswith('myvideos') and f.lower().endswith('.db'):
+            if os.path.isfile(path_f) and f.lower().startswith('myvideos') and f.lower().endswith('.db'):
                 file_db = path_f
                 break
 

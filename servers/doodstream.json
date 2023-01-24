@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "dood(?:stream)?.[^/]+/+(?:e|d)/([a-z0-9]+)",
-        "url": "https://dood.to/e/\\1"
+        "url": "https://dood.yt/e/\\1"
       }
     ]
   },

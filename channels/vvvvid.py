@@ -7,7 +7,7 @@ import re
 import requests, sys, inspect
 from core import support, tmdb, httptools
 from platformcode import autorenumber, logger, config
-
+import random, string
 try:
     import urlparse
 except:
@@ -18,12 +18,12 @@ host = 'https://www.vvvvid.it'
 # Creating persistent session
 current_session = requests.Session()
 # current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
-headers = httptools.default_headers
+headers = {'User-Agent': ''}
 
 # Getting conn_id token from vvvvid and creating payload
 login_page = host + '/user/login'
 try:
-    res = current_session.get(login_page)
+    res = current_session.get(login_page, headers=headers)
     conn_id = res.json()['data']['conn_id']
     payload = {'conn_id': conn_id}
     headers['Cookie'] = res.headers['set-cookie']
