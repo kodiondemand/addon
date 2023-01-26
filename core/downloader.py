@@ -416,7 +416,6 @@ class Downloader(object):
             if not self.pending_parts and not self.download_parts and not self.save_parts:  # Download finished
                 self._state = self.states.completed
                 self.file.close()
-                platformtools.dialog_notification('Download completato')
                 continue
 
             elif not self.save_parts:
