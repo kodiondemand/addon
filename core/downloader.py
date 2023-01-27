@@ -438,6 +438,7 @@ class Downloader(object):
                     self.file.write(a)
                 self.save_parts.remove(save_id)
                 self.completed_parts.add(save_id)
+                platformtools.dialog_notification(save_id)
                 self._download_info["parts"][save_id]["status"] = self.states.completed
             except:
                 import traceback
