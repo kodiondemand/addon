@@ -439,7 +439,6 @@ class Downloader(object):
                 self.save_parts.remove(save_id)
                 self.completed_parts.add(save_id)
                 self._download_info["parts"][save_id]["status"] = self.states.completed
-                logger.info(self.state.completed)
             except:
                 import traceback
                 logger.error(traceback.format_exc())
