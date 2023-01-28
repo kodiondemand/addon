@@ -18,7 +18,7 @@ host = 'https://www.vvvvid.it'
 # Creating persistent session
 current_session = requests.Session()
 # current_session.request = functools.partial(current_session.request, timeout=httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT)
-headers = {'User-Agent': ''}
+headers = {'User-Agent': "".join([random.choice(string.ascii_letters) for y in range(random.randint(1,30))])}
 
 # Getting conn_id token from vvvvid and creating payload
 login_page = host + '/user/login'
