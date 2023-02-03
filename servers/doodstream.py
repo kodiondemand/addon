@@ -24,7 +24,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = []
     host = 'https://' + servertools.get_server_host('doodstream')[0]
     headers = {'User-Agent': httptools.get_user_agent(), 'Referer': page_url}
-    support.dbg()
 
     match = support.match(data, patron=r'''dsplayer\.hotkeys[^']+'([^']+).+?function\s*makePlay.+?return[^?]+([^"]+)''').match
     if match:
