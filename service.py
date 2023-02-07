@@ -20,6 +20,7 @@ except:
 from platformcode import config
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
+os.environ['TMPDIR'] = config.get_temp_file('')
 
 from core import videolibrarytools, filetools, channeltools, httptools, scrapertools, db
 from lib import schedule

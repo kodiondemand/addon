@@ -21,6 +21,7 @@ logger.info("init...")
 
 librerias = xbmc.translatePath(os.path.join(config.get_runtime_path(), 'lib'))
 sys.path.insert(0, librerias)
+os.environ['TMPDIR'] = config.get_temp_file('')
 
 from platformcode import launcher
 
