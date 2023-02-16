@@ -45,7 +45,7 @@ class UnshortenIt(object):
     _protectlink_regex = r'(?:s\.)?protectlink\.stream'
     _uprot_regex = r'uprot\.net'
     # for services that only include real link inside iframe
-    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link|isecure\.icu'
+    _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.link|isecure\.icu|isecure\.cfd'
     # for services that only do redirects
     _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|isecure\.link|isecure\.icu'
     _filecrypt_regex = r'filecrypt\.cc'
