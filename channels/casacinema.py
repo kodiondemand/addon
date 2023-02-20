@@ -36,14 +36,14 @@ def genres(item):
 
 def check(item):
     item.data = support.match(item).data
-    if 'continua con il video' in item.data.lower():
-        support.info('select = ### è un film ###')
-        item.contentType = 'movie'
-        return findvideos(item)
-    else:
+    if 'episodi e stagioni' in item.data.lower():
         support.info('select = ### è una serie ###')
         item.contentType = 'tvshow'
         return episodios(item)
+    else:
+        support.info('select = ### è un film ###')
+        item.contentType = 'movie'
+        return findvideos(item)
 
 
 def search(item, text):
