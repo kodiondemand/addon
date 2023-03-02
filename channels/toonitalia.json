@@ -2,7 +2,7 @@
   "id": "toonitalia", 
   "name": "ToonItalia",
   "language": ["ita", "sub-ita"],  
-  "active": true,
+  "active": false,
   "thumbnail": "toonitalia.png", 
   "banner": "toonitalia.png", 
   "categories": ["tvshow", "movie", "vos", "anime"],
