@@ -3,11 +3,15 @@
     "find_videos": {
         "ignore_urls": [],
         "patterns": [{
-                "pattern": "(?:streamsb|sblanh|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh|sblongvu|sbchill|sbhight)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
+                "pattern": "(?:streamsb|sblanh|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh|sblongvu|sbchill|sbhight|sbbrisk)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
                 "url": "https://streamas.cloud/e/\\1.html"
             },
             {
                 "pattern": "(?:cloudemb.com)/([A-z0-9]+)",
+                "url": "https://streamas.cloud/e/\\1.html"
+            },
+            {
+                "pattern": "animeworld.biz/(?:embed-|d/|e/)?([A-z0-9]+)",
                 "url": "https://streamas.cloud/e/\\1.html"
             }
         ]

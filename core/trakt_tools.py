@@ -130,10 +130,12 @@ def token_trakt(item):
 def set_trakt_info(item):
     logger.debug()
     import xbmcgui
+    from core import scrapertools
     # Envia los datos a trakt
     try:
         info = item.infoLabels
-        ids = jsontools.dump({'tmdb': info['tmdb_id'] , 'imdb': info['imdb_id'], 'slug': info['title']})
+        ids = jsontools.dump({'tmdb': info['tmdb_id'], 'tvdb': info.get('tvdb_id'), 'imdb': info['imdb_id'],
+                              'slug': scrapertools.slugify(info['title'])})
         xbmcgui.Window(10000).setProperty('script.trakt.ids', ids)
     except:
         pass

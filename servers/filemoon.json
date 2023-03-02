@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "(?:filemoon|cinegrab)\\.(?:sx|to|in|link|nl|wf|com|eu|art)/(?:e|d)/([0-9a-zA-Z]+)",
+        "url": "https://filemoon.sx/e/\\1"
+      }
+    ]
+  },
+  "free": true,
+  "id": "filemoon",
+  "name": "filemoon",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@70708",
+      "type": "bool",
+      "visible": true
+    }
+  ]
+}
