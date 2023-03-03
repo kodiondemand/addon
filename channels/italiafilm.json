@@ -1,0 +1,11 @@
+{
+    "id": "italiafilm",
+    "name": "ItaliaFilm",
+    "language": ["ita", "sub-ita"],
+    "active": true,
+    "thumbnail": "italiafilm.png",
+    "banner": "",
+    "categories": ["movie"],
+    "not_active": ["include_in_newest"],
+    "settings": []
+}
