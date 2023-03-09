@@ -32,8 +32,8 @@ def list(item):
         patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
         action = 'peliculas'
     elif item.args == 'film':
-        patronBlock = r'<div class="entry-summary">(?P<block>.*?)</div>'
-        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
+        #patronBlock = r'<div class="entry-summary">(?P<block>.*?)</div>'
+        patron = r'<div class="entry-summary.*?<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
         patronNext = r'<a href="([^"]+)">(?:&rarr|→)'
 
     return locals()
@@ -52,23 +52,15 @@ def peliculas(item):
     return locals()
 
 
+@support.scrape
 def search(item, text):
 
     support.info('search', text)
-    item.contentType = 'film'
-    item.args = 'search'
-    itemlist = []
-    text = text.replace(' ', '+')
+    item.args == 'search'
+    data = httptools.downloadpage(item.url, post={"story": text,"do": "search","subaction": "search"}).data
+    patron = r'<div class="entry-summary.*?<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
 
-    item.url = '{}/?s={}'.format(host, text)
-
-    try:
-        return peliculas(item)
-    except:
-        import sys
-        for line in sys.exc_info():
-            info('search log:', line)
-        return []
+    return locals()
 
 
 #action di default
@@ -77,8 +69,8 @@ def findvideos(item):
     support.info('findvideos')
     urls = []
     data = support.match(item).data
-    urls += support.match(data, patron=r'id="urlEmbed" value="([^"]+)').matches
     matches = support.match(data, patron=r'<iframe.*?src="([^"]+)').matches
+    
     for m in matches:
         if 'youtube' not in m and not m.endswith('.js'):
             urls += support.match(m, patron=r'data-link="([^"]+)').matches
