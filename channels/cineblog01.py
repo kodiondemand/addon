@@ -27,14 +27,13 @@ def mainlist(item):
         ('Generi', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
         ('Paese', ['', 'menu', 'Film per Paese']),
-        ('Ultimi Aggiornati', ['/ultimi-100-film-aggiornati/', 'peliculas', 'newest']),
-        ('Ultimi Aggiunti', ['/lista-film-ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
+        # ('Film in Lista', ['/lista-film/', 'peliculas', 'newest'])
     ]
     tvshow = ['/serietv/',
               ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
               ('Per Genere', ['/serietv/', 'menu', 'Serie-Tv per Genere']),
               ('Per anno', ['/serietv/', 'menu', 'Serie-Tv per Anno']),
-              ('Ultime Aggiornate', ['/serietv/ultime-100-serie-tv-aggiornate/', 'peliculas', 'newest'])
+              ('Ultime Aggiunte', ['/serietv/ultime-100-serie-tv-aggiunte/', 'peliculas', 'newest'])
               ]
     docu = [('Documentari {bullet bold}', ['/category/documentario/', 'peliculas']),
             ('HD {submenu} {documentari}', ['/category/hd-alta-definizione/documentario-hd/', 'peliculas'])
