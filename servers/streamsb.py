@@ -9,7 +9,7 @@ def get_sources(page_url):
     rand1 = "".join([random.choice(string.ascii_letters) for y in range(12)])
     rand2 = "".join([random.choice(string.ascii_letters) for y in range(12)])
     _0x470d0b = '{}||{}||{}||streamsb'.format(rand1, code, rand2)
-    sources = 'https://streamas.cloud/sources51/' + codecs.getencoder('hex')(_0x470d0b.encode())[0].decode()
+    sources = 'https://streamas.cloud/sources15/' + codecs.getencoder('hex')(_0x470d0b.encode())[0].decode()
     # does not lite other headers different than watchsb and useragent
     ret = httptools.downloadpage(sources, headers={'watchsb': 'sbstream', 'User-Agent': httptools.get_user_agent()}, replace_headers=True).json
     logger.debug(ret)
