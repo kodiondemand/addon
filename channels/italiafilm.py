@@ -32,8 +32,7 @@ def list(item):
         patronMenu = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
         action = 'peliculas'
     elif item.args == 'film':
-        #patronBlock = r'<div class="entry-summary">(?P<block>.*?)</div>'
-        patron = r'<div class="entry-summary.*?<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
+        patron = r'<div class="entry-summary.*?<a href="(?P<url>[^"]+)" title="(?P<title>[^\("]+)(?:\((?P<year>\d+)\))" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
         patronNext = r'<a href="([^"]+)">(?:&rarr|→)'
 
     return locals()
@@ -42,13 +41,9 @@ def list(item):
 @support.scrape
 def peliculas(item):
 
-    if item.args == 'search':
-        patron = r'<div class="result-item"><article><div class="image"><div class="thumbnail animation-2"><a href="(?P<url>[^"]+)"><img src="(?P<thumb>[^"]+)" alt="(?P<title>[^"]+)">'
-        patronNext = '<a class="arrow_pag" href="([^"]+)">'
-    else:
-        patronBlock = r'<div class="entry-summary">(?P<block>.*?)</div>'
-        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
-        patronNext = r'<a href="([^"]+)">(?:&rarr|→)'
+    patronBlock = r'<div class="entry-summary">(?P<block>.*?)</div>'
+    patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^\("]+)(?:\((?P<year>\d+)\)).*?class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
+    patronNext = r'<a href="([^"]+)">(?:&rarr|→)'
     return locals()
 
 
@@ -56,7 +51,6 @@ def peliculas(item):
 def search(item, text):
 
     support.info('search', text)
-    item.args == 'search'
     data = httptools.downloadpage(item.url, post={"story": text,"do": "search","subaction": "search"}).data
     patron = r'<div class="entry-summary.*?<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="[^"]+"><img class="lazyload" data-src="(?P<thumb>[^"]+)" alt="[^"]+".*?></a>'
 
