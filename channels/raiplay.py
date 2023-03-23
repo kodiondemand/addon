@@ -23,8 +23,8 @@ def mainlist(item):
             ('Replay {bold}', ['/guidatv', 'replayMenu', '/guidatv.json'])]
 
     menu = [('Film {bullet bold}', ['/film', 'menu', '/tipologia/film/index.json']),
-            ('Serie TV {bullet bold}', ['/serietv', 'menu', '/tipologia/serietv/index.json']),
-            ('Fiction {bullet bold}', ['/fiction', 'menu', '/tipologia/fiction/index.json']),
+            ('Serie italiane {bullet bold}', ['/serietv', 'menu', '/tipologia/serieitaliane/index.json']),
+            # ('Fiction {bullet bold}', ['/fiction', 'menu', '/tipologia/fiction/index.json']),
             ('Documentari {bullet bold}', ['/documentari', 'menu', '/tipologia/documentari/index.json']),
             ('Programmi TV{bullet bold}', ['/programmi', 'menu', '/tipologia/programmi/index.json']),
             ('Programmi per Bambini {bullet bold}', ['/bambini', 'menu', '/tipologia/bambini/index.json']),
