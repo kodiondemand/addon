@@ -416,7 +416,7 @@ def downloadpage(url, **opt):
             response['data'] = response['data'].decode('ISO-8859-1')
 
     if req.headers.get('Server', '').startswith('cloudflare') and response_code in [429, 503, 403]\
-            and not opt.get('CF', False) and 'Ray ID' in response['data'] and not opt.get('post', None):
+            and not opt.get('CF', False) and not opt.get('post', None):
         if 'Px-Host' in req_headers:  # first try with proxy
             logger.debug("CF retry with google translate for domain: %s" % domain)
             from lib import proxytranslate
