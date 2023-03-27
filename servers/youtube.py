@@ -1,6 +1,6 @@
 # s-*- coding: utf-8 -*-
 import xbmc, xbmcaddon, sys, re
-from core import httptools, scrapertools, filetools
+from core import httptools, scrapertools, filetools, support
 from platformcode import config, logger, platformtools
 
 name = 'plugin.video.youtube'
@@ -42,6 +42,12 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     my_addon = xbmcaddon.Addon('plugin.video.youtube')
     addon_dir = xbmc.translatePath( my_addon.getAddonInfo('path') )
     sys.path.append(filetools.join( addon_dir, 'resources', 'lib' ) )
+
+    # load all dependencies for yt addon
+    dependencies = support.match(filetools.read(filetools.join(addon_dir, 'addon.xml')), patron=r'addon="([^"]+)').matches
+    for dep in dependencies:
+        sys.path.append(filetools.join(config.get_runtime_path(), '..', dep, 'lib'))
+        sys.path.append(filetools.join(config.get_runtime_path(), '..', dep, 'resources', 'modules'))
     from youtube_resolver import resolve
     try:
         for stream in resolve(page_url):
