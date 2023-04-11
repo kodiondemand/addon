@@ -18,6 +18,8 @@ metodos:
 
 """
 from __future__ import division
+
+import xbmc
 from future import standard_library
 
 from core.item import Item
@@ -108,7 +110,7 @@ class Downloader(object):
         try:
             self.start()
             while self.state == self.states.downloading:
-                time.sleep(0.2)
+                xbmc.sleep(200)
                 line1 = "%s" % (self.filename)
                 line2 = config.get_localized_string(59983) % ( self.downloaded[1], self.downloaded[2], self.size[1], self.size[2], self.speed[1], self.speed[2], self.connections[0], self.connections[1])
                 line3 = config.get_localized_string(60202) % (self.remaining_time)
@@ -173,7 +175,7 @@ class Downloader(object):
         downloaded2 = self._start_downloaded
         t = time.time()
         t2 = time.time()
-        time.sleep(1)
+        xbmc.sleep(1000)
 
         while self.state == self.states.downloading:
             self._average_speed = old_div((self.downloaded[0] - self._start_downloaded), (time.time() - self._start_time))
@@ -182,11 +184,10 @@ class Downloader(object):
 
             if time.time() - t > 5:
                 t = t2
-                downloaded = downloaded2
                 t2 = time.time()
                 downloaded2 = self.downloaded[0]
 
-            time.sleep(0.5)
+            xbmc.sleep(500)
 
     # Internal functions
     def __init__(self, url, path, filename=None, headers=[], resume=True, max_connections=10, block_size=2 ** 17,
@@ -413,6 +414,7 @@ class Downloader(object):
         logger.info("Thread started: %s" % threading.current_thread().name)
 
         while self._state == self.states.downloading:
+            xbmc.sleep(100)
             if not self.pending_parts and not self.download_parts and not self.save_parts:  # Download finished
                 self._state = self.states.completed
                 self.file.close()
@@ -483,7 +485,7 @@ class Downloader(object):
         self.download_parts.remove(id)
         self.save_parts.add(id)
         while self._state == self.states.downloading and len(self._buffer) > self._max_connections + self._max_buffer:
-            time.sleep(0.1)
+            xbmc.sleep(100)
 
     def __set_part_stopped__(self, id):
         if self._download_info["parts"][id]["status"] == self.states.downloading:
@@ -512,7 +514,7 @@ class Downloader(object):
                 connection = self.__open_connection__(self._download_info["parts"][id]["current"], self._download_info["parts"][id]["end"])
             except:
                 self.__set_part__error__(id)
-                time.sleep(5)
+                xbmc.sleep(5000)
                 continue
 
             self.__set_part__downloading__(id)

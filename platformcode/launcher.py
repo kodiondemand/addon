@@ -312,7 +312,7 @@ def findvideos(item, itemlist=[]):
         p_dialog.update(100)
         p_dialog.close()
 
-    serverlist = [s for s in itemlist if s.server]
+    serverlist = [s for s in itemlist if s.server or s.contentChannel == 'local']
 
     if itemlist and not serverlist:
         platformtools.render_items(itemlist, item)

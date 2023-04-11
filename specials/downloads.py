@@ -805,15 +805,17 @@ def select_server(item):
         seleccion = 1
     else:
         # otherwise it shows the selection window
-        seleccion = platformtools.dialog_select(config.get_localized_string(70192), ["Auto"] + [s.title for s in play_items])
+        seleccion = platformtools.serverWindow(item, [Item(title='Auto', thumbnail=get_thumb('downloads.png'), action='auto')] + play_items, False)
+        # seleccion = platformtools.dialog_select(config.get_localized_string(70192), ["Auto"] + [s.serverName for s in play_items])
 
-    if seleccion >= 1:
-        update_json(item.path, {
-            "downloadServer": {"url": play_items[seleccion - 1].url, "server": play_items[seleccion - 1].server}})
-        return play_items[seleccion - 1]
-    elif seleccion == 0:
-        update_json(item.path, {"downloadServer": {}})
-        return 'Auto'
+    if seleccion != -1:  # not canceled
+        if seleccion.action != 'auto':
+            update_json(item.path, {
+                "downloadServer": {"url": seleccion.url, "server": seleccion.server}})
+            return seleccion
+        else:
+            update_json(item.path, {"downloadServer": {}})
+            return 'Auto'
     # platformtools.itemlist_refresh()
 
 
@@ -1067,13 +1069,14 @@ def save_download_movie(item):
     else:
         # from core.support import dbg;dbg()
         play_item = select_server(item)
-        if type(play_item) == str and play_item == 'Auto':
-            start_download(item)
-        else:
-            play_item = item.clone(**play_item.__dict__)
-            play_item.contentAction = play_item.action
-            play_item.infoLabels = item.infoLabels
-            start_download(play_item)
+        if play_item:
+            if type(play_item) == str and play_item == 'Auto':
+                start_download(item)
+            else:
+                play_item = item.clone(**play_item.__dict__)
+                play_item.contentAction = play_item.action
+                play_item.infoLabels = item.infoLabels
+                start_download(play_item)
 
 
 def save_download_tvshow(item):

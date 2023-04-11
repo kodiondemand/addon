@@ -1810,7 +1810,7 @@ def channelImport(channelId):
         channel = None
     return channel
 
-def serverWindow(item, itemlist):
+def serverWindow(item, itemlist, runDirectly=True):
     from core import db
     LEFT = 1
     RIGHT = 2
@@ -2027,6 +2027,8 @@ def serverWindow(item, itemlist):
                 selection = ServerSkinWindow("DialogSelect.xml", config.get_runtime_path()).start(item, itemlist)
             else:
                 selection = ServerWindow('Servers.xml', config.get_runtime_path()).start(item, itemlist)
-            if selection != -1:
+            if selection != -1 and runDirectly:
                 from platformcode.launcher import run
                 run(selection)
+            else:
+                return selection
