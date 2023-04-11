@@ -394,6 +394,8 @@ class AddonMonitor(xbmc.Monitor):
                     config.set_setting('elementum_on_seed', False)
             if self.settings_pre.get("shortcut_key", '') != settings_post.get("shortcut_key", ''):
                 xbmc.executebuiltin('Action(reloadkeymaps)')
+            if self.settings_pre.get('downloadenabled') != settings_post.get('downloadenabled'):
+                platformtools.itemlist_refresh()
 
             # backup settings
             filetools.copy(os.path.join(config.get_data_path(), "settings.xml"),
