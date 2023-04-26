@@ -802,7 +802,7 @@ def select_server(item):
 
     if len(play_items) == 1:
         # if there is only one server select it
-        seleccion = 1
+        seleccion = play_items[0]
     else:
         # otherwise it shows the selection window
         seleccion = platformtools.serverWindow(item, [Item(title='Auto', thumbnail=get_thumb('downloads.png'), action='auto')] + play_items, False)
