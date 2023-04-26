@@ -2,7 +2,6 @@
 # ------------------------------------------------------------
 # Canale per cineblog01
 # ------------------------------------------------------------
-import datetime
 import re
 
 from core import scrapertools, httptools, servertools, support
@@ -26,14 +25,14 @@ def mainlist(item):
         ('HD', ['', 'menu', 'Film HD Streaming']),
         ('Generi', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
-        ('Paese', ['', 'menu', 'Film per Paese']),
+        ('Popolari', ['', 'menu', 'Film Popolari']),
         ('Ultimi Aggiunti', ['/ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
         # ('Film in Lista', ['/lista-film/', 'peliculas', 'newest'])
     ]
     tvshow = ['/serietv/',
-              ('Per Lettera', ['/serietv/', 'menu', 'Serie-Tv per Lettera']),
-              ('Per Genere', ['/serietv/', 'menu', 'Serie-Tv per Genere']),
-              ('Per anno', ['/serietv/', 'menu', 'Serie-Tv per Anno']),
+              ('Per Lettera', ['/serietv/', 'menu', 'Serie-TV x Lettera']),
+              ('Per Genere', ['/serietv/', 'menu', 'Serie-TV x Genere']),
+              ('Per anno', ['/serietv/', 'menu', 'Serie-TV x Anno']),
               ('Ultime Aggiunte', ['/serietv/ultime-100-serie-tv-aggiunte/', 'peliculas', 'newest'])
               ]
     docu = [('Documentari {bullet bold}', ['/category/documentario/', 'peliculas']),
@@ -45,9 +44,9 @@ def mainlist(item):
 
 @support.scrape
 def menu(item):
-    # debug=True
+    # debug = True
     patronBlock = item.args + r'<span.*?><\/span>.*?<ul.*?>(?P<block>.*?)<\/ul>'
-    patronMenu = r'href="?(?P<url>[^">]+)"?>(?P<title>[^<Â»]+)'
+    patronMenu = r'href="?(?P<url>[^">]+)"?[^>]+>(?P<title>[^<Â»]+)'
     action = 'peliculas'
 
     return locals()
