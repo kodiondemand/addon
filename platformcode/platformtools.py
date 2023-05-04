@@ -1619,48 +1619,16 @@ def play_torrent(item, xlistitem, mediaurl):
             xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
 
 def resume_playback(played_time):
-    class ResumePlayback(xbmcgui.WindowXMLDialog):
-        Close = False
-        Resume = False
-
-        def __init__(self, *args, **kwargs):
-            self.action_exitkeys_id = [92, 10]
-            self.progress_control = None
-            played_time = kwargs.get('played_time')
-            m, s = divmod(played_time, 60)
-            h, m = divmod(m, 60)
-            self.setProperty("time", '%02d:%02d:%02d' % (h, m, s))
-
-        def set_values(self, value):
-            self.Resume = value
-            self.Close = True
-
-        def is_close(self):
-            return self.Close
-
-        def onClick(self, controlId):
-            if controlId == 3012:  # Resume
-                self.set_values(True)
-                self.close()
-            elif controlId == 3013:  # Cancel
-                self.set_values(False)
-                self.close()
-
-        def onAction(self, action):
-            if action in self.action_exitkeys_id:
-                self.set_values(False)
-                self.close()
-
     if played_time and played_time > 30:
-        Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
-        Dialog.show()
-        t = 0
-        while not Dialog.is_close() and t < 100:
-            t += 1
-            xbmc.sleep(100)
-        if not Dialog.Resume: played_time = 0
+        m, s = divmod(played_time, 60)
+        h, m = divmod(m, 60)
+        idx = xbmcgui.Dialog().contextmenu(
+        [
+            xbmc.getLocalizedString(12022).format('%02d:%02d:%02d' % (h, m, s)),
+            xbmc.getLocalizedString(12021)
+        ])
+        if idx: played_time = 0
     else: played_time = 0
-    xbmc.sleep(300)
     return played_time
 
 ##### INPUTSTREM #####
