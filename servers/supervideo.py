@@ -27,7 +27,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     # data = httptools.downloadpage(page_url).data
     global data
 
-    code_data = scrapertools.find_single_match(data, "<script type='text/javascript'>(eval.*)")
+    code_data = scrapertools.find_single_match(data, """<script type=["']text/javascript["']>(eval.*)""")
     if code_data:
         code = jsunpack.unpack(code_data)
 
