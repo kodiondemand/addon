@@ -4,6 +4,8 @@
 # ------------------------------------------------------------
 
 import json, re, sys
+import urllib.parse
+
 from core import support, channeltools, httptools, jsontools
 from platformcode import logger, config
 
@@ -17,8 +19,6 @@ else:
 
 
 host = support.config.get_channel_url()
-headers = {'user-agent': httptools.random_useragent(),
-           'referer': host + '/browse'}
 
 # def getHeaders(forced=False):
 #     global headers
@@ -43,35 +43,38 @@ headers = {'user-agent': httptools.random_useragent(),
 
 @support.menu
 def mainlist(item):
-    film=['',
-          ('Generi',['/film','genres']),
-          ('Titoli del Momento',['/film','peliculas',0]),
-          ('Novità',['/film','peliculas',1]),
-          ('Popolari',['/film','peliculas',2])]
-    tvshow=['',
-            ('Generi',['/serie-tv','genres']),
-            ('Titoli del Momento',['/serie-tv','peliculas',0]),
-            ('Novità',['/serie-tv','peliculas',1]),
-            ('Popolari',['/serie-tv','peliculas',2])]
+    film=['/film',
+          ('Aggiunti di recente',['/film','peliculas',1]),
+          ('Top 10 film di oggi',['/film','peliculas',2])]
+    tvshow=['/serie-tv',
+            ('Aggiunti di recente', ['/serie-tv', 'peliculas', 1]),
+            ('Top 10 serie TV di oggi', ['/serie-tv', 'peliculas', 2])]
+    generi = [('Generi', ['','genres'])]
     search=''
     return locals()
+
+
+def get_data(url):
+    return jsontools.load(
+        support.scrapertools.decodeHtmlentities(support.match(url, patron='data-page="([^"]+)').match))
 
 
 def genres(item):
     # getHeaders()
     # logger.debug()
     itemlist = []
-    data = support.scrapertools.decodeHtmlentities(support.match(item).data)
-    args = support.match(data, patronBlock=r'genre-options-json="([^\]]+)\]', patron=r'name"\s*:\s*"([^"]+)').matches
+    data_page = get_data(item.url)
+    args = data_page['props']['genres']
     for arg in args:
-        itemlist.append(item.clone(title=support.typo(arg, 'bold'), args=arg, action='peliculas'))
+        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urllib.parse.quote(arg['name']), action='peliculas', genre=True))
     support.thumb(itemlist, genre=True)
     return itemlist
 
 
 def search(item, text):
     logger.debug('search', text)
-    item.search = text
+    item.search = True
+    item.url = host + '/search?q=' + text
 
     try:
         return peliculas(item)
@@ -118,23 +121,17 @@ def peliculas(item):
     itemlist = []
     items = []
     recordlist = []
-    videoType = 'movie' if item.contentType == 'movie' else 'tv'
-
     page = item.page if item.page else 0
-    offset = page * 60
+    data_page = get_data(item.url)
 
     if item.records:
         records = item.records
-    elif type(item.args) == int:
-        data = support.scrapertools.decodeHtmlentities(support.match(item).data)
-        records = json.loads(support.match(data, patron=r'slider-title titles-json="(.*?)"\s*slider-name="').matches[item.args])
-    elif not item.search:
-        payload = {'type': videoType, 'offset':offset, 'genre':item.args}
-        records = httptools.downloadpage(host + '/api/browse', headers=headers, post=payload).json['records']
+    elif item.genre or item.search:
+        records = data_page['props']['titles']
     else:
-        payload = {'q': item.search}
-        headers['referer'] = host + '/search'
-        records = httptools.downloadpage(host + '/api/search', headers=headers, post=payload).json['records']
+        if not item.args:
+            item.args = 0
+        records = data_page['props']['sliders'][item.args]['titles']
 
     if records and type(records[0]) == list:
         js = []
@@ -171,15 +168,14 @@ def peliculas(item):
 
 
 def makeItem(n, it, item):
-    info = httptools.downloadpage(host + '/api/titles/preview/{}'.format(it['id']), headers=headers, post={}).json
-    logger.debug(jsontools.dump(info))
-    title = info['name']
-    lang = 'Sub-ITA' if 'sub-ita' in title.lower() else 'ITA'
-    title = support.cleantitle(re.sub('\[|\]|[Ss][Uu][Bb]-[Ii][Tt][Aa]', '', title))
+    logger.debug(it)
+    title = it['name']
+    lang = 'Sub-ITA' if it.get('sub_ita', 0) == 1 else 'ITA'
     itm = item.clone(title=support.typo(title,'bold') + support.typo(lang,'_ [] color kod bold'))
-    itm.contentType = info['type'].replace('tv', 'tvshow')
+    itm.contentType = it['type'].replace('tv', 'tvshow')
     itm.language = lang
-    itm.year = info['release_date'].split('-')[0]
+    if it['last_air_date']:
+        itm.year = it['last_air_date'].split('-')[0]
 
     if itm.contentType == 'movie':
         # itm.contentType = 'movie'
@@ -192,7 +188,7 @@ def makeItem(n, it, item):
         itm.contentTitle = ''
         itm.fulltitle = itm.show = itm.contentSerieName = title
         itm.action = 'episodios'
-        itm.season_count = info['seasons_count']
+        itm.season_count = it['seasons_count']
         itm.url = host + '/titles/%s-%s' % (it['id'], it['slug'])
     itm.n = n
     return itm
@@ -203,27 +199,31 @@ def episodios(item):
     logger.debug()
     itemlist = []
 
-    js = json.loads(support.match(item.url, patron=r'seasons="([^"]+)').match.replace('&quot;','"'))
+    data_page = get_data(item.url)
+    seasons = data_page['props']['title']['seasons']
+    # episodes = data_page['props']['loadedSeason']['episodes']
+    # support.dbg()
 
-    for episodes in js:
-        # logger.debug(jsontools.dump(js))
-        for it in episodes['episodes']:
+    for se in seasons:
+        data_page = get_data(item.url + '/stagione-' + str(se['number']))
+        episodes = data_page['props']['loadedSeason']['episodes']
 
+        for ep in episodes:
             itemlist.append(
-                item.clone(title=support.typo(str(episodes['number']) + 'x' + str(it['number']).zfill(2) + ' - ' + support.cleantitle(it['name']), 'bold'),
-                           episode=it['number'],
-                           season=episodes['number'],
-                           contentSeason=episodes['number'],
-                           contentEpisodeNumber=it['number'],
-                           thumbnail=it['images'][0].get('original_url', item.thumbnail) if it['images'] else item.thumbnail,
+                item.clone(title=support.typo(str(se['number']) + 'x' + str(ep['number']).zfill(2) + ' - ' + support.cleantitle(ep['name']), 'bold'),
+                           episode=ep['number'],
+                           season=se['number'],
+                           contentSeason=se['number'],
+                           contentEpisodeNumber=ep['number'],
+                           thumbnail=ep['images'][0].get('original_url', item.thumbnail) if ep['images'] else item.thumbnail,
                            contentThumbnail=item.thumbnail,
                            fanart=item.fanart,
                            contentFanart=item.fanart,
-                           plot=it['plot'],
+                           plot=ep['plot'],
                            action='findvideos',
                            contentType='episode',
                            contentSerieName=item.fulltitle,
-                           url= '{}/watch/{}?e={}'.format(host, episodes['title_id'], it['id'])))
+                           url='{}/watch/{}?e={}'.format(host, se['title_id'], ep['id'])))
 
     if config.get_setting('episode_info') and not support.stackCheck(['add_tvshow', 'get_newest']):
         support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)

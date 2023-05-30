@@ -1667,9 +1667,11 @@ def stackCheck(values):
 def callAds(url, host):
     try:
         import requests
+        from threading import Thread
         headers = {{'User-Agent': httptools.random_useragent(),
                     'Origin': host,
                     'Referer': host}}
         requests.get(url, headers=headers)
+        Thread(target=requests.get, args=(url, headers)).start()
     except:
         pass
