@@ -1622,11 +1622,11 @@ def resume_playback(played_time):
     if played_time and played_time > 30:
         m, s = divmod(played_time, 60)
         h, m = divmod(m, 60)
-        idx = xbmcgui.Dialog().contextmenu(
+        idx = xbmcgui.Dialog().select(xbmc.getLocalizedString(13381),
         [
             xbmc.getLocalizedString(12022).format('%02d:%02d:%02d' % (h, m, s)),
             xbmc.getLocalizedString(12021)
-        ])
+        ], 10000, 1)
         if idx: played_time = 0
     else: played_time = 0
     return played_time
