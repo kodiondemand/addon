@@ -23,10 +23,11 @@ headers = [['Referer', host]]
 def mainlist(item):
     film = [
         ('HD', ['', 'menu', 'Film HD Streaming']),
-        ('Generi', ['', 'menu', 'Film per Genere']),
+        ('Genere', ['', 'menu', 'Film per Genere']),
         ('Anni', ['', 'menu', 'Film per Anno']),
-        ('Popolari', ['', 'menu', 'Film Popolari']),
-        ('Ultimi Aggiunti', ['/ultimi-100-film-aggiunti/', 'peliculas', 'newest'])
+        ('Popolari per Genere', ['', 'menu', 'Film Popolari']),
+        ('Ultimi Aggiunti', ['/ultimi-100-film-aggiunti/', 'peliculas', 'newest']),
+        ('Popolari', ['/category/film-popolari/'])
         # ('Film in Lista', ['/lista-film/', 'peliculas', 'newest'])
     ]
     tvshow = ['/serietv/',
