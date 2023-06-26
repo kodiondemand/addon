@@ -2,7 +2,7 @@
 	"id": "animeforce",
 	"name": "AnimeForce",
 	"language": ["ita"],
-	"active": true,
+	"active": false,
 	"thumbnail": "animeforce.png",
 	"banner": "animeforce.png",
 	"categories": ["anime"],
