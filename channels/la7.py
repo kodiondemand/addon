@@ -4,7 +4,8 @@
 # ------------------------------------------------------------
 
 import requests
-from core import support
+from core import support, httptools
+from platformcode import logger
 
 DRM = 'com.widevine.alpha'
 key_widevine = "https://la7.prod.conax.cloud/widevine/license"
@@ -27,7 +28,7 @@ def mainlist(item):
             ('Replay {bold}', ['', 'replay_channels'])]
 
     menu = [('Programmi TV {bullet bold}', ['/tutti-i-programmi', 'peliculas', '', 'tvshow']),
-            ('Teche La7 {bullet bold}', ['/i-protagonisti', 'peliculas', '', 'tvshow'])]
+            ('Teche La7 {bullet bold}', ['/la7teche', 'peliculas', '', 'tvshow'])]
 
     search = ''
     return locals()
@@ -83,13 +84,18 @@ def search(item, text):
 @support.scrape
 def peliculas(item):
     search = item.search
+    action = 'episodios'
+    pagination = 20
     disabletmdb = True
     addVideolibrary = False
     downloadEnabled = False
-    action = 'episodios'
+
     patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
+
+    if 'la7teche' in item.url:
+        patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="teche-i-img".*?url\(\'(?P<thumb>[^\']+)'
+
     def itemHook(item):
-        item.thumbnail = 'http:' + item.t if item.t.startswith('//') else item.t if item.t else item.thumbnail
         item.fanart = item.thumb
         return item
     return locals()
@@ -97,33 +103,18 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    data = support.match(item).data
-    # debug = True
     action = 'findvideos'
-    if '>puntate<' in data:
-        patronBlock = r'>puntate<(?P<block>.*?)home-block-outbrain'
-        url = support.match(data, patron=r'>puntate<[^>]+>[^>]+>[^>]+><a href="([^"]+)"').match
-        data += support.match(host + url).data
-    else:
-        item.url += '/video'
-        data = support.match(item).data
-
-    patron = r'(?:<a href="(?P<url>[^"]+)">[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]*)">[^>]+>[^>]+>[^>]+>(?:[^>]+>)?(?:[^>]+>){6}?)\s*(?P<title>[^<]+)<(?:[^>]+>[^>]+>[^>]+><div class="data">(?P<date>[^<]+))?|class="heading">[^>]+>(?P<Title>[^<]+).*?window.shareUrl = "(?P<Url>[^"]+)".*?poster:\s*"(?P<Thumb>[^"]+)", title: "(?P<desc>[^"]+)"'
-    patronNext = r'<a href="([^"]+)">›'
     addVideolibrary = False
     downloadEnabled = False
 
-    def itemHook(item):
-        if item.Thumb: item.t = item.Thumb
-        item.thumbnail = 'http:' + item.t if item.t.startswith('//') else item.t if item.t else item.thumbnail
-        if item.Title: item.title = support.typo(item.Title, 'bold')
-        if item.date:
-            item.title = support.re.sub(r'[Pp]untata (?:del )?\d+/\d+/\d+', '', item.title)
-            item.title += support.typo(item.date, '_ [] bold')
-        if item.desc: item.plot = item.desc
-        item.forcethumb = True
-        item.fanart = item.thumbnail
-        return item
+    if 'la7teche' in item.url:
+        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
+    else:
+        data = str(support.match(item.url, patron=r'"home-block home-block--oggi(.*?)</section>').matches)
+        data += httptools.downloadpage(item.url + '/video').data
+
+        patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+    patronNext = r'<a href="([^"]+)">›'
     return locals()
 
 

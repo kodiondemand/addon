@@ -1107,7 +1107,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         #         logger.error('Failed to resolve hostname, fallback to normal dns')
         from core import support
         # support.dbg()
-        if '|' not in mediaurl and item.referer != False:
+        if '|' not in mediaurl and item.referer != False and 'youtube' not in mediaurl:
             mediaurl = mediaurl + '|' + urllib.urlencode(headers)
 
         # video information is obtained.
@@ -1618,6 +1618,8 @@ def play_torrent(item, xlistitem, mediaurl):
                 xbmc.sleep(3000)
             xbmc.executebuiltin("PlayMedia(" + torrent_options[selection][1] % mediaurl + ")")
 
+
+
 def resume_playback(played_time):
     class ResumePlayback(xbmcgui.WindowXMLDialog):
         Close = False
@@ -1651,14 +1653,26 @@ def resume_playback(played_time):
                 self.set_values(False)
                 self.close()
 
+
     if played_time and played_time > 30:
-        Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
-        Dialog.show()
-        t = 0
-        while not Dialog.is_close() and t < 100:
-            t += 1
-            xbmc.sleep(100)
-        if not Dialog.Resume: played_time = 0
+        if config.get_setting('resume_menu') == 0:
+            Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
+            Dialog.show()
+            t = 0
+            while not Dialog.is_close() and t < 100:
+                t += 1
+                xbmc.sleep(100)
+            if not Dialog.Resume: played_time = 0
+        else:
+            m, s = divmod(played_time, 60)
+            h, m = divmod(m, 60)
+            idx = xbmcgui.Dialog().contextmenu(
+            [
+                xbmc.getLocalizedString(12022).format('%02d:%02d:%02d' % (h, m, s)),
+                xbmc.getLocalizedString(12021)
+            ])
+            if idx in [-1, 0]: played_time = 0
+
     else: played_time = 0
     xbmc.sleep(300)
     return played_time

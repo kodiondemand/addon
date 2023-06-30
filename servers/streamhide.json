@@ -2,16 +2,17 @@
   "active": true,
   "find_videos": {
     "ignore_urls": [],
+
     "patterns": [
       {
-        "pattern": "(do*d(?:stream)?.[^/]+)/+(?:e|d)/([a-z0-9]+)",
-        "url": "https://\\1/e/\\2"
+        "pattern": "ahvsh.com/[a-z]/([\\d\\w]+)",
+        "url": "https://ahvsh.com/e/\\1"
       }
     ]
   },
   "free": true,
-  "id": "doodstream",
-  "name": "DooD Stream",
+  "id": "streamhide",
+  "name": "StreamHide",
   "settings": [
     {
       "default": false,
@@ -21,5 +22,6 @@
       "type": "bool",
       "visible": true
     }
-  ]
+  ],
+  "cloudflare": true
 }

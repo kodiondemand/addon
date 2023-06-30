@@ -186,7 +186,7 @@ def peliculas(item, json='', key='', itemlist=[]):
     itlist = filterkey = []
     action = 'findvideos'
 
-    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
+    if inspect.stack(0)[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
                                      'search'] and not item.filterkey and not item.disable_pagination:
         Pagination = int(defp) if defp.isdigit() else ''
     else:
@@ -243,7 +243,7 @@ def peliculas(item, json='', key='', itemlist=[]):
     # if item.sort:
     #     itemlist.sort(key=lambda x: x.title.lower(), reverse=False)
     if Pagination and len(itemlist) >= Pagination:
-        if inspect.stack()[1][3] != 'get_newest':
+        if inspect.stack(0)[1][3] != 'get_newest':
             item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
             item.page = pag + 1
             item.thumbnail = support.thumb()
@@ -279,13 +279,13 @@ def get_seasons(item):
                              contentType='season' if show_seasons else 'tvshow',
                              path=extra.path))
 
-    if inspect.stack()[2][3] in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
+    if inspect.stack(0)[2][3] in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
                                  'get_newest'] or show_seasons == False:
         itlist = []
         for item in itemlist:
             itlist = episodios(item)
         itemlist = itlist
-        if inspect.stack()[2][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
+        if inspect.stack(0)[2][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
                                          'get_newest'] and defp and not item.disable_pagination:
             itemlist = pagination(item, itemlist)
 
@@ -322,7 +322,7 @@ def episodios(item, json='', key='', itemlist=[]):
     ep = 1
     season = infoLabels['season'] if 'season' in infoLabels else item.contentSeason if item.contentSeason else 1
 
-    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
+    if inspect.stack(0)[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes',
                                      'search'] and not show_seasons:
         Pagination = int(defp) if defp.isdigit() else ''
     else:
@@ -374,7 +374,7 @@ def episodios(item, json='', key='', itemlist=[]):
                                  path=item.path))
 
     # if showseason
-    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'get_newest', 'search']:
+    if inspect.stack(0)[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'get_newest', 'search']:
         if show_seasons and not item.filterseason:
             itm.contentType = 'season'
             season_list = []
@@ -399,15 +399,15 @@ def episodios(item, json='', key='', itemlist=[]):
             support.videolibrary(itemlist, item)
             support.download(itemlist, item)
 
-        elif defp and inspect.stack()[1][3] not in ['get_seasons'] and not item.disable_pagination:
+        elif defp and inspect.stack(0)[1][3] not in ['get_seasons'] and not item.disable_pagination:
             if Pagination and len(itemlist) >= Pagination:
-                if inspect.stack()[1][3] != 'get_newest':
+                if inspect.stack(0)[1][3] != 'get_newest':
                     item.title = support.typo(config.get_localized_string(30992), 'color kod bold')
                     item.page = pag + 1
                     item.thumbnail = support.thumb()
                     itemlist.append(item)
 
-        if inspect.stack()[1][3] not in ['get_seasons'] and not show_seasons:
+        if inspect.stack(0)[1][3] not in ['get_seasons'] and not show_seasons:
             support.videolibrary(itemlist, item)
             support.download(itemlist, item)
     return itemlist
@@ -769,7 +769,7 @@ def set_extra_values(item, json, path):
             ret.subtitle = json[key]
 
     if not ret.thumb:
-        if 'get_search_menu' in inspect.stack()[1][3]:
+        if 'get_search_menu' in inspect.stack(0)[1][3]:
             ret.thumb = get_thumb('search.png')
         else:
             ret.thumb = item.thumbnail
@@ -830,7 +830,7 @@ def pagination(item, itemlist=[]):
     encoded_itemlist = []
     for it in itemlist:
         encoded_itemlist.append(it.tourl())
-    if inspect.stack()[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'search']:
+    if inspect.stack(0)[1][3] not in ['add_tvshow', 'get_episodes', 'update', 'find_episodes', 'search']:
         Pagination = int(defp) if defp.isdigit() else ''
     else:
         Pagination = ''
@@ -843,7 +843,7 @@ def pagination(item, itemlist=[]):
         itlist.append(item)
 
     if Pagination and len(itemlist) >= Pagination:
-        if inspect.stack()[1][3] != 'get_newest':
+        if inspect.stack(0)[1][3] != 'get_newest':
             itlist.append(
                 Item(channel=item.channel,
                      action='pagination',

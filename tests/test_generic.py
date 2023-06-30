@@ -12,7 +12,7 @@ import random
 import sys
 import time
 import unittest
-
+import datetime
 import xbmc
 
 if 'KOD_TST_CH' not in os.environ:
@@ -54,7 +54,7 @@ from core import servertools, httptools
 import channelselector
 import re
 
-
+logger.DEBUG_ENABLED = False
 httptools.HTTPTOOLS_DEFAULT_DOWNLOAD_TIMEOUT = 10
 
 outDir = os.path.join(os.getcwd(), 'reports')
@@ -66,7 +66,7 @@ validUrlRegex = re.compile(
     r'(?::\d+)?'  # optional port
     r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
-chBlackList = ['url', 'mediasetplay', 'metalvideo', 'accuradio']
+chBlackList = ['url', 'mediasetplay', 'metalvideo', 'accuradio', 'cinetecadibologna', 'tunein']
 srvBlacklist = ['mega', 'hdmario', 'torrent', 'youtube']
 chNumRis = {
     'altadefinizione01': {
@@ -146,13 +146,14 @@ chNumRis = {
 
 
 def wait():
-    time.sleep(random.randint(1, 3))
+    pass
+    # time.sleep(random.randint(1, 3))
 
 
 servers = []
 channels = []
-
 channel_list = channelselector.filterchannels("all") if 'KOD_TST_CH' not in os.environ else [Item(channel=os.environ['KOD_TST_CH'], action="mainlist")]
+logger.DEBUG_ENABLED = True
 logger.info([c.channel for c in channel_list])
 results = []
 
@@ -181,7 +182,9 @@ for chItem in channel_list:
         for it in mainlist:
             wait()
             try:
-                print('preparing ' + ch + ' -> ' + it.title)
+                now = datetime.datetime.now()
+                current_time = now.strftime("%H:%M:%S")
+                print(current_time + 'preparing ' + ch + ' -> ' + it.title)
 
                 if it.action == 'channel_config':
                     hasChannelConfig = True
@@ -197,7 +200,12 @@ for chItem in channel_list:
 
                     # if more search action (ex: movie, tvshow), firstcontent need to be changed in every menu
                     if itemlist and itemlist[0].action in ('findvideos', 'episodios'):
-                        firstContent = re.match('[ \w]*', itemlist[0].fulltitle).group(0)
+                        for it2 in itemlist:
+                            # some sites refuse to search if the search term is too short
+                            title = it2.fulltitle if it2.contentType == 'movie' else it2.contentSerieName
+                            if len(title) > 5:
+                                firstContent = re.match('[ \w]*', title).group(0)
+                                break
 
                     # some sites might have no link inside, but if all results are without servers, there's something wrong
                     for resIt in itemlist:

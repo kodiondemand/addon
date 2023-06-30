@@ -617,7 +617,10 @@ def set_content(content_type, silent=False, custom=False):
         values.append(r['addonid'])
     if not custom:
         if content_type == 'movie':
-            seleccion = values.index('metadata.themoviedb.org')
+            if PY3:
+                seleccion = values.index('metadata.themoviedb.org.python')
+            else:
+                seleccion = values.index('metadata.themoviedb.org')
         else:
             seleccion = values.index('metadata.tvshows.themoviedb.org.python')
     else:

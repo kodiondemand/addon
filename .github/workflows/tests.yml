@@ -1,28 +1,25 @@
 name: Test Suite
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '00 15 * * *'
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4.3.0
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Run tests
         run: |
-          export KODI_INTERACTIVE=0
           ./tests/run.sh
 
       - name: Commit & Push changes
-        uses: dmnemec/copy_file_to_another_repo_action@v1.0.4
+        uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:

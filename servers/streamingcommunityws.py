@@ -1,68 +1,77 @@
 # -*- coding: utf-8 -*-
+import urllib.parse
+import ast
+import xbmc
+
 from core import httptools, support, filetools
 from platformcode import logger, config
-UA = httptools.random_useragent()
+from concurrent import futures
+from urllib.parse import urlparse
+
+vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]) < 20 else True
 
 
 def test_video_exists(page_url):
-    global scws_id
-    logger.debug('page url=', page_url)
-    scws_id = ''
+    global iframe
+    global iframeParams
 
-    if page_url.isdigit():
-        scws_id = page_url
-    else:
-        page = httptools.downloadpage(page_url)
-        if page.url == page_url:  # se non esiste, reindirizza all'ultimo url chiamato esistente
-            scws_id = support.scrapertools.find_single_match(page.data, r'scws_id[^:]+:(\d+)')
-        else:
-            return 'StreamingCommunity', 'Prossimamente'
+    iframe = support.scrapertools.decodeHtmlentities(support.match(page_url, patron='<iframe [^>]+src="([^"]+)').match)
+    iframeParams = support.match(iframe, patron='window\.masterPlaylistParams\s=\s({.*?})').match
 
-    if not scws_id:
-        return False, config.get_localized_string(70449) % 'StreamingCommunityWS'
+    if not iframeParams:
+        return 'StreamingCommunity', 'Prossimamente'
+
     return True, ""
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    from time import time
-    from base64 import b64encode
-    from hashlib import md5
-
-    global scws_id
+    urls = list()
+    subs = list()
+    local_subs = list()
     video_urls = list()
 
-    # clientIp = httptools.downloadpage(f'https://scws.work/videos/{scws_id}').json.get('client_ip')
-    clientIp = httptools.downloadpage('http://ip-api.com/json/').json.get('query')
-    if clientIp:
-        expires = int(time() + 172800)
-        token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, clientIp).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
-        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(scws_id, token, expires)
-        if page_url.isdigit():
-            video_urls.append(['m3u8', '{}|User-Agent={}'.format(url, UA)])
-        else:
-            video_urls = compose(url)
+    scws_id = urlparse(iframe).path.split('/')[-1]
+    masterPlaylistParams = ast.literal_eval(iframeParams)
+    url = 'https://scws.work/v2/playlist/{}?{}&n=1'.format(scws_id, urllib.parse.urlencode(masterPlaylistParams))
 
-    return video_urls
+    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
 
-def compose(url):
-    subs = []
-    video_urls = []
-    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|RESOLUTION=\d+x(\d+).*?(http[^"\s]+)', headers={'User-Agent':UA}).matches
-    if info and not logger.testMode: # ai test non piace questa parte
-        for lang, sub, res, url in info:
-            if sub: 
-                while True:
-                    match = support.match(sub, patron=r'(http[^\s\n]+)').match
-                    if match:
-                        sub = httptools.downloadpage(match).data
-                    else:
-                        break
+    if info:
+        for lang, sub, url, res in info:
+            if sub:
                 if lang == 'auto': lang = 'ita-forced'
-                s = config.get_temp_file(lang +'.srt')
-                subs.append(s)
-                filetools.write(s, support.vttToSrt(sub))
-            elif url:
-                video_urls.append(['m3u8 [{}]'.format(res), '{}|User-Agent={}'.format(url, UA), 0, subs])
+                subs.append([lang, sub])
+            elif not 'token=&' in url:
+                urls.append([res, url])
+
+        if subs:
+            local_subs = subs_downloader(subs)
+            video_urls = [['m3u8 [{}]'.format(res), url, 0, local_subs] for res, url in urls]
+        else:
+            video_urls = [['m3u8 [{}]'.format(res), url] for res, url in urls]
     else:
-        video_urls.append(['m3u8', '{}|User-Agent={}'.format(url, UA)])
+        video_urls = [['hls', url]]
+
     return video_urls
+
+
+def subs_downloader(subs):
+    def subs_downloader_thread(n, s):
+        lang, url = s
+        match = support.match(url, patron=r'(http[^\s\n]+)').match
+        if match:
+            data = httptools.downloadpage(match).data
+            if lang == 'auto': lang = 'ita-forced'
+            sub = config.get_temp_file('{}.{}'.format(lang, 'vtt' if vttsupport else 'str'))
+            filetools.write(sub, data if vttsupport else support.vttToSrt(data))
+            return n, sub
+
+    local_subs = list()
+
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(subs_downloader_thread, n, s) for n, s in enumerate(subs)]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                local_subs.append(res.result())
+
+    return [s[1] for s in sorted(local_subs, key=lambda n: n[0])]

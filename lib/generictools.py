@@ -120,7 +120,7 @@ def update_title(item):
             if item.from_title_tmdb: del item.from_title_tmdb
         if not item.from_update and item.from_title: del item.from_title
 
-        if item.contentSerieName:           # We copy the title to serve as a reference in the "Complete Information" menu
+        if item.contentSerieName and item.contentType == 'tvshow':           # We copy the title to serve as a reference in the "Complete Information" menu
             item.infoLabels['originaltitle'] = item.contentSerieName
             item.contentTitle = item.contentSerieName
         else:

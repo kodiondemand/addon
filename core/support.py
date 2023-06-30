@@ -621,7 +621,7 @@ def scrape(func):
             else: autorenumber.start(itemlist)
 
         if itemlist and action != 'play' and 'patronMenu' not in args and 'patronGenreMenu' not in args \
-            and not stackCheck(['add_tvshow', 'get_newest']) and (function not in ['episodios', 'mainlist']
+            and not stackCheck(['add_tvshow', 'get_newest']) and not disabletmdb and (function not in ['episodios', 'mainlist']
             or (function in ['episodios', 'seasons'] and config.get_setting('episode_info') and itemlist[0].season)):
             # dbg()
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)

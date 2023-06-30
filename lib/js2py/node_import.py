@@ -1,10 +1,16 @@
 __all__ = ['require']
+
 import subprocess, os, codecs, glob
 from .evaljs import translate_js, DEFAULT_HEADER
+from .translators.friendly_nodes import is_valid_py_name
 import six
+import tempfile
+import hashlib
+import random
+
 DID_INIT = False
-DIRNAME = os.path.dirname(os.path.abspath(__file__))
-PY_NODE_MODULES_PATH = os.path.join(DIRNAME, 'py_node_modules')
+DIRNAME = tempfile.mkdtemp()
+PY_NODE_MODULES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'py_node_modules')
 
 
 def _init():
@@ -46,23 +52,33 @@ GET_FROM_GLOBALS_FUNC = '''
 
 '''
 
+
 def _get_module_py_name(module_name):
     return module_name.replace('-', '_')
 
+
 def _get_module_var_name(module_name):
-    return _get_module_py_name(module_name).rpartition('/')[-1]
+    cand =  _get_module_py_name(module_name).rpartition('/')[-1]
+    if not is_valid_py_name(cand):
+        raise ValueError(
+            "Invalid Python module name %s (generated from %s). Unsupported/invalid npm module specification?" % (
+                repr(cand), repr(module_name)))
+    return cand
 
 
-def _get_and_translate_npm_module(module_name, include_polyfill=False, update=False):
+def _get_and_translate_npm_module(module_name, include_polyfill=False, update=False, maybe_version_str=""):
     assert isinstance(module_name, str), 'module_name must be a string!'
+
     py_name = _get_module_py_name(module_name)
     module_filename = '%s.py' % py_name
     var_name = _get_module_var_name(module_name)
     if not os.path.exists(os.path.join(PY_NODE_MODULES_PATH,
                                        module_filename)) or update:
         _init()
-        in_file_name = 'tmp0in439341018923js2py.js'
-        out_file_name = 'tmp0out439341018923js2py.js'
+        module_hash = hashlib.sha1(module_name.encode("utf-8")).hexdigest()[:15]
+        version = random.randrange(10000000000000)
+        in_file_name = 'in_%s_%d.js' % (module_hash, version)
+        out_file_name = 'out_%s_%d.js' % (module_hash, version)
         code = ADD_TO_GLOBALS_FUNC
         if include_polyfill:
             code += "\n;require('babel-polyfill');\n"
@@ -74,6 +90,8 @@ def _get_and_translate_npm_module(module_name, include_polyfill=False, update=Fa
             f.write(code.encode('utf-8') if six.PY3 else code)
 
         pkg_name = module_name.partition('/')[0]
+        if maybe_version_str:
+            pkg_name += '@' + maybe_version_str
         # make sure the module is installed
         assert subprocess.call(
             'cd %s;npm install %s' % (repr(DIRNAME), pkg_name),
@@ -93,7 +111,7 @@ def _get_and_translate_npm_module(module_name, include_polyfill=False, update=Fa
         with codecs.open(os.path.join(DIRNAME, out_file_name), "r",
                          "utf-8") as f:
             js_code = f.read()
-        os.remove(os.path.join(DIRNAME, out_file_name))
+        print("Bundled JS library dumped at: %s" % os.path.join(DIRNAME, out_file_name))
         if len(js_code) < 50:
             raise RuntimeError("Candidate JS bundle too short - likely browserify issue.")
         js_code += GET_FROM_GLOBALS_FUNC
@@ -117,21 +135,25 @@ def _get_and_translate_npm_module(module_name, include_polyfill=False, update=Fa
     return py_code
 
 
-def require(module_name, include_polyfill=False, update=False, context=None):
+def require(module_name, include_polyfill=True, update=False, context=None):
     """
     Installs the provided npm module, exports a js bundle via browserify, converts to ECMA 5.1 via babel and
     finally translates the generated JS bundle to Python via Js2Py.
     Returns a pure python object that behaves like the installed module. Nice!
 
-    :param module_name: Name of the npm module to require. For example 'esprima'.
+    :param module_name: Name of the npm module to require. For example 'esprima'. Supports specific versions via @
+        specification. Eg: 'crypto-js@3.3'.
     :param include_polyfill: Whether the babel-polyfill should be included as part of the translation. May be needed
-    for some modules that use unsupported features.
+    for some modules that use unsupported features of JS6 such as Map or typed arrays.
     :param update: Whether to force update the translation. Otherwise uses a cached version if exists.
     :param context: Optional context in which the translated module should be executed in. If provided, the
         header (js2py imports) will be skipped as it is assumed that the context already has all the necessary imports.
     :return: The JsObjectWrapper containing the translated module object. Can be used like a standard python object.
     """
-    py_code = _get_and_translate_npm_module(module_name, include_polyfill=include_polyfill, update=update)
+    module_name, maybe_version = (module_name+"@@@").split('@')[:2]
+
+    py_code = _get_and_translate_npm_module(module_name, include_polyfill=include_polyfill, update=update,
+                                            maybe_version_str=maybe_version)
     # this is a bit hacky but we need to strip the default header from the generated code...
     if context is not None:
         if not py_code.startswith(DEFAULT_HEADER):
@@ -141,5 +163,5 @@ def require(module_name, include_polyfill=False, update=False, context=None):
             assert py_code.startswith(DEFAULT_HEADER), "Unexpected header."
         py_code = py_code[len(DEFAULT_HEADER):]
     context = {} if context is None else context
-    exec (py_code, context)
+    exec(py_code, context)
     return context['var'][_get_module_var_name(module_name)].to_py()

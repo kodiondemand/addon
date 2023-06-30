@@ -21,7 +21,6 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     logger.debug("(page_url='%s')" % page_url)
     video_urls = []
 
-    video_id = scrapertools.find_single_match(page_url, '(?:v=|embed/)([A-z0-9_-]{11})')
     inputstream = platformtools.install_inputstream()
 
     try:

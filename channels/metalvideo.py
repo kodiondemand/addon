@@ -9,37 +9,33 @@ host = 'https://metalvideo.com'
 headers = {'X-Requested-With': 'XMLHttpRequest'}
 
 
-@support.scrape
+@support.menu
 def mainlist(item):
+    menu = [('Generi',['', 'genres']),
+           ('Ultimi Video',['/videos/latest', 'peliculas']),
+           ('Top Video',['/videos/top', 'peliculas']),
+           ('Cerca...',['','search',])]
+    return locals()
+
+
+@support.scrape
+def genres(item):
     item.url = host
     action = 'peliculas'
-    patronBlock = r'<ul class="dropdown-menu(?P<block>.*?)</ul>\s*</div'
-    patron = r'<a href="(?P<url>[^"]+)"(?: class="")?>(?P<title>[^<]+)<'
+    patronBlock = r'<div class="swiper-slide">(?P<block>.*?)<button'
+    patron = r'class="" href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)<'
     def itemHook(item):
         item.thumbnail = support.thumb('music')
         item.contentType = 'music'
         return item
-    def itemlistHook(itemlist):
-        itemlist.pop(0)
-        itemlist.append(
-            support.Item(
-                channel=item.channel,
-                title=support.typo('Cerca...', 'bold'),
-                contentType='music',
-                url=item.url,
-                action='search',
-                thumbnail=support.thumb('search')))
-
-        support.channel_config(item, itemlist)
-        return itemlist
     return locals()
 
 @support.scrape
 def peliculas(item):
     # debug=True
     action = 'findvideos'
-    patron= r'<img src="[^"]+" alt="(?P<title>[^"]+)" data-echo="(?P<thumb>[^"]+)"(?:[^>]+>){7}<a href="(?P<url>[^"]+)"'
-    patronNext = r'<a href="([^"]+)">(?:&raquo|»)'
+    patron= r'<a href="(?P<url>[^"]+)"[^>]+>\s*<img src="(?P<thumb>[^"]+)" alt="(?P<title>[^"]+)"[^>]*>'
+    patronNext = r'<a href="([^"]+)" data-load="[^"]+" class="[^"]+" title="Next'
     typeContentDict = {'': 'music'}
     def itemHook(item):
         item.contentType = 'music'
@@ -49,12 +45,13 @@ def peliculas(item):
 
 
 def findvideos(item):
-    return support.server(item, Videolibrary=False)
+    data = support.match(item, patron=r'<source src="[^"]+').match
+    return support.server(item, Videolibrary=False, data=data)
 
 
 def search(item, text):
     support.info(text)
-    item.url = host + '/search.php?keywords=' + text + '&video-id='
+    item.url = host + '/search?keyword=' + text
     try:
         return peliculas(item)
     # Continua la ricerca in caso di errore

@@ -416,7 +416,6 @@ class SearchWindow(xbmcgui.WindowXML):
         self.count += 1
 
         return channel, valid, other if other else results
-        self.update(channel, valid, other if other else results)
         # update_lock.release()
 
     def makeItem(self, url):
@@ -440,6 +439,7 @@ class SearchWindow(xbmcgui.WindowXML):
         return it
 
     def update(self, channel, valid, results):
+        update_lock.acquire()
         self.LOADING.setVisible(False)
         if self.exit:
             return
@@ -462,7 +462,8 @@ class SearchWindow(xbmcgui.WindowXML):
             for result in valid:
                 resultsList += result.tourl() + '|'
             item.setProperty('items', resultsList)
-            self.channels[0].setProperty('results', str(len(resultsList.split('|')) - 1 ))
+            res = len(resultsList.split('|'))
+            self.channels[0].setProperty('results', str(res - 1  if res > 0 else 0))
 
             if self.CHANNELS.getSelectedPosition() == 0:
                 items = []
@@ -487,7 +488,7 @@ class SearchWindow(xbmcgui.WindowXML):
                                     })
                 for result in results:
                     resultsList += result.tourl() + '|'
-                item.setProperty('items',resultsList)
+                item.setProperty('items', resultsList)
                 self.results[name] = len(self.results)
                 self.channels.append(item)
             else:
@@ -497,7 +498,8 @@ class SearchWindow(xbmcgui.WindowXML):
                     resultsList += result.tourl() + '|'
                 item.setProperty('items',resultsList)
                 logger.log(self.channels[int(self.results[name])])
-                self.channels[int(self.results[name])].setProperty('results', str(len(resultsList.split('|')) - 1))
+                res = len(resultsList.split('|'))
+                self.channels[int(self.results[name])].setProperty('results', str(res - 1 if res > 0 else 0))
             pos = self.CHANNELS.getSelectedPosition()
             self.CHANNELS.reset()
             self.CHANNELS.addItems(self.channels)
@@ -511,6 +513,7 @@ class SearchWindow(xbmcgui.WindowXML):
                     if result: items.append(self.makeItem(result))
                 self.RESULTS.reset()
                 self.RESULTS.addItems(items)
+        update_lock.release()
 
     def onInit(self):
         self.time = time.time()
@@ -689,6 +692,7 @@ class SearchWindow(xbmcgui.WindowXML):
                 self.itemsResult = getattr(self.channel, item.action)(item)
                 if self.itemsResult and self.itemsResult[0].server:
                     from platformcode.launcher import findvideos
+                    busy(False)
                     findvideos(self.item, self.itemsResult)
                     return
             except:

@@ -223,7 +223,7 @@ def episodios(item):
                            action='findvideos',
                            contentType='episode',
                            contentSerieName=item.fulltitle,
-                           url='{}/watch/{}?e={}'.format(host, se['title_id'], ep['id'])))
+                           url='{}/iframe/{}?episode_id={}'.format(host, se['title_id'], ep['id'])))
 
     if config.get_setting('episode_info') and not support.stackCheck(['add_tvshow', 'get_newest']):
         support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
@@ -235,10 +235,8 @@ def episodios(item):
 
 def findvideos(item):
     support.callAds('https://thaudray.com/5/3523301', host)
-    # Fix for old items in videolibrary
-    if item.episodeid and item.episodeid not in item.url:
-        item.url += item.episodeid
 
-    itemlist = [item.clone(title=channeltools.get_channel_parameters(item.channel)['title'], url=item.url, server='streamingcommunityws')]
+    itemlist = [item.clone(title=channeltools.get_channel_parameters(item.channel)['title'],
+                           url=item.url.replace('/watch/', '/iframe/'), server='streamingcommunityws')]
     return support.server(item, itemlist=itemlist, referer=False)
 

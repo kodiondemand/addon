@@ -3,9 +3,8 @@
 # Canale per Tantifilm
 # ------------------------------------------------------------
 
-from core import scrapertools, httptools, support
+from core import support
 from core.item import Item
-from core.support import info
 from platformcode import logger
 from platformcode import config
 

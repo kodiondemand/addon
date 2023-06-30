@@ -6,23 +6,22 @@
 from core import support, httptools
 from platformcode import config
 
-host = config.get_channel_url() 
-headers = [['Referer', host]] 
+host = config.get_channel_url()
+headers = [['Referer', host]]
 
 
 @support.menu
 def mainlist(item):
-    menu = [   
-        ('Film', ['/film/', 'list', 'film']),
-        ('Per Genere', ['', 'list', 'genere']),
-        ('Al Cinema', ['/cinema/', 'list', 'film']),
-        ('Sottotitolati', ['/sub-ita/', 'list', 'film']),
-        ('Top del Mese', ['/top-del-mese.html', 'list', 'film'])
-        
+    menu = [
+            ('Film', ['/film/', 'list', 'film']),
+            ('Per Genere', ['', 'list', 'genere']),
+            ('Al Cinema', ['/cinema/', 'list', 'film']),
+            ('Sub-ITA', ['/sub-ita/', 'list', 'film']),
+            ('Top del Mese', ['/top-del-mese.html', 'list', 'film'])
            ]
     search = ''
 
-    return locals() 
+    return locals()
 
 
 @support.scrape
@@ -64,7 +63,7 @@ def findvideos(item):
     urls = []
     data = support.match(item).data
     matches = support.match(data, patron=r'<iframe.*?src="([^"]+)').matches
-    
+
     for m in matches:
         if 'youtube' not in m and not m.endswith('.js'):
             urls += support.match(m, patron=r'data-link="([^"]+)').matches

@@ -8,6 +8,15 @@
     "categories": ["anime", "vos"],
     "settings": [
         {
+            "id": "lang",
+            "type": "list",
+            "label": "Lingua di Ricerca",
+            "default": 0,
+            "enabled": true,
+            "visible": true,
+            "lvalues": [ "Tutte", "Ita", "Sub-Ita"]
+        },
+        {
             "id": "order",
             "type": "list",
             "label": "Ordine di Visualizzazione",

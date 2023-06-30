@@ -3,93 +3,137 @@
 # Canale per tunein
 # ------------------------------------------------------------
 
-from core import scrapertools, support
+from core import httptools, support
 from platformcode import logger
 
+
 host = 'http://api.radiotime.com'
-headers = [['Referer', host]]
+args = 'formats=mp3,aac,ogg,flash,html,hls,wma&partnerId=RadioTime&itemToken='
 
 
-@support.scrape
+@support.menu
 def mainlist(item):
-    item.url = host
-    action = 'radio'
-    patron = r'text="(?P<title>[^"]+)" URL="(?P<url>[^"]+)"'
-    def itemHook(item):
-        item.thumbnail = support.thumb('music')
-        item.contentType = 'music'
-        return item
-    def itemlistHook(itemlist):
-        itemlist.append(
-            item.clone(title=support.typo('Cerca...', 'bold color kod'), action='search', thumbnail=support.thumb('search')))
-        support.channel_config(item, itemlist)
-        return itemlist
+    menu = [('Musica {bullet music}' ,['/categories/music?{}'.format(args), 'radio', '',  'music']),
+            ('Sport {bullet music}' ,['/categories/sports?{}'.format(args), 'radio', '',  'music']),
+            ('Notizie e Dibattiti {bullet music}' ,['/categories/c57922?{}'.format(args), 'radio', ''  'music']),
+            ('Podcast {bullet music}' ,['/categories/c100000088?{}'.format(args), 'radio', '',  'music']),
+            ('Audiolibri {bullet music}' ,['/categories/c100006408?{}'.format(args), 'radio', '',  'music']),
+            ('Luogo {bullet music}' ,['/categories/regions?{}'.format(args), 'radio', '',  'music']),
+            ('Lingua {bullet music}' ,['/categories/languages?{}'.format(args), 'radio', '',  'music'])]
+    search =''
     return locals()
-
-
-def radio(item):
-    support.info()
-    itemlist = []
-    data = support.match(item, patron= r'text="(?P<title>[^\("]+)(?:\((?P<location>[^\)]+)\))?" URL="(?P<url>[^"]+)" bitrate="(?P<quality>[^"]+)" reliability="[^"]+" guide_id="[^"]+" subtext="(?P<song>[^"]+)" genre_id="[^"]+" formats="(?P<type>[^"]+)" (?:playing="[^"]+" )?(?:playing_image="[^"]+" )?(?:show_id="[^"]+" )?(?:item="[^"]+" )?image="(?P<thumb>[^"]+)"')
-    if data.matches:
-        for title, location, url, quality, song, type, thumbnail in data.matches:
-            title = scrapertools.decodeHtmlentities(title)
-            itemlist.append(
-                item.clone(title = support.typo(title, 'bold') + support.typo(quality + ' kbps','_ [] bold color kod'),
-                           thumbnail = thumbnail,
-                           url = url,
-                           contentType = 'music',
-                           plot = support.typo(location, 'bold') + '\n' + song,
-                           action = 'findvideos'))
-    else:
-        matches = support.match(data.data, patron= r'text="(?P<title>[^\("]+)(?:\([^\)]+\))?" URL="(?P<url>[^"]+)" (?:guide_id="[^"]+" )?(?:stream_type="[^"]+" )?topic_duration="(?P<duration>[^"]+)" subtext="(?P<plot>[^"]+)" item="[^"]+" image="(?P<thumb>[^"]+)"').matches
-        if matches:
-            for title, url, duration, plot, thumbnail in matches:
-                title = scrapertools.unescape(title)
-                infoLabels={}
-                infoLabels['duration'] = duration
-                itemlist.append(
-                    item.clone(title = support.typo(title, 'bold'),
-                               thumbnail = thumbnail,
-                               infolLbels = infoLabels,
-                               url = url,
-                               contentType = 'music',
-                               plot = plot,
-                               action = 'findvideos'))
-        else:
-            matches = support.match(data.data, patron= r'text="(?P<title>[^"]+)" URL="(?P<url>[^"]+)"').matches
-            for title, url in matches:
-                title = scrapertools.unescape(title)
-                itemlist.append(
-                    item.clone(channel = item.channel,
-                               title = support.typo(title, 'bold'),
-                               thumbnail = item.thumbnail,
-                               url = url,
-                               action = 'radio'))
-    support.nextPage(itemlist, item, data.data, r'(?P<url>[^"]+)" key="nextStations')
-    return itemlist
-
-
-def findvideos(item):
-    import xbmc
-    itemlist = []
-    item.action = 'play'
-    urls = support.match(item.url).data.strip().split()
-    for url in urls:
-        item.url= url
-        item.server = 'directo'
-        itemlist.append(item)
-    return itemlist
 
 
 def search(item, text):
     support.info(text)
-    item.url = host + '/Search.ashx?query=' +text
+    itemlist = list()
+
     try:
-        return radio(item)
+        js = httptools.downloadpage('{}/profiles?fullTextSearch=true&query={}&{}'.format(host, text, args)).json
+        data = js.get('Items', {})
+        for c in data:
+            if c.get('Pivots',{}).get('More',{}).get('Url', ''):
+                data = httptools.downloadpage(c.get('Pivots',{}).get('More',{}).get('Url', '')).json.get('Items',{})
+            else:
+                data = c.get('Children')
+            if data:
+                itemlist.extend(buildItemList(item, data))
+
+        if js.get('Paging', {}).get('Next'):
+            support.nextPage(itemlist, item, next_page=js.get('Paging', {}).get('Next'))
+        return itemlist
     # Continua la ricerca in caso di errore
     except:
         import sys
         for line in sys.exc_info():
-            logger.error("%s" % line)
+            logger.error(line)
         return []
+
+
+def radio(item):
+    itemlist = list()
+    js = dict()
+    if item.data:
+        data = item.data
+    else:
+        js = httptools.downloadpage(item.url).json
+        data = js.get('Items', {})
+
+    itemlist = buildItemList(item, data)
+    if js.get('Paging', {}).get('Next'):
+        support.nextPage(itemlist, item, next_page=js.get('Paging', {}).get('Next'))
+
+    return itemlist
+
+
+
+def buildItemList(item, data):
+    itemlist = list()
+    # support.dbg()
+    for c in data:
+        item.data = ''
+        item.action = 'radio'
+        token = c.get('Context',{}).get('Token','')
+        if not token:
+            token = c.get('Actions', {}).get('Context',{}).get('Token','')
+        if not c.get('Title', c.get('AccessibilityTitle')) or 'premium' in c.get('Title', c.get('AccessibilityTitle')).lower():
+            continue
+
+        if c.get('Children'):
+            if len(data) > 1:
+                if c.get('Pivots',{}).get('More',{}).get('Url', ''):
+                    itm = item.clone(title=c.get('Title', c.get('AccessibilityTitle')),
+                                    url=c.get('Pivots',{}).get('More',{}).get('Url', ''),
+                                    token=token)
+                else:
+                    itm = item.clone(title=c.get('Title', c.get('AccessibilityTitle')),
+                                    data=c.get('Children'),
+                                    token=token)
+            else:
+                if c.get('Pivots',{}).get('More',{}).get('Url', ''):
+                    data = httptools.downloadpage(c.get('Pivots',{}).get('More',{}).get('Url', '')).json.get('Items', {})
+                else:
+                    data = c.get('Children')
+                return buildItemList(item, data)
+
+        elif c.get('GuideId'):
+            title = c.get('Title', c.get('AccessibilityTitle'))
+            plot = '[B]{}[/B]\n{}'.format(c.get('Subtitle', ''), c.get('Description', ''))
+            thumbnail = c.get('Image', '')
+            if c.get('GuideId').startswith('s'):
+                itm = item.clone(title=title,
+                                plot=plot,
+                                thumbnail=thumbnail,
+                                url = 'http://opml.radiotime.com/Tune.ashx?render=json&id={}&{}{}'.format(c.get('GuideId'), args, token),
+                                action = 'findvideos')
+
+            else:
+                itm = item.clone(title=title,
+                                plot=plot,
+                                thumbnail=thumbnail,
+                                url = c.get('Actions', {}).get('Browse',{}).get('Url',''))
+
+
+        elif c.get('Actions', {}).get('Browse',{}).get('Url',''):
+            title = c.get('Title', c.get('AccessibilityTitle'))
+            itm = item.clone(title = title,
+                            url = c.get('Actions', {}).get('Browse',{}).get('Url',''))
+
+
+        itemlist.append(itm)
+
+    return itemlist
+
+
+def findvideos(item):
+    item.action = 'play'
+
+    js = httptools.downloadpage(item.url, cloudscraper=True).json.get('body',  {})
+    video_urls = list()
+    for it in js:
+        video_urls.append(['m3u8 [{}]'.format(it.get('bitrate')), it.get('url')])
+
+    item.referer = False
+    item.server = 'directo'
+    item.video_urls = video_urls
+    return [item]

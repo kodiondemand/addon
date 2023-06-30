@@ -1,53 +1,81 @@
-from core import httptools
+import re
+from core import httptools, support, scrapertools
 from platformcode import config, logger, platformtools
-import random, string
-import codecs
 
+try:
+    import urllib.parse as urllib
+except ImportError:
+    import urllib
+import re, sys
+
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
+
+from base64 import b64encode
+
+
+host = 'https://streamas.cloud'
 
 def get_sources(page_url):
-    code = page_url.split('/')[-1].split('.html')[0]
-    rand1 = "".join([random.choice(string.ascii_letters) for y in range(12)])
-    rand2 = "".join([random.choice(string.ascii_letters) for y in range(12)])
-    _0x470d0b = '{}||{}||{}||streamsb'.format(rand1, code, rand2)
-
-    prefix = 'https://streamas.cloud/sources'
-    suffix = '/' + codecs.getencoder('hex')(_0x470d0b.encode())[0].decode()
-    number = config.get_setting('number', server='streamsb')
-    sources = prefix + str(number) + suffix
-    # does not lite other headers different than watchsb and useragent
-    ret = httptools.downloadpage(sources, headers={'watchsb': 'sbstream', 'User-Agent': httptools.get_user_agent()}, replace_headers=True).json
-    if not ret:  # probably number changed
-        wait = platformtools.dialog_progress('StreamSB', config.get_localized_string(60293))
-        for number in range(100):
-            if httptools.downloadpage(prefix + str(number) + '/').code == 200:
-                config.set_setting('number', server='streamsb', value=number)
-                sources = prefix + str(number) + suffix
-                # does not lite other headers different than watchsb and useragent
-                ret = httptools.downloadpage(sources,
-                                             headers={'watchsb': 'sbstream', 'User-Agent': httptools.get_user_agent()},
-                                             replace_headers=True).json
-                break
-        wait.close()
-    logger.debug(ret)
-    return ret
+    sources = support.match(page_url, headers={'watchsb': 'sbstream', 'User-Agent': httptools.get_user_agent()}, replace_headers=True, patron=r'download_video([^"]+).*?<span>\s*(\d+)').matches
+    if sources:
+        sources = {s[1]: s[0].replace('(','').replace(')','').replace("'",'').split(',') for s in sources}
+    return sources
 
 
 def test_video_exists(page_url):
     global sources
     sources = get_sources(page_url)
 
-    if 'error' in sources:
-        return False, config.get_localized_string(70449) % "StreamSB"
-    else:
+    if sources:
         return True, ""
+    else:
+        return False, config.get_localized_string(70449) % "StreamSB"
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
     global sources
-    file = sources['stream_data']['file']
-    backup = sources['stream_data']['backup']
-    return [["m3u8 [StreamSB]", file], ["m3u8-altern [StreamSB]", backup]]
+    video_urls = list()
+    if sources:
+        action = config.get_setting('default_action')
+        if action == 0:
+            progress = platformtools.dialog_progress_bg("StreamSB", message="Risoluzione URLs")
+            step = int(100 / len(sources))
+            percent = 0
+            for res, url in sources.items():
+                progress.update(percent, "Risoluzione URL: {}p".format(res))
+                r, u = resolve_url(res, url)
+                percent += step
+                progress.update(percent, "Risoluzione URL: {}p".format(res))
+                video_urls.append(['{} [{}]'.format(u.split('.')[-1], r), u])
+            progress.close()
+        else:
+            res = sorted([* sources])[0 if action == 1 else -1]
+            progress = platformtools.dialog_progress_bg("StreamSB", message="Risoluzione URL: {}p".format(res))
+            url = sources[res]
+            r, u = resolve_url(res, url)
+            progress.close()
+            video_urls.append(['{} [{}]'.format(u.split(',')[-1], r), u])
+
+    return video_urls
 
 
-def get_filename(page_url):
-    return get_sources(page_url)['stream_data']['title']
+def get_payloads(data, token):
+    # support.dbg()
+    payloads = {'g-recaptcha-response': token}
+    for name, value in support.match(data, patron=r'input type="hidden" name="([^"]+)" value="([^"]+)').matches:
+        payloads[name] = value
+    return payloads
+
+def resolve_url(res, params):
+    url = ''
+    source_url = '{}/dl?op=download_orig&id={}&mode={}&hash={}'.format(host, params[0], params[1], params[2])
+    data = httptools.downloadpage(source_url).data
+    co = b64encode((host + ':443').encode('utf-8')).decode('utf-8').replace('=', '')
+    token = scrapertools.girc(data, host, co)
+    payload = get_payloads(data, token)
+    if token:
+        url = support.match(source_url, patron=r'href="([^"]+)"\s*class="btn\s*btn-light', post=payload).match
+    return res, url

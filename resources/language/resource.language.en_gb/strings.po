@@ -199,6 +199,18 @@ msgctxt "#30046"
 msgid "Resume from start"
 msgstr ""
 
+msgctxt "#30047"
+msgid "Show resume from How:"
+msgstr "Mostra riprendi da come:"
+
+msgctxt "#30048"
+msgid "Custom window"
+msgstr "Finestra personalizzata"
+
+msgctxt "#30049"
+msgid "Skin window"
+msgstr "Finestra della skin"
+
 msgctxt "#30050"
 msgid "Server connection error"
 msgstr ""

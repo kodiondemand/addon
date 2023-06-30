@@ -115,7 +115,7 @@ def peliculas(item):
         action = 'seasons'
         patron = r'<img src="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*<a href="(?P<url>[^"]+)[^>]+>(?P<title>[^<]+)'
 
-    if (item.args == 'search' or item.contentType != 'movie') and inspect.stack(0)[4][3] not in ['get_channel_results']:
+    if (item.args == 'search' or item.contentType != 'movie') and not support.stackCheck(['get_channel_results']):
         patronNext = None
         def itemlistHook(itemlist):
             lastUrl = support.match(data, patron=r'href="([^"]+)">Last').match

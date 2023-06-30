@@ -1,4 +1,4 @@
-<addon id="plugin.video.kod" name="Kodi on Demand" version="1.7.6" provider-name="KoD Team">
+<addon id="plugin.video.kod" name="Kodi on Demand" version="1.7.7" provider-name="KoD Team">
   <requires>
     <!-- <import addon="script.module.libtorrent" optional="true"/> -->
     <import addon="metadata.themoviedb.org"/>
@@ -28,9 +28,6 @@
       <screenshot>resources/media/screenshot-3.png</screenshot>
     </assets>
       <news>- fix di routine ai canali/server
-- disabilitati cb01anime e tantifilm
-- aggiunta opzione &quot;mostra server&quot; nel menu contestuale della libreria
-- più opzioni per quanto riguarda l'aggiornamento della videoteca
 </news>
     <description lang="it">Naviga velocemente sul web e guarda i contenuti presenti</description>
     <disclaimer>[COLOR red]The owners and submitters to this addon do not host or distribute any of the content displayed by these addons nor do they have any affiliation with the content providers.[/COLOR]

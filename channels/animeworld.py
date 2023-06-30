@@ -4,7 +4,7 @@
 # thanks to fatshotty
 # ----------------------------------------------------------
 
-from core import httptools, support, jsontools
+from core import httptools, support, config, jsontools
 
 host = support.config.get_channel_url()
 __channel__ = 'animeworld'
@@ -23,7 +23,7 @@ def get_data(item):
     # support.dbg()
     url = httptools.downloadpage(item.url, headers=headers, follow_redirects=True, only_headers=True).url
     data = support.match(url, headers=headers, follow_redirects=True).data
-    if 'AWCookieVerify' in data:
+    if 'SecurityAW' in data:
         get_cookie(data)
         data = get_data(item)
     return data
@@ -37,8 +37,8 @@ def order():
 @support.menu
 def mainlist(item):
     anime=['/filter?sort=',
-           ('ITA',['/filter?dub=1&sort=', 'menu', '1']),
-           ('SUB-ITA',['/filter?dub=0&sort=', 'menu', '0']),
+           ('ITA',['/filter?dub=1&sort=', 'menu', 'dub=1']),
+           ('SUB-ITA',['/filter?dub=0&sort=', 'menu', 'dub=0']),
            ('In Corso', ['/ongoing', 'peliculas','noorder']),
            ('Ultimi Episodi', ['/updated', 'peliculas', 'updated']),
            ('Nuove Aggiunte',['/newest', 'peliculas','noorder' ]),
@@ -50,6 +50,7 @@ def mainlist(item):
 def genres(item):
     action = 'peliculas'
     data = get_data(item)
+
     patronBlock = r'dropdown[^>]*>\s*Generi\s*<span.[^>]+>(?P<block>.*?)</ul>'
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)</label>'
 
@@ -75,9 +76,10 @@ def menu(item):
 def submenu(item):
     action = 'peliculas'
     data = item.other
+    # debug=True
     patronMenu = r'<input.*?name="(?P<name>[^"]+)" value="(?P<value>[^"]+)"\s*>[^>]+>(?P<title>[^<]+)<\/label>'
     def itemHook(item):
-        item.url = host + '/filter?' + item.name + '=' + item.value + '&dub=' + item.args + ('&sort=' if item.name != 'sort' else '')
+        item.url = '{}/filter?{}={}&{}{}'.format(host, item.name, item.value, item.args, ('&sort=' if item.name != 'sort' else ''))
         return item
     return locals()
 
@@ -85,9 +87,10 @@ def submenu(item):
 def newest(categoria):
     support.info(categoria)
     item = support.Item()
+    lang = config.get_setting('lang', channel=item.channel)
     try:
         if categoria == "anime":
-            item.url = host + '/updated'
+            item.url = host
             item.args = "updated"
             return peliculas(item)
     # Continua la ricerca in caso di errore
@@ -98,13 +101,13 @@ def newest(categoria):
         return []
 
 
-def search(item, texto):
-    support.info(texto)
+def search(item, text):
+    support.info(text)
     if item.search:
-        item.url = host + '/filter?dub=' + item.args + '&keyword=' + texto + '&sort='
+        item.url = '{}/filter?{}&keyword={}&sort='.format(host, item.args, text)
     else:
-        item.args = 'noorder'
-        item.url = host + '/search?keyword=' + texto
+        lang = ['?', '?dub=1&', '?dub=0&'][config.get_setting('lang', channel=item.channel)]
+        item.url = '{}/filter{}&keyword={}&sort='.format(host, lang, text)
     item.contentType = 'tvshow'
     try:
         return peliculas(item)
@@ -118,8 +121,8 @@ def search(item, texto):
 
 @support.scrape
 def peliculas(item):
+    data = get_data(item)
     anime = True
-    # debug = True
     if item.args not in ['noorder', 'updated'] and not item.url[-1].isdigit(): item.url += order() # usa l'ordinamento di configura canale
     data = get_data(item)
 
@@ -185,7 +188,9 @@ def findvideos(item):
             else:
                 dataJson = support.match(host + '/api/episode/info?id=' + epID + '&alt=0', headers=headers).data
                 json = jsontools.load(dataJson)
+
                 title = support.match(json['grabber'], patron=r'server\d+.([^.]+)', string=True).match
                 if title: itemlist.append(item.clone(action="play", title=title, url=json['grabber'].split('=')[-1], server='directo'))
                 else: urls.append(json['grabber'])
+    # support.info(urls)
     return support.server(item, urls, itemlist)

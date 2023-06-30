@@ -45,9 +45,9 @@ def peliculas(item):
 @support.scrape
 def episodios(item):
     patronBlock = r'<div class="tab-pane fade" id="season-(?P<season>.)"(?P<block>.*?)</ul>\s*</div>'
-    patron = r'<a href="#" allowfullscreen data-link="(?P<url>[^"]+).*?title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]-?[iI][tT][aA])?\s*">(?P<episode>[^<]+)'
+    patron = r'(?P<data><a href="#" allowfullscreen data-link="[^"]+.*?title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]-?[iI][tT][aA])?\s*">(?P<episode>[^<]+).*?</li>)'
     action = 'findvideos'
-    # debugBlock = True
+    # debug = True
     return locals()
 
 
@@ -68,4 +68,4 @@ def search(item, text):
 
 def findvideos(item):
     logger.debug()
-    return support.server(item, item.url)
+    return support.server(item, item.data)

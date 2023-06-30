@@ -20,5 +20,5 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     packed = support.match(data, patron=r'(eval\(function\(p.*?)</').match
     if packed:
         data = jsunpack.unpack(packed).replace("\\", "")
-    video_urls = support.get_jwplayer_mediaurl(data, 'filemoon')
+    video_urls = support.get_jwplayer_mediaurl(data, 'filemoon', hls=True)
     return video_urls

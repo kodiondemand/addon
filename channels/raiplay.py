@@ -22,16 +22,17 @@ def mainlist(item):
     top =  [('Dirette {bold}', ['/dirette', 'live', '/palinsesto/onAir.json']),
             ('Replay {bold}', ['/guidatv', 'replayMenu', '/guidatv.json'])]
 
-    menu = [('Film {bullet bold}', ['/film', 'menu', '/tipologia/film/index.json']),
-            ('Serie italiane {bullet bold}', ['/serietv', 'menu', '/tipologia/serieitaliane/index.json']),
-            # ('Fiction {bullet bold}', ['/fiction', 'menu', '/tipologia/fiction/index.json']),
-            ('Documentari {bullet bold}', ['/documentari', 'menu', '/tipologia/documentari/index.json']),
-            ('Programmi TV{bullet bold}', ['/programmi', 'menu', '/tipologia/programmi/index.json']),
-            ('Programmi per Bambini {bullet bold}', ['/bambini', 'menu', '/tipologia/bambini/index.json']),
-            ('Teen {bullet bold}', ['/teen', 'menu', '/tipologia/teen/index.json']),
-            ('Learning {bullet bold}', ['/learning', 'menu', '/tipologia/learning/index.json']),
-            ('Teche Rai {bullet bold storia}', ['/techerai', 'menu', '/tipologia/techerai/index.json']),
-            ('Musica e Teatro {bullet bold}', ['/musica-e-teatro', 'menu', '/tipologia/musica-e-teatro/index.json'])
+    menu = [('Film {bold}', ['/film', 'menu', '/tipologia/film/index.json']),
+            ('Serie italiane {bold}', ['/serieitaliane', 'menu', '/tipologia/serieitaliane/index.json']),
+            ('Serie Internazionali {bold}', ['/serieinternazionali', 'menu', '/tipologia/serieinternazionali/index.json']),
+            ('Programmi TV{bold}', ['/programmi', 'menu', '/tipologia/programmi/index.json']),
+            ('Documentari {bold}', ['/documentari', 'menu', '/tipologia/documentari/index.json']),
+            ('Bambini {bold}', ['/bambini', 'menu', '/tipologia/bambini/index.json']),
+            ('Teen {bold}', ['/teen', 'menu', '/tipologia/teen/index.json']),
+            ('Musica e Teatro {bold}', ['/musica-e-teatro', 'menu', '/tipologia/musica-e-teatro/index.json']),
+            ('Teche Rai {bold storia}', ['/techerai', 'menu', '/tipologia/techerai/index.json']),
+            ('Learning {bold}', ['/learning', 'menu', '/tipologia/learning/index.json']),
+            ('Rai Italy{bold tv}', ['/raiitaly', 'menu', '/tipologia/raiitaly/index.json'])
            ]
 
     search = ''
@@ -41,6 +42,7 @@ def mainlist(item):
 
 def menu(item):
     logger.debug()
+
     itemlist = []
     item.disable_videolibrary = True
     action = 'peliculas'
@@ -60,7 +62,6 @@ def menu(item):
                     action = 'menu'
                     thumb = support.thumb('genres')
                 itemlist.append(item.clone(title=support.typo(it['name'], 'bold'), data=it.get('contents', item.data), thumbnail=thumb, action=action))
-
     return itemlist
 
 
@@ -256,7 +257,7 @@ def getUrl(url):
     elif url.startswith("/"): url = host + url
 
     url = url.replace(".html?json", ".json").replace("/?json",".json").replace("?json",".json").replace(" ", "%20")
-
+    logger.debug('URL', url)
     return url
 
 
