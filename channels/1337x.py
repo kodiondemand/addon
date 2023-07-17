@@ -103,13 +103,13 @@ def peliculas(item):
         data = ' '
     else:
         data = support.match(item).data
-
+    # debug = True
     if item.args == 'search':
         sceneTitle = 'undefined'
         patron = r'<a href="(?P<url>[^"]+)">(?P<title>[^<]+)<(?:[^>]+>){3,7}(?P<seed>[^<]+)<(?:[^>]+>){6}(?P<size>[^<]+)<span'
         patronNext = r'"([^"]+)">&gt;&gt;'
     elif item.contentType == 'movie':
-        patron = r'<img alt="[^"]*" data-original="(?P<thumb>[^"]+)(?:[^>]+>){15}(?P<title>[^<]+)(?:[^>]+>){18,23}\s*<a href="(?P<url>[^"]+)'
+        patron = r'<img[^>]+data-original="(?P<thumb>[^"]+)(?:[^>]+>){15}(?P<title>[^<]+).*?<p>(?P<plot>[^<]+).*?<a href="(?P<url>[^"]+)'
         patronNext = r'"([^"]+)">&gt;&gt;'
     else:
         action = 'seasons'
