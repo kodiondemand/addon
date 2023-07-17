@@ -3,7 +3,7 @@
     "find_videos": {
         "ignore_urls": [],
         "patterns": [{
-                "pattern": "(?:streamsb|sblanh|sblona|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh|sblongvu|sbchill|sbhight|sbbrisk)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
+                "pattern": "(?:streamsb|sblanh|sblona|sbembed|sbembed1|sbplay1|sbplay|pelistop|tubesb|playersb|embedsb|watchsb|streamas|sbfast|sbfull|viewsb|sbvideo|cloudemb|sbplay2|japopav|javplaya|ssbstream|sbthe|sbspeed|sbanh|sblongvu|sbchill|sbhight|sbbrisk|likessb|kharabnahk)\\.\\w{2,5}/(?:embed-|d/|e/)?([A-z0-9]+)",
                 "url": "https://streamas.cloud/d/\\1.html"
             },
             {

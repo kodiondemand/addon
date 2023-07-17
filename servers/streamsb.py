@@ -8,11 +8,6 @@ except ImportError:
     import urllib
 import re, sys
 
-if sys.version_info[0] >= 3:
-    from concurrent import futures
-else:
-    from concurrent_py2 import futures
-
 from base64 import b64encode
 
 
