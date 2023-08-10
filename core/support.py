@@ -225,11 +225,11 @@ def unifyEp(ep):
     return ep
 
 
-def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group):
+def scrapeBlock(item, args, block, patron, headers, action, pagination, debug, typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group, flags):
     itemlist = []
     if debug:
         regexDbg(item, patron, headers, block)
-    matches = scrapertools.find_multiple_matches_groups(block, patron)
+    matches = scrapertools.find_multiple_matches_groups(block, patron, flags)
     logger.debug('MATCHES =', matches)
 
     known_keys = ['url', 'title', 'title2', 'season', 'episode', 'episode2', 'thumb', 'quality', 'year', 'plot', 'duration', 'genere', 'rating', 'type', 'lang', 'other', 'size', 'seed']
@@ -524,7 +524,9 @@ def scrape(func):
         else:
             headers = ''
         patronNext = args.get('patronNext', '')
+        flags = args.get('flags', re.IGNORECASE)
         patronBlock = args.get('patronBlock', '')
+        flagsBlock = args.get('flagsBlock', re.IGNORECASE)
         typeActionDict = args.get('typeActionDict', {})
         typeContentDict = args.get('typeContentDict', {})
         debug = args.get('debug', False)
@@ -549,13 +551,13 @@ def scrape(func):
             if patronBlock:
                 if debugBlock:
                     regexDbg(item, patronBlock, headers, data)
-                blocks = scrapertools.find_multiple_matches_groups(data, patronBlock)
+                blocks = scrapertools.find_multiple_matches_groups(data, patronBlock, flagsBlock)
                 for bl in blocks:
                     # info(len(blocks),bl)
                     if 'season' in bl and bl['season']:
                         item.season = bl['season']
                     blockItemlist, blockMatches = scrapeBlock(item, args, bl['block'], patron, headers, action, pagination, debug,
-                                                typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group)
+                                                typeContentDict, typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group, flags)
                     for it in blockItemlist:
                         if 'lang' in bl:
                             it.contentLanguage, it.title = scrapeLang(bl, it.contentLanguage, it.title)
@@ -566,7 +568,7 @@ def scrape(func):
                     matches.extend(blockMatches)
             elif patron:
                 itemlist, matches = scrapeBlock(item, args, data, patron, headers, action, pagination, debug, typeContentDict,
-                                       typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group)
+                                       typeActionDict, blacklist, search, pag, function, lang, sceneTitle, group, flags)
 
             if 'itemlistHook' in args:
                 try:

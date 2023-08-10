@@ -63,8 +63,8 @@ def find_multiple_matches(text, pattern):
     return re.findall(pattern, text, re.DOTALL)
 
 
-def find_multiple_matches_groups(text, pattern):
-    r = re.compile(pattern)
+def find_multiple_matches_groups(text, pattern, flags):
+    r = re.compile(pattern, flags)
     return [m.groupdict() for m in r.finditer(text)]
 
 
