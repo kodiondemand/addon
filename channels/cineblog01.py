@@ -27,7 +27,8 @@ def mainlist(item):
         ('Anni', ['', 'menu', 'Film per Anno']),
         ('Popolari per Genere', ['', 'menu', 'Film Popolari']),
         ('Ultimi Aggiunti', ['/ultimi-100-film-aggiunti/', 'peliculas', 'newest']),
-        ('Popolari', ['/category/film-popolari/'])
+        ('Popolari', ['/category/film-popolari/']),
+        ('Italiani', ['/category/nazione/italia/'])
         # ('Film in Lista', ['/lista-film/', 'peliculas', 'newest'])
     ]
     tvshow = ['/serietv/',
