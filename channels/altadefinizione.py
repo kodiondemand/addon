@@ -66,13 +66,13 @@ def search(item, text):
 
 @support.scrape
 def peliculas(item):
-    n = '22' if '/?s=' in item.url else '8'
     item.contentType = "undefined"
     action = 'check'
-    patron = r'src="(?P<poster>http[^"]+)(?:[^>]+>){4}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h2>'
-    if item.args == 'search':
-        patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
+    patron = r'src="(?P<poster>http[^"]+)(?:[^>]+>){5}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h1>'
+    # if item.args == 'search':
+    #     patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
+    # debug = True
     return locals()
 
 
