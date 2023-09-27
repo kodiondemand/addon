@@ -36,7 +36,7 @@ def list(item):
 @support.scrape
 def peliculas(item):
     # debug = True
-    patron = r'<div class="mlnh-thumb"><a href="(?P<url>[^"]+).*?title="(?P<title>[^"]+).*?src="(?P<thumb>[^"]+).*?hdn">(?P<year>[0-9]{4})'
+    patron = r'<div class="mlnh-thumb"><a href="(?P<url>[^"]+)[^>]+title="(?P<title>[^"]+).*?<img src="(?P<thumb>[^"]+).*?hdn">[^<]*(?P<year>[0-9]{4})'
     patronNext = 'pagenavi.*?<a href="([^"]+)">\d+'
     action = 'episodios'
     return locals()
