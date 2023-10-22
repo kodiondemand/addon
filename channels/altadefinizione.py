@@ -21,7 +21,7 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     film = ['/category/film/',
-            ('Al Cinema', ['/al-cinema/', 'peliculas']),
+            ('Al Cinema', ['/prime-visioni/', 'peliculas']),
             ('Generi', ['', 'genres']),
             # ('Sub-ITA', ['/sub-ita/', 'peliculas'])
             ]
@@ -38,7 +38,9 @@ def mainlist(item):
 def genres(item):
     action = 'peliculas'
     blacklist = ['Scegli il Genere', 'Film', 'Serie TV', 'Sub-Ita', 'Anime']
-    patronMenu = r'<option value="(?P<url>[^"]+)">(?P<title>[^<]+)'
+    patronMenu = r'<a href="(?P<url>[^"]+)" class="category-button">(?P<title>[^<]+)'
+    '<a href="https://altadefinizione.archi/category/film/animazione/" class="category-button">Animazione</a>'
+
     def itemlistHook(itemlist):
         itl = []
         for item in itemlist:
@@ -72,7 +74,7 @@ def peliculas(item):
     # if item.args == 'search':
     #     patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
-    # debug = True
+    debug = True
     return locals()
 
 
@@ -81,9 +83,9 @@ def episodios(item):
     item.quality = ''
     data = item.data
     action='findvideos'
-    # debug=True
-    patronBlock = r'<span>\s*\w+\s*[Ss]tagione.*?(?P<lang>(?:[Ss][Uu][Bb][-]?)?[Ii][Tt][Aa])(?: in )?(?P<quality>[^<]*)?(?:[^>]+>){4}(?P<block>.*?)/p>'
-    patron = r'(?P<season>\d+)x(?P<episode>\d+)[^>]+>(?P<data>.*?)(?:</table)'
+    # debugBlock=True
+    patronBlock = r'<h2>[Ss]tagione: (?P<season>\d+)(?P<block>.*?)</ul>'
+    patron = r'<a href="(?P<url>[^"]+).*?[Ee]pisodio N°: (?P<episode>\d+)'
     return locals()
 
 
@@ -98,6 +100,7 @@ def check(item):
 
 def findvideos(item):
     logger.debug()
+    # support.dbg()
     if item.contentType == 'movie' and isinstance(item.data, str):
-        item.data = support.match(item.data, patron=r'data-id="([^"]+)').matches
+        item.data = support.match(support.match(item.data, patron=r'iframe src="([^"]+)').match).data
     return support.server(item, item.data)
