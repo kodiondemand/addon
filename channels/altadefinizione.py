@@ -74,7 +74,7 @@ def peliculas(item):
     # if item.args == 'search':
     #     patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
-    debug = True
+    # debug = True
     return locals()
 
 
@@ -101,6 +101,10 @@ def check(item):
 def findvideos(item):
     logger.debug()
     # support.dbg()
+    if not item.data:
+        item.data = httptools.downloadpage(item.url).data
+    data = item.data
     if item.contentType == 'movie' and isinstance(item.data, str):
-        item.data = support.match(support.match(item.data, patron=r'iframe src="([^"]+)').match).data
-    return support.server(item, item.data)
+        data = support.match(support.match(item.data, patron=r'iframe src="([^"]+)').match).data
+    item.data = ''
+    return support.server(item, data)
