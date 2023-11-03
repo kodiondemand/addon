@@ -5,7 +5,7 @@
     "patterns": [
       {
         "pattern": "mixdro?o?ps?.[^/]+/(?:f|e)/([a-z0-9]+)",
-        "url": "https://mixdrop.co/e/\\1"
+        "url": "https://mixdrop.ag/e/\\1"
       },
       {
         "pattern": "(mixdro?ps?.[^/]+/player\\.php\\?id=[a-z0-9-]+)",
