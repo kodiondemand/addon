@@ -16,9 +16,9 @@ def test_video_exists(page_url):
     global iframeParams
 
     iframe = support.scrapertools.decodeHtmlentities(support.match(page_url, patron='<iframe [^>]+src="([^"]+)').match)
-    iframeParams = support.match(iframe, patron='window\.masterPlaylistParams\s=\s({.*?})').match
+    iframeParams = support.match(iframe, patron=['window.masterPlaylist\s=\s{\s.*params:\s((?s:.*})),','},\s*url:\s.(http.*).,']).matches
 
-    if not iframeParams:
+    if not iframeParams or len(iframeParams) < 2:
         return 'StreamingCommunity', 'Prossimamente'
 
     return True, ""
@@ -31,8 +31,8 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     video_urls = list()
 
     scws_id = urlparse(iframe).path.split('/')[-1]
-    masterPlaylistParams = ast.literal_eval(iframeParams)
-    url = 'https://scws.work/v2/playlist/{}?{}&n=1'.format(scws_id, urllib.parse.urlencode(masterPlaylistParams))
+    masterPlaylistParams = ast.literal_eval(iframeParams[0])
+    url = iframeParams[1] + '?{}&n=1'.format(urllib.parse.urlencode(masterPlaylistParams))
 
     info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
 
