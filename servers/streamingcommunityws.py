@@ -14,9 +14,11 @@ vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]
 def test_video_exists(page_url):
     global iframe
     global iframeParams
+    global playlistUrl
 
     iframe = support.scrapertools.decodeHtmlentities(support.match(page_url, patron='<iframe [^>]+src="([^"]+)').match)
-    iframeParams = support.match(iframe, patron='window\.masterPlaylistParams\s=\s({.*?})').match
+    iframeParams = support.match(iframe, patron='window.masterPlaylist\s=\s{\s.*params:\s((?s:.*})),').match
+    playlistUrl = support.match(iframe, patron='},\s*url:\s.(http.*).,').match
 
     if not iframeParams:
         return 'StreamingCommunity', 'Prossimamente'
@@ -32,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     scws_id = urlparse(iframe).path.split('/')[-1]
     masterPlaylistParams = ast.literal_eval(iframeParams)
-    url = 'https://scws.work/v2/playlist/{}?{}&n=1'.format(scws_id, urllib.parse.urlencode(masterPlaylistParams))
+    url = playlistUrl + '?{}&n=1'.format(urllib.parse.urlencode(masterPlaylistParams))
 
     info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
 
