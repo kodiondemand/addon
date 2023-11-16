@@ -148,7 +148,7 @@ def findvideos(item):
     itemlist = support.server(item, itemlist=itemlist, headers=headers)
     if not itemlist:
         data = httptools.downloadpage(item.url).data
-        iframe = support.match(data, patron='src="(http[^"]+)" frameborder').match
+        iframe = support.match(data, patron='src="(http[^"]+)" frameborder=\"0\" allow=\"accelerometer; autoplay;').match
         if iframe:
             item.url = iframe
             return support.server(item)
