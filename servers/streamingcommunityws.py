@@ -34,23 +34,23 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     masterPlaylistParams = ast.literal_eval(iframeParams[0])
     url = iframeParams[1] + '?{}&n=1'.format(urllib.parse.urlencode(masterPlaylistParams))
 
-    info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
-
-    if info:
-        for lang, sub, url, res in info:
-            if sub:
-                if lang == 'auto': lang = 'ita-forced'
-                subs.append([lang, sub])
-            elif not 'token=&' in url:
-                urls.append([res, url])
-
-        if subs:
-            local_subs = subs_downloader(subs)
-            video_urls = [['m3u8 [{}]'.format(res), url, 0, local_subs] for res, url in urls]
-        else:
-            video_urls = [['m3u8 [{}]'.format(res), url] for res, url in urls]
-    else:
-        video_urls = [['hls', url]]
+    # info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
+    #
+    # if info:
+    #     for lang, sub, url, res in info:
+    #         if sub:
+    #             if lang == 'auto': lang = 'ita-forced'
+    #             subs.append([lang, sub])
+    #         elif not 'token=&' in url:
+    #             urls.append([res, url])
+    #
+    #     if subs:
+    #         local_subs = subs_downloader(subs)
+    #         video_urls = [['m3u8 [{}]'.format(res), url, 0, local_subs] for res, url in urls]
+    #     else:
+    #         video_urls = [['m3u8 [{}]'.format(res), url] for res, url in urls]
+    # else:
+    video_urls = [['hls', url]]
 
     return video_urls
 
