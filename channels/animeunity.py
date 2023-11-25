@@ -153,6 +153,8 @@ def peliculas(item):
 
     payload = json.dumps(item.args)
     records = httptools.downloadpage(host + '/archivio/get-animes', headers=headers, post=payload).json['records']
+    # support.dbg()
+
     for it in records:
         if not it['title']:
             it['title'] = ''
@@ -170,7 +172,7 @@ def peliculas(item):
         itm.type = it['type']
         itm.thumbnail = it['imageurl']
         itm.plot = it['plot']
-        itm.url = item.url
+        itm.url = '{}/anime/{}-{}'.format(item.url, it.get('id'), it.get('slug'))
 
         if it['episodes_count'] == 1:
             itm.contentType = 'movie'
@@ -199,7 +201,6 @@ def episodios(item):
     support.info()
     itemlist = []
     title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
-
     for it in item.episodes:
         itemlist.append(
             item.clone(title=support.typo(title + it['number'], 'bold'),
@@ -224,28 +225,33 @@ def episodios(item):
 
 
 def findvideos(item):
-    if item.scws_id:
-        from time import time
-        from base64 import b64encode
-        from hashlib import md5
+    # if item.scws_id:
+    #     from time import time
+    #     from base64 import b64encode
+    #     from hashlib import md5
+    #
+    #     client_ip = support.httptools.downloadpage('http://ip-api.com/json/').json.get('query')
+    #
+    #     expires = int(time() + 172800)
+    #     token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+    #
+    #     url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
+    #
+    #     itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play')]
 
-        client_ip = support.httptools.downloadpage('http://ip-api.com/json/').json.get('query')
+    from core import channeltools
+    itemlist = [item.clone(title=channeltools.get_channel_parameters(item.channel)['title'],
+                           url=item.url, server='streamingcommunityws')]
+    return support.server(item, itemlist=itemlist, referer=False)
 
-        expires = int(time() + 172800)
-        token = b64encode(md5('{}{} Yc8U6r8KjAKAepEA'.format(expires, client_ip).encode('utf-8')).digest()).decode('utf-8').replace('=', '').replace('+', '-').replace('/', '_')
+    # return support.server(item, itemlist=itemlist)
 
-        url = 'https://scws.work/master/{}?token={}&expires={}&n=1'.format(item.scws_id, token, expires)
-
-        itemlist = [item.clone(title=support.config.get_localized_string(30137), url=url, server='directo', action='play')]
-
-    return support.server(item, itemlist=itemlist)
-
-
-def play(item):
-    urls = list()
-    info = support.match(item.url, patron=r'(http.*?rendition=(\d+)[^\s]+)').matches
-
-    if info:
-        for url, res in info:
-            urls.append(['hls [{}]'.format(res), url])
-    return urls
+#
+# def play(item):
+#     urls = list()
+#     info = support.match(item.url, patron=r'(http.*?rendition=(\d+)[^\s]+)').matches
+#
+#     if info:
+#         for url, res in info:
+#             urls.append(['hls [{}]'.format(res), url])
+#     return urls

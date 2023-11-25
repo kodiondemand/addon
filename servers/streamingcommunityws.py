@@ -6,17 +6,20 @@ import xbmc
 from core import httptools, support, filetools
 from platformcode import logger, config
 from concurrent import futures
-from urllib.parse import urlparse
 
 vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]) < 20 else True
 
 
 def test_video_exists(page_url):
-    global iframe
+    global server_url
     global iframeParams
 
-    iframe = support.scrapertools.decodeHtmlentities(support.match(page_url, patron='<iframe [^>]+src="([^"]+)').match)
-    iframeParams = support.match(iframe, patron=['window.masterPlaylist\s=\s{\s.*params:\s((?s:.*})),','},\s*url:\s.(http.*).,']).matches
+    server_url = support.scrapertools.decodeHtmlentities(support.match(page_url, patron='<iframe [^>]+src="([^"]+)').match)
+    if not server_url:
+        server_url = support.match(page_url, patron='embed_url="([^"]+)').match
+    iframeParams = support.match(server_url, patron=['window.masterPlaylist\s=\s{\s.*params:\s(.*?}),',
+                                                     '''},\s*url:\s.(http[^"']+).,''']).matches
+    logger.info(iframeParams)
 
     if not iframeParams or len(iframeParams) < 2:
         return 'StreamingCommunity', 'Prossimamente'
@@ -30,7 +33,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     local_subs = list()
     video_urls = list()
 
-    scws_id = urlparse(iframe).path.split('/')[-1]
+    # scws_id = urlparse(server_url).path.split('/')[-1]
     masterPlaylistParams = ast.literal_eval(iframeParams[0])
     url = iframeParams[1] + '?{}&n=1'.format(urllib.parse.urlencode(masterPlaylistParams))
 
