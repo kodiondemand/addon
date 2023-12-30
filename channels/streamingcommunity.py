@@ -4,7 +4,10 @@
 # ------------------------------------------------------------
 
 import json, re, sys
-import urllib.parse
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 
 from core import support, channeltools, httptools, jsontools
 from platformcode import logger, config
@@ -66,7 +69,7 @@ def genres(item):
     data_page = get_data(item.url)
     args = data_page['props']['genres']
     for arg in args:
-        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urllib.parse.quote(arg['name']), action='peliculas', genre=True))
+        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urlparse.quote(arg['name']), action='peliculas', genre=True))
     support.thumb(itemlist, genre=True)
     return itemlist
 
