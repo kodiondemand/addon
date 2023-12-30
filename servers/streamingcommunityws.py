@@ -8,7 +8,10 @@ import xbmc
 
 from core import httptools, support, filetools
 from platformcode import logger, config
-from concurrent import futures
+try:
+    from concurrent import futures
+except ImportError:
+    import futures
 
 vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]) < 20 else True
 
