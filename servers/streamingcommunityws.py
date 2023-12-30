@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 try:
-    from urllib.parse import urlparse
+    from urllib.parse import urllib
 except ImportError:
-    from urlparse import urlparse
+    import urllib
 import ast
 import xbmc
 
@@ -41,7 +41,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
 
     # scws_id = urlparse(server_url).path.split('/')[-1]
     masterPlaylistParams = ast.literal_eval(iframeParams[0])
-    url = iframeParams[1] + '?{}&n=1'.format(urlparse.urlencode(masterPlaylistParams))
+    url = iframeParams[1] + '?{}&n=1'.format(urllib.urlencode(masterPlaylistParams))
 
     # info = support.match(url, patron=r'LANGUAGE="([^"]+)",\s*URI="([^"]+)|(http.*?rendition=(\d+)[^\s]+)').matches
     #
