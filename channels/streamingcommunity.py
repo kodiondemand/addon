@@ -4,18 +4,17 @@
 # ------------------------------------------------------------
 
 import json, re, sys
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
+PY3 = False
+if sys.version_info[0] >= 3: PY3 = True
+
+if PY3: import urllib.parse as urllib_parse
+else: import urlparse as urllib_parse
 
 from core import support, channeltools, httptools, jsontools
 from platformcode import logger, config
 
-if sys.version_info[0] >= 3:
-    from concurrent import futures
-else:
-    from concurrent_py2 import futures
+if PY3: from concurrent import futures
+else: from concurrent_py2 import futures
 
 # def findhost(url):
 #     return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
@@ -69,7 +68,7 @@ def genres(item):
     data_page = get_data(item.url)
     args = data_page['props']['genres']
     for arg in args:
-        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urlparse.quote(arg['name']), action='peliculas', genre=True))
+        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urllib_parse.quote(arg['name']), action='peliculas', genre=True))
     support.thumb(itemlist, genre=True)
     return itemlist
 

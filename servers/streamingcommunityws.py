@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-try:
-    from urllib.parse import urllib
-except ImportError:
-    import urllib
+import sys
+PY3 = False
+if sys.version_info[0] >= 3: PY3 = True
+
+if PY3: import urllib.parse as urllib
+else: import urllib
 import ast
 import xbmc
 
 from core import httptools, support, filetools
 from platformcode import logger, config
-try:
-    from concurrent import futures
-except ImportError:
-    import futures
+if PY3: from concurrent import futures
+else: from concurrent_py2 import futures
 
 vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]) < 20 else True
 
