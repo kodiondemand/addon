@@ -10,18 +10,17 @@ from platformcode import config, logger
 
 def findhost(url):
     host = support.match(url, patron=r'<h2[^>]+><a href="([^"]+)').match.rstrip('/')
-    return host
-
+    permUrl = httptools.downloadpage(host, follow_redirects=False).headers
+    return permUrl['location']
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-
 @support.menu
 def mainlist(item):
 
-    film = ['/category/film/',
-            ('Al Cinema', ['/prime-visioni/', 'peliculas']),
+    film = ['',
+            ('Al Cinema', ['/category/ora-al-cinema/', 'peliculas']),
             ('Generi', ['', 'genres']),
             # ('Sub-ITA', ['/sub-ita/', 'peliculas'])
             ]
@@ -37,9 +36,9 @@ def mainlist(item):
 @support.scrape
 def genres(item):
     action = 'peliculas'
-    blacklist = ['Scegli il Genere', 'Film', 'Serie TV', 'Sub-Ita', 'Anime']
-    patronMenu = r'<a href="(?P<url>[^"]+)" class="category-button">(?P<title>[^<]+)'
-    '<a href="https://altadefinizione.archi/category/film/animazione/" class="category-button">Animazione</a>'
+    blacklist = ['Scegli il Genere', 'Film', 'Serie Tv', 'Sub-Ita', 'Anime', "Non reperibile", 'Anime Sub-ITA', 'Prossimamente',]
+    patronBlock = r'(?<=<ul class="listSubCat" id="Film">)(?P<block>.*?)(?=<\/ul>)'
+    patron = r'<a href=\"(?P<url>https:\/\/.*?)\"> (?P<title>.*?) </a>'
 
     def itemlistHook(itemlist):
         itl = []
@@ -52,8 +51,7 @@ def genres(item):
 
 def search(item, text):
     logger.debug(text)
-    item.url = "{}/search/{}/feed/rss2/".format(host, text)
-    # item.url = "{}/s={}".format(host, text)
+    item.url = "{}/?s={}".format(host, text)
     item.args = 'search'
 
     try:
@@ -70,11 +68,11 @@ def search(item, text):
 def peliculas(item):
     item.contentType = "undefined"
     action = 'check'
-    patron = r'src="(?P<poster>http[^"]+)(?:[^>]+>){5}\s*<a href="(?P<url>[^"]+)[^>]+>\s*(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*</a>\s*</h1>'
-    # if item.args == 'search':
-    #     patron = r'<item>\s*<title>(?P<title>[^\[\(\<]+)(?:\[(?P<quality>[^\]]+)\])?\s*(?:\((?P<lang>[a-zA-z-]+)\))?\s*(?:\((?P<year>\d+)\))?\s*[^>]+>\s*<link>(?P<url>[^<]+)'
+    patron = r'<h2 class=\"titleFilm\"><a href=\"(?P<url>[^\"]+)\">(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
+
+    if item.args == 'search':
+          patron = r'<div class="col-lg-3 col-md-3 [^>]*> <a href=\"(?P<url>[^\"]+)\">.*?(?=<h5).*?(?=>)>(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.\'-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
-    # debug = True
     return locals()
 
 
@@ -83,9 +81,7 @@ def episodios(item):
     item.quality = ''
     data = item.data
     action='findvideos'
-    # debugBlock=True
-    patronBlock = r'<h2>[Ss]tagione: (?P<season>\d+)(?P<block>.*?)</ul>'
-    patron = r'<a href="(?P<url>[^"]+).*?[Ee]pisodio N°: (?P<episode>\d+)'
+    patron = r'<div class="episode-wrap".*?(?=<li class="season-no">).*?(?=>)>(?P<episode>[^<]+).*?(?=<a)<a href="(?P<url>[^\"]+).*?(?=>)>(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.\'-]*)'
     return locals()
 
 
@@ -100,11 +96,11 @@ def check(item):
 
 def findvideos(item):
     logger.debug()
-    # support.dbg()
+    #support.dbg()
     if not item.data:
         item.data = httptools.downloadpage(item.url).data
     data = item.data
     if item.contentType == 'movie' and isinstance(item.data, str):
-        data = support.match(support.match(item.data, patron=r'iframe src="([^"]+)').match).data
+        data = support.match(support.match(item.data, patron=r'<div class="embed-player" data-id=\"(https://.*?)\"').match).data
     item.data = ''
     return support.server(item, data)
