@@ -496,7 +496,7 @@ def html_uniform(data):
     """
         replace all ' with " and eliminate newline, so we don't need to worry about
     """
-    return re.sub("='([^']+)'", '="\\1"', data.replace('\n', ' ').replace('\t', ' ').replace('&nbsp;', ' '))
+    return re.sub(r"\s+|&nbsp;", " " , re.sub("='([^']+)'", '="\\1"', data))
 
 
 def scrape(func):
