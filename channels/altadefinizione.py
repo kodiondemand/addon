@@ -19,7 +19,7 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
 
-    film = ['',
+    film = ['/category/film/',
             ('Al Cinema', ['/category/ora-al-cinema/', 'peliculas']),
             ('Generi', ['', 'genres']),
             # ('Sub-ITA', ['/sub-ita/', 'peliculas'])
@@ -51,7 +51,7 @@ def genres(item):
 
 def search(item, text):
     logger.debug(text)
-    item.url = "{}/?s={}".format(host, text)
+    item.url = "{}/?{}".format(host, support.urlencode({'s': text}))
     item.args = 'search'
 
     try:
@@ -68,10 +68,10 @@ def search(item, text):
 def peliculas(item):
     item.contentType = "undefined"
     action = 'check'
-    patron = r'<h2 class=\"titleFilm\"><a href=\"(?P<url>[^\"]+)\">(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
+    patron = r'<h2 class=\"titleFilm\"><a href=\"(?P<url>[^\"]+)\">(?P<title>[\'’\+A-Za-zÀ-ÿ\d\s&#8217;&#8211;:\.-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
 
     if item.args == 'search':
-          patron = r'<div class="col-lg-3 col-md-3 [^>]*> <a href=\"(?P<url>[^\"]+)\">.*?(?=<h5).*?(?=>)>(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.\'-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
+          patron = r'<div class="col-lg-3 col-md-3 [^>]*> <a href=\"(?P<url>[^\"]+)\">.*?(?=<h5).*?(?=>)>(?P<title>[\'’\+A-Za-zÀ-ÿ\d\s&#8217;&#8211;:\.-]*)\s*\[?(?P<quality>[a-zA-Z]*)\]?\s*\(?(?P<year>[0-9]*)\)?'
     patronNext = r'href="([^"]+)[^>]+>Successivo'
     return locals()
 
@@ -81,7 +81,7 @@ def episodios(item):
     item.quality = ''
     data = item.data
     action='findvideos'
-    patron = r'<div class="episode-wrap".*?(?=<li class="season-no">).*?(?=>)>(?P<episode>[^<]+).*?(?=<a)<a href="(?P<url>[^\"]+).*?(?=>)>(?P<title>[a-zA-Z\d\s&#8217;&#8211;:\.\'-]*)'
+    patron = r'<div class="episode-wrap".*?(?=<li class="season-no">).*?(?=>)>(?P<episode>[^<]+).*?(?=<a)<a href="(?P<url>[^\"]+).*?(?=>)>(?P<title>[\'’\+A-Za-zÀ-ÿ\d\s&#8217;&#8211;:\.-]*)'
     return locals()
 
 
