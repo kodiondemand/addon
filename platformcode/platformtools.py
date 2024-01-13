@@ -1126,14 +1126,15 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
-                xlistitem.setProperty('inputstream.adaptive.stream_headers', httptools.get_user_agent())
+                xlistitem.setProperty('inputstream.adaptive.stream_headers', 'User-Agent='+httptools.get_user_agent())
         elif hls or item.manifest == 'hls':# or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
             xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
             xlistitem.setMimeType('application/x-mpegURL')
-            xlistitem.setProperty('inputstream.adaptive.stream_headers', httptools.get_user_agent())
+            xlistitem.setProperty('inputstream.adaptive.stream_headers', 'User-Agent='+httptools.get_user_agent())	    
+            xlistitem.setProperty('inputstream.adaptive.license_key', '|User-Agent='+httptools.get_user_agent() +'|')	    
 
         if force_direct: item.play_from = 'window'
 
