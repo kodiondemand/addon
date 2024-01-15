@@ -95,12 +95,13 @@ def check(item):
 
 
 def findvideos(item):
-    logger.debug()
-    #support.dbg()
-    if not item.data:
-        item.data = httptools.downloadpage(item.url).data
-    data = item.data
-    if item.contentType == 'movie' and isinstance(item.data, str):
-        data = support.match(support.match(item.data, patron=r'<div class="embed-player" data-id=\"(https://.*?)\"').match).data
-    item.data = ''
-    return support.server(item, data)
+    video_url = item.url
+
+    if item.contentType == 'movie':
+        video_url = support.match(item, patron=r'<div class="embed-player" data-id=\"(https://.*?)\"').match
+
+    itemlist = [item.clone(action="play", url=srv) for srv in support.match(video_url, patron='<div class="megaButton" meta-type="v" meta-link="([^"]+).*?(?=>)>').matches]
+    itemlist = support.server(item,itemlist=itemlist)
+    
+    return itemlist
+
