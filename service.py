@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import ast
 import datetime
 import math
 import os
@@ -297,12 +298,16 @@ def updaterCheck():
 def get_ua_list():
     # https://github.com/alfa-addon/addon/blob/master/plugin.video.alfa/platformcode/updater.py#L273
     logger.info()
-    url = "http://omahaproxy.appspot.com/all?csv=1"
+    url = "https://chromiumdash.appspot.com/fetch_releases?channel=Stable&platform=Windows&num=6&offset=0"
 
     try:
         current_ver = config.get_setting("chrome_ua_version", default="").split(".")
-        data = httptools.downloadpage(url, alfa_s=True).data
-        new_ua_ver = scrapertools.find_single_match(data, "win64,stable,([^,]+),")
+        data = httptools.downloadpage(url, alfa_s=True, ignore_response_code=True).data
+
+        data = ast.literal_eval(data)
+        new_ua_ver = data[0].get('version', '') if data and isinstance(data, list) else ''
+        if not new_ua_ver:
+            return
 
         if not current_ver:
             config.set_setting("chrome_ua_version", new_ua_ver)
