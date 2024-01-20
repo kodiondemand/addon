@@ -2,7 +2,7 @@
 	"id": "cinemalibero",
 	"name": "Cinemalibero",
 	"language": ["ita"],
-	"active": true,
+	"active": false,
 	"thumbnail": "cinemalibero.png",
 	"banner": "cinemalibero.png",
 	"categories": ["movie","tvshow","anime"],
