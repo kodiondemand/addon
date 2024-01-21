@@ -12,7 +12,7 @@
         "url": "https://\\1"
       },
       {
-        "pattern": "(md[y|f][a-z0-9]*\\.[a-z0-9]+/(?:f|e)/[a-z0-9]+)",
+        "pattern": "(md[3bfyz][a-z0-9]*\\.[a-z0-9]+/(?:f|e)/[a-z0-9]+)",
         "url": "https://\\1"
       }
     ]
