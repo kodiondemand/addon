@@ -244,7 +244,7 @@ def findvideos(item):
         item.drm = 'com.widevine.alpha'
         item.license = lic + '|' + host + '|R{SSM}|'
 
-    item = item.clone(server='directo', url=url, no_return=True) # , manifest='hls')
+    item = item.clone(server='directo', url=url, manifest='hls', no_return=True) # , manifest='hls')
 
     return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
