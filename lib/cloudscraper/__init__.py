@@ -82,7 +82,8 @@ class CipherSuiteAdapter(HTTPAdapter):
 
             self.ssl_context.set_ciphers(self.cipherSuite)
             self.ssl_context.set_ecdh_curve(self.ecdhCurve)
-            self.ssl_context.options |= (ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1)
+            self.ssl_context.set_alpn_protocols(['http/1.1'])
+            self.ssl_context.options |= (ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_2)
 
         super(CipherSuiteAdapter, self).__init__(**kwargs)
 
