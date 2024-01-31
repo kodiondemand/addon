@@ -34,7 +34,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     if match:
         url, token = match
         ret = httptools.downloadpage(host + url, headers=headers, cloudscraper=True).data
-        video_urls.append(['mp4 [DooD Stream]', '{}{}{}{}|Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), host)])
+        video_urls.append(['mp4 [DooD Stream]', '{}{}{}{}|User-Agent={}&Referer={}'.format(randomize(ret), url, token, int(time.time() * 1000), httptools.get_user_agent(), host)])
 
 
     return video_urls
