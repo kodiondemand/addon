@@ -279,9 +279,9 @@ def downloadpage(url, **opt):
         from lib import requests
         session = requests.session()
 
-        if config.get_setting('resolver_dns') and not opt.get('use_requests', False):
+        if not opt.get('use_requests', False):
             from core import resolverdns
-            session.mount('https://', resolverdns.CipherSuiteAdapter(domain))
+            session.mount('https://', resolverdns.CipherSuiteAdapter(domain=domain, override_dns=config.get_setting('resolver_dns')))
 
     req_headers = default_headers.copy()
 
