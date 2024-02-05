@@ -16,6 +16,10 @@ from platformcode import logger
 import requests
 from core import scrapertools
 from core import db
+from urllib3.poolmanager import PoolManager
+from urllib3.util.ssl_ import create_urllib3_context
+from urllib3.util import connection
+from requests.adapters import HTTPAdapter
 
 if 'PROTOCOL_TLS' in ssl.__dict__:
     protocol = ssl.PROTOCOL_TLS
@@ -25,37 +29,24 @@ else:
     protocol = ssl.PROTOCOL_SSLv3
 
 current_date = datetime.datetime.now()
+CIPHERS = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"
 
+class CipherSuiteAdapter(HTTPAdapter):
+    # hack[1/3] to patch urllib3 create connection
+    original_create_connection = connection.create_connection
 
-class CustomContext(ssl.SSLContext):
-    def __init__(self, protocol, hostname, *args, **kwargs):
-        self.hostname = hostname
-        if PY3:
-            super(CustomContext, self).__init__()
-        else:
-            super(CustomContext, self).__init__(protocol)
-        self.verify_mode = ssl.CERT_NONE
+    def __init__(self, domain, ssl_options=ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1, override_dns = True, ssl_ciphers = CIPHERS, **kwargs):
+        self.ssl_options = ssl_options
+        self.ssl_ciphers = ssl_ciphers
+        super(CipherSuiteAdapter, self).__init__(**kwargs) 
+        if override_dns:
+            # hack[2/3] patch urllib3 create connection with custom function
+            connection.create_connection = CipherSuiteAdapter.override_dns_connection
 
-    def wrap_socket(self, *args, **kwargs):
-        kwargs['server_hostname'] = self.hostname
-        self.verify_mode = ssl.CERT_NONE
-        return super(CustomContext, self).wrap_socket(*args, **kwargs)
-
-
-class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
-
-    def __init__(self, domain, CF=False, *args, **kwargs):
-        self.ssl_context = CustomContext(protocol, domain)
-        self.CF = CF  # if cloudscrape is in action
-        self.cipherSuite = kwargs.pop('cipherSuite', DEFAULT_CIPHERS)
-
-        super(CipherSuiteAdapter, self).__init__(**kwargs)
-
-    def flushDns(self, request, domain, **kwargs):
+    def flushDns(domain, **kwargs):
         del db['dnscache'][domain]
-        return self.send(request, flushedDns=True, **kwargs)
 
-    def getIp(self, domain):
+    def getIp(domain):
         cache = db['dnscache'].get(domain, {})
         ip = None
         if type(cache) != dict or (cache.get('datetime') and
@@ -69,7 +60,7 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
                 # IPv6 address
                 if ':' in ip:
                     ip = '[' + ip + ']'
-                self.writeToCache(domain, ip)
+                CipherSuiteAdapter.writeToCache(domain, ip)
             except Exception:
                 logger.error('Failed to resolve hostname, fallback to normal dns')
                 import traceback
@@ -79,66 +70,39 @@ class CipherSuiteAdapter(host_header_ssl.HostHeaderSSLAdapter):
         logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
         return ip
 
-    def writeToCache(self, domain, ip):
+    def writeToCache(domain, ip):
         db['dnscache'][domain] = {'ip': ip, 'datetime': current_date}
 
-    def init_poolmanager(self, *args, **kwargs):
-        kwargs['ssl_context'] = self.ssl_context
-        return super(CipherSuiteAdapter, self).init_poolmanager(*args, **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        kwargs['ssl_context'] = self.ssl_context
-        return super(CipherSuiteAdapter, self).proxy_manager_for(*args, **kwargs)
+    def init_poolmanager(self, *pool_args, **pool_kwargs):
+        ctx = create_urllib3_context(ciphers=self.ssl_ciphers, cert_reqs=ssl.CERT_REQUIRED, options=self.ssl_options)
+        self.poolmanager = PoolManager(*pool_args, ssl_context=ctx, **pool_kwargs)
 
     def send(self, request, flushedDns=False, **kwargs):
         try:
-            parse = urlparse.urlparse(request.url)
-        except:
-            raise requests.exceptions.InvalidURL
-        if parse.netloc:
-            domain = parse.netloc
-        else:
-            raise requests.exceptions.URLRequired
-        if not scrapertools.find_single_match(domain, '\d+\.\d+\.\d+\.\d+') and ':' not in domain:
-            ip = self.getIp(domain)
-        else:
-            ip = None
-        if ip:
-            self.ssl_context = CustomContext(protocol, domain)
-            if self.CF:
-                self.ssl_context.options |= (ssl.OP_NO_SSLv2 | ssl.OP_NO_SSLv3 | ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1)
-            self.ssl_context.set_ciphers(self.cipherSuite)
-            self.init_poolmanager(self._pool_connections, self._pool_maxsize, block=self._pool_block)
-            realUrl = request.url
-
-            if request.headers:
-                request.headers["Host"] = domain
-            else:
-                request.headers = {"Host": domain}
-            ret = None
-            tryFlush = False
-
-            parse = list(parse)
-            parse[1] = ip
-            request.url = urlparse.urlunparse(parse)
+            return super(CipherSuiteAdapter, self).send(request, **kwargs)
+        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
+            logger.info(e)
             try:
-                ret = super(CipherSuiteAdapter, self).send(request, **kwargs)
-                # if 400 <= ret.status_code < 500:
-                #     raise Exception
-            except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
-                logger.info('Request for ' + domain + ' with ip ' + ip + ' failed')
-                logger.info(e)
-                # if 'SSLError' in str(e):
-                #     # disabilito
-                #     config.set_setting("resolver_dns", False)
-                #     request.url = realUrl
-                #     ret = super(CipherSuiteAdapter, self).send(request, **kwargs)
-                # else:
-                tryFlush = True
-            if tryFlush and not flushedDns:  # re-request ips and update cache
-                logger.info('Flushing dns cache for ' + domain)
-                return self.flushDns(request, domain, **kwargs)
-            ret.url = realUrl
-        else:
-            ret = super(host_header_ssl.HostHeaderSSLAdapter, self).send(request, **kwargs)
-        return ret
+                parse = urlparse.urlparse(request.url)
+            except:
+                raise requests.exceptions.InvalidURL
+            if parse.netloc:
+                domain = parse.netloc
+                logger.info('Request for ' + domain + ' failed')                
+                if not flushedDns:
+                    logger.info('Flushing dns cache for ' + domain)
+                    CipherSuiteAdapter.flushDns(domain, **kwargs)
+                    return self.send(request, flushedDns=True, **kwargs)
+
+    # hack[3/3] function that use doh for host name resolution
+    def override_dns_connection(address, *args, **kwargs):
+        """Wrap urllib3's create_connection to resolve the name elsewhere"""
+        # resolve hostname to an ip address; use your own
+        # resolver here, as otherwise the system resolver will be used.
+        host, port = address
+        hostname = CipherSuiteAdapter.getIp(host)
+        if not hostname:
+            hostname = host #fallback
+            logger.debug("Override dns failed, fallback to normal dns resolver")
+
+        return CipherSuiteAdapter.original_create_connection((hostname, port), *args, **kwargs)
