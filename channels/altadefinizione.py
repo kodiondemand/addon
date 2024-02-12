@@ -7,7 +7,6 @@
 from core import httptools, support
 from platformcode import config, logger
 
-
 def findhost(url):
     host = support.match(url, patron=r'<h2[^>]+><a href="([^"]+)').match.rstrip('/')
     permUrl = httptools.downloadpage(host, follow_redirects=False).headers
@@ -22,6 +21,7 @@ def mainlist(item):
     film = ['/category/film/',
             ('Al Cinema', ['/category/ora-al-cinema/', 'peliculas']),
             ('Generi', ['', 'genres']),
+            ('Saghe', ['/saghe/', 'saghe']),
             # ('Sub-ITA', ['/sub-ita/', 'peliculas'])
             ]
 
@@ -32,6 +32,17 @@ def mainlist(item):
 
     return locals()
 
+def saghe(item):
+    action = 'peliculas'
+    itemlist = []
+
+    for it in support.match(item, patron=['buttonn button2"><img.*?src="(?P<thumb>.*?)".*?alt="(?P<title>.*?)".*?<a href="(?P<url>.*?)"']).matches:
+        itemlist.append(item.clone(action='peliculas', thumbnail = it[0].replace(' ','%20'), title = it[1], url= host + it[2]))
+
+    for it in support.match(item, patron=['buttonn button2"><a href="(?P<url>.*?)"><img src="(?P<thumb>.*?)".*?>(?P<title>.*?)(>|<)']).matches:
+        itemlist.append(item.clone(action='peliculas', thumbnail = it[1].replace(' ','%20'), title = it[2], url = host + it[0]))
+
+    return itemlist
 
 @support.scrape
 def genres(item):
@@ -102,5 +113,5 @@ def findvideos(item):
 
     itemlist = [item.clone(action="play", url=srv) for srv in support.match(video_url, patron='<div class="megaButton" meta-type="v" meta-link="([^"]+).*?(?=>)>').matches]
     itemlist = support.server(item,itemlist=itemlist)
-    
+
     return itemlist
