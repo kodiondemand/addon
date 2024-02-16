@@ -40,13 +40,28 @@ class CipherSuiteAdapter(HTTPAdapter):
         self.ssl_ciphers = ssl_ciphers
         super(CipherSuiteAdapter, self).__init__(**kwargs) 
         if override_dns:
+
+            # hack[3/3] function that use doh for host name resolution
+            def override_dns_connection(address, *args, **kwargs):
+                """Wrap urllib3's create_connection to resolve the name elsewhere"""
+                # resolve hostname to an ip address; use your own
+                # resolver here, as otherwise the system resolver will be used.
+                host, port = address
+                hostname = self.getIp(host)
+                if not hostname:
+                    hostname = host #fallback
+                    logger.debug("Override dns failed, fallback to normal dns resolver")
+
+                return connection.original_create_connection((hostname, port), *args, **kwargs)
+
             # hack[2/3] patch urllib3 create connection with custom function
-            connection.create_connection = CipherSuiteAdapter.override_dns_connection
+            connection.original_create_connection = connection.create_connection
+            connection.create_connection = override_dns_connection
 
     def flushDns(domain, **kwargs):
         del db['dnscache'][domain]
 
-    def getIp(domain):
+    def getIp(self, domain):
         cache = db['dnscache'].get(domain, {})
         ip = None
         if type(cache) != dict or (cache.get('datetime') and
@@ -60,7 +75,7 @@ class CipherSuiteAdapter(HTTPAdapter):
                 # IPv6 address
                 if ':' in ip:
                     ip = '[' + ip + ']'
-                CipherSuiteAdapter.writeToCache(domain, ip)
+                self.writeToCache(domain, ip)
             except Exception:
                 logger.error('Failed to resolve hostname, fallback to normal dns')
                 import traceback
@@ -70,7 +85,7 @@ class CipherSuiteAdapter(HTTPAdapter):
         logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
         return ip
 
-    def writeToCache(domain, ip):
+    def writeToCache(self, domain, ip):
         db['dnscache'][domain] = {'ip': ip, 'datetime': current_date}
 
     def init_poolmanager(self, *pool_args, **pool_kwargs):
@@ -93,16 +108,6 @@ class CipherSuiteAdapter(HTTPAdapter):
                     logger.info('Flushing dns cache for ' + domain)
                     CipherSuiteAdapter.flushDns(domain, **kwargs)
                     return self.send(request, flushedDns=True, **kwargs)
-
-    # hack[3/3] function that use doh for host name resolution
-    def override_dns_connection(address, *args, **kwargs):
-        """Wrap urllib3's create_connection to resolve the name elsewhere"""
-        # resolve hostname to an ip address; use your own
-        # resolver here, as otherwise the system resolver will be used.
-        host, port = address
-        hostname = CipherSuiteAdapter.getIp(host)
-        if not hostname:
-            hostname = host #fallback
-            logger.debug("Override dns failed, fallback to normal dns resolver")
-
-        return CipherSuiteAdapter.original_create_connection((hostname, port), *args, **kwargs)
+        except Exception as e:
+            logger.error(e)
+            raise e
