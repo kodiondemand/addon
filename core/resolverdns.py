@@ -39,7 +39,7 @@ class CipherSuiteAdapter(HTTPAdapter):
         self.ssl_options = ssl_options
         self.ssl_ciphers = ssl_ciphers
         super(CipherSuiteAdapter, self).__init__(**kwargs) 
-        if override_dns:
+        if PY3 and override_dns:
             # hack[2/3] patch urllib3 create connection with custom function
             connection.create_connection = CipherSuiteAdapter.override_dns_connection
 
