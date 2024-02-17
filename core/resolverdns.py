@@ -32,8 +32,6 @@ current_date = datetime.datetime.now()
 CIPHERS = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"
 
 class CipherSuiteAdapter(HTTPAdapter):
-    # hack[1/3] to patch urllib3 create connection
-    original_create_connection = connection.create_connection
 
     def __init__(self, domain, ssl_options=ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1, override_dns = True, ssl_ciphers = CIPHERS, **kwargs):
         self.ssl_options = ssl_options
@@ -41,7 +39,11 @@ class CipherSuiteAdapter(HTTPAdapter):
         super(CipherSuiteAdapter, self).__init__(**kwargs) 
         if override_dns:
 
-            # hack[3/3] function that use doh for host name resolution
+            # hack[1/3] to patch urllib3 create connection
+            if not hasattr(connection, 'original_create_connection'):
+                connection.original_create_connection = connection.create_connection
+
+            # hack[2/3] function that use doh for host name resolution
             def override_dns_connection(address, *args, **kwargs):
                 """Wrap urllib3's create_connection to resolve the name elsewhere"""
                 # resolve hostname to an ip address; use your own
@@ -54,8 +56,7 @@ class CipherSuiteAdapter(HTTPAdapter):
 
                 return connection.original_create_connection((hostname, port), *args, **kwargs)
 
-            # hack[2/3] patch urllib3 create connection with custom function
-            connection.original_create_connection = connection.create_connection
+            # hack[3/3] patch urllib3 create connection with custom function
             connection.create_connection = override_dns_connection
 
     def flushDns(domain, **kwargs):
