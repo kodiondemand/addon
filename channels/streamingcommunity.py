@@ -4,7 +4,11 @@
 # ------------------------------------------------------------
 
 import json, re, sys
-import urllib.parse
+PY3 = False
+if sys.version_info[0] >= 3: PY3 = True
+
+if PY3: import urllib.parse as urllib_parse
+else: import urlparse as urllib_parse
 
 from core import support, channeltools, httptools, jsontools
 from platformcode import logger, config
@@ -66,7 +70,7 @@ def genres(item):
     data_page = get_data(item.url)
     args = data_page['props']['genres']
     for arg in args:
-        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urllib.parse.quote(arg['name']), action='peliculas', genre=True))
+        itemlist.append(item.clone(title=support.typo(arg['name'], 'bold'), url=host+'/browse/genre?g='+urllib_parse.quote(arg['name']), action='peliculas', genre=True))
     support.thumb(itemlist, genre=True)
     return itemlist
 
