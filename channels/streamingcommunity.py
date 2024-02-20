@@ -13,8 +13,10 @@ else: import urlparse as urllib_parse
 from core import support, channeltools, httptools, jsontools
 from platformcode import logger, config
 
-if PY3: from concurrent import futures
-else: from concurrent_py2 import futures
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+else:
+    from concurrent_py2 import futures
 
 # def findhost(url):
 #     return 'https://' + support.match(url, patron='var domain\s*=\s*"([^"]+)').match
