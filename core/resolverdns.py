@@ -3,6 +3,11 @@ import datetime, sys, ssl
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
 
+if PY3:
+    import urllib.parse as urlparse
+else:
+    import urlparse
+
 from lib.requests_toolbelt.adapters import host_header_ssl
 from lib import doh
 from platformcode import logger
@@ -90,7 +95,7 @@ class CipherSuiteAdapter(HTTPAdapter):
         try:
             return super(CipherSuiteAdapter, self).send(request, **kwargs)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
-            logger.info(e)
+            logger.error(e)
             try:
                 parse = urlparse.urlparse(request.url)
             except:
