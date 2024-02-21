@@ -209,7 +209,7 @@ def episodios(item):
     order = 'desc' if '/programmi-tv/' in item.url else 'asc'
 
     itemlist = []
-    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&sort=:publishInfo_lastPublished|' + order + ',tvSeasonEpisodeNumber').json()['entries']
+    res = requests.get('https://feed.entertainment.tv.theplatform.eu/f/PR1GhC/mediaset-prod-all-programs-v2?byCustomValue={subBrandId}{' + item.subbrand +'}&range=0-10000&sort=:publishInfo_lastPublished|' + order + ',tvSeasonEpisodeNumber').json()['entries']
 
     for it in res:
         thumb = ''
