@@ -36,7 +36,7 @@ class UnshortenIt(object):
     _shrink_service_regex = r'shrink-service\.it'
     _rapidcrypt_regex = r'rapidcrypt\.net'
     # _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
-    _linkup_regex = r'linkup\.pro|buckler.link|clicka\.cc'
+    _linkup_regex = r'linkup\.pro|buckler.link'
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
     _stayonline_regex = r'stayonline\.pro'
@@ -47,8 +47,9 @@ class UnshortenIt(object):
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.[a-z]+'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|clicka\.cc'
     _filecrypt_regex = r'filecrypt\.cc'
+    _safego_regex = r'safego.cc'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex,
@@ -108,6 +109,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_protectlink(uri)
             if re.search(self._uprot_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_uprot(uri)
+            if re.search(self._safego_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_safego(uri)
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -519,6 +522,11 @@ class UnshortenIt(object):
 
         except Exception as e:
             return uri, str(e)
+
+    def _unshorten_safego(self, uri):
+        r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
+        uri = scrapertools.find_single_match(r.data,'<center>.*?<a.*?href=\"(.*?)\"')
+        return uri, 200
 
     def _unshorten_vcrypt(self, uri):
         httptools.set_cookies({'domain': 'vcrypt.net', 'name': 'saveMe', 'value': '1'})
