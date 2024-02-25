@@ -10,7 +10,7 @@ else:
 
 from lib.requests_toolbelt.adapters import host_header_ssl
 from lib import doh
-from platformcode import logger
+from platformcode import config, logger
 import requests
 from core import scrapertools
 from core import db
@@ -21,6 +21,7 @@ from requests.adapters import HTTPAdapter
 
 current_date = datetime.datetime.now()
 CIPHERS = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"
+dns_providers = {'cloudflare': { 'host': '1.0.0.1', 'path' : '/dns-query'}, 'google': { 'host': '8.8.4.4', 'path' : '/resolve'}}
 
 class CipherSuiteAdapter(HTTPAdapter):
 
@@ -62,7 +63,11 @@ class CipherSuiteAdapter(HTTPAdapter):
 
         if not cache:  # not cached
             try:
-                ip = doh.query(domain, fallback=False) # fallback is not necessary here
+                cfg_provider = config.get_setting('resolver_dns_provider').lower()                
+                provider = dns_providers[cfg_provider]
+                logger.debug('selected ' + cfg_provider + 'dns provider with address ' + provider['host'] + ' and path ' + provider['path'] )
+                
+                ip = doh.query(domain, server = provider['host'], path= provider['path'], fallback=False) # fallback is not necessary here
                 if ip is None or not len(ip): # resolver is not available or return no results
                     ip = None
                 else:
@@ -95,7 +100,7 @@ class CipherSuiteAdapter(HTTPAdapter):
         try:
             return super(CipherSuiteAdapter, self).send(request, **kwargs)
         except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, requests.exceptions.SSLError) as e:
-            logger.error(e)
+            logger.info(e)
             try:
                 parse = urlparse.urlparse(request.url)
             except:
