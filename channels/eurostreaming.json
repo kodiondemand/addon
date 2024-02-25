@@ -1,7 +1,7 @@
 {
     "id": "eurostreaming",
     "name": "Eurostreaming",
-    "active": false,
+    "active": true,
     "language": ["ita", "sub-ita"],
     "thumbnail": "eurostreaming.png",
     "banner": "eurostreaming.png",

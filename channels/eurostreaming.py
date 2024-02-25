@@ -31,7 +31,7 @@ def mainlist(item):
 def peliculas(item):
     # debug = True
     action = 'episodios'
-    
+
     if item.args == 'newest':
         item.contentType = 'episode'
         patron = r'<span class="serieTitle" style="font-size:20px">(?P<title>[^<]+) –\s*<a href="(?P<url>[^"]+)"[^>]*>\s+?(?P<episode>\d+[×x]\d+-\d+|\d+[×x]\d+) (?P<title2>[^<\(]+)\s?\(?(?P<lang>SUB ITA)?\)?</a>'
@@ -50,8 +50,7 @@ def episodios(item):
     if 'clicca qui per aprire' in data.lower(): data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
     elif 'clicca qui</span>' in data.lower(): data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
     patronBlock = r'</span>(?P<block>[a-zA-Z\s]+\d+(.+?)?(?:\()?(?P<lang>ITA|SUB ITA)(?:\))?.*?)</div></div>'
-    patron = r'(?P<season>\d+)&#\d+;(?P<episode>\d+(?:-\d+)?)\s*(?:</strong>|<em>)?\s*(?P<title>.*?)(?:â|-.+?-|Ã¢ÂÂ.+?Ã¢ÂÂ|Ã¢ÂÂ|em|.)?(?:/em.*?)?(?:<a (?P<other>.*?))?<br />'
-
+    patron = r'(?P<season>\d+)&#215;(?P<episode>\d+)(</strong>)*(?P<title>.*?)(?P<other><a.*?)<br'
     def itemHook(i):
         i.url = item.url
         return i
