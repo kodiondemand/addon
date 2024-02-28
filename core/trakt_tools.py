@@ -29,7 +29,7 @@ def auth_trakt():
         post = {'client_id': client_id}
         post = jsontools.dump(post)
         # Se solicita url y código de verificación para conceder permiso a la app
-        url = "http://api-v2launch.trakt.tv/oauth/device/code"
+        url = "http://api.trakt.tv/oauth/device/code"
         data = httptools.downloadpage(url, post=post, headers=headers).data
         data = jsontools.load(data)
         item.verify_url = data["verification_url"]
@@ -66,7 +66,7 @@ def token_trakt(item):
             data = httptools.downloadpage(url, post=post).data
             data = jsontools.load(data)
         elif item.action == "token_trakt":
-            url = "https://api-v2launch.trakt.tv/oauth/device/token"
+            url = "http://api.trakt.tv/oauth/device/token"
             post = "code=%s&client_id=%s&client_secret=%s" % (item.device_code, client_id, client_secret)
             data = httptools.downloadpage(url, post=post, headers=headers).data
             data = jsontools.load(data)
@@ -85,7 +85,7 @@ def token_trakt(item):
                         config.set_setting("trakt_sync", False)
                         return
 
-                    url = "http://api-v2launch.trakt.tv/oauth/device/token"
+                    url = "http://api.trakt.tv/oauth/device/token"
                     post = {'code': item.device_code, 'client_id': client_id, 'client_secret': client_secret}
                     post = jsontools.dump(post)
                     data = httptools.downloadpage(url, post=post, headers=headers).data
