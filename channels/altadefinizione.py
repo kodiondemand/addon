@@ -9,8 +9,11 @@ from platformcode import config, logger
 
 def findhost(url):
     host = support.match(url, patron=r'<h2[^>]+><a href="([^"]+)').match.rstrip('/')
-    permUrl = httptools.downloadpage(host, follow_redirects=False).headers
-    return permUrl['location']
+    permUrl = httptools.downloadpage(host,  follow_redirects=False, only_headers=True).headers
+
+    if 'location' in permUrl.keys(): # handle redirection
+        return permUrl['location']
+    return host
 
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
