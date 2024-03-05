@@ -14,7 +14,7 @@ def test_video_exists(page_url):
     global data
     data = httptools.downloadpage(page_url).data
 
-    if "<h2>WE ARE SORRY</h2>" in data or "<h2>ALMOST THERE</h2>" in data or '<title>404 Not Found</title>' in data:
+    if "<h2 style=\"color:#068af0\">WE ARE SORRY</h2>" in data or "<h2 style=\"color:#068af0\">ALMOST THERE</h2>" in data or '<title>404 Not Found</title>' in data:
         return False, config.get_localized_string(70449) % "MixDrop"
 
     if 'window.location' in data:
