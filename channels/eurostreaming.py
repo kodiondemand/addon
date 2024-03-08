@@ -49,8 +49,10 @@ def episodios(item):
     data = support.match(item, headers=headers).data
     if 'clicca qui per aprire' in data.lower(): data = support.match(support.match(data, patron=r'"go_to":"([^"]+)"').match.replace('\\',''), headers=headers).data
     elif 'clicca qui</span>' in data.lower(): data = support.match(support.match(data, patron=r'<h2 style="text-align: center;"><a href="([^"]+)">').match, headers=headers).data
+
     patronBlock = r'</span>(?P<block>[a-zA-Z\s]+\d+(.+?)?(?:\()?(?P<lang>ITA|SUB ITA)(?:\))?.*?)</div></div>'
-    patron = r'(?P<season>\d+)&#215;(?P<episode>\d+)(</strong>)*(?P<title>.*?)(?P<other><a.*?)<br'
+    patron = r'(?P<season>\d+)&#215;(?P<episode>\d+)(</strong>)*(?P<title>.*?)<(?P<other>.*?br/>)'
+
     def itemHook(i):
         i.url = item.url
         return i
