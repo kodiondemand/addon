@@ -14,9 +14,10 @@ headers = [['Referer', host]]
 def mainlist(item):
 
     anime =['/category/anime',
-            ('ITA',['/lista-anime-ita','peliculas',]),
-            ('Sub-ITA',['/lista-anime-sub-ita', 'peliculas'])]
-               # ('Film Animati',['/lista-anime-ita','peliculas', '', 'movie'])]
+            ('ITA',['/anime-ita','peliculas',]),
+            ('Sub-ITA',['/contatti', 'peliculas']),
+            ('Film-animazione',['/film-animazione', 'peliculas']),
+            ('Serie-TV',['/serie-tv', 'peliculas'])]
     search = ''
     return locals()
 
@@ -44,16 +45,16 @@ def peliculas(item):
     action = 'check'
 
     deflang = 'ITA' if 'sub' not in item.url else 'Sub-ITA'
-    if 'lista' in item.url:
-        pagination = 20
-        patron = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
+    #if 'lista' in item.url:
+    pagination = 20
+    patron = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
 
-    else:
-        patronBlock = '<main[^>]+>(?P<block>.*)</main>'
-        patron = r'(?i)<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>(:?[^>]+>){3}(?:<img.*?src="(?P<thumb>[^"]+)")?.*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:film|serie|anime))(?P<cat>.*?)</span>'
-        typeContentDict={'movie':['film']}
-        typeActionDict={'findvideos':['film']}
-        patronNext = '<a class="next page-numbers" href="([^"]+)">'
+    #else:
+    #    patronBlock = '<main[^>]+>(?P<block>.*)</main>'
+    #    patron = r'(?i)<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>(:?[^>]+>){3}(?:<img.*?src="(?P<thumb>[^"]+)")?.*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:film|serie|anime))(?P<cat>.*?)</span>'
+    #    typeContentDict={'movie':['film']}
+    #    typeActionDict={'findvideos':['film']}
+    #    patronNext = '<a class="next page-numbers" href="([^"]+)">'
 
     def itemHook(item):
         support.info(item.title)
