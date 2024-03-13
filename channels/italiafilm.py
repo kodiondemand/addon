@@ -44,6 +44,7 @@ def peliculas(item):
         infoLabels = dict()
         infoLabels['title'] = it[1]
         infoLabels['mediatype'] = 'movie'
+        infoLabels['year'] = it[2]
         itemlist.append(item.clone(action='findvideos', thumbnail = host + it[3].replace(' ','%20'), title = support.cleantitle(it[1]), url= it[0], infoLabels=infoLabels))
 
     tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
