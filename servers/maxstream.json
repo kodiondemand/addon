@@ -1,5 +1,5 @@
 {
-  "active": false,
+  "active": true,
   "find_videos": {
     "ignore_urls": [],
     "patterns": [
@@ -21,5 +21,6 @@
       "type": "bool",
       "visible": true
     }
-  ]
+  ],
+  "cloudflare": true
 }
