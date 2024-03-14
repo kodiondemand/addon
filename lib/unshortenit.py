@@ -711,7 +711,7 @@ class UnshortenIt(object):
     def _unshorten_uprot(self, uri):
         html = httptools.downloadpage(uri, cloudscraper=True).data
         link = scrapertools.find_single_match(html, r'--></button></[a|div]?>.+?<a[^>]+href="([^"]+)">')
-        if link.startswith('https://maxstream.video') or link.startswith('https://uprot.net') and link != uri:
+        if link != uri:
             return link, 200
         return uri, 200
 
