@@ -27,7 +27,7 @@ def get_video_url (page_url, premium=False, user="", password="", video_password
         html = httptools.downloadpage(scrapertools.find_single_match(html, r'<iframe [^>]+src="([^"]+)')).data
     js = scrapertools.find_single_match(html, '(eval.+)')
     packed = jsunpack.detect(js);
-    if(jsunpack.detect(js)):
+    if(packed):
         video = jsunpack.unpack(js)
         video = scrapertools.find_single_match(video, r'src:"(.+)",type');
         video_urls.append(["[Maxstream]", video])
