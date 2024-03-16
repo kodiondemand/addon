@@ -709,9 +709,10 @@ class UnshortenIt(object):
             return httptools.downloadpage(uri, only_headers=True, follow_redirects=False).headers.get('location', uri), 200
 
     def _unshorten_uprot(self, uri):
-        for link in scrapertools.find_multiple_matches(httptools.downloadpage(uri, cloudscraper=True).data, '<a[^>]+href="([^"]+)'):
-            if link.startswith('https://maxstream.video') or link.startswith('https://uprot.net') and link != uri:
-                return link, 200
+        html = httptools.downloadpage(uri, cloudscraper=True).data
+        link = scrapertools.find_single_match(html, r'--></button></[a|div]?>.+?<a[^>]+href="([^"]+)">')
+        if link != uri:
+            return link, 200
         return uri, 200
 
     def _unshorten_filecrypt(self, uri):
