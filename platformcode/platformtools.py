@@ -340,7 +340,11 @@ def render_items(itemlist, parent_item):
     def setItem(n, item, parent_item):
         item.itemlistPosition = n
         item_url = item.tourl()
-
+        if item.thumbnail == parent_item.thumbnail and parent_item.action in ['peliculas', 'search']:
+            if item.contentType in ['movie', 'undefined']:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/movie.png'
+            else:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/tv.png'
         if item.category == "":
             item.category = parent_item.category
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
@@ -484,7 +488,7 @@ def getCurrentView(item=None, parent_item=None):
     elif item.contentType == 'music':
         return 'musicvideo', 'musicvideos'
 
-    elif (item.contentType in ['movie'] and parent_item.action in parent_actions) \
+    elif (item.contentType in ['movie', 'undefined'] and parent_item.action in parent_actions) \
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_movies']) \
             or (parent_item.channel in ['favorites'] and parent_item.action in ['mainlist']) \
             or parent_item.action in ['now_on_tv', 'now_on_misc', 'now_on_misc_film', 'mostrar_perfil', 'live', 'replay', 'news']:
@@ -1658,7 +1662,7 @@ def resume_playback(played_time):
 
 
     if played_time and played_time > 30:
-        if config.get_setting('resume_menu') == 0:
+        if config.get_setting('resume_menu') == 0:  # Resume Menu matches Custom Theme
             Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
             Dialog.show()
             t = 0
@@ -1666,7 +1670,7 @@ def resume_playback(played_time):
                 t += 1
                 xbmc.sleep(100)
             if not Dialog.Resume: played_time = 0
-        else:
+        else:  # Resume Menu matches Skin Theme
             m, s = divmod(played_time, 60)
             h, m = divmod(m, 60)
             idx = xbmcgui.Dialog().contextmenu(
@@ -1674,7 +1678,10 @@ def resume_playback(played_time):
                 xbmc.getLocalizedString(12022).format('%02d:%02d:%02d' % (h, m, s)),
                 xbmc.getLocalizedString(12021)
             ])
-            if idx in [-1, 0]: played_time = 0
+            # if the dialog is skipped (idx == -1)
+            # or the second item is selected (idx == 1)
+            # resume from the beginning
+            if idx in [-1, 1]: played_time = 0
 
     else: played_time = 0
     xbmc.sleep(300)

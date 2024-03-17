@@ -709,7 +709,7 @@ class UnshortenIt(object):
             return httptools.downloadpage(uri, only_headers=True, follow_redirects=False).headers.get('location', uri), 200
 
     def _unshorten_uprot(self, uri):
-        html = httptools.downloadpage(uri, cloudscraper=True).data
+        html = httptools.downloadpage(uri, cloudscraper=False).data
         link = scrapertools.find_single_match(html, r'--></button></[a|div]?>.+?<a[^>]+href="([^"]+)">')
         if link != uri:
             return link, 200

@@ -3,8 +3,7 @@
 # Canale per ToonItalia
 # ------------------------------------------------------------
 
-from core import httptools, scrapertools, support
-import inspect
+from core import scrapertools, support
 
 host = support.config.get_channel_url()
 headers = [['Referer', host]]
@@ -12,20 +11,19 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-
-    anime =['/category/anime',
-            ('ITA',['/lista-anime-ita','peliculas',]),
-            ('Sub-ITA',['/lista-anime-sub-ita', 'peliculas'])]
-               # ('Film Animati',['/lista-anime-ita','peliculas', '', 'movie'])]
+    menu = [('Anime',['/category/anime', 'peliculas', '', 'undefined']),
+            ('Anime ITA {submenu}',['/anime-ita', 'peliculas', 'list', 'undefined']),
+            ('Anime Sub-ITA {submenu}',['/contatti', 'peliculas', 'list', 'undefined']),
+            ('Film Animazione',['/film-animazione', 'peliculas', 'list', 'undefined']),
+            ('Serie TV',['/serie-tv/', 'peliculas', 'list', 'tvshow'])]
     search = ''
     return locals()
 
 
 def search(item, text):
-    support.info(text)
-    # item.args='search'
-    item.text = text
-    item.url = item.url + '/?a=b&s=' + text.replace(' ', '+')
+    item.contentType = 'undefined'
+    item.url = "{}/?{}".format(host, support.urlencode({"s": text}))
+    support.info(item.url)
 
     try:
         return peliculas(item)
@@ -44,16 +42,14 @@ def peliculas(item):
     action = 'check'
 
     deflang = 'ITA' if 'sub' not in item.url else 'Sub-ITA'
-    if 'lista' in item.url:
+    if item.args == 'list':
         pagination = 20
         patron = r'<li><a href="(?P<url>[^"]+)">(?P<title>[^<]+)'
 
     else:
-        patronBlock = '<main[^>]+>(?P<block>.*)</main>'
-        patron = r'(?i)<a href="(?P<url>[^"]+)" rel="bookmark">(?P<title>[^<]+)</a>(:?[^>]+>){3}(?:<img.*?src="(?P<thumb>[^"]+)")?.*?<p>(?P<plot>[^<]+)</p>.*?tag">.*?(?P<type>(?:film|serie|anime))(?P<cat>.*?)</span>'
-        typeContentDict={'movie':['film']}
-        typeActionDict={'findvideos':['film']}
-        patronNext = '<a class="next page-numbers" href="([^"]+)">'
+        patronBlock = r'<main[^>]+>(?P<block>.*)</main>'
+        patron = r'class="entry-title[^>]+><a href="(?P<url>[^"]+)">(?P<title>[^<]+)</a>.*?<p>(?P<plot>[^<]+)'
+        patronNext = r'<a class="next page-numbers" href="([^"]+)">'
 
     def itemHook(item):
         support.info(item.title)
@@ -74,7 +70,8 @@ def check(item):
 @support.scrape
 def episodios(item):
     anime = True
-    patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title2>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
+    item.contentType = 'tvshow'
+    patron = r'>\s*(?:(?P<season>\d+)(?:&#215;|x|×))?(?P<episode>\d+)(?:\s+&#8211;\s+)?[ –]+(?P<title>[^<]+)[ –]+<a (?P<data>.*?)(?:<br|</p)'
     return locals()
 
 
