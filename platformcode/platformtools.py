@@ -340,7 +340,11 @@ def render_items(itemlist, parent_item):
     def setItem(n, item, parent_item):
         item.itemlistPosition = n
         item_url = item.tourl()
-
+        if item.thumbnail == parent_item.thumbnail and parent_item.action in ['peliculas', 'search']:
+            if item.contentType in ['movie', 'undefined']:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/movie.png'
+            else:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/tv.png'
         if item.category == "":
             item.category = parent_item.category
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
@@ -484,7 +488,7 @@ def getCurrentView(item=None, parent_item=None):
     elif item.contentType == 'music':
         return 'musicvideo', 'musicvideos'
 
-    elif (item.contentType in ['movie'] and parent_item.action in parent_actions) \
+    elif (item.contentType in ['movie', 'undefined'] and parent_item.action in parent_actions) \
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_movies']) \
             or (parent_item.channel in ['favorites'] and parent_item.action in ['mainlist']) \
             or parent_item.action in ['now_on_tv', 'now_on_misc', 'now_on_misc_film', 'mostrar_perfil', 'live', 'replay', 'news']:
@@ -1084,7 +1088,8 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         mediaurl, view, mpd, hls = get_video_seleccionado(item, seleccion, video_urls, autoplay)
         if not mediaurl: return
         # to better disguise KoD as a browser
-        headers = {'User-Agent': httptools.get_user_agent(), 'Referer': item.referer if item.server == 'directo' else item.url}
+        headers = httptools.default_headers
+        headers['Referer'] = item.referer if item.server == 'directo' else item.url
         # Kodi does not seems to allow this, leaving there as may work in the future
         # if config.get_setting('resolver_dns'):
         #     try:

@@ -17,10 +17,10 @@ def test_video_exists(page_url):
     if "<h2 style=\"color:#068af0\">WE ARE SORRY</h2>" in data or "<h2 style=\"color:#068af0\">ALMOST THERE</h2>" in data or '<title>404 Not Found</title>' in data:
         return False, config.get_localized_string(70449) % "MixDrop"
 
-    if 'window.location' in data:
-        domain = 'https://' + servertools.get_server_host('mixdrop')[0]
-        url = domain + scrapertools.find_single_match(data, "window\.location\s*=\s*[\"']([^\"']+)")
-        data = httptools.downloadpage(url).data
+    #if 'window.location' in data:
+    #    domain = 'https://' + servertools.get_server_host('mixdrop')[0]
+    #    url = domain + scrapertools.find_single_match(data, "window\.location\s*=\s*[\"']([^\"']+)")
+    #    data = httptools.downloadpage(url).data
 
     return True, ""
 
@@ -31,9 +31,10 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     ext = '.mp4'
 
     global data
+
     packed = scrapertools.find_single_match(data, r'(eval.*?)</script>')
     unpacked = jsunpack.unpack(packed)
-
+    
     # mixdrop like to change var name very often, hoping that will catch every
     list_vars = scrapertools.find_multiple_matches(unpacked, r'MDCore\.\w+\s*=\s*"([^"]+)"')
     for var in list_vars:
