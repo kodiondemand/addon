@@ -1,0 +1,25 @@
+{
+  "active": true,
+  "find_videos": {
+    "ignore_urls": [],
+    "patterns": [
+      {
+        "pattern": "(?:\\/\\/|\\.)(lulu(?:stream|vdo)\\.com)\/(?:e\\/|d\\/)?([0-9a-zA-Z]+)",
+        "url": "https://\\1/e/\\2"
+      }
+    ]
+  },
+  "free": true,
+  "id": "lulustream",
+  "name": "LuluStream",
+  "settings": [
+    {
+      "default": false,
+      "enabled": true,
+      "id": "black_list",
+      "label": "@70708",
+      "type": "bool",
+      "visible": true
+    }
+  ]
+}
