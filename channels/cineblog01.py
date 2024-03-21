@@ -145,7 +145,7 @@ def episodios(item):
             addVideolibrary = False
             downloadEnabled = False
 
-            patron = r'<td>(?P<title>[^<]+)<td><a [^>]+href="(?P<url>[^"]+)[^>]+>'
+            patron = r'<tr><td>(?P<title>[^<]+)<td><span [^>].+?><a [^>]+href="(?P<url>[^"]+)[^>]+>'
             sceneTitle = True
             # debug = True
 
