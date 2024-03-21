@@ -710,7 +710,7 @@ class UnshortenIt(object):
 
     def _unshorten_uprot(self, uri):
         html = httptools.downloadpage(uri, cloudscraper=False).data
-        link = scrapertools.find_single_match(html, r'</[button|a]>.+<a[^>]+href="([^"]+)">.+C o')
+        link = scrapertools.find_single_match(html, r'.*[^-->].<a[^>]+href="([^"]+)"><button.+>C o')
         #import web_pdb; web_pdb.set_trace()
         if link != uri:
             return link, 200
