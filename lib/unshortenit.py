@@ -49,11 +49,12 @@ class UnshortenIt(object):
     # for services that only do redirects
     _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|clicka\.cc'
     _filecrypt_regex = r'filecrypt\.cc'
-    _safego_regex = r'safego.cc'
+    _safego_regex = r'safego\.cc'
+    _staycheck_regex = r'staycheck\.to[^"]+'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex,
-                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect,
+                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect, _safego_regex, _staycheck_regex
                  ]
     folderRegex = [_filecrypt_regex, _linkhub_regex]
 
@@ -111,6 +112,8 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_uprot(uri)
             if re.search(self._safego_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_safego(uri)
+            if re.search(self._staycheck_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_staycheck(uri)                
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -523,6 +526,11 @@ class UnshortenIt(object):
         except Exception as e:
             return uri, str(e)
 
+    def _unshorten_staycheck(self, uri):
+        r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
+        match = scrapertools.find_single_match(r.data,'let destination = \'([^\']+)')
+        return match + urlparse(uri).query, 200
+        
     def _unshorten_safego(self, uri):
         r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
         uri = scrapertools.find_single_match(r.data,'<center>.*?<a.*?href=\"(.*?)\"')
