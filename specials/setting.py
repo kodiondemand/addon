@@ -927,9 +927,9 @@ def report_send(item, description='', fatal=False):
         'file.io': ('1', 'https://file.io/', '', 'random', '', 'expires=1w',
                     'requests', 'json', 'key', '', '99.0', '30', False, '', '', ''),
         'uploadfiles': ('0', 'https://up.ufile.io/v1/upload', '', 'random', '', '',
-                    'curl', 'json', 'url', '', '99.0', '30', False, None, '', {'Referer': 'https://ufile.io/'}),
-        'anonfiles': ('1', 'https://api.anonfiles.com/upload', 'upload', 'random', '', '',
-                    'requests', 'json', 'data', 'file,url,short', '99.0', '30', False, None, '', '')
+                    'curl', 'json', 'url', '', '99.0', '30', False, None, '', {'Referer': 'https://ufile.io/'})
+        # 'anonfiles': ('1', 'https://api.anonfiles.com/upload', 'upload', 'random', '', '',
+        #             'requests', 'json', 'data', 'file,url,short', '99.0', '30', False, None, '', '')
                      }
     pastebin_list_last = ['hastebin', 'ghostbin', 'file.io']            # We leave these services the last
     pastebin_one_use = ['file.io']                                      # Single-use servers and deletes
