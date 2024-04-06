@@ -529,6 +529,8 @@ class UnshortenIt(object):
     def _unshorten_staycheck(self, uri):
         r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
         match = scrapertools.find_single_match(r.data,'let destination = \'([^\']+)')
+        if not match:
+            match = scrapertools.find_single_match(r.data,'<a href="([^"]+).*<button>.*[Cc.*Oo.*Nn.*Tt.*Ii.*Nn.*Uu.*Aa.*].*</button>')
         return match + urlparse(uri).query, 200
         
     def _unshorten_safego(self, uri):
