@@ -2,7 +2,7 @@
     "id": "filmstreaming",
     "name": "Film Streaming",
     "language": ["ita"],
-    "active": true,
+    "active": false,
     "thumbnail": "filmstreaming.png",
     "banner": "filmstreaming.png",
     "categories": ["movie"],
