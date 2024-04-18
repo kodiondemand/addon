@@ -7,13 +7,15 @@ from core.item import Item
 import datetime, xbmc
 import requests, sys
 
-from core import jsontools, scrapertools, support
+from core import jsontools, scrapertools, support, httptools
 from platformcode import logger
 
 if sys.version_info[0] >= 3:
     from concurrent import futures
+    from urllib.parse import urlencode
 else:
     from concurrent_py2 import futures
+    from urllib import urlencode
 
 host = support.config.get_channel_url()
 
@@ -239,12 +241,23 @@ def findvideos(item):
         res = requests.get(getUrl(res['first_item_path'])).json()
 
     url, lic = support.match(res['video']['content_url'] + '&output=56', patron=r'content"><!\[CDATA\[([^\]]+)(?:.*?"WIDEVINE","licenceUrl":"([^"]+))?').match
-
+    
     if lic:
         item.drm = 'com.widevine.alpha'
-        item.license = lic + '|' + host + '|R{SSM}|'
+        if "anycast.nagra.com" in lic:
+                posAuth = lic.find("?Authorization")
+                license_headers = {
+                    "Accept":"application/octet-stream",
+                    "Content-Type":"application/octet-stream",
+                    'Nv-Authorizations': lic[posAuth + 15:]  ,                    
+                    'User-Agent': httptools.get_user_agent()
+                }
+                lic = lic[:posAuth]
+                item.license = lic + '|' + urlencode(license_headers) + '|R{SSM}|'
+        else:
+            item.license = lic + '||R{SSM}|'
 
-    item = item.clone(server='directo', url=url, manifest='hls', no_return=True) # , manifest='hls')
+    item = item.clone(server='directo', url=url, manifest='mpd' if item.drm else 'hls' , no_return=True) # , manifest='hls')
 
     return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
 
