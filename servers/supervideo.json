@@ -5,11 +5,11 @@
     "patterns": [
       {
         "pattern": "supervideo.tv/embed-([a-z0-9]{12}).html",
-        "url": "https://supervideo.tv/embed-\\1.html"
+        "url": "https://supervideo.cc/e/\\1"
       },
       {
-        "pattern": "supervideo.tv/(?:e/)?([a-z0-9]{12})",
-        "url": "https://supervideo.tv/embed-\\1.html"
+        "pattern": "supervideo\\.[a-z0-9]+/(?:e/)?([a-z0-9]{12})",
+        "url": "https://supervideo.cc/e/\\1"
       }
     ]
   },
