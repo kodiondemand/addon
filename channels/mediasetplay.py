@@ -38,8 +38,8 @@ sid = res.json()['response']['sid']
 session.headers.update({'authorization': 'Bearer ' + Token})
 
 # sessione
-sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
-session.headers.update({'x-session': sessionKey})
+#sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
+#session.headers.update({'x-session': sessionKey})
 
 pagination = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100][config.get_setting('pagination', 'mediasetplay')]
 
@@ -49,10 +49,10 @@ def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live'])]
 
     menu = [('Film {bullet bold}', ['/cinema', 'peliculas', {'uxReference':'filmUltimiArrivi'}, 'movie']),
-            ('Fiction / Serie TV {bullet bold}', ['/fiction', 'menu', '5acfcb3c23eec6000d64a6a4', 'tvshow']),
-            ('Programmi TV{ bullet bold}', ['/programmitv', 'menu', '5acfc8011de1c4000b6ec953', 'tvshow']),
-            ('Documentari {bullet bold}', ['/documentari', 'menu', '5bfd17c423eec6001aec49f9', 'undefined']),
-            ('Kids {bullet bold}', ['/kids', 'menu', '5acfcb8323eec6000d64a6b3', 'undefined'])]
+            ('Fiction / Serie TV {bullet bold}', ['/fiction', 'peliculas', {'uxReference':'fictionSerieTvDelMomento'}, 'tvshow']),
+            ('Programmi TV{ bullet bold}', ['/programmitv', 'peliculas', {'uxReference':'stagioniPrimaSerata'}, 'tvshow']),
+            ('Documentari {bullet bold}', ['/documentari', 'peliculas', {'uxReference': 'documentariPiuVisti24H'}, 'undefined']),
+            ('Kids {bullet bold}', ['/kids', 'peliculas', {'uxReference':'kidsBoing' }, 'undefined'])]
 
     search = ''
     return locals()
@@ -292,8 +292,8 @@ def findvideos(item):
 
 
 def get_from_id(item):
-    sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
-    session.headers.update({'x-session': sessionKey})
+    #sessionKey = session.get(sessionUrl.format(uuid=str(uuid.uuid4())), verify=False).json()['sessionKey']
+    #session.headers.update({'x-session': sessionKey})
     res = session.get(entry.format(id=item.args)).json()
     if 'components' in res:
         id = quote(",".join(res["components"]))
