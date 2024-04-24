@@ -8,6 +8,7 @@ from core import scrapertools
 from platformcode import logger
 from platformcode import config
 import sys
+import base64
 
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
@@ -35,7 +36,7 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
         # video_srcs = support.match(bloque, patron=': "([^"]+)', debug=True)
         video_srcs = support.match(data, patronBlock=r'sources [^\{]+{([^}]+)', patron=r'''['"]([^'"]+)[^:]+: ['"]([^'"]+)['"]''').matches
     for ext, url in video_srcs:
-        video_urls.append([ext + " [Voe]", url])
+        video_urls.append([ext + " [Voe]", base64.b64decode(url).decode()])
 
     return video_urls
 
