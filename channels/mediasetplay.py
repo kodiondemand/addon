@@ -49,10 +49,17 @@ def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live'])]
 
     menu = [('Film {bullet bold}', ['/cinema', 'peliculas', {'uxReference':'filmUltimiArrivi'}, 'movie']),
+            ('Film Più Visti {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmPiuVisti24H'}, 'movie']),
+            ('Film Da Non Perdere {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmClustering'}, 'movie']),
             ('Fiction / Serie TV {bullet bold}', ['/fiction', 'peliculas', {'uxReference':'fictionSerieTvDelMomento'}, 'tvshow']),
+            ('Serie TV Piu Viste {submenu}', ['/fiction', 'peliculas', {'uxReference':'serieTvPiuViste24H'}, 'tvshow']),
+            ('Le Serie Soap Del Momento {submenu}', ['/cinema', 'peliculas', {'uxReference':'fictionSerieTvParamsGenre', 'params': 'genre≈Soap opera'}, 'tvshow']),
             ('Programmi TV{ bullet bold}', ['/programmitv', 'peliculas', {'uxReference':'stagioniPrimaSerata'}, 'tvshow']),
+            ('Kids {bullet bold}', ['/kids', 'peliculas', {'uxReference':'kidsMediaset' }, 'undefined']),
+            ('Kids Boing {submenu}', ['/kids', 'peliculas', {'uxReference':'kidsBoing' }, 'undefined']),
+            ('Kids Cartoonito {submenu}', ['/kids', 'peliculas', {'uxReference':'kidsCartoonito' }, 'undefined']),
             ('Documentari {bullet bold}', ['/documentari', 'peliculas', {'uxReference': 'documentariPiuVisti24H'}, 'undefined']),
-            ('Kids {bullet bold}', ['/kids', 'peliculas', {'uxReference':'kidsBoing' }, 'undefined'])]
+            ]
 
     search = ''
     return locals()
