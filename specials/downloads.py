@@ -809,7 +809,7 @@ def select_server(item):
         # seleccion = platformtools.dialog_select(config.get_localized_string(70192), ["Auto"] + [s.serverName for s in play_items])
 
     if seleccion != -1:  # not canceled
-        if seleccion.action != 'auto':
+        if seleccion and seleccion.action != 'auto':
             update_json(item.path, {
                 "downloadServer": {"url": seleccion.url, "server": seleccion.server}})
             return seleccion
