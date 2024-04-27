@@ -215,6 +215,16 @@ def cleantitle(title):
         cleantitle = title.replace('"', "'").replace('×', 'x').replace('–', '-').strip().strip('-').strip()
     return cleantitle
 
+def format_longtitle(title, season = None, episode = None, quality = None, lang = None):
+    if season and episode:
+        longtitle = season + 'x' + episode.zfill(2) + ' ' + title
+    else:
+        longtitle = title
+    longtitle = typo(longtitle, 'bold')
+    longtitle += typo(lang, '_ [] color kod') if lang else ''
+    longtitle += typo(quality, '_ [] color kod') if quality else ''
+
+    return longtitle
 
 def unifyEp(ep):
     # ep = re.sub(r'\s-\s|-|&#8211;|&#215;|×', 'x', scraped['episode'])
