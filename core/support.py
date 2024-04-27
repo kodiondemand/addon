@@ -1525,7 +1525,7 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
             item_itemlist_string.thumbnail = liveThumb(item_itemlist_string)
         return item_itemlist_string
 
-    icon_dict = {'movie':['film', 'movie'],
+    icon_dict = {'movie':['film', 'movie', 'saghe'],
                  'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
                  'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
                  'teenager':['ragazzi','teenager', 'giovani', 'teen'],
