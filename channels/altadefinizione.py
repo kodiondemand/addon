@@ -107,32 +107,29 @@ def peliculas(item):
 
     return itemlist
 
+@support.scrape
 def episodios(item):
     item.quality = ''
     data = item.data
-    itemlist = []
+    patronBlock = "div id=\"season_(?P<season>[0-9])\"(?P<block>.*?)</div"
+    patron = r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>'
+    def itemHook(item):
+        item.contentSeason += 1
+        item.title = re.sub('[0-9]+(?=x[0-9]+)', str(item.contentSeason), item.title)
+        return item
+    #         infoLabels['tvshowtitle'] = support.cleantitle(item.fulltitle)
+    #         infoLabels['season'] = int(it[1])
+    #         infoLabels['episode'] = int(ep[2])
+    #         infoLabels['episodeName'] = support.cleantitle(ep[3])
+    #         itemlist.append(item.clone(contentType = 'tvshow',
+    #                                action='findvideos',
+    #                                thumb = ep[1],
+    #                                title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2]),
+    #                                url = ep[0],
+    #                                infoLabels = infoLabels)
+    #                     )
 
-    for it in support.match(data, patron=[r'div class=\"single-season.*?(?P<id>season_[0-9]+).*?>Stagione:\s(?P<season>[0-9]+).*?</div']).matches:
-        logger.debug(it)
-        block = support.match(data, patron = r'div id=\"season_0\".*?</div').match
-        for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
-            logger.debug(ep)
-            infoLabels = dict()
-            infoLabels['tvshowtitle'] = support.cleantitle(item.fulltitle)
-            infoLabels['season'] = int(it[1])
-            infoLabels['episode'] = int(ep[2])
-            infoLabels['episodeName'] = support.cleantitle(ep[3])
-            itemlist.append(item.clone(contentType = 'tvshow',
-                                   action='findvideos',
-                                   thumb = ep[1],
-                                   title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2]),
-                                   url = ep[0],
-                                   infoLabels = infoLabels)
-                        )
-
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-
-    return itemlist
+    return locals()
 
 
 def check(item):
