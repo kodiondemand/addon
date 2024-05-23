@@ -3,8 +3,11 @@ import sys
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True
 
-if PY3: import urllib.parse as urllib
-else: import urllib
+if PY3: 
+    import urllib.parse as urllib
+else: 
+    import urllib
+    
 import ast
 import xbmc
 
@@ -17,12 +20,14 @@ vttsupport = False if int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0]
 
 def test_video_exists(page_url):
     global iframeParams
+    global urlParams
     server_url = support.scrapertools.decodeHtmlentities(support.match(page_url, patron=['<iframe [^>]+src="([^"]+)', 'embed_url="([^"]+)']).match)
     iframeParams = support.match(server_url, patron=r'''"quality":(\d+)[^;]+;\s+window\.masterPlaylist\s+=\s+{[^{]+({[^}]+}),\s+url:\s+'([^']+)''').match
 
     if not iframeParams or len(iframeParams) < 2:
         return 'StreamingCommunity', 'Prossimamente'
 
+    urlParams = urllib.parse_qs(urllib.urlsplit(server_url).query)
     return True, ""
 
 
@@ -32,8 +37,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     quality, params, url = iframeParams
 
     masterPlaylistParams = ast.literal_eval(params)
-    masterPlaylistParams['h'] = 1
-    if quality == '720':
+    if urlParams['canPlayFHD']:
+        masterPlaylistParams['h'] = 1
+    if urlParams['b']:
         masterPlaylistParams['b'] = 1
     url =  '{}?{}'.format(url,urllib.urlencode(masterPlaylistParams))
 
