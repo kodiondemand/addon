@@ -5,8 +5,10 @@ if sys.version_info[0] >= 3: PY3 = True
 
 if PY3: 
     import urllib.parse as urllib
+    import urllib.parse as urllib_parse
 else: 
     import urllib
+    import urlparse as urllib_parse
     
 import ast
 import xbmc
@@ -27,7 +29,7 @@ def test_video_exists(page_url):
     if not iframeParams or len(iframeParams) < 2:
         return 'StreamingCommunity', 'Prossimamente'
 
-    urlParams = urllib.parse_qs(urllib.urlsplit(server_url).query)
+    urlParams = urllib_parse.parse_qs(urllib_parse.urlsplit(server_url).query)
     return True, ""
 
 
