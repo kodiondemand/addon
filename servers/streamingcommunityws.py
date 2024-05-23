@@ -37,9 +37,9 @@ def get_video_url(page_url, premium=False, user="", password="", video_password=
     quality, params, url = iframeParams
 
     masterPlaylistParams = ast.literal_eval(params)
-    if urlParams['canPlayFHD']:
+    if 'canPlayFHD' in urlParams:
         masterPlaylistParams['h'] = 1
-    if urlParams['b']:
+    if 'b' in urlParams:
         masterPlaylistParams['b'] = 1
     url =  '{}?{}'.format(url,urllib.urlencode(masterPlaylistParams))
 
