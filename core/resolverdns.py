@@ -2,17 +2,15 @@
 import datetime, sys, ssl
 PY3 = False
 if sys.version_info[0] >= 3: PY3 = True; unicode = str; unichr = chr; long = int
+
 if PY3:
     import urllib.parse as urlparse
-    import _ssl
-    DEFAULT_CIPHERS = _ssl._DEFAULT_CIPHERS
 else:
     import urlparse
-    DEFAULT_CIPHERS = ssl._DEFAULT_CIPHERS
 
 from lib.requests_toolbelt.adapters import host_header_ssl
 from lib import doh
-from platformcode import logger
+from platformcode import config, logger
 import requests
 from core import scrapertools
 from core import db
@@ -21,15 +19,9 @@ from urllib3.util.ssl_ import create_urllib3_context
 from urllib3.util import connection
 from requests.adapters import HTTPAdapter
 
-if 'PROTOCOL_TLS' in ssl.__dict__:
-    protocol = ssl.PROTOCOL_TLS
-elif 'PROTOCOL_SSLv23' in ssl.__dict__:
-    protocol = ssl.PROTOCOL_SSLv23
-else:
-    protocol = ssl.PROTOCOL_SSLv3
-
 current_date = datetime.datetime.now()
 CIPHERS = "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384"
+dns_providers = {'cloudflare': { 'host': '1.0.0.1', 'path' : '/dns-query'}, 'google': { 'host': '8.8.4.4', 'path' : '/resolve'}}
 
 class CipherSuiteAdapter(HTTPAdapter):
 
@@ -59,7 +51,7 @@ class CipherSuiteAdapter(HTTPAdapter):
             # hack[3/3] patch urllib3 create connection with custom function
             connection.create_connection = override_dns_connection
 
-    def flushDns(domain, **kwargs):
+    def flushDns(self, domain, **kwargs):
         del db['dnscache'][domain]
 
     def getIp(self, domain):
@@ -71,19 +63,30 @@ class CipherSuiteAdapter(HTTPAdapter):
 
         if not cache:  # not cached
             try:
-                ip = doh.query(domain)[0]
-                logger.info('Query DoH: ' + domain + ' = ' + str(ip))
-                # IPv6 address
-                if ':' in ip:
-                    ip = '[' + ip + ']'
-                self.writeToCache(domain, ip)
+                cfg_provider = config.get_setting('resolver_dns_provider').lower()                
+                provider = dns_providers[cfg_provider]
+                logger.debug('selected ' + cfg_provider + 'dns provider with address ' + provider['host'] + ' and path ' + provider['path'] )
+                
+                ip = doh.query(domain, server = provider['host'], path= provider['path'], fallback=False) # fallback is not necessary here
+                if ip is None or not len(ip): # resolver is not available or return no results
+                    ip = None
+                else:
+                    ip = ip[0]
+                    logger.info('Query DoH: ' + domain + ' = ' + str(ip))
+                    # IPv6 address
+                    if ':' in ip:
+                        ip = '[' + ip + ']'
+                    self.writeToCache(domain, ip)
             except Exception:
-                logger.error('Failed to resolve hostname, fallback to normal dns')
                 import traceback
                 logger.error(traceback.format_exc())
         else:
             ip = cache.get('ip')
-        logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
+
+        if ip:
+            logger.info('Cache DNS: ' + domain + ' = ' + str(ip))
+        else:
+            logger.error('Failed to resolve hostname ' + domain + ', fallback to normal dns')
         return ip
 
     def writeToCache(self, domain, ip):
@@ -104,10 +107,10 @@ class CipherSuiteAdapter(HTTPAdapter):
                 raise requests.exceptions.InvalidURL
             if parse.netloc:
                 domain = parse.netloc
-                logger.info('Request for ' + domain + ' failed')                
+                logger.info('Request for ' + domain + ' failed')
                 if not flushedDns:
                     logger.info('Flushing dns cache for ' + domain)
-                    CipherSuiteAdapter.flushDns(domain, **kwargs)
+                    self.flushDns(domain, **kwargs)
                     return self.send(request, flushedDns=True, **kwargs)
         except Exception as e:
             logger.error(e)

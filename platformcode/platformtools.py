@@ -340,7 +340,11 @@ def render_items(itemlist, parent_item):
     def setItem(n, item, parent_item):
         item.itemlistPosition = n
         item_url = item.tourl()
-
+        if item.thumbnail == parent_item.thumbnail and parent_item.action in ['peliculas', 'search']:
+            if item.contentType in ['movie', 'undefined']:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/movie.png'
+            else:
+                item.thumbnail = 'https://raw.githubusercontent.com/kodiondemand/media/master/null/tv.png'
         if item.category == "":
             item.category = parent_item.category
         # If there is no action or it is findvideos / play, folder = False because no listing will be returned
@@ -484,7 +488,7 @@ def getCurrentView(item=None, parent_item=None):
     elif item.contentType == 'music':
         return 'musicvideo', 'musicvideos'
 
-    elif (item.contentType in ['movie'] and parent_item.action in parent_actions) \
+    elif (item.contentType in ['movie', 'undefined'] and parent_item.action in parent_actions) \
             or (item.channel in ['videolibrary'] and parent_item.action in ['list_movies']) \
             or (parent_item.channel in ['favorites'] and parent_item.action in ['mainlist']) \
             or parent_item.action in ['now_on_tv', 'now_on_misc', 'now_on_misc_film', 'mostrar_perfil', 'live', 'replay', 'news']:
@@ -1084,7 +1088,8 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         mediaurl, view, mpd, hls = get_video_seleccionado(item, seleccion, video_urls, autoplay)
         if not mediaurl: return
         # to better disguise KoD as a browser
-        headers = {'User-Agent': httptools.get_user_agent(), 'Referer': item.referer if item.server == 'directo' else item.url}
+        headers = httptools.default_headers
+        headers['Referer'] = item.referer if item.server == 'directo' else item.url
         # Kodi does not seems to allow this, leaving there as may work in the future
         # if config.get_setting('resolver_dns'):
         #     try:
@@ -1107,7 +1112,7 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
         #         logger.error('Failed to resolve hostname, fallback to normal dns')
         from core import support
         # support.dbg()
-        if '|' not in mediaurl and item.referer != False and 'youtube' not in mediaurl:
+        if '|' not in mediaurl and item.referer != False and 'youtube' not in mediaurl and not 'mpd' in item.manifest and not 'hls' in item.manifest:
             mediaurl = mediaurl + '|' + urllib.urlencode(headers)
 
         # video information is obtained.
@@ -1126,15 +1131,17 @@ def play_video(item, strm=False, force_direct=False, autoplay=False):
                 xlistitem.setProperty("inputstream.adaptive.license_type", item.drm)
                 xlistitem.setProperty("inputstream.adaptive.license_key", item.license)
                 xlistitem.setMimeType('application/dash+xml')
-                xlistitem.setProperty('inputstream.adaptive.stream_headers', 'User-Agent='+httptools.get_user_agent())
+                xlistitem.setProperty('inputstream.adaptive.stream_headers', urllib.urlencode(headers))
+                xlistitem.setProperty('inputstream.adaptive.manifest_headers', urllib.urlencode(headers))
         elif hls or item.manifest == 'hls':# or (mediaurl.split('|')[0].endswith('m3u8') and mediaurl.startswith('http')):
             if not install_inputstream():
                 return
             xlistitem.setProperty('inputstream' if PY3 else 'inputstreamaddon', 'inputstream.adaptive')
             xlistitem.setProperty('inputstream.adaptive.manifest_type', 'hls')
             xlistitem.setMimeType('application/x-mpegURL')
-            xlistitem.setProperty('inputstream.adaptive.stream_headers', 'User-Agent='+httptools.get_user_agent())	    
-            xlistitem.setProperty('inputstream.adaptive.license_key', '|User-Agent='+httptools.get_user_agent() +'|')	    
+            xlistitem.setProperty('inputstream.adaptive.stream_headers', urllib.urlencode(headers))
+            xlistitem.setProperty('inputstream.adaptive.manifest_headers', urllib.urlencode(headers))
+            xlistitem.setProperty('inputstream.adaptive.license_key', '|' + urllib.urlencode(headers) +'|')
 
         if force_direct: item.play_from = 'window'
 
@@ -1656,7 +1663,7 @@ def resume_playback(played_time):
 
 
     if played_time and played_time > 30:
-        if config.get_setting('resume_menu') == 0:
+        if config.get_setting('resume_menu') == 0:  # Resume Menu matches Custom Theme
             Dialog = ResumePlayback('ResumePlayback.xml', config.get_runtime_path(), played_time=played_time)
             Dialog.show()
             t = 0
@@ -1664,7 +1671,7 @@ def resume_playback(played_time):
                 t += 1
                 xbmc.sleep(100)
             if not Dialog.Resume: played_time = 0
-        else:
+        else:  # Resume Menu matches Skin Theme
             m, s = divmod(played_time, 60)
             h, m = divmod(m, 60)
             idx = xbmcgui.Dialog().contextmenu(
@@ -1672,7 +1679,10 @@ def resume_playback(played_time):
                 xbmc.getLocalizedString(12022).format('%02d:%02d:%02d' % (h, m, s)),
                 xbmc.getLocalizedString(12021)
             ])
-            if idx in [-1, 0]: played_time = 0
+            # if the dialog is skipped (idx == -1)
+            # or the second item is selected (idx == 1)
+            # resume from the beginning
+            if idx in [-1, 1]: played_time = 0
 
     else: played_time = 0
     xbmc.sleep(300)

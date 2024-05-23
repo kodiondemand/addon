@@ -167,7 +167,7 @@ def seasons(item):
     data = session.get('{}/cms/routes/show/{}?include=default'.format(domain, item.programid)).json()['included']
 
     for key in data:
-        if key['type'] == 'collection':
+        if key['type'] == 'collection' and 'filters' in key['attributes']['component']:
             for option in key['attributes']['component']['filters'][0]['options']:
                 itemlist.append(item.clone(title="Stagione {}".format(option['value']),
                                            season=int(option['value']),
@@ -177,6 +177,15 @@ def seasons(item):
                                            contentType='season',
                                            action='episodios'))
             break
+
+        if key['type'] == 'collection' and 'title' in key['attributes']:
+            itemlist.append(
+                item.clone(title=typo(key['attributes']['title'],'bold'),
+                           plot=key['attributes'].get('description',''), 
+                           programid=key['attributes']['alias'],
+                           id=key['id'],
+                           action='episodios',
+                           contentType='season'))
 
     return itemlist
 
@@ -190,9 +199,17 @@ def episodios(item):
 
     for key in data:
         if key['type'] == 'video' and 'Free' in str(key.get('relationships',{}).get('contentPackages',{}).get('data',[])):
-            itemlist.append(item.clone(title = "{}x{:02d} - {}".format(item.season, key['attributes']['episodeNumber'], key['attributes']['name']),
+            if item.season:
+                itemlist.append(item.clone(title = "{}x{:02d} - {}".format(item.season, key['attributes']['episodeNumber'], key['attributes']['name']),
                                        plot = key['attributes']['description'],
                                        episode = key['attributes']['episodeNumber'],
+                                       contentType = 'episode',
+                                       action = 'findvideos',
+                                       thumbnail = images[key['relationships']['images']['data'][0]['id']],
+                                       id=key['id']))
+            else:
+                itemlist.append(item.clone(title = key['attributes']['name'],
+                                       plot = key['attributes']['longDescription'],
                                        contentType = 'episode',
                                        action = 'findvideos',
                                        thumbnail = images[key['relationships']['images']['data'][0]['id']],

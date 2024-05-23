@@ -36,7 +36,9 @@ default_headers["Accept-Language"] = "it-IT,it;q=0.8,en-US;q=0.5,en;q=0.3"
 default_headers["Accept-Charset"] = "UTF-8"
 default_headers["Accept-Encoding"] = "gzip"
 
-cf_proxy = {'url': 'quiet-base-584a.ifewfijdqwji.workers.dev', 'token': 'c48912u84u0238u82'}
+cf_proxy_list = [{'url': 'quiet-base-584a.ifewfijdqwji.workers.dev', 'token': 'c48912u84u0238u82'},
+                 {'url': 'jfhofuhueshfuh.fmegvvon.workers.dev', 'token': 'h8fes78f4378hj9ufj'},
+                 {'url': 'u88929j98eijdjskfkls.lcbtcnob.workers.dev', 'token': 'nfdvsjnsd73ns82'}]
 
 # direct IP access for some hosts
 directIP = {
@@ -429,6 +431,8 @@ def downloadpage(url, **opt):
                 response['data'] = gResp['data']
         else:
             logger.debug("CF retry with proxy for domain: %s" % domain)
+            from random import choice
+            cf_proxy = choice(cf_proxy_list)
             if not opt.get('headers'):
                 opt['headers'] = {}
             opt['headers']['Px-Host'] = domain

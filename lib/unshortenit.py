@@ -26,7 +26,7 @@ def find_in_text(regex, text, flags=re.IGNORECASE | re.DOTALL):
 
 
 class UnshortenIt(object):
-    _adfly_regex = r'adf\.ly|j\.gs|q\.gs|u\.bb|ay\.gy|atominik\.com|tinyium\.com|microify\.com|threadsphere\.bid|clearload\.bid|activetect\.net|swiftviz\.net|briskgram\.net|activetect\.net|baymaleti\.net|thouth\.net|uclaut\.net|gloyah\.net|larati\.net|scuseami\.net'
+    _adfly_regex = r'adf\.ly|j\.gs|q\.gs|u\.bb|ay\.gy|atominik\.com|tinyium\.com|microify\.com|threadsphere\.bid|clearload\.bid|activetect\.net|swiftviz\.net|briskgram\.net|activetect\.net|baymaleti\.net|thouth\.net|uclaut\.net|gloyah\.net|larati\.net|scuseami\.net|flybid.net'
     _linkbucks_regex = r'linkbucks\.com|any\.gs|cash4links\.co|cash4files\.co|dyo\.gs|filesonthe\.net|goneviral\.com|megaline\.co|miniurls\.co|qqc\.co|seriousdeals\.net|theseblogs\.com|theseforums\.com|tinylinks\.co|tubeviral\.com|ultrafiles\.net|urlbeat\.net|whackyvidz\.com|yyv\.co'
     _adfocus_regex = r'adfoc\.us'
     _lnxlu_regex = r'lnx\.lu'
@@ -36,7 +36,7 @@ class UnshortenIt(object):
     _shrink_service_regex = r'shrink-service\.it'
     _rapidcrypt_regex = r'rapidcrypt\.net'
     # _vcrypt_regex = r'vcrypt\.net|vcrypt\.pw'
-    _linkup_regex = r'linkup\.pro|buckler.link|clicka\.cc'
+    _linkup_regex = r'linkup\.pro|buckler.link'
     _linkhub_regex = r'linkhub\.icu'
     _swzz_regex = r'swzz\.xyz'
     _stayonline_regex = r'stayonline\.pro'
@@ -47,12 +47,14 @@ class UnshortenIt(object):
     # for services that only include real link inside iframe
     _simple_iframe_regex = r'cryptmango|xshield\.net|vcrypt\.club|isecure\.[a-z]+'
     # for services that only do redirects
-    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream'
+    _simple_redirect = r'streamcrypt\.net/[^/]+|is\.gd|www\.vedere\.stream|clicka\.cc'
     _filecrypt_regex = r'filecrypt\.cc'
+    _safego_regex = r'safego\.cc'
+    _staycheck_regex = r'staycheck\.to[^"]+'
 
     listRegex = [_adfly_regex, _linkbucks_regex, _adfocus_regex, _lnxlu_regex, _shst_regex, _hrefli_regex, _anonymz_regex,
                  _shrink_service_regex, _rapidcrypt_regex, _simple_iframe_regex, _linkup_regex,
-                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect,
+                 _swzz_regex, _stayonline_regex, _snip_regex, _linksafe_regex, _protectlink_regex, _uprot_regex, _simple_redirect, _safego_regex, _staycheck_regex
                  ]
     folderRegex = [_filecrypt_regex, _linkhub_regex]
 
@@ -108,6 +110,10 @@ class UnshortenIt(object):
                 uri, code = self._unshorten_protectlink(uri)
             if re.search(self._uprot_regex, uri, re.IGNORECASE):
                 uri, code = self._unshorten_uprot(uri)
+            if re.search(self._safego_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_safego(uri)
+            if re.search(self._staycheck_regex, uri, re.IGNORECASE):
+                uri, code = self._unshorten_staycheck(uri)                
             if re.search(self._simple_redirect, uri, re.IGNORECASE):
                 p = httptools.downloadpage(uri)
                 uri = p.url
@@ -520,6 +526,18 @@ class UnshortenIt(object):
         except Exception as e:
             return uri, str(e)
 
+    def _unshorten_staycheck(self, uri):
+        r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
+        match = scrapertools.find_single_match(r.data,'let destination = \'([^\']+)')
+        if not match:
+            match = scrapertools.find_single_match(r.data,'<a href="([^"]+).*<button>.*[Cc.*Oo.*Nn.*Tt.*Ii.*Nn.*Uu.*Aa.*].*</button>')
+        return match + urlparse(uri).query, 200
+        
+    def _unshorten_safego(self, uri):
+        r = httptools.downloadpage(uri, follow_redirects=True, timeout=self._timeout, cookies=False)
+        uri = scrapertools.find_single_match(r.data,'<center>.*?<a.*?href=\"(.*?)\"')
+        return uri, 200
+
     def _unshorten_vcrypt(self, uri):
         httptools.set_cookies({'domain': 'vcrypt.net', 'name': 'saveMe', 'value': '1'})
         httptools.set_cookies({'domain': 'vcrypt.pw', 'name': 'saveMe', 'value': '1'})
@@ -701,9 +719,10 @@ class UnshortenIt(object):
             return httptools.downloadpage(uri, only_headers=True, follow_redirects=False).headers.get('location', uri), 200
 
     def _unshorten_uprot(self, uri):
-        for link in scrapertools.find_multiple_matches(httptools.downloadpage(uri, cloudscraper=True).data, '<a[^>]+href="([^"]+)'):
-            if link.startswith('https://maxstream.video') or link.startswith('https://uprot.net') and link != uri:
-                return link, 200
+        html = httptools.downloadpage(uri, cloudscraper=False).data
+        link = scrapertools.find_single_match(html, r'--></button></[a|div]?>.+?<a[^>]+href="([^"]+)">')
+        if link != uri:
+            return link, 200
         return uri, 200
 
     def _unshorten_filecrypt(self, uri):

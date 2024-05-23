@@ -200,10 +200,10 @@ def peliculas(item):
 def episodios(item):
     support.info()
     itemlist = []
-    title = 'Parte ' if item.type.lower() == 'movie' else 'Episodio '
+    title = 'Parte' if item.type.lower() == 'movie' else 'Episodio'
     for it in item.episodes:
         itemlist.append(
-            item.clone(title=support.typo(title + it['number'], 'bold'),
+            item.clone(title=support.typo('{}. {} {}'.format(it['number'], title, it['number']), 'bold'),
                        episode = it['number'],
                        fulltitle=item.title,
                        show=item.title,
@@ -213,7 +213,8 @@ def episodios(item):
                        plot=item.plot,
                        action='findvideos',
                        contentType='episode',
-                       scws_id=it.get('scws_id', ''))
+                       url = '{}/{}'.format(item.url, it['id'])
+                      )
                     #    video_url=it.get('link', ''))
             )
 
