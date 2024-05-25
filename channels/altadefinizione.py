@@ -42,7 +42,7 @@ def genres(item):
         patronMenu = r'<a href=\"(?P<url>https:\/\/.*?)\".*?>(?P<title>.*?)</a>'
     else: # mantengo l'icona del padre
         patron = r'<a href=\"(?P<url>https:\/\/.*?)\".*?>(?P<title>.*?)</a>'
-    
+
     def itemlistHook(itemlist):
         itl = []
         for item in itemlist:
@@ -77,18 +77,18 @@ def peliculas(item):
         item.page = item.nextpage
 
     itemlist = []
-    for it in support.match(data, patron=[r'<article class=\"elementor-post.*?<img .*?src=\"(?P<thumb>[^\"]+).*?<h1 class=\"elementor-post__title\".*?<a href=\"(?P<url>[^\"]+)\" >\s*(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?\s+<']).matches:
+    for it in support.match(data, patron=[r'<article class=\"elementor-post.*?(<img .*?src=\"(?P<thumb>[^\"]+).*?)?<h1 class=\"elementor-post__title\".*?<a href=\"(?P<url>[^\"]+)\" >\s*(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?\s+<']).matches:
         infoLabels = dict()
-        infoLabels['fanart'] = it[0]
-        infoLabels['title'] = support.cleantitle(it[2])
+        infoLabels['fanart'] = it[1]
+        infoLabels['title'] = support.cleantitle(it[3])
         infoLabels['mediatype'] = 'undefined'
-        infoLabels['year'] = it[8]
+        infoLabels['year'] = it[9]
         itemlist.append(item.clone(contentType = 'undefined',
                                    action='check',
                                    thumbnail = item.thumbnail,
-                                   fulltitle = support.cleantitle(it[2]),
-                                   title = support.format_longtitle(support.cleantitle(it[2]), quality = it[6], lang = it[4]),
-                                   url = it[1],
+                                   fulltitle = support.cleantitle(it[3]),
+                                   title = support.format_longtitle(support.cleantitle(it[3]), quality = it[7], lang = it[5]),
+                                   url = it[2],
                                    infoLabels = infoLabels)
                         )
 
