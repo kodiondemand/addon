@@ -111,7 +111,7 @@ def peliculas(item):
 def episodios(item):
     item.quality = ''
     data = item.data
-    patronBlock = "div id=\"season_(?P<season>[0-9])\"(?P<block>.*?)</div"
+    patronBlock = "div id=\"season_(?P<season>[0-9]+)\"(?P<block>.*?)</div"
     patron = r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>'
     def itemHook(item):
         item.contentSeason += 1
