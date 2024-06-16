@@ -1,7 +1,7 @@
 {
     "id": "vvvvid",
     "name": "VVVVID",
-    "active": true,
+    "active": false,
     "language": ["ita","vos"],
     "thumbnail": "vvvvid.png",
     "banner": "vvvvid.png",
