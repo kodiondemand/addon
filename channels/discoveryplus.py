@@ -6,7 +6,7 @@ import functools
 
 import requests, uuid
 from core import jsontools, support, httptools
-from platformcode import logger
+from platformcode import logger, config
 
 
 typo = support.typo
@@ -18,11 +18,12 @@ deviceId = uuid.uuid4().hex
 # domain = 'https://eu1-prod-direct.discoveryplus.com'
 domain = 'https://' + session.get("https://prod-realmservice.mercury.dnitv.com/realm-config/www.discoveryplus.com%2Fit%2Fepg").json()["domain"]
 token = session.get('{}/token?deviceId={}&realm=dplay&shortlived=true'.format(domain, deviceId)).json()['data']['attributes']['token']
-session.headers = {'User-Agent': 'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
+session.headers = {'User-Agent': httptools.get_user_agent(), #'Mozilla/50.0 (Windows NT 10.0; WOW64; rv:45.0) Gecko/20100101 Firefox/45.0',
                    'Referer': host,
                    'Origin': host,
                    'Cookie': 'st={}'.format(token),
                    'content-type': 'application/json',
+                   'x-disco-client': 'WEB:UNKNOWN:dplus_us:2.46.0',
                    'x-disco-params': 'realm=dplay,siteLookupKey=dplus_it'}
 
 @support.menu
@@ -228,14 +229,50 @@ def findvideos(item):
     logger.debug()
 
     content = 'video' if item.contentType == 'episode' else 'channel'
-    post = {content + 'Id': item.id, 'deviceInfo': {'adBlocker': False,'drmSupported': True}}
+
+    post =  {content + 'Id': item.id,
+            'deviceInfo': {
+                'adBlocker': 'true',
+                'drmSupported': 'true',
+                'hwDecodingCapabilities': [],
+                'screen':{
+                    'width':1920,
+                    'height':1080
+                },
+                'player':{
+                    'width':1920,
+                    'height':1080
+                }
+            },
+            'wisteriaProperties':{
+                'advertiser': {
+                    'firstPlay': 0,
+                    'fwIsLat': 0
+                },
+                'device':{
+                    'browser':{
+                        'name': 'chrome',
+                        'version': config.get_setting("chrome_ua_version")
+                    },
+                    'type': 'desktop'
+                },
+                'platform': 'desktop',
+                'product': 'dplus_emea',
+                'sessionId': deviceId,
+                'streamProvider': {
+                    'suspendBeaconing': 0,
+                    'hlsVersion': 6,
+                    'pingConfig': 1
+                }
+            }
+        }
 
     data = session.post('{}/playback/v3/{}PlaybackInfo'.format(domain, content), json=post).json().get('data',{}).get('attributes',{})
-
-    if data.get('protection', {}).get('drmEnabled',False):
-        item.url = data['streaming']['dash']['url']
+    if data.get('streaming', [{}])[0].get('protection', {}).get('drmEnabled',False):
+        item.url = data['streaming'][0]['url']
         item.drm = 'com.widevine.alpha'
-        item.license ="{}|PreAuthorization={}|R{{SSM}}|".format(data['protection']['schemes']['widevine']['licenseUrl'], data['protection']['drmToken'])
+        item.license ="{}|PreAuthorization={}|R{{SSM}}|".format(data['streaming'][0]['protection']['schemes']['widevine']['licenseUrl'],
+	                      data['streaming'][0]['protection']['drmToken'])
     else:
         item.url = data['streaming'][0]['url']
         item.manifest = 'hls'
