@@ -121,9 +121,9 @@ def episodios(item):
             logger.debug(ep)
             infoLabels = dict()
             infoLabels['tvshowtitle'] = support.cleantitle(item.fulltitle)
-            infoLabels['season'] = int(it[1])
-            infoLabels['episode'] = int(ep[2])
-            infoLabels['episodeName'] = support.cleantitle(ep[3])
+            #infoLabels['season'] = int(it[1])
+            #infoLabels['episode'] = int(ep[2])
+            #infoLabels['episodeName'] = support.cleantitle(ep[3])
             itemlist.append(item.clone(contentType = 'tvshow',
                                    action='findvideos',
                                    thumb = ep[1],
@@ -132,7 +132,7 @@ def episodios(item):
                                    infoLabels = infoLabels)
                         )
 
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=False)
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
