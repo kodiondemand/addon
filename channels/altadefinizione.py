@@ -115,10 +115,8 @@ def episodios(item):
     itemlist = []
 
     for it in support.match(data, patron=[r'div class=\"single-season.*?(?P<id>season_[0-9]+).*?>Stagione:\s(?P<season>[0-9]+).*?(\s-\s(?P<lang>[a-zA-z]+?))?<']).matches:
-        logger.debug(it)
         block = support.match(data, patron = r'div id=\"'+ it[0] +'\".*?</div').match
         for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
-            logger.debug(ep)
             infoLabels = dict()
             infoLabels['tvshowtitle'] = support.cleantitle(item.fulltitle)
             #infoLabels['season'] = int(it[1])
@@ -154,7 +152,8 @@ def findvideos(item):
     if item.contentType == 'movie':
         video_url = support.match(item, patron=[r'<div class="video-wrapper">.*?<iframe src=\"(https://.*?)\"',
                                                 r'window.open\(\'([^\']+).*?_blank']).match
-
+    if (video_url == ''):
+       return []
     itemlist = [item.clone(action="play", url=srv) for srv in support.match(video_url, patron='<div class="megaButton" meta-type="v" meta-link="([^"]+).*?(?=>)>').matches]
     itemlist = support.server(item,itemlist=itemlist)
 
