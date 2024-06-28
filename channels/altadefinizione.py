@@ -111,29 +111,22 @@ def peliculas(item):
 def episodios(item):
     item.quality = ''
     data = item.data
-    item.data = ''
     itemlist = []
 
     for it in support.match(data, patron=[r'div class=\"single-season.*?(?P<id>season_[0-9]+).*?>Stagione:\s(?P<season>[0-9]+).*?(\s-\s(?P<lang>[a-zA-z]+?))?<']).matches:
         block = support.match(data, patron = r'div id=\"'+ it[0] +'\".*?</div').match
         for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
-            infoLabels = dict()
-            infoLabels['tvshowtitle'] = support.cleantitle(item.fulltitle)
-            #infoLabels['season'] = int(it[1])
-            #infoLabels['episode'] = int(ep[2])
-            #infoLabels['episodeName'] = support.cleantitle(ep[3])
             itemlist.append(item.clone(contentType = 'tvshow',
                                    action='findvideos',
                                    thumb = ep[1],
                                    title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2], lang= it[3]),
-                                   url = ep[0],
-                                   infoLabels = infoLabels)
+                                   url = ep[0], data = '')
                         )
 
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
-    support.download(itemlist, item)
+    if (config.get_setting('downloadenabled')):    
+        support.download(itemlist, item)
 
     return itemlist
 
