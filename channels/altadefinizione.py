@@ -132,7 +132,7 @@ def episodios(item):
                                    infoLabels = infoLabels)
                         )
 
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
+    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=False)
     support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
     support.download(itemlist, item)
