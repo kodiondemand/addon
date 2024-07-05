@@ -21,11 +21,11 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    menu = [('Film',['/category/film/', 'peliculas', 'list', 'undefined']),
-            ('Film al cinema {submenu}',['/category/ora-al-cinema/', 'peliculas', '', 'undefined']),
+    menu = [('Film',['/category/film/', 'peliculas', '', 'movie']),
+            ('Film al cinema {submenu}',['/category/ora-al-cinema/', 'peliculas', '', 'movie']),
             ('Generi',['', 'genres', '', 'undefined']),
             ('Saghe',['', 'genres', 'saghe', 'undefined']),
-            ('Serie TV',['/category/serie-tv/', 'peliculas', 'list', 'tvshow']),
+            ('Serie TV',['/category/serie-tv/', 'peliculas', '', 'tvshow']),
             #('Aggiornamenti Serie TV', ['/aggiornamenti-serie-tv/', 'peliculas']) da fixare
             ]
     search = ''
@@ -68,55 +68,38 @@ def search(item, text):
             logger.error("search except: %s" % line)
         return []
 
+@support.scrape
 def peliculas(item):
-    data = httptools.downloadpage(item.url).data
+    if not item.args == 'search': # pagination not works
+        if not item.nextpage:
+            item.page = 1
+        else:
+            item.page = item.nextpage
 
-    if not item.nextpage:
-        item.page = 1
-    else:
-        item.page = item.nextpage
-
-    itemlist = []
-    for it in support.match(data, patron=[r'<article class=\"elementor-post.*?(<img .*?src=\"(?P<thumb>[^\"]+).*?)?<h1 class=\"elementor-post__title\".*?<a href=\"(?P<url>[^\"]+)\" >\s*(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?\s+<']).matches:
-        infoLabels = dict()
-        infoLabels['fanart'] = it[1]
-        infoLabels['title'] = support.cleantitle(it[3])
-        infoLabels['mediatype'] = 'undefined'
-        infoLabels['year'] = it[9]
-        itemlist.append(item.clone(contentType = 'undefined',
-                                   action='check',
-                                   thumbnail = item.thumbnail,
-                                   fulltitle = support.cleantitle(it[3]),
-                                   title = support.format_longtitle(support.cleantitle(it[3]), quality = it[7], lang = it[5]),
-                                   url = it[2],
-                                   infoLabels = infoLabels)
-                        )
-
-    tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
-    support.check_trakt(itemlist)
-
-    if not item.args == 'search' and not len(itemlist) < 10: # pagination not works
         if not item.parent_url:
             item.parent_url = item.url
 
         item.nextpage = item.page + 1
-        item.url = "{}/page/{}".format(item.parent_url, item.nextpage)
-        
-        resp = httptools.downloadpage(item.url, only_headers = True)
-        if (resp.code < 399): # no more elements
-            support.nextPage(itemlist = itemlist, item = item, next_page=item.url)
+        nextPageUrl = "{}/page/{}".format(item.parent_url, item.nextpage)
+        resp = httptools.downloadpage(nextPageUrl, only_headers = True)
+        if (resp.code > 399): # no more elements
+            nextPageUrl = ''
+    else:
+        action = 'check'
 
-    return itemlist
+    patron= r'<article class=\"elementor-post.*?(<img .*?src=\"(?P<thumb>[^\"]+).*?)?<h1 class=\"elementor-post__title\".*?<a href=\"(?P<url>[^\"]+)\" >\s*(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?\s+<'
+
+    return locals()
 
 def episodios(item):
     item.quality = ''
-    data = item.data
+    data = item.data if item.data else httptools.downloadpage(item.url).data
     itemlist = []
 
     for it in support.match(data, patron=[r'div class=\"single-season.*?(?P<id>season_[0-9]+).*?>Stagione:\s(?P<season>[0-9]+).*?(\s-\s(?P<lang>[a-zA-z]+?))?<']).matches:
         block = support.match(data, patron = r'div id=\"'+ it[0] +'\".*?</div').match
         for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
-            itemlist.append(item.clone(contentType = 'tvshow',
+            itemlist.append(item.clone(contentType = 'episode',
                                    action='findvideos',
                                    thumb = ep[1],
                                    title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2], lang= it[3]),
@@ -125,7 +108,7 @@ def episodios(item):
 
     support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
-    if (config.get_setting('downloadenabled')):    
+    if (config.get_setting('downloadenabled')):
         support.download(itemlist, item)
 
     return itemlist

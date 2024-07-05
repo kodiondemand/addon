@@ -550,6 +550,7 @@ def scrape(func):
         downloadEnabled = args.get('downloadEnabled', True)
         pag = item.page if item.page else 1  # pagination
         matches = []
+        nextPageUrl = args.get('nextPageUrl', '')
 
         for n in range(2):
             logger.debug('PATRON= ', patron)
@@ -614,7 +615,7 @@ def scrape(func):
             @scrape
             def newFunc():
                 return nextArgs
-            nextArgs['item'] = nextPage(itemlist, item, data, patronNext, function)
+            nextArgs['item'] = nextPage(itemlist, item, data, patronNext, function, nextPageUrl)
             nextArgs['group'] = False
             if nextArgs['item']:
                 nextArgs['groupExplode'] = True
@@ -639,8 +640,8 @@ def scrape(func):
             tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
 
         if not group and not args.get('groupExplode') and ((pagination and len(matches) <= pag * pagination) or not pagination):  # next page with pagination
-            if patronNext and inspect.currentframe().f_back.f_code.co_name not in ['newest'] and len(inspect.stack(0)) > 2 and inspect.stack(0)[2][3] not in ['get_channel_results']:
-                nextPage(itemlist, item, data, patronNext, function)
+            if (patronNext or nextPageUrl) and inspect.currentframe().f_back.f_code.co_name not in ['newest'] and len(inspect.stack(0)) > 2 and inspect.stack(0)[2][3] not in ['get_channel_results']:
+                nextPage(itemlist, item, data, patronNext, function, nextPageUrl)
 
         # for it in itemlist:
         #     if it.contentEpisodeNumber and it.contentSeason:
