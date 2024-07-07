@@ -13,11 +13,19 @@ headers = [['Referer', host]]
 
 @support.menu
 def mainlist(item):
-    menu = [('Film',['/sfoglia', 'peliculas']),
+    film = [('Film al cinema',['/film-category/al-cinema/', 'peliculas']),
+            ('Generi',['', 'genres']),
             ]
     search = ''
     return locals()
 
+@support.scrape
+def genres(item):
+    action = 'peliculas'
+    blacklist = ['Seguici su Telegram',]
+    patronMenu = r'<li class="elementor-icon-list-item">.*?href="(?P<url>.*?)".*?text">(?P<title>.*?)</span>'
+    
+    return locals()
 
 @support.scrape
 def peliculas(item):
