@@ -1,0 +1,11 @@
+{
+    "id": "dinostreaming",
+    "name": "DinoStreaming",
+    "language": ["ita"],
+    "active": true,
+    "thumbnail": "dinostreaming.png",
+    "banner": "dinostreaming.png",
+    "categories": ["movie"],
+    "settings": [],
+    "not_active": ["include_in_newest"]
+}

@@ -3,7 +3,7 @@
   "find_videos": {
     "patterns": [
       {
-        "pattern": "//dropload.io/(\\w{12})",
+        "pattern": "//dropload.io/(?:e/)?(\\w{12})",
         "url": "https://dropload.io/\\1"
       },
       {
