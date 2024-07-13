@@ -3,9 +3,9 @@
 # Canale per filmpertutti.py
 # ------------------------------------------------------------
 
-from core import httptools, support
+from core import httptools, support, scrapertools
 from core.item import Item
-from platformcode import config
+from platformcode import config, logger
 
 def findhost(url):
     page = httptools.downloadpage(url).data
@@ -19,13 +19,13 @@ headers = [['Referer', host]]
 @support.menu
 def mainlist(item):
 
-    film = ['/category/film/',
-            ('Generi', ['/category/film/', 'genres', 'lettersF'])
+    film = ['/category/film/feed/',
+            ('Film al cinema', ['/category/ora-al-cinema/feed/', 'peliculas']),
+            ('Generi', ['/', 'genres']),
+	    ('Saghe', ['/', 'genres', 'saghe']),
            ]
 
-    tvshow = ['/category/serie-tv/',
-              ('Aggiornamenti', ['/aggiornamenti-serie-tv/', 'peliculas', 'newest']),
-              ('Per Lettera', ['/category/serie-tv/', 'genres', 'lettersS'])
+    tvshow = ['/category/serie-tv/feed/',
              ]
 
     search = ''
@@ -34,94 +34,101 @@ def mainlist(item):
 
 @support.scrape
 def peliculas(item):
-    support.info()
-    # debug = True
-    #debugBlock = True
-    # support.dbg()
+    if not item.args == 'search': # pagination not works
+        if not item.nextpage:
+            item.page = 1
+        else:
+            item.page = item.nextpage
 
-    if item.args != 'newest':
-        patronBlock = r'<ul class="posts">(?P<block>.*)<\/ul>'
-        patron = r'<li><a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>.+?)(?:\[(?P<lang>Sub-ITA)\])?(?:[ ]\[?(?P<quality>[HD]+)?\])?(?:[ ]\((?P<year>\d+)\)?)?<\/div>'
-        patronNext = r'<a href="([^"]+)[^>]+>Pagina'
+        if not item.parent_url:
+            item.parent_url = item.url
+        
+        if item.args == 'genres':
+            action = 'check'
+
+        item.nextpage = item.page + 1
+        nextPageUrl = "{}/?paged={}".format(item.parent_url, item.nextpage)
+        patron= r'<item>\s<title>(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?</title>.*?<link>(?P<url>.*?)</link>'
+        def fullItemlistHook(itemlist):
+            if len(itemlist) < 10:
+                return itemlist[:-1:]
+            else:
+                return itemlist
     else:
-        patronBlock = r'<ul class="posts">(?P<block>.*)<div class="clear[^"]*">'
-        patron = r'<li>\s?<a href="(?P<url>[^"]+)" data-thumbnail="(?P<thumb>[^"]+)">.*?<div class="title[^"]*">(?P<title>[^<]+?)(?:\s\[(?P<quality>HD)\])?(?:\s\((?P<year>[0-9]{4})\))?<\/div>.*?<div class="episode[^"]*"[^>]+>(?P<episode>[^<(]+)(?:\((?P<lang>[a-zA-Z\-]+)\))?'
-
-    if item.args == 'search':
         action = 'check'
-    elif item.contentType == 'tvshow':
-        action = 'episodios'
-    elif item.contentType == 'movie':
-        action ='findvideos'
-    else:
-        action = 'check'
-
-    def itemHook(item):
-        item.title = item.title.replace(' - La Serie', '')
-        return item
+        patron= r'<article class=\"elementor-post.*?(<img .*?src=\"(?P<thumb>[^\"]+).*?)?<h3 class=\"elementor-post__title\".*?<a href=\"(?P<url>[^\"]+)\" >\s*(?P<title>[^<]+?)\s*(\((?P<lang>Sub-[a-zA-Z]+)*\))?\s*(\[(?P<quality>[A-Z]*)\])?\s*(\((?P<year>[0-9]{4})\))?\s+<'
 
     return locals()
 
-@support.scrape
 def episodios(item):
-    # debug = True
-    data = support.match(item.url, headers=headers).data
-    if 'accordion-item' in data:
-        patronBlock = r'<span class="season[^>]*>\d+[^>]+>[^>]+>[^>]+>[^>]+>\D*[Ss][Tt][Aa][Gg][Ii][Oo][Nn][Ee][ -]+(?P<lang>[a-zA-Z\- ]+)[^<]*</span>(?P<block>.*?)<div id="(?:season|disqus)'
-        patron = r'<img src="(?P<thumb>[^"]+)"(?:[^>]*>){3,4}\s*<li class="season-no">(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<0-9]*<\/li>(?P<data>.*?javascript:;">(?P<title>[^<]+).*?</tbody>)'
-    else:
-        patronBlock = r'[Ss][Tt][Aa][Gg][Ii][Oo][Nn][Ee](?:<[^>]+>)?\s*(?:(?P<lang>[A-Za-z- ]+))?(?P<block>.*?)(?:&nbsp;|<strong>|<div class="addtoany)'
-        patron = r'(?:/>|p>)\s*(?P<season>\d+)(?:&#215;|×|x)(?P<episode>\d+)[^<]+(?P<data>.*?)(?:<br|</p)'
+    item.quality = ''
+    data = item.data if item.data else httptools.downloadpage(item.url).data
+    itemlist = []
 
-    def itemHook(i):
-        i.url = item.url
-        i.title.replace('&#215;','x')
-        if not i.contentLanguage:
-            i.contentLanguage = 'ITA'
-        return i
-    return locals()
+    for it in support.match(data, patron=[r'div class=\"single-season.*?(?P<id>season_[0-9]+).*?>Stagione:\s(?P<season>[0-9]+).*?(\s-\s(?P<lang>[a-zA-z]+?))?<']).matches:
+        block = support.match(data, patron = r'div id=\"'+ it[0] +'\".*?</div').match
+        for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
+            itemlist.append(item.clone(contentType = 'episode',
+                                   action='findvideos',
+                                   thumb = ep[1],
+                                   title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2], lang= it[3]),
+                                   url = ep[0], data = '')
+                        )
 
+    support.check_trakt(itemlist)
+    support.videolibrary(itemlist, item)
+    if (config.get_setting('downloadenabled')):    
+        support.download(itemlist, item)
+
+    return itemlist
 
 @support.scrape
 def genres(item):
-
-    if item.args == 'lettersF':
-        item.contentType = 'movie'
-    else:
-        item.contentType = 'tvshow'
-
     action = 'peliculas'
-    patronBlock = r'<select class="cats">(?P<block>.*?)<\/select>'
-    patronMenu = r'<option data-src="(?P<url>[^"]+)">(?P<title>[^<]+)<\/option>'
+    item.args = 'genres'
+    blacklist = ['Tutti i film',]
+    wantSaga = True if item.args == 'saghe' else False
 
+    patronBlock = r'<nav class="elementor-nav-menu--main (?P<block>.*?)</nav>'
+    patronMenu = r'<li class="menu-item.*?<a href="(?P<url>https:\/\/.*?)".*?>(?P<title>.*?)</a></li>'
+
+    def itemHook(item):
+        item.url = "{}/feed/".format(item.url)
+        return item
+	
+    def itemlistHook(itemlist):
+        itl = []
+        for item in itemlist:
+            isSaga = item.fulltitle.startswith('Saga')
+
+            if len(item.fulltitle) != 3:
+                if (isSaga and wantSaga) or (not isSaga and not wantSaga):
+                    itl.append(item)
+        return itl
     return locals()
 
 
 def check(item):
-    support.info()
-    patron=r'class="taxonomy category"\s*><span property="name">([^>]+)</span></a><meta property="position" content="2">'
-    block = support.match(item.url, patron=patron,headers=headers).match
-    if block.lower() != 'film':
-        support.info('select = ### è una serie ###')
-        item.contentType='tvshow'
+    item.data = httptools.downloadpage(item.url).data
+    if 'season-details' in item.data.lower():
+        item.contentType = 'tvshow'
         return episodios(item)
     else:
-        support.info('select = ### è un movie ###')
-        item.contentType='movie'
+        item.contentType = 'movie'
         return findvideos(item)
 
 
-def search(item, texto):
-    support.info()
-    item.url = host + "/search/" + texto
+def search(item, text):
+    item.url = "{}/?{}".format(host, support.urlencode({'s': text}))
     item.args = 'search'
+
     try:
         return peliculas(item)
-    # Continua la ricerca in caso di errore
+
     except:
         import sys
         for line in sys.exc_info():
-            support.info("%s" % line)
+            logger.error("search except: %s" % line)
         return []
 
 
@@ -131,13 +138,13 @@ def newest(categoria):
     item = Item()
     try:
         if categoria == "peliculas":
-            item.url = host + "/category/film/"
+            item.url = host + "/category/film/feed/"
             item.action = "peliculas"
             item.extra = "movie"
             item.contentType = 'movie'
             itemlist = peliculas(item)
         else:
-            item.url = host + "/aggiornamenti-serie-tv/"
+            item.url = host + "/category/serie-tv/feed/"
             item.action = "peliculas"
             item.args = "newest"
             item.contentType = 'tvshow'
@@ -154,8 +161,16 @@ def newest(categoria):
 
 
 def findvideos(item):
+    video_url = item.url
+    
     if item.contentType == 'movie':
-        data = support.match(item.url, patron=r'<a target="_blank" rel="nofollow" href="([^"]+)">').matches
-        return support.server(item, data=data, patronTag='Versione: <[^>]+>([^<]+)')
-    else:
-        return support.server(item, item.data)
+        video_url = support.match(item.url, patron=r'<a href="([^"]+)" rel="nofollow">').match    
+        
+    video_url = support.match(video_url, patron=r'<iframe src=\"(https://.*?)\"').match
+
+    if (video_url == ''):
+       return []
+
+    itemlist = [item.clone(action="play", url=srv) for srv in support.match(video_url, patron='<div class=\"megaButton\" meta-type=\"v\" meta-link=\"([^\"]+).*?(?=>)>').matches]
+    itemlist = support.server(item,itemlist=itemlist)
+    return itemlist
