@@ -280,6 +280,10 @@ def addinfo(items, item):
         item.forcethumb = True
         episode = 0
         season = 0
+	
+        if key.get('type','') == 'RaiPlay Link Item':
+            return ''
+	
         if key.get('titolo', ''):
             key = requests.get(getUrl(key['path_id'])).json()['program_info']
 

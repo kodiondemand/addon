@@ -15,17 +15,20 @@ def findhost(url):
 host = config.get_channel_url(findhost)
 headers = [['Referer', host]]
 
-
 @support.menu
 def mainlist(item):
 
     film = ['/category/film/feed/',
             ('Film al cinema', ['/category/ora-al-cinema/feed/', 'peliculas']),
             ('Generi', ['/', 'genres']),
-	    ('Saghe', ['/', 'genres', 'saghe']),
+            ('Saghe', ['/', 'genres', 'saghe']),
            ]
 
     tvshow = ['/category/serie-tv/feed/',
+             ]
+ 
+    anime = ['/category/anime/feed/',
+             ('SUB-ITA',['/category/anime-sub-ita/feed/', 'peliculas']),
              ]
 
     search = ''
@@ -42,7 +45,7 @@ def peliculas(item):
 
         if not item.parent_url:
             item.parent_url = item.url
-        
+
         if item.args == 'genres':
             action = 'check'
 
@@ -70,11 +73,17 @@ def episodios(item):
         for ep in support.match(block, patron=[r'<li><a href=\"(?P<url>[^\"]+).*?img\" src=\"(?P<thumb>[^\"]+).*?title\">(?P<episode>[0-9]+)\.\s+(?P<title>.*?)</span>']).matches:
             itemlist.append(item.clone(contentType = 'episode',
                                    action='findvideos',
-                                   thumb = ep[1],
+                                   thumb=ep[1],
+                                   episode=ep[2],
+                                   season=it[1],
+                                   contentSeason=it[1],
+                                   contentEpisodeNumber=ep[2],
                                    title = support.format_longtitle(support.cleantitle(ep[3]), season = it[1], episode = ep[2], lang= it[3]),
-                                   url = ep[0], data = '')
+                                   url = scrapertools.unescape(ep[0]), data = '')
                         )
 
+    if config.get_setting('episode_info') and not support.stackCheck(['add_tvshow', 'get_newest']):
+        support.tmdb.set_infoLabels_itemlist(itemlist, seekTmdb=True)
     support.check_trakt(itemlist)
     support.videolibrary(itemlist, item)
     if (config.get_setting('downloadenabled')):    
@@ -85,9 +94,9 @@ def episodios(item):
 @support.scrape
 def genres(item):
     action = 'peliculas'
-    item.args = 'genres'
     blacklist = ['Tutti i film',]
     wantSaga = True if item.args == 'saghe' else False
+    item.args = 'genres'
 
     patronBlock = r'<nav class="elementor-nav-menu--main (?P<block>.*?)</nav>'
     patronMenu = r'<li class="menu-item.*?<a href="(?P<url>https:\/\/.*?)".*?>(?P<title>.*?)</a></li>'
@@ -95,7 +104,7 @@ def genres(item):
     def itemHook(item):
         item.url = "{}/feed/".format(item.url)
         return item
-	
+
     def itemlistHook(itemlist):
         itl = []
         for item in itemlist:
@@ -162,10 +171,10 @@ def newest(categoria):
 
 def findvideos(item):
     video_url = item.url
-    
+
     if item.contentType == 'movie':
-        video_url = support.match(item.url, patron=r'<a href="([^"]+)" rel="nofollow">').match    
-        
+        video_url = support.match(item.url, patron=r'<a href="([^"]+)" rel="nofollow">').match
+
     video_url = support.match(video_url, patron=r'<iframe src=\"(https://.*?)\"').match
 
     if (video_url == ''):

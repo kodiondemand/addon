@@ -5,6 +5,6 @@
   "language": ["ita", "sub-ita"],
   "thumbnail": "filmpertutti.png",
   "banner": "filmpertutti.png",
-  "categories": ["tvshow","movie"],
+  "categories": ["anime", "tvshow","movie"],
   "settings": []
 }
