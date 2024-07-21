@@ -3,7 +3,7 @@
 # -*- Created for Alfa-addon -*-
 # -*- By the Alfa Develop Group -*-
 
-from core import httptools
+from core import httptools, support
 from core import scrapertools
 from platformcode import logger
 from platformcode import config
@@ -18,6 +18,10 @@ def test_video_exists(page_url):
     global data
     logger.info("(page_url='%s')" % page_url)
     data = httptools.downloadpage(page_url).data
+    redirect_url = support.match(data, patron=r"}\s}\selse\s{\swindow.location.href\s=\s'(http[^']+)'").match
+
+    if redirect_url:
+        data = httptools.downloadpage(redirect_url).data
 
     if "File not found" in data or "File is no longer available" in data:
         return False, config.get_localized_string(70449) % "VOE"
@@ -25,15 +29,11 @@ def test_video_exists(page_url):
 
 
 def get_video_url(page_url, premium=False, user="", password="", video_password=""):
-    logger.info("(page_url='%s')" % page_url)
-    from core import support
-    # support.dbg()
+    logger.info("(page_url='%s')" % page_url)    
     video_urls = []
     video_srcs = support.match(data, patron=r"src: '([^']+)'")
-    video_srcs = scrapertools.find_multiple_matches(data, r"src: '([^']+)'")
+    video_srcs = scrapertools.find_multiple_matches(data, r"src: '([^']+)'")    
     if not video_srcs:
-        # bloque = scrapertools.find_single_match(data, "sources.*?\}")
-        # video_srcs = support.match(bloque, patron=': "([^"]+)', debug=True)
         video_srcs = support.match(data, patronBlock=r'sources [^\{]+{([^}]+)', patron=r'''['"]([^'"]+)[^:]+: ['"]([^'"]+)['"]''').matches
     for ext, url in video_srcs:
         video_urls.append([ext + " [Voe]", base64.b64decode(url).decode()])
