@@ -22,7 +22,7 @@ def test_video_exists(page_url):
     global iframeParams
     global urlParams
     server_url = support.scrapertools.decodeHtmlentities(support.match(page_url, patron=['<iframe [^>]+src="([^"]+)', 'embed_url="([^"]+)']).match)
-    iframeParams = support.match(server_url, patron=r'''"quality":(\d+)[^;]+;\s+window\.masterPlaylist\s+=\s+{[^{]+({[^}]+}),\s+url:\s+'([^']+)''').match
+    iframeParams = support.match(server_url, patron=r'''"quality":(\d+),.+window\.masterPlaylist\s+=\s+{[^{]+({[^}]+}),\s+url:\s+'([^']+)''').match
 
     if not iframeParams or len(iframeParams) < 2:
         return 'StreamingCommunity', 'Prossimamente'
