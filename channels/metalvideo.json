@@ -1,7 +1,7 @@
 {
   "id": "metalvideo",
   "name": "Metal Video",
-  "active": true,
+  "active": false,
   "language": ["*"],
   "thumbnail": "metalvideo.png",
   "banner": "metalvideo.png",
