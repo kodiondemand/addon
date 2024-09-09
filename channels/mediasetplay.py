@@ -48,17 +48,18 @@ pagination = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100][config.get_setting('pagin
 def mainlist(item):
     top =  [('Dirette {bold}', ['', 'live'])]
 
-    menu = [('Film {bullet bold}', ['/cinema', 'peliculas', {'uxReference':'filmUltimiArrivi'}, 'movie']),
-            ('Film Più Visti {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmPiuVisti24H'}, 'movie']),
+    menu = [('Film Più Visti {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmPiuVisti24H'}, 'movie']),
+            ('Film ultimi arrivi {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmUltimiArrivi'}, 'movie']),
             ('Film Da Non Perdere {submenu}', ['/cinema', 'peliculas', {'uxReference':'filmClustering'}, 'movie']),
-            ('Fiction / Serie TV {bullet bold}', ['/fiction', 'peliculas', {'uxReference':'fictionSerieTvDelMomento'}, 'tvshow']),
+            ('Fiction e Serie Tv del momento {submenu}', ['/fiction', 'peliculas', {'uxReference':'fictionSerieTvDelMomento'}, 'tvshow']),
             ('Serie TV Piu Viste {submenu}', ['/fiction', 'peliculas', {'uxReference':'serieTvPiuViste24H'}, 'tvshow']),
-            ('Le Serie Soap Del Momento {submenu}', ['/cinema', 'peliculas', {'uxReference':'fictionSerieTvParamsGenre', 'params': 'genre≈Soap opera'}, 'tvshow']),
-            ('Programmi TV{ bullet bold}', ['/programmitv', 'peliculas', {'uxReference':'stagioniPrimaSerata'}, 'tvshow']),
-            ('Kids {bullet bold}', ['/kids', 'peliculas', {'uxReference':'kidsMediaset' }, 'undefined']),
+            ('Soap del momento {submenu}', ['/cinema', 'peliculas', {'uxReference':'fictionSerieTvParamsGenre', 'params': 'genre≈Soap opera'}, 'tvshow']),
+            ('Programmi TV Prima serata{ submenu}', ['/programmitv', 'peliculas', {'uxReference':'stagioniPrimaSerata'}, 'tvshow']),
+            ('Programmi TV Daytime{ submenu}', ['/programmitv', 'peliculas', {'uxReference':'stagioniDaytime'}, 'tvshow']),
+            ('Kids Evergreen {submenu}', ['/kids', 'peliculas', {'uxReference':'kidsMediaset' }, 'undefined']),
             ('Kids Boing {submenu}', ['/kids', 'peliculas', {'uxReference':'kidsBoing' }, 'undefined']),
             ('Kids Cartoonito {submenu}', ['/kids', 'peliculas', {'uxReference':'kidsCartoonito' }, 'undefined']),
-            ('Documentari {bullet bold}', ['/documentari', 'peliculas', {'uxReference': 'documentariPiuVisti24H'}, 'undefined']),
+            ('Documentari più visti {submenu}', ['/documentari', 'peliculas', {'uxReference': 'documentariPiuVisti24H'}, 'undefined']),
             ]
 
     search = ''
