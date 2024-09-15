@@ -1527,7 +1527,7 @@ def thumb(item_itemlist_string=None, genre=False, live=False):
         return item_itemlist_string
 
     icon_dict = {'movie':['film', 'movie', 'saghe'],
-                 'tvshow':['serie','tv','episodi','episodio','fiction', 'show'],
+                 'tvshow':['serie','tv','episodi','episodio','fiction', 'show', 'talent', 'reality'],
                  'documentary':['documentari','documentario', 'documentary', 'documentaristico'],
                  'teenager':['ragazzi','teenager', 'giovani', 'teen'],
                  'learning':['learning', 'school', 'scuola'],
