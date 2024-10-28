@@ -18,7 +18,7 @@ def mainlist(item):
         ('Animazione', ['/cat/animazione', 'peliculas', [0 , 'anime', True], 'undefined']),
         ('Documentari', ['/cat/altro/documentari', 'peliculas', [0 , 'documentary', True], 'undefined']),
         ('Programmi TV', ['/cat/altro/programmi-tv', 'peliculas', [0 , 'tvshow', True], 'tvshow']),
-        ('Video Musica', ['/cat/musica/video-musicali', 'peliculas', [0 , 'music', False], 'undefined']),
+        ('Video Musicali', ['/cat/musica/video-musicali', 'peliculas', [0 , 'music', False], 'undefined']),
       # ('Videocorsi', ['/cat/altro/videocorsi', 'peliculas', [0 , 'music', False], 'undefined'])
     ]
     search = ''
