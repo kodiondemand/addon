@@ -5,16 +5,9 @@
 
 from core import support, httptools
 
-# def findhost(url):
-#     data = support.httptools.downloadpage(url).data
-#     url = support.scrapertools.find_single_match(data, '<li><a href="([^"]+)')
-#     return url[:-1] if url.endswith('/') else url
-
 host = support.config.get_channel_url()
 support.info('HOST',host)
-# host = 'https://ilcorsaronero.xyz'
 headers = [['Referer', host]]
-
 
 @support.menu
 def mainlist(item):
@@ -24,12 +17,13 @@ def mainlist(item):
 	('Serie TV', ['/cat/serie-tv', 'peliculas', [0 , 'tvshow', True], 'tvshow']),
 	('Animazione', ['/cat/animazione', 'peliculas', [0 , 'anime', True], 'tvshow']),
 	('Documentari', ['/cat/altro/documentari', 'peliculas', [0 , 'documentary', True], 'tvshow']),
-	('Programmi TV', ['/cat/altro/programmi-tv', 'peliculas', [0 , 'tvshow', True], 'tvshow'])
+	('Programmi TV', ['/cat/altro/programmi-tv', 'peliculas', [0 , 'tvshow', True], 'tvshow']),
+	('Video Musica', ['/cat/musica/video-musicali', 'peliculas', [0 , 'music', True], 'music']),
+	('Videocorsi', ['/cat/altro/videocorsi', 'peliculas', [0 , 'music', True], 'music'])
     ]
     search = ''
 
     return locals()
-
 
 @support.scrape
 def peliculas(item):
@@ -60,7 +54,7 @@ def peliculas(item):
 
         return item
 
-    patron = r'<a class="hover:underline line-clamp-1.*?href="(?P<url>[^"]+)"\s*>(?P<title>.*?)</a>'
+    patron = r'<a class="hover:underline line-clamp-1.*?href="(?P<url>[^"]+)"\s*>(?P<title>.*?)</a>[^>]+>[^>]+>[^>]+>(?P<seed>.*?)<'
         
     return locals()
 
@@ -76,7 +70,6 @@ def search(item, text):
         for line in sys.exc_info():
             logger.error("search except: %s" % line)
         return []
-
 
 def findvideos(item):
     if item.contentType == 'tvshow': item.contentType = 'episode'
