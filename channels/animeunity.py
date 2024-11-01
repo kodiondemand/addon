@@ -123,16 +123,17 @@ def news(item):
     js = fullJs['data']
 
     for it in js:
-        if it.get('anime', {}).get('title'):
+        if it.get('anime', {}).get('title') or it.get('anime', {}).get('title_eng'):
+            title_name = it['anime']['title'] if it.get('anime', {}).get('title') else it['anime']['title_eng']
             itemlist.append(
-                item.clone(title= support.typo(it['anime']['title'] + ' - EP. ' + it['number'], 'bold'),
-                           fulltitle=it['anime']['title'],
-                           thumbnail=it['anime']['imageurl'],
+                item.clone(title = support.typo(title_name + ' - EP. ' + it['number'], 'bold'),
+                           fulltitle = it['anime']['title'],
+                           thumbnail = it['anime']['imageurl'],
                            forcethumb = True,
-                           scws_id=it.get('scws_id', ''),
+                           scws_id = it.get('scws_id', ''),
                         #    video_url=it.get('link', ''),
-                           plot=it['anime']['plot'],
-                           action='findvideos')
+                           plot = it['anime']['plot'],
+                           action = 'findvideos')
             )
     if 'next_page_url' in fullJs:
         itemlist.append(item.clone(title=support.typo(support.config.get_localized_string(30992), 'color kod bold'),thumbnail=support.thumb(), url=fullJs['next_page_url']))
