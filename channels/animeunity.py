@@ -3,7 +3,7 @@
 # Canale per AnimeUnity
 # ------------------------------------------------------------
 
-import cloudscraper, json, copy, inspect, re
+import cloudscraper, json, copy, inspect
 from core import jsontools, support, httptools, scrapertools
 from platformcode import autorenumber
 
@@ -130,12 +130,12 @@ def news(item):
             full_episode = ''
             if match:
                 season, episode = match
-                full_episode = '- S' + season + ' E' + episode
+                full_episode = ' - S' + season + ' E' + episode
             else:
                 pattern = r'[._\s]Ep[._\s]*(?P<episode>\d+)'
                 episode = scrapertools.find_single_match(it['file_name'], pattern)
                 if episode:
-                    full_episode = '- E' + episode                             
+                    full_episode = ' - E' + episode                             
             itemlist.append(
                 item.clone(title = support.typo(title_name + full_episode, 'bold'),
                            fulltitle = it['anime']['title'],
@@ -268,22 +268,3 @@ def findvideos(item):
 #         for url, res in info:
 #             urls.append(['hls [{}]'.format(res), url])
 #     return urls
-
-def extract_season_episode(filename):
-    pattern = r'[sS](?P<season>\d+)[eE](?P<episode>\d+)'
-    pattern_ep = r'[._\s]Ep[._\s]*(?P<episode>\d+)'
-    
-    match = re.search(pattern_full_ep, filename)
-    if match:
-        season = match.group('season')
-        episode = match.group('episode')
-    else:
-        match = re.search(pattern_ep, filename)
-        if match:
-            season = None
-            episode = match.group('episode')
-        else:
-            season = None
-            episode = None
-    
-    return season, episode
