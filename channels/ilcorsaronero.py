@@ -29,22 +29,7 @@ def mainlist(item):
 def peliculas(item):
     debug = False
     action = 'findvideos'
-    sceneTitle = item.args[2]
-    if not item.args == 'search': # pagination not works
-        if not item.nextpage:
-            item.page = 1
-        else:
-            item.page = item.nextpage
-
-        if not item.parent_url:
-            item.parent_url = item.url
-
-        item.nextpage = item.page + 1
-        nextPageUrl = "{}?page={}".format(item.parent_url, item.nextpage)
-        
-        resp = httptools.downloadpage(nextPageUrl, only_headers = True)
-        if (resp.code > 399): # no more elements
-            nextPageUrl = ''
+    sceneTitle = item.args[2]    
 
     def itemHook(item):
         if not sceneTitle:
@@ -55,7 +40,7 @@ def peliculas(item):
         return item
 
     patron = r'<a class="hover:underline line-clamp-1.*?href="(?P<url>[^"]+)"\s*>(?P<title>.*?)</a>[^>]+>[^>]+>[^>]+>(?P<seed>.*?)<'
-        
+    patronNext = r'<a href="(?P<url>[^"]+)".*?Next</span>'
     return locals()
 
 def search(item, text):
