@@ -201,7 +201,7 @@ def peliculas(item, json='', key='', itemlist=[]):
                 option[item.filterkey].lower()]
         else:
             filterkey = []
-        title = option['title'] if 'title' in option else ''
+        title = option['title'] if isinstance(option,dict) and 'title' in option else ''
 
         if 'tvshows_list' in key and 'links' not in option:
             action = 'episodios'
