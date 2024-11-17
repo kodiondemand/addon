@@ -156,13 +156,13 @@ def findvideos(item):
         lic_url='%s|%s|R{SSM}|'%(license_url, preLic)
         item.drm = DRM
         item.license = lic_url
-    elif url=='':
+    else:
         match = support.match(data, patron=r'''["]?m3u8["]?\s*:\s*["']([^"']+)["']''').match
         if match:
             url = "https://awsvodpkg.iltrovatore.it/local/dash/" + \
                      match.split("http://la7-vh.akamaihd.net/i")[1].split("csmil/master.m3u8")[0] + \
                      "urlset/manifest.mpd";
-    else:
+    if url != "":
         match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
         if match:
             url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
