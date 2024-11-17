@@ -159,13 +159,10 @@ def findvideos(item):
     else:
         match = support.match(data, patron=r'''["]?m3u8["]?\s*:\s*["']([^"']+)["']''').match
         if match:
-            url = "https://awsvodpkg.iltrovatore.it/local/dash/" + \
-                     match.split("http://la7-vh.akamaihd.net/i")[1].split("csmil/master.m3u8")[0] + \
-                     "urlset/manifest.mpd";
-    if url != "":
-        match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
-        if match:
-            url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
+            url = match.replace("http://la7-vh.akamaihd.net/i/", "https://awsvodpkg.iltrovatore.it/local/hls/").replace("csmil/master.m3u8", "urlset/master.m3u8");
+    
+    if url=="":
+        url = support.match(data, patron=r'''["]?mp4["]?\s*:\s*["']([^"']+)["']''').match
 
     item = item.clone(title='Direct', server='directo', url=url, action='play')
     return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
