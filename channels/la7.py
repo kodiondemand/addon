@@ -3,9 +3,19 @@
 # Canale per La7
 # ------------------------------------------------------------
 
+import sys
 import requests
 from core import support, httptools
 from platformcode import logger
+import html
+import re
+
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+    from urllib.parse import urlencode
+else:
+    from concurrent_py2 import futures
+    from urllib import urlencode
 
 DRM = 'com.widevine.alpha'
 key_widevine = "https://la7.prod.conax.cloud/widevine/license"
@@ -81,24 +91,62 @@ def search(item, text):
         return []
 
 
-@support.scrape
 def peliculas(item):
-    search = item.search
-    action = 'episodios'
-    pagination = 20
-    disabletmdb = True
-    addVideolibrary = False
-    downloadEnabled = False
-
-    patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
+    html_content = requests.get(item.url).text
 
     if 'la7teche' in item.url:
         patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="teche-i-img".*?url\(\'(?P<thumb>[^\']+)'
+    else:
+        patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<thumb>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
+    
+    matches = re.findall(patron, html_content)
 
-    def itemHook(item):
-        item.fanart = item.thumb
-        return item
-    return locals()
+    def itInfo(n, key, item):
+        if 'la7teche' in item.url:
+            programma_url, titolo, thumb = key
+        else:
+            programma_url, thumb, titolo = key
+        programma_url = f'{host}{programma_url}'
+        titolo = html.unescape(titolo)
+
+        html_content = requests.get(programma_url).text
+        plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
+        if plot:
+            text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
+            plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
+        else:
+            plot = ""
+
+        regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
+        match = re.findall(regex, html_content)
+        if match:
+            fanart = match[0][1]
+        else:
+            fanart = ""
+
+        it = item.clone(title=support.typo(titolo, 'bold'),
+                    data='',
+                    fulltitle=titolo,
+                    show=titolo,
+                    thumbnail= thumb,
+                    fanart=fanart,
+                    url=programma_url,
+                    video_url=programma_url,
+                    plot=plot,
+                    order=n)
+        it.action = 'episodios'
+        it.contentSerieName = it.fulltitle
+        return it
+
+    itemlist = []
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches)]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+    itemlist.sort(key=lambda it: it.order)
+
+    return itemlist
 
 
 @support.scrape
@@ -115,6 +163,13 @@ def episodios(item):
 
         patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
     patronNext = r'<a href="([^"]+)">›'
+    def itemHook(item):
+        # logger.info("ASD: "+str(item))
+        pattern = r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>'
+        match = re.search(pattern, requests.get(item.url).text)
+        if match:
+            item.plot = match.group(1)
+        return item
     return locals()
 
 
@@ -128,6 +183,7 @@ def findvideos(item):
     data = support.match(item).data
 
     url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
+
     if url:
         preurl = support.match(data, patron=r'preTokenUrl = "(.+?)"').match
         tokenHeader = {
