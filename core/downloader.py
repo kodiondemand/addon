@@ -44,7 +44,7 @@ import time
 
 from threading import Thread, Lock
 
-from core import filetools, jsontools
+from core import filetools, jsontools, httptools
 from platformcode import logger, config
 
 
@@ -214,11 +214,11 @@ class Downloader(object):
 
         self._state = self.states.stopped
         self._download_lock = Lock()
-        self._headers = {"User-Agent": "Kodi/15.2 (Windows NT 10.0; WOW64) App_Bitness/32 Version/15.2-Git:20151019-02e7013"}
+        self._headers = httptools.default_headers #{"User-Agent": "Kodi/15.2 (Windows NT 10.0; WOW64) App_Bitness/32 Version/15.2-Git:20151019-02e7013"}
         self._speed = 0
         self._buffer = {}
         self._seekable = True
-
+ 
         self._threads = [Thread(target=self.__start_part__, name="Downloader %s/%s" % (x + 1, self._max_connections)) for x in range(self._max_connections)]
         self._speed_thread = Thread(target=self.__speed_metter__, name="Speed Meter")
         self._save_thread = Thread(target=self.__save_file__, name="File Writer")
