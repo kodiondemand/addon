@@ -92,6 +92,12 @@ def search(item, text):
 
 
 def peliculas(item):
+    page_size = 20
+
+    """Split a list into chunks of size page_size."""
+    def chunk_list(lst):
+        return [lst[i:i + page_size] for i in range(0, len(lst), page_size)]
+
     html_content = requests.get(item.url).text
 
     if 'la7teche' in item.url:
@@ -99,7 +105,9 @@ def peliculas(item):
     else:
         patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<thumb>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     
-    matches = re.findall(patron, html_content)
+    matches = chunk_list(re.findall(patron, html_content))
+    url_splits = item.url.split('?')
+    page = 0 if len(url_splits)==1 else int(url_splits[1])
 
     def itInfo(n, key, item):
         if 'la7teche' in item.url:
@@ -136,6 +144,80 @@ def peliculas(item):
                     order=n)
         it.action = 'episodios'
         it.contentSerieName = it.fulltitle
+
+        return it
+
+    itemlist = []
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches[page])]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+    itemlist.sort(key=lambda it: it.order)
+
+    if page < len(matches)-1:
+        itemlist.append(
+            item.clone(title=support.typo('Next', 'bold'),
+                        url=f'{url_splits[0]}?{page+1}',
+                        order=len(itemlist)
+                )
+            )
+
+    return itemlist
+
+
+def episodios(item):
+
+    html_content = requests.get(item.url).text
+
+    url_splits = item.url.split("=")
+    page = -1 if len(url_splits) == 1 else int(url_splits[-1])
+
+    if 'la7teche' in item.url:
+        # patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
+        patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+    else:
+        if page == -1:
+            patron = r'<li class="voce_menu">\s*<a href="([^"]+)"[^>]*>\s*([^<]+)\s*</a>\s*</li>'
+            matches = re.findall(patron, html_content)
+            result_dict = {text.strip().lower(): href for href, text in matches}
+            if 'puntate' in result_dict:
+                html_content = requests.get(f'{host}{result_dict["puntate"]}').text
+            elif 'rivedila7' in result_dict:
+                html_content = requests.get(f'{host}{result_dict["rivedila7"]}').text
+            else:
+                html_content = requests.get(f'{host}{[*result_dict.values()][0]}').text
+            page = 0
+        patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+
+    matches = re.findall(patron, html_content)
+
+    def itInfo(n, key, item):
+        if 'la7teche' in item.url:
+            programma_url, thumb, titolo, plot = key
+
+        else:
+            programma_url, thumb, titolo, titolo2 = key
+        programma_url = f'{host}{programma_url}'
+        thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
+
+        plot_page = requests.get(programma_url).text
+        match = re.search(r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>', plot_page)
+        if match:
+            plot = match.group(1)
+        else:
+            plot = ""
+
+        it = item.clone(title=support.typo(titolo, 'bold'),
+                    data='',
+                    fulltitle=titolo,
+                    show=titolo,
+                    thumbnail= thumb,
+                    url=programma_url,
+                    video_url=programma_url,
+                    plot=plot,
+                    order=n)
+
         return it
 
     itemlist = []
@@ -146,32 +228,21 @@ def peliculas(item):
                 itemlist.append(res.result())
     itemlist.sort(key=lambda it: it.order)
 
+
+    pattern = r'<li class="pager-next"><a href="(.*?)">›</a></li>'
+    match = re.search(pattern, html_content)
+    if match:
+        next_page_link = match.group(1)
+        itemlist.append(
+            item.clone(title=support.typo('Next', 'bold'),
+                        url= f'{host}{match.group(1)}',
+                        order=len(itemlist),
+                        video_url='',
+                        thumbnail=''
+                )
+            )
+
     return itemlist
-
-
-@support.scrape
-def episodios(item):
-    action = 'findvideos'
-    addVideolibrary = False
-    downloadEnabled = False
-
-    if 'la7teche' in item.url:
-        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
-    else:
-        data = str(support.match(item.url, patron=r'"home-block home-block--oggi(.*?)</section>').matches)
-        data += httptools.downloadpage(item.url + '/video').data
-
-        patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
-    patronNext = r'<a href="([^"]+)">›'
-    def itemHook(item):
-        # logger.info("ASD: "+str(item))
-        pattern = r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>'
-        match = re.search(pattern, requests.get(item.url).text)
-        if match:
-            item.plot = match.group(1)
-        return item
-    return locals()
-
 
 def findvideos(item):
     support.info()
