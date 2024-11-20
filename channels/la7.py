@@ -7,6 +7,7 @@ import sys
 import requests
 from core import support, httptools
 from platformcode import logger
+from datetime import datetime, timezone, timedelta
 import html
 import re
 
@@ -47,11 +48,31 @@ def mainlist(item):
 def live(item):
     la7live_item = item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True)
     html_content = requests.get(la7live_item.url).text
-    patron = r'"thumbnail":\s*\{[^}]*"url":\s*"([^"]+)"'
-    la7live_item.fanart = re.findall(patron, html_content)[0]
 
+    patron = r'"name":\s*"([^"]+)",\s*"description":\s*"([^"]+)",.*?"url":\s*"([^"]+)"'
+    titolo, plot, image_url = re.findall(patron, html_content, re.DOTALL)[0]
+    la7live_item.fulltitle = titolo
+    la7live_item.plot = plot
+    la7live_item.fanart = image_url
+    
     la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
     html_content = requests.get(la7dlive_item.url).text
+
+    patron = r'<div class="orario">\s*(.*?)\s*</div>.*?<span class="dsk">\s*(.*?)\s*</span>'
+    schedule = {k:v for k,v in re.findall(patron, html_content)}
+    italy_tz = timezone(timedelta(hours=1))  # CET (Central European Time, UTC+1)
+
+    current_time_utc = datetime.now(timezone.utc)  # Get current time in UTC
+    italian_time = current_time_utc.astimezone(italy_tz).time()  # Convert to Italy time zone
+
+    current_show = next((show for (t1, show), (t2, _) in zip(
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items()),
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items())[1:] + 
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items())[:1]
+    ) if t1 <= italian_time < t2), "No show currently playing.")
+
+    la7dlive_item.fulltitle = current_show
+    la7dlive_item.plot = current_show
     patron = r"(?<!//)\bposter:\s*['\"](.*?)['\"]"
     la7dlive_item.fanart = f'{host}{re.findall(patron, html_content)[0]}'
 
@@ -227,6 +248,7 @@ def episodios(item):
                     video_url=programma_url,
                     plot=plot,
                     order=n)
+        it.action = 'findvideos'
 
         return it
 
