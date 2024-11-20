@@ -45,8 +45,18 @@ def mainlist(item):
 
 
 def live(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)]
+    la7live_item = item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True)
+    html_content = requests.get(la7live_item.url).text
+    patron = r'"thumbnail":\s*\{[^}]*"url":\s*"([^"]+)"'
+    la7live_item.fanart = re.findall(patron, html_content)[0]
+
+    la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
+    html_content = requests.get(la7dlive_item.url).text
+    patron = r"(?<!//)\bposter:\s*['\"](.*?)['\"]"
+    la7dlive_item.fanart = f'{host}{re.findall(patron, html_content)[0]}'
+
+    itemlist = [la7live_item,
+                la7dlive_item]
     return support.thumb(itemlist, live=True)
 
 
