@@ -44,15 +44,13 @@ def mainlist(item):
     search = ''
     return locals()
 
-
 def live(item):
     la7live_item = item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True)
     html_content = requests.get(la7live_item.url).text
 
     patron = r'"name":\s*"([^"]+)",\s*"description":\s*"([^"]+)",.*?"url":\s*"([^"]+)"'
     titolo, plot, image_url = re.findall(patron, html_content, re.DOTALL)[0]
-    la7live_item.fulltitle = titolo
-    la7live_item.plot = plot
+    la7live_item.plot = support.typo(titolo, 'bold') + " - " + plot
     la7live_item.fanart = image_url
     
     la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
@@ -71,10 +69,10 @@ def live(item):
         sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items())[:1]
     ) if t1 <= italian_time < t2), "No show currently playing.")
 
-    la7dlive_item.fulltitle = current_show
-    la7dlive_item.plot = current_show
+    la7dlive_item.plot = support.typo(current_show, 'bold')
     patron = r"(?<!//)\bposter:\s*['\"](.*?)['\"]"
     la7dlive_item.fanart = f'{host}{re.findall(patron, html_content)[0]}'
+
 
     itemlist = [la7live_item,
                 la7dlive_item]
@@ -219,16 +217,22 @@ def episodios(item):
             else:
                 html_content = requests.get(f'{host}{[*result_dict.values()][0]}').text
             page = 0
-        patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+        # patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+        patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
 
     matches = re.findall(patron, html_content)
 
+    visited = set()
     def itInfo(n, key, item):
         if 'la7teche' in item.url:
             programma_url, thumb, titolo, plot = key
 
         else:
-            programma_url, thumb, titolo, titolo2 = key
+            programma_url, thumb, titolo = key
+
+        if programma_url in visited: return None
+
+        visited.add(programma_url)
         programma_url = f'{host}{programma_url}'
         thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
 
