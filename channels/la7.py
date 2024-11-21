@@ -53,7 +53,7 @@ def live(item):
     la7live_item.plot = support.typo(titolo, 'bold') + " - " + plot
     la7live_item.fanart = image_url
     
-    la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
+    la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
     html_content = requests.get(la7dlive_item.url).text
 
     patron = r'<div class="orario">\s*(.*?)\s*</div>.*?<span class="dsk">\s*(.*?)\s*</span>'
@@ -196,7 +196,6 @@ def peliculas(item):
 
 
 def episodios(item):
-
     html_content = requests.get(item.url).text
 
     url_splits = item.url.split("=")
