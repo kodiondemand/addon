@@ -66,7 +66,7 @@ def years(item):
 
     from datetime import datetime
     current_year = datetime.today().year
-    oldest_year = int(support.match(response.text, patron='anime_oldest_date="([^"]+)').match)
+    oldest_year = int(support.match(response.data, patron='anime_oldest_date="([^"]+)').match)
 
     for year in list(reversed(range(oldest_year, current_year + 1))):
         item.args['year']=year
