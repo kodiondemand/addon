@@ -53,7 +53,7 @@ def genres(item):
     # support.dbg()
     itemlist = []
 
-    genres = json.loads(support.match(response.text, patron='genres="([^"]+)').match.replace('&quot;','"'))
+    genres = json.loads(support.match(response.data, patron='genres="([^"]+)').match.replace('&quot;','"'))
 
     for genre in genres:
         item.args['genres'] = [genre]
