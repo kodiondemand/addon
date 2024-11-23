@@ -65,10 +65,10 @@ def years(item):
     itemlist = []
 
     from datetime import datetime
-    current_year = datetime.today().year
+    next_year = datetime.today().year + 1
     oldest_year = int(support.match(response.data, patron='anime_oldest_date="([^"]+)').match)
 
-    for year in list(reversed(range(oldest_year, current_year + 1))):
+    for year in list(reversed(range(oldest_year, next_year + 1))):
         item.args['year']=year
         itemlist.append(item.clone(title=support.typo(year,'bold'), action='peliculas'))
     return itemlist
