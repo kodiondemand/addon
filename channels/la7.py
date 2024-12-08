@@ -3,9 +3,20 @@
 # Canale per La7
 # ------------------------------------------------------------
 
+import sys
 import requests
 from core import support, httptools
 from platformcode import logger
+from datetime import datetime, timezone, timedelta
+import html
+import re
+
+if sys.version_info[0] >= 3:
+    from concurrent import futures
+    from urllib.parse import urlencode
+else:
+    from concurrent_py2 import futures
+    from urllib import urlencode
 
 DRM = 'com.widevine.alpha'
 key_widevine = "https://la7.prod.conax.cloud/widevine/license"
@@ -33,10 +44,38 @@ def mainlist(item):
     search = ''
     return locals()
 
-
 def live(item):
-    itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True),
-                item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)]
+    la7live_item = item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/dirette-tv', action='findvideos', forcethumb = True, no_return=True)
+    html_content = requests.get(la7live_item.url).text
+
+    patron = r'"name":\s*"([^"]+)",\s*"description":\s*"([^"]+)",.*?"url":\s*"([^"]+)"'
+    titolo, plot, image_url = re.findall(patron, html_content, re.DOTALL)[0]
+    la7live_item.plot = support.typo(titolo, 'bold') + " - " + plot
+    la7live_item.fanart = image_url
+    
+    la7dlive_item = item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/live-la7d', action='findvideos', forcethumb = True, no_return=True)
+    html_content = requests.get(la7dlive_item.url).text
+
+    patron = r'<div class="orario">\s*(.*?)\s*</div>.*?<span class="dsk">\s*(.*?)\s*</span>'
+    schedule = {k:v for k,v in re.findall(patron, html_content)}
+    italy_tz = timezone(timedelta(hours=1))  # CET (Central European Time, UTC+1)
+
+    current_time_utc = datetime.now(timezone.utc)  # Get current time in UTC
+    italian_time = current_time_utc.astimezone(italy_tz).time()  # Convert to Italy time zone
+
+    current_show = next((show for (t1, show), (t2, _) in zip(
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items()),
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items())[1:] + 
+        sorted((datetime.strptime(t, "%H:%M").time(), show) for t, show in schedule.items())[:1]
+    ) if t1 <= italian_time < t2), "No show currently playing.")
+
+    la7dlive_item.plot = support.typo(current_show, 'bold')
+    patron = r"(?<!//)\bposter:\s*['\"](.*?)['\"]"
+    la7dlive_item.fanart = f'{host}{re.findall(patron, html_content)[0]}'
+
+
+    itemlist = [la7live_item,
+                la7dlive_item]
     return support.thumb(itemlist, live=True)
 
 
@@ -81,42 +120,164 @@ def search(item, text):
         return []
 
 
-@support.scrape
 def peliculas(item):
-    search = item.search
-    action = 'episodios'
-    pagination = 20
-    disabletmdb = True
-    addVideolibrary = False
-    downloadEnabled = False
+    page_size = 20
 
-    patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<t>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
+    """Split a list into chunks of size page_size."""
+    def chunk_list(lst):
+        return [lst[i:i + page_size] for i in range(0, len(lst), page_size)]
+
+    html_content = requests.get(item.url).text
 
     if 'la7teche' in item.url:
         patron = r'<a href="(?P<url>[^"]+)" title="(?P<title>[^"]+)" class="teche-i-img".*?url\(\'(?P<thumb>[^\']+)'
+    else:
+        patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<thumb>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
+    
+    matches = chunk_list(re.findall(patron, html_content))
+    url_splits = item.url.split('?')
+    page = 0 if len(url_splits)==1 else int(url_splits[1])
 
-    def itemHook(item):
-        item.fanart = item.thumb
-        return item
-    return locals()
+    def itInfo(n, key, item):
+        if 'la7teche' in item.url:
+            programma_url, titolo, thumb = key
+        else:
+            programma_url, thumb, titolo = key
+        programma_url = f'{host}{programma_url}'
+        titolo = html.unescape(titolo)
+
+        html_content = requests.get(programma_url).text
+        plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
+        if plot:
+            text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
+            plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
+        else:
+            plot = ""
+
+        regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
+        match = re.findall(regex, html_content)
+        if match:
+            fanart = match[0][1]
+        else:
+            fanart = ""
+
+        it = item.clone(title=support.typo(titolo, 'bold'),
+                    data='',
+                    fulltitle=titolo,
+                    show=titolo,
+                    thumbnail= thumb,
+                    fanart=fanart,
+                    url=programma_url,
+                    video_url=programma_url,
+                    plot=plot,
+                    order=n)
+        it.action = 'episodios'
+        it.contentSerieName = it.fulltitle
+
+        return it
+
+    itemlist = []
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches[page])]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+    itemlist.sort(key=lambda it: it.order)
+
+    if page < len(matches)-1:
+        itemlist.append(
+            item.clone(title=support.typo('Next', 'bold'),
+                        url=f'{url_splits[0]}?{page+1}',
+                        order=len(itemlist)
+                )
+            )
+
+    return itemlist
 
 
-@support.scrape
 def episodios(item):
-    action = 'findvideos'
-    addVideolibrary = False
-    downloadEnabled = False
+    html_content = requests.get(item.url).text
+
+    url_splits = item.url.split("=")
+    page = -1 if len(url_splits) == 1 else int(url_splits[-1])
 
     if 'la7teche' in item.url:
-        patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
+        # patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
+        patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
     else:
-        data = str(support.match(item.url, patron=r'"home-block home-block--oggi(.*?)</section>').matches)
-        data += httptools.downloadpage(item.url + '/video').data
+        if page == -1:
+            patron = r'<li class="voce_menu">\s*<a href="([^"]+)"[^>]*>\s*([^<]+)\s*</a>\s*</li>'
+            matches = re.findall(patron, html_content)
+            result_dict = {text.strip().lower(): href for href, text in matches}
+            if 'puntate' in result_dict:
+                html_content = requests.get(f'{host}{result_dict["puntate"]}').text
+            elif 'rivedila7' in result_dict:
+                html_content = requests.get(f'{host}{result_dict["rivedila7"]}').text
+            else:
+                html_content = requests.get(f'{host}{[*result_dict.values()][0]}').text
+            page = 0
+        # patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+        patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
 
-        patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
-    patronNext = r'<a href="([^"]+)">›'
-    return locals()
+    matches = re.findall(patron, html_content)
 
+    visited = set()
+    def itInfo(n, key, item):
+        if 'la7teche' in item.url:
+            programma_url, thumb, titolo, plot = key
+
+        else:
+            programma_url, thumb, titolo = key
+
+        if programma_url in visited: return None
+
+        visited.add(programma_url)
+        programma_url = f'{host}{programma_url}'
+        thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
+
+        plot_page = requests.get(programma_url).text
+        match = re.search(r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>', plot_page)
+        if match:
+            plot = match.group(1)
+        else:
+            plot = ""
+
+        it = item.clone(title=support.typo(titolo, 'bold'),
+                    data='',
+                    fulltitle=titolo,
+                    show=titolo,
+                    thumbnail= thumb,
+                    url=programma_url,
+                    video_url=programma_url,
+                    plot=plot,
+                    order=n)
+        it.action = 'findvideos'
+
+        return it
+
+    itemlist = []
+    with futures.ThreadPoolExecutor() as executor:
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches)]
+        for res in futures.as_completed(itlist):
+            if res.result():
+                itemlist.append(res.result())
+    itemlist.sort(key=lambda it: it.order)
+
+
+    pattern = r'<li class="pager-next"><a href="(.*?)">›</a></li>'
+    match = re.search(pattern, html_content)
+    if match:
+        next_page_link = match.group(1)
+        itemlist.append(
+            item.clone(title=support.typo('Next', 'bold'),
+                        url= f'{host}{match.group(1)}',
+                        order=len(itemlist),
+                        video_url='',
+                        thumbnail=''
+                )
+            )
+
+    return itemlist
 
 def findvideos(item):
     support.info()
@@ -128,6 +289,7 @@ def findvideos(item):
     data = support.match(item).data
 
     url = support.match(data, patron=r'''["]?dash["]?\s*:\s*["']([^"']+)["']''').match
+
     if url:
         preurl = support.match(data, patron=r'preTokenUrl = "(.+?)"').match
         tokenHeader = {
@@ -157,9 +319,12 @@ def findvideos(item):
         item.drm = DRM
         item.license = lic_url
     else:
-        match = support.match(data, patron='/content/entry/data/(.*?).mp4').match
+        match = support.match(data, patron=r'''["]?m3u8["]?\s*:\s*["']([^"']+)["']''').match
         if match:
-            url = 'https://awsvodpkg.iltrovatore.it/local/hls/,/content/entry/data/' + support.match(item, patron='/content/entry/data/(.*?).mp4').match + '.mp4.urlset/master.m3u8'
+            url = match.replace("http://la7-vh.akamaihd.net/i/", "https://awsvodpkg.iltrovatore.it/local/hls/").replace("csmil/master.m3u8", "urlset/master.m3u8");
+    
+    if url=="":
+        url = support.match(data, patron=r'''["]?mp4["]?\s*:\s*["']([^"']+)["']''').match
 
     item = item.clone(title='Direct', server='directo', url=url, action='play')
     return support.server(item, itemlist=[item], Download=False, Videolibrary=False)
