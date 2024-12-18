@@ -2498,17 +2498,7 @@ def _proxy_bypass_macosx_sysconf(host, proxy_settings):
 
 
 if sys.platform == 'darwin':
-    try:
-        from _scproxy import _get_proxy_settings, _get_proxies
-    except Exception as e:
-        from platformcode import logger
-        logger.error(str(e))
-
-        def _get_proxy_settings():
-            return {}
-
-        def _get_proxies():
-            return {}
+    from _scproxy import _get_proxy_settings, _get_proxies
 
     def proxy_bypass_macosx_sysconf(host):
         proxy_settings = _get_proxy_settings()
