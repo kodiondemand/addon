@@ -116,10 +116,8 @@ def news(item):
     support.info()
     item.contentType = 'episode'
     itemlist = []
-    import cloudscraper
-    session = cloudscraper.create_scraper()
 
-    fullJs = json.loads(support.match(session.get(item.url).text, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
+    fullJs = json.loads(support.match(httptools.downloadpage(item.url).data, headers=headers, patron=r'items-json="([^"]+)"').match.replace('&quot;','"'))
     js = fullJs['data']
 
     for it in js:
@@ -142,7 +140,7 @@ def news(item):
                            thumbnail = it['anime']['imageurl'],
                            forcethumb = True,
                            scws_id = it.get('scws_id', ''),
-                        #    video_url=it.get('link', ''),
+                           url = '{}/anime/{}-{}'.format(item.url, it['anime']['id'],it['anime']['slug']),
                            plot = it['anime']['plot'],
                            action = 'findvideos')
             )
