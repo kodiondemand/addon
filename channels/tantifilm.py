@@ -62,7 +62,7 @@ def peliculas(item):
             patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*(?:<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>\s*)?<\/a>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+?)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?).*?\)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z]+)?'
         else:
             patron = r'<div class="mediaWrap mediaWrapAlt">\s*<a href="(?P<url>[^"]+)"(?:[^>]+)?>?\s*(?:<img[^s]+src="(?P<thumb>[^"]+)"[^>]+>\s*)?<\/a>[^>]+>[^>]+>[^>]+>(?P<title>[^<]+?)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?(?:[ ]?\((?P<year>\d{4})-?(?:\d{4})?).*?\)[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>[^>]+>\s*(?P<quality>[a-zA-Z]+)?'
-        patronBlock = r'<div id="main_col">(?P<block>.*?)<!\-\- main_col \-\->'
+        patronBlock = r'<div id="dle-content">(?P<block>.*?)<!\-\- main_col \-\->'
 
     return locals()
 
