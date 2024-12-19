@@ -68,7 +68,7 @@ def peliculas(item):
 
 @support.scrape
 def episodios(item):
-    patron = r'data-num="(?P<season>.*?)x(?P<episode>.*?)"\s*data-title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?".*?<div class="mirrors"(?P<data>.*?)<!---'
+    patron = r'data-num="(?P<season>.*?)x(?P<episode>.*?)"\s*data-title="(?P<title>[^"]+)(?P<lang>[sS][uU][bB]\-[iI][tT][aA]+)?".*?<div class="mirrors"(?P<server_links>.*?)<!---'
     action = 'findvideos'
     return locals()
 
@@ -88,8 +88,8 @@ def check(item):
 
 
 def findvideos(item):
-    if item.data:
-        return support.server(item, data = item.data)
+    if item.server_links:
+        return support.server(item, data = item.server_links)
 
     video_url = support.match(item.url, patron=player_iframe).match
 
