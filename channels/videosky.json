@@ -1,0 +1,13 @@
+{
+    "id": "videosky",
+    "name": "Sky Video Italia [free]",
+    "active": true,
+    "language": ["ita"],
+    "thumbnail": "videosky.png",
+    "banner": "videosky.png",
+    "categories": ["live"],
+    "not_active": ["include_in_newest"],
+    "default_off": ["include_in_global_search"],
+    "settings": [],
+    "cloudflare": true
+}
