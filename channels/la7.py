@@ -177,11 +177,12 @@ def peliculas(item):
         return it
 
     itemlist = []
-    with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches[page])]
-        for res in futures.as_completed(itlist):
-            if res.result():
-                itemlist.append(res.result())
+    if page < len(matches):
+        with futures.ThreadPoolExecutor() as executor:
+            itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches[page])]
+            for res in futures.as_completed(itlist):
+                if res.result():
+                    itemlist.append(res.result())
     itemlist.sort(key=lambda it: it.order)
 
     if page < len(matches)-1:
@@ -215,16 +216,17 @@ def episodios(item):
             result_dict = {text: href for href, text in matches}
             itemlist = []
             for k,v in result_dict.items():
-                v = f'{host}{v}'
-                new_item = item.clone(
-                        title=support.typo(k, 'bold'),
-                        data='',
-                        fulltitle=k,
-                        show=k,
-                        url=v,
-                        plot=plot
-                    )
-                itemlist.append(new_item)
+                if(len(v.strip('/').split("/")) > 1):
+                    v = f'{host}{v}'
+                    new_item = item.clone(
+                            title=support.typo(k, 'bold'),
+                            data='',
+                            fulltitle=k,
+                            show=k,
+                            url=v,
+                            plot=plot
+                        )
+                    itemlist.append(new_item)
             return itemlist
         else:
             patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
