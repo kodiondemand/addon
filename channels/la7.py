@@ -252,7 +252,7 @@ def episodios(item):
 
 
     pattern = r'<li class="pager-next"><a href="(.*?)">›</a></li>'
-    match = re.search(pattern, html_content)
+    match = re.search(pattern, html_content[-1])
     if match:
         next_page_link = match.group(1)
         itemlist.append(
