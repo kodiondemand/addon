@@ -163,9 +163,6 @@ def peliculas(item):
 def episodios(item):
     html_content = requests.get(item.url).text
 
-    # url_splits = item.url.split("=")
-    # page = -1 if len(url_splits) == 1 else int(url_splits[-1])
-
     if 'la7teche' in item.url:
         # patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
         patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
@@ -207,8 +204,9 @@ def episodios(item):
             return itemlist
         else:
             patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
+            html_content = html_content.split('<div class="view-content clearfix">')
 
-    matches = re.findall(patron, html_content)
+    matches = re.findall(patron, html_content[-1])
 
     visited = set()
     def itInfo(n, key, item):
