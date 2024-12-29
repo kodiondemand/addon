@@ -146,13 +146,15 @@ def peliculas(item):
         programma_url = f'{host}{programma_url}'
         titolo = html.unescape(titolo)
 
-        html_content = requests.get(programma_url).text
-        plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
-        if plot:
-            text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
-            plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
-        else:
-            plot = ""
+        # html_content = requests.get(programma_url).text
+        # plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
+        # if plot:
+        #     text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
+        #     plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
+        # else:
+        #     plot = ""
+        # it is not worth to make a request just to get the plot
+        plot = ""
 
         regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
         match = re.findall(regex, html_content)
