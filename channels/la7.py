@@ -224,15 +224,14 @@ def episodios(item):
         programma_url = f'{host}{programma_url}'
         thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
 
+        # not worth to make a request just to get the plot
         # plot_page = requests.get(programma_url).text
         # match = re.search(r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>', plot_page)
         # if match:
         #     plot = match.group(1)
         # else:
         #     plot = ""
-        # not worth to make a request just to get the plot
-        plot = ""
-
+        titolo = html.unescape(titolo)
         it = item.clone(title=support.typo(titolo, 'bold'),
                     data='',
                     fulltitle=titolo,
@@ -240,7 +239,6 @@ def episodios(item):
                     thumbnail= thumb,
                     url=programma_url,
                     video_url=programma_url,
-                    plot=plot,
                     order=n)
         it.action = 'findvideos'
 
