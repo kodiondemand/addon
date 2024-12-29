@@ -121,7 +121,7 @@ def search(item, text):
 
 
 def peliculas(item):
-    page_size = 40
+    page_size = 20
 
     """Split a list into chunks of size page_size."""
     def chunk_list(lst):
