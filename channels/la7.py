@@ -121,7 +121,7 @@ def search(item, text):
 
 
 def peliculas(item):
-    page_size = 20
+    page_size = 40
 
     """Split a list into chunks of size page_size."""
     def chunk_list(lst):
@@ -146,15 +146,13 @@ def peliculas(item):
         programma_url = f'{host}{programma_url}'
         titolo = html.unescape(titolo)
 
-        # html_content = requests.get(programma_url).text
-        # plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
-        # if plot:
-        #     text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
-        #     plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
-        # else:
-        #     plot = ""
-        # it is not worth to make a request just to get the plot
-        plot = ""
+        html_content = requests.get(programma_url).text
+        plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
+        if plot:
+            text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
+            plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
+        else:
+            plot = ""
 
         regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
         match = re.findall(regex, html_content)
@@ -200,26 +198,36 @@ def peliculas(item):
 def episodios(item):
     html_content = requests.get(item.url).text
 
-    url_splits = item.url.split("=")
-    page = -1 if len(url_splits) == 1 else int(url_splits[-1])
+    # url_splits = item.url.split("=")
+    # page = -1 if len(url_splits) == 1 else int(url_splits[-1])
 
     if 'la7teche' in item.url:
         # patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
         patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
     else:
-        if page == -1:
+        if len(item.url.split('www.la7.it')[-1].strip('/').split("/")) == 1:
             patron = r'<li class="voce_menu">\s*<a href="([^"]+)"[^>]*>\s*([^<]+)\s*</a>\s*</li>'
             matches = re.findall(patron, html_content)
-            result_dict = {text.strip().lower(): href for href, text in matches}
-            if 'puntate' in result_dict:
-                html_content = requests.get(f'{host}{result_dict["puntate"]}').text
-            elif 'rivedila7' in result_dict:
-                html_content = requests.get(f'{host}{result_dict["rivedila7"]}').text
-            else:
-                html_content = requests.get(f'{host}{[*result_dict.values()][0]}').text
-            page = 0
-        # patron = r'item[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
-        patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
+
+            div_content = re.search(r'<div class="testo">(.*?)</div>', html_content, re.DOTALL)
+            plot = re.sub(r'<.*?>', ' ', div_content.group(1)).strip() if div_content else ""
+
+            result_dict = {text: href for href, text in matches}
+            itemlist = []
+            for k,v in result_dict.items():
+                v = f'{host}{v}'
+                new_item = item.clone(
+                        title=support.typo(k, 'bold'),
+                        data='',
+                        fulltitle=k,
+                        show=k,
+                        url=v,
+                        plot=plot
+                    )
+                itemlist.append(new_item)
+            return itemlist
+        else:
+            patron = r'<div class="[^"]*">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>'
 
     matches = re.findall(patron, html_content)
 
@@ -237,12 +245,14 @@ def episodios(item):
         programma_url = f'{host}{programma_url}'
         thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
 
-        plot_page = requests.get(programma_url).text
-        match = re.search(r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>', plot_page)
-        if match:
-            plot = match.group(1)
-        else:
-            plot = ""
+        # plot_page = requests.get(programma_url).text
+        # match = re.search(r'<div[^>]*class="[^"]*occhiello[^"]*"[^>]*>(.*?)</div>', plot_page)
+        # if match:
+        #     plot = match.group(1)
+        # else:
+        #     plot = ""
+        # not worth to make a request just to get the plot
+        plot = ""
 
         it = item.clone(title=support.typo(titolo, 'bold'),
                     data='',
