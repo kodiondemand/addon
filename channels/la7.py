@@ -138,6 +138,9 @@ def peliculas(item):
             programma_url, titolo, thumb = key
         else:
             programma_url, thumb, titolo = key
+
+        if not thumb.startswith("https://"):
+            thumb = f'{host}{thumb}'
         programma_url = f'{host}{programma_url}'
         titolo = html.unescape(titolo)
 
