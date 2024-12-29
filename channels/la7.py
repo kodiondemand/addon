@@ -121,11 +121,6 @@ def search(item, text):
 
 
 def peliculas(item):
-    page_size = 20
-
-    """Split a list into chunks of size page_size."""
-    def chunk_list(lst):
-        return [lst[i:i + page_size] for i in range(0, len(lst), page_size)]
 
     html_content = requests.get(item.url).text
 
@@ -134,11 +129,11 @@ def peliculas(item):
     else:
         patron = r'<a href="(?P<url>[^"]+)"[^>]+><div class="[^"]+" data-background-image="(?P<thumb>[^"]+)"></div><div class="titolo">\s*(?P<title>[^<]+)<'
     
-    matches = chunk_list(re.findall(patron, html_content))
+    matches = re.findall(patron, html_content)
     url_splits = item.url.split('?')
-    page = 0 if len(url_splits)==1 else int(url_splits[1])
 
-    def itInfo(n, key, item):
+    itemlist = []
+    for n, key in enumerate(matches):
         if 'la7teche' in item.url:
             programma_url, titolo, thumb = key
         else:
@@ -146,52 +141,18 @@ def peliculas(item):
         programma_url = f'{host}{programma_url}'
         titolo = html.unescape(titolo)
 
-        html_content = requests.get(programma_url).text
-        plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
-        if plot:
-            text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
-            plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
-        else:
-            plot = ""
-
-        regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
-        match = re.findall(regex, html_content)
-        if match:
-            fanart = match[0][1]
-        else:
-            fanart = ""
-
         it = item.clone(title=support.typo(titolo, 'bold'),
                     data='',
                     fulltitle=titolo,
                     show=titolo,
                     thumbnail= thumb,
-                    fanart=fanart,
                     url=programma_url,
                     video_url=programma_url,
-                    plot=plot,
                     order=n)
         it.action = 'episodios'
         it.contentSerieName = it.fulltitle
 
-        return it
-
-    itemlist = []
-    if page < len(matches):
-        with futures.ThreadPoolExecutor() as executor:
-            itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches[page])]
-            for res in futures.as_completed(itlist):
-                if res.result():
-                    itemlist.append(res.result())
-    itemlist.sort(key=lambda it: it.order)
-
-    if page < len(matches)-1:
-        itemlist.append(
-            item.clone(title=support.typo('Next', 'bold'),
-                        url=f'{url_splits[0]}?{page+1}',
-                        order=len(itemlist)
-                )
-            )
+        itemlist.append(it)
 
     return itemlist
 
@@ -207,11 +168,23 @@ def episodios(item):
         patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
     else:
         if len(item.url.split('www.la7.it')[-1].strip('/').split("/")) == 1:
+
+            plot = re.search(r'<div class="testo">.*?</div>', html_content, re.DOTALL)[0]
+            if plot:
+                text = re.sub(r'<[^>]+>', '\n', plot)   # Replace tags with newline
+                plot = re.sub(r'\n+', '\n', text).strip('\n')  # Collapse multiple newlines and remove leading/trailing ones
+            else:
+                plot = ""
+
+            regex = r'background-image:url\((\'|")([^\'"]+)(\'|")\);'
+            match = re.findall(regex, html_content)
+            if match:
+                fanart = match[0][1]
+            else:
+                fanart = ""
+
             patron = r'<li class="voce_menu">\s*<a href="([^"]+)"[^>]*>\s*([^<]+)\s*</a>\s*</li>'
             matches = re.findall(patron, html_content)
-
-            div_content = re.search(r'<div class="testo">(.*?)</div>', html_content, re.DOTALL)
-            plot = re.sub(r'<.*?>', ' ', div_content.group(1)).strip() if div_content else ""
 
             result_dict = {text: href for href, text in matches}
             itemlist = []
@@ -224,7 +197,8 @@ def episodios(item):
                             fulltitle=k,
                             show=k,
                             url=v,
-                            plot=plot
+                            plot=plot,
+                            fanart=fanart
                         )
                     itemlist.append(new_item)
             return itemlist
