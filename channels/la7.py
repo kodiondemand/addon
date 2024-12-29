@@ -208,22 +208,10 @@ def episodios(item):
 
         if "?page=" not in item.url: # if first page check for la settimana
             matches = re.findall(r'<div class="item">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>', html_content[0])
-            for n,key in enumerate(matches):
-                programma_url, thumb, titolo = key
-                titolo = html.unescape(titolo)
-                it = item.clone(title=support.typo(titolo, 'bold'),
-                            data='',
-                            fulltitle=titolo,
-                            show=titolo,
-                            thumbnail= thumb,
-                            url=programma_url,
-                            video_url=programma_url,
-                            order=n)
-                it.action = 'findvideos'
-                print(key)
-                itemlist.append(it)
+        else:
+            matches = []
 
-    matches = re.findall(patron, html_content[-1])
+    matches = matches + re.findall(patron, html_content[-1])
 
     visited = set()
     def itInfo(n, key, item):
@@ -259,7 +247,7 @@ def episodios(item):
         return it
 
     with futures.ThreadPoolExecutor() as executor:
-        itlist = [executor.submit(itInfo, n+len(itemlist), it, item) for n, it in enumerate(matches)]
+        itlist = [executor.submit(itInfo, n, it, item) for n, it in enumerate(matches)]
         for res in futures.as_completed(itlist):
             if res.result():
                 itemlist.append(res.result())
