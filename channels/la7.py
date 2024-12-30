@@ -220,7 +220,8 @@ def episodios(item):
             matches = re.findall(r'<div class="item">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>', html_content[0])
         html_content = html_content[-1]
 
-    matches = matches + re.findall(patron, html_content)
+    matches = matches + re.findall(patron, html_content, re.DOTALL)
+    print(matches)
 
     visited = set()
     def itInfo(n, key, item):
@@ -246,7 +247,6 @@ def episodios(item):
         # else:
         #     plot = ""
         titolo = html.unescape(titolo)
-        print(plot)
         it = item.clone(title=support.typo(titolo, 'bold'),
                     data='',
                     fulltitle=titolo,
