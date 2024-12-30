@@ -237,7 +237,7 @@ def episodios(item):
         if programma_url in visited: return None
 
         visited.add(programma_url)
-        programma_url = f'{host}{programma_url}'
+        programma_url = f'{"https://tg.la7.it" if "tgla7" in item.url else host}{programma_url}'
         thumb = 'https://'+thumb[2:] if thumb.startswith("//") else thumb
 
         # not worth to make a request just to get the plot
