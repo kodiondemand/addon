@@ -218,10 +218,9 @@ def episodios(item):
 
         if "?page=" not in item.url: # if first page check for la settimana
             matches = re.findall(r'<div class="item">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>', html_content[0])
-            
         html_content = html_content[-1]
 
-    matches = matches + re.findall(patron, html_content, re.DOTALL)
+    matches = matches + re.findall(patron, html_content)
 
     visited = set()
     def itInfo(n, key, item):
@@ -231,6 +230,7 @@ def episodios(item):
             programma_url, thumb, titolo, plot = key
         else:
             programma_url, thumb, titolo = key
+            plot = ""
 
         if programma_url in visited: return None
 
@@ -246,6 +246,7 @@ def episodios(item):
         # else:
         #     plot = ""
         titolo = html.unescape(titolo)
+        print(plot)
         it = item.clone(title=support.typo(titolo, 'bold'),
                     data='',
                     fulltitle=titolo,
