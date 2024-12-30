@@ -39,6 +39,7 @@ def mainlist(item):
             ('Replay {bold}', ['', 'replay_channels'])]
 
     menu = [('Programmi TV {bullet bold}', ['/tutti-i-programmi', 'peliculas', '', 'tvshow']),
+            ('Tg La7 {bullet bold}', ['/tgla7', 'episodios', '', 'tvshow']),
             ('Teche La7 {bullet bold}', ['/la7teche', 'peliculas', '', 'tvshow'])]
 
     search = ''
@@ -108,6 +109,7 @@ def replay(item):
         return item
     return locals()
 
+
 def search(item, text):
     item.url = host + '/tutti-i-programmi'
     item.search = text
@@ -161,12 +163,20 @@ def peliculas(item):
 
 
 def episodios(item):
-    html_content = requests.get(item.url).text
-    itemlist = []
+    if item.url.endswith('/tgla7'):
+        html_content = requests.get('https://tg.la7.it/ultime-edizioni-del-tgla7').text
+    else:
+        html_content = requests.get(item.url).text
 
+    itemlist = []
+    matches = []
+    
     if 'la7teche' in item.url:
         # patron = r'<a href="(?P<url>[^"]+)">\s*<div class="holder-bg">.*?data-background-image="(?P<thumb>[^"]+)(?:[^>]+>){4}\s*(?P<title>[^<]+)(?:(?:[^>]+>){2}\s*(?P<plot>[^<]+))?'
         patron = r'[^>]+>\s*<a href="(?P<url>[^"]+)">.*?image="(?P<thumb>[^"]+)(?:[^>]+>){4,5}\s*(?P<title>[\d\w][^<]+)(?:(?:[^>]+>){7}\s*(?P<title2>[\d\w][^<]+))?'
+    elif 'tgla7' in item.url:
+        # patron = r'<a href="(?P<url>[^"]+)"[^>]+data-bg="(?P<thumb>[^"]+)"[^>]*>[^>]*>(?P<title>[^<]+)</a>.*?<div class="news-descrizione">\s*(?P<plot>[^<]+)<'
+        patron = r'<a href="(?P<url>[^"]+)"[^>]+data-bg="(?P<thumb>[^"]+)".*?</a>.*?<h4 class="news-title">\s*<a [^>]*>(?P<title>[^<]+)</a>.*?<div class="news-descrizione">\s*(?P<plot>[^<]+)\s*<'
     else:
         if len(item.url.split('www.la7.it')[-1].strip('/').split("/")) == 1:
 
@@ -208,14 +218,16 @@ def episodios(item):
 
         if "?page=" not in item.url: # if first page check for la settimana
             matches = re.findall(r'<div class="item">.*?<a href="(?P<url>[^"]+)">.*?data-background-image="(?P<image>//[^"]+)"[^>]*>.*?<div class="title[^"]*">\s*(?P<title>[^<]+)\s*</div>', html_content[0])
-        else:
-            matches = []
+            
+        html_content = html_content[-1]
 
-    matches = matches + re.findall(patron, html_content[-1])
+    matches = matches + re.findall(patron, html_content, re.DOTALL)
 
     visited = set()
     def itInfo(n, key, item):
         if 'la7teche' in item.url:
+            programma_url, thumb, titolo, plot = key
+        elif 'tgla7' in item.url:
             programma_url, thumb, titolo, plot = key
         else:
             programma_url, thumb, titolo = key
@@ -241,6 +253,7 @@ def episodios(item):
                     thumbnail= thumb,
                     url=programma_url,
                     video_url=programma_url,
+                    plot = plot if plot != "" else item.plot,
                     order=n)
         it.action = 'findvideos'
 
@@ -255,7 +268,7 @@ def episodios(item):
 
 
     pattern = r'<li class="pager-next"><a href="(.*?)">›</a></li>'
-    match = re.search(pattern, html_content[-1])
+    match = re.search(pattern, html_content)
     if match:
         next_page_link = match.group(1)
         itemlist.append(
@@ -268,6 +281,7 @@ def episodios(item):
             )
 
     return itemlist
+
 
 def findvideos(item):
     support.info()
