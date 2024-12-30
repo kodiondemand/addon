@@ -83,7 +83,7 @@ def replay_channels(item):
     itemlist = [item.clone(title=support.typo('La7', 'bold'), fulltitle='La7', url= host + '/rivedila7/0/la7', action='replay_menu', forcethumb = True),
                 item.clone(title=support.typo('La7d', 'bold'), fulltitle='La7d', url= host + '/rivedila7/0/la7d', action='replay_menu', forcethumb = True)]
     itemlist = support.thumb(itemlist, live=True)
-    itemlist.append(item.clone(title=support.typo('TG La7', 'bold'), fulltitle='TG La7', url= host + '/tgla7', action='episodios', thumbnail='https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/TGLA7.svg/1200px-TGLA7.svg.png'))
+    itemlist.append(item.clone(title=support.typo('TG La7', 'bold'), fulltitle='TG La7', plot='Informazione a cura della redazione del TG LA7', url= host + '/tgla7', action='episodios', thumbnail='https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/TGLA7.svg/1200px-TGLA7.svg.png'))
     return itemlist
 
 
